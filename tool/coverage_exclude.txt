@@ -1,0 +1,4 @@
+# Dateien ohne Unit-Test-Abdeckung – nur reine Startpunkte, die ausschließlich
+# getestete Funktionen aufrufen. Jede Zeile: Pfad ab Workspace-Wurzel.
+packages/app/lib/main.dart
+packages/server/bin/server.dart
