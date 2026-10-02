@@ -5,3 +5,4 @@ coverage/
 .idea/
 *.iml
 .vscode/
+mutation-test-report/

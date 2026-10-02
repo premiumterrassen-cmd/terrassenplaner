@@ -33,7 +33,7 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/1
 - [x] **M0-02 Unit-Tests mit Abdeckungs-Gate 100 %** ([#2](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/2)) – `feature/m0-02-unit-tests-mit-abdeckungs-gate-100`
   - Abdeckung für alle Pakete messen (lcov), zusammenführen und hart prüfen. Generierter Code wird ausgeschlossen, alles andere zählt.
   - Abnahme: Skript `tool/coverage` liefert Gesamtwert und bricht unter 100 % mit Fehler ab; Bericht als Build-Artefakt
-- [ ] **M0-03 Mutation-Tests mit Ziel ≥ 95 %** ([#3](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/3)) – `feature/m0-03-mutation-tests-mit-ziel-95`
+- [x] **M0-03 Mutation-Tests mit Ziel ≥ 95 %** ([#3](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/3)) – `feature/m0-03-mutation-tests-mit-ziel-95`
   - Werkzeug für Mutation-Tests in Dart auswählen und begründen (Erkenntnis in docs/), auf die Unit-Test-Suite anwenden, Mutation-Score messen.
   - Abnahme: Mutation-Score wird je Paket berichtet; Gate in der Build-Chain (Startwert dokumentiert, Ziel 95 %); Laufzeit für PRs vertretbar (ggf. nur geänderte Dateien)
 - [ ] **M0-04 Frontend-Smoke-Tests headless in Chrome** ([#4](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/4)) – `feature/m0-04-frontend-smoke-tests-headless-in-chrome`
