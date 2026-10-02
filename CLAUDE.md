@@ -21,6 +21,14 @@ Verbindliche Projektregeln für die Arbeit an diesem Repository. Sie gelten für
 - Artikeldaten kommen aus dem Blatt „Import Terrassenplaner“ der Master-Artikelliste (`Robinienwelt/Analyse Claude`). Ins Repository gelangen nur Verkaufsdaten – niemals Einstandspreise, Werks-EK, Lieferanten oder Margen.
 - Testdaten aus echten Planungsunterlagen nur anonymisiert (keine Namen, Adressen, Telefonnummern, E-Mails).
 - Fachliche Regeln der Firma stehen in den Skills robinienwelt-unternehmensprofil, robinienwelt-sortimentsmatrix-2027 und robinienwelt-beschluesse; Beschlussnummern (B-xxx) in Code-Kommentaren und Tests nennen, wo eine Regel umgesetzt wird.
+- **Beschlussregister:** `Robinienwelt/Analyse Claude/Beschluesse_RobinienWelt_vN.md` – immer die höchste Versionsnummer gilt (Stand 02.10.2026: v30). Vor fachlichen Entscheidungen lesen; widerspricht etwas einem Beschluss mit Status „gilt“, Alexander mit Nummer und Wortlaut fragen statt abzuweichen. Für den Planer besonders relevant:
+  - B-122: Master-Artikelliste ist die eine Quelle; in den Planer nur Artikel mit „im Planer = ja“.
+  - B-152 / B-065 / B-123: Artikelnummern, Titel und Preise im Planer wie im Shop (Titelschema v10, PREMIUM überall 10-10-xxx-R).
+  - B-055: GrandTotal ist führende Preisquelle, Planer-Preise sind nur Anzeige.
+  - B-079: Freidielen im Planer fest ab 25 Dielen.
+  - B-094 / B-150 / B-074 / B-153: Befestigung (CLIP-FIXX bis < 100 mm, DUO-CLIP-FIXX für PREMIUM SELECT ab 100 mm, Schrauben im Clip-Lieferumfang, CLIP-FIXX-Preise bleiben).
+  - B-030–B-036: Sortiment, Längen je Werk, UK-Breite/Stärke tauschbar, keine einseitig genuteten Dielen.
+  - B-020 / B-021 / B-023: Vertraulichkeit (Lieferanten, EK, Spediteur/Lager, Hersteller der Eigenmarken) – nie in Oberfläche, PDF oder Export.
 
 ## Repository und Branches
 
