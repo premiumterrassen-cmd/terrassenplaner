@@ -49,8 +49,16 @@ tool/benchmark.sh                    # Feature-Benchmarks, Vergleich mit dem Vor
 
 ## Benchmarks
 
-Jedes performancerelevante Feature bekommt einen Benchmark in `packages/<paket>/benchmark/<name>_benchmark.dart` (`benchmark_harness`, Name im Format `<paket>.<Thema>`). `tool/benchmark.sh` führt alle aus, schreibt `benchmark-results/<umgebung>.json` und vergleicht mit `benchmarks/baseline-<umgebung>.json` (Umgebung `BENCH_ENV`, Standard `lokal`, in der Build-Chain `ci`; Schwelle `BENCH_THRESHOLD`, Standard 20 %). `--strict` lässt den Lauf bei Verschlechterung scheitern, `--update-baseline` speichert neue Vorwerte (bewusst committen). Transport-Benchmarks des WAMP-Routers mit `connectanum_bench` folgen mit M0-07.
+Jedes performancerelevante Feature bekommt einen Benchmark in `packages/<paket>/benchmark/<name>_benchmark.dart` (`benchmark_harness`, Name im Format `<paket>.<Thema>`). `tool/benchmark.sh` führt alle aus, schreibt `benchmark-results/<umgebung>.json` und vergleicht mit `benchmarks/baseline-<umgebung>.json` (Umgebung `BENCH_ENV`, Standard `lokal`, in der Build-Chain `ci`; Schwelle `BENCH_THRESHOLD`, Standard 20 %). `--strict` lässt den Lauf bei Verschlechterung scheitern, `--update-baseline` speichert neue Vorwerte (bewusst committen). Der Router hat einen eigenen Rundlauf-Benchmark (`server.Router.rpcRundlauf`); `connectanum_bench` ist ein internes Werkzeug des connectanum-Projekts und wird nicht genutzt (siehe docs/erkenntnisse/wamp-router.md).
 
 ## Build-Chain
 
 `.github/workflows/build-chain.yml` läuft bei jedem Push: Format und Analyse, Unit-Tests mit 100-%-Abdeckung, Mutation-Tests, Smoke-Tests headless in Chrome, Benchmarks (`BENCH_ENV=ci`) und – wenn alles grün ist – Build von Web-App und Server. Berichte und Build-Ergebnisse liegen als Artefakte am Lauf. Bis zum Go-Live wird erst nach grünem Lauf auf dem Feature-Branch lokal nach `main` gemergt.
+
+## Server starten
+
+```bash
+(cd packages/server && dart run bin/server.dart)
+```
+
+Umgebungsvariablen (alle optional): `PLANER_HOST` (127.0.0.1), `PLANER_PORT` (8080), `PLANER_WS_PFAD` (/ws), `PLANER_REALM` (de.robinienwelt.terrassenplaner), `PLANER_HEALTH_LISTEN` (127.0.0.1:8081). Health-Prüfung: `curl http://127.0.0.1:8081/healthz`.

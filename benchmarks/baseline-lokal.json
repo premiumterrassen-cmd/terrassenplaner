@@ -1,7 +1,8 @@
 {
-  "erstellt": "2026-10-02T13:02:23",
+  "erstellt": "2026-10-02T13:16:40",
   "einheit": "µs je Durchlauf",
   "werte": {
-    "domain.ProjektInfo.titel": 633.706
+    "domain.ProjektInfo.titel": 634.214,
+    "server.Router.rpcRundlauf": 5148.38560411311
   }
 }
