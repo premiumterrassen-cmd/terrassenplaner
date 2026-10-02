@@ -42,7 +42,7 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/1
 - [x] **M0-05 Benchmark-Rahmen** ([#5](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/5)) – `feature/m0-05-benchmark-rahmen`
   - Einheitlicher Rahmen für Feature-Benchmarks (Fachlogik) plus Transport-Benchmarks mit `connectanum_bench`; Ergebnisse versioniert ablegen und gegen Vorwert vergleichen.
   - Abnahme: Beispiel-Benchmark läuft lokal und in CI; Ergebnisse als JSON-Artefakt, Verschlechterung > Schwelle wird gemeldet
-- [ ] **M0-06 Build-Chain (GitHub Actions)** ([#6](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/6)) – `feature/m0-06-build-chain-github-actions`
+- [x] **M0-06 Build-Chain (GitHub Actions)** ([#6](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/6)) – `feature/m0-06-build-chain-github-actions`
   - Pipeline für Push und PR: Format, Analyse, Unit-Tests + Abdeckung, Mutation-Tests, Smoke-Tests, Benchmarks, Build Web-App und Server-Artefakt.
   - Abnahme: Alle Schritte grün auf `main`; Bis Go-Live lokaler Merge nach grüner Pipeline auf dem Feature-Branch; Branch-Schutz (Merge nur per PR) wird beim Go-Live (M10-03) aktiviert
 - [ ] **M0-07 WAMP-Router aufsetzen** ([#7](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/7)) – `feature/m0-07-wamp-router-aufsetzen` · Benchmark
