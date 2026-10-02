@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mutation-Tests für packages/app (Werkzeug: mutation_test, Begründung in docs/erkenntnisse/mutation-tests.md). -->
+<mutations version="1.2">
+  <directories>
+    <directory recursive="true">packages/app/lib
+      <matching pattern="\.dart$"/>
+    </directory>
+  </directories>
+  <commands>
+    <command group="test" expected-return="0" working-directory="packages/app" timeout="300">flutter test</command>
+  </commands>
+  <exclude>
+    <token begin="//" end="\n"/>
+    <token begin="export &apos;" end="&apos;;"/>
+    <token begin="import &apos;" end="&apos;;"/>
+    <token begin="part &apos;" end="&apos;;"/>
+    <token begin="part of &apos;" end="&apos;;"/>
+    <regex pattern="/[*].*?[*]/" dotAll="true"/>
+    <regex pattern="\+\+"/>
+    <regex pattern="--"/>
+    <regex pattern="[\s]for[\s]*\(.*?\)[\s]*{" dotAll="true"/>
+    <regex pattern="[\s]while[\s]*\(.*?\)[\s]*{.*?}" dotAll="true"/>
+    <file>packages/app/lib/main.dart</file>
+    <file>**/*.g.dart</file>
+  </exclude>
+  <!-- Qualitätsschwelle: Ziel 95 % erkannte Mutationen (CLAUDE.md). -->
+  <threshold failure="95">
+    <rating over="95" name="A"/>
+    <rating over="80" name="B"/>
+    <rating over="60" name="C"/>
+    <rating over="40" name="D"/>
+    <rating over="20" name="E"/>
+    <rating over="0" name="F"/>
+  </threshold>
+</mutations>

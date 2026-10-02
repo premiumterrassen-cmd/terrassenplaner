@@ -33,7 +33,7 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/1
 - [x] **M0-02 Unit-Tests mit Abdeckungs-Gate 100 %** ([#2](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/2)) – `feature/m0-02-unit-tests-mit-abdeckungs-gate-100`
   - Abdeckung für alle Pakete messen (lcov), zusammenführen und hart prüfen. Generierter Code wird ausgeschlossen, alles andere zählt.
   - Abnahme: Skript `tool/coverage` liefert Gesamtwert und bricht unter 100 % mit Fehler ab; Bericht als Build-Artefakt
-- [ ] **M0-03 Mutation-Tests mit Ziel ≥ 95 %** ([#3](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/3)) – `feature/m0-03-mutation-tests-mit-ziel-95`
+- [x] **M0-03 Mutation-Tests mit Ziel ≥ 95 %** ([#3](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/3)) – `feature/m0-03-mutation-tests-mit-ziel-95`
   - Werkzeug für Mutation-Tests in Dart auswählen und begründen (Erkenntnis in docs/), auf die Unit-Test-Suite anwenden, Mutation-Score messen.
   - Abnahme: Mutation-Score wird je Paket berichtet; Gate in der Build-Chain (Startwert dokumentiert, Ziel 95 %); Laufzeit für PRs vertretbar (ggf. nur geänderte Dateien)
 - [ ] **M0-04 Frontend-Smoke-Tests headless in Chrome** ([#4](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/4)) – `feature/m0-04-frontend-smoke-tests-headless-in-chrome`
@@ -138,6 +138,9 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/4
 - [ ] **M3-07 Mehrsprachigkeit vorbereiten** ([#30](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/30)) – `feature/m3-07-mehrsprachigkeit-vorbereiten`
   - Alle Texte über Übersetzungsdateien (Deutsch zuerst); der alte Planer hat eine Sprachauswahl.
   - Abnahme: Keine fest im Code stehenden Oberflächentexte
+- [ ] **M3-08 Ladebildschirm mit echtem Fortschritt** ([#90](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/90)) – `feature/m3-08-ladebildschirm-mit-echtem-fortschritt` · Benchmark
+  - Vorbild https://www.dls-gmbh.biz/mein-essen (nur Verfahren): HTML-Ladebildschirm in `web/index.html` mit Hintergrundbild, Karte, Fortschrittsbalken und Prozent; echter Fortschritt aus beim Build erzeugter Größenliste der Startdateien und mitgezählten Bytes; Statusphasen, Langsam/Offline/Fehler mit „Erneut versuchen“; Ausblenden nach erstem Bild.
+  - Abnahme: sofort sichtbar; Prozent monoton bis 100 % auch mit Cache; Größenliste automatisch im Build; Fehlerzustände getestet; barrierefrei
 
 ## M4 Grundriss
 
