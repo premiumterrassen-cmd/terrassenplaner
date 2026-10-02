@@ -18,6 +18,13 @@ Verbindliche Projektregeln für die Arbeit an diesem Repository. Sie gelten für
 - Upgrade: eigener Branch `feature/connectanum-<version>`, alle connectanum-Pakete gemeinsam auf dieselbe Version, Changelog lesen und neue Möglichkeiten bewerten (z. B. FlatBuffers-Serialisierung für Zero-Copy), alle Gates grün, Benchmarks mit Vorwert vergleichen, Erkenntnis in `docs/erkenntnisse/`.
 - Probleme oder Wünsche an connectanum direkt Alexander melden statt im Projekt umgehen.
 
+## Architektur und Daten
+
+- **Sternstruktur (Vorgabe Alexander 02.10.2026):** Das Frontend arbeitet ausschließlich über die WAMP-Router mit den Backend-Diensten; nur diese greifen auf die Datenbank zu.
+- **Frontend bleibt „doof“:** keine Fachdaten im Browser, lokal nur Bedienungseinstellungen (Darkmode, Sprache, Sitzungsschlüssel).
+- **Datenbank: ObjectBox** im Backend. Regeln aus `docs/architektur/datenmodell.md` gelten für jede Entität: globale `uid` (UUIDv7) statt ObjectBox-`@Id` nach außen, fachliche Schlüssel (Artikelnummer, Konfigurationsnummer + Version), Partitionsschlüssel, unveränderliche Versionen, HLC-Zeitstempel + Knoten, Grabsteine, Änderungsprotokoll in derselben Transaktion, Schema-Version.
+- Die verteilte Datenhaltung (Sync über WAMP) ist ein später Meilenstein (M11) und wird erst bei Performance-Bedarf umgesetzt – bis dahin nur die Schlüssel sauber halten.
+
 ## Roadmap und Issues
 
 - Planung in GitHub-Meilensteinen (M0–M10) mit konkreten Issues; eine Kopie steht in `ROADMAP.md`, damit neue Chats den Stand schnell erfassen. Bei jeder Änderung beides pflegen.

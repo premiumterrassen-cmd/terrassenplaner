@@ -10,6 +10,12 @@ Führend ist GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/mil
 - Technik: Flutter (Web), Dart-Server mit `connectanum_router` und `connectanum_auth_server`, Client `connectanum_client` (alle 3.0.0-beta.5, auf 3.0.0 umstellen, sobald stabil).
 - Im alten Planer abgeschaltete Funktionen (3D-Ansicht, Grundriss-Upload, Podest, Gehrungsschnitt der Form, Rahmendielen, eigene UK, Teilen) sind **nicht** Teil der Kopie.
 
+## Architektur
+
+- **Sternstruktur:** Frontend ↔ WAMP-Router ↔ Backend-Dienste auf unserem Server; nur das Backend spricht die Datenbank an.
+- **Frontend bleibt „doof“:** lokal nur Bedienungseinstellungen (Darkmode, Sprache).
+- **Datenbank: ObjectBox** im Backend; Schlüssel und Änderungsprotokoll von Anfang an für eine spätere Verteilung (M11) – Details in `docs/architektur/datenmodell.md`.
+
 ## Quellen
 
 - Artikeldaten: `Robinienwelt/Analyse Claude/Master-Artikelliste_v14.xlsx`, Blatt „Import Terrassenplaner“ (nur Verkaufsdaten, nie Einstandspreise).
@@ -69,6 +75,9 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/1
 - [ ] **M0-14 Überwachung WAMP-Server und Datenbank** ([#92](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/92)) – `feature/m0-14-ueberwachung-wamp-server-und-datenbank`
   - Alle WAMP-Server (OpenMetrics `/metrics` mit Token, `/healthz`, automatische Erkennung), Datenbank-Exporter (sobald Datenbank festgelegt, M9-05), node_exporter, Traefik-Metriken; Dashboards; Alarme (Ausfall, Health, Platte, Zertifikat) per E-Mail.
   - Abnahme: jeder WAMP-Server „up“, Ausfall löst Alarm aus; DB-Metriken sichtbar; Dashboards gefüllt; Metrik-Endpunkte nicht öffentlich
+- [ ] **M0-15 ObjectBox im Backend einrichten** ([#93](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/93)) – `feature/m0-15-objectbox-im-backend` · Benchmark
+  - ObjectBox als Datenbank des Backends (Vorgabe Alexander 02.10.2026); nur Backend-Dienste greifen zu, das Frontend nie direkt (Sternstruktur über die Router). - `objectbox` im Paket `server` (bzw. eigenes Paket `datenhaltung`), Datenverzeichnis über `PLANER_DATENVERZEICHNIS`. · Gemeinsame Basisfelder für alle Entitäten nach docs/architektur/datenmodell.md: `uid` (UUIDv7, eindeutig), `partition`, HLC-Zeitstempel, `knoten`, `geloeschtAm` (Grabstein), `schema`. ObjectBox-`@Id` bleibt intern. · **Änderungsprotokoll** ab Tag 1: jede schreibende Transaktion schreibt `(knoten, seq, entität, uid, partition, hlc, art)` in derselben Transaktion. · Native ObjectBox-Bibliothek für Dart ohne Flutter bereitstellen: lokal, in der Build-Chain und im Deployment (Ansible/Container) – Bezugsquelle und Version festhalten. · Konsistente Sicherung (Datei-Snapshot bei angehaltenem Schreiben oder ObjectBox-Mechanismus) und Wiederherstellung. · Kennzahlen für M0-14 (Größe, Transaktionsdauer, Fehler, Protokoll-Sequenz).
+  - Abnahme: Store startet mit konfiguriertem Datenverzeichnis, lokal und in CI; Basisfelder und Änderungsprotokoll mit Tests (Lückenlosigkeit der Sequenz, Grabsteine); Sicherung und Wiederherstellung getestet; Native Bibliothek in CI und Deployment reproduzierbar bereitgestellt
 
 ## M1 Fachkonzept & Prüfdaten
 
@@ -147,6 +156,9 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/4
 - [ ] **M3-08 Ladebildschirm mit echtem Fortschritt** ([#90](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/90)) – `feature/m3-08-ladebildschirm-mit-echtem-fortschritt` · Benchmark
   - Vorbild https://www.dls-gmbh.biz/mein-essen (nur Verfahren): HTML-Ladebildschirm in `web/index.html` mit Hintergrundbild, Karte, Fortschrittsbalken und Prozent; echter Fortschritt aus beim Build erzeugter Größenliste der Startdateien und mitgezählten Bytes; Statusphasen, Langsam/Offline/Fehler mit „Erneut versuchen“; Ausblenden nach erstem Bild.
   - Abnahme: sofort sichtbar; Prozent monoton bis 100 % auch mit Cache; Größenliste automatisch im Build; Fehlerzustände getestet; barrierefrei
+- [ ] **M3-09 Lokale Bedienungseinstellungen (Darkmode, Sprache)** ([#94](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/94)) – `feature/m3-09-lokale-einstellungen`
+  - Das Frontend bleibt „doof“ (Vorgabe Alexander 02.10.2026): einzig lokal im Browser gespeichert werden Bedienungseinstellungen – Darkmode (hell/dunkel/System), Sprache, zuletzt geöffnete Konfigurationsnummer bzw. Sitzungsschlüssel für „Weiterplanen“. Keine Fachdaten im Browser.
+  - Abnahme: Darkmode umschaltbar, folgt standardmäßig dem System, bleibt nach Neuladen erhalten; Sprache bleibt erhalten (M3-07); Speicher fehlt/gesperrt (privates Fenster) → App funktioniert mit Standardwerten
 
 ## M4 Grundriss
 
@@ -370,3 +382,34 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/11
 - [ ] **M10-05 Statistik und Datenschutz** ([#88](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/88)) – `feature/m10-05-statistik-und-datenschutz`
   - Entscheidung zu Webanalyse und Cookie-Hinweis (alter Planer nutzt eine Analyse des Agenturanbieters).
   - Abnahme: Entscheidung Alexander umgesetzt
+
+## M11 Verteilte Datenhaltung (bei Bedarf)
+
+Erst wenn das Monitoring Performance-Bedarf zeigt: ObjectBox-Daten über mehrere Knoten verteilen und per WAMP synchronisieren (Schlüssel und Änderungsprotokoll sind ab M0-15 vorbereitet).
+
+GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/12
+
+- [ ] **M11-01 Auslöser und Zielwerte für die Verteilung** ([#95](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/95)) – `feature/m11-01-ausloeser-verteilung` · Benchmark
+  - Aus Monitoring (M0-14) und Lasttest (M10-02) festlegen, ab wann verteilt wird (z. B. RPC-Latenz, CPU, Speicher, Datenbankgröße) und welche Zielwerte die Verteilung erreichen muss.
+  - Abnahme: Kriterien und Zielwerte dokumentiert und von Alexander freigegeben; Alarm in Grafana, wenn Kriterium erreicht
+- [ ] **M11-02 Replikation der Referenzdaten** ([#96](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/96)) – `feature/m11-02-replikation-referenzdaten` · Benchmark
+  - Artikel, Regeln, Datenstand, Benutzer (Partition `global`): ein Schreiber, Verteilung an alle Knoten per WAMP-Pub/Sub aus dem Änderungsprotokoll, Nachholen per RPC ab Sequenznummer, Lückenerkennung, idempotentes Anwenden.
+  - Abnahme: Neuer Knoten holt vollständigen Stand nach; Verlorene Ereignisse werden erkannt und nachgeholt; Doppelte Ereignisse ändern nichts
+- [ ] **M11-03 Partitionierung der Bewegungsdaten** ([#97](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/97)) – `feature/m11-03-partitionierung` · Benchmark
+  - Konfigurationen samt Versionen, Ergebnissen und Anfragen nach Partition (Konfigurationsnummer) auf Knoten verteilen (konsistentes Hashing); RPCs über die Router-Sternstruktur zum Eigentümer-Knoten leiten.
+  - Abnahme: Jede Partition hat genau einen Eigentümer; Umverteilung bei neuem Knoten ohne Datenverlust; Frontend merkt nichts von der Verteilung
+- [ ] **M11-04 Konfigurationsnummern je Knoten** ([#98](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/98)) – `feature/m11-04-nummernbloecke`
+  - Nummernblöcke je Knoten und Tag für `JJJJ-MM-TT-NNNN`, damit ohne zentrale Abstimmung eindeutige Nummern entstehen (Format bleibt 1:1).
+  - Abnahme: Keine doppelte Nummer bei parallelem Anlegen auf mehreren Knoten (Test); Block-Erschöpfung wird gemeldet und behandelt
+- [ ] **M11-05 Lesekopien und Ausfallsicherheit** ([#99](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/99)) – `feature/m11-05-lesekopien` · Benchmark
+  - Lesekopien je Partition, Umschalten bei Ausfall des Eigentümer-Knotens, Wiederanlauf mit Nachholen aus dem Änderungsprotokoll.
+  - Abnahme: Ausfall eines Knotens: Lesen läuft weiter, Schreiben nach Umschalten; Kein Datenverlust nach Wiederanlauf (Test)
+- [ ] **M11-06 Konfliktlösung bei mehreren Schreibern** ([#100](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/100)) – `feature/m11-06-konfliktloesung`
+  - Nur falls mehrere Schreiber je Partition nötig werden: HLC-basierte Regel „jüngste Änderung gewinnt“ je Feld; unveränderliche Versionen bleiben konfliktfrei.
+  - Abnahme: Konfliktfälle mit Tests abgedeckt; Entscheidung „brauchen wir das?“ dokumentiert
+- [ ] **M11-07 Monitoring der Replikation** ([#101](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/101)) – `feature/m11-07-monitoring-replikation`
+  - Rückstand je Knoten (Sequenz-Differenz), Nachhol-Dauer, Konflikte in Prometheus/Grafana mit Alarmen.
+  - Abnahme: Dashboard Replikation; Alarm bei Rückstand über Schwelle
+- [ ] **M11-08 Deployment mehrerer Knoten** ([#102](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/102)) – `feature/m11-08-deployment-mehrere-knoten`
+  - Ansible/Container für mehrere Backend-Knoten und Router (Sternstruktur), getestet mit Molecule.
+  - Abnahme: Mehrknoten-Szenario in Molecule grün; Knoten hinzufügen/entfernen dokumentiert
