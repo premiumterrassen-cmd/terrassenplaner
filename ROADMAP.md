@@ -30,7 +30,7 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/1
 - [x] **M0-01 Workspace anlegen: App, Server, gemeinsames Fachmodul** ([#1](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/1)) – `feature/m0-01-workspace-anlegen-app-server-gemeinsames`
   - Dart/Flutter-Workspace mit drei Paketen: `app` (Flutter Web), `server` (Dart, WAMP-Router + Auth + Dienste), `domain` (reine Fachlogik ohne UI/IO, von App und Server genutzt). Abhängigkeiten auf connectanum 3.0.0-beta.5 (`connectanum_client`, `connectanum_router`, `connectanum_auth_server`).
   - Abnahme: `dart analyze` ohne Hinweise mit strengem Lint-Set; Jedes Paket hat mindestens einen Test; README beschreibt Aufbau und lokale Befehle
-- [ ] **M0-02 Unit-Tests mit Abdeckungs-Gate 100 %** ([#2](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/2)) – `feature/m0-02-unit-tests-mit-abdeckungs-gate-100`
+- [x] **M0-02 Unit-Tests mit Abdeckungs-Gate 100 %** ([#2](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/2)) – `feature/m0-02-unit-tests-mit-abdeckungs-gate-100`
   - Abdeckung für alle Pakete messen (lcov), zusammenführen und hart prüfen. Generierter Code wird ausgeschlossen, alles andere zählt.
   - Abnahme: Skript `tool/coverage` liefert Gesamtwert und bricht unter 100 % mit Fehler ab; Bericht als Build-Artefakt
 - [ ] **M0-03 Mutation-Tests mit Ziel ≥ 95 %** ([#3](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/3)) – `feature/m0-03-mutation-tests-mit-ziel-95`

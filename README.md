@@ -25,6 +25,11 @@ dart format --set-exit-if-changed .  # Formatierung prüfen
 (cd packages/domain && dart test)
 (cd packages/server && dart test)
 (cd packages/app && flutter test)
+tool/coverage.sh                     # Unit-Tests aller Pakete mit Abdeckung, bricht unter 100 % ab
 (cd packages/server && dart run bin/server.dart)
 (cd packages/app && flutter run -d chrome)
 ```
+
+## Abdeckung
+
+`tool/coverage.sh` misst die Abdeckung je Paket, führt sie in `coverage/lcov.info` zusammen und bricht ab, wenn eine Zeile ungetestet ist oder eine Quelldatei mit Code in keinem Bericht auftaucht. Ausnahmen (nur reine Startpunkte) stehen begründet in `tool/coverage_exclude.txt`.
