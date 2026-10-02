@@ -61,7 +61,7 @@ Jedes performancerelevante Feature bekommt einen Benchmark in `packages/<paket>/
 (cd packages/server && dart run bin/server.dart)
 ```
 
-Umgebungsvariablen (alle optional): `PLANER_HOST` (127.0.0.1), `PLANER_PORT` (8080), `PLANER_WS_PFAD` (/ws), `PLANER_REALM` (de.robinienwelt.terrassenplaner), `PLANER_HEALTH_LISTEN` (127.0.0.1:8081). Health-Prüfung: `curl http://127.0.0.1:8081/healthz`.
+Umgebungsvariablen (alle optional): `PLANER_HOST` (127.0.0.1), `PLANER_PORT` (8080), `PLANER_WS_PFAD` (/ws), `PLANER_REALM` (de.robinienwelt.terrassenplaner), `PLANER_HEALTH_LISTEN` (127.0.0.1:8081), `PLANER_AUTH_LISTEN` (127.0.0.1:8082, intern für den Auth-Server), `PLANER_MITARBEITER_DATEI` (JSON-Liste der Mitarbeiter-Zugänge; Eintrag erzeugen mit `dart run bin/mitarbeiter_zugang.dart <authid>`). Rollen und Rechte: [docs/erkenntnisse/authentifizierung.md](docs/erkenntnisse/authentifizierung.md). Health-Prüfung: `curl http://127.0.0.1:8081/healthz`.
 
 ## connectanum-Versionen
 

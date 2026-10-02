@@ -54,7 +54,7 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/1
 - [x] **M0-07 WAMP-Router aufsetzen** ([#7](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/7)) – `feature/m0-07-wamp-router-aufsetzen` · Benchmark
   - `connectanum_router` (3.0.0-beta.5) als Server-Prozess mit Konfiguration (Realm, Transport WebSocket, Serialisierung), Healthcheck und Logging.
   - Abnahme: Router startet mit Konfigurationsdatei; Client aus Test verbindet sich, ruft RPC auf, empfängt Event; Healthcheck-Endpunkt für Deployment
-- [ ] **M0-08 Authentifizierung mit connectanum_auth_server** ([#8](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/8)) – `feature/m0-08-authentifizierung-mit-connectanum-auth-s` · Benchmark
+- [~] **M0-08 Authentifizierung mit connectanum_auth_server** ([#8](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/8)) – `feature/m0-08-authentifizierung-mit-connectanum-auth-s` · Benchmark
   - Auth-Konzept: Kunden anonym mit eingeschränkter Rolle; Mitarbeiter mit Anmeldung (der alte Planer hat eine Login-Funktion). Rollen und erlaubte RPC/Topics je Rolle festlegen.
   - Abnahme: Anonymer Client darf nur Kunden-RPCs; Angemeldeter Mitarbeiter darf zusätzlich Mitarbeiter-RPCs; Tests für erlaubte und verbotene Aufrufe
 - [ ] **M0-09 Ansible: Deployment Root-Server und Container** ([#9](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/9)) – `feature/m0-09-ansible-deployment-root-server-und-conta`
