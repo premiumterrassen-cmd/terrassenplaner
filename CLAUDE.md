@@ -6,8 +6,21 @@ Verbindliche Projektregeln für die Arbeit an diesem Repository. Sie gelten für
 
 - Der neue Terrassenplaner von ALTO HOLZ.
 - Repository: https://github.com/premiumterrassen-cmd/terrassenplaner (privat), Standard-Branch `main`.
-- Frontend: Flutter.
-- Basissoftware: `connectanum` (Dart, WAMP) in der neuesten Beta-Version; sobald `3.0.0` stabil erscheint, wird auf `3.0.0` umgestellt. Stand 02.10.2026: neueste Beta `3.0.0-beta.5`.
+- Ziel: Nachbau des bestehenden Terrassenkonfigurators https://terrassenkonfigurator.robinienwelt.de/ als **funktionale und inhaltliche 1:1-Kopie**, Schritt für Schritt (gleiche Schritte, Optionen, Standardwerte, Regeln, Ergebnisse).
+- **Keine technische Kopie:** Von der alten Seite werden weder Code noch Architektur, Datenstrukturen oder Programmierkonzepte übernommen. Fachliche Quellen sind nur die Bedienung, die sichtbaren Texte/Optionen und die Ergebnisse (Planungsunterlagen, Exporte). Der Programmcode der alten Seite wird nicht analysiert.
+- Frontend: Flutter (Web).
+- Basissoftware: connectanum (Dart, WAMP) in der neuesten Beta-Version; sobald `3.0.0` stabil erscheint, wird auf `3.0.0` umgestellt. Stand 02.10.2026: `3.0.0-beta.5`. Verwendet werden `connectanum_client` (App), `connectanum_router` (eigener WAMP-Router) und `connectanum_auth_server` (Authentifizierung); für Transport-Benchmarks `connectanum_bench`.
+
+## Roadmap und Issues
+
+- Planung in GitHub-Meilensteinen (M0–M10) mit konkreten Issues; eine Kopie steht in `ROADMAP.md`, damit neue Chats den Stand schnell erfassen. Bei jeder Änderung beides pflegen.
+- Jedes Issue nennt seinen Feature-Branch; der Pull Request schließt das Issue (`Closes #<nr>`), der Status in `ROADMAP.md` wird im selben PR aktualisiert.
+
+## Daten und Vertraulichkeit
+
+- Artikeldaten kommen aus dem Blatt „Import Terrassenplaner“ der Master-Artikelliste (`Robinienwelt/Analyse Claude`). Ins Repository gelangen nur Verkaufsdaten – niemals Einstandspreise, Werks-EK, Lieferanten oder Margen.
+- Testdaten aus echten Planungsunterlagen nur anonymisiert (keine Namen, Adressen, Telefonnummern, E-Mails).
+- Fachliche Regeln der Firma stehen in den Skills robinienwelt-unternehmensprofil, robinienwelt-sortimentsmatrix-2027 und robinienwelt-beschluesse; Beschlussnummern (B-xxx) in Code-Kommentaren und Tests nennen, wo eine Regel umgesetzt wird.
 
 ## Repository und Branches
 
@@ -50,5 +63,5 @@ Verbindliche Projektregeln für die Arbeit an diesem Repository. Sie gelten für
 
 ## Dokumentation (folgt)
 
-- `ROADMAP.md` – wird später angelegt.
+- `ROADMAP.md` – angelegt (Kopie der GitHub-Meilensteine und Issues).
 - `docs/` – wird später angelegt; dort werden aktuelle Projektverläufe zwischengespeichert sowie Erkenntnisse aus Tests und Versuchen abgelegt.
