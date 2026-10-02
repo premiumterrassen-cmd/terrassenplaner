@@ -1,5 +1,7 @@
 # Terrassenplaner (ALTO HOLZ)
 
+[![Build-Chain](https://github.com/premiumterrassen-cmd/terrassenplaner/actions/workflows/build-chain.yml/badge.svg)](https://github.com/premiumterrassen-cmd/terrassenplaner/actions/workflows/build-chain.yml)
+
 Neuer Terrassenplaner – funktionaler Nachbau von https://terrassenkonfigurator.robinienwelt.de/. Regeln: [CLAUDE.md](CLAUDE.md), Plan: [ROADMAP.md](ROADMAP.md).
 
 ## Aufbau (Dart-Workspace)
@@ -48,3 +50,7 @@ tool/benchmark.sh                    # Feature-Benchmarks, Vergleich mit dem Vor
 ## Benchmarks
 
 Jedes performancerelevante Feature bekommt einen Benchmark in `packages/<paket>/benchmark/<name>_benchmark.dart` (`benchmark_harness`, Name im Format `<paket>.<Thema>`). `tool/benchmark.sh` führt alle aus, schreibt `benchmark-results/<umgebung>.json` und vergleicht mit `benchmarks/baseline-<umgebung>.json` (Umgebung `BENCH_ENV`, Standard `lokal`, in der Build-Chain `ci`; Schwelle `BENCH_THRESHOLD`, Standard 20 %). `--strict` lässt den Lauf bei Verschlechterung scheitern, `--update-baseline` speichert neue Vorwerte (bewusst committen). Transport-Benchmarks des WAMP-Routers mit `connectanum_bench` folgen mit M0-07.
+
+## Build-Chain
+
+`.github/workflows/build-chain.yml` läuft bei jedem Push: Format und Analyse, Unit-Tests mit 100-%-Abdeckung, Mutation-Tests, Smoke-Tests headless in Chrome, Benchmarks (`BENCH_ENV=ci`) und – wenn alles grün ist – Build von Web-App und Server. Berichte und Build-Ergebnisse liegen als Artefakte am Lauf. Bis zum Go-Live wird erst nach grünem Lauf auf dem Feature-Branch lokal nach `main` gemergt.

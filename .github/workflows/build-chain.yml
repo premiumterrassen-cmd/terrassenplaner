@@ -1,0 +1,138 @@
+# Build-Chain des Terrassenplaners (M0-06): läuft bei jedem Push und jedem Pull Request.
+name: Build-Chain
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: build-chain-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: "3.47.6"
+
+jobs:
+  analyse:
+    name: Format und Analyse
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: dart format --output=none --set-exit-if-changed .
+      - run: dart analyze --fatal-infos
+
+  unit-tests:
+    name: Unit-Tests mit Abdeckung (100 %)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: tool/coverage.sh
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: abdeckung
+          path: coverage/
+          if-no-files-found: ignore
+
+  mutation-tests:
+    name: Mutation-Tests (≥ 95 %)
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: tool/mutation.sh
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: mutation-tests
+          path: mutation-test-report/
+          if-no-files-found: ignore
+
+  smoke-tests:
+    name: Frontend-Smoke-Tests (headless Chrome)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: stable
+          install-chromedriver: true
+      - run: flutter pub get
+      - name: Smoke-Tests
+        env:
+          CHROME_EXECUTABLE: ${{ steps.chrome.outputs.chrome-path }}
+        run: |
+          export PATH="$(dirname '${{ steps.chrome.outputs.chromedriver-path }}'):$PATH"
+          tool/smoke.sh
+
+  benchmarks:
+    name: Benchmarks
+    runs-on: ubuntu-latest
+    env:
+      BENCH_ENV: ci
+    steps:
+      - uses: actions/checkout@v7
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: tool/benchmark.sh
+      - uses: actions/upload-artifact@v7
+        with:
+          name: benchmarks
+          path: benchmark-results/
+
+  build:
+    name: Build Web-App und Server
+    needs: [analyse, unit-tests, mutation-tests, smoke-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Web-App bauen
+        working-directory: packages/app
+        run: flutter build web --release
+      - name: Server bauen
+        working-directory: packages/server
+        run: |
+          dart build cli --target=bin/server.dart --output=build/server
+      - uses: actions/upload-artifact@v7
+        with:
+          name: web-app
+          path: packages/app/build/web/
+      - uses: actions/upload-artifact@v7
+        with:
+          name: server
+          path: packages/server/build/server/
