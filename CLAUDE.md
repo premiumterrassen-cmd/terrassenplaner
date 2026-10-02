@@ -11,6 +11,13 @@ Verbindliche Projektregeln für die Arbeit an diesem Repository. Sie gelten für
 - Frontend: Flutter (Web).
 - Basissoftware: connectanum (Dart, WAMP) in der neuesten Beta-Version; sobald `3.0.0` stabil erscheint, wird auf `3.0.0` umgestellt. Stand 02.10.2026: `3.0.0-beta.5`. Verwendet werden `connectanum_client` (App), `connectanum_router` (eigener WAMP-Router) und `connectanum_auth_server` (Authentifizierung). (`connectanum_bench` ist ein internes Werkzeug des connectanum-Projekts mit Rust-Orchestrator und wird nicht genutzt; Router-Benchmarks sind eigene `benchmark_harness`-Benchmarks.)
 
+## connectanum-Versionen
+
+- Alexander ist Maintainer von connectanum und baut u. a. FlatBuffers als Serialisierer ein. Neue Versionen (auch Betas) werden **sofort übernommen**.
+- Überwachung: `.github/workflows/connectanum-versionen.yml` prüft täglich pub.dev (`tool/connectanum_versionen.py`) und legt je neuer Version ein Issue mit Label `connectanum-update` an. **Zu Beginn jeder Arbeitssitzung offene `connectanum-update`-Issues prüfen und zuerst erledigen.**
+- Upgrade: eigener Branch `feature/connectanum-<version>`, alle connectanum-Pakete gemeinsam auf dieselbe Version, Changelog lesen und neue Möglichkeiten bewerten (z. B. FlatBuffers-Serialisierung für Zero-Copy), alle Gates grün, Benchmarks mit Vorwert vergleichen, Erkenntnis in `docs/erkenntnisse/`.
+- Probleme oder Wünsche an connectanum direkt Alexander melden statt im Projekt umgehen.
+
 ## Roadmap und Issues
 
 - Planung in GitHub-Meilensteinen (M0–M10) mit konkreten Issues; eine Kopie steht in `ROADMAP.md`, damit neue Chats den Stand schnell erfassen. Bei jeder Änderung beides pflegen.

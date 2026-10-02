@@ -62,3 +62,7 @@ Jedes performancerelevante Feature bekommt einen Benchmark in `packages/<paket>/
 ```
 
 Umgebungsvariablen (alle optional): `PLANER_HOST` (127.0.0.1), `PLANER_PORT` (8080), `PLANER_WS_PFAD` (/ws), `PLANER_REALM` (de.robinienwelt.terrassenplaner), `PLANER_HEALTH_LISTEN` (127.0.0.1:8081). Health-Prüfung: `curl http://127.0.0.1:8081/healthz`.
+
+## connectanum-Versionen
+
+`tool/connectanum_versionen.py` vergleicht die aufgelösten connectanum-Versionen mit pub.dev (mit `--issue`: legt ein GitHub-Issue an). Der Workflow `connectanum-versionen.yml` führt das täglich aus.
