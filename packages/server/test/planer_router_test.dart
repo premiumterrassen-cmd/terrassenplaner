@@ -6,15 +6,27 @@ import 'dart:io';
 
 import 'package:connectanum_client/connectanum.dart';
 import 'package:connectanum_client/json.dart';
+import 'package:connectanum_router/auth.dart';
 import 'package:terrassenplaner_server/terrassenplaner_server.dart';
 import 'package:test/test.dart';
+
+import 'hilfen.dart';
 
 void main() {
   late PlanerRouter router;
 
   setUpAll(() async {
-    router = PlanerRouter.starte(
-      const RouterEinstellungen(port: 0, healthListen: '127.0.0.1:0'),
+    router = await PlanerRouter.starte(
+      await testEinstellungen(),
+      mitarbeiter: MitarbeiterVerzeichnis([
+        const MitarbeiterZugang(
+          authId: 'anna',
+          salt: 'c2FsdA==',
+          iterationen: 4096,
+          storedKey: 'stored',
+          serverKey: 'server',
+        ),
+      ]),
     );
     await Future<void>.delayed(const Duration(milliseconds: 500));
   });
@@ -34,16 +46,16 @@ void main() {
   }
 
   test('Client ruft einen registrierten Dienst auf', () async {
-    final dienst = await verbinde();
+    final dienst = await router.dienstSitzung('test-dienst');
     final kunde = await verbinde();
-    final registrierung = await dienst.register('de.robinienwelt.test.echo');
+    final registrierung = await dienst.register('${Rollen.kundeUri}test.echo');
     registrierung.onInvoke(
       (aufruf) =>
           aufruf.respondWith(arguments: ['pong:${aufruf.arguments!.first}']),
     );
 
     final ergebnis = await kunde.callSingle(
-      'de.robinienwelt.test.echo',
+      '${Rollen.kundeUri}test.echo',
       arguments: ['ping'],
     );
     expect(ergebnis.arguments, ['pong:ping']);
@@ -54,14 +66,13 @@ void main() {
 
   test('Client empfängt ein veröffentlichtes Ereignis', () async {
     final empfaenger = await verbinde();
-    final sender = await verbinde();
-    final abo = await empfaenger.subscribe('de.robinienwelt.test.ereignis');
+    final sender = await router.dienstSitzung('test-sender');
+    final abo = await empfaenger.subscribe('${Rollen.kundeUri}test.ereignis');
     final erstes = abo.eventStream!.first;
 
     await sender.publish(
-      'de.robinienwelt.test.ereignis',
+      '${Rollen.kundeUri}test.ereignis',
       arguments: ['hallo'],
-      options: PublishOptions(acknowledge: true),
     );
     final ereignis = await erstes.timeout(const Duration(seconds: 10));
     expect(ereignis.arguments, ['hallo']);
@@ -69,6 +80,24 @@ void main() {
     await sender.close();
     await empfaenger.close();
   });
+
+  test(
+    'übergebene Mitarbeiter-Zugänge stehen dem Auth-Server bereit',
+    () async {
+      final zugang = await AuthCredentialRegistry.loadScram(
+        realmUri: RouterEinstellungen.standardRealm,
+        authId: 'anna',
+      );
+      expect(zugang!.storedKey, 'stored');
+      expect(
+        await AuthCredentialRegistry.loadScram(
+          realmUri: RouterEinstellungen.standardRealm,
+          authId: 'bob',
+        ),
+        isNull,
+      );
+    },
+  );
 
   test('Health-Endpunkt meldet Bereitschaft', () async {
     final http = HttpClient();

@@ -9,6 +9,7 @@ environment:
 
 dependencies:
   connectanum_auth_server: 3.0.0-beta.5
+  connectanum_core: 3.0.0-beta.5
   connectanum_router: 3.0.0-beta.5
   terrassenplaner_domain: ^0.1.0
 

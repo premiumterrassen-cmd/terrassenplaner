@@ -3,9 +3,20 @@ import 'dart:io';
 
 import 'package:terrassenplaner_server/terrassenplaner_server.dart';
 
+/// Mitarbeiter-Zugänge aus `PLANER_MITARBEITER_DATEI` (JSON), sonst keine.
+MitarbeiterVerzeichnis _mitarbeiter() {
+  final datei = Platform.environment['PLANER_MITARBEITER_DATEI'];
+  return datei == null
+      ? MitarbeiterVerzeichnis.leer()
+      : MitarbeiterVerzeichnis.ausDatei(datei);
+}
+
 Future<void> main() async {
   final einstellungen = RouterEinstellungen.ausUmgebung(Platform.environment);
-  final router = PlanerRouter.starte(einstellungen);
+  final router = await PlanerRouter.starte(
+    einstellungen,
+    mitarbeiter: _mitarbeiter(),
+  );
   stdout.writeln(
     '${startMeldung()} – WAMP ws://${einstellungen.host}:'
     '${router.webSocketPort}${einstellungen.webSocketPfad}, '

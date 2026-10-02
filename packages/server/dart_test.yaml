@@ -1,0 +1,3 @@
+# Die native Transportschicht von connectanum gibt es nur einmal je Prozess –
+# Testdateien mit Router deshalb nacheinander ausführen.
+concurrency: 1
