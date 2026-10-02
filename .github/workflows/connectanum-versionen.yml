@@ -1,0 +1,23 @@
+# Täglich prüfen, ob es neue connectanum-Versionen (inkl. Beta) gibt; legt je
+# neuer Version ein Issue mit Label „connectanum-update“ an.
+name: connectanum-Versionen
+
+on:
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  pruefen:
+    name: Neue connectanum-Version?
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: pub.dev abfragen und ggf. Issue anlegen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tool/connectanum_versionen.py --issue
