@@ -1,0 +1,11 @@
+name: terrassenplaner_domain
+description: Fachlogik des Terrassenplaners – ohne Oberfläche und ohne Ein-/Ausgabe.
+publish_to: none
+version: 0.1.0
+resolution: workspace
+
+environment:
+  sdk: ^3.13.5
+
+dev_dependencies:
+  test: ^1.26.0
