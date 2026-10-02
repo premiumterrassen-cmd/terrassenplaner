@@ -28,6 +28,7 @@ dart format --set-exit-if-changed .  # Formatierung prüfen
 tool/coverage.sh                     # Unit-Tests aller Pakete mit Abdeckung, bricht unter 100 % ab
 tool/mutation.sh                     # Mutation-Tests aller Pakete, bricht unter 95 % ab
 tool/smoke.sh                        # Frontend-Smoke-Tests headless in Chrome
+tool/benchmark.sh                    # Feature-Benchmarks, Vergleich mit dem Vorwert
 (cd packages/server && dart run bin/server.dart)
 (cd packages/app && flutter run -d chrome)
 ```
@@ -43,3 +44,7 @@ tool/smoke.sh                        # Frontend-Smoke-Tests headless in Chrome
 ## Frontend-Smoke-Tests
 
 `tool/smoke.sh` startet `chromedriver` und führt jede Datei in `packages/app/integration_test/` per `flutter drive` headless in Chrome aus (Exit-Code 1 bei Fehler).
+
+## Benchmarks
+
+Jedes performancerelevante Feature bekommt einen Benchmark in `packages/<paket>/benchmark/<name>_benchmark.dart` (`benchmark_harness`, Name im Format `<paket>.<Thema>`). `tool/benchmark.sh` führt alle aus, schreibt `benchmark-results/<umgebung>.json` und vergleicht mit `benchmarks/baseline-<umgebung>.json` (Umgebung `BENCH_ENV`, Standard `lokal`, in der Build-Chain `ci`; Schwelle `BENCH_THRESHOLD`, Standard 20 %). `--strict` lässt den Lauf bei Verschlechterung scheitern, `--update-baseline` speichert neue Vorwerte (bewusst committen). Transport-Benchmarks des WAMP-Routers mit `connectanum_bench` folgen mit M0-07.

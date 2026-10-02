@@ -6,3 +6,4 @@ coverage/
 *.iml
 .vscode/
 mutation-test-report/
+benchmark-results/

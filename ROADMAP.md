@@ -39,7 +39,7 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/1
 - [x] **M0-04 Frontend-Smoke-Tests headless in Chrome** ([#4](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/4)) – `feature/m0-04-frontend-smoke-tests-headless-in-chrome`
   - Flutter-Frontend-Tests (`integration_test`) gegen die Web-App, headless in Chrome, lokal und in der Build-Chain.
   - Abnahme: Ein Smoke-Test startet die App und prüft den Eingangsdialog; Läuft headless in der CI
-- [ ] **M0-05 Benchmark-Rahmen** ([#5](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/5)) – `feature/m0-05-benchmark-rahmen`
+- [x] **M0-05 Benchmark-Rahmen** ([#5](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/5)) – `feature/m0-05-benchmark-rahmen`
   - Einheitlicher Rahmen für Feature-Benchmarks (Fachlogik) plus Transport-Benchmarks mit `connectanum_bench`; Ergebnisse versioniert ablegen und gegen Vorwert vergleichen.
   - Abnahme: Beispiel-Benchmark läuft lokal und in CI; Ergebnisse als JSON-Artefakt, Verschlechterung > Schwelle wird gemeldet
 - [ ] **M0-06 Build-Chain (GitHub Actions)** ([#6](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/6)) – `feature/m0-06-build-chain-github-actions`
