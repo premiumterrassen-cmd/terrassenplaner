@@ -54,6 +54,7 @@ Verbindliche Projektregeln für die Arbeit an diesem Repository. Sie gelten für
 - Ziele: der Root-Server **und** containerbasierte Systeme – dasselbe Ansible-Setup muss beides können.
 - Das Ansible-Setup wird getestet (Lint und automatisierte Tests gegen beide Zielarten), bevor es produktiv läuft.
 - Deployment erfolgt aus der Build-Chain heraus, nicht von Hand.
+- **Zielserver (Root-Server):** `v2202610430314532119.happysrv.de` (IP 62.83.40.123), Debian 13 „trixie“, 2 Kerne, 3,8 GB RAM, 62 GB Platte; Stand 02.10.2026 frisch: Python 3.13 vorhanden, kein Docker/Podman/Traefik, nur Port 22 offen. Zugang per SSH als `root` mit Schlüssel (lokaler SSH-Alias `happysrv`). Passwort-Anmeldung ist noch an – Abschalten (nur Schlüssel) gehört ins Ansible-Setup. Das automatische Deployment aus der Build-Chain bekommt einen eigenen Deploy-Schlüssel.
 - **Reverse Proxy: Traefik** (Vorgabe Alexander 02.10.2026) – auf dem Root-Server und im Container-Betrieb gleichermaßen; die Ansible-Rollen richten Traefik mit ein.
   - TLS-Zertifikate automatisch über **Let's Encrypt** (ACME-Resolver in Traefik), automatische Verlängerung; HTTP wird auf HTTPS umgeleitet.
   - Traefik ist der einzige von außen erreichbare Dienst (Ports 80/443); WAMP-Router, Server-Dienste und Web-App laufen nur intern dahinter. WebSocket-Verbindungen für WAMP laufen über Traefik.
