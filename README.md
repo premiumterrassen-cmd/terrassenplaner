@@ -14,7 +14,7 @@ Neuer Terrassenplaner – funktionaler Nachbau von https://terrassenkonfigurator
 
 ## Voraussetzungen
 
-Flutter (stable, getestet mit 3.47.6 / Dart 3.13.5), Chrome für Web und Smoke-Tests.
+Flutter (stable, getestet mit 3.47.6 / Dart 3.13.5), Chrome für Web und Smoke-Tests, dazu ein zur Chrome-Hauptversion passender `chromedriver` (offiziell von „Chrome for Testing“; das Homebrew-Cask ist seit 01.09.2026 gesperrt). `tool/smoke.sh` sucht ihn auch in `~/.local/bin`.
 
 ## Befehle
 
@@ -27,6 +27,7 @@ dart format --set-exit-if-changed .  # Formatierung prüfen
 (cd packages/app && flutter test)
 tool/coverage.sh                     # Unit-Tests aller Pakete mit Abdeckung, bricht unter 100 % ab
 tool/mutation.sh                     # Mutation-Tests aller Pakete, bricht unter 95 % ab
+tool/smoke.sh                        # Frontend-Smoke-Tests headless in Chrome
 (cd packages/server && dart run bin/server.dart)
 (cd packages/app && flutter run -d chrome)
 ```
@@ -38,3 +39,7 @@ tool/mutation.sh                     # Mutation-Tests aller Pakete, bricht unter
 ## Mutation-Tests
 
 `tool/mutation.sh [paket …]` führt `mutation_test` je Paket mit `tool/mutation/<paket>.xml` aus (Schwelle 95 %, Bericht in `mutation-test-report/<paket>`). Werkzeugwahl und Erkenntnisse: [docs/erkenntnisse/mutation-tests.md](docs/erkenntnisse/mutation-tests.md).
+
+## Frontend-Smoke-Tests
+
+`tool/smoke.sh` startet `chromedriver` und führt jede Datei in `packages/app/integration_test/` per `flutter drive` headless in Chrome aus (Exit-Code 1 bei Fehler).

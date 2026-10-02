@@ -36,7 +36,7 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/1
 - [x] **M0-03 Mutation-Tests mit Ziel ≥ 95 %** ([#3](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/3)) – `feature/m0-03-mutation-tests-mit-ziel-95`
   - Werkzeug für Mutation-Tests in Dart auswählen und begründen (Erkenntnis in docs/), auf die Unit-Test-Suite anwenden, Mutation-Score messen.
   - Abnahme: Mutation-Score wird je Paket berichtet; Gate in der Build-Chain (Startwert dokumentiert, Ziel 95 %); Laufzeit für PRs vertretbar (ggf. nur geänderte Dateien)
-- [ ] **M0-04 Frontend-Smoke-Tests headless in Chrome** ([#4](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/4)) – `feature/m0-04-frontend-smoke-tests-headless-in-chrome`
+- [x] **M0-04 Frontend-Smoke-Tests headless in Chrome** ([#4](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/4)) – `feature/m0-04-frontend-smoke-tests-headless-in-chrome`
   - Flutter-Frontend-Tests (`integration_test`) gegen die Web-App, headless in Chrome, lokal und in der Build-Chain.
   - Abnahme: Ein Smoke-Test startet die App und prüft den Eingangsdialog; Läuft headless in der CI
 - [ ] **M0-05 Benchmark-Rahmen** ([#5](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/5)) – `feature/m0-05-benchmark-rahmen`
