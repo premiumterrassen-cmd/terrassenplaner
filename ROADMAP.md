@@ -27,7 +27,7 @@ Repository-Struktur, Qualitätsschwellen, Build- und Deployment-Chain, WAMP-Rout
 
 GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/1
 
-- [ ] **M0-01 Workspace anlegen: App, Server, gemeinsames Fachmodul** ([#1](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/1)) – `feature/m0-01-workspace-anlegen-app-server-gemeinsames`
+- [x] **M0-01 Workspace anlegen: App, Server, gemeinsames Fachmodul** ([#1](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/1)) – `feature/m0-01-workspace-anlegen-app-server-gemeinsames`
   - Dart/Flutter-Workspace mit drei Paketen: `app` (Flutter Web), `server` (Dart, WAMP-Router + Auth + Dienste), `domain` (reine Fachlogik ohne UI/IO, von App und Server genutzt). Abhängigkeiten auf connectanum 3.0.0-beta.5 (`connectanum_client`, `connectanum_router`, `connectanum_auth_server`).
   - Abnahme: `dart analyze` ohne Hinweise mit strengem Lint-Set; Jedes Paket hat mindestens einen Test; README beschreibt Aufbau und lokale Befehle
 - [ ] **M0-02 Unit-Tests mit Abdeckungs-Gate 100 %** ([#2](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/2)) – `feature/m0-02-unit-tests-mit-abdeckungs-gate-100`

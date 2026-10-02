@@ -1,0 +1,9 @@
+# Flutter-Lints zusätzlich zu den gemeinsamen Regeln des Workspaces.
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - build/**
+    - web/**
+include:
+  - package:flutter_lints/flutter.yaml
+  - ../../analysis_options.yaml

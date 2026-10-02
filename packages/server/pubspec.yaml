@@ -1,0 +1,16 @@
+name: terrassenplaner_server
+description: Server des Terrassenplaners – WAMP-Router, Authentifizierung und Dienste.
+publish_to: none
+version: 0.1.0
+resolution: workspace
+
+environment:
+  sdk: ^3.13.5
+
+dependencies:
+  connectanum_auth_server: 3.0.0-beta.5
+  connectanum_router: 3.0.0-beta.5
+  terrassenplaner_domain: ^0.1.0
+
+dev_dependencies:
+  test: ^1.26.0

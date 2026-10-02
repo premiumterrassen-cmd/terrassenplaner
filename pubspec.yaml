@@ -1,0 +1,14 @@
+name: terrassenplaner_workspace
+description: Workspace des Terrassenplaners (ALTO HOLZ).
+publish_to: none
+
+environment:
+  sdk: ^3.13.5
+
+workspace:
+  - packages/domain
+  - packages/server
+  - packages/app
+
+dev_dependencies:
+  lints: ^6.0.0
