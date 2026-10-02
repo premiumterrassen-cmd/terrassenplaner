@@ -14,7 +14,7 @@ Verbindliche Projektregeln für die Arbeit an diesem Repository. Sie gelten für
 ## Roadmap und Issues
 
 - Planung in GitHub-Meilensteinen (M0–M10) mit konkreten Issues; eine Kopie steht in `ROADMAP.md`, damit neue Chats den Stand schnell erfassen. Bei jeder Änderung beides pflegen.
-- Jedes Issue nennt seinen Feature-Branch; der Pull Request schließt das Issue (`Closes #<nr>`), der Status in `ROADMAP.md` wird im selben PR aktualisiert.
+- Jedes Issue nennt seinen Feature-Branch; der Merge-Commit nach `main` schließt das Issue (`Closes #<nr>`), der Status in `ROADMAP.md` wird im selben Merge aktualisiert.
 
 ## Daten und Vertraulichkeit
 
@@ -26,7 +26,7 @@ Verbindliche Projektregeln für die Arbeit an diesem Repository. Sie gelten für
 
 - Alles, was an Quellcode entsteht, wird in dieses Repository committet. Nichts lebt nur lokal.
 - Jedes Feature bekommt einen eigenen Feature-Branch (`feature/<kurzer-name>`), abgezweigt von `main`.
-- Zurück nach `main` nur per Pull Request, und nur wenn alle Qualitätsschwellen unten erfüllt sind und die Build-Chain grün ist.
+- **Entwicklungsphase (bis zum ersten Live-Deployment): keine Pull Requests.** Feature-Branches werden lokal nach `main` gemergt (`git merge --no-ff`) und gepusht – nur wenn alle Qualitätsschwellen unten erfüllt sind und die Build-Chain grün ist. Nach dem ersten Live-Deployment: Merge nach `main` nur per Pull Request (Vorgabe Alexander 02.10.2026).
 - Kleine, in sich abgeschlossene Commits mit aussagekräftiger Nachricht.
 
 ## Qualitätsschwellen (harte Gates)
@@ -45,7 +45,7 @@ Verbindliche Projektregeln für die Arbeit an diesem Repository. Sie gelten für
 
 ## Build-Chain
 
-- Automatische Build-Chain für jeden Push und jeden Pull Request: Analyse/Lint, Unit-Tests mit Abdeckung, Mutation-Tests, Frontend-Smoke-Tests (headless Chrome), Benchmarks, Build der Artefakte.
+- Automatische Build-Chain für jeden Push (und nach dem Go-Live für jeden Pull Request): Analyse/Lint, Unit-Tests mit Abdeckung, Mutation-Tests, Frontend-Smoke-Tests (headless Chrome), Benchmarks, Build der Artefakte.
 - Ein roter Build blockiert den Merge nach `main`.
 
 ## Deployment-Chain
