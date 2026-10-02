@@ -138,6 +138,9 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/4
 - [ ] **M3-07 Mehrsprachigkeit vorbereiten** ([#30](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/30)) – `feature/m3-07-mehrsprachigkeit-vorbereiten`
   - Alle Texte über Übersetzungsdateien (Deutsch zuerst); der alte Planer hat eine Sprachauswahl.
   - Abnahme: Keine fest im Code stehenden Oberflächentexte
+- [ ] **M3-08 Ladebildschirm mit echtem Fortschritt** ([#90](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/90)) – `feature/m3-08-ladebildschirm-mit-echtem-fortschritt` · Benchmark
+  - Vorbild https://www.dls-gmbh.biz/mein-essen (nur Verfahren): HTML-Ladebildschirm in `web/index.html` mit Hintergrundbild, Karte, Fortschrittsbalken und Prozent; echter Fortschritt aus beim Build erzeugter Größenliste der Startdateien und mitgezählten Bytes; Statusphasen, Langsam/Offline/Fehler mit „Erneut versuchen“; Ausblenden nach erstem Bild.
+  - Abnahme: sofort sichtbar; Prozent monoton bis 100 % auch mit Cache; Größenliste automatisch im Build; Fehlerzustände getestet; barrierefrei
 
 ## M4 Grundriss
 
