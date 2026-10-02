@@ -45,7 +45,7 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/1
 - [x] **M0-06 Build-Chain (GitHub Actions)** ([#6](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/6)) – `feature/m0-06-build-chain-github-actions`
   - Pipeline für Push und PR: Format, Analyse, Unit-Tests + Abdeckung, Mutation-Tests, Smoke-Tests, Benchmarks, Build Web-App und Server-Artefakt.
   - Abnahme: Alle Schritte grün auf `main`; Bis Go-Live lokaler Merge nach grüner Pipeline auf dem Feature-Branch; Branch-Schutz (Merge nur per PR) wird beim Go-Live (M10-03) aktiviert
-- [ ] **M0-07 WAMP-Router aufsetzen** ([#7](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/7)) – `feature/m0-07-wamp-router-aufsetzen` · Benchmark
+- [x] **M0-07 WAMP-Router aufsetzen** ([#7](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/7)) – `feature/m0-07-wamp-router-aufsetzen` · Benchmark
   - `connectanum_router` (3.0.0-beta.5) als Server-Prozess mit Konfiguration (Realm, Transport WebSocket, Serialisierung), Healthcheck und Logging.
   - Abnahme: Router startet mit Konfigurationsdatei; Client aus Test verbindet sich, ruft RPC auf, empfängt Event; Healthcheck-Endpunkt für Deployment
 - [ ] **M0-08 Authentifizierung mit connectanum_auth_server** ([#8](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/8)) – `feature/m0-08-authentifizierung-mit-connectanum-auth-s` · Benchmark
