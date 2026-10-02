@@ -52,10 +52,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/1
   - Auth-Konzept: Kunden anonym mit eingeschränkter Rolle; Mitarbeiter mit Anmeldung (der alte Planer hat eine Login-Funktion). Rollen und erlaubte RPC/Topics je Rolle festlegen.
   - Abnahme: Anonymer Client darf nur Kunden-RPCs; Angemeldeter Mitarbeiter darf zusätzlich Mitarbeiter-RPCs; Tests für erlaubte und verbotene Aufrufe
 - [ ] **M0-09 Ansible: Deployment Root-Server und Container** ([#9](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/9)) – `feature/m0-09-ansible-deployment-root-server-und-conta`
-  - Ansible-Rollen für (a) Root-Server: Benutzer, systemd-Dienste Router/Server, Reverse Proxy mit TLS, Auslieferung der Web-App; (b) containerbasiert: Image(s) bauen und starten. Gemeinsame Variablen, zwei Inventories.
-  - Abnahme: Beide Zielarten mit demselben Playbook-Satz deploybar; Keine Secrets im Repository (Vault/Umgebung, hinterlegt durch Alexander)
+  - Ansible-Rollen für (a) Root-Server: Benutzer, systemd-Dienste Router/Server, Auslieferung der Web-App; (b) containerbasiert: Image(s) bauen und starten. In beiden Zielarten **Traefik als Reverse Proxy** mit automatischen **Let's-Encrypt-Zertifikaten** (HTTP → HTTPS, nur Ports 80/443 offen, WebSocket für WAMP, `acme.json` persistent mit Rechten 600). Gemeinsame Variablen (u. a. Domain, Let's-Encrypt-E-Mail), zwei Inventories.
+  - Abnahme: Beide Zielarten mit demselben Playbook-Satz deploybar; Traefik liefert die App per HTTPS mit gültigem Zertifikat aus, WAMP-WebSocket funktioniert durch Traefik; Router und Dienste von außen nicht direkt erreichbar; Keine Secrets im Repository (Vault/Umgebung, hinterlegt durch Alexander)
 - [ ] **M0-10 Ansible testen: Lint und Molecule** ([#10](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/10)) – `feature/m0-10-ansible-testen-lint-und-molecule`
-  - `ansible-lint` und Molecule-Szenarien für beide Zielarten (Root-Server simuliert, Container), inkl. Idempotenz-Prüfung, in der Build-Chain.
+  - `ansible-lint` und Molecule-Szenarien für beide Zielarten (Root-Server simuliert, Container), inkl. Idempotenz-Prüfung, in der Build-Chain. Traefik und Zertifikatsbezug werden gegen die Let's-Encrypt-Staging-Umgebung bzw. ein lokales ACME-Testsystem geprüft.
   - Abnahme: Lint ohne Befund; Molecule converge + idempotence + verify für beide Szenarien grün in CI
 - [ ] **M0-11 Deployment-Chain aus der CI** ([#11](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/11)) – `feature/m0-11-deployment-chain-aus-der-ci`
   - Automatisches Deployment nach Merge auf `main` in eine Testumgebung; Produktiv-Deployment per Freigabe.
@@ -353,7 +353,7 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/11
   - Gleichzeitige Nutzer, große Projekte, Router-Durchsatz.
   - Abnahme: Zielwerte festgelegt und erreicht
 - [ ] **M10-03 Produktivbetrieb** ([#86](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/86)) – `feature/m10-03-produktivbetrieb`
-  - Produktiv-Deployment auf dem Root-Server, Domain, TLS, Überwachung, Sicherung der Konfigurationen.
+  - Produktiv-Deployment auf dem Root-Server, Domain, Let's-Encrypt-Produktivzertifikat über Traefik, Überwachung, Sicherung der Konfigurationen.
   - Abnahme: Wiederherstellung aus Sicherung getestet
 - [ ] **M10-04 Umstellung vom alten Planer** ([#87](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/87)) – `feature/m10-04-umstellung-vom-alten-planer`
   - Links in Shop und Webseite umstellen, alter Planer aus (Vertrag mit Agentur beachten).
