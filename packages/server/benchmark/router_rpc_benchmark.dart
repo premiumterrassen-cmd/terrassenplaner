@@ -16,14 +16,15 @@ class RouterRpcBenchmark extends AsyncBenchmarkBase {
 
   @override
   Future<void> setup() async {
-    final auth = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
-    final authPort = auth.port;
-    await auth.close();
-    _router = await PlanerRouter.starte(
+    final health = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
+    final healthPort = health.port;
+    await health.close();
+    _router = PlanerRouter.starte(
       RouterEinstellungen(
+        authToken: 'bench',
+        dienstTicket: 'bench',
         port: 0,
-        healthListen: '127.0.0.1:0',
-        authListen: '127.0.0.1:$authPort',
+        healthListen: '127.0.0.1:$healthPort',
       ),
     );
     await Future<void>.delayed(const Duration(milliseconds: 500));

@@ -6,7 +6,6 @@ import 'dart:io';
 
 import 'package:connectanum_client/connectanum.dart';
 import 'package:connectanum_client/json.dart';
-import 'package:connectanum_router/auth.dart';
 import 'package:terrassenplaner_server/terrassenplaner_server.dart';
 import 'package:test/test.dart';
 
@@ -16,18 +15,7 @@ void main() {
   late PlanerRouter router;
 
   setUpAll(() async {
-    router = await PlanerRouter.starte(
-      await testEinstellungen(),
-      mitarbeiter: MitarbeiterVerzeichnis([
-        const MitarbeiterZugang(
-          authId: 'anna',
-          salt: 'c2FsdA==',
-          iterationen: 4096,
-          storedKey: 'stored',
-          serverKey: 'server',
-        ),
-      ]),
-    );
+    router = PlanerRouter.starte(await testEinstellungen());
     await Future<void>.delayed(const Duration(milliseconds: 500));
   });
 
@@ -80,24 +68,6 @@ void main() {
     await sender.close();
     await empfaenger.close();
   });
-
-  test(
-    'übergebene Mitarbeiter-Zugänge stehen dem Auth-Server bereit',
-    () async {
-      final zugang = await AuthCredentialRegistry.loadScram(
-        realmUri: RouterEinstellungen.standardRealm,
-        authId: 'anna',
-      );
-      expect(zugang!.storedKey, 'stored');
-      expect(
-        await AuthCredentialRegistry.loadScram(
-          realmUri: RouterEinstellungen.standardRealm,
-          authId: 'bob',
-        ),
-        isNull,
-      );
-    },
-  );
 
   test('Health-Endpunkt meldet Bereitschaft', () async {
     final http = HttpClient();

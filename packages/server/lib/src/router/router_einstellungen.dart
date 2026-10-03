@@ -1,36 +1,48 @@
 import 'package:connectanum_router/connectanum_router.dart';
 
 import '../zugriff/rollen.dart';
+import 'auth_server_einstellungen.dart';
+import 'umgebung.dart';
 
-/// Betriebsparameter des WAMP-Routers; Standardwerte für die lokale Entwicklung.
+/// Betriebsparameter des Planer-Routers (öffentlicher WAMP-Router).
 ///
-/// Im Betrieb setzt das Deployment (Ansible) die Werte über Umgebungsvariablen,
-/// siehe [RouterEinstellungen.ausUmgebung].
+/// Mitarbeiter-Anmeldungen delegiert er per WAMP an den Auth-Server, der als
+/// eigener Prozess läuft (siehe [AuthServerEinstellungen]). Im Betrieb setzt
+/// das Deployment (Ansible) die Werte über Umgebungsvariablen.
 class RouterEinstellungen {
   const RouterEinstellungen({
+    required this.authToken,
+    required this.dienstTicket,
     this.host = '127.0.0.1',
     this.port = 8080,
     this.webSocketPfad = '/ws',
     this.realm = standardRealm,
     this.healthListen = '127.0.0.1:8081',
-    this.authListen = '127.0.0.1:8082',
+    this.authAdresse = AuthServerEinstellungen.standardListen,
   });
 
   /// Liest `PLANER_HOST`, `PLANER_PORT`, `PLANER_WS_PFAD`, `PLANER_REALM`,
-  /// `PLANER_HEALTH_LISTEN` und `PLANER_AUTH_LISTEN`; fehlende Werte nehmen den
-  /// Standard.
-  factory RouterEinstellungen.ausUmgebung(Map<String, String> umgebung) {
-    const standard = RouterEinstellungen();
-    final port = umgebung['PLANER_PORT'];
-    return RouterEinstellungen(
-      host: umgebung['PLANER_HOST'] ?? standard.host,
-      port: port == null ? standard.port : _alsPort(port),
-      webSocketPfad: umgebung['PLANER_WS_PFAD'] ?? standard.webSocketPfad,
-      realm: umgebung['PLANER_REALM'] ?? standard.realm,
-      healthListen: umgebung['PLANER_HEALTH_LISTEN'] ?? standard.healthListen,
-      authListen: umgebung['PLANER_AUTH_LISTEN'] ?? standard.authListen,
-    );
-  }
+  /// `PLANER_HEALTH_LISTEN`, `PLANER_AUTH_ADRESSE` sowie die Pflicht-Geheimnisse
+  /// `PLANER_AUTH_TOKEN` und `PLANER_AUTH_DIENST_TICKET`.
+  factory RouterEinstellungen.ausUmgebung(Map<String, String> u) =>
+      RouterEinstellungen(
+        authToken: Umgebung.pflicht(u, 'PLANER_AUTH_TOKEN'),
+        dienstTicket: Umgebung.pflicht(u, 'PLANER_AUTH_DIENST_TICKET'),
+        host: Umgebung.wert(u, 'PLANER_HOST', '127.0.0.1'),
+        port: Umgebung.port(u, 'PLANER_PORT', 8080),
+        webSocketPfad: Umgebung.wert(u, 'PLANER_WS_PFAD', '/ws'),
+        realm: Umgebung.wert(u, 'PLANER_REALM', standardRealm),
+        healthListen: Umgebung.wert(
+          u,
+          'PLANER_HEALTH_LISTEN',
+          '127.0.0.1:8081',
+        ),
+        authAdresse: Umgebung.wert(
+          u,
+          'PLANER_AUTH_ADRESSE',
+          AuthServerEinstellungen.standardListen,
+        ),
+      );
 
   static const standardRealm = 'de.robinienwelt.terrassenplaner';
 
@@ -47,26 +59,21 @@ class RouterEinstellungen {
   /// Adresse des HTTP-Listeners für `/healthz` (host:port).
   final String healthListen;
 
-  /// Interner RawSocket-Listener (host:port, fester Port) für den Auth-Server;
-  /// nur lokal erreichbar, Anmeldung nur per Dienst-Ticket.
-  final String authListen;
+  /// Adresse (host:port) des internen Listeners des Auth-Servers.
+  final String authAdresse;
 
-  /// Realm, in dem der Auth-Server (connectanum_auth_server) seine Prozeduren
-  /// `authenticate.*` anbietet.
-  static const authRealm = 'connectanum.authenticate';
+  /// Gemeinsames Geheimnis zwischen Router und Auth-Server.
+  final String authToken;
+
+  /// Ticket, mit dem sich der Router beim Auth-Server anmeldet.
+  final String dienstTicket;
 
   /// Router-Konfiguration: Planer-Realm mit Rollen (Kunde anonym, Mitarbeiter
-  /// per SCRAM über den Auth-Server), Auth-Realm, öffentlicher
-  /// WebSocket-Listener, interner Auth-Listener und Health-Endpunkt.
-  ///
-  /// [authToken] ist das gemeinsame Geheimnis zwischen Router und Auth-Server,
-  /// [dienstTicket] das Ticket, mit dem sich der Router am Auth-Realm anmeldet.
-  RouterSettings alsRouterSettings({
-    required String authToken,
-    required String dienstTicket,
-  }) {
+  /// per `wamp-scram` über den Auth-Server), WebSocket-Listener, Health.
+  RouterSettings alsRouterSettings() {
     final planerRealm = RealmSettingsBuilder(realm)
       ..addAuthMethod('anonymous')
+      // Der connectanum-Client meldet SCRAM als „wamp-scram“.
       ..addAuthMethod(
         'wamp-scram',
         options: {'authenticator': 'mitarbeiter-remote'},
@@ -74,56 +81,20 @@ class RouterEinstellungen {
     for (final rolle in Rollen.alle()) {
       planerRealm.addRoleFromBuilder(rolle);
     }
-    final authRealmBuilder = RealmSettingsBuilder(authRealm)
-      ..addAuthMethod('ticket', options: {'authenticator': 'dienst-ticket'})
-      ..addRoleFromBuilder(
-        RoleSettingsBuilder(authClientRolle)
-          ..addPermissionFromBuilder(_recht('authenticate.', const ['call'])),
-      )
-      ..addRoleFromBuilder(
-        RoleSettingsBuilder(authDienstRolle)..addPermissionFromBuilder(
-          _recht('authenticate.', const ['register', 'unregister']),
-        ),
-      );
-    final metrikRealmBuilder = RealmSettingsBuilder(metrikRealm)
-      ..addAuthMethod('anonymous')
-      ..addRoleFromBuilder(_rolleMitAllenRechten('metrics'));
     final webSocket = ListenerSettingsBuilder('websocket', '$host:$port')
       ..addAuthMethod('anonymous')
       ..addAuthMethod('wamp-scram')
       ..setPath(webSocketPfad);
-    final authListener = ListenerSettingsBuilder('rawsocket', authListen)
-      ..addAuthMethod('ticket')
-      ..setOptions(const {'max_rawsocket_size_exponent': 16});
-    final authAdresse = Uri.parse('tcp://$authListen');
+    final auth = Uri.parse('tcp://$authAdresse');
 
     return RouterSettings(
-      realms: [
-        planerRealm.build(),
-        authRealmBuilder.build(),
-        metrikRealmBuilder.build(),
-      ],
-      listeners: [webSocket.build(), authListener.build()],
-      internalRealms: [
-        InternalRealmSettings(
-          name: metrikRealm,
-          authId: 'metrics-daemon',
-          authRole: 'metrics',
-          services: const {'metrics'},
-        ),
-      ],
+      realms: [planerRealm.build(), metrikRealmSettings()],
+      listeners: [webSocket.build()],
+      internalRealms: [metrikIntern],
       metrics: MetricsSettings(
         openMetrics: OpenMetricsSettings(enabled: true, listen: healthListen),
       ),
       authenticators: {
-        'dienst-ticket': AuthenticatorDefinition(
-          type: 'ticket',
-          options: {
-            'secrets': {
-              authClientId: {'ticket': dienstTicket, 'role': authClientRolle},
-            },
-          },
-        ),
         'mitarbeiter-remote': AuthenticatorDefinition(
           type: 'remote',
           options: {
@@ -131,16 +102,16 @@ class RouterEinstellungen {
             'allowed_roles': [Rollen.mitarbeiter],
             'auth_token': authToken,
             'rpc': {
-              'realm': authRealm,
+              'realm': AuthServerEinstellungen.authRealm,
               'transport': {
                 'type': 'rawsocket',
-                'host': authAdresse.host,
-                'port': authAdresse.port,
+                'host': auth.host,
+                'port': auth.port,
                 // Nur Loopback innerhalb des Servers; nach außen schützt Traefik mit TLS.
                 'tls': {'allow_insecure_transport': true},
               },
               'service_auth_method': 'ticket',
-              'service_auth_id': authClientId,
+              'service_auth_id': AuthServerEinstellungen.clientId,
               'service_auth_secret': dienstTicket,
             },
           },
@@ -150,57 +121,29 @@ class RouterEinstellungen {
     ).withOpenMetricsHttpRoutes();
   }
 
-  /// Anmeldename und Rolle, mit denen der Router den Auth-Server aufruft.
-  static const authClientId = 'router';
-  static const authClientRolle = 'auth-client';
+  /// Metrik-Realm mit voller Rolle für die interne Metrik-Sitzung.
+  static RealmSettings metrikRealmSettings() =>
+      (RealmSettingsBuilder(metrikRealm)
+            ..addAuthMethod('anonymous')
+            ..addRoleFromBuilder(
+              RoleSettingsBuilder('metrics')..addPermissionFromBuilder(
+                PermissionSettingsBuilder('')
+                  ..setMatchPolicy(PermissionMatchPolicy.prefix)
+                  ..allowOperations(const [
+                    'subscribe',
+                    'publish',
+                    'call',
+                    'register',
+                    'unregister',
+                  ]),
+              ),
+            ))
+          .build();
 
-  /// authid der internen Sitzung des Auth-Servers.
-  static const authServerSitzung = 'auth-server';
-
-  /// Rolle der internen Sitzung, über die der Auth-Server seine Prozeduren
-  /// registriert.
-  static const authDienstRolle = 'auth-dienst';
-
-  /// Einstellungen des Auth-Servers: SCRAM für Mitarbeiter im Planer-Realm.
-  /// Der Methodenname ist `wamp-scram`, so meldet ihn der connectanum-Client.
-  RouterSettings alsAuthServerSettings() {
-    final builder = RouterSettingsBuilder()
-      ..addAuthenticator(
-        'mitarbeiter-scram',
-        const AuthenticatorDefinition(type: 'scram'),
-      )
-      ..addRealmFromBuilder(
-        RealmSettingsBuilder(realm)..addAuthMethod(
-          'wamp-scram',
-          options: {'authenticator': 'mitarbeiter-scram'},
-        ),
-      );
-    return builder.build();
-  }
-
-  static PermissionSettingsBuilder _recht(String uri, List<String> erlaubt) =>
-      PermissionSettingsBuilder(uri)
-        ..setMatchPolicy(PermissionMatchPolicy.prefix)
-        ..allowOperations(erlaubt);
-
-  static RoleSettingsBuilder _rolleMitAllenRechten(String rolle) =>
-      RoleSettingsBuilder(rolle)..addPermissionFromBuilder(
-        PermissionSettingsBuilder('')
-          ..setMatchPolicy(PermissionMatchPolicy.prefix)
-          ..allowOperations(const [
-            'subscribe',
-            'publish',
-            'call',
-            'register',
-            'unregister',
-          ]),
-      );
-
-  static int _alsPort(String wert) {
-    final port = int.tryParse(wert);
-    if (port == null || port < 0 || port > 65535) {
-      throw FormatException('Ungültiger Port in PLANER_PORT', wert);
-    }
-    return port;
-  }
+  static final metrikIntern = InternalRealmSettings(
+    name: metrikRealm,
+    authId: 'metrics-daemon',
+    authRole: 'metrics',
+    services: const {'metrics'},
+  );
 }

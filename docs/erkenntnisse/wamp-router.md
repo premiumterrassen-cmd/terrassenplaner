@@ -14,3 +14,10 @@
 - Der Health-Endpunkt entsteht über `withOpenMetricsHttpRoutes()` als zusätzlicher HTTP-Listener; er wird im Deployment nicht nach außen freigegeben (nur Traefik-intern bzw. für Überwachung).
 - **connectanum_bench** ist laut eigener Beschreibung ein internes Werkzeug des connectanum-Projekts und braucht einen Rust-Orchestrator; für uns ungeeignet. Stattdessen eigener Benchmark `server.Router.rpcRundlauf` (benchmark_harness) über die echte Router-Konfiguration.
 - Erster Messwert (MacBook, lokal): ≈ 5,1 ms je RPC-Rundlauf (JSON über den Dart-WebSocket-Client). Für Bedienung ausreichend; in M10-02 (Lasttest) prüfen, ob MessagePack oder der native WebSocket-Client des connectanum-Pakets nennenswert schneller ist.
+
+## Upgrade auf 3.0.0-beta.6 (03.10.2026, #103)
+
+- Alle connectanum-Pakete gemeinsam auf beta.6; native Transportschicht als Release `v3.0.0-beta.6`.
+- Neu: Sperrdatei `connectanum_native_runtime.lock` im temporären Verzeichnis – eine Transportschicht je `TMPDIR` (betrifft Diensttrennung Router/Auth-Server, siehe authentifizierung.md).
+- `connectanum_auth_server` prüft Dienst-Zugangsdaten (Auth-Token) jetzt vor allem anderen; `authenticate.hello` ohne Token antwortet mit `status: failure` statt Schemafehler.
+- Remote-Auth-Delegation an einen Auth-Server in einem eigenen Prozess funktioniert (Mitarbeiter-Anmeldung per `wamp-scram`).

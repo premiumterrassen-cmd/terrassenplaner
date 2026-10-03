@@ -3,3 +3,4 @@
 packages/app/lib/main.dart
 packages/server/bin/server.dart
 packages/server/bin/mitarbeiter_zugang.dart
+packages/server/bin/auth_server.dart

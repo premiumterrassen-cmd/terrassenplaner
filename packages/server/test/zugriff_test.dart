@@ -2,6 +2,7 @@
 library;
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:connectanum_client/connectanum.dart';
 import 'package:connectanum_client/json.dart';
@@ -12,15 +13,11 @@ import 'hilfen.dart';
 
 const _kundeEcho = '${Rollen.kundeUri}echo';
 
-/// Die Delegation an connectanum_auth_server endet in 3.0.0-beta.5 mit
-/// „Remote authentication service unavailable“ – an Alexander (Maintainer)
-/// gemeldet, siehe docs/erkenntnisse/authentifizierung.md.
-const _wartetAufConnectanum =
-    'connectanum 3.0.0-beta.5: Remote-Auth-Delegation nicht erreichbar';
 const _mitarbeiterEcho = '${Rollen.mitarbeiterUri}echo';
 
 void main() {
   late PlanerRouter router;
+  late Process authServer;
 
   setUpAll(() async {
     final zugang = await MitarbeiterZugang.ableiten(
@@ -28,9 +25,13 @@ void main() {
       passwort: 'richtig',
       iterationen: 4096,
     );
-    router = await PlanerRouter.starte(
-      await testEinstellungen(),
-      mitarbeiter: MitarbeiterVerzeichnis([zugang]),
+    final authAdresse = await freieAdresse();
+    authServer = await starteAuthServerProzess(
+      listen: authAdresse,
+      mitarbeiter: [zugang],
+    );
+    router = PlanerRouter.starte(
+      await testEinstellungen(authAdresse: authAdresse),
     );
     await Future<void>.delayed(const Duration(milliseconds: 500));
     final dienst = await router.dienstSitzung('echo-dienst');
@@ -40,7 +41,11 @@ void main() {
     }
   });
 
-  tearDownAll(() => router.stoppe());
+  tearDownAll(() async {
+    await router.stoppe();
+    authServer.kill(ProcessSignal.sigterm);
+    await authServer.exitCode;
+  });
 
   Future<Session> verbinde({String? authId, String? passwort}) {
     final client = Client(
@@ -91,39 +96,35 @@ void main() {
     });
   });
 
-  group(
-    'Mitarbeiter (SCRAM über den Auth-Server)',
-    skip: _wartetAufConnectanum,
-    () {
-      test('richtiges Passwort ergibt die Rolle mitarbeiter', () async {
-        final anna = await verbinde(authId: 'anna', passwort: 'richtig');
-        expect(anna.authRole, Rollen.mitarbeiter);
-        expect(anna.authId, 'anna');
-        await anna.close();
-      });
+  group('Mitarbeiter (SCRAM über den Auth-Server)', () {
+    test('richtiges Passwort ergibt die Rolle mitarbeiter', () async {
+      final anna = await verbinde(authId: 'anna', passwort: 'richtig');
+      expect(anna.authRole, Rollen.mitarbeiter);
+      expect(anna.authId, 'anna');
+      await anna.close();
+    });
 
-      test('darf Kunden- und Mitarbeiter-Prozeduren aufrufen', () async {
-        final anna = await verbinde(authId: 'anna', passwort: 'richtig');
-        expect((await anna.callSingle(_kundeEcho)).arguments, [_kundeEcho]);
-        expect((await anna.callSingle(_mitarbeiterEcho)).arguments, [
-          _mitarbeiterEcho,
-        ]);
-        await anna.close();
-      });
+    test('darf Kunden- und Mitarbeiter-Prozeduren aufrufen', () async {
+      final anna = await verbinde(authId: 'anna', passwort: 'richtig');
+      expect((await anna.callSingle(_kundeEcho)).arguments, [_kundeEcho]);
+      expect((await anna.callSingle(_mitarbeiterEcho)).arguments, [
+        _mitarbeiterEcho,
+      ]);
+      await anna.close();
+    });
 
-      test('falsches Passwort wird abgewiesen', () async {
-        await expectLater(
-          verbinde(authId: 'anna', passwort: 'falsch'),
-          throwsA(anything),
-        );
-      });
+    test('falsches Passwort wird abgewiesen', () async {
+      await expectLater(
+        verbinde(authId: 'anna', passwort: 'falsch'),
+        throwsA(anything),
+      );
+    });
 
-      test('unbekannter Mitarbeiter wird abgewiesen', () async {
-        await expectLater(
-          verbinde(authId: 'unbekannt', passwort: 'richtig'),
-          throwsA(anything),
-        );
-      });
-    },
-  );
+    test('unbekannter Mitarbeiter wird abgewiesen', () async {
+      await expectLater(
+        verbinde(authId: 'unbekannt', passwort: 'richtig'),
+        throwsA(anything),
+      );
+    });
+  });
 }
