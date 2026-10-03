@@ -57,11 +57,17 @@ Jedes performancerelevante Feature bekommt einen Benchmark in `packages/<paket>/
 
 ## Server starten
 
+Zwei getrennte Dienste – zuerst der Auth-Server, dann der Router; beide mit denselben Geheimnissen und je eigenem `TMPDIR` (connectanum erlaubt eine Transportschicht je temporärem Verzeichnis):
+
 ```bash
-(cd packages/server && dart run bin/server.dart)
+export PLANER_AUTH_TOKEN=… PLANER_AUTH_DIENST_TICKET=…
+(cd packages/server && TMPDIR=/tmp/planer-auth/ dart run bin/auth_server.dart)
+(cd packages/server && TMPDIR=/tmp/planer-router/ dart run bin/server.dart)
 ```
 
-Umgebungsvariablen (alle optional): `PLANER_HOST` (127.0.0.1), `PLANER_PORT` (8080), `PLANER_WS_PFAD` (/ws), `PLANER_REALM` (de.robinienwelt.terrassenplaner), `PLANER_HEALTH_LISTEN` (127.0.0.1:8081), `PLANER_AUTH_LISTEN` (127.0.0.1:8082, intern für den Auth-Server), `PLANER_MITARBEITER_DATEI` (JSON-Liste der Mitarbeiter-Zugänge; Eintrag erzeugen mit `dart run bin/mitarbeiter_zugang.dart <authid>`). Rollen und Rechte: [docs/erkenntnisse/authentifizierung.md](docs/erkenntnisse/authentifizierung.md). Health-Prüfung: `curl http://127.0.0.1:8081/healthz`.
+- Router: `PLANER_HOST` (127.0.0.1), `PLANER_PORT` (8080), `PLANER_WS_PFAD` (/ws), `PLANER_REALM`, `PLANER_HEALTH_LISTEN` (127.0.0.1:8081), `PLANER_AUTH_ADRESSE` (127.0.0.1:8082).
+- Auth-Server: `PLANER_AUTH_LISTEN` (127.0.0.1:8082), `PLANER_AUTH_HEALTH_LISTEN` (127.0.0.1:8083), `PLANER_REALM`, `PLANER_MITARBEITER_DATEI` (JSON-Liste; Eintrag erzeugen mit `dart run bin/mitarbeiter_zugang.dart <authid>`).
+- Rollen und Rechte: [docs/erkenntnisse/authentifizierung.md](docs/erkenntnisse/authentifizierung.md). Health-Prüfung: `curl http://127.0.0.1:8081/healthz`.
 
 ## connectanum-Versionen
 
