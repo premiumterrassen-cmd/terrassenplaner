@@ -1,0 +1,8 @@
+galaxy_info:
+  author: ALTO HOLZ
+  description: Gemeinsame Werte der Planer-Rollen
+  license: proprietary
+  min_ansible_version: "2.17"
+  platforms:
+    - name: Debian
+      versions: [trixie]

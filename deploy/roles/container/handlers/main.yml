@@ -1,0 +1,5 @@
+- name: Container neu bauen und starten
+  ansible.builtin.command:
+    cmd: docker compose -f compose.yml up -d --build --force-recreate
+    chdir: "{{ container_verzeichnis }}"
+  changed_when: true

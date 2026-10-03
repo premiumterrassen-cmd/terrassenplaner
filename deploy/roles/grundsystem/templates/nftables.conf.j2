@@ -1,0 +1,20 @@
+#!/usr/sbin/nft -f
+# Verwaltet von Ansible (Terrassenplaner) – von außen nur {{ grundsystem_offene_ports | join(', ') }} offen.
+# Eigene Tabelle statt „flush ruleset“, damit Regeln anderer Dienste (z. B. Docker) erhalten bleiben.
+table inet planer
+delete table inet planer
+
+table inet planer {
+  chain input {
+    type filter hook input priority 0; policy drop;
+    ct state established,related accept
+    ct state invalid drop
+    iif "lo" accept
+{% if planer_betriebsart == 'container' %}
+    iifname "docker0" accept
+    iifname "br-*" accept
+{% endif %}
+    meta l4proto { icmp, ipv6-icmp } accept
+    tcp dport { {{ grundsystem_offene_ports | join(', ') }} } accept
+  }
+}

@@ -124,15 +124,18 @@ jobs:
       - name: Web-App bauen
         working-directory: packages/app
         run: flutter build web --release
-      - name: Server bauen
+      - name: Router und Auth-Server bauen (Linux-Bündel)
         working-directory: packages/server
         run: |
           dart build cli --target=bin/server.dart --output=build/server
+          dart build cli --target=bin/auth_server.dart --output=build/auth_server
+      - name: Artefakte zusammenstellen
+        run: |
+          mkdir -p artefakte
+          cp -r packages/server/build/server/bundle artefakte/server
+          cp -r packages/server/build/auth_server/bundle artefakte/auth_server
+          cp -r packages/app/build/web artefakte/web
       - uses: actions/upload-artifact@v7
         with:
-          name: web-app
-          path: packages/app/build/web/
-      - uses: actions/upload-artifact@v7
-        with:
-          name: server
-          path: packages/server/build/server/
+          name: planer-artefakte
+          path: artefakte/

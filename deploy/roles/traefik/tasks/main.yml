@@ -1,0 +1,82 @@
+- name: Systembenutzer für Traefik
+  ansible.builtin.user:
+    name: "{{ traefik_benutzer }}"
+    system: true
+    shell: /usr/sbin/nologin
+    home: /var/lib/traefik
+    create_home: true
+
+- name: Installierte Traefik-Version ermitteln
+  ansible.builtin.command: /usr/local/bin/traefik version
+  register: traefik_installiert
+  changed_when: false
+  failed_when: false
+
+- name: Traefik herunterladen und installieren (offizielles Release, Prüfsumme)
+  when: traefik_version not in (traefik_installiert.stdout | default(''))
+  block:
+    - name: Prüfsummen des Releases laden
+      ansible.builtin.uri:
+        url: "https://github.com/traefik/traefik/releases/download/{{ traefik_version }}/traefik_{{ traefik_version }}_checksums.txt"
+        return_content: true
+      register: traefik_pruefsummen
+
+    - name: Archiv laden und Prüfsumme prüfen
+      ansible.builtin.get_url:
+        url: "https://github.com/traefik/traefik/releases/download/{{ traefik_version }}/{{ traefik_archiv }}"
+        dest: "/tmp/{{ traefik_archiv }}"
+        checksum: "sha256:{{ traefik_pruefsummen.content | regex_search('([0-9a-f]{64})\\s+' + traefik_archiv | regex_escape, '\\1') | first }}"
+        mode: "0644"
+      vars:
+        traefik_archiv: "traefik_{{ traefik_version }}_linux_{{ traefik_architektur }}.tar.gz"
+
+    - name: Programm entpacken
+      ansible.builtin.unarchive:
+        src: "/tmp/traefik_{{ traefik_version }}_linux_{{ traefik_architektur }}.tar.gz"
+        dest: /usr/local/bin
+        remote_src: true
+        include: [traefik]
+        mode: "0755"
+      notify: Traefik neu starten
+
+- name: Konfigurationsverzeichnis
+  ansible.builtin.file:
+    path: "{{ traefik_konfig }}/dynamisch"
+    state: directory
+    mode: "0755"
+
+- name: Zertifikatsspeicher (acme.json, nur für Traefik lesbar, bleibt erhalten)
+  ansible.builtin.file:
+    path: "{{ traefik_acme_datei }}"
+    state: touch
+    owner: "{{ traefik_benutzer }}"
+    mode: "0600"
+    modification_time: preserve
+    access_time: preserve
+
+- name: Statische Konfiguration (Einstiegspunkte, Let's Encrypt)
+  ansible.builtin.template:
+    src: traefik.yml.j2
+    dest: "{{ traefik_konfig }}/traefik.yml"
+    mode: "0644"
+  notify: Traefik neu starten
+
+- name: Dynamische Konfiguration (Routen zum Planer)
+  ansible.builtin.template:
+    src: planer.yml.j2
+    dest: "{{ traefik_konfig }}/dynamisch/planer.yml"
+    mode: "0644"
+
+- name: Systemd-Unit
+  ansible.builtin.template:
+    src: traefik.service.j2
+    dest: /etc/systemd/system/traefik.service
+    mode: "0644"
+  notify: Traefik neu starten
+
+- name: Traefik starten
+  ansible.builtin.systemd_service:
+    name: traefik
+    enabled: true
+    state: started
+    daemon_reload: true

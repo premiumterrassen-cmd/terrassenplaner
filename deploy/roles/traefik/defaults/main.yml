@@ -1,0 +1,5 @@
+traefik_version: v3.7.13
+traefik_architektur: amd64
+traefik_benutzer: traefik
+traefik_konfig: /etc/traefik
+traefik_acme_datei: /var/lib/traefik/acme.json

@@ -1,0 +1,14 @@
+# Dienste: Auth-Server zuerst, dann der Router (Diensttrennung, CLAUDE.md).
+planer_dienste_liste:
+  - name: planer-auth
+    benutzer: "{{ planer_auth_benutzer }}"
+    programm: auth_server
+    beschreibung: Terrassenplaner Auth-Server (connectanum_auth_server)
+    health: "{{ planer_auth_health }}"
+    nach: []
+  - name: planer-router
+    benutzer: "{{ planer_router_benutzer }}"
+    programm: server
+    beschreibung: Terrassenplaner WAMP-Router
+    health: "{{ planer_router_health }}"
+    nach: [planer-auth.service]

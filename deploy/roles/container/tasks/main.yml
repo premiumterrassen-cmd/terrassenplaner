@@ -1,0 +1,78 @@
+- name: Docker und Compose installieren
+  ansible.builtin.apt:
+    name: [docker.io, docker-compose]
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Docker starten
+  ansible.builtin.systemd_service:
+    name: docker
+    enabled: true
+    state: started
+
+- name: Verzeichnisse
+  ansible.builtin.file:
+    path: "{{ container_verzeichnis }}/{{ item }}"
+    state: directory
+    mode: "0755"
+  loop: [auth_server, server, web, traefik]
+
+- name: Programme und Web-App ausliefern (Linux-Bündel aus der Build-Chain)
+  ansible.builtin.copy:
+    src: "{{ planer_artefakte_lokal }}/{{ item }}/"
+    dest: "{{ container_verzeichnis }}/{{ item }}/"
+    mode: preserve
+  loop: [auth_server, server, web]
+  notify: Container neu bauen und starten
+
+- name: Dockerfile für die Dart-Dienste
+  ansible.builtin.template:
+    src: Dockerfile.dienst.j2
+    dest: "{{ container_verzeichnis }}/Dockerfile.dienst"
+    mode: "0644"
+  notify: Container neu bauen und starten
+
+- name: Nginx-Konfiguration der Web-App
+  ansible.builtin.template:
+    src: nginx.conf.j2
+    dest: "{{ container_verzeichnis }}/web.conf"
+    mode: "0644"
+  notify: Container neu bauen und starten
+
+- name: Umgebung der Dienste (enthält Geheimnisse, nur root lesbar)
+  ansible.builtin.template:
+    src: geheim.env.j2
+    dest: "{{ container_verzeichnis }}/geheim.env"
+    mode: "0600"
+  no_log: true
+  notify: Container neu bauen und starten
+
+- name: Compose-Datei
+  ansible.builtin.template:
+    src: compose.yml.j2
+    dest: "{{ container_verzeichnis }}/compose.yml"
+    mode: "0644"
+  notify: Container neu bauen und starten
+
+- name: Container starten
+  ansible.builtin.command:
+    cmd: docker compose -f compose.yml up -d --build
+    chdir: "{{ container_verzeichnis }}"
+  register: container_start
+  changed_when: "'Started' in container_start.stderr or 'Created' in container_start.stderr or 'Recreated' in container_start.stderr"
+
+- name: Ausstehende Neustarts jetzt ausführen
+  ansible.builtin.meta: flush_handlers
+
+- name: Dienste sind gesund
+  ansible.builtin.command:
+    cmd: docker compose -f compose.yml ps --format json
+    chdir: "{{ container_verzeichnis }}"
+  register: container_status
+  changed_when: false
+  until: >-
+    (container_status.stdout_lines | map('from_json') | selectattr('Health', 'defined')
+     | rejectattr('Health', 'equalto', 'healthy') | list | length) == 0
+  retries: 30
+  delay: 3

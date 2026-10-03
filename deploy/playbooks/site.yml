@@ -1,0 +1,24 @@
+# Gesamtes Deployment des Terrassenplaners (Root-Server oder Container).
+- name: Terrassenplaner ausrollen
+  hosts: all
+  become: true
+  pre_tasks:
+    - name: Geheimnisse sind gesetzt
+      ansible.builtin.assert:
+        that:
+          - planer_auth_token | length >= 32
+          - planer_auth_dienst_ticket | length >= 32
+          - planer_auth_token != planer_auth_dienst_ticket
+        fail_msg: Vault-Werte fehlen oder sind zu kurz (siehe vault.example.yml).
+        quiet: true
+      no_log: true
+  roles:
+    - role: grundsystem
+    - role: traefik
+      when: planer_betriebsart == 'systemd'
+    - role: planer_dienste
+      when: planer_betriebsart == 'systemd'
+    - role: planer_web
+      when: planer_betriebsart == 'systemd'
+    - role: container
+      when: planer_betriebsart == 'container'
