@@ -13,7 +13,7 @@ WorkingDirectory={{ planer_daten }}/{{ item.name }}
 ExecStart={{ planer_basis }}/{{ item.programm }}/bin/{{ item.programm }}
 Restart=on-failure
 RestartSec=3
-# Eigenes /tmp je Dienst: connectanum erlaubt eine Transportschicht je TMPDIR.
+# Eigenes /tmp je Dienst (Härtung).
 PrivateTmp=true
 NoNewPrivileges=true
 ProtectSystem=strict

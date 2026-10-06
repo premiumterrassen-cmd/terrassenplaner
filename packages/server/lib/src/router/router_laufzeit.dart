@@ -3,9 +3,9 @@ import 'package:connectanum_router/connectanum_router.dart';
 /// Native Transportschicht + gestarteter Router; gemeinsame Grundlage von
 /// Planer-Router und Auth-Server.
 ///
-/// connectanum 3.0.0-beta.6 erlaubt eine Transportschicht je temporärem
-/// Verzeichnis (Sperrdatei) – mehrere Router-Prozesse auf einem Rechner
-/// brauchen daher getrennte `TMPDIR` (systemd: `PrivateTmp=yes`).
+/// Eine Transportschicht je Prozess; mehrere Router-Prozesse auf einem
+/// Rechner sind ab connectanum 3.0.0-beta.7 auch mit gemeinsamem `TMPDIR`
+/// möglich.
 class RouterLaufzeit {
   RouterLaufzeit._(this._runtime, this.binding, this._healthIndex);
 
