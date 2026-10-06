@@ -183,3 +183,53 @@ jobs:
           PY_COLORS: "1"
           ANSIBLE_FORCE_COLOR: "1"
         run: molecule test -s ${{ matrix.szenario }}
+
+  deploy:
+    name: Deployment Produktion (alto.terrassenplaner.eu)
+    # Nach jedem Merge auf main automatisch – nur wenn alle Prüfungen grün sind.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [analyse, unit-tests, mutation-tests, smoke-tests, benchmarks, build, ansible-lint, ansible-molecule]
+    runs-on: ubuntu-latest
+    environment:
+      name: produktion
+      url: https://alto.terrassenplaner.eu
+    concurrency:
+      group: deploy-produktion
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: planer-artefakte
+          path: artefakte
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - run: pip install ansible-core==2.21.4
+      - name: Zugang zum Server und Vault-Passwort
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+          DEPLOY_KNOWN_HOSTS: ${{ vars.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh ~/.ansible
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          printf '%s' "$ANSIBLE_VAULT_PASSWORD" > ~/.ansible/vault-terrassenplaner && chmod 600 ~/.ansible/vault-terrassenplaner
+      - name: Ansible ausrollen
+        working-directory: deploy
+        env:
+          ANSIBLE_FORCE_COLOR: "1"
+        run: ansible-playbook playbooks/site.yml
+      - name: Prüfung von außen (HTTPS, WebAssembly, WebSocket)
+        run: |
+          curl -fsS -o /dev/null https://alto.terrassenplaner.eu/
+          curl -fsSI https://alto.terrassenplaner.eu/main.dart.wasm | grep -qi 'content-type: application/wasm'
+          code=$(curl -s -o /dev/null -w '%{http_code}' --http1.1 --max-time 5 \
+            -H 'Connection: Upgrade' -H 'Upgrade: websocket' -H 'Sec-WebSocket-Version: 13' \
+            -H 'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==' -H 'Sec-WebSocket-Protocol: wamp.2.json' \
+            https://alto.terrassenplaner.eu/ws || true)
+          test "$code" = "101"
+      - name: Zugangsdaten entfernen
+        if: always()
+        run: rm -f ~/.ssh/id_ed25519 ~/.ansible/vault-terrassenplaner
