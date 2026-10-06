@@ -9,7 +9,7 @@
       register: planer_test_ps
       changed_when: false
       failed_when: >-
-        (planer_test_ps.stdout_lines | map('from_json') | selectattr('Health', 'defined')
+        (planer_test_ps.stdout_lines | map('from_json') | selectattr('Health')
          | rejectattr('Health', 'equalto', 'healthy') | list | length) > 0
         or (planer_test_ps.stdout_lines | length) < 4
 
