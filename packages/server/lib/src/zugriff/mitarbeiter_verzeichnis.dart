@@ -3,9 +3,14 @@ import 'dart:io';
 
 import 'mitarbeiter_zugang.dart';
 
-/// Quelle der Mitarbeiter-Zugänge. Vorläufig eine JSON-Datei, später ObjectBox
-/// (M0-15, Entität `Benutzer`).
-class MitarbeiterVerzeichnis {
+/// Quelle der Mitarbeiter-Zugänge für den Auth-Server.
+abstract interface class MitarbeiterQuelle {
+  MitarbeiterZugang? finde(String authId);
+}
+
+/// Mitarbeiter-Zugänge im Speicher (Tests) bzw. aus einer JSON-Datei, die
+/// beim Start in die Datenbank übernommen wird (siehe [DatenbankMitarbeiter]).
+class MitarbeiterVerzeichnis implements MitarbeiterQuelle {
   MitarbeiterVerzeichnis(Iterable<MitarbeiterZugang> zugaenge)
     : _zugaenge = {for (final z in zugaenge) z.authId: z};
 
@@ -22,7 +27,10 @@ class MitarbeiterVerzeichnis {
 
   final Map<String, MitarbeiterZugang> _zugaenge;
 
+  @override
   MitarbeiterZugang? finde(String authId) => _zugaenge[authId];
 
   int get anzahl => _zugaenge.length;
+
+  Iterable<MitarbeiterZugang> get alle => _zugaenge.values;
 }

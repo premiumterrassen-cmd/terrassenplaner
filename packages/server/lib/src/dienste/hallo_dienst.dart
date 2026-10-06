@@ -9,13 +9,16 @@ class HalloDienst {
   HalloDienst._(this._sitzung);
 
   static Future<HalloDienst> starte(PlanerRouter router) async {
-    final sitzung = await router.dienstSitzung('hallo-dienst');
+    final sitzung = await router.dienstSitzung(sitzungId);
     final registrierung = await sitzung.register(WampNamen.hallo);
     registrierung.onInvoke(
       (aufruf) => aufruf.respondWith(arguments: [begruessung()]),
     );
     return HalloDienst._(sitzung);
   }
+
+  /// authid der internen Dienst-Sitzung.
+  static const sitzungId = 'hallo-dienst';
 
   final RouterSession _sitzung;
 

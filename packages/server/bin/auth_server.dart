@@ -4,26 +4,43 @@ import 'dart:io';
 import 'package:terrassenplaner_server/terrassenplaner_server.dart';
 
 /// Auth-Server (connectanum_auth_server) als eigener Prozess.
-/// Mitarbeiter-Zugänge aus `PLANER_MITARBEITER_DATEI` (JSON), sonst keine.
+/// Mitarbeiter-Zugänge liegen in ObjectBox (`PLANER_DATENVERZEICHNIS`);
+/// `PLANER_MITARBEITER_DATEI` (JSON) wird beim Start übernommen.
 Future<void> main() async {
   final umgebung = Platform.environment;
   final einstellungen = AuthServerEinstellungen.ausUmgebung(umgebung);
+  final verzeichnis = umgebung['PLANER_DATENVERZEICHNIS'];
   final datei = umgebung['PLANER_MITARBEITER_DATEI'];
-  final mitarbeiter = datei == null
-      ? MitarbeiterVerzeichnis.leer()
-      : MitarbeiterVerzeichnis.ausDatei(datei);
+  final datenbank = verzeichnis == null
+      ? null
+      : Datenbank.oeffne(
+          verzeichnis,
+          knoten: umgebung['PLANER_KNOTEN'] ?? Platform.localHostname,
+        );
+  final MitarbeiterQuelle mitarbeiter;
+  if (datenbank != null) {
+    final quelle = DatenbankMitarbeiter(datenbank);
+    if (datei != null) {
+      quelle.uebernimm(MitarbeiterVerzeichnis.ausDatei(datei).alle);
+    }
+    mitarbeiter = quelle;
+  } else {
+    mitarbeiter = datei == null
+        ? MitarbeiterVerzeichnis.leer()
+        : MitarbeiterVerzeichnis.ausDatei(datei);
+  }
   final auth = await AuthServerProzess.starte(
     einstellungen,
     mitarbeiter: mitarbeiter,
   );
   stdout.writeln(
     'Auth-Server bereit – ${einstellungen.listen}, '
-    '${mitarbeiter.anzahl} Mitarbeiter, Health ${einstellungen.healthListen}',
+    'Datenbank ${verzeichnis ?? '(keine)'}, Health ${einstellungen.healthListen}',
   );
   await _warteAufStoppsignal();
   await auth.stoppe();
+  datenbank?.schliesse();
   stdout.writeln('Auth-Server beendet');
-  // Native Threads der Transportschicht halten den Prozess sonst offen.
 }
 
 /// Wartet auf SIGINT oder SIGTERM und meldet beide Signale wieder ab, damit

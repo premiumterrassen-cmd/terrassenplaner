@@ -91,6 +91,7 @@ void main() {
       expect(v.finde('anna'), same(anna));
       expect(v.finde('bob'), isNull);
       expect(v.anzahl, 1);
+      expect(v.alle.single, same(anna));
     });
 
     test('leeres Verzeichnis', () {

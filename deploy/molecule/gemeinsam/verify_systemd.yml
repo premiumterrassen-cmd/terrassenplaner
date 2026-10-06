@@ -85,3 +85,9 @@
       register: planer_test_env
       failed_when: planer_test_env.stat.mode != '0600'
       loop: [planer-auth, planer-router]
+
+    - name: ObjectBox-Datenbank des Auth-Servers angelegt
+      ansible.builtin.stat:
+        path: /var/lib/terrassenplaner/planer-auth/datenbank/data.mdb
+      register: planer_test_db
+      failed_when: not planer_test_db.stat.exists or planer_test_db.stat.pw_name != 'planer-auth'

@@ -53,6 +53,9 @@ Future<Process> starteAuthServerProzess({
       'PLANER_AUTH_LISTEN': listen,
       'PLANER_AUTH_HEALTH_LISTEN': await freieAdresse(),
       'PLANER_MITARBEITER_DATEI': datei.path,
+      // Mitarbeiter liegen in ObjectBox (M0-15); die Datei wird übernommen.
+      'PLANER_DATENVERZEICHNIS': '${ordner.path}/daten',
+      'PLANER_KNOTEN': 'test',
     },
   );
   final bereit = Completer<void>();

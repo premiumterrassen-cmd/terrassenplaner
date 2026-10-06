@@ -13,7 +13,7 @@ class AuthServerProzess {
 
   static Future<AuthServerProzess> starte(
     AuthServerEinstellungen einstellungen, {
-    MitarbeiterVerzeichnis? mitarbeiter,
+    MitarbeiterQuelle? mitarbeiter,
   }) async {
     AuthCredentialRegistry.registerProvider(
       PlanerZugangsdaten(
