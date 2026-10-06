@@ -1,0 +1,5 @@
+# ansible-lint für das Deployment
+profile: production
+exclude_paths:
+  # verschlüsselt – in der Build-Chain ohne Passwort nicht lesbar
+  - inventories/produktion/group_vars/all/vault.yml

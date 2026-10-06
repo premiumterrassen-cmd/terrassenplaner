@@ -1,0 +1,87 @@
+- name: Deployment prüfen (systemd)
+  hosts: all
+  become: true
+  tasks:
+    - name: Dienststatus lesen
+      ansible.builtin.service_facts:
+
+    - name: Dienste laufen
+      ansible.builtin.assert:
+        that: ansible_facts.services[item + '.service'].state == 'running'
+        fail_msg: "{{ item }} läuft nicht"
+      loop: [traefik, planer-auth, planer-router, nginx]
+
+    - name: Firewall ist aktiv
+      ansible.builtin.assert:
+        that: ansible_facts.services['nftables.service'].status == 'enabled'
+
+    - name: Health-Endpunkte von Auth-Server und Router
+      ansible.builtin.uri:
+        url: "http://{{ item }}/healthz"
+        status_code: 200
+      loop: [127.0.0.1:8083, 127.0.0.1:8081]
+
+    - name: Web-App über Traefik (HTTPS, Testzertifikat)
+      ansible.builtin.uri:
+        url: https://127.0.0.1/
+        headers: {Host: "{{ planer_domain }}"}
+        validate_certs: false
+        return_content: true
+      register: planer_test_web
+      failed_when: "planer_test_web.status != 200 or 'id=\"ladebild\"' not in planer_test_web.content"
+
+    - name: WASM-Header (COOP/COEP) und .mjs als JavaScript
+      ansible.builtin.uri:
+        url: https://127.0.0.1/main.dart.mjs
+        method: HEAD
+        headers: {Host: "{{ planer_domain }}"}
+        validate_certs: false
+      register: planer_test_mjs
+      failed_when: >-
+        planer_test_mjs.status != 200
+        or 'javascript' not in planer_test_mjs.content_type
+        or planer_test_mjs.cross_origin_embedder_policy != 'require-corp'
+
+    - name: HTTP leitet auf HTTPS um
+      ansible.builtin.uri:
+        url: http://127.0.0.1/
+        headers: {Host: "{{ planer_domain }}"}
+        follow_redirects: none
+        status_code: [301, 302, 307, 308]
+
+    # uri kann keinen WebSocket-Upgrade – curl ist hier gewollt.
+    - name: WebSocket /ws wird an den Router durchgereicht (Upgrade 101)  # noqa: command-instead-of-module
+      ansible.builtin.command: >-
+        curl -sk -o /dev/null -w '%{http_code}' --http1.1 --max-time 3
+        -H 'Host: {{ planer_domain }}' -H 'Connection: Upgrade' -H 'Upgrade: websocket'
+        -H 'Sec-WebSocket-Version: 13' -H 'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ=='
+        -H 'Sec-WebSocket-Protocol: wamp.2.json' https://127.0.0.1/ws
+      register: planer_test_ws
+      changed_when: false
+      failed_when: planer_test_ws.stdout != '101'
+
+    - name: Interne Dienste lauschen nur auf 127.0.0.1
+      ansible.builtin.shell: set -o pipefail && ss -tlnH | awk '{print $4}' | grep -E ':(8080|8081|8082|8083|8090|8092)$'
+      args: {executable: /bin/bash}
+      register: planer_test_ports
+      changed_when: false
+      failed_when: planer_test_ports.stdout_lines | reject('match', '^127\.0\.0\.1:') | list | length > 0
+
+    - name: Firewall lässt von außen nur 22/80/443 zu
+      ansible.builtin.command: nft list table inet planer
+      register: planer_test_nft
+      changed_when: false
+      failed_when: "'tcp dport { 22, 80, 443 } accept' not in planer_test_nft.stdout or 'policy drop' not in planer_test_nft.stdout"
+
+    - name: SSH nur mit Schlüssel
+      ansible.builtin.command: sshd -T
+      register: planer_test_sshd
+      changed_when: false
+      failed_when: "'passwordauthentication no' not in planer_test_sshd.stdout"
+
+    - name: Geheimnisse nur für root lesbar
+      ansible.builtin.stat:
+        path: "/etc/terrassenplaner/{{ item }}.env"
+      register: planer_test_env
+      failed_when: planer_test_env.stat.mode != '0600'
+      loop: [planer-auth, planer-router]

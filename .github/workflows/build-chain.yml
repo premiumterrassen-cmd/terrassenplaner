@@ -141,3 +141,45 @@ jobs:
         with:
           name: planer-artefakte
           path: artefakte/
+
+  ansible-lint:
+    name: Ansible-Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - run: pip install -r deploy/requirements-test.txt
+      - name: ansible-lint (Profil production)
+        working-directory: deploy
+        env:
+          # Ohne Produktions-Inventar und Vault-Passwort (ansible-pruefung.cfg).
+          ANSIBLE_CONFIG: ansible-pruefung.cfg
+        run: ansible-lint --profile production
+
+  ansible-molecule:
+    name: Ansible-Molecule (${{ matrix.szenario }})
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        szenario: [systemd, container]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: planer-artefakte
+          path: artefakte
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - run: pip install -r deploy/requirements-test.txt && ansible-galaxy collection install community.docker ansible.posix
+      - name: molecule test
+        working-directory: deploy
+        env:
+          PLANER_ARTEFAKTE: ${{ github.workspace }}/artefakte
+          PY_COLORS: "1"
+          ANSIBLE_FORCE_COLOR: "1"
+        run: molecule test -s ${{ matrix.szenario }}

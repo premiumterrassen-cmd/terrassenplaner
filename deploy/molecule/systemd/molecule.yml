@@ -1,0 +1,47 @@
+# Molecule-Szenario „systemd“: frisches Debian 13 mit systemd im privilegierten Container.
+dependency:
+  name: galaxy
+  enabled: false
+driver:
+  name: docker
+platforms:
+  - name: planer-systemd
+    image: planer-trixie-systemd
+    dockerfile: ../gemeinsam/Dockerfile.systemd
+    pre_build_image: false
+    privileged: true
+    cgroupns_mode: host
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    tmpfs:
+      - /run
+      - /tmp
+    command: /lib/systemd/systemd
+provisioner:
+  name: ansible
+  env:
+    ANSIBLE_ROLES_PATH: ${MOLECULE_PROJECT_DIRECTORY}/roles
+  inventory:
+    group_vars:
+      all:
+        planer_betriebsart: systemd
+        planer_domain: planer.test
+        planer_letsencrypt_email: test@example.org
+        planer_letsencrypt_ca: staging
+        planer_auth_token: molecule-test-token-0123456789abcdef0123456789
+        planer_auth_dienst_ticket: molecule-test-ticket-0123456789abcdef012345678
+        planer_artefakte_lokal: ${PLANER_ARTEFAKTE}
+        grundsystem_ssh_nur_schluessel: true
+  playbooks:
+    converge: ../gemeinsam/converge.yml
+    verify: ../gemeinsam/verify_systemd.yml
+verifier:
+  name: ansible
+scenario:
+  test_sequence:
+    - destroy
+    - create
+    - converge
+    - idempotence
+    - verify
+    - destroy

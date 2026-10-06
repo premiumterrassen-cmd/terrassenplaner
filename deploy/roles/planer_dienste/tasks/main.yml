@@ -22,19 +22,12 @@
   ansible.builtin.copy:
     src: "{{ planer_artefakte_lokal }}/{{ item.programm }}/"
     dest: "{{ planer_basis }}/{{ item.programm }}/"
-    mode: preserve
-  loop: "{{ planer_dienste_liste }}"
-  loop_control:
-    label: "{{ item.name }}"
-  notify: Planer-Dienste neu starten
-
-- name: Programme ausführbar
-  ansible.builtin.file:
-    path: "{{ planer_basis }}/{{ item.programm }}/bin/{{ item.programm }}"
+    # feste Rechte: Artefakte aus der Build-Chain verlieren das Ausführbar-Recht
     mode: "0755"
   loop: "{{ planer_dienste_liste }}"
   loop_control:
     label: "{{ item.name }}"
+  notify: Planer-Dienste neu starten
 
 - name: Konfigurationsverzeichnis
   ansible.builtin.file:
