@@ -1,0 +1,12 @@
+# Testsystem für Molecule: Debian 13 mit systemd (wie der Root-Server).
+FROM debian:trixie
+ENV container=docker DEBIAN_FRONTEND=noninteractive
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends systemd systemd-sysv python3 python3-apt sudo \
+    openssh-server ca-certificates curl iproute2 \
+ && rm -rf /var/lib/apt/lists/* \
+ && mkdir -p /root/.ssh && echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAITestSchluesselNurFuerMolecule molecule" > /root/.ssh/authorized_keys \
+ && chmod 600 /root/.ssh/authorized_keys \
+ && systemctl mask systemd-logind.service getty.target console-getty.service
+STOPSIGNAL SIGRTMIN+3
+CMD ["/lib/systemd/systemd"]

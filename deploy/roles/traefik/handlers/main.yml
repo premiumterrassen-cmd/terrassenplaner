@@ -1,3 +1,11 @@
+# Reihenfolge zählt: erst den Zertifikatsspeicher leeren, dann neu starten.
+- name: Zertifikatsspeicher leeren
+  ansible.builtin.copy:
+    dest: "{{ traefik_acme_datei }}"
+    content: ""
+    owner: "{{ traefik_benutzer }}"
+    mode: "0600"
+
 - name: Traefik neu starten
   ansible.builtin.systemd_service:
     name: traefik
