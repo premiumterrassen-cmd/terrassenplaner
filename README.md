@@ -57,12 +57,12 @@ Jedes performancerelevante Feature bekommt einen Benchmark in `packages/<paket>/
 
 ## Server starten
 
-Zwei getrennte Dienste – zuerst der Auth-Server, dann der Router; beide mit denselben Geheimnissen und je eigenem `TMPDIR` (connectanum erlaubt eine Transportschicht je temporärem Verzeichnis):
+Zwei getrennte Dienste – zuerst der Auth-Server, dann der Router; beide mit denselben Geheimnissen:
 
 ```bash
 export PLANER_AUTH_TOKEN=… PLANER_AUTH_DIENST_TICKET=…
-(cd packages/server && TMPDIR=/tmp/planer-auth/ dart run bin/auth_server.dart)
-(cd packages/server && TMPDIR=/tmp/planer-router/ dart run bin/server.dart)
+(cd packages/server && dart run bin/auth_server.dart)
+(cd packages/server && dart run bin/server.dart)
 ```
 
 - Router: `PLANER_HOST` (127.0.0.1), `PLANER_PORT` (8080), `PLANER_WS_PFAD` (/ws), `PLANER_REALM`, `PLANER_HEALTH_LISTEN` (127.0.0.1:8081), `PLANER_AUTH_ADRESSE` (127.0.0.1:8082).

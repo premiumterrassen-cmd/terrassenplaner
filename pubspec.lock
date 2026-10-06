@@ -101,42 +101,42 @@ packages:
     dependency: transitive
     description:
       name: connectanum_auth_server
-      sha256: "57f69cad35cae167529cfd2701158ae78df1e8af5942b68eb3fb5a1ad9d89074"
+      sha256: cbb1862b4b6e5d9e79cc7a05b91e7a550e898b86a44f9872fba9776c6a0f5a25
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.0-beta.6"
+    version: "3.0.0-beta.7"
   connectanum_client:
     dependency: transitive
     description:
       name: connectanum_client
-      sha256: cd424151e9a9dcaf2ffdb144c2118d242ef4ce5f2afa542e44367f87bcf947e8
+      sha256: c96d19b0977522eafbe51241fe231a396e43df45f1b313ed000675e48ecf1ba2
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.0-beta.6"
+    version: "3.0.0-beta.7"
   connectanum_core:
     dependency: transitive
     description:
       name: connectanum_core
-      sha256: "9200f3e990874ec0917bc0a4d16fc4745f5fa638b91c1fc712b90bd0ae0f11ec"
+      sha256: a941587106ac73dac018f01a2c75cb98f19b4b032b9da125574a287ffa06a4fc
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.0-beta.6"
+    version: "3.0.0-beta.7"
   connectanum_mcp:
     dependency: transitive
     description:
       name: connectanum_mcp
-      sha256: "60fcf2fed56af4e390ec603c3f513066251b6059820f3522d3949155b33d1569"
+      sha256: ba04318fd30094f6302f51316d20bc549e3e719219ca4029e92983b07dcf2f01
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.0-beta.6"
+    version: "3.0.0-beta.7"
   connectanum_router:
     dependency: transitive
     description:
       name: connectanum_router
-      sha256: ec110d68371bf34053337dedafff38aebd1f341b5b41509340eaef305d0e867d
+      sha256: "6658bb7100bb560eb035b97fe4e5b61b0ab6a42dd3b5fcf562d0519ab7d6bb17"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.0-beta.6"
+    version: "3.0.0-beta.7"
   convert:
     dependency: transitive
     description:

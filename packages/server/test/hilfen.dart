@@ -35,8 +35,8 @@ Future<AuthServerEinstellungen> testAuthEinstellungen() async =>
       healthListen: await freieAdresse(),
     );
 
-/// Startet bin/auth_server.dart als eigenen Prozess (eigenes TMPDIR wegen der
-/// Sperrdatei der connectanum-Transportschicht) und wartet auf „bereit“.
+/// Startet bin/auth_server.dart als eigenen Prozess (gleiches TMPDIR wie der
+/// Testprozess – ab connectanum beta.7 erlaubt) und wartet auf „bereit“.
 Future<Process> starteAuthServerProzess({
   required String listen,
   required List<MitarbeiterZugang> mitarbeiter,
@@ -48,7 +48,6 @@ Future<Process> starteAuthServerProzess({
     Platform.resolvedExecutable,
     ['run', 'bin/auth_server.dart'],
     environment: {
-      'TMPDIR': '${ordner.path}/',
       'PLANER_AUTH_TOKEN': testToken,
       'PLANER_AUTH_DIENST_TICKET': testTicket,
       'PLANER_AUTH_LISTEN': listen,

@@ -7,7 +7,7 @@ Führend ist GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/mil
 
 - Nachbau des Terrassenkonfigurators https://terrassenkonfigurator.robinienwelt.de/ als **funktionale und inhaltliche 1:1-Kopie**, Schritt für Schritt.
 - **Keine technische Kopie:** kein Code, keine Architektur, keine Datenstrukturen, keine Programmierkonzepte der alten Seite. Fachliche Quellen sind nur die Bedienung, die sichtbaren Texte/Optionen und die Ergebnisse (Planungsunterlagen, Exporte).
-- Technik: Flutter (Web), Dart-Server mit `connectanum_router` und `connectanum_auth_server`, Client `connectanum_client` (alle 3.0.0-beta.6, auf 3.0.0 umstellen, sobald stabil).
+- Technik: Flutter (Web), Dart-Server mit `connectanum_router` und `connectanum_auth_server`, Client `connectanum_client` (alle 3.0.0-beta.7, auf 3.0.0 umstellen, sobald stabil).
 - Im alten Planer abgeschaltete Funktionen (3D-Ansicht, Grundriss-Upload, Podest, Gehrungsschnitt der Form, Rahmendielen, eigene UK, Teilen) sind **nicht** Teil der Kopie.
 
 ## Architektur

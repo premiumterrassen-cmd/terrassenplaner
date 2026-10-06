@@ -22,7 +22,7 @@ Stand beta.5; mit beta.6 (03.10.2026) funktioniert die Delegation an einen Auth-
 5. **Eine native Transportschicht je Prozess:** Zwei Router in einem Testprozess → „runtime already started“; Server-Tests laufen deshalb mit `concurrency: 1`.
 
 6. **beta.6 – Delegation im selben Prozess:** Delegiert ein Router an einen Auth-Server, der im selben Prozess am selben Router hängt, bleibt es bei „Remote authentication service unavailable“ (~5 s). Mit getrenntem Prozess läuft es – passt zur gewünschten Diensttrennung.
-7. **beta.6 – Sperrdatei:** `connectanum_native_runtime.lock` im temporären Verzeichnis erlaubt nur eine Transportschicht je `TMPDIR`; zweiter Router-Prozess auf demselben Rechner braucht eigenes `TMPDIR` (systemd `PrivateTmp=yes`). Frage an Alexander: bewusst rechnerweit?
-8. **Prozessende:** Nach `binding.dispose()` und `runtime.shutdown()` bleibt der Prozess offen – beide Programme beenden sich deshalb ausdrücklich mit `exit(0)`.
+7. **beta.6 – Sperrdatei:** `connectanum_native_runtime.lock` galt rechnerweit je `TMPDIR`. **In beta.7 behoben** (Sperre je Prozess) – Router und Auth-Server teilen sich wieder ein `TMPDIR`; `PrivateTmp=yes` bleibt in den systemd-Units nur noch als Härtung.
+8. **Prozessende – Korrektur 06.10.2026:** Der offene Prozess nach dem Stopp lag (zumindest auch) an unserem Code: Mit `Future.any([sigint.watch().first, sigterm.watch().first])` blieb das nicht ausgelöste Signal-Abo aktiv. Beide Programme melden jetzt beide Signale ab und beenden sich von selbst (beta.7 geprüft, ohne `exit(0)`).
 
-Tests: `zugriff_test.dart` startet den Auth-Server als echten zweiten Prozess (`dart run bin/auth_server.dart`, eigenes `TMPDIR`) und prüft Kunde und Mitarbeiter Ende-zu-Ende.
+Tests: `zugriff_test.dart` startet den Auth-Server als echten zweiten Prozess (`dart run bin/auth_server.dart`) und prüft Kunde und Mitarbeiter Ende-zu-Ende.

@@ -21,3 +21,9 @@
 - Neu: Sperrdatei `connectanum_native_runtime.lock` im temporären Verzeichnis – eine Transportschicht je `TMPDIR` (betrifft Diensttrennung Router/Auth-Server, siehe authentifizierung.md).
 - `connectanum_auth_server` prüft Dienst-Zugangsdaten (Auth-Token) jetzt vor allem anderen; `authenticate.hello` ohne Token antwortet mit `status: failure` statt Schemafehler.
 - Remote-Auth-Delegation an einen Auth-Server in einem eigenen Prozess funktioniert (Mitarbeiter-Anmeldung per `wamp-scram`).
+
+## Upgrade auf 3.0.0-beta.7 (06.10.2026, #104)
+
+- Sperre der Transportschicht je Prozess statt je `TMPDIR` → Test-Hilfe ohne eigenes `TMPDIR`.
+- Saubereres Herunterfahren (Dispose, interne Sitzungen); unsere Programme beenden sich nach SIGINT/SIGTERM von selbst, nachdem beide Signal-Abos abgemeldet werden.
+- **Benchmark:** `server.Router.rpcRundlauf` mit beta.7 in drei Läufen 3,02–3,14 ms gegenüber Vorwert 2,62 ms (beta.6) → **+15 bis +20 %** (lokal, MacBook). Unter der Alarmschwelle von 20 %, aber reproduzierbar – an Alexander gemeldet; Vorwert bleibt bis zur Klärung bei beta.6.

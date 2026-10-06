@@ -14,12 +14,23 @@ Future<void> main() async {
     'Realm ${einstellungen.realm}, Health ${einstellungen.healthListen}, '
     'Auth-Server ${einstellungen.authAdresse}',
   );
-  await Future.any([
-    ProcessSignal.sigint.watch().first,
-    ProcessSignal.sigterm.watch().first,
-  ]);
+  await _warteAufStoppsignal();
   await router.stoppe();
   stdout.writeln('Server beendet');
-  // Native Threads der Transportschicht halten den Prozess sonst offen.
-  exit(0);
+}
+
+/// Wartet auf SIGINT oder SIGTERM und meldet beide Signale wieder ab, damit
+/// sich der Prozess danach von selbst beendet.
+Future<void> _warteAufStoppsignal() async {
+  final signal = Completer<void>();
+  final abos = [
+    for (final s in [ProcessSignal.sigint, ProcessSignal.sigterm])
+      s.watch().listen((_) {
+        if (!signal.isCompleted) signal.complete();
+      }),
+  ];
+  await signal.future;
+  for (final abo in abos) {
+    await abo.cancel();
+  }
 }
