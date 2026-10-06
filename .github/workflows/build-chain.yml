@@ -123,7 +123,9 @@ jobs:
       - run: flutter pub get
       - name: Web-App bauen
         working-directory: packages/app
-        run: flutter build web --release --wasm
+        run: |
+          flutter build web --release --wasm
+          python3 ../../tool/startgroessen.py build/web
       - name: Router und Auth-Server bauen (Linux-Bündel)
         working-directory: packages/server
         run: |
