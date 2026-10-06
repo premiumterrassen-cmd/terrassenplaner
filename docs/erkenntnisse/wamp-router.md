@@ -26,3 +26,4 @@
 
 - Sperre der Transportschicht je Prozess statt je `TMPDIR` → Test-Hilfe ohne eigenes `TMPDIR`.
 - Saubereres Herunterfahren (Dispose, interne Sitzungen); unsere Programme beenden sich nach SIGINT/SIGTERM von selbst, nachdem beide Signal-Abos abgemeldet werden.
+- **Benchmark:** `server.Router.rpcRundlauf` mit beta.7 in drei Läufen 3,02–3,14 ms gegenüber Vorwert 2,62 ms (beta.6) → **+15 bis +20 %** (lokal, MacBook). Unter der Alarmschwelle von 20 %, aber reproduzierbar – an Alexander gemeldet; Vorwert bleibt bis zur Klärung bei beta.6.
