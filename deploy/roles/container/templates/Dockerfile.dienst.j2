@@ -9,5 +9,6 @@ COPY ${PROGRAMM}/ /app/
 RUN chmod 0755 /app/bin/*
 USER planer
 WORKDIR /daten
-ENV PROGRAMM=${PROGRAMM}
+ENV PROGRAMM=${PROGRAMM} \
+    LD_LIBRARY_PATH=/app/lib
 ENTRYPOINT ["sh", "-c", "exec /app/bin/${PROGRAMM}"]

@@ -7,6 +7,8 @@ Wants=network-online.target {{ item.nach | join(' ') }}
 [Service]
 User={{ item.benutzer }}
 EnvironmentFile=/etc/terrassenplaner/{{ item.name }}.env
+# Native connectanum-Bibliotheken liegen im Bündel unter lib/.
+Environment=LD_LIBRARY_PATH={{ planer_basis }}/{{ item.programm }}/lib
 WorkingDirectory={{ planer_daten }}/{{ item.name }}
 ExecStart={{ planer_basis }}/{{ item.programm }}/bin/{{ item.programm }}
 Restart=on-failure

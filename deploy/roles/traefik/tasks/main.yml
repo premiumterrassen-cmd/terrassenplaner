@@ -36,8 +36,17 @@
         dest: /usr/local/bin
         remote_src: true
         include: [traefik]
+        owner: root
+        group: root
         mode: "0755"
       notify: Traefik neu starten
+
+- name: Traefik-Programm gehört root
+  ansible.builtin.file:
+    path: /usr/local/bin/traefik
+    owner: root
+    group: root
+    mode: "0755"
 
 - name: Konfigurationsverzeichnis
   ansible.builtin.file:
