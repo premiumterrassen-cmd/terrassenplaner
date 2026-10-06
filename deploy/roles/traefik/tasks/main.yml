@@ -54,6 +54,23 @@
     state: directory
     mode: "0755"
 
+- name: Zuletzt genutzte Zertifizierungsstelle merken
+  ansible.builtin.copy:
+    dest: /var/lib/traefik/acme-ca
+    content: "{{ planer_letsencrypt_ca_urls[planer_letsencrypt_ca] }}\n"
+    owner: "{{ traefik_benutzer }}"
+    mode: "0644"
+  register: traefik_ca_wechsel
+
+- name: Zertifikatsspeicher leeren, wenn die Zertifizierungsstelle wechselt
+  ansible.builtin.copy:
+    dest: "{{ traefik_acme_datei }}"
+    content: ""
+    owner: "{{ traefik_benutzer }}"
+    mode: "0600"
+  when: traefik_ca_wechsel is changed
+  notify: Traefik neu starten
+
 - name: Zertifikatsspeicher (acme.json, nur für Traefik lesbar, bleibt erhalten)
   ansible.builtin.file:
     path: "{{ traefik_acme_datei }}"
