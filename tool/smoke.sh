@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Frontend-Smoke-Tests (integration_test) der Web-App headless in Chrome,
 # gebaut als WebAssembly wie im Deployment (M0-16).
-# Voraussetzung: Chrome und ein passender chromedriver im PATH.
+# Voraussetzung: Chrome und ein passender chromedriver im PATH; CHROME_EXECUTABLE
+# legt fest, welches Chrome gestartet wird (Build-Chain: zum chromedriver passend).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -33,6 +34,7 @@ for test in integration_test/*_test.dart; do
     --target="$test" \
     -d web-server --browser-name=chrome --headless --wasm \
     --driver-port="$PORT" \
-    --dart-define=PLANER_WAMP_URL="ws://127.0.0.1:$WAMP_PORT/ws" || status=1
+    --dart-define=PLANER_WAMP_URL="ws://127.0.0.1:$WAMP_PORT/ws" \
+    ${CHROME_EXECUTABLE:+--chrome-binary="$CHROME_EXECUTABLE"} || status=1
 done
 exit $status
