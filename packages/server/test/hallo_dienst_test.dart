@@ -10,6 +10,10 @@ import 'package:test/test.dart';
 import 'hilfen.dart';
 
 void main() {
+  test('Kennung der Dienst-Sitzung', () {
+    expect(HalloDienst.sitzungId, 'hallo-dienst');
+  });
+
   test('Hallo-Dienst beantwortet die Hallo-Prozedur für Kunden', () async {
     final router = PlanerRouter.starte(await testEinstellungen());
     addTearDown(router.stoppe);

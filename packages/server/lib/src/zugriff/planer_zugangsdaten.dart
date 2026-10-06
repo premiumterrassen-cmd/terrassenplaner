@@ -8,7 +8,7 @@ class PlanerZugangsdaten extends AuthCredentialProvider {
   const PlanerZugangsdaten({required this.realm, required this.verzeichnis});
 
   final String realm;
-  final MitarbeiterVerzeichnis verzeichnis;
+  final MitarbeiterQuelle verzeichnis;
 
   @override
   Future<ScramCredential?> loadScram({

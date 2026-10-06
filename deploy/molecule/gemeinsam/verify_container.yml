@@ -41,3 +41,7 @@
       register: planer_test_netze
       changed_when: false
       failed_when: "'terrassenplaner_proxy' in planer_test_netze.stdout"
+
+    - name: ObjectBox-Datenbank im Auth-Container angelegt
+      ansible.builtin.command: docker exec terrassenplaner-auth-1 test -f /daten/datenbank/data.mdb
+      changed_when: false

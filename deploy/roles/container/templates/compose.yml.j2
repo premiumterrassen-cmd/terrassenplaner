@@ -39,6 +39,8 @@ services:
       PLANER_AUTH_LISTEN: 0.0.0.0:8082
       PLANER_AUTH_HEALTH_LISTEN: 0.0.0.0:8083
       PLANER_REALM: {{ planer_realm }}
+      PLANER_DATENVERZEICHNIS: /daten/datenbank
+      PLANER_KNOTEN: {{ inventory_hostname }}
     volumes: [auth-daten:/daten]
     networks: [intern]
     healthcheck:

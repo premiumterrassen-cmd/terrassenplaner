@@ -3,7 +3,8 @@
 <mutations version="1.2">
   <directories>
     <directory recursive="true">packages/domain/lib
-      <matching pattern="\.dart$"/>
+      <!-- generierter Code (*.g.dart) wird nicht mutiert -->
+      <matching pattern="(?&lt;!\.g)\.dart$"/>
     </directory>
   </directories>
   <commands>

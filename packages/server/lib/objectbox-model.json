@@ -1,0 +1,154 @@
+{
+  "_note1": "KEEP THIS FILE! Check it into a version control system (VCS) like git.",
+  "_note2": "ObjectBox manages crucial IDs for your object model. See docs for details.",
+  "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
+  "entities": [
+    {
+      "id": "1:4199694471024936157",
+      "lastPropertyId": "9:8573095070367006885",
+      "name": "Aenderung",
+      "properties": [
+        {
+          "id": "1:2137812312726579873",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:8930244852648199785",
+          "name": "schluessel",
+          "indexId": "1:8905860940179439852",
+          "type": 9,
+          "flags": 2080
+        },
+        {
+          "id": "3:1210037017693473005",
+          "name": "knoten",
+          "type": 9
+        },
+        {
+          "id": "4:8021987696294641833",
+          "name": "seq",
+          "indexId": "2:2986106118830378154",
+          "type": 6,
+          "flags": 8
+        },
+        {
+          "id": "5:7035142836940928740",
+          "name": "entitaet",
+          "type": 9
+        },
+        {
+          "id": "6:8556489672261359609",
+          "name": "uid",
+          "type": 9
+        },
+        {
+          "id": "7:7016671356637213546",
+          "name": "partition",
+          "type": 9
+        },
+        {
+          "id": "8:36167693237574578",
+          "name": "hlc",
+          "type": 9
+        },
+        {
+          "id": "9:8573095070367006885",
+          "name": "art",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "2:5391721831752821817",
+      "lastPropertyId": "13:1673270093877694242",
+      "name": "Benutzer",
+      "properties": [
+        {
+          "id": "1:7330662995083646838",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:5828384574916831161",
+          "name": "uid",
+          "indexId": "3:7911314867250049373",
+          "type": 9,
+          "flags": 2080
+        },
+        {
+          "id": "3:704594392608506628",
+          "name": "partition",
+          "type": 9
+        },
+        {
+          "id": "4:1380542247077630684",
+          "name": "hlc",
+          "type": 9
+        },
+        {
+          "id": "5:5513814915088336588",
+          "name": "knoten",
+          "type": 9
+        },
+        {
+          "id": "6:4998498917849275631",
+          "name": "geloeschtAm",
+          "type": 6
+        },
+        {
+          "id": "7:286666604384982042",
+          "name": "schema",
+          "type": 6
+        },
+        {
+          "id": "8:5012885621349221597",
+          "name": "authId",
+          "indexId": "4:6839961270107171854",
+          "type": 9,
+          "flags": 2080
+        },
+        {
+          "id": "9:692959789547615818",
+          "name": "salt",
+          "type": 9
+        },
+        {
+          "id": "10:2714607709921550981",
+          "name": "iterationen",
+          "type": 6
+        },
+        {
+          "id": "11:1409256566524356484",
+          "name": "storedKey",
+          "type": 9
+        },
+        {
+          "id": "12:28706912317421964",
+          "name": "serverKey",
+          "type": 9
+        },
+        {
+          "id": "13:1673270093877694242",
+          "name": "rolle",
+          "type": 9
+        }
+      ],
+      "relations": []
+    }
+  ],
+  "lastEntityId": "2:5391721831752821817",
+  "lastIndexId": "4:6839961270107171854",
+  "lastRelationId": "0:0",
+  "lastSequenceId": "0:0",
+  "modelVersion": 5,
+  "modelVersionParserMinimum": 5,
+  "retiredEntityUids": [],
+  "retiredIndexUids": [],
+  "retiredPropertyUids": [],
+  "retiredRelationUids": [],
+  "version": 1
+}

@@ -22,6 +22,7 @@ Flutter (stable, getestet mit 3.47.6 / Dart 3.13.5), Chrome für Web und Smoke-T
 
 ```bash
 flutter pub get                      # alle Pakete auflösen (Workspace-Wurzel)
+tool/objectbox_bibliothek.sh         # native ObjectBox-Bibliothek bereitstellen (einmalig)
 dart analyze                         # Analyse aller Pakete, muss ohne Hinweise sein
 dart format --set-exit-if-changed .  # Formatierung prüfen
 (cd packages/domain && dart test)
