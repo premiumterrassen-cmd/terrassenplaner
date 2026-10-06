@@ -35,3 +35,13 @@ Für Tests ohne Rate-Limit: `-e planer_letsencrypt_ca=staging`. Container-Betrie
 ## Ports (nur lokal, außer 80/443)
 
 Router 8080 (WebSocket `/ws`, über Traefik), Router-Health 8081, Auth-Server 8082 (nur Router), Auth-Health 8083, Web-App 8090, Traefik-Ping 8092.
+
+## Tests
+
+- `ansible-lint` (Profil production) mit `ansible-pruefung.cfg` – ohne Produktions-Inventar und Vault.
+- Molecule-Szenarien `systemd` und `container` (`deploy/molecule/`): frisches Debian 13 mit systemd im privilegierten Docker-Container, dasselbe Playbook wie in Produktion, Idempotenz-Prüfung und Verify (Dienste, Health, HTTPS über Traefik, WASM-Header, Weiterleitung, WebSocket 101, interne Ports nur lokal, Firewall, SSH, Rechte der Geheimnisse; Container: Healthchecks, Auth-Server nur im internen Netz). Läuft in der Build-Chain mit den Linux-Artefakten des Build-Jobs; lokal braucht es Docker:
+
+```bash
+cd deploy && pip install -r requirements-test.txt && ansible-galaxy collection install community.docker ansible.posix
+PLANER_ARTEFAKTE=$PWD/../artefakte molecule test -s systemd
+```
