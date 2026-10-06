@@ -1,5 +1,7 @@
 import 'package:connectanum_router/connectanum_router.dart';
 
+import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
+
 import '../zugriff/rollen.dart';
 import 'auth_server_einstellungen.dart';
 import 'umgebung.dart';
@@ -44,7 +46,7 @@ class RouterEinstellungen {
         ),
       );
 
-  static const standardRealm = 'de.robinienwelt.terrassenplaner';
+  static const standardRealm = WampNamen.realm;
 
   /// Interner Realm des Routers für Gesundheits- und Metrik-Abfragen.
   static const metrikRealm = 'connectanum.metrics';

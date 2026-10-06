@@ -66,7 +66,7 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/1
 - [ ] **M0-11 Deployment-Chain aus der CI** ([#11](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/11)) – `feature/m0-11-deployment-chain-aus-der-ci`
   - Automatisches Deployment nach Merge auf `main` in eine Testumgebung; Produktiv-Deployment per Freigabe.
   - Abnahme: Merge auf `main` deployt Testumgebung; Produktiv nur nach manueller Freigabe; Rollback dokumentiert
-- [ ] **M0-12 „Hallo Welt“ Ende-zu-Ende** ([#12](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/12)) – `feature/m0-12-hallo-welt-ende-zu-ende`
+- [x] **M0-12 „Hallo Welt“ Ende-zu-Ende** ([#12](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/12)) – `feature/m0-12-hallo-welt-ende-zu-ende`
   - Web-App verbindet sich über WAMP mit dem Router, ruft einen Dienst auf und zeigt das Ergebnis – automatisiert deployt.
   - Abnahme: Smoke-Test gegen die deployte Testumgebung grün
 - [ ] **M0-13 Monitoring-Stack Prometheus + Grafana** ([#91](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/91)) – `feature/m0-13-monitoring-prometheus-grafana`
