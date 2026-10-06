@@ -1,0 +1,24 @@
+# Verwaltet von Ansible (Terrassenplaner) – Routen zu den lokalen Diensten.
+http:
+  routers:
+    planer-wamp:
+      rule: "Host(`{{ planer_domain }}`) && PathPrefix(`{{ planer_ws_pfad }}`)"
+      entryPoints: [websecure]
+      service: planer-router
+      tls:
+        certResolver: letsencrypt
+    planer-web:
+      rule: "Host(`{{ planer_domain }}`)"
+      entryPoints: [websecure]
+      service: planer-web
+      tls:
+        certResolver: letsencrypt
+  services:
+    planer-router:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:{{ planer_router_port }}"
+    planer-web:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:{{ planer_web_port }}"

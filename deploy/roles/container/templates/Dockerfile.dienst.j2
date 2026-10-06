@@ -1,0 +1,14 @@
+# Verwaltet von Ansible (Terrassenplaner) – Laufzeitbild für ein Dart-Bündel
+# (bin/ + lib/ aus `dart build cli`, enthält die native connectanum-Bibliothek).
+FROM {{ container_basis_bild }}
+ARG PROGRAMM
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd --system --home /daten planer && mkdir /daten && chown planer /daten
+COPY ${PROGRAMM}/ /app/
+RUN chmod 0755 /app/bin/*
+USER planer
+WORKDIR /daten
+ENV PROGRAMM=${PROGRAMM} \
+    LD_LIBRARY_PATH=/app/lib
+ENTRYPOINT ["sh", "-c", "exec /app/bin/${PROGRAMM}"]

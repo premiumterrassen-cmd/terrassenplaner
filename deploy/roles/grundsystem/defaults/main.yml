@@ -1,0 +1,8 @@
+grundsystem_pakete:
+  - ca-certificates
+  - curl
+  - nftables
+  - unattended-upgrades
+# Passwort-Anmeldung per SSH abschalten (nur nachdem der Schlüsselzugang geprüft ist).
+grundsystem_ssh_nur_schluessel: true
+grundsystem_offene_ports: [22, 80, 443]

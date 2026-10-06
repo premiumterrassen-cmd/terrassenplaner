@@ -1,0 +1,4 @@
+container_verzeichnis: /opt/terrassenplaner-container
+container_traefik_bild: "traefik:v3.7.13"
+container_nginx_bild: "nginx:1.27-alpine"
+container_basis_bild: "debian:trixie-slim"

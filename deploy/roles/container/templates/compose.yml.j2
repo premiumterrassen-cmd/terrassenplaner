@@ -1,0 +1,98 @@
+# Verwaltet von Ansible (Terrassenplaner) – Container-Betrieb mit Diensttrennung:
+# Traefik (öffentlich), Router und Web hinter Traefik, Auth-Server nur im internen Netz.
+name: terrassenplaner
+
+services:
+  traefik:
+    image: {{ container_traefik_bild }}
+    restart: unless-stopped
+    command:
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --entrypoints.websecure.address=:443
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=terrassenplaner_proxy
+      - --certificatesresolvers.letsencrypt.acme.email={{ planer_letsencrypt_email }}
+      - --certificatesresolvers.letsencrypt.acme.storage=/acme/acme.json
+      - --certificatesresolvers.letsencrypt.acme.caserver={{ planer_letsencrypt_ca_urls[planer_letsencrypt_ca] }}
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+      - --ping=true
+    ports: ["80:80", "443:443"]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - acme:/acme
+    networks: [proxy]
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 10s
+
+  auth:
+    build:
+      context: .
+      dockerfile: Dockerfile.dienst
+      args: {PROGRAMM: auth_server}
+    restart: unless-stopped
+    env_file: geheim.env
+    environment:
+      PLANER_AUTH_LISTEN: 0.0.0.0:8082
+      PLANER_AUTH_HEALTH_LISTEN: 0.0.0.0:8083
+      PLANER_REALM: {{ planer_realm }}
+    volumes: [auth-daten:/daten]
+    networks: [intern]
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://127.0.0.1:8083/healthz"]
+      interval: 10s
+
+  router:
+    build:
+      context: .
+      dockerfile: Dockerfile.dienst
+      args: {PROGRAMM: server}
+    restart: unless-stopped
+    env_file: geheim.env
+    environment:
+      PLANER_HOST: 0.0.0.0
+      PLANER_PORT: "{{ planer_router_port }}"
+      PLANER_WS_PFAD: {{ planer_ws_pfad }}
+      PLANER_REALM: {{ planer_realm }}
+      PLANER_HEALTH_LISTEN: 0.0.0.0:8081
+      PLANER_AUTH_ADRESSE: auth:8082
+    volumes: [router-daten:/daten]
+    networks: [intern, proxy]
+    depends_on:
+      auth: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://127.0.0.1:8081/healthz"]
+      interval: 10s
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.planer-wamp.rule=Host(`{{ planer_domain }}`) && PathPrefix(`{{ planer_ws_pfad }}`)
+      - traefik.http.routers.planer-wamp.entrypoints=websecure
+      - traefik.http.routers.planer-wamp.tls.certresolver=letsencrypt
+      - traefik.http.services.planer-router.loadbalancer.server.port={{ planer_router_port }}
+
+  web:
+    image: {{ container_nginx_bild }}
+    restart: unless-stopped
+    volumes:
+      - ./web:/usr/share/nginx/html:ro
+      - ./web.conf:/etc/nginx/conf.d/default.conf:ro
+    networks: [proxy]
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.planer-web.rule=Host(`{{ planer_domain }}`)
+      - traefik.http.routers.planer-web.entrypoints=websecure
+      - traefik.http.routers.planer-web.tls.certresolver=letsencrypt
+      - traefik.http.services.planer-web.loadbalancer.server.port=80
+
+volumes:
+  acme:
+  auth-daten:
+  router-daten:
+
+networks:
+  proxy:
+  intern:
+    internal: true

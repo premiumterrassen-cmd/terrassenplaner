@@ -1,0 +1,56 @@
+- name: Pakete installieren
+  ansible.builtin.apt:
+    name: "{{ grundsystem_pakete }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Automatische Sicherheitsupdates aktivieren
+  ansible.builtin.copy:
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+    mode: "0644"
+
+- name: Firewall – nur SSH, HTTP und HTTPS von außen
+  ansible.builtin.template:
+    src: nftables.conf.j2
+    dest: /etc/nftables.conf
+    mode: "0644"
+    validate: nft -c -f %s
+  notify: Firewall neu laden
+
+- name: Firewall aktivieren
+  ansible.builtin.systemd_service:
+    name: nftables
+    enabled: true
+    state: started
+
+- name: Schlüsselzugang für root ist eingerichtet
+  ansible.builtin.stat:
+    path: /root/.ssh/authorized_keys
+  register: grundsystem_schluessel
+
+- name: SSH nur noch mit Schlüssel
+  ansible.builtin.copy:
+    dest: /etc/ssh/sshd_config.d/10-planer.conf
+    content: |
+      # Verwaltet von Ansible (Terrassenplaner)
+      PasswordAuthentication no
+      KbdInteractiveAuthentication no
+      PermitRootLogin prohibit-password
+    mode: "0644"
+    # Ausschnitt allein prüfen (Standardwerte für alles Übrige).
+    validate: /usr/sbin/sshd -t -f %s
+  when:
+    - grundsystem_ssh_nur_schluessel
+    - grundsystem_schluessel.stat.exists
+    - grundsystem_schluessel.stat.size > 0
+  notify: SSH neu laden
+
+- name: Datenverzeichnis anlegen
+  ansible.builtin.file:
+    path: "{{ planer_daten }}"
+    state: directory
+    mode: "0755"

@@ -1,0 +1,36 @@
+# Verwaltet von Ansible (Terrassenplaner)
+entryPoints:
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+  websecure:
+    address: ":443"
+  traefik:
+    # Nur lokal: Ping/Health für Monitoring (Port 8080 belegt der Router).
+    address: "127.0.0.1:8092"
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: "{{ planer_letsencrypt_email }}"
+      storage: "{{ traefik_acme_datei }}"
+      caServer: "{{ planer_letsencrypt_ca_urls[planer_letsencrypt_ca] }}"
+      httpChallenge:
+        entryPoint: web
+
+providers:
+  file:
+    directory: "{{ traefik_konfig }}/dynamisch"
+    watch: true
+
+ping:
+  entryPoint: traefik
+api:
+  dashboard: false
+log:
+  level: INFO
+accessLog: {}

@@ -1,0 +1,14 @@
+# Verwaltet von Ansible (Terrassenplaner) – Web-App nur auf 127.0.0.1, davor Traefik.
+server {
+  listen 127.0.0.1:{{ planer_web_port }};
+  root {{ planer_basis }}/web;
+  index index.html;
+
+  location / {
+    try_files $uri $uri/ /index.html;
+  }
+  # index.html und Service-Worker nie cachen, damit Updates sofort ankommen.
+  location ~ ^/(index\.html|flutter_service_worker\.js|flutter_bootstrap\.js)$ {
+    add_header Cache-Control "no-cache";
+  }
+}

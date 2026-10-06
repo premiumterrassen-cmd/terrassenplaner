@@ -1,0 +1,5 @@
+# Vorlage – NICHT mit echten Werten committen.
+# Anlegen (verschlüsselt):  ansible-vault create inventories/produktion/group_vars/all/vault.yml
+# Inhalt: je eine lange Zufallszeichenkette, z. B. aus `openssl rand -base64 48`.
+vault_planer_auth_token: "…"
+vault_planer_auth_dienst_ticket: "…"

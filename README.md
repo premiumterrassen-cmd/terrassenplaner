@@ -72,3 +72,7 @@ export PLANER_AUTH_TOKEN=… PLANER_AUTH_DIENST_TICKET=…
 ## connectanum-Versionen
 
 `tool/connectanum_versionen.py` vergleicht die aufgelösten connectanum-Versionen mit pub.dev (mit `--issue`: legt ein GitHub-Issue an). Der Workflow `connectanum-versionen.yml` führt das täglich aus.
+
+## Deployment
+
+Ansible unter `deploy/` (Root-Server mit systemd oder Container-Betrieb, Traefik mit Let's Encrypt, Router und Auth-Server als getrennte Dienste): [deploy/README.md](deploy/README.md).

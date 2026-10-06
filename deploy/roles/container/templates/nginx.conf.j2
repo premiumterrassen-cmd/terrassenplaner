@@ -1,0 +1,12 @@
+# Verwaltet von Ansible (Terrassenplaner)
+server {
+  listen 80;
+  root /usr/share/nginx/html;
+  index index.html;
+  location / {
+    try_files $uri $uri/ /index.html;
+  }
+  location ~ ^/(index\.html|flutter_service_worker\.js|flutter_bootstrap\.js)$ {
+    add_header Cache-Control "no-cache";
+  }
+}

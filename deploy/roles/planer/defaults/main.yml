@@ -1,0 +1,21 @@
+# Gemeinsame Werte aller Planer-Rollen (Ports, Pfade, Benutzer).
+planer_betriebsart: systemd
+planer_basis: /opt/terrassenplaner
+planer_daten: /var/lib/terrassenplaner
+planer_artefakte_lokal: "{{ playbook_dir }}/../../artefakte"
+
+planer_router_port: 8080
+planer_router_health: 127.0.0.1:8081
+planer_auth_listen: 127.0.0.1:8082
+planer_auth_health: 127.0.0.1:8083
+planer_web_port: 8090
+planer_ws_pfad: /ws
+planer_realm: de.robinienwelt.terrassenplaner
+
+planer_router_benutzer: planer-router
+planer_auth_benutzer: planer-auth
+
+planer_letsencrypt_ca: production
+planer_letsencrypt_ca_urls:
+  production: https://acme-v02.api.letsencrypt.org/directory
+  staging: https://acme-staging-v02.api.letsencrypt.org/directory

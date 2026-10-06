@@ -7,3 +7,5 @@ coverage/
 .vscode/
 mutation-test-report/
 benchmark-results/
+artefakte/
+deploy/inventories/*/group_vars/all/vault.yml.unverschluesselt

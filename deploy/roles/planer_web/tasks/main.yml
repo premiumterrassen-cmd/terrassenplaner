@@ -1,0 +1,30 @@
+- name: Nginx für die Web-App (nur lokal hinter Traefik)
+  ansible.builtin.apt:
+    name: nginx-light
+    state: present
+
+- name: Standardseite von nginx entfernen
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: Nginx neu laden
+
+- name: Web-App ausliefern
+  ansible.builtin.copy:
+    src: "{{ planer_artefakte_lokal }}/web/"
+    dest: "{{ planer_basis }}/web/"
+    mode: "0644"
+    directory_mode: "0755"
+
+- name: Nginx-Site für die Web-App
+  ansible.builtin.template:
+    src: planer-web.conf.j2
+    dest: /etc/nginx/sites-enabled/planer-web.conf
+    mode: "0644"
+  notify: Nginx neu laden
+
+- name: Nginx starten
+  ansible.builtin.systemd_service:
+    name: nginx
+    enabled: true
+    state: started

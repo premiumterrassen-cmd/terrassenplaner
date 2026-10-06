@@ -1,0 +1,11 @@
+# Betriebsart: systemd (Root-Server, Dienste als systemd-Units) oder container.
+planer_betriebsart: systemd
+
+planer_domain: alto.terrassenplaner.eu
+planer_letsencrypt_email: burkhardt@robinienwelt.de
+# production oder staging (Tests, schont die Rate-Limits der Produktiv-CA)
+planer_letsencrypt_ca: production
+
+# Geheimnisse aus Ansible Vault (vault.yml, von Alexander angelegt)
+planer_auth_token: "{{ vault_planer_auth_token }}"
+planer_auth_dienst_ticket: "{{ vault_planer_auth_dienst_ticket }}"
