@@ -1,6 +1,7 @@
 /// Server des Terrassenplaners: WAMP-Router, Authentifizierung und Dienste.
 library;
 
+export 'src/dienste/hallo_dienst.dart';
 export 'src/router/auth_server_einstellungen.dart';
 export 'src/router/auth_server_prozess.dart';
 export 'src/router/planer_router.dart';

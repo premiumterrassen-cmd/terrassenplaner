@@ -1,4 +1,5 @@
 import 'package:connectanum_router/connectanum_router.dart';
+import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 /// Rollen im Planer-Realm und ihre Rechte (Prefix-URIs).
 ///
@@ -15,9 +16,9 @@ abstract final class Rollen {
   static const mitarbeiter = 'mitarbeiter';
   static const dienst = 'dienst';
 
-  static const uriBasis = 'de.robinienwelt.terrassenplaner.';
-  static const kundeUri = '${uriBasis}kunde.';
-  static const mitarbeiterUri = '${uriBasis}mitarbeiter.';
+  static const uriBasis = WampNamen.basis;
+  static const kundeUri = WampNamen.kunde;
+  static const mitarbeiterUri = WampNamen.mitarbeiter;
 
   static const _nutzen = ['call', 'subscribe'];
   static const _anbieten = [
