@@ -9,11 +9,19 @@ server {
   gzip on;
   gzip_types application/wasm application/javascript text/javascript application/json text/css;
 
+  # .mjs fehlt in der Typenliste des Debian-nginx – ohne JavaScript-Typ lädt der Browser main.dart.mjs nicht.
+  location ~ \.mjs$ {
+    types { }
+    default_type text/javascript;
+    add_header Cache-Control "no-cache";
+    add_header Cross-Origin-Opener-Policy "same-origin" always;
+    add_header Cross-Origin-Embedder-Policy "require-corp" always;
+  }
   location / {
     try_files $uri $uri/ /index.html;
   }
-  # index.html und Service-Worker nie cachen, damit Updates sofort ankommen.
-  location ~ ^/(index\.html|flutter_service_worker\.js|flutter_bootstrap\.js)$ {
+  # Dateien ohne Hash im Namen immer neu prüfen (ETag), damit Updates sofort ankommen.
+  location ~ ^/(index\.html|flutter_service_worker\.js|flutter_bootstrap\.js|main\.dart\.(js|wasm))$ {
     add_header Cache-Control "no-cache";
     add_header Cross-Origin-Opener-Policy "same-origin" always;
     add_header Cross-Origin-Embedder-Policy "require-corp" always;
