@@ -20,14 +20,14 @@ cd deploy
 ansible-vault create inventories/produktion/group_vars/all/vault.yml
 ```
 
-Inhalt wie `vault.example.yml` – zwei verschiedene Zufallswerte, z. B. aus `openssl rand -base64 48`. Das Vault-Passwort kennt nur Alexander.
+Inhalt wie `vault.example.yml` – zwei verschiedene Zufallswerte, z. B. aus `openssl rand -base64 48`. Das Vault-Passwort kennt nur Alexander; es liegt lokal in `~/.ansible/vault-terrassenplaner` (nur für ihn lesbar, `ansible.cfg` verweist darauf), damit es nicht bei jedem Lauf abgefragt wird.
 
 ## Ausrollen
 
 ```bash
 tool/artefakte_holen.sh                       # Linux-Artefakte des letzten grünen main-Laufs
 cd deploy
-ansible-playbook playbooks/site.yml --ask-vault-pass
+ansible-playbook playbooks/site.yml
 ```
 
 Für Tests ohne Rate-Limit: `-e planer_letsencrypt_ca=staging`. Container-Betrieb: `-e planer_betriebsart=container`.
