@@ -2,3 +2,6 @@ container_verzeichnis: /opt/terrassenplaner-container
 container_traefik_bild: "traefik:v3.7.13"
 container_nginx_bild: "nginx:1.27-alpine"
 container_basis_bild: "debian:trixie-slim"
+container_prometheus_bild: "prom/prometheus:v2.53.3"
+container_grafana_bild: "grafana/grafana:12.4.9"
+container_node_exporter_bild: "prom/node-exporter:v1.9.0"

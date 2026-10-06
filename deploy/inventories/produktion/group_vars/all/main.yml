@@ -9,3 +9,4 @@ planer_letsencrypt_ca: production
 # Geheimnisse aus Ansible Vault (vault.yml, von Alexander angelegt)
 planer_auth_token: "{{ vault_planer_auth_token }}"
 planer_auth_dienst_ticket: "{{ vault_planer_auth_dienst_ticket }}"
+planer_grafana_admin_passwort: "{{ vault_grafana_admin_passwort }}"

@@ -19,11 +19,12 @@ services:
       - --certificatesresolvers.letsencrypt.acme.caserver={{ planer_letsencrypt_ca_urls[planer_letsencrypt_ca] }}
       - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
       - --ping=true
+      - --metrics.prometheus=true
     ports: ["80:80", "443:443"]
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - acme:/acme
-    networks: [proxy]
+    networks: [proxy, monitoring]
     healthcheck:
       test: ["CMD", "traefik", "healthcheck", "--ping"]
       interval: 10s
@@ -42,7 +43,7 @@ services:
       PLANER_DATENVERZEICHNIS: /daten/datenbank
       PLANER_KNOTEN: {{ inventory_hostname }}
     volumes: [auth-daten:/daten]
-    networks: [intern]
+    networks: [intern, monitoring]
     healthcheck:
       test: ["CMD", "curl", "-fs", "http://127.0.0.1:8083/healthz"]
       interval: 10s
@@ -62,7 +63,7 @@ services:
       PLANER_HEALTH_LISTEN: 0.0.0.0:8081
       PLANER_AUTH_ADRESSE: auth:8082
     volumes: [router-daten:/daten]
-    networks: [intern, proxy]
+    networks: [intern, proxy, monitoring]
     depends_on:
       auth: {condition: service_healthy}
     healthcheck:
@@ -89,12 +90,57 @@ services:
       - traefik.http.routers.planer-web.tls.certresolver=letsencrypt
       - traefik.http.services.planer-web.loadbalancer.server.port=80
 
+  prometheus:
+    image: {{ container_prometheus_bild }}
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=30d
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-daten:/prometheus
+    networks: [monitoring]
+
+  node-exporter:
+    image: {{ container_node_exporter_bild }}
+    restart: unless-stopped
+    command: [--path.rootfs=/host]
+    pid: host
+    volumes: ["/:/host:ro,rslave"]
+    networks: [monitoring]
+
+  grafana:
+    image: {{ container_grafana_bild }}
+    restart: unless-stopped
+    env_file: grafana.env
+    environment:
+      GF_SERVER_ROOT_URL: https://{{ monitoring_domain | default('metrics.terrassenplaner.eu') }}/
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+    volumes:
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./monitoring/grafana/dashboards-provider:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/dashboards:/var/lib/grafana/dashboards-terrassenplaner:ro
+      - grafana-daten:/var/lib/grafana
+    networks: [proxy, monitoring]
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.monitoring-grafana.rule=Host(`{{ monitoring_domain | default('metrics.terrassenplaner.eu') }}`)
+      - traefik.http.routers.monitoring-grafana.entrypoints=websecure
+      - traefik.http.routers.monitoring-grafana.tls.certresolver=letsencrypt
+      - traefik.http.services.monitoring-grafana.loadbalancer.server.port=3000
+
 volumes:
   acme:
+  prometheus-daten:
+  grafana-daten:
   auth-daten:
   router-daten:
 
 networks:
   proxy:
   intern:
+    internal: true
+  monitoring:
     internal: true

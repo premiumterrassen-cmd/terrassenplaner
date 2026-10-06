@@ -1,0 +1,5 @@
+monitoring_domain: metrics.terrassenplaner.eu
+monitoring_prometheus_listen: 127.0.0.1:9090
+monitoring_grafana_port: 3000
+monitoring_aufbewahrung: 30d
+monitoring_grafana_repo: https://apt.grafana.com

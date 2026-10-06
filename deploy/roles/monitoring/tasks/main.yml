@@ -1,0 +1,111 @@
+- name: Prometheus und Node-Exporter installieren
+  ansible.builtin.apt:
+    name: [prometheus, prometheus-node-exporter]
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Prometheus nur lokal, Aufbewahrung begrenzt
+  ansible.builtin.copy:
+    dest: /etc/default/prometheus
+    content: |
+      # Verwaltet von Ansible (Terrassenplaner)
+      ARGS="--web.listen-address={{ monitoring_prometheus_listen }} --storage.tsdb.retention.time={{ monitoring_aufbewahrung }}"
+    mode: "0644"
+  notify: Prometheus neu starten
+
+- name: Node-Exporter nur lokal
+  ansible.builtin.copy:
+    dest: /etc/default/prometheus-node-exporter
+    content: |
+      # Verwaltet von Ansible (Terrassenplaner)
+      ARGS="--web.listen-address=127.0.0.1:9100"
+    mode: "0644"
+  notify: Node-Exporter neu starten
+
+- name: Prometheus-Konfiguration (Ziele)
+  ansible.builtin.template:
+    src: prometheus.yml.j2
+    dest: /etc/prometheus/prometheus.yml
+    mode: "0644"
+    validate: promtool check config %s
+  notify: Prometheus neu starten
+
+- name: Schlüssel des Grafana-Paketarchivs
+  ansible.builtin.get_url:
+    url: "{{ monitoring_grafana_repo }}/gpg.key"
+    dest: /etc/apt/keyrings/grafana.asc
+    mode: "0644"
+
+- name: Grafana-Paketarchiv
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/grafana.asc] {{ monitoring_grafana_repo }} stable main"
+    filename: grafana
+    state: present
+
+- name: Grafana installieren
+  ansible.builtin.apt:
+    name: grafana
+    state: present
+    update_cache: true
+
+- name: Grafana-Einstellungen (nur lokal, Anmeldung Pflicht)
+  ansible.builtin.template:
+    src: grafana.ini.j2
+    dest: /etc/grafana/grafana.ini
+    owner: root
+    group: grafana
+    mode: "0640"
+  no_log: true
+  notify: Grafana neu starten
+
+- name: Provisioning-Verzeichnisse
+  ansible.builtin.file:
+    path: "/etc/grafana/provisioning/{{ item }}"
+    state: directory
+    mode: "0755"
+  loop: [datasources, dashboards]
+
+- name: Datenquelle Prometheus
+  ansible.builtin.template:
+    src: datenquelle.yml.j2
+    dest: /etc/grafana/provisioning/datasources/prometheus.yml
+    mode: "0644"
+  notify: Grafana neu starten
+
+- name: Dashboard-Anbieter
+  ansible.builtin.copy:
+    dest: /etc/grafana/provisioning/dashboards/terrassenplaner.yml
+    content: |
+      # Verwaltet von Ansible (Terrassenplaner)
+      apiVersion: 1
+      providers:
+        - name: Terrassenplaner
+          folder: Terrassenplaner
+          type: file
+          allowUiUpdates: false
+          options:
+            path: /var/lib/grafana/dashboards-terrassenplaner
+    mode: "0644"
+  notify: Grafana neu starten
+
+- name: Dashboards aus dem Repository
+  ansible.builtin.copy:
+    src: dashboards/
+    dest: /var/lib/grafana/dashboards-terrassenplaner/
+    owner: grafana
+    mode: "0644"
+    directory_mode: "0755"
+
+- name: Dienste starten
+  ansible.builtin.systemd_service:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+  loop: [prometheus, prometheus-node-exporter, grafana-server]
+
+- name: Traefik-Route für Grafana
+  ansible.builtin.template:
+    src: monitoring-route.yml.j2
+    dest: /etc/traefik/dynamisch/monitoring.yml
+    mode: "0644"

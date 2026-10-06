@@ -45,3 +45,25 @@
     - name: ObjectBox-Datenbank im Auth-Container angelegt
       ansible.builtin.command: docker exec terrassenplaner-auth-1 test -f /daten/datenbank/data.mdb
       changed_when: false
+
+    - name: Prometheus erreicht alle Ziele (Container)
+      ansible.builtin.command: docker exec terrassenplaner-prometheus-1 wget -qO- http://127.0.0.1:9090/api/v1/targets
+      register: planer_test_ziele
+      changed_when: false
+      retries: 12
+      delay: 5
+      until: >-
+        planer_test_ziele.rc == 0
+        and ((planer_test_ziele.stdout | from_json).data.activeTargets | length) >= 5
+        and ((planer_test_ziele.stdout | from_json).data.activeTargets | rejectattr('health', 'equalto', 'up') | list | length) == 0
+
+    - name: Grafana über Traefik nur mit Anmeldung (Container)
+      ansible.builtin.uri:
+        url: https://127.0.0.1/api/dashboards/uid/terrassenplaner-uebersicht
+        headers: {Host: metrics.terrassenplaner.eu}
+        validate_certs: false
+        status_code: 401
+      register: planer_test_grafana
+      retries: 10
+      delay: 3
+      until: planer_test_grafana.status == 401

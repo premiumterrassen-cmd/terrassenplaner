@@ -3,3 +3,4 @@
 # Inhalt: je eine lange Zufallszeichenkette, z. B. aus `openssl rand -base64 48`.
 vault_planer_auth_token: "…"
 vault_planer_auth_dienst_ticket: "…"
+vault_grafana_admin_passwort: "…"   # Anmeldung an https://metrics.terrassenplaner.eu (Benutzer admin)

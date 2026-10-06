@@ -9,6 +9,7 @@
           - planer_auth_token | length >= 32
           - planer_auth_dienst_ticket | length >= 32
           - planer_auth_token != planer_auth_dienst_ticket
+          - planer_grafana_admin_passwort | length >= 12
         fail_msg: Vault-Werte fehlen oder sind zu kurz (siehe vault.example.yml).
         quiet: true
       no_log: true
@@ -19,6 +20,8 @@
     - role: planer_dienste
       when: planer_betriebsart == 'systemd'
     - role: planer_web
+      when: planer_betriebsart == 'systemd'
+    - role: monitoring
       when: planer_betriebsart == 'systemd'
     - role: container
       when: planer_betriebsart == 'container'

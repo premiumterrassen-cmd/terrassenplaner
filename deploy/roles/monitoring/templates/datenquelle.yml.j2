@@ -1,0 +1,10 @@
+# Verwaltet von Ansible (Terrassenplaner)
+apiVersion: 1
+datasources:
+  - name: Prometheus
+    uid: prometheus
+    type: prometheus
+    access: proxy
+    url: http://{{ monitoring_prometheus_listen }}
+    isDefault: true
+    editable: false

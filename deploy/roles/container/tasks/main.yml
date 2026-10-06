@@ -48,6 +48,57 @@
   no_log: true
   notify: Container neu bauen und starten
 
+- name: Monitoring-Verzeichnisse
+  ansible.builtin.file:
+    path: "{{ container_verzeichnis }}/monitoring/{{ item }}"
+    state: directory
+    mode: "0755"
+  loop: [grafana/datasources, grafana/dashboards-provider, dashboards]
+
+- name: Prometheus-Konfiguration (Container)
+  ansible.builtin.template:
+    src: prometheus-container.yml.j2
+    dest: "{{ container_verzeichnis }}/monitoring/prometheus.yml"
+    mode: "0644"
+  notify: Container neu bauen und starten
+
+- name: Grafana-Datenquelle und Dashboards
+  ansible.builtin.copy:
+    src: "{{ item.quelle }}"
+    dest: "{{ container_verzeichnis }}/monitoring/{{ item.ziel }}"
+    mode: "0644"
+  loop:
+    - {quelle: "{{ playbook_dir }}/../roles/monitoring/files/dashboards/", ziel: dashboards/}
+  notify: Container neu bauen und starten
+
+- name: Grafana-Provisioning (Container)
+  ansible.builtin.copy:
+    dest: "{{ container_verzeichnis }}/monitoring/grafana/{{ item.datei }}"
+    content: "{{ item.inhalt }}"
+    mode: "0644"
+  loop:
+    - datei: datasources/prometheus.yml
+      inhalt: |
+        apiVersion: 1
+        datasources:
+          - {name: Prometheus, uid: prometheus, type: prometheus, access: proxy, url: "http://prometheus:9090", isDefault: true, editable: false}
+    - datei: dashboards-provider/terrassenplaner.yml
+      inhalt: |
+        apiVersion: 1
+        providers:
+          - {name: Terrassenplaner, folder: Terrassenplaner, type: file, allowUiUpdates: false, options: {path: /var/lib/grafana/dashboards-terrassenplaner}}
+  loop_control:
+    label: "{{ item.datei }}"
+  notify: Container neu bauen und starten
+
+- name: Grafana-Geheimnis (nur root lesbar)
+  ansible.builtin.copy:
+    dest: "{{ container_verzeichnis }}/grafana.env"
+    content: "GF_SECURITY_ADMIN_PASSWORD={{ planer_grafana_admin_passwort }}\n"
+    mode: "0600"
+  no_log: true
+  notify: Container neu bauen und starten
+
 - name: Compose-Datei
   ansible.builtin.template:
     src: compose.yml.j2
