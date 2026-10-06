@@ -64,7 +64,7 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/1
   - `ansible-lint` und Molecule-Szenarien für beide Zielarten (Root-Server simuliert, Container), inkl. Idempotenz-Prüfung, in der Build-Chain. Traefik und Zertifikatsbezug werden gegen die Let's-Encrypt-Staging-Umgebung bzw. ein lokales ACME-Testsystem geprüft.
   - Abnahme: Lint ohne Befund; Molecule converge + idempotence + verify für beide Szenarien grün in CI
 - [ ] **M0-11 Deployment-Chain aus der CI** ([#11](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/11)) – `feature/m0-11-deployment-chain-aus-der-ci`
-  - Automatisches Deployment nach Merge auf `main` in eine Testumgebung; Produktiv-Deployment per Freigabe.
+  - Automatisches Deployment nach jedem Merge auf `main` direkt in Produktion, wenn alle Prüfungen grün sind (Vorgabe Alexander 06.10.2026); Prüfung von außen nach dem Ausrollen.
   - Abnahme: Merge auf `main` deployt Testumgebung; Produktiv nur nach manueller Freigabe; Rollback dokumentiert
 - [x] **M0-12 „Hallo Welt“ Ende-zu-Ende** ([#12](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/12)) – `feature/m0-12-hallo-welt-ende-zu-ende`
   - Web-App verbindet sich über WAMP mit dem Router, ruft einen Dienst auf und zeigt das Ergebnis – automatisiert deployt.
