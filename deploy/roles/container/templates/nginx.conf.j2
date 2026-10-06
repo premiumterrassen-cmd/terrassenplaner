@@ -3,10 +3,17 @@ server {
   listen 80;
   root /usr/share/nginx/html;
   index index.html;
+  # WebAssembly (Skwasm) mit mehreren Threads braucht Cross-Origin-Isolation (M0-16).
+  add_header Cross-Origin-Opener-Policy "same-origin" always;
+  add_header Cross-Origin-Embedder-Policy "require-corp" always;
+  gzip on;
+  gzip_types application/wasm application/javascript text/javascript application/json text/css;
   location / {
     try_files $uri $uri/ /index.html;
   }
   location ~ ^/(index\.html|flutter_service_worker\.js|flutter_bootstrap\.js)$ {
     add_header Cache-Control "no-cache";
+    add_header Cross-Origin-Opener-Policy "same-origin" always;
+    add_header Cross-Origin-Embedder-Policy "require-corp" always;
   }
 }
