@@ -41,7 +41,8 @@
       KbdInteractiveAuthentication no
       PermitRootLogin prohibit-password
     mode: "0644"
-    validate: sshd -t -f /etc/ssh/sshd_config
+    # Ausschnitt allein prüfen (Standardwerte für alles Übrige).
+    validate: /usr/sbin/sshd -t -f %s
   when:
     - grundsystem_ssh_nur_schluessel
     - grundsystem_schluessel.stat.exists
