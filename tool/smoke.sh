@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Frontend-Smoke-Tests (integration_test) der Web-App headless in Chrome.
+# Frontend-Smoke-Tests (integration_test) der Web-App headless in Chrome,
+# gebaut als WebAssembly wie im Deployment (M0-16).
 # Voraussetzung: Chrome und ein passender chromedriver im PATH.
 set -euo pipefail
 
@@ -19,7 +20,7 @@ for test in integration_test/*_test.dart; do
   flutter drive \
     --driver=test_driver/integration_test.dart \
     --target="$test" \
-    -d web-server --browser-name=chrome --headless \
+    -d web-server --browser-name=chrome --headless --wasm \
     --driver-port="$PORT" || status=1
 done
 exit $status
