@@ -8,7 +8,7 @@
     </directory>
   </directories>
   <commands>
-    <command group="test" expected-return="0" working-directory="packages/server" timeout="300">dart test</command>
+    <command group="test" expected-return="0" working-directory="packages/server" timeout="120">dart test --fail-fast</command>
   </commands>
   <exclude>
     <token begin="//" end="\n"/>
