@@ -10,3 +10,10 @@ planer_letsencrypt_ca: production
 planer_auth_token: "{{ vault_planer_auth_token }}"
 planer_auth_dienst_ticket: "{{ vault_planer_auth_dienst_ticket }}"
 planer_grafana_admin_passwort: "{{ vault_grafana_admin_passwort }}"
+
+# Alarm-Mails (M0-14): Postausgang united-domains, Zugang aus Vault
+planer_smtp_server: smtps.udag.de:465
+planer_smtp_absender: monitoring@robinienwelt.de
+planer_alarm_empfaenger: burkhardt@robinienwelt.de
+planer_smtp_benutzer: "{{ vault_smtp_benutzer | default('') }}"
+planer_smtp_passwort: "{{ vault_smtp_passwort | default('') }}"

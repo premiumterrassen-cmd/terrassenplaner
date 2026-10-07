@@ -8,6 +8,7 @@ planer_router_port: 8080
 planer_router_health: 127.0.0.1:8081
 planer_auth_listen: 127.0.0.1:8082
 planer_auth_health: 127.0.0.1:8083
+planer_datenbank_metriken: 127.0.0.1:8084
 planer_web_port: 8090
 planer_ws_pfad: /ws
 planer_realm: de.robinienwelt.terrassenplaner

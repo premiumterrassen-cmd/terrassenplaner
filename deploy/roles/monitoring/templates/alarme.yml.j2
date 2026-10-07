@@ -1,0 +1,57 @@
+# Verwaltet von Ansible (Terrassenplaner) – Alarme per E-Mail (M0-14)
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: Alarm-E-Mail
+    receivers:
+      - uid: alarm-email
+        type: email
+        settings:
+          addresses: "{{ planer_alarm_empfaenger }}"
+          singleEmail: true
+
+policies:
+  - orgId: 1
+    receiver: Alarm-E-Mail
+    group_by: [alertname]
+    group_wait: 30s
+    group_interval: 5m
+    repeat_interval: 4h
+
+groups:
+  - orgId: 1
+    name: Terrassenplaner
+    folder: Terrassenplaner
+    interval: 1m
+    rules:
+{% for regel in monitoring_alarme %}
+      - uid: {{ regel.uid }}
+        title: "{{ regel.titel }}"
+        condition: B
+        for: {{ regel.dauer }}
+        noDataState: {{ regel.ohne_daten | default('OK') }}
+        execErrState: Alerting
+        labels:
+          schwere: {{ regel.schwere }}
+        annotations:
+          summary: "{{ regel.text }}"
+        data:
+          - refId: A
+            relativeTimeRange: {from: 600, to: 0}
+            datasourceUid: prometheus
+            model:
+              refId: A
+              instant: true
+              expr: "{{ regel.abfrage }}"
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: {{ regel.vergleich }}
+                    params: [{{ regel.schwelle }}]
+{% endfor %}

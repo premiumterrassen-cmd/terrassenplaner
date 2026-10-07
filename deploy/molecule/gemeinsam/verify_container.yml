@@ -54,7 +54,7 @@
       delay: 5
       until: >-
         planer_test_ziele.rc == 0
-        and ((planer_test_ziele.stdout | from_json).data.activeTargets | length) >= 5
+        and ((planer_test_ziele.stdout | from_json).data.activeTargets | length) >= 6
         and ((planer_test_ziele.stdout | from_json).data.activeTargets | rejectattr('health', 'equalto', 'up') | list | length) == 0
 
     - name: Grafana über Traefik nur mit Anmeldung (Container)

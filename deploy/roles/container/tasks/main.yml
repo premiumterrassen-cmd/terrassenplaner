@@ -53,7 +53,7 @@
     path: "{{ container_verzeichnis }}/monitoring/{{ item }}"
     state: directory
     mode: "0755"
-  loop: [grafana/datasources, grafana/dashboards-provider, dashboards]
+  loop: [grafana/datasources, grafana/dashboards-provider, grafana/alerting, dashboards]
 
 - name: Prometheus-Konfiguration (Container)
   ansible.builtin.template:
@@ -91,10 +91,24 @@
     label: "{{ item.datei }}"
   notify: Container neu bauen und starten
 
+- name: Alarmregeln aus der Monitoring-Rolle laden
+  ansible.builtin.include_vars:
+    file: "{{ playbook_dir }}/../roles/monitoring/defaults/main.yml"
+
+- name: Grafana-Alarme (Container)
+  ansible.builtin.template:
+    src: "{{ playbook_dir }}/../roles/monitoring/templates/alarme.yml.j2"
+    dest: "{{ container_verzeichnis }}/monitoring/grafana/alerting/terrassenplaner.yml"
+    mode: "0644"
+  notify: Container neu bauen und starten
+
 - name: Grafana-Geheimnis (nur root lesbar)
   ansible.builtin.copy:
     dest: "{{ container_verzeichnis }}/grafana.env"
-    content: "GF_SECURITY_ADMIN_PASSWORD={{ planer_grafana_admin_passwort }}\n"
+    content: |
+      GF_SECURITY_ADMIN_PASSWORD={{ planer_grafana_admin_passwort }}
+      GF_SMTP_USER={{ planer_smtp_benutzer | default('') }}
+      GF_SMTP_PASSWORD={{ planer_smtp_passwort | default('') }}
     mode: "0600"
   no_log: true
   notify: Container neu bauen und starten

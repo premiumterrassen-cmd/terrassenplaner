@@ -15,5 +15,4 @@
 ## Offen
 
 - Geplante Sicherung auf dem Server (Zeitplan, Aufbewahrung, Ablage außerhalb des Servers) – mit M0-14/M10-03.
-- Kennzahlen als Prometheus-Metriken ausliefern – M0-14.
 - ObjectBox erlaubt einen Prozess je Datenbank: Verwaltung von Mitarbeitern künftig über WAMP-Prozeduren des Auth-Servers statt über Dateien.
