@@ -25,6 +25,8 @@ provisioner:
     group_vars:
       all:
         planer_betriebsart: container
+        # Docker-in-Docker: / des Testcontainers ist kein shared/slave mount.
+        container_wurzel_einbindung: ro
         planer_domain: planer.test
         planer_letsencrypt_email: test@example.org
         planer_letsencrypt_ca: staging
