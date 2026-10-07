@@ -56,6 +56,8 @@ Future<Process> starteAuthServerProzess({
       // Mitarbeiter liegen in ObjectBox (M0-15); die Datei wird übernommen.
       'PLANER_DATENVERZEICHNIS': '${ordner.path}/daten',
       'PLANER_KNOTEN': 'test',
+      // Freier Port: ein liegengebliebener Prozess darf spätere Starts nicht blockieren.
+      'PLANER_DATENBANK_METRIKEN': await freieAdresse(),
     },
   );
   final bereit = Completer<void>();
@@ -65,6 +67,20 @@ Future<Process> starteAuthServerProzess({
     }
   });
   unawaited(prozess.stderr.drain<void>());
-  await bereit.future.timeout(const Duration(minutes: 2));
+  // Endet der Prozess vor „bereit“ (z. B. bei einer Mutation), sofort scheitern
+  // statt die volle Wartezeit abzusitzen.
+  unawaited(
+    prozess.exitCode.then((code) {
+      if (!bereit.isCompleted) {
+        bereit.completeError(StateError('Auth-Server beendet mit Code $code'));
+      }
+    }),
+  );
+  try {
+    await bereit.future.timeout(const Duration(seconds: 30));
+  } on Object {
+    prozess.kill();
+    rethrow;
+  }
   return prozess;
 }
