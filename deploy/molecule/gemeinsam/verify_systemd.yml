@@ -9,7 +9,7 @@
       ansible.builtin.assert:
         that: ansible_facts.services[item + '.service'].state == 'running'
         fail_msg: "{{ item }} läuft nicht"
-      loop: [traefik, planer-auth, planer-router, nginx]
+      loop: [traefik, planer-auth, planer-router, nginx, prometheus, prometheus-node-exporter, grafana-server]
 
     - name: Firewall ist aktiv
       ansible.builtin.assert:
@@ -61,7 +61,7 @@
       failed_when: planer_test_ws.stdout != '101'
 
     - name: Interne Dienste lauschen nur auf 127.0.0.1
-      ansible.builtin.shell: set -o pipefail && ss -tlnH | awk '{print $4}' | grep -E ':(8080|8081|8082|8083|8090|8092)$'
+      ansible.builtin.shell: set -o pipefail && ss -tlnH | awk '{print $4}' | grep -E ':(8080|8081|8082|8083|8090|8092|9090|9100|3000)$'
       args: {executable: /bin/bash}
       register: planer_test_ports
       changed_when: false
@@ -91,3 +91,37 @@
         path: /var/lib/terrassenplaner/planer-auth/datenbank/data.mdb
       register: planer_test_db
       failed_when: not planer_test_db.stat.exists or planer_test_db.stat.pw_name != 'planer-auth'
+
+    - name: Prometheus erreicht alle Ziele (WAMP-Dienste, Server, Traefik)
+      ansible.builtin.uri:
+        url: http://127.0.0.1:9090/api/v1/targets
+        return_content: true
+      register: planer_test_ziele
+      retries: 12
+      delay: 5
+      until: >-
+        planer_test_ziele.json is defined
+        and (planer_test_ziele.json.data.activeTargets | length) >= 5
+        and (planer_test_ziele.json.data.activeTargets | rejectattr('health', 'equalto', 'up') | list | length) == 0
+
+    - name: Grafana über Traefik nur mit Anmeldung
+      ansible.builtin.uri:
+        url: https://127.0.0.1/api/dashboards/uid/terrassenplaner-uebersicht
+        headers: {Host: metrics.terrassenplaner.eu}
+        validate_certs: false
+        status_code: 401
+
+    - name: Dashboard mit Anmeldung vorhanden
+      ansible.builtin.uri:
+        url: https://127.0.0.1/api/dashboards/uid/terrassenplaner-uebersicht
+        headers: {Host: metrics.terrassenplaner.eu}
+        validate_certs: false
+        url_username: admin
+        url_password: "{{ planer_grafana_admin_passwort }}"
+        force_basic_auth: true
+        return_content: true
+      register: planer_test_dashboard
+      retries: 10
+      delay: 3
+      until: planer_test_dashboard.status == 200
+      no_log: true

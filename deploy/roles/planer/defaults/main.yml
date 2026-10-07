@@ -19,3 +19,6 @@ planer_letsencrypt_ca: production
 planer_letsencrypt_ca_urls:
   production: https://acme-v02.api.letsencrypt.org/directory
   staging: https://acme-staging-v02.api.letsencrypt.org/directory
+
+# Grafana-Anmeldung (Passwort aus Ansible Vault)
+planer_grafana_admin: admin

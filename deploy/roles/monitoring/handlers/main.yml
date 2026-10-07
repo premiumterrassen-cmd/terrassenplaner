@@ -1,0 +1,14 @@
+- name: Prometheus neu starten
+  ansible.builtin.systemd_service:
+    name: prometheus
+    state: restarted
+
+- name: Node-Exporter neu starten
+  ansible.builtin.systemd_service:
+    name: prometheus-node-exporter
+    state: restarted
+
+- name: Grafana neu starten
+  ansible.builtin.systemd_service:
+    name: grafana-server
+    state: restarted

@@ -25,11 +25,14 @@ provisioner:
     group_vars:
       all:
         planer_betriebsart: container
+        # Docker-in-Docker: / des Testcontainers ist kein shared/slave mount.
+        container_wurzel_einbindung: ro
         planer_domain: planer.test
         planer_letsencrypt_email: test@example.org
         planer_letsencrypt_ca: staging
         planer_auth_token: molecule-test-token-0123456789abcdef0123456789
         planer_auth_dienst_ticket: molecule-test-ticket-0123456789abcdef012345678
+        planer_grafana_admin_passwort: molecule-grafana-test
         planer_artefakte_lokal: ${PLANER_ARTEFAKTE}
         grundsystem_ssh_nur_schluessel: true
   playbooks:
