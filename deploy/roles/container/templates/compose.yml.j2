@@ -41,6 +41,7 @@ services:
       PLANER_AUTH_HEALTH_LISTEN: 0.0.0.0:8083
       PLANER_REALM: {{ planer_realm }}
       PLANER_DATENVERZEICHNIS: /daten/datenbank
+      PLANER_DATENBANK_METRIKEN: 0.0.0.0:8084
       PLANER_KNOTEN: {{ inventory_hostname }}
     volumes: [auth-daten:/daten]
     networks: [intern, monitoring]
@@ -118,7 +119,12 @@ services:
       GF_AUTH_ANONYMOUS_ENABLED: "false"
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_SMTP_ENABLED: "{{ 'true' if planer_smtp_benutzer | default('') | length > 0 else 'false' }}"
+      GF_SMTP_HOST: "{{ planer_smtp_server | default('') }}"
+      GF_SMTP_FROM_ADDRESS: "{{ planer_smtp_absender | default('') }}"
+      GF_SMTP_FROM_NAME: Terrassenplaner Monitoring
     volumes:
+      - ./monitoring/grafana/alerting:/etc/grafana/provisioning/alerting:ro
       - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
       - ./monitoring/grafana/dashboards-provider:/etc/grafana/provisioning/dashboards:ro
       - ./monitoring/dashboards:/var/lib/grafana/dashboards-terrassenplaner:ro

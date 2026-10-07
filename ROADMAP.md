@@ -69,10 +69,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/1
 - [x] **M0-12 „Hallo Welt“ Ende-zu-Ende** ([#12](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/12)) – `feature/m0-12-hallo-welt-ende-zu-ende`
   - Web-App verbindet sich über WAMP mit dem Router, ruft einen Dienst auf und zeigt das Ergebnis – automatisiert deployt.
   - Abnahme: Smoke-Test gegen die deployte Testumgebung grün
-- [ ] **M0-13 Monitoring-Stack Prometheus + Grafana** ([#91](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/91)) – `feature/m0-13-monitoring-prometheus-grafana`
+- [x] **M0-13 Monitoring-Stack Prometheus + Grafana** ([#91](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/91)) – `feature/m0-13-monitoring-prometheus-grafana`
   - Prometheus + Grafana per Ansible (Root-Server und Container), hinter Traefik unter `metrics.terrassenplaner.eu` mit Let's Encrypt; Grafana nur mit Anmeldung, Prometheus nur intern; Datenquellen/Dashboards per Provisioning aus dem Repo; Aufbewahrung und Ressourcen begrenzt.
   - Abnahme: Grafana per HTTPS mit Anmeldung; Prometheus nicht öffentlich; Dashboards nach Deployment vorhanden; Molecule-Tests; keine Secrets im Repo
-- [ ] **M0-14 Überwachung WAMP-Server und Datenbank** ([#92](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/92)) – `feature/m0-14-ueberwachung-wamp-server-und-datenbank`
+- [x] **M0-14 Überwachung WAMP-Server und Datenbank** ([#92](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/92)) – `feature/m0-14-ueberwachung-wamp-server-und-datenbank`
   - Alle WAMP-Server (OpenMetrics `/metrics` mit Token, `/healthz`, automatische Erkennung), Datenbank-Exporter (sobald Datenbank festgelegt, M9-05), node_exporter, Traefik-Metriken; Dashboards; Alarme (Ausfall, Health, Platte, Zertifikat) per E-Mail.
   - Abnahme: jeder WAMP-Server „up“, Ausfall löst Alarm aus; DB-Metriken sichtbar; Dashboards gefüllt; Metrik-Endpunkte nicht öffentlich
 - [x] **M0-15 ObjectBox im Backend einrichten** ([#93](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/93)) – `feature/m0-15-objectbox-im-backend` · Benchmark

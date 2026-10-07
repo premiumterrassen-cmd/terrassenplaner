@@ -61,7 +61,7 @@
       failed_when: planer_test_ws.stdout != '101'
 
     - name: Interne Dienste lauschen nur auf 127.0.0.1
-      ansible.builtin.shell: set -o pipefail && ss -tlnH | awk '{print $4}' | grep -E ':(8080|8081|8082|8083|8090|8092|9090|9100|3000)$'
+      ansible.builtin.shell: set -o pipefail && ss -tlnH | awk '{print $4}' | grep -E ':(8080|8081|8082|8083|8084|8090|8092|9090|9100|3000)$'
       args: {executable: /bin/bash}
       register: planer_test_ports
       changed_when: false
@@ -101,7 +101,7 @@
       delay: 5
       until: >-
         planer_test_ziele.json is defined
-        and (planer_test_ziele.json.data.activeTargets | length) >= 5
+        and (planer_test_ziele.json.data.activeTargets | length) >= 6
         and (planer_test_ziele.json.data.activeTargets | rejectattr('health', 'equalto', 'up') | list | length) == 0
 
     - name: Grafana über Traefik nur mit Anmeldung
@@ -125,3 +125,22 @@
       delay: 3
       until: planer_test_dashboard.status == 200
       no_log: true
+
+    - name: Alarmregeln in Grafana vorhanden
+      ansible.builtin.uri:
+        url: http://127.0.0.1:3000/api/v1/provisioning/alert-rules
+        url_username: admin
+        url_password: "{{ planer_grafana_admin_passwort }}"
+        force_basic_auth: true
+        return_content: true
+      register: planer_test_regeln
+      failed_when: >-
+        (planer_test_regeln.json | map(attribute='uid') | list | sort)
+        != ['dienst-nicht-erreichbar', 'platte-fast-voll', 'wamp-sitzungen-hoch', 'zertifikat-laeuft-ab']
+      no_log: true
+
+    - name: Alarmtexte enthalten Grafana-Platzhalter, keine Jinja-Reste
+      ansible.builtin.command: grep -c "raw %" /etc/grafana/provisioning/alerting/terrassenplaner.yml
+      register: planer_test_raw
+      changed_when: false
+      failed_when: planer_test_raw.stdout != '0'

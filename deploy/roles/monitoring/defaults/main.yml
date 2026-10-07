@@ -3,3 +3,39 @@ monitoring_prometheus_listen: 127.0.0.1:9090
 monitoring_grafana_port: 3000
 monitoring_aufbewahrung: 30d
 monitoring_grafana_repo: https://apt.grafana.com
+
+# Alarmregeln (M0-14). Texte enthalten Grafana-Platzhalter, daher {% raw %}…{% endraw %}.
+monitoring_alarme:
+  - uid: dienst-nicht-erreichbar
+    titel: Dienst nicht erreichbar
+    abfrage: min by (job, dienst, instance) (up)
+    vergleich: lt
+    schwelle: 1
+    dauer: 2m
+    schwere: kritisch
+    ohne_daten: Alerting
+    text: "{% raw %}{{ $labels.job }} {{ $labels.dienst }} ({{ $labels.instance }}) ist nicht erreichbar.{% endraw %}"
+  - uid: platte-fast-voll
+    titel: Platte fast voll
+    abfrage: 100 * (1 - node_filesystem_avail_bytes{mountpoint=\"/\"} / node_filesystem_size_bytes{mountpoint=\"/\"})
+    vergleich: gt
+    schwelle: 85
+    dauer: 10m
+    schwere: warnung
+    text: "{% raw %}Platte zu {{ humanize $values.A.Value }} % belegt.{% endraw %}"
+  - uid: zertifikat-laeuft-ab
+    titel: Zertifikat läuft bald ab
+    abfrage: min by (cn) ((traefik_tls_certs_not_after - time()) / 86400)
+    vergleich: lt
+    schwelle: 14
+    dauer: 1h
+    schwere: warnung
+    text: "{% raw %}Zertifikat {{ $labels.cn }} läuft in {{ humanize $values.A.Value }} Tagen ab.{% endraw %}"
+  - uid: wamp-sitzungen-hoch
+    titel: Ungewöhnlich viele WAMP-Sitzungen
+    abfrage: sum by (dienst) (connectanum_router_sessions)
+    vergleich: gt
+    schwelle: 500
+    dauer: 10m
+    schwere: warnung
+    text: "{% raw %}{{ $labels.dienst }}: {{ humanize $values.A.Value }} Sitzungen.{% endraw %}"

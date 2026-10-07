@@ -12,6 +12,7 @@ export 'src/router/router_einstellungen.dart';
 export 'src/router/router_laufzeit.dart';
 export 'src/router/umgebung.dart';
 export 'src/start_meldung.dart';
+export 'src/ueberwachung/datenbank_metriken.dart';
 export 'src/zugriff/mitarbeiter_verzeichnis.dart';
 export 'src/zugriff/mitarbeiter_zugang.dart';
 export 'src/zugriff/planer_zugangsdaten.dart';

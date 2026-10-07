@@ -70,12 +70,19 @@
     path: "/etc/grafana/provisioning/{{ item }}"
     state: directory
     mode: "0755"
-  loop: [datasources, dashboards]
+  loop: [datasources, dashboards, alerting]
 
 - name: Datenquelle Prometheus
   ansible.builtin.template:
     src: datenquelle.yml.j2
     dest: /etc/grafana/provisioning/datasources/prometheus.yml
+    mode: "0644"
+  notify: Grafana neu starten
+
+- name: Alarme und Kontaktweg (E-Mail)
+  ansible.builtin.template:
+    src: alarme.yml.j2
+    dest: /etc/grafana/provisioning/alerting/terrassenplaner.yml
     mode: "0644"
   notify: Grafana neu starten
 

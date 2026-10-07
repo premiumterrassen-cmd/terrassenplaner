@@ -29,6 +29,14 @@ Future<void> main() async {
         ? MitarbeiterVerzeichnis.leer()
         : MitarbeiterVerzeichnis.ausDatei(datei);
   }
+  // Datenbank-Kennzahlen für Prometheus (M0-14), nur lokal.
+  final metriken = datenbank == null
+      ? null
+      : await MetrikServer.starte(
+          umgebung['PLANER_DATENBANK_METRIKEN'] ?? '127.0.0.1:8084',
+          () =>
+              datenbankMetriken(datenbank.kennzahlen(), dienst: 'planer-auth'),
+        );
   final auth = await AuthServerProzess.starte(
     einstellungen,
     mitarbeiter: mitarbeiter,
@@ -39,6 +47,7 @@ Future<void> main() async {
   );
   await _warteAufStoppsignal();
   await auth.stoppe();
+  await metriken?.stoppe();
   datenbank?.schliesse();
   stdout.writeln('Auth-Server beendet');
 }

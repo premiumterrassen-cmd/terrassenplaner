@@ -24,3 +24,14 @@ check_for_plugin_updates = false
 
 [news]
 news_feed_enabled = false
+
+[smtp]
+enabled = {{ 'true' if planer_smtp_benutzer | default('') | length > 0 else 'false' }}
+host = {{ planer_smtp_server | default('') }}
+user = {{ planer_smtp_benutzer | default('') }}
+password = """{{ planer_smtp_passwort | default('') }}"""
+from_address = {{ planer_smtp_absender | default('') }}
+from_name = Terrassenplaner Monitoring
+
+[unified_alerting]
+enabled = true
