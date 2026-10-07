@@ -106,7 +106,7 @@ services:
     restart: unless-stopped
     command: [--path.rootfs=/host]
     pid: host
-    volumes: ["/:/host:ro,rslave"]
+    volumes: ["/:/host:{{ container_wurzel_einbindung }}"]
     networks: [monitoring]
 
   grafana:

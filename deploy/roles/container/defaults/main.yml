@@ -5,3 +5,5 @@ container_basis_bild: "debian:trixie-slim"
 container_prometheus_bild: "prom/prometheus:v2.53.3"
 container_grafana_bild: "grafana/grafana:12.4.9"
 container_node_exporter_bild: "prom/node-exporter:v1.9.0"
+# Wurzeldateisystem für den node-exporter; rslave folgt späteren Einhängungen des Wirts.
+container_wurzel_einbindung: "ro,rslave"
