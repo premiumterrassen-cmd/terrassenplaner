@@ -37,11 +37,17 @@
     dest: /etc/apt/keyrings/grafana.asc
     mode: "0644"
 
+# Quelle im deb822-Format direkt geschrieben: braucht weder gpg noch apt-key.
 - name: Grafana-Paketarchiv
-  ansible.builtin.apt_repository:
-    repo: "deb [signed-by=/etc/apt/keyrings/grafana.asc] {{ monitoring_grafana_repo }} stable main"
-    filename: grafana
-    state: present
+  ansible.builtin.copy:
+    dest: /etc/apt/sources.list.d/grafana.sources
+    mode: "0644"
+    content: |
+      Types: deb
+      URIs: {{ monitoring_grafana_repo }}
+      Suites: stable
+      Components: main
+      Signed-By: /etc/apt/keyrings/grafana.asc
 
 - name: Grafana installieren
   ansible.builtin.apt:
