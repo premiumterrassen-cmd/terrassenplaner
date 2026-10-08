@@ -25,6 +25,10 @@ check_for_plugin_updates = false
 [news]
 news_feed_enabled = false
 
+; Eigene Metriken von Grafana nicht über die öffentliche Domain ausliefern.
+[metrics]
+enabled = false
+
 [smtp]
 enabled = {{ 'true' if planer_smtp_benutzer | default('') | length > 0 else 'false' }}
 host = {{ planer_smtp_server | default('') }}

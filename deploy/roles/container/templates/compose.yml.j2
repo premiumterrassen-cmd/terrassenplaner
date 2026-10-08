@@ -119,6 +119,7 @@ services:
       GF_AUTH_ANONYMOUS_ENABLED: "false"
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_METRICS_ENABLED: "false"
       GF_SMTP_ENABLED: "{{ 'true' if planer_smtp_benutzer | default('') | length > 0 else 'false' }}"
       GF_SMTP_HOST: "{{ planer_smtp_server | default('') }}"
       GF_SMTP_FROM_ADDRESS: "{{ planer_smtp_absender | default('') }}"
