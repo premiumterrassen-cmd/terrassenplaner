@@ -1,0 +1,8 @@
+# Tägliche Sicherung (M0-17): zunächst die Grafana-Daten (SQLite).
+# Die ObjectBox-Sicherung kommt mit M10-03 hinzu.
+sicherung_verzeichnis: /var/backups/terrassenplaner
+sicherung_aufbewahrung_tage: 14
+sicherung_zeitpunkt: "*-*-* 03:15:00"
+# Grafana-Datenbank je Betriebsart; im Container liegt sie im Volume „grafana-daten“.
+sicherung_grafana_systemd: /var/lib/grafana/grafana.db
+sicherung_grafana_volume: terrassenplaner_grafana-daten

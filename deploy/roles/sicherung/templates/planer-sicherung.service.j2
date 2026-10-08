@@ -1,0 +1,14 @@
+# Verwaltet von Ansible (Terrassenplaner)
+[Unit]
+Description=Terrassenplaner – Sicherung
+{% if planer_betriebsart == 'container' %}
+After=docker.service
+{% else %}
+After=grafana-server.service
+{% endif %}
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/planer-sicherung
+Nice=10
+IOSchedulingClass=idle

@@ -1,0 +1,18 @@
+#!/bin/sh
+# Verwaltet von Ansible (Terrassenplaner) – tägliche Sicherung (M0-17).
+# Wiederherstellung: docs/betrieb/sicherung.md
+set -eu
+
+ziel={{ sicherung_verzeichnis }}
+stempel=$(date +%Y%m%d-%H%M%S)
+{% if planer_betriebsart == 'container' %}
+quelle="$(docker volume inspect -f '{% raw %}{{ .Mountpoint }}{% endraw %}' {{ sicherung_grafana_volume }})/grafana.db"
+{% else %}
+quelle={{ sicherung_grafana_systemd }}
+{% endif %}
+
+# .backup liefert eine konsistente Kopie, auch während Grafana schreibt.
+sqlite3 "$quelle" ".backup '$ziel/grafana-$stempel.db'"
+chmod 600 "$ziel/grafana-$stempel.db"
+find "$ziel" -name 'grafana-*.db' -mtime +{{ sicherung_aufbewahrung_tage }} -delete
+echo "Sicherung $ziel/grafana-$stempel.db"

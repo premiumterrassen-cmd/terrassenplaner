@@ -25,3 +25,4 @@
       when: planer_betriebsart == 'systemd'
     - role: container
       when: planer_betriebsart == 'container'
+    - role: sicherung
