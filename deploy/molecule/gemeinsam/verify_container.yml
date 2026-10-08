@@ -67,3 +67,13 @@
       retries: 10
       delay: 3
       until: planer_test_grafana.status == 401
+
+    - name: Keine Grafana-Metriken über die öffentliche Domain (Container)
+      ansible.builtin.uri:
+        url: https://127.0.0.1/metrics
+        headers: {Host: metrics.terrassenplaner.eu}
+        validate_certs: false
+        status_code: [200, 302, 401, 404]
+        return_content: true
+      register: planer_test_grafana_metriken
+      failed_when: "'# HELP' in planer_test_grafana_metriken.content"
