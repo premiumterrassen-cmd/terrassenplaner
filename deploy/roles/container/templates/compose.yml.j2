@@ -101,6 +101,8 @@ services:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus-daten:/prometheus
     networks: [monitoring]
+    mem_limit: {{ monitoring_grenzen.prometheus.speicher_mb }}m
+    cpus: {{ monitoring_grenzen.prometheus.cpu_prozent / 100 }}
 
   node-exporter:
     image: {{ container_node_exporter_bild }}
@@ -131,6 +133,8 @@ services:
       - ./monitoring/dashboards:/var/lib/grafana/dashboards-terrassenplaner:ro
       - grafana-daten:/var/lib/grafana
     networks: [proxy, monitoring]
+    mem_limit: {{ monitoring_grenzen.grafana.speicher_mb }}m
+    cpus: {{ monitoring_grenzen.grafana.cpu_prozent / 100 }}
     labels:
       - traefik.enable=true
       - traefik.http.routers.monitoring-grafana.rule=Host(`{{ monitoring_domain | default('metrics.terrassenplaner.eu') }}`)

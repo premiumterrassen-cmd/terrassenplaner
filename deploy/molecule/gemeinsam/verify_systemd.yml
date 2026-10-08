@@ -154,3 +154,31 @@
       register: planer_test_raw
       changed_when: false
       failed_when: planer_test_raw.stdout != '0'
+
+    - name: Ressourcengrenzen der Monitoring-Dienste aktiv  # noqa: command-instead-of-module
+      ansible.builtin.command: systemctl show {{ item.einheit }} -p MemoryMax --value
+      register: planer_test_grenze
+      changed_when: false
+      failed_when: planer_test_grenze.stdout | int != item.bytes
+      loop:
+        - {einheit: prometheus, bytes: 536870912}
+        - {einheit: grafana-server, bytes: 805306368}
+
+    - name: Sicherung läuft und erzeugt eine lesbare Grafana-Kopie
+      ansible.builtin.systemd_service:
+        name: planer-sicherung.service
+        state: started
+
+    - name: Sicherungsdatei vorhanden und intakt
+      ansible.builtin.shell: >-
+        set -o pipefail;
+        datei=$(ls -1t /var/backups/terrassenplaner/grafana-*.db | head -1)
+        && sqlite3 "$datei" 'PRAGMA integrity_check;'
+      args: {executable: /bin/bash}
+      register: planer_test_sicherung
+      changed_when: false
+      failed_when: planer_test_sicherung.stdout != 'ok'
+
+    - name: Sicherungs-Timer aktiv  # noqa: command-instead-of-module
+      ansible.builtin.command: systemctl is-enabled planer-sicherung.timer
+      changed_when: false

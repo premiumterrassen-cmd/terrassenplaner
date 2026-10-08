@@ -77,3 +77,31 @@
         return_content: true
       register: planer_test_grafana_metriken
       failed_when: "'# HELP' in planer_test_grafana_metriken.content"
+
+    - name: Ressourcengrenzen der Monitoring-Container aktiv
+      ansible.builtin.command: docker inspect -f '{{ '{{' }} .HostConfig.Memory {{ '}}' }} {{ '{{' }} .HostConfig.NanoCpus {{ '}}' }}' {{ item.name }}
+      register: planer_test_grenze
+      changed_when: false
+      failed_when: planer_test_grenze.stdout != item.erwartet
+      loop:
+        - {name: terrassenplaner-prometheus-1, erwartet: "536870912 500000000"}
+        - {name: terrassenplaner-grafana-1, erwartet: "805306368 500000000"}
+
+    - name: Sicherung läuft und erzeugt eine lesbare Grafana-Kopie
+      ansible.builtin.systemd_service:
+        name: planer-sicherung.service
+        state: started
+
+    - name: Sicherungsdatei vorhanden und intakt
+      ansible.builtin.shell: >-
+        set -o pipefail;
+        datei=$(ls -1t /var/backups/terrassenplaner/grafana-*.db | head -1)
+        && sqlite3 "$datei" 'PRAGMA integrity_check;'
+      args: {executable: /bin/bash}
+      register: planer_test_sicherung
+      changed_when: false
+      failed_when: planer_test_sicherung.stdout != 'ok'
+
+    - name: Sicherungs-Timer aktiv  # noqa: command-instead-of-module
+      ansible.builtin.command: systemctl is-enabled planer-sicherung.timer
+      changed_when: false

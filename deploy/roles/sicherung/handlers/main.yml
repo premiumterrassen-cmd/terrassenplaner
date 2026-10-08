@@ -1,0 +1,5 @@
+- name: Sicherungs-Timer neu laden
+  ansible.builtin.systemd_service:
+    name: planer-sicherung.timer
+    daemon_reload: true
+    state: restarted

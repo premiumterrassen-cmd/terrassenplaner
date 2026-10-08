@@ -4,6 +4,12 @@ monitoring_grafana_port: 3000
 monitoring_aufbewahrung: 30d
 monitoring_grafana_repo: https://apt.grafana.com
 
+# Ressourcengrenzen (M0-17) für Root-Server und Container; Server: 2 Kerne / 3,8 GB RAM.
+# Gemessen 08.10.2026: Grafana ~460 MB (Spitze 580 MB), Prometheus ~110 MB (Spitze 170 MB).
+monitoring_grenzen:
+  prometheus: {einheit: prometheus, speicher_mb: 512, cpu_prozent: 50}
+  grafana: {einheit: grafana-server, speicher_mb: 768, cpu_prozent: 50}
+
 # Alarmregeln (M0-14). Texte enthalten Grafana-Platzhalter, daher {% raw %}…{% endraw %}.
 monitoring_alarme:
   - uid: dienst-nicht-erreichbar

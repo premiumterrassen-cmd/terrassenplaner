@@ -1,0 +1,33 @@
+- name: SQLite für konsistente Kopien
+  ansible.builtin.apt:
+    name: sqlite3
+    state: present
+
+- name: Sicherungsverzeichnis (nur root)
+  ansible.builtin.file:
+    path: "{{ sicherung_verzeichnis }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Sicherungsskript
+  ansible.builtin.template:
+    src: planer-sicherung.sh.j2
+    dest: /usr/local/sbin/planer-sicherung
+    mode: "0755"
+
+- name: Sicherungsdienst und Timer
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: "/etc/systemd/system/{{ item }}"
+    mode: "0644"
+  loop: [planer-sicherung.service, planer-sicherung.timer]
+  notify: Sicherungs-Timer neu laden
+
+- name: Timer aktiv
+  ansible.builtin.systemd_service:
+    name: planer-sicherung.timer
+    enabled: true
+    state: started
+    daemon_reload: true

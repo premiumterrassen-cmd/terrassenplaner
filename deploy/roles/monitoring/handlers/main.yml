@@ -1,3 +1,7 @@
+- name: Systemd neu laden
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+
 - name: Prometheus neu starten
   ansible.builtin.systemd_service:
     name: prometheus

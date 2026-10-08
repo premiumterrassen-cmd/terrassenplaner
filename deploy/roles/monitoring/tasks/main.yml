@@ -122,3 +122,27 @@
     src: monitoring-route.yml.j2
     dest: /etc/traefik/dynamisch/monitoring.yml
     mode: "0644"
+
+- name: Verzeichnisse für Ressourcengrenzen
+  ansible.builtin.file:
+    path: "/etc/systemd/system/{{ item.value.einheit }}.service.d"
+    state: directory
+    mode: "0755"
+  loop: "{{ monitoring_grenzen | dict2items }}"
+  loop_control: {label: "{{ item.value.einheit }}"}
+
+- name: Ressourcengrenzen (systemd)
+  ansible.builtin.copy:
+    dest: "/etc/systemd/system/{{ item.value.einheit }}.service.d/grenzen.conf"
+    content: |
+      # Verwaltet von Ansible (Terrassenplaner) – Ressourcengrenzen (M0-17)
+      [Service]
+      MemoryMax={{ item.value.speicher_mb }}M
+      CPUQuota={{ item.value.cpu_prozent }}%
+    mode: "0644"
+  loop: "{{ monitoring_grenzen | dict2items }}"
+  loop_control: {label: "{{ item.value.einheit }}"}
+  notify:
+    - Systemd neu laden
+    - Prometheus neu starten
+    - Grafana neu starten

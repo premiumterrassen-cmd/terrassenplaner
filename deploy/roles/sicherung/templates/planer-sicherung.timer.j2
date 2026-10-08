@@ -1,0 +1,11 @@
+# Verwaltet von Ansible (Terrassenplaner)
+[Unit]
+Description=Terrassenplaner – tägliche Sicherung
+
+[Timer]
+OnCalendar={{ sicherung_zeitpunkt }}
+RandomizedDelaySec=10m
+Persistent=true
+
+[Install]
+WantedBy=timers.target
