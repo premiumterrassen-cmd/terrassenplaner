@@ -91,9 +91,10 @@ Der alte Planer ist fachlich vollständig beschrieben (Schritte, Optionen, Stand
 
 GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/2
 
-- [ ] **M1-01 Funktionsinventar des alten Planers** ([#13](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/13)) – `feature/m1-01-funktionsinventar-des-alten-planers`
+- [x] **M1-01 Funktionsinventar des alten Planers** ([#13](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/13)) – `feature/m1-01-funktionsinventar-des-alten-planers`
   - Jeden Schritt des alten Planers bedienen und fachlich beschreiben: Eingaben, Auswahlmöglichkeiten, Standardwerte, Grenzwerte, Hinweise/Warnungen, Auswirkungen auf Zeichnung und Material. Quelle: Bedienung und sichtbare Texte/Optionen – keine Analyse des Programmcodes.
   - Abnahme: `docs/fachkonzept/` mit einem Kapitel je Schritt (Grundriss … Zubehör, Ergebnisse); Liste der im alten Planer abgeschalteten Funktionen (z. B. 3D, Grundriss-Upload, Podest, Gehrungsschnitt) als „nicht Teil der Kopie“
+  - Ergebnis: `docs/fachkonzept/` (Kapitel 00–10) mit Prüfwerten, Liste „nicht Teil der Kopie“ und 12 offenen Fragen für M1-03/M1-04.
 - [ ] **M1-02 Referenzfälle aus Planungsunterlagen** ([#14](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/14)) – `feature/m1-02-referenzfaelle-aus-planungsunterlagen`
   - Die 48 Planungsunterlagen-PDFs und Exporte (`Dateien_Terrassenkonfigurator`) auswerten: Eingaben (Form, Maße, Belag, Richtung, UK, Höhen) und erwartete Ergebnisse (Stücklisten, Zuschnitt, Mengen) als maschinenlesbare Referenzfälle. Kundendaten werden anonymisiert.
   - Abnahme: Referenzfälle als Testdaten im Repo, ohne Namen/Adressen/Telefon/E-Mail; Je Fall: Eingaben, erwartete Mengen je Artikel, Quelle
