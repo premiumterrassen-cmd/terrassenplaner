@@ -1,0 +1,63 @@
+Terrassenplaner (ALTO HOLZ)
+Copyright (c) 2026 ALTO Holz GmbH & Co. KG. Alle Rechte vorbehalten.
+
+LIZENZBESTIMMUNG – PROPRIETÄRE SOFTWARE, KEINE NUTZUNGSRECHTE
+
+1. Dieses Repository und sein gesamter Inhalt (Quellcode, Konfiguration,
+   Skripte, Dokumentation, Texte, Grafiken, Logos, Daten und alle daraus
+   erzeugten Artefakte, zusammen „Software“) sind urheberrechtlich geschützt.
+   Sämtliche Rechte liegen ausschließlich bei der ALTO Holz GmbH & Co. KG
+   („Rechteinhaberin“).
+
+2. Die öffentliche Sichtbarkeit des Repositorys dient allein technischen
+   Zwecken. Sie stellt keine Veröffentlichung unter einer Open-Source- oder
+   sonstigen freien Lizenz dar und räumt keinerlei Nutzungsrechte ein –
+   weder ausdrücklich noch stillschweigend.
+
+3. Ohne vorherige schriftliche Zustimmung der Rechteinhaberin ist es
+   untersagt, die Software ganz oder teilweise
+   a) zu nutzen, auszuführen oder zu installieren – privat wie kommerziell;
+   b) zu vervielfältigen, herunterzuladen, zu speichern oder zu klonen,
+      soweit dies über das bloße Ansehen im Browser hinausgeht;
+   c) zu bearbeiten, zu übersetzen, zu dekompilieren oder darauf aufbauende
+      Werke zu erstellen;
+   d) zu verbreiten, öffentlich zugänglich zu machen, zu vermieten, zu
+      verkaufen, zu unterlizenzieren oder als Dienst anzubieten;
+   e) zum Training, zur Auswertung oder als Eingabe von Systemen
+      maschinellen Lernens oder künstlicher Intelligenz zu verwenden
+      (Nutzungsvorbehalt nach § 44b Abs. 3 UrhG).
+
+4. Unberührt bleiben nur die Rechte, die das Gesetz zwingend gewährt, sowie
+   das Ansehen und Forken des Repositorys innerhalb von GitHub, soweit die
+   GitHub-Nutzungsbedingungen dies allen Nutzern zwingend erlauben. Ein Fork
+   begründet keine weitergehenden Rechte; Ziffer 3 gilt auch für Forks.
+
+5. Marken, Namen und Logos (u. a. ALTO HOLZ, RobinienWelt) werden durch diese
+   Bestimmung nicht lizenziert.
+
+6. Die Software wird ohne jede Gewährleistung bereitgestellt. Eine Haftung
+   für Schäden aus einer unerlaubten Nutzung ist ausgeschlossen.
+
+7. Es gilt deutsches Recht. Gerichtsstand ist, soweit zulässig, der Sitz der
+   Rechteinhaberin.
+
+Anfragen zu Nutzungsrechten: burkhardt@robinienwelt.de
+
+--------------------------------------------------------------------------
+
+ENGLISH TRANSLATION (for information only; the German text prevails)
+
+Copyright (c) 2026 ALTO Holz GmbH & Co. KG. All rights reserved.
+
+This repository and all of its contents ("Software") are proprietary. Its
+public visibility serves technical purposes only and grants no licence of
+any kind, express or implied. Without prior written permission of
+ALTO Holz GmbH & Co. KG you may not use, run, install, copy, download,
+clone, modify, translate, decompile, create derivative works of, distribute,
+publish, rent, sell, sublicense, offer as a service, or use for training or
+evaluating machine learning / AI systems, any part of the Software – neither
+privately nor commercially. Only rights mandatorily granted by law and the
+viewing and forking within GitHub that GitHub's Terms of Service mandatorily
+permit remain unaffected; a fork grants no further rights. Trademarks and
+logos are not licensed. The Software is provided without any warranty.
+German law applies.

@@ -77,3 +77,7 @@ export PLANER_AUTH_TOKEN=… PLANER_AUTH_DIENST_TICKET=…
 ## Deployment
 
 Ansible unter `deploy/` (Root-Server mit systemd oder Container-Betrieb, Traefik mit Let's Encrypt, Router und Auth-Server als getrennte Dienste): [deploy/README.md](deploy/README.md).
+
+## Lizenz
+
+Proprietär – © 2026 ALTO Holz GmbH & Co. KG, alle Rechte vorbehalten. Das Repository ist nur aus technischen Gründen öffentlich; jede Nutzung, privat wie kommerziell, ist ohne schriftliche Zustimmung untersagt. Details: [LICENSE](LICENSE).

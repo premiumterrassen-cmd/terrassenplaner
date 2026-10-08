@@ -5,7 +5,8 @@ Verbindliche Projektregeln für die Arbeit an diesem Repository. Sie gelten für
 ## Projekt
 
 - Der neue Terrassenplaner von ALTO HOLZ.
-- Repository: https://github.com/premiumterrassen-cmd/terrassenplaner (privat), Standard-Branch `main`.
+- Repository: https://github.com/premiumterrassen-cmd/terrassenplaner, Standard-Branch `main`. **Öffentlich seit 08.10.2026** (nur wegen der Actions-Kontingente), aber proprietär: `LICENSE` = alle Rechte vorbehalten, keine Nutzung privat oder kommerziell (Vorgabe Alexander). Nie eine Open-Source-Lizenz oder `license:`-Kennung ergänzen.
+- Weil alles öffentlich lesbar ist: keine Geheimnisse, keine internen Firmendaten (EK, Lieferanten, Kundendaten) und nichts Vertrauliches aus den Beschlüssen in Code, Doku, Issues oder Commit-Nachrichten – Geheimnisse nur verschlüsselt im Ansible Vault.
 - Ziel: Nachbau des bestehenden Terrassenkonfigurators https://terrassenkonfigurator.robinienwelt.de/ als **funktionale und inhaltliche 1:1-Kopie**, Schritt für Schritt (gleiche Schritte, Optionen, Standardwerte, Regeln, Ergebnisse).
 - **Keine technische Kopie:** Von der alten Seite werden weder Code noch Architektur, Datenstrukturen oder Programmierkonzepte übernommen. Fachliche Quellen sind nur die Bedienung, die sichtbaren Texte/Optionen und die Ergebnisse (Planungsunterlagen, Exporte). Der Programmcode der alten Seite wird nicht analysiert.
 - Frontend: Flutter (Web).
