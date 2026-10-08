@@ -81,7 +81,7 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/1
 - [x] **M0-16 Web-Build als WebAssembly (Skwasm)** ([#105](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/105)) – `feature/m0-16-web-build-webassembly` · Benchmark
   - `flutter build web --wasm` (JS-Rückfall), nginx mit COOP/COEP und `.mjs` als JavaScript, ungehashte Dateien ohne Cache; Impeller im Web mit Flutter 3.47 nicht verfügbar.
   - Abnahme: main.dart.wasm geladen, crossOriginIsolated, Smoke-Test gegen WASM-Build, Größenvergleich dokumentiert (≈ 2,0 MB statt 3,35 MB)
-- [ ] **M0-17 Monitoring: Ressourcengrenzen und Sicherung der Grafana-Daten** ([#108](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/108)) – `feature/m0-17-monitoring-grenzen-sicherung`
+- [x] **M0-17 Monitoring: Ressourcengrenzen und Sicherung der Grafana-Daten** ([#108](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/108)) – `feature/m0-17-monitoring-grenzen-sicherung`
   - Prometheus 512 MB / Grafana 768 MB, je ½ CPU (systemd-Drop-in bzw. Compose); tägliche Sicherung der Grafana-Datenbank (Rolle `sicherung`, 14 Tage), Wiederherstellung in `docs/betrieb/sicherung.md`.
   - Abnahme: Grenzen auf beiden Zielarten aktiv und in Molecule geprüft; Sicherung zeitgesteuert, Kopie intakt
 
