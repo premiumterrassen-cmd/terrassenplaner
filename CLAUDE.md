@@ -10,7 +10,7 @@ Verbindliche Projektregeln für die Arbeit an diesem Repository. Sie gelten für
 - Ziel: Nachbau des bestehenden Terrassenkonfigurators https://terrassenkonfigurator.robinienwelt.de/ als **funktionale und inhaltliche 1:1-Kopie**, Schritt für Schritt (gleiche Schritte, Optionen, Standardwerte, Regeln, Ergebnisse).
 - **Keine technische Kopie:** Von der alten Seite werden weder Code noch Architektur, Datenstrukturen oder Programmierkonzepte übernommen. Fachliche Quellen sind nur die Bedienung, die sichtbaren Texte/Optionen und die Ergebnisse (Planungsunterlagen, Exporte). Der Programmcode der alten Seite wird nicht analysiert.
 - Frontend: Flutter (Web).
-- Basissoftware: connectanum (Dart, WAMP) in der neuesten Beta-Version; sobald `3.0.0` stabil erscheint, wird auf `3.0.0` umgestellt. Stand 06.10.2026: `3.0.0-beta.7`. Verwendet werden `connectanum_client` (App), `connectanum_router` (eigener WAMP-Router) und `connectanum_auth_server` (Authentifizierung). (`connectanum_bench` ist ein internes Werkzeug des connectanum-Projekts mit Rust-Orchestrator und wird nicht genutzt; Router-Benchmarks sind eigene `benchmark_harness`-Benchmarks.)
+- Basissoftware: connectanum (Dart, WAMP) in der neuesten Beta-Version; sobald `3.0.0` stabil erscheint, wird auf `3.0.0` umgestellt. Stand 10.10.2026: `3.0.0-beta.8` (FlatBuffers-Serialisierer, Payload-Passthrough im Router, Zero-Copy-Puffer). Verwendet werden `connectanum_client` (App), `connectanum_router` (eigener WAMP-Router) und `connectanum_auth_server` (Authentifizierung). (`connectanum_bench` ist ein internes Werkzeug des connectanum-Projekts mit Rust-Orchestrator und wird nicht genutzt; Router-Benchmarks sind eigene `benchmark_harness`-Benchmarks.)
 
 ## connectanum-Versionen
 
