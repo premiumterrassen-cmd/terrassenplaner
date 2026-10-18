@@ -38,3 +38,5 @@
 ## Leerlauf-CPU auf dem Server (06.10.2026, beta.7)
 
 Ohne Last gemessen (30 s, Debian 13, 2 Kerne): `planer-router` ≈ 6,3 % und `planer-auth` ≈ 6,8 % eines Kerns, Traefik 0 %. Zusammen rund 13 % eines Kerns ohne einzige Verbindung – deutet auf aktives Abfragen (Polling) in der Transportschicht/den Worker-Isolates. An Alexander (Maintainer) gemeldet; für M10-02 (Last- und Leistungstest) und das Monitoring (M0-14) beobachten.
+
+Nachmessung mit beta.8 (10.10.2026, 30 s ohne Last): `planer-router` ≈ 4 %, `planer-auth` ≈ 5 % eines Kerns – etwas weniger, aber weiterhin aktives Abfragen im Leerlauf.

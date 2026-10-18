@@ -1,5 +1,4 @@
 import 'package:connectanum_client/connectanum.dart';
-import 'package:connectanum_client/json.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 /// Verbindung der Web-App zum Planer-Router (anonym, Rolle Kunde).
@@ -12,10 +11,10 @@ class PlanerVerbindung {
   Future<String> hallo() async {
     final client = Client(
       realm: WampNamen.realm,
-      transport: WebSocketTransport(
+      // FlatBuffers (wamp.2.flatbuffers, #110): schnellster Weg für kleine
+      // Nachrichten; typisierte Nutzlasten folgen mit dem gemeinsamen Schema.
+      transport: WebSocketTransport.withFlatBuffersSerializer(
         adresse.toString(),
-        Serializer(),
-        WebSocketSerialization.serializationJson,
       ),
     );
     final sitzung = await client
