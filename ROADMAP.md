@@ -85,6 +85,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/1
   - Prometheus 512 MB / Grafana 768 MB, je ½ CPU (systemd-Drop-in bzw. Compose); tägliche Sicherung der Grafana-Datenbank (Rolle `sicherung`, 14 Tage), Wiederherstellung in `docs/betrieb/sicherung.md`.
   - Abnahme: Grenzen auf beiden Zielarten aktiv und in Molecule geprüft; Sicherung zeitgesteuert, Kopie intakt
 
+### Querschnitt
+
+- [~] **Zero-Copy-Datenweg FlatBuffers → Router → Backend → ObjectBox** ([#110](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/110)) – Schritt 1 erledigt: Web-App auf `wamp.2.flatbuffers`, Benchmark JSON/CBOR/FlatBuffers (`docs/erkenntnisse/flatbuffers.md`); offen: gemeinsames Schema (Schritt 2), ObjectBox-Adapter (Schritt 3), Messung (Schritt 4).
+
 ## M1 Fachkonzept & Prüfdaten
 
 Der alte Planer ist fachlich vollständig beschrieben (Schritte, Optionen, Standardwerte, Grenzen, Hinweise, Ergebnisse) und es gibt Referenzfälle mit erwarteten Ergebnissen. Ausschließlich aus Bedienung, sichtbaren Texten und Planungsunterlagen – keine Code-Analyse.
