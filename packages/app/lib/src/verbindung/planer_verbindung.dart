@@ -9,14 +9,10 @@ class PlanerVerbindung {
 
   /// Ruft die Hallo-Prozedur auf und liefert die Antwort des Servers.
   Future<String> hallo() async {
-    final client = Client(
-      realm: WampNamen.realm,
-      // FlatBuffers (wamp.2.flatbuffers, #110): schnellster Weg für kleine
-      // Nachrichten; typisierte Nutzlasten folgen mit dem gemeinsamen Schema.
-      transport: WebSocketTransport.withFlatBuffersSerializer(
-        adresse.toString(),
-      ),
-    );
+    // FlatBuffers (wamp.2.flatbuffers, #110): schnellster Weg für kleine
+    // Nachrichten; typisierte Nutzlasten folgen mit dem gemeinsamen Schema.
+    final transport = WebSocketTransport.withFlatBuffersSerializer('$adresse');
+    final client = Client(realm: WampNamen.realm, transport: transport);
     final sitzung = await client
         .connect(options: ClientConnectOptions(reconnectCount: 0))
         .first
