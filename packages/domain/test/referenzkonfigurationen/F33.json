@@ -1,6 +1,7 @@
 {
   "id": "F33",
   "beschreibung": "wie F01, Art der Terrassennutzung: Versteifung mit Rahmen (rahmenquer)",
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "Rechteck",
     "kanten_cm": {

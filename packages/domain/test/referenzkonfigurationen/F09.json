@@ -1,6 +1,7 @@
 {
   "id": "F09",
   "beschreibung": "Rechteck 800 x 309, sonst wie F01 (Fugenschnitt)",
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "Rechteck",
     "kanten_cm": {

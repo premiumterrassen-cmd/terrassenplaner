@@ -1,6 +1,7 @@
 {
   "id": "F15",
   "beschreibung": "L-Form, Vorgabemaße nach Zurücksetzen (aus Rechteck 480 x 309 abgeleitet)",
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "L-Form",
     "kanten_cm": {

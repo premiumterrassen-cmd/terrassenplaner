@@ -1,6 +1,7 @@
 {
   "id": "F10",
   "beschreibung": "Rechteck 800 x 309, Halbverband",
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "Rechteck",
     "kanten_cm": {

@@ -1,6 +1,7 @@
 {
   "id": "F22",
   "beschreibung": "wie F21, Ausschnitt mit anderem Terrassenbelag",
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "Rechteck",
     "kanten_cm": {

@@ -1,6 +1,7 @@
 {
   "id": "F04",
   "beschreibung": "wie F01, Verlegerichtung 135 Grad",
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "Rechteck",
     "kanten_cm": {

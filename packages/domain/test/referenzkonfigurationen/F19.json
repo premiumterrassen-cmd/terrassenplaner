@@ -1,6 +1,7 @@
 {
   "id": "F19",
   "beschreibung": "Kreis, Vorgabe Ø 360 cm (rote Kante unten = letzte aufzuschneidende Reihe sichtbar)",
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "Kreis",
     "kanten_cm": {},

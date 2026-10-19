@@ -1,6 +1,9 @@
 {
   "id": "F13",
   "beschreibung": "Rechteck 800 x 309, Fugenschnitt, Dielenlänge fest 400 cm (statt automatisch); Hinweis: kurze Stücke verbinden = Ja ohne Wirkung bei Wechselverband 800",
+  "fehlerverdacht": [
+    "„Kurze Stücke verbinden: Ja“ ändert nichts an Material- und Zuschnittliste (Verdacht)."
+  ],
   "eingaben": {
     "form": "Rechteck",
     "kanten_cm": {

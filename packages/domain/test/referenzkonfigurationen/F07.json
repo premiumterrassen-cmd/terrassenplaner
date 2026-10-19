@@ -1,6 +1,7 @@
 {
   "id": "F07",
   "beschreibung": "wie F01, Verlegeart Drittelverband",
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "Rechteck",
     "kanten_cm": {

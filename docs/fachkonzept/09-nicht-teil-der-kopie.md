@@ -14,6 +14,8 @@ In der Oberfläche vom 08.10.2026 nicht vorhanden und daher nicht Teil der funkt
 
 ## Fehler des Altsystems – nicht nachbauen
 
+Grundsatz (Alexander, 19.10.2026): Der alte Planer hat Fehler; sie werden **nicht 1:1 übernommen**.
+
 - Aus der **Freiform** kommt man über die Formauswahl nicht zurück; die Formknöpfe reagieren nicht, nur ZURÜCKSETZEN hilft.
 - Eingabefeld X eines Ausschnitts zeigt nach der Eingabe abgeschnitten „20:cm“.
 - **Holzfliesen** mit „Preis per lfm“ statt Preis je Stück.
@@ -24,4 +26,18 @@ In der Oberfläche vom 08.10.2026 nicht vorhanden und daher nicht Teil der funkt
 - **SPEICHERN** legt ohne Rückfrage eine Konfiguration auf dem Server an.
 - Die Materialliste zeigt keine Mengen, nur Gesamtpreise.
 
-Der neue Planer korrigiert diese Punkte, bildet aber das fachliche Ergebnis (Mengen, Artikel, Regeln) gleich ab.
+## Fehler und Verdachtsfälle aus den Referenzkonfigurationen (M1-03)
+
+In den Testdaten als `fehlerverdacht` markiert – dort sind die alten Ergebnisse **kein Sollwert** (siehe [12](12-referenzkonfigurationen.md)).
+
+| Fall | Befund | Stand |
+|---|---|---|
+| F40 | Treppe „Fundament“ ergibt dieselbe Material- und Zuschnittliste wie „Konstruktion“, obwohl eine vorhandene Betontreppe nur belegt wird | **Fehler** (Antwort Frage 11) |
+| F25 | Holzfliese je lfm statt je Stück | **Fehler** (s. o.) |
+| F35 | gewerbliche Nutzung ändert nur KOPPLEX-3, nicht UK-Abstand oder Befestigung | Verdacht – Frage 13 |
+| F38 | Rinne verkleinert die Fläche, die UK bleibt aber über die volle Tiefe | Verdacht – Frage 14 |
+| F14 | automatische Dielenlänge 7000 mm, UK 6500 mm (über 600 cm) | Verdacht – Frage 15 |
+| F13 | „Kurze Stücke verbinden: Ja“ ohne Wirkung | Verdacht – Frage 16 |
+| – | Querstreben lassen sich nicht setzen („Änderungen übernehmen“ ohne Wirkung) | Verdacht – Frage 17 |
+
+Der neue Planer korrigiert diese Punkte, bildet aber das fachlich richtige Ergebnis (Mengen, Artikel, Regeln) gleich ab.

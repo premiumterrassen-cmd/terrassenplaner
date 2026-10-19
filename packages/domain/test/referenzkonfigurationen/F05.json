@@ -1,6 +1,7 @@
 {
   "id": "F05",
   "beschreibung": "wie F01, individueller Verlegewinkel 30 Grad",
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "Rechteck",
     "kanten_cm": {

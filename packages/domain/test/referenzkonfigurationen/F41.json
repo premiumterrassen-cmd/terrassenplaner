@@ -1,6 +1,7 @@
 {
   "id": "F41",
   "beschreibung": "wie F39 (Konstruktion), Treppenart 2-teilige Fächertreppe mit Standardwerten: Podest Tiefe 50, Breite 54, Höhe 15,6 cm; 2 Stufen Tiefe 27, Höhe 15,6 cm -> Treppenmaße 104 x 108 x 46,8 cm",
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "Rechteck",
     "kanten_cm": {

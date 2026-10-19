@@ -1,6 +1,7 @@
 {
   "id": "F30",
   "beschreibung": "wie F01, Höhenpunkte mit Gefälle: A=15, B=15, C=8,6, D=8,6 cm",
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "Rechteck",
     "kanten_cm": {

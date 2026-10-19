@@ -1,6 +1,9 @@
 {
   "id": "F40",
   "beschreibung": "wie F39, Konstruktionsart Fundament (Befund: Exporte identisch mit F39)",
+  "fehlerverdacht": [
+    "Fundament = Treppe aus Beton wird nur belegt (Antwort Alexander, Frage 11); der alte Planer rechnet trotzdem die volle Treppenkonstruktion wie F39 (Fehler)."
+  ],
   "eingaben": {
     "form": "Rechteck",
     "kanten_cm": {

@@ -1,6 +1,7 @@
 {
   "id": "F42",
   "beschreibung": "wie F41, Treppenart 3-teilige Fächertreppe (Standardwerte wie F41) -> Treppenmaße 158 x 108 x 46,8 cm",
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "Rechteck",
     "kanten_cm": {

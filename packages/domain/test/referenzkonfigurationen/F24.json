@@ -1,6 +1,7 @@
 {
   "id": "F24",
   "beschreibung": "wie F01, Belag Terrassendiele Robinie 100 x 22 mm, glattkant, keilgezinkt (sichtbar befestigt)",
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "Rechteck",
     "kanten_cm": {

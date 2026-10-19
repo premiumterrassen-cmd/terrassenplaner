@@ -1,6 +1,7 @@
 {
   "id": "F11",
   "beschreibung": "Rechteck 800 x 309, Drittelverband",
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "Rechteck",
     "kanten_cm": {

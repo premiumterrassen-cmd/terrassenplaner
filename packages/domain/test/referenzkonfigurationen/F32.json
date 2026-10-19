@@ -1,6 +1,7 @@
 {
   "id": "F32",
   "beschreibung": "wie F01, Art der Terrassennutzung: Rahmen",
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "Rechteck",
     "kanten_cm": {

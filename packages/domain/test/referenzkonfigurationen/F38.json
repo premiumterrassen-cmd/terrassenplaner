@@ -1,6 +1,9 @@
 {
   "id": "F38",
   "beschreibung": "wie F37, zusätzlich Entwässerungsrinne A-B, Position Gesamte Seite (innen) (Auswahl: Gesamte Seite (innen) / Im bodentiefen Element / außerhalb des bodentiefen Elements / nur vor dem bodentiefen Element); Produkt RELO V Ventilationsprofil; Fläche sinkt",
+  "fehlerverdacht": [
+    "Rinne verkleinert die Fläche, die UK bleibt aber 309 cm lang (Verdacht)."
+  ],
   "eingaben": {
     "form": "Rechteck",
     "kanten_cm": {

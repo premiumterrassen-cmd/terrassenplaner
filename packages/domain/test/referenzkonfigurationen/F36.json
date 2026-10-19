@@ -1,6 +1,7 @@
 {
   "id": "F36",
   "beschreibung": "wie F01, Seite A-B grenzt an Bauelement (grau; A-B entfällt danach in der Verblendungs-Auswahl)",
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "Rechteck",
     "kanten_cm": {

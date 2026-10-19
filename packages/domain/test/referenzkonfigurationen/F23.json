@@ -1,6 +1,7 @@
 {
   "id": "F23",
   "beschreibung": "wie F01, Belag Terrassendiele Robinie 80 x 26 mm, genutet, keilgezinkt, bombiert",
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "Rechteck",
     "kanten_cm": {

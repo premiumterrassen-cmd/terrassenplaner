@@ -1,6 +1,7 @@
 {
   "id": "F08",
   "beschreibung": "wie F01, Verlegeart Wechselverband (Ergebnis gleich F01: 480 cm passt in eine Diele)",
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "Rechteck",
     "kanten_cm": {

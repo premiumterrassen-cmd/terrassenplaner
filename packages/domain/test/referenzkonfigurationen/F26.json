@@ -1,6 +1,7 @@
 {
   "id": "F26",
   "beschreibung": "wie F01, UK Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "Rechteck",
     "kanten_cm": {

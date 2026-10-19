@@ -8,6 +8,10 @@ import 'referenzfall.dart';
 /// „Zuschnittliste“ – dieselben Dateien, die in das ERP importiert werden.
 /// Die Eingaben bleiben eine offene Map, bis das Eingabemodell des neuen
 /// Planers steht.
+///
+/// Der alte Planer hat Fehler, die nicht übernommen werden (Vorgabe
+/// Alexander 19.10.2026): betroffene Fälle nennen sie in [fehlerverdacht];
+/// dort sind die Ergebnisse kein Sollwert für den neuen Planer.
 final class Referenzkonfiguration {
   /// Liest eine Konfiguration aus ihrer JSON-Darstellung.
   factory Referenzkonfiguration.ausJson(Map<String, Object?> json) {
@@ -15,6 +19,9 @@ final class Referenzkonfiguration {
     return Referenzkonfiguration._(
       id: json['id']! as String,
       beschreibung: json['beschreibung']! as String,
+      fehlerverdacht: List.unmodifiable(
+        json['fehlerverdacht']! as List<Object?>,
+      ),
       eingaben: Map.unmodifiable(json['eingaben']! as Map<String, Object?>),
       flaecheM2: _zahl(anzeige['flaeche_m2'])!,
       verschnittProzent: _zahl(anzeige['verschnitt_prozent']),
@@ -39,6 +46,7 @@ final class Referenzkonfiguration {
   Referenzkonfiguration._({
     required this.id,
     required this.beschreibung,
+    required this.fehlerverdacht,
     required this.eingaben,
     required this.flaecheM2,
     required this.verschnittProzent,
@@ -53,6 +61,13 @@ final class Referenzkonfiguration {
 
   /// Was gegenüber der Startkonfiguration verstellt wurde, und Befunde.
   final String beschreibung;
+
+  /// Vermutete oder bestätigte Fehler des alten Planers in diesem Fall;
+  /// leer, wenn das Ergebnis als Sollwert gilt.
+  final List<Object?> fehlerverdacht;
+
+  /// Ob die Ergebnisse als Sollwert für den neuen Planer gelten.
+  bool get istSollwert => fehlerverdacht.isEmpty;
 
   /// Vollständige Eingaben (Startkonfiguration + Abweichung).
   final Map<String, Object?> eingaben;

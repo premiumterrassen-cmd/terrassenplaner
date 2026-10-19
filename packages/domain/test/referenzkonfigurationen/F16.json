@@ -1,6 +1,7 @@
 {
   "id": "F16",
   "beschreibung": "T-Form, Vorgabemaße",
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "T-Form",
     "kanten_cm": {

@@ -1,6 +1,7 @@
 {
   "id": "F18",
   "beschreibung": "O-Form, Vorgabemaße: außen 360 x 380, Ausschnitt A1 113 x 190 (leere Fläche); Fläche ohne Abzug des Ausschnitts angezeigt",
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "O-Form",
     "kanten_cm": {

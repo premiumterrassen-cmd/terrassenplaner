@@ -1,6 +1,7 @@
 {
   "id": "F43",
   "beschreibung": "wie F01, Verschnittvariante 2 von 3 (angeboten: 4 % / 46 x 500 cm, 12,73 % / 46 x 550 cm, 20 % / 46 x 600 cm)",
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "Rechteck",
     "kanten_cm": {

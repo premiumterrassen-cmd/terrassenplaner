@@ -1,6 +1,7 @@
 {
   "id": "F20",
   "beschreibung": "Rechteck 360 x 400 (Vorgabe nach Formwechsel aus Kreis)",
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "Rechteck",
     "kanten_cm": {

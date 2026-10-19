@@ -1,6 +1,7 @@
 {
   "id": "F21",
   "beschreibung": "Rechteck 360 x 400 mit Ausschnitt A1 120 x 133 bei X 100 / Y 100, leere Fläche",
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "Rechteck",
     "kanten_cm": {

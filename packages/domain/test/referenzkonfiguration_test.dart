@@ -48,6 +48,7 @@ int _stuecke(String id, double laengeCm) => _fall(id).zuschnitt.fold(
 Map<String, Object?> _minimal() => {
   'id': 'F99',
   'beschreibung': 'Beispiel',
+  'fehlerverdacht': <Object?>[],
   'eingaben': {'form': 'Rechteck'},
   'anzeige': {
     'flaeche_m2': 14.832,
@@ -79,6 +80,8 @@ void main() {
     test('liest alle Angaben und lässt Fehlendes leer', () {
       final fall = Referenzkonfiguration.ausJson(_minimal());
       expect([fall.id, fall.beschreibung], ['F99', 'Beispiel']);
+      expect(fall.fehlerverdacht, isEmpty);
+      expect(fall.istSollwert, isTrue);
       expect(fall.eingaben, {'form': 'Rechteck'});
       expect(() => fall.eingaben['form'] = 'Kreis', throwsUnsupportedError);
       expect(fall.flaecheM2, 14.832);
@@ -110,6 +113,13 @@ void main() {
         [14.0, 4.0, 0.435],
       );
       expect(fall.treppenmasseCm, [100.0, 54.0, 31.2]);
+    });
+
+    test('Fehlerverdacht: kein Sollwert', () {
+      final json = _minimal()..['fehlerverdacht'] = ['Fehler'];
+      final fall = Referenzkonfiguration.ausJson(json);
+      expect(fall.fehlerverdacht, ['Fehler']);
+      expect(fall.istSollwert, isFalse);
     });
   });
 
@@ -165,6 +175,16 @@ void main() {
   });
 
   group('Befunde zum alten Planer', () {
+    test('Fehler des alten Planers sind gekennzeichnet (kein Sollwert)', () {
+      expect(
+        [
+          for (final f in _faelle.values)
+            if (!f.istSollwert) f.id,
+        ],
+        ['F13', 'F14', 'F25', 'F35', 'F38', 'F40'],
+      );
+    });
+
     test('Fläche des Rechtecks = Kantenprodukt (ohne Rinne)', () {
       for (final fall in _faelle.values) {
         final kanten = fall.eingaben['kanten_cm']! as Map<String, Object?>;
@@ -185,16 +205,19 @@ void main() {
       expect(_fall('F38').flaecheM2, lessThan(_fall('F37').flaecheM2));
     });
 
-    test('ohne Wirkung: Wechselverband 480, Bauelement, Treppen-Fundament', () {
-      for (final (fall, gleich) in [
-        ('F08', 'F01'),
-        ('F36', 'F01'),
-        ('F40', 'F39'),
-      ]) {
-        expect(_material(fall), _material(gleich), reason: fall);
-        expect(_zuschnitt(fall), _zuschnitt(gleich), reason: fall);
-      }
-    });
+    test(
+      'ohne Wirkung: Wechselverband 480, Bauelement, Fundament (Fehler)',
+      () {
+        for (final (fall, gleich) in [
+          ('F08', 'F01'),
+          ('F36', 'F01'),
+          ('F40', 'F39'),
+        ]) {
+          expect(_material(fall), _material(gleich), reason: fall);
+          expect(_zuschnitt(fall), _zuschnitt(gleich), reason: fall);
+        }
+      },
+    );
 
     test('gewerbliche Nutzung ändert nur die Menge KOPPLEX-3', () {
       final unterschied = [

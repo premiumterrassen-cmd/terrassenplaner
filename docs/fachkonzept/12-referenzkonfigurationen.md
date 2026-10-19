@@ -61,8 +61,10 @@
 
 ## Befunde (als Tests festgehalten)
 
+Der alte Planer hat Fehler, die **nicht übernommen** werden (Alexander, 19.10.2026). Fälle mit bekanntem oder vermutetem Fehler tragen in `fehlerverdacht` eine Begründung (`istSollwert == false`): F13, F14, F25, F35, F38, F40. Liste und Stand in [09](09-nicht-teil-der-kopie.md#fehler-und-verdachtsfälle-aus-den-referenzkonfigurationen-m1-03), Rückfragen 13–17 in [10](10-offene-fragen.md). Die Tests halten das Verhalten des alten Planers fest – nicht das Soll.
+
 - **Fläche** = Kantenprodukt; leere Ausschnitte werden nicht abgezogen (F18, F21). Nur eine **Entwässerungsrinne** verkleinert die Fläche (F38: −0,576 m² = 480 × 12 cm).
-- **Ohne Wirkung auf die Exporte:** Wechselverband bei 480 cm (F08 = F01), Bauelement allein (F36 = F01), Treppen-Konstruktionsart Fundament gegenüber Konstruktion (F40 = F39).
+- **Ohne Wirkung auf die Exporte:** Wechselverband bei 480 cm (F08 = F01), Bauelement allein (F36 = F01), Treppen-Konstruktionsart Fundament gegenüber Konstruktion (F40 = F39 – **Fehler**, siehe oben).
 - **Gewerbliche Nutzung** ändert nur die Menge KOPPLEX-3 (2 → 3 Rollen), nicht den UK-Abstand.
 - **Verblendung:** 31 Blendenhalter à 8,6 cm aus dem UK-Zuschnitt (F37), Verblendungsdielen 80 x 22 mm glattkant nur in der Materialliste, nicht in der Zuschnittliste. Bei Verblendung aller freien Seiten erscheint „Achtung: Bitte beachten Sie, dass eine Unterlüftung der Terrasse gewährleistet sein muss!“.
 - **Rinne:** Auswahl „Gesamte Seite (innen)“, „Im bodentiefen Element“, „außerhalb des bodentiefen Elements“, „nur vor dem bodentiefen Element“; Artikel RELO V Ventilationsprofil + RELO VA Auflagerprofil. Die UK bleibt 309 cm lang.

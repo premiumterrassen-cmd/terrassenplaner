@@ -1,6 +1,7 @@
 {
   "id": "F37",
   "beschreibung": "wie F36 (A-B Bauelement), zusätzlich Verblendung B-C, C-D, D-A (gelb); gewählte Seiten entfallen in den anderen Auswahlen",
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "Rechteck",
     "kanten_cm": {

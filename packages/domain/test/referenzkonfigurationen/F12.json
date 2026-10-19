@@ -1,6 +1,7 @@
 {
   "id": "F12",
   "beschreibung": "Rechteck 800 x 309, Wechselverband",
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "Rechteck",
     "kanten_cm": {

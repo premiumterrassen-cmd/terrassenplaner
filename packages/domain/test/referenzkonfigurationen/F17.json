@@ -1,6 +1,7 @@
 {
   "id": "F17",
   "beschreibung": "U-Form, Vorgabemaße",
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "U-Form",
     "kanten_cm": {

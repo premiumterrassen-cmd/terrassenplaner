@@ -1,6 +1,9 @@
 {
   "id": "F25",
   "beschreibung": "wie F01, Belag ROBI-FIXX Terrassenfliese Robinie (Holzfliese), Standard-Verlegeart",
+  "fehlerverdacht": [
+    "Holzfliese wird je lfm statt je Stück abgerechnet (bestätigter Anzeigefehler, 09)."
+  ],
   "eingaben": {
     "form": "Rechteck",
     "kanten_cm": {

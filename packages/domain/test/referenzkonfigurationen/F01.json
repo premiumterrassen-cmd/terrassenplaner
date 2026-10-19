@@ -1,6 +1,7 @@
 {
   "id": "F01",
   "beschreibung": "Basis: Startkonfiguration",
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "Rechteck",
     "kanten_cm": {

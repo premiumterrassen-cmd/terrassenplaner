@@ -15,6 +15,14 @@ Zur Klärung mit Alexander (in M1-03/M1-04 abhaken).
 11. ~~**Konstruktionsart Fundament**~~ (Treppe): Wirkung auf die Materialliste?
 12. ~~**Login**~~: Wer meldet sich an (Mitarbeiter/Händler), und was sehen sie zusätzlich?
 
+Aus M1-03 (Verdacht auf Fehler des alten Planers, siehe [09](09-nicht-teil-der-kopie.md)):
+
+13. **Gewerbliche Nutzung** (F35): Im alten Planer ändert sich nur die Menge KOPPLEX-3. Was soll sich richtig ändern – UK-Abstand, Dielenstärke, Befestigung?
+14. **Rinne** (F38): Die Fläche sinkt um die Rinnenbreite, die UK bleibt aber gleich lang. Wird die UK unter der Rinne gekürzt?
+15. **Dielenlängen über 600 cm** (F14): Die Automatik nimmt bei 800 cm Länge Dielen 7000 mm und UK 6500 mm. Gibt es diese Längen, oder ist das ein Fehler?
+16. **Kurze Stücke verbinden** (F13): „Ja“ hat keine Wirkung. Was soll die Option bewirken?
+17. **Querstreben**: Im alten Planer lassen sie sich nicht setzen. Wie viele und wo sollen sie im neuen Planer entstehen (Abstand, automatisch oder von Hand)?
+
 ## Beantwortet
 
 - **Kurze UK-Stücke 8,6 / 8,7 / 11 cm im UK-Zuschnitt** (aus M1-02): im 90°-Winkel an den Sichtseiten angesetzte UK-Stücke, an denen die Blenden befestigt werden (Alexander, 19.10.2026).

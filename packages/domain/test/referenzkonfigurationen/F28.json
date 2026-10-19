@@ -1,6 +1,7 @@
 {
   "id": "F28",
   "beschreibung": "wie F01, Art Hochterrasse (Standardhöhe springt auf 54,2 cm; Abschnitt Art der Terrassennutzung entfällt)",
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "Rechteck",
     "kanten_cm": {

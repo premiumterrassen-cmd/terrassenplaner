@@ -1,6 +1,7 @@
 {
   "id": "F29",
   "beschreibung": "wie F01, Art Vorhandene UK (zusätzliches Feld Spannweite, Standard 80 cm; Höhe springt auf 14,2 cm; Art der Terrassennutzung entfällt)",
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "Rechteck",
     "kanten_cm": {

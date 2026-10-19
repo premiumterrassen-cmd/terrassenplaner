@@ -1,6 +1,7 @@
 {
   "id": "F39",
   "beschreibung": "wie F01, Treppe 1 an C-D, Seite 0 cm (ab C), Breite 100 cm, Konstruktion, reguläre Treppe, 2 Stufen, Tiefe 27 cm, Höhe 15,6 cm (Standardwerte) -> Treppenmaße 100 x 54 x 31,2 cm",
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "Rechteck",
     "kanten_cm": {

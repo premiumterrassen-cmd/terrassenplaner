@@ -1,6 +1,7 @@
 {
   "id": "F34",
   "beschreibung": "wie F01, Art der Terrassennutzung: doppelte Unterkonstruktion (Höhe bleibt 8,6 cm)",
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "Rechteck",
     "kanten_cm": {

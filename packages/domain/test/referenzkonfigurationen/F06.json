@@ -1,6 +1,7 @@
 {
   "id": "F06",
   "beschreibung": "wie F01, Verlegeart Halbverband",
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "Rechteck",
     "kanten_cm": {
