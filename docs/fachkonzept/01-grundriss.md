@@ -18,7 +18,7 @@ Sieben Formen als Bildknöpfe. Kennzahlen jeweils mit Vorgabebelag (Diele 60 × 
 - Die Maßfelder zeigen nur Platzhalter („A — B: cm“); die aktuellen Maße stehen in der Zeichnung.
 - Abhängige Maße ergeben sich aus den eingegebenen (z. B. L-Form: E—F = A—B + C—D).
 - Kreisfläche wird als Vieleck gerechnet (10,150 m² statt π · 1,8² = 10,179 m²).
-- Eine Seite ist rot markiert (Rechteck/O: D—C, L/T: Unterkante) – vermutlich die Hausseite (siehe [10 Offene Fragen](10-offene-fragen.md)).
+- Eine Kante ist rot markiert (Rechteck/O: D—C, L/T: Unterkante, erst nach Formwahl): die **letzte Dielenreihe, die längs auf Restbreite aufgeschnitten wird** (Alexander, 19.10.2026).
 
 ### Freiform
 

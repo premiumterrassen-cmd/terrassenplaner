@@ -2,7 +2,7 @@
 
 Zur Klärung mit Alexander (in M1-03/M1-04 abhaken).
 
-1. **Rote Seite** im Grundriss (Rechteck D — C, L/T Unterkante): Bedeutet sie die Hausseite? Hat sie eine Wirkung (Gefällerichtung, Abstand, Ausgangspunkt)?
+1. ~~**Rote Seite** im Grundriss~~ → beantwortet, siehe unten.
 2. **Fuge** „0.5 mm“: gemeint sind 5 mm?
 3. **Verschnitt-Kennzahl**: Was misst sie genau? Werte und Volumen passen nicht zusammen (z. B. 135 Grad: 0,32 % bei höherem Volumen).
 4. **Dielenlängen**: Automatik wählt 5000 mm, obwohl 6000 mm im Sortiment sind. Werden Dielen auf Wunschlänge gekappt geliefert (300–600 cm in 50er-Schritten)?
@@ -18,3 +18,4 @@ Zur Klärung mit Alexander (in M1-03/M1-04 abhaken).
 ## Beantwortet
 
 - **Kurze UK-Stücke 8,6 / 8,7 / 11 cm im UK-Zuschnitt** (aus M1-02): im 90°-Winkel an den Sichtseiten angesetzte UK-Stücke, an denen die Blenden befestigt werden (Alexander, 19.10.2026).
+- **Rote Kante im Grundriss** (Frage 1): markiert die letzte Dielenreihe, die längs auf Restbreite aufgeschnitten werden muss (Alexander, 19.10.2026). Passt zu den Referenzfällen (z. B. „290 x 3 cm“, „540 x 5,5 cm“ neben 6 cm Normalbreite). Erscheint erst nach Formwahl; der neue Planer zeigt die aufzuschneidende Reihe ebenfalls an.
