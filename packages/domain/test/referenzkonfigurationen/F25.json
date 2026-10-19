@@ -1,0 +1,76 @@
+{
+  "id": "F25",
+  "beschreibung": "wie F01, Belag ROBI-FIXX Terrassenfliese Robinie (Holzfliese), Standard-Verlegeart",
+  "fehlerverdacht": [
+    "Holzfliese wird je lfm statt je Stück abgerechnet (bestätigter Anzeigefehler, 09)."
+  ],
+  "eingaben": {
+    "form": "Rechteck",
+    "kanten_cm": {
+      "A-B": 480,
+      "B-C": 309
+    },
+    "belag": "ROBI-FIXX Terrassenfliese Robinie",
+    "dielenlaenge": "automatisch",
+    "verlegeart": "Fugenschnitt",
+    "verlegerichtung": "Waagrecht",
+    "ausgangspunkt": {
+      "punkt": "A",
+      "waagrecht_cm": 0,
+      "senkrecht_cm": 0
+    },
+    "unterkonstruktion": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+    "art": "Normale Terrasse",
+    "hoehe_cm": 8.6,
+    "untergrund": "Schotter (verdichtet)",
+    "nutzung": "schwimmende Verlegung",
+    "gewerblich": false,
+    "ausschnitte": [],
+    "bauelement_seiten": [],
+    "verblendung_seiten": [],
+    "rinnen": {},
+    "treppen": [],
+    "verschnittvariante": 1
+  },
+  "anzeige": {
+    "flaeche_m2": 14.832,
+    "verschnitt_prozent": 0.99,
+    "volumen_m3": null
+  },
+  "materialliste": [
+    {
+      "artikelnummer": "40-10-001",
+      "bezeichnung": "ROBI-FIXX Terrassenfliese Robinie",
+      "laenge_mm": null,
+      "anzahl": 48,
+      "einheit": "Stück",
+      "typ": "Deckbelag,Zubehoer"
+    },
+    {
+      "artikelnummer": "40-10-003",
+      "bezeichnung": "ROBI-FIXX Verbinder / Connector für Terrassenfliese Robinie",
+      "laenge_mm": null,
+      "anzahl": 63,
+      "einheit": "Stück",
+      "typ": "BefestigungDeck,Zubehoer"
+    }
+  ],
+  "zuschnitt": [
+    {
+      "artikel": "Fertigterrassenfliese aus Robinienholz, 606 x 606 x 43 mm, 90 x 22mm Deckbelag inkl. 22mm Unterkonstruktion",
+      "ausgangslaenge_cm": 60.6,
+      "menge": 42,
+      "schnitte_cm": [
+        60.6
+      ]
+    },
+    {
+      "artikel": "Fertigterrassenfliese aus Robinienholz, 606 x 606 x 43 mm, 90 x 22mm Deckbelag inkl. 22mm Unterkonstruktion",
+      "ausgangslaenge_cm": 60.6,
+      "menge": 6,
+      "schnitte_cm": [
+        55.8
+      ]
+    }
+  ]
+}
