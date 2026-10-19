@@ -17,11 +17,11 @@ Zur Klärung mit Alexander (in M1-03/M1-04 abhaken).
 
 Aus M1-03 (Verdacht auf Fehler des alten Planers, siehe [09](09-nicht-teil-der-kopie.md)):
 
-13. **Gewerbliche Nutzung** (F35): Im alten Planer ändert sich nur die Menge KOPPLEX-3. Was soll sich richtig ändern – UK-Abstand, Dielenstärke, Befestigung?
-14. **Rinne** (F38): Die Fläche sinkt um die Rinnenbreite, die UK bleibt aber gleich lang. Wird die UK unter der Rinne gekürzt?
-15. **Dielenlängen über 600 cm** (F14): Die Automatik nimmt bei 800 cm Länge Dielen 7000 mm und UK 6500 mm. Gibt es diese Längen, oder ist das ein Fehler?
-16. **Kurze Stücke verbinden** (F13): „Ja“ hat keine Wirkung. Was soll die Option bewirken?
-17. **Querstreben**: Im alten Planer lassen sie sich nicht setzen. Wie viele und wo sollen sie im neuen Planer entstehen (Abstand, automatisch oder von Hand)?
+13. ~~**Gewerbliche Nutzung** (F35)~~ → beantwortet, siehe unten.
+14. ~~**Rinne** (F38)~~ → beantwortet.
+15. ~~**Dielenlängen über 600 cm** (F14)~~ → Fehler laut B-035 (7 m nur Serbien; UK 6,5 m gibt es nicht).
+16. ~~**Kurze Stücke verbinden** (F13)~~ → beantwortet.
+17. ~~**Querstreben**~~ → beantwortet.
 
 ## Beantwortet
 
@@ -38,5 +38,11 @@ Aus M1-03 (Verdacht auf Fehler des alten Planers, siehe [09](09-nicht-teil-der-k
 - **Zubehör „Tatsächlich“** (Frage 10): „Tatsächlich“ ist zunächst der vom Planer berechnete Wert; danach kann man ihn ändern. Der geänderte Wert erscheint im finalen Angebot unter dem berechneten Wert des Planers.
 - **Treppe: Fundament / Konstruktion** (Frage 11): Fundament = Treppe ist schon aus Beton vorhanden und wird nur belegt; Konstruktion = der Planer muss die Treppe konstruktiv erstellen und berechnen.
 - **Login** (Frage 12): nur für Mitarbeiter.
+
+- **Gewerbliche Nutzung** (Frage 13): war gedacht, um auf teurere Zubehörteile und dickere Dielen umzustellen – fachlich nicht nötig, nur Marketing; **bleibt wie im alten Planer** (nur mehr Gummiband). Später vielleicht: UK zwingend versteift und nur PREMIUM SELECT – noch nicht entschieden, zurückgestellt.
+- **Rinne und UK** (Frage 14): Die UK geht bis zur Hauswand (endet 1–2 cm davor). Unter der Rinne liegen die Auflageprofile (RELO VA), darauf werden die Ventilationsprofile (RELO V) geschraubt. Die volle UK-Länge in F38 ist also richtig.
+- **Dielenlängen über 600 cm** (Frage 15): laut B-035 gibt es 7 m nur aus Serbien (ECO SELECT), Bosnien und Rumänien liefern 4/5/6 m; UK 6,5 m gibt es nicht → Fehler des alten Planers (F14).
+- **Kurze Stücke verbinden** (Frage 16): Ein Stoß muss dann nicht durchgehend sein – bei nicht rechtwinkligen Terrassen darf ein kurzes Stück durch eine ganze Diele ersetzt werden. Beim Rechteck (F13) daher ohne Wirkung, das ist richtig.
+- **Querstreben** (Frage 17): Abstand 60 cm (so im alten Planer hinterlegt, gewollt).
 
 (Alle Antworten Alexander, 19.10.2026.)

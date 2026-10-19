@@ -1,9 +1,7 @@
 {
   "id": "F35",
   "beschreibung": "wie F01, gewerbliche Nutzung",
-  "fehlerverdacht": [
-    "Gewerbliche Nutzung ändert nur KOPPLEX-3, nicht den UK-Abstand (Verdacht)."
-  ],
+  "fehlerverdacht": [],
   "eingaben": {
     "form": "Rechteck",
     "kanten_cm": {

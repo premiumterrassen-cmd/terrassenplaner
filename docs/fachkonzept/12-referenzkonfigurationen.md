@@ -61,13 +61,16 @@
 
 ## Befunde (als Tests festgehalten)
 
-Der alte Planer hat Fehler, die **nicht übernommen** werden (Alexander, 19.10.2026). Fälle mit bekanntem oder vermutetem Fehler tragen in `fehlerverdacht` eine Begründung (`istSollwert == false`): F13, F14, F25, F35, F38, F40. Liste und Stand in [09](09-nicht-teil-der-kopie.md#fehler-und-verdachtsfälle-aus-den-referenzkonfigurationen-m1-03), Rückfragen 13–17 in [10](10-offene-fragen.md). Die Tests halten das Verhalten des alten Planers fest – nicht das Soll.
+Der alte Planer hat Fehler, die **nicht übernommen** werden (Alexander, 19.10.2026). Fälle mit bekanntem oder vermutetem Fehler tragen in `fehlerverdacht` eine Begründung (`istSollwert == false`): F14, F25, F40. Liste in [09](09-nicht-teil-der-kopie.md#fehler-und-verdachtsfälle-aus-den-referenzkonfigurationen-m1-03), Antworten 13–17 in [10](10-offene-fragen.md). Die Tests halten das Verhalten des alten Planers fest – nicht das Soll.
+
+**Artikel sind Altsortiment:** Die Materiallisten zeigen das veraltete Sortiment des Online-Planers (z. B. einseitig genutete Anfangsdielen, KOPPLEX, „22 mm“). Sie gelten als Beispiel für Struktur und Mengenlogik, nicht als Soll-Sortiment – im neuen Planer gelten die Artikel der Master-Artikelliste (siehe [09](09-nicht-teil-der-kopie.md#veraltetes-sortiment-im-alten-planer)).
+
 
 - **Fläche** = Kantenprodukt; leere Ausschnitte werden nicht abgezogen (F18, F21). Nur eine **Entwässerungsrinne** verkleinert die Fläche (F38: −0,576 m² = 480 × 12 cm).
 - **Ohne Wirkung auf die Exporte:** Wechselverband bei 480 cm (F08 = F01), Bauelement allein (F36 = F01), Treppen-Konstruktionsart Fundament gegenüber Konstruktion (F40 = F39 – **Fehler**, siehe oben).
-- **Gewerbliche Nutzung** ändert nur die Menge KOPPLEX-3 (2 → 3 Rollen), nicht den UK-Abstand.
+- **Gewerbliche Nutzung** ändert nur die Menge KOPPLEX-3 (2 → 3 Rollen), nicht den UK-Abstand – gewollt (Marketing, Antwort 13).
 - **Verblendung:** 31 Blendenhalter à 8,6 cm aus dem UK-Zuschnitt (F37), Verblendungsdielen 80 x 22 mm glattkant nur in der Materialliste, nicht in der Zuschnittliste. Bei Verblendung aller freien Seiten erscheint „Achtung: Bitte beachten Sie, dass eine Unterlüftung der Terrasse gewährleistet sein muss!“.
-- **Rinne:** Auswahl „Gesamte Seite (innen)“, „Im bodentiefen Element“, „außerhalb des bodentiefen Elements“, „nur vor dem bodentiefen Element“; Artikel RELO V Ventilationsprofil + RELO VA Auflagerprofil. Die UK bleibt 309 cm lang.
+- **Rinne:** Auswahl „Gesamte Seite (innen)“, „Im bodentiefen Element“, „außerhalb des bodentiefen Elements“, „nur vor dem bodentiefen Element“; Artikel RELO V Ventilationsprofil + RELO VA Auflagerprofil. Die UK bleibt 309 cm lang – richtig: sie geht bis 1–2 cm vor die Hauswand, darunter liegen die Auflageprofile, darauf die Ventilationsprofile (Antwort 14).
 - **Terrassenanschluss:** Eine Seite kann nur eine Rolle haben – als Bauelement oder Verblendung gewählte Seiten verschwinden aus der jeweils anderen Auswahl; die Rinne bleibt an Bauelement-Seiten wählbar.
 - **Hochterrasse:** Standardhöhe 54,2 cm, UK-Stützen à 39,9 cm, Bodenanker; Abschnitt „Art der Terrassennutzung“ entfällt. **Vorhandene UK:** zusätzliches Feld Spannweite (80 cm), Höhe 14,2 cm, ebenfalls ohne Nutzungsart.
 - **Gefälle (F30):** Justierkeile, GUMO-Unterleger und ROBI-LIFT-Füße kommen dazu.
@@ -80,5 +83,5 @@ Der alte Planer hat Fehler, die **nicht übernommen** werden (Alexander, 19.10.2
 ## Lücken
 
 - **Rundungen** und **Freiform** nicht nachgestellt – Freiformen sind in 13 echten Fällen aus M1-02 enthalten, Rundungen in keinem.
-- **Querstreben** ließen sich im Bearbeitungsmodus nicht setzen (Klick zeigt nur eine Vorschau, „Änderungen übernehmen“ ändert nichts).
+- **Querstreben** ließen sich im Bearbeitungsmodus nicht setzen (Klick zeigt nur eine Vorschau, „Änderungen übernehmen“ ändert nichts). Regel laut Alexander: Abstand 60 cm.
 - Nicht einzeln erfasst: individuelle Stufenmaße, weitere Ausgangspunkte, Untergrund-Varianten (laut Alexander nur Information), manuelle Zubehör-Mengen („Tatsächlich“).

@@ -2,7 +2,7 @@
   "id": "F14",
   "beschreibung": "Rechteck 800 x 309, Fugenschnitt, Dielenlänge automatisch, erste Diele oben/unten um 3 cm versetzt. Befund: Automatik wählt Dielen 7000 mm und UK 6500 mm (über 600 cm)",
   "fehlerverdacht": [
-    "Automatik wählt Dielen 7000 mm und UK 6500 mm – Längen über 600 cm prüfen (Sortiment B-030 ff.; Verdacht)."
+    "Automatik wählt Dielen 7000 mm für einen Artikel, den es nur in 4/5/6 m gibt, und UK 6500 mm, die es nicht gibt (Fehler, B-035)."
   ],
   "eingaben": {
     "form": "Rechteck",

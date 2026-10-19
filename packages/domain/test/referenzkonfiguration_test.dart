@@ -181,7 +181,7 @@ void main() {
           for (final f in _faelle.values)
             if (!f.istSollwert) f.id,
         ],
-        ['F13', 'F14', 'F25', 'F35', 'F38', 'F40'],
+        ['F14', 'F25', 'F40'],
       );
     });
 
