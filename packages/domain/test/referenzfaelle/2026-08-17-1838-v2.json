@@ -1,0 +1,106 @@
+{
+  "id": "2026-08-17-1838-v2",
+  "quelle": {
+    "konfigurationsnummer": "2026-08-17-1838",
+    "version": 2,
+    "datum": "2026-08-17",
+    "seiten": 5,
+    "export": false
+  },
+  "eingaben": {
+    "grundriss": {
+      "form": "Rechteck",
+      "eckpunkte": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "kanten_cm": {
+        "A-B": 430,
+        "B-C": 270,
+        "C-D": 430,
+        "D-A": 270
+      },
+      "radius_cm": null,
+      "ausschnitte": [],
+      "rundungen": false
+    },
+    "flaeche_m2": 11.61,
+    "volumen_m3": 0.0,
+    "belag": "ROBI-FIXX Terrassenfliese Robinie",
+    "verlegerichtung": "Waagrecht",
+    "ausgangspunkt": {
+      "punkt": "A",
+      "waagrecht_cm": 0,
+      "senkrecht_cm": 0
+    },
+    "unterkonstruktion": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+    "verblendung": "keine Verblendung",
+    "aufbauhoehen_cm": {},
+    "winkel_grad": {},
+    "uk_abstaende_cm": {
+      "laengs": [],
+      "quer": []
+    }
+  },
+  "erwartet": {
+    "unterkonstruktion_stueckliste": [],
+    "zuschnitt_unterkonstruktion": [],
+    "dielen": [
+      {
+        "artikel": "ROBI-FIXX Terrassenfliese Robinie",
+        "laenge_cm": 60.6,
+        "breite_cm": 60.6,
+        "stueck": 28
+      },
+      {
+        "artikel": "ROBI-FIXX Terrassenfliese Robinie",
+        "laenge_cm": 5.8,
+        "breite_cm": 60.6,
+        "stueck": 4
+      },
+      {
+        "artikel": "ROBI-FIXX Terrassenfliese Robinie",
+        "laenge_cm": 60.6,
+        "breite_cm": 25.1,
+        "stueck": 7
+      },
+      {
+        "artikel": "ROBI-FIXX Terrassenfliese Robinie",
+        "laenge_cm": 5.8,
+        "breite_cm": 25.1,
+        "stueck": 1
+      }
+    ],
+    "zuschnitt_deckbelag": [
+      {
+        "artikel": "Fertigterrassenfliese aus Robinienholz, 606 x 606 x 43 mm, 90 x 22mm Deckbelag inkl. 22mm Unterkonstruktion",
+        "ausgangslaenge_cm": 60.6,
+        "menge": 35,
+        "schnitte_cm": [
+          60.6
+        ]
+      },
+      {
+        "artikel": "Fertigterrassenfliese aus Robinienholz, 606 x 606 x 43 mm, 90 x 22mm Deckbelag inkl. 22mm Unterkonstruktion",
+        "ausgangslaenge_cm": 60.6,
+        "menge": 1,
+        "schnitte_cm": [
+          5.8,
+          5.8,
+          5.8,
+          5.8,
+          5.8
+        ]
+      }
+    ],
+    "materialliste": []
+  },
+  "hinweise": [
+    "Fliesenbelag (ROBI-FIXX), keine Dielen: Tabelle 'Dielen/Platten nach Nummer' nennt Maße 'X x Y'; laenge_cm = erster Wert (waagrecht), breite_cm = zweiter Wert (senkrecht) in Druckreihenfolge übernommen.",
+    "Volumen laut PDF 0,000 m³; Unterkonstruktion trotzdem als 'Unterkonstruktionsholz Robinie 40 x 60 mm' angegeben, aber keine UK-Seite/Stückliste vorhanden.",
+    "PDF enthält 5 von 6 Seiten (Seite 1, 3 Zeichnung, 4 Belag/Platten, 5 Zuschnittsplan, 6 rechtliche Hinweise).",
+    "Zuschnitt: 35 ganze Fliesen (28+7) und 1 Fliese in 5 Streifen à 5,8 cm (für Platten Nr. 2 und 4)."
+  ]
+}

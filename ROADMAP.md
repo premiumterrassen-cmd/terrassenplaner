@@ -99,9 +99,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/2
   - Jeden Schritt des alten Planers bedienen und fachlich beschreiben: Eingaben, Auswahlmöglichkeiten, Standardwerte, Grenzwerte, Hinweise/Warnungen, Auswirkungen auf Zeichnung und Material. Quelle: Bedienung und sichtbare Texte/Optionen – keine Analyse des Programmcodes.
   - Abnahme: `docs/fachkonzept/` mit einem Kapitel je Schritt (Grundriss … Zubehör, Ergebnisse); Liste der im alten Planer abgeschalteten Funktionen (z. B. 3D, Grundriss-Upload, Podest, Gehrungsschnitt) als „nicht Teil der Kopie“
   - Ergebnis: `docs/fachkonzept/` (Kapitel 00–10) mit Prüfwerten, Liste „nicht Teil der Kopie“ und 12 offenen Fragen für M1-03/M1-04.
-- [ ] **M1-02 Referenzfälle aus Planungsunterlagen** ([#14](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/14)) – `feature/m1-02-referenzfaelle-aus-planungsunterlagen`
+- [x] **M1-02 Referenzfälle aus Planungsunterlagen** ([#14](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/14)) – `feature/m1-02-referenzfaelle-aus-planungsunterlagen`
   - Die 48 Planungsunterlagen-PDFs und Exporte (`Dateien_Terrassenkonfigurator`) auswerten: Eingaben (Form, Maße, Belag, Richtung, UK, Höhen) und erwartete Ergebnisse (Stücklisten, Zuschnitt, Mengen) als maschinenlesbare Referenzfälle. Kundendaten werden anonymisiert.
   - Abnahme: Referenzfälle als Testdaten im Repo, ohne Namen/Adressen/Telefon/E-Mail; Je Fall: Eingaben, erwartete Mengen je Artikel, Quelle
+  - Ergebnis: 47 anonymisierte Referenzfälle in `packages/domain/test/referenzfaelle/` (10 mit Materialliste aus Export), Modell `Referenzfall`, Übersicht und Befunde in `docs/fachkonzept/11-referenzfaelle.md`.
 - [ ] **M1-03 Referenzkonfigurationen im alten Planer nachstellen** ([#15](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/15)) – `feature/m1-03-referenzkonfigurationen-im-alten-planer`
   - Gezielte Testfälle im alten Planer durchspielen (jede Form, jede Verlegeart/-richtung, Gefälle, Ausschnitt, Rundung, Treppe, Verblendung, Rinne) und Ergebnisse (PDF, Materialliste) festhalten.
   - Abnahme: Mind. ein Fall je Option aus M1-01; Ergebnisse als Referenz neben M1-02

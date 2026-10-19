@@ -1,0 +1,303 @@
+{
+  "id": "2026-04-28-4413-v11",
+  "quelle": {
+    "konfigurationsnummer": "2026-04-28-4413",
+    "version": 11,
+    "datum": "2026-04-28",
+    "seiten": 8,
+    "export": true
+  },
+  "eingaben": {
+    "grundriss": {
+      "form": "Rechteck",
+      "eckpunkte": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "kanten_cm": {
+        "A-B": 440,
+        "B-C": 287,
+        "C-D": 440,
+        "D-A": 287
+      },
+      "radius_cm": null,
+      "ausschnitte": [],
+      "rundungen": false
+    },
+    "flaeche_m2": 12.628,
+    "volumen_m3": 0.328,
+    "belag": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt, bombiert",
+    "verlegerichtung": "Waagrecht",
+    "ausgangspunkt": {
+      "punkt": "A",
+      "waagrecht_cm": 0,
+      "senkrecht_cm": 0
+    },
+    "unterkonstruktion": "RELO C blank Alu-Unterkonstruktions-Schiene, 56 x 27 x 2000 mm (B x H x L)",
+    "verblendung": "keine Verblendung",
+    "aufbauhoehen_cm": null,
+    "winkel_grad": null,
+    "uk_abstaende_cm": {
+      "laengs": [
+        75,
+        75,
+        75,
+        62
+      ],
+      "quer": [
+        37,
+        40,
+        39,
+        40,
+        39,
+        40,
+        39,
+        40,
+        39,
+        40,
+        37
+      ]
+    }
+  },
+  "erwartet": {
+    "unterkonstruktion_stueckliste": [
+      {
+        "artikel": "RELO C blank Alu-Unterkonstruktions-Schiene, 56 x 27 x 2000 mm (B x H x L)",
+        "laenge_cm": 200,
+        "stueck": 12,
+        "farbe": "red"
+      },
+      {
+        "artikel": "RELO C blank Alu-Unterkonstruktions-Schiene, 56 x 27 x 2000 mm (B x H x L)",
+        "laenge_cm": 87,
+        "stueck": 12,
+        "farbe": "blue"
+      },
+      {
+        "artikel": "RELO C blank Alu-Unterkonstruktions-Schiene, 56 x 27 x 2000 mm (B x H x L)",
+        "laenge_cm": 36,
+        "stueck": 5,
+        "farbe": "green"
+      },
+      {
+        "artikel": "RELO C blank Alu-Unterkonstruktions-Schiene, 56 x 27 x 2000 mm (B x H x L)",
+        "laenge_cm": 35,
+        "stueck": 8,
+        "farbe": "green"
+      },
+      {
+        "artikel": "RELO C blank Alu-Unterkonstruktions-Schiene, 56 x 27 x 2000 mm (B x H x L)",
+        "laenge_cm": 33,
+        "stueck": 4,
+        "farbe": "green"
+      }
+    ],
+    "zuschnitt_unterkonstruktion": [
+      {
+        "artikel": "RELO C blank Alu-Unterkonstruktions-Schiene, 56 x 27 x 2000 mm (B x H x L)",
+        "ausgangslaenge_cm": 200,
+        "menge": 12,
+        "schnitte_cm": [
+          200
+        ]
+      },
+      {
+        "artikel": "RELO C blank Alu-Unterkonstruktions-Schiene, 56 x 27 x 2000 mm (B x H x L)",
+        "ausgangslaenge_cm": 200,
+        "menge": 5,
+        "schnitte_cm": [
+          87,
+          87
+        ]
+      },
+      {
+        "artikel": "RELO C blank Alu-Unterkonstruktions-Schiene, 56 x 27 x 2000 mm (B x H x L)",
+        "ausgangslaenge_cm": 200,
+        "menge": 1,
+        "schnitte_cm": [
+          33,
+          33,
+          87
+        ]
+      },
+      {
+        "artikel": "RELO C blank Alu-Unterkonstruktions-Schiene, 56 x 27 x 2000 mm (B x H x L)",
+        "ausgangslaenge_cm": 200,
+        "menge": 1,
+        "schnitte_cm": [
+          35,
+          36,
+          35,
+          35,
+          36
+        ]
+      },
+      {
+        "artikel": "RELO C blank Alu-Unterkonstruktions-Schiene, 56 x 27 x 2000 mm (B x H x L)",
+        "ausgangslaenge_cm": 200,
+        "menge": 1,
+        "schnitte_cm": [
+          36,
+          35,
+          35,
+          36,
+          35
+        ]
+      },
+      {
+        "artikel": "RELO C blank Alu-Unterkonstruktions-Schiene, 56 x 27 x 2000 mm (B x H x L)",
+        "ausgangslaenge_cm": 200,
+        "menge": 1,
+        "schnitte_cm": [
+          33,
+          33,
+          36,
+          35,
+          35
+        ]
+      },
+      {
+        "artikel": "RELO C blank Alu-Unterkonstruktions-Schiene, 56 x 27 x 2000 mm (B x H x L)",
+        "ausgangslaenge_cm": 200,
+        "menge": 1,
+        "schnitte_cm": [
+          87
+        ]
+      }
+    ],
+    "dielen": [
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 440,
+        "breite_cm": 6,
+        "stueck": 44
+      }
+    ],
+    "zuschnitt_deckbelag": [
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 43,
+        "schnitte_cm": [
+          440
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 1 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          440
+        ]
+      }
+    ],
+    "materialliste": [
+      {
+        "artikelnummer": "10-10-073",
+        "bezeichnung": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt, bombiert - Länge: 4500 mm - Freidiele",
+        "laenge_mm": 4500,
+        "anzahl": 1,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": "10-10-073",
+        "bezeichnung": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt, bombiert - Länge: 4500 mm",
+        "laenge_mm": 4500,
+        "anzahl": 43,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": "10-10-074",
+        "bezeichnung": "Terrassendiele Robinie 60 x 22 mm, einseitig genutet, keilgezinkt, bombiert - Länge: 4500 mm",
+        "laenge_mm": 4500,
+        "anzahl": 1,
+        "einheit": "lfm",
+        "typ": "Anfangsdiele"
+      },
+      {
+        "artikelnummer": "50-20-001",
+        "bezeichnung": "RELO L Längsverbinder, VPE zu 50 Stück, 10 mm x 5 mm",
+        "laenge_mm": null,
+        "anzahl": 1,
+        "einheit": "Karton",
+        "typ": "Laengsverbinder"
+      },
+      {
+        "artikelnummer": "50-20-003",
+        "bezeichnung": "RELO L Längsverbinder, Einzelstücke, 10 mm x 5 mm",
+        "laenge_mm": null,
+        "anzahl": 24,
+        "einheit": "Stück",
+        "typ": "Laengsverbinder"
+      },
+      {
+        "artikelnummer": "50-20-004",
+        "bezeichnung": "RELO E Eckverbundwinkel, VPE zu 50 Stück",
+        "laenge_mm": null,
+        "anzahl": 2,
+        "einheit": "Karton",
+        "typ": "Eckverbinder"
+      },
+      {
+        "artikelnummer": "50-20-004",
+        "bezeichnung": "RELO E Eckverbundwinkel, VPE zu 50 Stück",
+        "laenge_mm": null,
+        "anzahl": 1,
+        "einheit": "Karton",
+        "typ": "Eckverbinder"
+      },
+      {
+        "artikelnummer": "50-30-005",
+        "bezeichnung": "RELO C blank Alu-Unterkonstruktions-Schiene, 56 x 27 x 2000 mm (B x H x L) - Länge: 2000 mm",
+        "laenge_mm": 2000,
+        "anzahl": 22,
+        "einheit": "Stück",
+        "typ": "Unterkonstruktion"
+      },
+      {
+        "artikelnummer": "50-50-012",
+        "bezeichnung": "Bohrschraube, 4,0 x 40 mm",
+        "laenge_mm": null,
+        "anzahl": 24,
+        "einheit": "Stück",
+        "typ": "BefestigungDeck,Zubehoer"
+      },
+      {
+        "artikelnummer": "50-60-001",
+        "bezeichnung": "KOPPLEX-1, EPDM-Vollgummi, 10m-Rolle 75mm x 1mm",
+        "laenge_mm": null,
+        "anzahl": 4,
+        "einheit": "Stück",
+        "typ": "EPDM-Band,Zubehoer"
+      },
+      {
+        "artikelnummer": "80-10-001-250",
+        "bezeichnung": "CLIP-FIXX® \"BLACK EDITION\" - VPE 250",
+        "laenge_mm": null,
+        "anzahl": 2,
+        "einheit": "Stück",
+        "typ": "BefestigungDeck,Zubehoer"
+      },
+      {
+        "artikelnummer": "80-10-001-50",
+        "bezeichnung": "CLIP-FIXX® \"BLACK EDITION\" - VPE 50",
+        "laenge_mm": null,
+        "anzahl": 1,
+        "einheit": "Stück",
+        "typ": "BefestigungDeck,Zubehoer"
+      }
+    ]
+  },
+  "hinweise": [
+    "Datum aus der Konfigurationsnummer abgeleitet; „seiten“ = physische Seitenzahl der PDF-Datei.",
+    "Kantenmaß 287 cm (B-C, D-A) in der Zeichnung schwer lesbar (von Schraffur überlagert); bestätigt durch Fläche 4,40 x 2,87 = 12,628 m².",
+    "Alle vier Kanten in der Zeichnung schraffiert dargestellt (vermutlich Wand-/Randanschluss).",
+    "Keine Seite Aufbauhöhe/Winkel im PDF; aufbauhoehen_cm und winkel_grad daher null.",
+    "PDF hat 8 physische Seiten, Seitenzählung „von 10“; Seiten 2–3 fehlen in der Datei. Die UK-Stückliste steht auf einer eigenen Seite ohne Überschrift (Seite 6).",
+    "uk_abstaende: \"quer\" = Maßkette der Abstände zwischen den UK-Trägern, \"laengs\" = Maßkette in Trägerrichtung (Lage der Querverbinder/Stöße), jeweils wie im UK-Plan beschriftet."
+  ]
+}

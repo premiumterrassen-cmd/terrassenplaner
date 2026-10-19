@@ -1,0 +1,83 @@
+{
+  "id": "2026-05-11-2842-v2",
+  "quelle": {
+    "konfigurationsnummer": "2026-05-11-2842",
+    "version": 2,
+    "datum": "2026-05-11",
+    "seiten": 4,
+    "export": false
+  },
+  "eingaben": {
+    "grundriss": {
+      "form": "Rechteck",
+      "eckpunkte": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "kanten_cm": {
+        "A-B": 600,
+        "B-C": 500,
+        "C-D": 600,
+        "D-A": 500
+      },
+      "radius_cm": null,
+      "ausschnitte": [],
+      "rundungen": false
+    },
+    "flaeche_m2": 30.0,
+    "volumen_m3": 0.954,
+    "belag": "Terrassendiele Robinie 80 x 26 mm, genutet, keilgezinkt, bombiert",
+    "verlegerichtung": "Waagrecht",
+    "ausgangspunkt": {
+      "punkt": "A",
+      "waagrecht_cm": 0,
+      "senkrecht_cm": 0
+    },
+    "unterkonstruktion": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+    "verblendung": "keine Verblendung",
+    "aufbauhoehen_cm": {},
+    "winkel_grad": {},
+    "uk_abstaende_cm": {
+      "laengs": [
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        50
+      ],
+      "quer": [
+        37,
+        40,
+        40,
+        39,
+        40,
+        40,
+        39,
+        40,
+        40,
+        39,
+        40,
+        40,
+        39,
+        40,
+        37
+      ]
+    }
+  },
+  "erwartet": {
+    "unterkonstruktion_stueckliste": [],
+    "zuschnitt_unterkonstruktion": [],
+    "dielen": [],
+    "zuschnitt_deckbelag": [],
+    "materialliste": []
+  },
+  "hinweise": [
+    "PDF enthält nur 4 von 11 Seiten (Seite 1, 4 'Ihre Terrasse', 5 'Unterkonstruktion', 11 rechtliche Hinweise); Tabellen (Aufbauhöhe/Winkel, UK-Stückliste, Zuschnittspläne, Dielen) fehlen.",
+    "UK-Abstände quer (Maßkette oben) summieren sich auf 590 cm bei 600 cm Breite; an beiden Enden Doppelstriche ohne Wert (vermutlich je ca. 5 cm Randabstand).",
+    "UK-Abstände laengs = Maßkette links (Summe 500 cm); Zeichnung zeigt zusätzlich versetzte Querverbinder zwischen Doppelbalken."
+  ]
+}

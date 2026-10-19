@@ -1,0 +1,1596 @@
+{
+  "id": "2026-04-26-1265-v3",
+  "quelle": {
+    "konfigurationsnummer": "2026-04-26-1265",
+    "version": 3,
+    "datum": "2026-04-26",
+    "seiten": 13,
+    "export": false
+  },
+  "eingaben": {
+    "grundriss": {
+      "form": "Freiform",
+      "eckpunkte": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "H"
+      ],
+      "kanten_cm": {
+        "A-B": 300,
+        "B-C": 160,
+        "C-D": 920,
+        "D-E": 160,
+        "E-F": 120,
+        "F-G": 220,
+        "G-H": 1100,
+        "H-A": 220
+      },
+      "radius_cm": null,
+      "ausschnitte": [
+        {
+          "name": "A1",
+          "kanten_cm": {
+            "A1-B1": 600,
+            "B1-C1": 320,
+            "C1-D1": 600,
+            "D1-A1": 320
+          },
+          "funktion": "leere Fläche"
+        }
+      ],
+      "rundungen": true
+    },
+    "flaeche_m2": 38.84,
+    "volumen_m3": 0.758,
+    "belag": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+    "verlegerichtung": "Waagrecht",
+    "ausgangspunkt": {
+      "punkt": "D",
+      "waagrecht_cm": 0,
+      "senkrecht_cm": 0
+    },
+    "unterkonstruktion": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+    "verblendung": "Holzverblendung",
+    "aufbauhoehen_cm": null,
+    "winkel_grad": null,
+    "uk_abstaende_cm": {
+      "laengs": [
+        20,
+        75,
+        75,
+        73,
+        102,
+        106,
+        106,
+        126,
+        75,
+        73,
+        74,
+        73,
+        74,
+        73,
+        76
+      ],
+      "quer": [
+        28,
+        38,
+        37,
+        38,
+        12,
+        24,
+        38,
+        37,
+        38,
+        37,
+        19,
+        17
+      ]
+    }
+  },
+  "erwartet": {
+    "unterkonstruktion_stueckliste": [],
+    "zuschnitt_unterkonstruktion": [
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 600,
+        "menge": 2,
+        "schnitte_cm": [
+          600
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          64,
+          281,
+          64,
+          63,
+          63,
+          65
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          281,
+          63,
+          65,
+          65,
+          63,
+          63
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          500,
+          63,
+          8.6
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          565,
+          8.6,
+          8.6,
+          8.6,
+          8.6
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          490,
+          63,
+          8.6,
+          8.6,
+          8.6,
+          8.6,
+          8.6
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          480,
+          63,
+          8.6,
+          8.6,
+          8.6,
+          8.6,
+          8.6,
+          8.6
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          473,
+          65,
+          8.6,
+          8.6,
+          8.6,
+          8.6,
+          8.6,
+          8.6,
+          8.6
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          181,
+          149,
+          110,
+          125,
+          8.6,
+          8.6,
+          8.6,
+          8.6
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          268,
+          193,
+          21,
+          26,
+          37,
+          8.6,
+          8.6,
+          8.6,
+          8.6,
+          8.6,
+          8.6
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          25,
+          25,
+          25,
+          299,
+          224
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          34,
+          34,
+          33,
+          33,
+          33,
+          34,
+          34,
+          34,
+          33,
+          33,
+          33,
+          32,
+          32,
+          32,
+          32,
+          12,
+          12,
+          32,
+          34,
+          8.6
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          300,
+          213,
+          8.6,
+          8.6,
+          8.6,
+          8.6
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          515,
+          8.6,
+          8.6,
+          8.6,
+          8.6
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          320,
+          64,
+          64
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          197,
+          165,
+          61,
+          8.6,
+          8.6,
+          8.6
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          32,
+          32,
+          32,
+          32,
+          34,
+          34,
+          34,
+          33,
+          33,
+          34,
+          34,
+          20,
+          20,
+          34,
+          12
+        ]
+      }
+    ],
+    "dielen": [
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 220,
+        "breite_cm": 6,
+        "stueck": 9
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 219.9,
+        "breite_cm": 6,
+        "stueck": 17
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 219.8,
+        "breite_cm": 6,
+        "stueck": 18
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 219.7,
+        "breite_cm": 6,
+        "stueck": 2
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 379.7,
+        "breite_cm": 6,
+        "stueck": 15
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 379.6,
+        "breite_cm": 6,
+        "stueck": 13
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 165.8,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 153.4,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 141.5,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 129.1,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 126.6,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 114.1,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 115.1,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 102.6,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 105.1,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 92.6,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 96.7,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 84.2,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 88.9,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 76.5,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 81.7,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 69.2,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 76.3,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 63.8,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 70.8,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 58.3,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 65.7,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 53.2,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 61.5,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 49,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 57.3,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 44.7,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 53.3,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 40.8,
+        "breite_cm": 6,
+        "stueck": 2
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 50.5,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 38,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 47.7,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 35.2,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 44.9,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 32.3,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 42.9,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 30.4,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 41.4,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 28.8,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 39.8,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 27.2,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 38.2,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 25.7,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 37.6,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 25,
+        "breite_cm": 6,
+        "stueck": 2
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 37.1,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 24.5,
+        "breite_cm": 6,
+        "stueck": 2
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 36.6,
+        "breite_cm": 6,
+        "stueck": 2
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 24,
+        "breite_cm": 6,
+        "stueck": 2
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 36.1,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 23.5,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 36,
+        "breite_cm": 6,
+        "stueck": 42
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 23.4,
+        "breite_cm": 6,
+        "stueck": 11
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 23.3,
+        "breite_cm": 6,
+        "stueck": 17
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 23.2,
+        "breite_cm": 6,
+        "stueck": 14
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 36.4,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 23.6,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 36.9,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 37.4,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 37.9,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 39.2,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 26.3,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 27.9,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 42.3,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 29.4,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 43.9,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 31,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 46.6,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 33.7,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 49.4,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 52.3,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 39.4,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 55.6,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 42.7,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 59.9,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 46.9,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 64.1,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 51.2,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 68.7,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 55.8,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 74.2,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 61.2,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 79.6,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 66.7,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 86,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 73,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 93.7,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 80.7,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 101.4,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 88.5,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 111.2,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 98.3,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 121.2,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 108.3,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 135.8,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 122.8,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 155.4,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 142.5,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 379,
+        "breite_cm": 6,
+        "stueck": 5
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 159.1,
+        "breite_cm": 6,
+        "stueck": 2
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 159.2,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 159.3,
+        "breite_cm": 6,
+        "stueck": 2
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 159.4,
+        "breite_cm": 6,
+        "stueck": 2
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 159.5,
+        "breite_cm": 6,
+        "stueck": 2
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 159.6,
+        "breite_cm": 6,
+        "stueck": 2
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 159.7,
+        "breite_cm": 6,
+        "stueck": 2
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 159.8,
+        "breite_cm": 6,
+        "stueck": 2
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 159.9,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt",
+        "laenge_cm": 160,
+        "breite_cm": 6,
+        "stueck": 2
+      }
+    ],
+    "zuschnitt_deckbelag": [
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          111.2,
+          121.2,
+          108.3,
+          135.8,
+          122.8
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          379.6,
+          79.6,
+          66.7,
+          73
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          379.6,
+          68.7,
+          74.2,
+          61.2
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          379.6,
+          46.9,
+          64.1,
+          51.2,
+          55.8
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          379.6,
+          39.4,
+          55.6,
+          42.7,
+          59.9
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          379.6,
+          37.4,
+          37.9,
+          39.2,
+          27.9,
+          42.3,
+          29.4
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          379.6,
+          23.2,
+          23.2,
+          23.2,
+          23.2,
+          36.4,
+          23.6,
+          36.9,
+          26.3
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          379.7,
+          44.9,
+          42.9,
+          41.4,
+          39.8,
+          27.2,
+          24
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          219.8,
+          219.8,
+          50.5,
+          38,
+          47.7,
+          24
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          219.8,
+          219.8,
+          70.8,
+          65.7,
+          23.5
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          219.8,
+          219.8,
+          76.5,
+          81.7
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          219.8,
+          219.8,
+          88.9,
+          69.2
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          219.8,
+          219.8,
+          96.7,
+          61.5
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          219.8,
+          219.8,
+          92.6,
+          63.8
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          219.8,
+          219.8,
+          115.1,
+          40.8
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          219.9,
+          219.9,
+          114.1,
+          40.8
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          219.9,
+          219.9,
+          126.6,
+          32.3
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          219.9,
+          219.9,
+          129.1,
+          30.4
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          219.9,
+          219.9,
+          141.5
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          220,
+          220,
+          153.4
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 550,
+        "menge": 10,
+        "schnitte_cm": [
+          379.7,
+          36,
+          36,
+          36,
+          36,
+          23.4
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 550,
+        "menge": 2,
+        "schnitte_cm": [
+          379,
+          159.3
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          379,
+          159.4
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          379,
+          159.2
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          379,
+          159.1
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          86,
+          93.7,
+          80.7,
+          101.4,
+          88.5,
+          98.3
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          379.6,
+          46.6,
+          49.4,
+          52.3
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          379.7,
+          24.5,
+          36.6,
+          36.6,
+          36.1,
+          36
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          379.7,
+          38.2,
+          37.6,
+          25,
+          37.1,
+          24.5
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          379.7,
+          165.8
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          219.8,
+          219.8,
+          76.3,
+          28.8
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          219.8,
+          219.8,
+          84.2,
+          25.7
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          220,
+          220,
+          105.1
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          220,
+          220,
+          102.6
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 500,
+        "menge": 3,
+        "schnitte_cm": [
+          379.6,
+          23.3,
+          23.3,
+          23.3,
+          23.3,
+          23.3
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 500,
+        "menge": 2,
+        "schnitte_cm": [
+          379.6,
+          23.2,
+          23.2,
+          23.2,
+          23.2,
+          23.2
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 500,
+        "menge": 1,
+        "schnitte_cm": [
+          159.9,
+          160,
+          160
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 500,
+        "menge": 1,
+        "schnitte_cm": [
+          159.7,
+          159.8,
+          159.8
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 500,
+        "menge": 1,
+        "schnitte_cm": [
+          159.6,
+          159.6,
+          159.7
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 500,
+        "menge": 1,
+        "schnitte_cm": [
+          159.4,
+          159.5,
+          159.5
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 500,
+        "menge": 1,
+        "schnitte_cm": [
+          155.4,
+          142.5,
+          159.1
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 500,
+        "menge": 1,
+        "schnitte_cm": [
+          379.6,
+          43.9,
+          31,
+          33.7
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 500,
+        "menge": 1,
+        "schnitte_cm": [
+          379.7,
+          36,
+          23.4,
+          23.3,
+          23.3
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 500,
+        "menge": 1,
+        "schnitte_cm": [
+          219.7,
+          219.7,
+          35.2,
+          25
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 500,
+        "menge": 1,
+        "schnitte_cm": [
+          219.9,
+          219.9,
+          53.3
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 500,
+        "menge": 1,
+        "schnitte_cm": [
+          219.9,
+          219.9,
+          44.7
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 500,
+        "menge": 1,
+        "schnitte_cm": [
+          219.9,
+          219.9,
+          57.3
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 500,
+        "menge": 1,
+        "schnitte_cm": [
+          219.9,
+          219.9,
+          49
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 500,
+        "menge": 1,
+        "schnitte_cm": [
+          220,
+          219.9,
+          53.2
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP",
+        "ausgangslaenge_cm": 500,
+        "menge": 1,
+        "schnitte_cm": [
+          220,
+          220,
+          58.3
+        ]
+      }
+    ],
+    "materialliste": []
+  },
+  "hinweise": [
+    "Grundriss: achteckige Kontur (Rechteck 1220 x 380 mit Ausklinkungen links unten E-F-G und rechts oben B-C), daher Freiform; Ausschnitt A1 ist ein Oval/Stadion (Seiten B1-C1 und D1-A1 als Halbkreisboegen mit 320 cm Sehne, gerade Kanten 600 cm) - rundungen=true bezieht sich auf den Ausschnitt; Radius nicht angegeben.",
+    "Ausgewiesene Flaeche 38.84 m2 entspricht etwa der Aussenkontur ohne Abzug des Ausschnitts (rechnerisch 38.92 m2); Dielenflaeche laut Tabelle ca. 20.5 m2. Funktion von A1 aus weisser Darstellung abgeleitet.",
+    "Kanten A-B, B-C, C-D und H-A schraffiert (Holzverblendung lt. Seite 1), Kanten D-E, E-F, F-G, G-H gelb markiert (Bedeutung nicht erklaert); keine Verblendungs-Stueckliste.",
+    "Verlegerichtung lt. Seite 1 'Waagrecht', Zeichnung zeigt Dielen jedoch senkrecht laufend und UK-Hoelzer waagrecht.",
+    "uk_abstaende_cm: laengs = horizontale Masskette ueber der UK-Zeichnung (links nach rechts; zusaetzlich Gesamtmass 600 fuer A1), quer = vertikale Masskette links (oben nach unten; zusaetzlich Gesamtmass 320 fuer A1) = Abstaende der waagrechten UK-Hoelzer.",
+    "Unvollstaendiges PDF: physisch 13 Seiten (Beschriftung 'von 17', Seiten 2-4 und 7 fehlen); UK-Stueckliste fehlt -> leer. Zuschnittsplan UK und Deckbelag sowie Dielentabelle vollstaendig (Dielen-Stueckzahlen stimmen mit Zuschnittsplan Deckbelag ueberein, 279 Stueck).",
+    "Belag ohne 'bombiert'; Zuschnitt-Artikel 'FJ 2 CLIP' ohne Zusatz. Kopfzeile Projektbezeichnung mit Zusatz ' - 2'."
+  ]
+}

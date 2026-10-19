@@ -1,0 +1,131 @@
+{
+  "id": "2026-05-28-4655-v2",
+  "quelle": {
+    "konfigurationsnummer": "2026-05-28-4655",
+    "version": 2,
+    "datum": "2026-05-28",
+    "seiten": 9,
+    "export": false
+  },
+  "eingaben": {
+    "grundriss": {
+      "form": "Rechteck",
+      "eckpunkte": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "kanten_cm": {
+        "A-B": 354,
+        "B-C": 354,
+        "C-D": 354,
+        "D-A": 354
+      },
+      "radius_cm": null,
+      "ausschnitte": [],
+      "rundungen": false
+    },
+    "flaeche_m2": 12.532,
+    "volumen_m3": 0.349,
+    "belag": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+    "verlegerichtung": "Waagrecht",
+    "ausgangspunkt": {
+      "punkt": "A",
+      "waagrecht_cm": 0,
+      "senkrecht_cm": 0
+    },
+    "unterkonstruktion": "RELO C blank Alu-Unterkonstruktions-Schiene, 56 x 27 x 2000 mm (B x H x L)",
+    "verblendung": "keine Verblendung",
+    "aufbauhoehen_cm": null,
+    "winkel_grad": null,
+    "uk_abstaende_cm": {
+      "laengs": [
+        36,
+        39,
+        39,
+        39,
+        38,
+        39,
+        39,
+        39,
+        36
+      ],
+      "quer": [
+        354
+      ]
+    }
+  },
+  "erwartet": {
+    "unterkonstruktion_stueckliste": [
+      {
+        "artikel": "RELO C blank Alu-Unterkonstruktions-Schiene, 56 x 27 x 2000 mm (B x H x L)",
+        "laenge_cm": 200,
+        "stueck": 10,
+        "farbe": "red"
+      },
+      {
+        "artikel": "RELO C blank Alu-Unterkonstruktions-Schiene, 56 x 27 x 2000 mm (B x H x L)",
+        "laenge_cm": 154,
+        "stueck": 10,
+        "farbe": "blue"
+      }
+    ],
+    "zuschnitt_unterkonstruktion": [
+      {
+        "artikel": "RELO C blank Alu-Unterkonstruktions-Schiene, 56 x 27 x 2000 mm (B x H x L)",
+        "ausgangslaenge_cm": 200,
+        "menge": 10,
+        "schnitte_cm": [
+          200
+        ]
+      },
+      {
+        "artikel": "RELO C blank Alu-Unterkonstruktions-Schiene, 56 x 27 x 2000 mm (B x H x L)",
+        "ausgangslaenge_cm": 200,
+        "menge": 10,
+        "schnitte_cm": [
+          154
+        ]
+      }
+    ],
+    "dielen": [
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 354,
+        "breite_cm": 8,
+        "stueck": 41
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 354,
+        "breite_cm": 5,
+        "stueck": 1
+      }
+    ],
+    "zuschnitt_deckbelag": [
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 40,
+        "schnitte_cm": [
+          354
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 1 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 2,
+        "schnitte_cm": [
+          354
+        ]
+      }
+    ],
+    "materialliste": []
+  },
+  "hinweise": [
+    "uk_abstaende_cm: laengs = horizontale Masskette ueber der UK-Zeichnung (Abstaende der senkrechten Alu-Schienen, links nach rechts), quer = vertikale Masskette (nur Gesamtmass 354). Je Schienenstrang 200 cm (rot, oben) + 154 cm (blau, unten).",
+    "Zuschnittsplan UK: 154-cm-Stuecke werden aus 200-cm-Schienen geschnitten (Ausgangslaenge 200, Menge 10).",
+    "Keine Tabelle Aufbauhoehe/Winkel im PDF; Seitenbeschriftung 'von 11', physisch 9 Seiten."
+  ]
+}

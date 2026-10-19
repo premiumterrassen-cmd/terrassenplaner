@@ -1,0 +1,117 @@
+{
+  "id": "2026-09-03-3980-v8",
+  "quelle": {
+    "konfigurationsnummer": "2026-09-03-3980",
+    "version": 8,
+    "datum": "2026-09-03",
+    "seiten": 16,
+    "export": false
+  },
+  "eingaben": {
+    "grundriss": {
+      "form": "Freiform",
+      "eckpunkte": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "H",
+        "I",
+        "J",
+        "K",
+        "L"
+      ],
+      "kanten_cm": {
+        "A-B": 1051,
+        "B-C": 1070,
+        "C-D": 620,
+        "D-E": 490,
+        "E-F": 875,
+        "F-G": 400,
+        "G-H": 285,
+        "H-I": 303,
+        "I-J": 493,
+        "J-K": 1218,
+        "K-L": 334,
+        "L-A": 245
+      },
+      "radius_cm": null,
+      "ausschnitte": [],
+      "rundungen": false
+    },
+    "flaeche_m2": 105.837,
+    "volumen_m3": 2.826,
+    "belag": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt, bombiert",
+    "verlegerichtung": "Senkrecht",
+    "ausgangspunkt": {
+      "punkt": "A",
+      "waagrecht_cm": 0,
+      "senkrecht_cm": 0
+    },
+    "unterkonstruktion": "RELO C blank Alu-Unterkonstruktions-Schiene, 56 x 27 x 2000 mm (B x H x L)",
+    "verblendung": "keine Verblendung",
+    "aufbauhoehen_cm": null,
+    "winkel_grad": null,
+    "uk_abstaende_cm": {
+      "laengs": [],
+      "quer": [
+        40,
+        40,
+        39,
+        40,
+        40,
+        39,
+        38,
+        40,
+        39,
+        40,
+        40,
+        38,
+        40,
+        40,
+        39,
+        40,
+        40,
+        39,
+        40,
+        19,
+        21,
+        39,
+        28,
+        12,
+        40,
+        39,
+        40,
+        40,
+        39,
+        40,
+        40,
+        39,
+        40,
+        40,
+        39,
+        40,
+        40,
+        39,
+        40
+      ]
+    }
+  },
+  "erwartet": {
+    "unterkonstruktion_stueckliste": [],
+    "zuschnitt_unterkonstruktion": [],
+    "dielen": [],
+    "zuschnitt_deckbelag": [],
+    "materialliste": []
+  },
+  "hinweise": [
+    "PDF enthält nur 5 von 16 Seiten (Seite 1, 5, 6, 8, 16); Tabellen Aufbauhöhe/Winkel, UK-Stückliste, Zuschnittspläne und Dielenliste fehlen – daher leer bzw. null.",
+    "Alu-Unterkonstruktion (Schiene 2000 mm); UK-Schienen laufen waagrecht (Dielen senkrecht).",
+    "UK-Plan: obere Maßkette zeigt nur Gesamtbreite 1.560 (= B-C 1070 + D-E 490), keine Einzelabstände; laengs daher leer.",
+    "quer = linke Maßkette von oben (Höhe G/F) nach unten bis B; kleine Werte (19, 21, 28, 12) an den Versprüngen K/J und D/E.",
+    "Freiform mit 12 Eckpunkten (U-ähnlich mit Versätzen); keine Ausschnitte."
+  ]
+}

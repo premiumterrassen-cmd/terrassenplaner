@@ -1,0 +1,282 @@
+{
+  "id": "2026-06-07-4340-v4",
+  "quelle": {
+    "konfigurationsnummer": "2026-06-07-4340",
+    "version": 4,
+    "datum": "2026-06-07",
+    "seiten": 8,
+    "export": false
+  },
+  "eingaben": {
+    "grundriss": {
+      "form": "L-Form",
+      "eckpunkte": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F"
+      ],
+      "kanten_cm": {
+        "A-B": 475,
+        "B-C": 340,
+        "C-D": 190,
+        "D-E": 70,
+        "E-F": 665,
+        "F-A": 410
+      },
+      "radius_cm": null,
+      "ausschnitte": [],
+      "rundungen": false
+    },
+    "flaeche_m2": 20.805,
+    "volumen_m3": 0.726,
+    "belag": "Terrassendiele Robinie 80 x 26 mm, genutet, keilgezinkt, bombiert",
+    "verlegerichtung": "Waagrecht",
+    "ausgangspunkt": {
+      "punkt": "B",
+      "waagrecht_cm": 0,
+      "senkrecht_cm": 0
+    },
+    "unterkonstruktion": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+    "verblendung": "keine Verblendung",
+    "aufbauhoehen_cm": null,
+    "winkel_grad": null,
+    "uk_abstaende_cm": {
+      "laengs": [
+        75,
+        75,
+        75,
+        75,
+        75,
+        35
+      ],
+      "quer": [
+        31,
+        40,
+        40,
+        39,
+        40,
+        40,
+        39,
+        40,
+        40,
+        39,
+        40,
+        37,
+        39,
+        40,
+        40,
+        39,
+        24
+      ]
+    }
+  },
+  "erwartet": {
+    "unterkonstruktion_stueckliste": [
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "laenge_cm": 410,
+        "stueck": 12,
+        "farbe": "blue"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "laenge_cm": 340,
+        "stueck": 1,
+        "farbe": "blue"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "laenge_cm": 70,
+        "stueck": 7,
+        "farbe": "blue"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "laenge_cm": 36,
+        "stueck": 18,
+        "farbe": "green"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "laenge_cm": 35,
+        "stueck": 7,
+        "farbe": "green"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "laenge_cm": 33,
+        "stueck": 2,
+        "farbe": "green"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "laenge_cm": 27,
+        "stueck": 3,
+        "farbe": "green"
+      }
+    ],
+    "zuschnitt_unterkonstruktion": [
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 550,
+        "menge": 3,
+        "schnitte_cm": [
+          410,
+          70,
+          70
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          33,
+          33,
+          410,
+          70
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          27,
+          27,
+          27,
+          36,
+          36,
+          36,
+          36,
+          36,
+          35,
+          35,
+          36,
+          36,
+          36,
+          36,
+          36,
+          35
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 450,
+        "menge": 8,
+        "schnitte_cm": [
+          410
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          35,
+          35,
+          36,
+          36,
+          36,
+          36,
+          36,
+          35,
+          35,
+          36,
+          36,
+          36
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          340
+        ]
+      }
+    ],
+    "dielen": [
+      {
+        "artikel": "Terrassendiele Robinie 80 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 475,
+        "breite_cm": 8,
+        "stueck": 48
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 190,
+        "breite_cm": 8,
+        "stueck": 8
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 475,
+        "breite_cm": 1.5,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 190,
+        "breite_cm": 1.5,
+        "stueck": 1
+      }
+    ],
+    "zuschnitt_deckbelag": [
+      {
+        "artikel": "Terrassendiele Robinie 80 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 500,
+        "menge": 47,
+        "schnitte_cm": [
+          475
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 3,
+        "schnitte_cm": [
+          190,
+          190
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 300,
+        "menge": 1,
+        "schnitte_cm": [
+          190
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 26 mm - FJ 1 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 500,
+        "menge": 2,
+        "schnitte_cm": [
+          475
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 26 mm - FJ 1 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          190,
+          190
+        ]
+      }
+    ],
+    "materialliste": []
+  },
+  "hinweise": [
+    "Datum im Dateinamen 2026-06-08, Konfigurationsnummer vom 2026-06-07.",
+    "PDF hat 8 Seiten, Seitenzählung 'von 11' (Seiten 2–4 fehlen).",
+    "Quer-Maßkette: zwischen 37 und 39 (bei B/C) ein kleines unbeschriftetes Segment.",
+    "uk_abstaende_cm: 'quer' = Achsabstände der Tragbalken/Schienen (Maßkette quer zu den Balken), 'laengs' = Maßkette in Balkenlängsrichtung (Stoß-/Verbinderabstände); Werte aus der Zeichnung 'Unterkonstruktion' abgelesen.",
+    "Kleine Randsegmente der Maßketten sind unbeschriftet; Summe der beschrifteten Werte daher etwas kleiner als das Kantenmaß.",
+    "Kein Export vorhanden: materialliste leer."
+  ]
+}

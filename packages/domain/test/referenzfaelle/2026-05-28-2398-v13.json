@@ -1,0 +1,446 @@
+{
+  "id": "2026-05-28-2398-v13",
+  "quelle": {
+    "konfigurationsnummer": "2026-05-28-2398",
+    "version": 13,
+    "datum": "2026-05-28",
+    "seiten": 10,
+    "export": false
+  },
+  "eingaben": {
+    "grundriss": {
+      "form": "Freiform",
+      "eckpunkte": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "kanten_cm": {
+        "A-B": 661,
+        "B-C": 400,
+        "C-D": 560,
+        "D-E": 141,
+        "E-A": 301
+      },
+      "radius_cm": null,
+      "ausschnitte": [
+        {
+          "name": "A1",
+          "kanten_cm": {
+            "A1-B1": 35,
+            "B1-C1": 35,
+            "C1-D1": 35,
+            "D1-A1": 35
+          },
+          "funktion": "unbekannt"
+        },
+        {
+          "name": "A2",
+          "kanten_cm": {
+            "A2-B2": 35,
+            "B2-C2": 35,
+            "C2-D2": 35,
+            "D2-A2": 35
+          },
+          "funktion": "unbekannt"
+        }
+      ],
+      "rundungen": false
+    },
+    "flaeche_m2": 25.94,
+    "volumen_m3": 0.849,
+    "belag": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+    "verlegerichtung": "Senkrecht",
+    "ausgangspunkt": {
+      "punkt": "A",
+      "waagrecht_cm": 0,
+      "senkrecht_cm": 0
+    },
+    "unterkonstruktion": "RELO W blank Alu-Unterkonstruktions-Schiene, 56 x 40 x 2000 mm (B x H x L)",
+    "verblendung": "keine Verblendung",
+    "aufbauhoehen_cm": {},
+    "winkel_grad": {},
+    "uk_abstaende_cm": {
+      "laengs": [
+        26,
+        35,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        14,
+        61
+      ],
+      "quer": [
+        37,
+        34,
+        40,
+        39,
+        21,
+        19,
+        23,
+        16,
+        40,
+        39,
+        40,
+        38
+      ]
+    }
+  },
+  "erwartet": {
+    "unterkonstruktion_stueckliste": [],
+    "zuschnitt_unterkonstruktion": [
+      {
+        "artikel": "RELO W blank Alu-Unterkonstruktions-Schiene, 56 x 40 x 2000 mm (B x H x L)",
+        "ausgangslaenge_cm": 200,
+        "menge": 31,
+        "schnitte_cm": [
+          200
+        ]
+      },
+      {
+        "artikel": "RELO W blank Alu-Unterkonstruktions-Schiene, 56 x 40 x 2000 mm (B x H x L)",
+        "ausgangslaenge_cm": 200,
+        "menge": 1,
+        "schnitte_cm": [
+          61,
+          35
+        ]
+      },
+      {
+        "artikel": "RELO W blank Alu-Unterkonstruktions-Schiene, 56 x 40 x 2000 mm (B x H x L)",
+        "ausgangslaenge_cm": 200,
+        "menge": 1,
+        "schnitte_cm": [
+          61,
+          61,
+          41,
+          35
+        ]
+      },
+      {
+        "artikel": "RELO W blank Alu-Unterkonstruktions-Schiene, 56 x 40 x 2000 mm (B x H x L)",
+        "ausgangslaenge_cm": 200,
+        "menge": 1,
+        "schnitte_cm": [
+          61,
+          61,
+          46
+        ]
+      },
+      {
+        "artikel": "RELO W blank Alu-Unterkonstruktions-Schiene, 56 x 40 x 2000 mm (B x H x L)",
+        "ausgangslaenge_cm": 200,
+        "menge": 1,
+        "schnitte_cm": [
+          34,
+          34,
+          34,
+          61,
+          35
+        ]
+      },
+      {
+        "artikel": "RELO W blank Alu-Unterkonstruktions-Schiene, 56 x 40 x 2000 mm (B x H x L)",
+        "ausgangslaenge_cm": 200,
+        "menge": 1,
+        "schnitte_cm": [
+          35,
+          36,
+          36,
+          36,
+          36
+        ]
+      },
+      {
+        "artikel": "RELO W blank Alu-Unterkonstruktions-Schiene, 56 x 40 x 2000 mm (B x H x L)",
+        "ausgangslaenge_cm": 200,
+        "menge": 1,
+        "schnitte_cm": [
+          36,
+          36,
+          35,
+          35,
+          35
+        ]
+      },
+      {
+        "artikel": "RELO W blank Alu-Unterkonstruktions-Schiene, 56 x 40 x 2000 mm (B x H x L)",
+        "ausgangslaenge_cm": 200,
+        "menge": 1,
+        "schnitte_cm": [
+          35,
+          35,
+          35,
+          36,
+          36
+        ]
+      },
+      {
+        "artikel": "RELO W blank Alu-Unterkonstruktions-Schiene, 56 x 40 x 2000 mm (B x H x L)",
+        "ausgangslaenge_cm": 200,
+        "menge": 1,
+        "schnitte_cm": [
+          35,
+          36,
+          36,
+          36,
+          35
+        ]
+      },
+      {
+        "artikel": "RELO W blank Alu-Unterkonstruktions-Schiene, 56 x 40 x 2000 mm (B x H x L)",
+        "ausgangslaenge_cm": 200,
+        "menge": 1,
+        "schnitte_cm": [
+          36,
+          36,
+          35,
+          35,
+          35,
+          21
+        ]
+      },
+      {
+        "artikel": "RELO W blank Alu-Unterkonstruktions-Schiene, 56 x 40 x 2000 mm (B x H x L)",
+        "ausgangslaenge_cm": 200,
+        "menge": 1,
+        "schnitte_cm": [
+          35,
+          35,
+          35,
+          36,
+          36,
+          17,
+          5
+        ]
+      },
+      {
+        "artikel": "RELO W blank Alu-Unterkonstruktions-Schiene, 56 x 40 x 2000 mm (B x H x L)",
+        "ausgangslaenge_cm": 200,
+        "menge": 1,
+        "schnitte_cm": [
+          33,
+          33,
+          33,
+          33,
+          35,
+          30
+        ]
+      },
+      {
+        "artikel": "RELO W blank Alu-Unterkonstruktions-Schiene, 56 x 40 x 2000 mm (B x H x L)",
+        "ausgangslaenge_cm": 200,
+        "menge": 1,
+        "schnitte_cm": [
+          180
+        ]
+      },
+      {
+        "artikel": "RELO W blank Alu-Unterkonstruktions-Schiene, 56 x 40 x 2000 mm (B x H x L)",
+        "ausgangslaenge_cm": 200,
+        "menge": 1,
+        "schnitte_cm": [
+          161
+        ]
+      },
+      {
+        "artikel": "RELO W blank Alu-Unterkonstruktions-Schiene, 56 x 40 x 2000 mm (B x H x L)",
+        "ausgangslaenge_cm": 200,
+        "menge": 1,
+        "schnitte_cm": [
+          140
+        ]
+      }
+    ],
+    "dielen": [
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 400,
+        "breite_cm": 9.5,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 400,
+        "breite_cm": 10,
+        "stueck": 51
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 185,
+        "breite_cm": 10,
+        "stueck": 2
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 180,
+        "breite_cm": 10,
+        "stueck": 2
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 393.6,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 383.3,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 373,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 362.7,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 352.5,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 342.2,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 80,
+        "breite_cm": 10,
+        "stueck": 2
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 216.9,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 206.6,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 311.3,
+        "breite_cm": 10,
+        "stueck": 1
+      }
+    ],
+    "zuschnitt_deckbelag": [
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          216.9,
+          311.3
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          342.2,
+          206.6
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          383.3,
+          80,
+          80
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          180,
+          362.7
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          185,
+          185,
+          180
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 51,
+        "schnitte_cm": [
+          400
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          352.5
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          393.6
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          373
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 1 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          400
+        ]
+      }
+    ],
+    "materialliste": []
+  },
+  "hinweise": [
+    "PDF enthält 10 von 12 Seiten (Seiten 2-3 fehlen, vermutlich Aufbauhöhe/Winkel); Seite 6 (vermutlich UK-Stückliste) ist leer -> unterkonstruktion_stueckliste leer.",
+    "Grundriss: Rechteck mit abgeschrägter Ecke links unten (D-E 141 cm diagonal; 661-560=101 waagrecht, 400-301=99 senkrecht).",
+    "Ausschnitte A1 (rechts, mittig) und A2 (links oben, an Kante E-A) nur als Kästchen ohne Kantenmaße in 'Ihre Terrasse'; 35 x 35 cm aus den Hilfsmaßketten der UK-Zeichnung abgelesen (unsicher). Funktion nicht angegeben.",
+    "Fläche 25,94 m² entspricht 6,61 x 4,00 minus Schrägendreieck, d. h. Ausschnitte sind NICHT abgezogen.",
+    "UK-Abstände: laengs = Maßkette oben (Summe 661, Balken waagrecht bei senkrechter Verlegung), quer = Maßkette links (Summe 386 bei 400 cm Höhe; unbemaßte Doppelstriche an Enden und zwischen 34/40).",
+    "Dielen-Breiten: eine Diele 9,5 cm (Nr. 1, Randstreifen)."
+  ]
+}

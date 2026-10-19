@@ -1,0 +1,147 @@
+{
+  "id": "2026-06-25-1275-v3",
+  "quelle": {
+    "konfigurationsnummer": "2026-06-25-1275",
+    "version": 3,
+    "datum": "2026-06-25",
+    "seiten": 7,
+    "export": false
+  },
+  "eingaben": {
+    "grundriss": {
+      "form": "Rechteck",
+      "eckpunkte": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "kanten_cm": {
+        "A-B": 300,
+        "B-C": 100,
+        "C-D": 300,
+        "D-A": 100
+      },
+      "radius_cm": null,
+      "ausschnitte": [],
+      "rundungen": false
+    },
+    "flaeche_m2": 3.0,
+    "volumen_m3": 0.072,
+    "belag": "Terrassendiele Robinie 100 x 22 mm, genutet, keilgezinkt, bombiert",
+    "verlegerichtung": "Waagrecht",
+    "ausgangspunkt": {
+      "punkt": "A",
+      "waagrecht_cm": 0,
+      "senkrecht_cm": 0
+    },
+    "unterkonstruktion": "Unterkonstruktionsholz Robinie 40 x 40 mm, keilgezinkt",
+    "verblendung": "keine Verblendung",
+    "aufbauhoehen_cm": null,
+    "winkel_grad": null,
+    "uk_abstaende_cm": {
+      "laengs": [
+        34,
+        37,
+        37,
+        37,
+        37,
+        37,
+        37,
+        34
+      ],
+      "quer": [
+        24,
+        49,
+        25
+      ]
+    }
+  },
+  "erwartet": {
+    "unterkonstruktion_stueckliste": [
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 40 mm, keilgezinkt",
+        "laenge_cm": 100,
+        "stueck": 9,
+        "farbe": "blue"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 40 mm, keilgezinkt",
+        "laenge_cm": 33,
+        "stueck": 6,
+        "farbe": "green"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 40 mm, keilgezinkt",
+        "laenge_cm": 30,
+        "stueck": 2,
+        "farbe": "green"
+      }
+    ],
+    "zuschnitt_unterkonstruktion": [
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 40 mm, keilgezinkt",
+        "ausgangslaenge_cm": 300,
+        "menge": 3,
+        "schnitte_cm": [
+          100,
+          100,
+          100
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 40 mm, keilgezinkt",
+        "ausgangslaenge_cm": 300,
+        "menge": 1,
+        "schnitte_cm": [
+          30,
+          33,
+          33,
+          33,
+          33,
+          33,
+          33,
+          30
+        ]
+      }
+    ],
+    "dielen": [
+      {
+        "artikel": "Terrassendiele Robinie 100 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 300,
+        "breite_cm": 10,
+        "stueck": 9
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 300,
+        "breite_cm": 5,
+        "stueck": 1
+      }
+    ],
+    "zuschnitt_deckbelag": [
+      {
+        "artikel": "Terrassendiele Robinie 100 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 300,
+        "menge": 8,
+        "schnitte_cm": [
+          300
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 22 mm - FJ 1 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 300,
+        "menge": 2,
+        "schnitte_cm": [
+          300
+        ]
+      }
+    ],
+    "materialliste": []
+  },
+  "hinweise": [
+    "uk_abstaende_cm: laengs = horizontale Masskette ueber der UK-Zeichnung (links nach rechts, Abstaende der senkrechten UK-Hoelzer), quer = vertikale Masskette links (oben nach unten); Querstuecke (green) versetzt angeordnet.",
+    "Keine Tabelle Aufbauhoehe/Winkel im PDF.",
+    "Seitenbeschriftung 'Seite x von 9', physisch 7 Seiten."
+  ]
+}

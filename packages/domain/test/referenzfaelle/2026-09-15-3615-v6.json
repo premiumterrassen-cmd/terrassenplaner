@@ -1,0 +1,72 @@
+{
+  "id": "2026-09-15-3615-v6",
+  "quelle": {
+    "konfigurationsnummer": "2026-09-15-3615",
+    "version": 6,
+    "datum": "2026-09-15",
+    "seiten": 4,
+    "export": false
+  },
+  "eingaben": {
+    "grundriss": {
+      "form": "Rechteck",
+      "eckpunkte": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "kanten_cm": {
+        "A-B": 300,
+        "B-C": 550,
+        "C-D": 300,
+        "D-A": 550
+      },
+      "radius_cm": null,
+      "ausschnitte": [],
+      "rundungen": false
+    },
+    "flaeche_m2": 16.5,
+    "volumen_m3": 0.494,
+    "belag": "Terrassendiele Robinie 100 x 23 mm, glattkant, keilgezinkt",
+    "verlegerichtung": "Waagrecht",
+    "ausgangspunkt": {
+      "punkt": "A",
+      "waagrecht_cm": 0,
+      "senkrecht_cm": 0
+    },
+    "unterkonstruktion": "RELO W blank Alu-Unterkonstruktions-Schiene, 56 x 40 x 2000 mm (B x H x L)",
+    "verblendung": "keine Verblendung",
+    "aufbauhoehen_cm": null,
+    "winkel_grad": null,
+    "uk_abstaende_cm": {
+      "laengs": [
+        550
+      ],
+      "quer": [
+        34,
+        37,
+        37,
+        37,
+        37,
+        37,
+        37,
+        34
+      ]
+    }
+  },
+  "erwartet": {
+    "unterkonstruktion_stueckliste": [],
+    "zuschnitt_unterkonstruktion": [],
+    "dielen": [],
+    "zuschnitt_deckbelag": [],
+    "materialliste": []
+  },
+  "hinweise": [
+    "PDF hat nur 4 Seiten (Seitenzählung 'von 13': 1, 4, 7, 13): UK-Stückliste, Zuschnittspläne, Dielenliste und Belagsplan fehlen – erwartet-Listen daher leer.",
+    "UK-Plan zeigt rote (oben) und blaue (unten) Schienenabschnitte; Längen nicht bemaßt.",
+    "uk_abstaende_cm: 'quer' = Achsabstände der Tragbalken/Schienen (Maßkette quer zu den Balken), 'laengs' = Maßkette in Balkenlängsrichtung (Stoß-/Verbinderabstände); Werte aus der Zeichnung 'Unterkonstruktion' abgelesen.",
+    "Kleine Randsegmente der Maßketten sind unbeschriftet; Summe der beschrifteten Werte daher etwas kleiner als das Kantenmaß.",
+    "Kein Export vorhanden: materialliste leer."
+  ]
+}

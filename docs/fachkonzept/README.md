@@ -18,6 +18,7 @@ Messwerte (Fläche, Verschnitt, Volumen, Materialliste) gelten für den genannte
 | [08 Ergebnisse](08-ergebnisse.md) | Speichern/Laden, Angebot, PDF, Bestellung, Login |
 | [09 Nicht Teil der Kopie](09-nicht-teil-der-kopie.md) | Abgeschaltete Funktionen und Fehler des Altsystems |
 | [10 Offene Fragen](10-offene-fragen.md) | Klärung mit Alexander (M1-03/M1-04) |
+| [11 Referenzfälle](11-referenzfaelle.md) | 47 anonymisierte Prüffälle aus Planungsunterlagen (M1-02) |
 
 ## Begriffe
 
