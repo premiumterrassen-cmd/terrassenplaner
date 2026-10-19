@@ -8,8 +8,9 @@ Verbindliche Projektregeln für die Arbeit an diesem Repository. Sie gelten für
 - Repository: https://github.com/premiumterrassen-cmd/terrassenplaner, Standard-Branch `main`. **Öffentlich seit 08.10.2026** (nur wegen der Actions-Kontingente), aber proprietär: `LICENSE` = alle Rechte vorbehalten, keine Nutzung privat oder kommerziell (Vorgabe Alexander). Nie eine Open-Source-Lizenz oder `license:`-Kennung ergänzen.
 - Weil alles öffentlich lesbar ist: keine Geheimnisse, keine internen Firmendaten (EK, Lieferanten, Kundendaten) und nichts Vertrauliches aus den Beschlüssen in Code, Doku, Issues oder Commit-Nachrichten – Geheimnisse nur verschlüsselt im Ansible Vault.
 - Ziel: Nachbau des bestehenden Terrassenkonfigurators https://terrassenkonfigurator.robinienwelt.de/ als **funktionale und inhaltliche 1:1-Kopie**, Schritt für Schritt (gleiche Schritte, Optionen, Standardwerte, Regeln, Ergebnisse).
+- **Ziel-Funktionsumfang ist die neue Planer-Version** https://terrassenplaner.terrassen-montagesysteme.de/de (Vorgabe Alexander 19.10.2026): nur deren Funktionen (2D/3D/AR, mehrere Flächen …), nicht das Sortiment; Auswahl und Zeitpunkt (Go-Live oder M12) in `docs/fachkonzept/13-neue-planer-version.md`. Die alte Version liefert Abläufe, Rechenlogik und Prüfwerte.
 - **Fehler des alten Planers werden nicht übernommen** (Vorgabe Alexander 19.10.2026): Fachlich falsches Verhalten korrigiert der neue Planer. Bekannte und vermutete Fehler stehen in `docs/fachkonzept/09-nicht-teil-der-kopie.md`; Referenzdaten markieren sie (`fehlerverdacht`), dort gelten die alten Ergebnisse nicht als Sollwert. Im Zweifel Alexander fragen.
-- **Keine technische Kopie:** Von der alten Seite werden weder Code noch Architektur, Datenstrukturen oder Programmierkonzepte übernommen. Fachliche Quellen sind nur die Bedienung, die sichtbaren Texte/Optionen und die Ergebnisse (Planungsunterlagen, Exporte). Der Programmcode der alten Seite wird nicht analysiert.
+- **Keine technische Kopie:** Von der alten Seite und der neuen Version werden weder Code noch Architektur, Datenstrukturen oder Programmierkonzepte übernommen. Fachliche Quellen sind nur die Bedienung, die sichtbaren Texte/Optionen und die Ergebnisse (Planungsunterlagen, Exporte). Der Programmcode der alten Seite wird nicht analysiert.
 - Frontend: Flutter (Web).
 - Basissoftware: connectanum (Dart, WAMP) in der neuesten Beta-Version; sobald `3.0.0` stabil erscheint, wird auf `3.0.0` umgestellt. Stand 10.10.2026: `3.0.0-beta.8` (FlatBuffers-Serialisierer, Payload-Passthrough im Router, Zero-Copy-Puffer). Verwendet werden `connectanum_client` (App), `connectanum_router` (eigener WAMP-Router) und `connectanum_auth_server` (Authentifizierung). (`connectanum_bench` ist ein internes Werkzeug des connectanum-Projekts mit Rust-Orchestrator und wird nicht genutzt; Router-Benchmarks sind eigene `benchmark_harness`-Benchmarks.)
 
@@ -29,15 +30,15 @@ Verbindliche Projektregeln für die Arbeit an diesem Repository. Sie gelten für
 
 ## Roadmap und Issues
 
-- Planung in GitHub-Meilensteinen (M0–M10) mit konkreten Issues; eine Kopie steht in `ROADMAP.md`, damit neue Chats den Stand schnell erfassen. Bei jeder Änderung beides pflegen.
+- Planung in GitHub-Meilensteinen (M0–M12) mit konkreten Issues; eine Kopie steht in `ROADMAP.md`, damit neue Chats den Stand schnell erfassen. Bei jeder Änderung beides pflegen.
 - Jedes Issue nennt seinen Feature-Branch; der Merge-Commit nach `main` schließt das Issue (`Closes #<nr>`), der Status in `ROADMAP.md` wird im selben Merge aktualisiert.
 
 ## Daten und Vertraulichkeit
 
-- Artikeldaten kommen aus dem Blatt „Import Terrassenplaner“ der Master-Artikelliste (`Robinienwelt/Analyse Claude`). Ins Repository gelangen nur Verkaufsdaten – niemals Einstandspreise, Werks-EK, Lieferanten oder Margen.
+- Artikeldaten kommen aus dem Blatt „Import Terrassenplaner“ der Master-Artikelliste (`Claude-Wissen/00_Zentral/Master-Artikelliste_vN.xlsx`, höchste Version). Sortiment im Planer: nur Robinie, später Kastanie (Alexander, 19.10.2026). Ins Repository gelangen nur Verkaufsdaten – niemals Einstandspreise, Werks-EK, Lieferanten oder Margen.
 - Testdaten aus echten Planungsunterlagen nur anonymisiert (keine Namen, Adressen, Telefonnummern, E-Mails).
 - Fachliche Regeln der Firma stehen in den Skills robinienwelt-unternehmensprofil, robinienwelt-sortimentsmatrix-2027 und robinienwelt-beschluesse; Beschlussnummern (B-xxx) in Code-Kommentaren und Tests nennen, wo eine Regel umgesetzt wird.
-- **Beschlussregister:** `Robinienwelt/Analyse Claude/Beschluesse_RobinienWelt_vN.md` – immer die höchste Versionsnummer gilt (Stand 02.10.2026: v30). Vor fachlichen Entscheidungen lesen; widerspricht etwas einem Beschluss mit Status „gilt“, Alexander mit Nummer und Wortlaut fragen statt abzuweichen. Für den Planer besonders relevant:
+- **Beschlussregister:** `RobinienWelt 2020/Claude-Wissen/00_Zentral/Beschluesse_RobinienWelt_vN.md` in der Dropbox (seit 09.10.2026, B-216; lokal `/Users/alexanderburkhardt/Dropbox/RobinienWelt 2020/Claude-Wissen`) – immer die höchste Versionsnummer gilt (Stand 19.10.2026: v129); der alte Ordner `Analyse Claude/00_Zentral_UMGEZOGEN_2026-10-09` ist eingefroren. Vor fachlichen Entscheidungen lesen; widerspricht etwas einem Beschluss mit Status „gilt“, Alexander mit Nummer und Wortlaut fragen statt abzuweichen. Für den Planer besonders relevant:
   - B-122: Master-Artikelliste ist die eine Quelle; in den Planer nur Artikel mit „im Planer = ja“.
   - B-152 / B-065 / B-123: Artikelnummern, Titel und Preise im Planer wie im Shop (Titelschema v10, PREMIUM überall 10-10-xxx-R).
   - B-055: GrandTotal ist führende Preisquelle, Planer-Preise sind nur Anzeige.
