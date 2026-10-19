@@ -87,7 +87,7 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/1
 
 ### Querschnitt
 
-- [~] **Zero-Copy-Datenweg FlatBuffers → Router → Backend → ObjectBox** ([#110](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/110)) – Schritt 1 erledigt: Web-App auf `wamp.2.flatbuffers`, Benchmark JSON/CBOR/FlatBuffers; Schritt 2 erledigt: Schema-Generator aus dem ObjectBox-Modell, `Stapel`, Packed PPT, Layout- und Drift-Tests, `stapel_rpc_benchmark` (`docs/erkenntnisse/flatbuffers.md`); offen: ObjectBox-Adapter (Schritt 3), Messung (Schritt 4).
+- [~] **Zero-Copy-Datenweg FlatBuffers → Router → Backend → ObjectBox** ([#110](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/110)) – Schritt 1 erledigt: Web-App auf `wamp.2.flatbuffers`, Benchmark JSON/CBOR/FlatBuffers; Schritt 2 erledigt: Schema-Generator aus dem ObjectBox-Modell, `Stapel`, Packed PPT, Layout- und Drift-Tests, `stapel_rpc_benchmark` (`docs/erkenntnisse/flatbuffers.md`); Schritt 3 erledigt (Branch `feature/110-schritt-3-roh-speicher`): `RohSpeicher` speichert/liest FlatBuffers direkt über objectbox-c, ein Drittel schneller als `putMany`; offen: Messung Ende-zu-Ende (Schritt 4), Ersatz durch `connectanum_objectbox_adapter`.
 
 ## M1 Fachkonzept & Prüfdaten
 

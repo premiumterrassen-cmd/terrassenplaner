@@ -37,10 +37,23 @@ abstract final class SchemaGenerator {
       if (entitaet == null) {
         throw ArgumentError.value(name, 'entitaeten', 'nicht im Modell');
       }
-      quelle.write(_entitaet(name, _felder(entitaet, nullbar)));
+      quelle.write(
+        _entitaet(name, _idPlatz(entitaet), _felder(entitaet, nullbar)),
+      );
     }
     return quelle.toString();
   }
+
+  /// Feldplatz der lokalen ObjectBox-ID: wird nur als Platzhalter 0 („neu“)
+  /// geschrieben, damit ObjectBox beim Speichern die neue ID eintragen kann.
+  static int _idPlatz(Map<String, dynamic> entitaet) => _platz(
+    (entitaet['properties'] as List<dynamic>)
+        .cast<Map<String, dynamic>>()
+        .firstWhere((p) => (p['flags'] as int? ?? 0) & _idFlag != 0),
+  );
+
+  static int _platz(Map<String, dynamic> property) =>
+      int.parse((property['id'] as String).split(':').first) - 1;
 
   static List<_Feld> _felder(
     Map<String, dynamic> entitaet,
@@ -55,7 +68,7 @@ abstract final class SchemaGenerator {
       felder.add(
         _Feld(
           name,
-          int.parse((property['id'] as String).split(':').first) - 1,
+          _platz(property),
           _Typ.aus(property['type'] as int, name),
           nullbar: nullbar.contains(name),
         ),
@@ -64,7 +77,7 @@ abstract final class SchemaGenerator {
     return felder;
   }
 
-  static String _entitaet(String name, List<_Feld> felder) {
+  static String _entitaet(String name, int idPlatz, List<_Feld> felder) {
     final tabelle = felder.map((f) => f.platz).reduce(_max) + 2;
     final q = StringBuffer()
       ..writeln()
@@ -88,7 +101,9 @@ abstract final class SchemaGenerator {
             : '  final ${f.name}Ort = fbb.writeString(${f.name});',
       );
     }
-    q.writeln('  fbb.startTable($tabelle);');
+    q
+      ..writeln('  fbb.startTable($tabelle);')
+      ..writeln('  fbb.addInt64($idPlatz, 0);');
     for (final f in felder) {
       q.writeln(
         f.typ.istText

@@ -100,7 +100,8 @@ void main() {
       ]) {
         expect(quelle, contains(teil));
       }
-      // Die lokale ObjectBox-ID gelangt nie nach außen.
+      // Die lokale ObjectBox-ID gelangt nie nach außen – nur Platzhalter 0.
+      expect(quelle, contains('fbb.addInt64(0, 0);'));
       expect(quelle, isNot(contains(' id')));
     });
 

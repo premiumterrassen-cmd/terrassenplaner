@@ -24,6 +24,7 @@ Uint8List baueAenderung({
   final hlcOrt = fbb.writeString(hlc);
   final artOrt = fbb.writeString(art);
   fbb.startTable(10);
+  fbb.addInt64(0, 0);
   fbb.addOffset(1, schluesselOrt);
   fbb.addOffset(2, knotenOrt);
   fbb.addInt64(3, seq);

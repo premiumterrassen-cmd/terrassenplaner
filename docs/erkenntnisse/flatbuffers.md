@@ -50,3 +50,31 @@ Aufgeteilt (500 Datensätze, ohne Netz): FlatBuffers bauen 0,21 ms / lesen 0,10 
 
 - Der Kodierungsgewinn ist real, im Rundlauf aber klein, weil **ein leerer RPC über den Router schon rund 2,8 ms** kostet (localhost). Diese Grundlatenz dominiert → an Alexander gemeldet (Weg Client → Router-Worker → interne Dienst-Sitzung).
 - Der große Hebel von Schritt 3 liegt im Backend: Bytes ohne Objekt-Mapping in ObjectBox speichern (Adapter) und große Lesemengen ohne Umkodieren ausliefern.
+
+# Schritt 3: Speichern ohne Objekt-Mapping (19.10.2026)
+
+## Aufbau
+
+- `RohSpeicher` (`packages/server/lib/src/datenhaltung/roh_speicher.dart`) bindet objectbox-c direkt per FFI an dieselbe Bibliothek wie `package:objectbox` (eigene Store-Referenz über `InternalStoreAccess.clone`). Ersatz für den noch nicht vorhandenen `connectanum_objectbox_adapter` (im connectanum-Repo gibt es dazu Stand 19.10.2026 weder Paket noch Branch).
+- `speichere(entität, datensätze)`: eine Schreibtransaktion, ein Cursor, `obx_cursor_put_object4` je Datensatz – die Bytes kommen unverändert aus dem empfangenen `Stapel`; ObjectBox trägt die neue ID in den Platzhalter (Feldplatz der ID, Wert 0) ein. Ein Fehler rollt die ganze Transaktion zurück.
+- `lies(entität, id)`: Lesetransaktion + `obx_cursor_get`, liefert den FlatBuffer im Speicherformat (direkt lesbar mit `<Entität>Sicht`).
+- Kopien: je Datensatz **eine** Kopie Dart-Heap → nativer Puffer (FFI erlaubt `Uint8List.address` nur bei `@Native`-Funktionen), beim Lesen eine Kopie aus der Datenbank in den Dart-Heap (Datenbankspeicher gilt nur innerhalb der Lesetransaktion). Beides entfällt erst, wenn connectanum native Puffer bzw. Leases direkt übergibt.
+- Generator schreibt seit Schritt 3 den ID-Platzhalter (`fbb.addInt64(<platz>, 0)`) – sonst lehnt ObjectBox das Speichern ab („No ID value found …“).
+
+## Stolpersteine
+
+- `obx_txn_success` schreibt fest **und gibt die Transaktion frei** – ein anschließendes `obx_txn_close` stürzt den Prozess ab.
+- `obx_box_put_object4` je Datensatz ist langsamer als `putMany` (6,5 ms gegenüber 5,9 ms für 500); erst ein Cursor je Transaktion bringt den Gewinn.
+
+## Messung `roh_speicher_benchmark` (500 Änderungen aus einem Stapel, Store im Arbeitsspeicher, jeweils inkl. Leeren der Box)
+
+| Variante | Zeit |
+|---|---|
+| Dart-Objekte (`Sicht` → `Aenderung` → `putMany`) | 5,85–5,99 ms |
+| roh (`RohSpeicher`, Cursor) | 3,90–3,94 ms |
+
+→ rund **ein Drittel schneller**, ohne Objekt-Mapping und ohne Umkodieren. Auf der Platte überdeckt das Festschreiben (fsync, ~100 ms je Transaktion) beides – Stapel deshalb möglichst in **einer** Transaktion speichern.
+
+## Grenze
+
+Zero-Copy-Speichern passt dort, wo der Datensatz fertig ankommt – etwa Änderungen eines anderen Knotens (M11). Wo der Server Felder setzt (HLC, Knoten, Änderungsprotokoll nach `docs/architektur/datenmodell.md`), muss er den Datensatz neu bauen; FlatBuffers erlaubt nur Zahlenfelder an Ort und Stelle zu ändern.
