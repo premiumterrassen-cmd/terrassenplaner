@@ -1,0 +1,189 @@
+{
+  "id": "F16",
+  "beschreibung": "T-Form, Vorgabemaße",
+  "fehlerverdacht": [],
+  "eingaben": {
+    "form": "T-Form",
+    "kanten_cm": {
+      "A-B": 270,
+      "B-C": 190,
+      "C-D": 90,
+      "D-E": 190,
+      "E-F": 90,
+      "F-G": 190,
+      "G-H": 90,
+      "H-A": 190
+    },
+    "belag": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt, bombiert",
+    "dielenlaenge": "automatisch",
+    "verlegeart": "Fugenschnitt",
+    "verlegerichtung": "Waagrecht",
+    "ausgangspunkt": {
+      "punkt": "A",
+      "waagrecht_cm": 0,
+      "senkrecht_cm": 0
+    },
+    "unterkonstruktion": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+    "art": "Normale Terrasse",
+    "hoehe_cm": 8.6,
+    "untergrund": "Schotter (verdichtet)",
+    "nutzung": "schwimmende Verlegung",
+    "gewerblich": false,
+    "ausschnitte": [],
+    "bauelement_seiten": [],
+    "verblendung_seiten": [],
+    "rinnen": {},
+    "treppen": [],
+    "verschnittvariante": 1
+  },
+  "anzeige": {
+    "flaeche_m2": 6.84,
+    "verschnitt_prozent": 0.96,
+    "volumen_m3": 0.196
+  },
+  "materialliste": [
+    {
+      "artikelnummer": "10-10-031-S",
+      "bezeichnung": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt - Länge: 4000 mm",
+      "laenge_mm": 4000,
+      "anzahl": 6,
+      "einheit": "lfm",
+      "typ": "Unterkonstruktion"
+    },
+    {
+      "artikelnummer": "10-10-073",
+      "bezeichnung": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt, bombiert - Länge: 5500 mm",
+      "laenge_mm": 5500,
+      "anzahl": 7,
+      "einheit": "lfm",
+      "typ": "Deckbelag"
+    },
+    {
+      "artikelnummer": "10-10-073",
+      "bezeichnung": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt, bombiert - Länge: 4500 mm",
+      "laenge_mm": 4500,
+      "anzahl": 14,
+      "einheit": "lfm",
+      "typ": "Deckbelag"
+    },
+    {
+      "artikelnummer": "10-10-073",
+      "bezeichnung": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt, bombiert - Länge: 3000 mm",
+      "laenge_mm": 3000,
+      "anzahl": 1,
+      "einheit": "lfm",
+      "typ": "Deckbelag"
+    },
+    {
+      "artikelnummer": "10-10-074",
+      "bezeichnung": "Terrassendiele Robinie 60 x 22 mm, einseitig genutet, keilgezinkt, bombiert - Länge: 4000 mm",
+      "laenge_mm": 4000,
+      "anzahl": 1,
+      "einheit": "lfm",
+      "typ": "Anfangsdiele"
+    },
+    {
+      "artikelnummer": "50-50-005",
+      "bezeichnung": "Terrassenschraube, 5,0 x 50 mm",
+      "laenge_mm": null,
+      "anzahl": 20,
+      "einheit": "Stück",
+      "typ": "BefestigungDeck,Zubehoer"
+    },
+    {
+      "artikelnummer": "50-60-001",
+      "bezeichnung": "KOPPLEX-1, EPDM-Vollgummi, 10m-Rolle 75mm x 1mm",
+      "laenge_mm": null,
+      "anzahl": 3,
+      "einheit": "Stück",
+      "typ": "EPDM-Band,Zubehoer"
+    },
+    {
+      "artikelnummer": "50-60-003",
+      "bezeichnung": "KOPPLEX-3, EPDM-Vollgummi, 10m-Rolle 40mm x 3mm",
+      "laenge_mm": null,
+      "anzahl": 1,
+      "einheit": "Stück",
+      "typ": "Unterlegpads,Zubehoer"
+    },
+    {
+      "artikelnummer": "80-10-001-100",
+      "bezeichnung": "CLIP-FIXX® \"BLACK EDITION\" - VPE 100",
+      "laenge_mm": null,
+      "anzahl": 1,
+      "einheit": "Stück",
+      "typ": "BefestigungDeck,Zubehoer"
+    },
+    {
+      "artikelnummer": "80-10-001-250",
+      "bezeichnung": "CLIP-FIXX® \"BLACK EDITION\" - VPE 250",
+      "laenge_mm": null,
+      "anzahl": 1,
+      "einheit": "Stück",
+      "typ": "BefestigungDeck,Zubehoer"
+    },
+    {
+      "artikelnummer": "80-10-001-50",
+      "bezeichnung": "CLIP-FIXX® \"BLACK EDITION\" - VPE 50",
+      "laenge_mm": null,
+      "anzahl": 1,
+      "einheit": "Stück",
+      "typ": "BefestigungDeck,Zubehoer"
+    }
+  ],
+  "zuschnitt": [
+    {
+      "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP BOMBIERT",
+      "ausgangslaenge_cm": 550,
+      "menge": 7,
+      "schnitte_cm": [
+        270,
+        270
+      ]
+    },
+    {
+      "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP BOMBIERT",
+      "ausgangslaenge_cm": 450,
+      "menge": 14,
+      "schnitte_cm": [
+        270,
+        90,
+        90
+      ]
+    },
+    {
+      "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP BOMBIERT",
+      "ausgangslaenge_cm": 300,
+      "menge": 1,
+      "schnitte_cm": [
+        270
+      ]
+    },
+    {
+      "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 1 CLIP BOMBIERT",
+      "ausgangslaenge_cm": 400,
+      "menge": 1,
+      "schnitte_cm": [
+        270,
+        90
+      ]
+    },
+    {
+      "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+      "ausgangslaenge_cm": 400,
+      "menge": 4,
+      "schnitte_cm": [
+        190,
+        190
+      ]
+    },
+    {
+      "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+      "ausgangslaenge_cm": 400,
+      "menge": 2,
+      "schnitte_cm": [
+        380
+      ]
+    }
+  ]
+}

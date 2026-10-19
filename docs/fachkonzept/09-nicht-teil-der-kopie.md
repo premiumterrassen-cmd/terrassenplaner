@@ -14,6 +14,8 @@ In der Oberfläche vom 08.10.2026 nicht vorhanden und daher nicht Teil der funkt
 
 ## Fehler des Altsystems – nicht nachbauen
 
+Grundsatz (Alexander, 19.10.2026): Der alte Planer hat Fehler; sie werden **nicht 1:1 übernommen**.
+
 - Aus der **Freiform** kommt man über die Formauswahl nicht zurück; die Formknöpfe reagieren nicht, nur ZURÜCKSETZEN hilft.
 - Eingabefeld X eines Ausschnitts zeigt nach der Eingabe abgeschnitten „20:cm“.
 - **Holzfliesen** mit „Preis per lfm“ statt Preis je Stück.
@@ -24,4 +26,28 @@ In der Oberfläche vom 08.10.2026 nicht vorhanden und daher nicht Teil der funkt
 - **SPEICHERN** legt ohne Rückfrage eine Konfiguration auf dem Server an.
 - Die Materialliste zeigt keine Mengen, nur Gesamtpreise.
 
-Der neue Planer korrigiert diese Punkte, bildet aber das fachliche Ergebnis (Mengen, Artikel, Regeln) gleich ab.
+## Fehler und Verdachtsfälle aus den Referenzkonfigurationen (M1-03)
+
+In den Testdaten als `fehlerverdacht` markiert – dort sind die alten Ergebnisse **kein Sollwert** (siehe [12](12-referenzkonfigurationen.md)).
+
+| Fall | Befund | Stand |
+|---|---|---|
+| F40 | Treppe „Fundament“ ergibt dieselbe Material- und Zuschnittliste wie „Konstruktion“, obwohl eine vorhandene Betontreppe nur belegt wird | **Fehler** (Antwort Frage 11) |
+| F25 | Holzfliese je lfm statt je Stück | **Fehler** (s. o.) |
+| F14 | automatische Dielenlänge 7000 mm für einen Artikel mit 4/5/6 m, UK 6500 mm | **Fehler** (B-035, Frage 15) |
+| – | Querstreben lassen sich im Bearbeitungsmodus nicht setzen | Bedienfehler; Regel: Abstand 60 cm (Frage 17) |
+
+Geklärt und **kein** Fehler: gewerbliche Nutzung nur mit mehr Gummiband (F35), volle UK-Länge unter der Rinne (F38), „kurze Stücke verbinden“ ohne Wirkung beim Rechteck (F13) – Antworten 13, 14, 16 in [10](10-offene-fragen.md).
+
+## Veraltetes Sortiment im alten Planer
+
+Artikel und Zubehör des Online-Planers sind veraltet (Alexander, 19.10.2026). Er dient nur als Basis für Abläufe und Rechenlogik; die Artikel kommen aus der Master-Artikelliste (B-122, B-156). Beispiele aus den Exporten, die so **nicht** übernommen werden:
+
+- einseitig genutete Anfangsdielen – werden nicht mehr verkauft, Anfangs-/Enddiele = normale Diele (B-033);
+- KOPPLEX-Gummiband – wird abverkauft und durch GUMO ersetzt (B-039);
+- Stärke „22 mm“ – gibt es nicht, richtig 21 mm (B-032);
+- Längen und Formate außerhalb der Sortimentsmatrix (B-030, B-034, B-035).
+
+Fehler beheben und neue Funktionen einbauen kommt nach dem funktionalen Nachbau (Alexander, 19.10.2026).
+
+Der neue Planer korrigiert diese Punkte, bildet aber das fachlich richtige Ergebnis (Mengen, Artikel, Regeln) gleich ab.
