@@ -7,8 +7,9 @@ Führend ist GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/mil
 
 - Nachbau des Terrassenkonfigurators https://terrassenkonfigurator.robinienwelt.de/ als **funktionale und inhaltliche 1:1-Kopie**, Schritt für Schritt.
 - **Keine technische Kopie:** kein Code, keine Architektur, keine Datenstrukturen, keine Programmierkonzepte der alten Seite. Fachliche Quellen sind nur die Bedienung, die sichtbaren Texte/Optionen und die Ergebnisse (Planungsunterlagen, Exporte).
-- Technik: Flutter (Web), Dart-Server mit `connectanum_router` und `connectanum_auth_server`, Client `connectanum_client` (alle 3.0.0-beta.7, auf 3.0.0 umstellen, sobald stabil).
-- Im alten Planer abgeschaltete Funktionen (3D-Ansicht, Grundriss-Upload, Podest, Gehrungsschnitt der Form, Rahmendielen, eigene UK, Teilen) sind **nicht** Teil der Kopie.
+- Technik: Flutter (Web), Dart-Server mit `connectanum_router` und `connectanum_auth_server`, Client `connectanum_client` (alle 3.0.0-beta.8, auf 3.0.0 umstellen, sobald stabil).
+- **Ziel-Funktionsumfang = neue Planer-Version** https://terrassenplaner.terrassen-montagesysteme.de/de (Vorgabe Alexander 19.10.2026), nur Funktionen – nicht deren Sortiment. Auswahl: zum Go-Live u. a. mehrere Flächen, Rahmendielen, wechselnde Breiten, Designverlegung, UK von Hand, Drainageroste; danach M12 (3D, AR, KI, Podest, Sicherung, Sonderbauteile). Siehe `docs/fachkonzept/13-neue-planer-version.md`.
+- Fehler des alten Planers werden nicht übernommen; seine Artikel sind veraltet – Sortiment nur Robinie (später Kastanie) aus der Master-Artikelliste.
 
 ## Architektur
 
@@ -18,8 +19,8 @@ Führend ist GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/mil
 
 ## Quellen
 
-- Artikeldaten: `Robinienwelt/Analyse Claude/Master-Artikelliste_v14.xlsx`, Blatt „Import Terrassenplaner“ (nur Verkaufsdaten, nie Einstandspreise).
-- Firmenregeln: Skills robinienwelt-unternehmensprofil, robinienwelt-sortimentsmatrix-2027, robinienwelt-beschluesse (Beschlussnummern B-xxx).
+- Artikeldaten: Master-Artikelliste in der Dropbox `RobinienWelt 2020/Claude-Wissen/00_Zentral/Master-Artikelliste_vN.xlsx` (höchste Version gilt, B-216), Blatt „Import Terrassenplaner“ (nur Verkaufsdaten, nie Einstandspreise).
+- Firmenregeln: Beschlussregister `Claude-Wissen/00_Zentral/Beschluesse_RobinienWelt_vN.md` (höchste Version gilt) und Skills robinienwelt-unternehmensprofil, robinienwelt-sortimentsmatrix-2027, robinienwelt-technik-merkblatt (Beschlussnummern B-xxx).
 - Prüfdaten: `Robinienwelt/Dateien_Terrassenkonfigurator/Planungsunterlagen` (48 PDF) und `CSV_Downloads` – Kundendaten nur anonymisiert ins Repository.
 
 ## Arbeitsweise
@@ -109,9 +110,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/2
 - [ ] **M1-04 Planungsregeln aus Firmenwissen** ([#16](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/16)) – `feature/m1-04-planungsregeln-aus-firmenwissen`
   - Regeln aus Unternehmensprofil, Sortimentsmatrix und Beschlussregister als Fachregeln beschreiben: UK-Achsabstand max. 40 cm, Befestigung nach B-094 (CLIP-FIXX bis < 100 mm, DUO-CLIP-FIXX für PREMIUM SELECT ab 100 mm), Freidielen ab 25 Dielen (B-079), keine einseitig genuteten Dielen/Anfangs-/Enddiele = normale Diele (B-033), Längen je Werk (B-035), UK Breite/Stärke tauschbar (B-034), Nummern wie im Shop (B-152).
   - Abnahme: Regelkatalog mit Quelle (Beschluss-Nr.) je Regel; Widersprüche zum alten Planer sind markiert und von Alexander entschieden
-- [ ] **M1-05 Funktionsinventar der neuen Planer-Version** ([#111](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/111)) – `feature/m1-05-funktionsinventar-neue-planer-version`
+- [x] **M1-05 Funktionsinventar der neuen Planer-Version** ([#111](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/111)) – `feature/m1-05-funktionsinventar-neue-planer-version`
   - Die neue Version des Konfigurators (https://terrassenplaner.terrassen-montagesysteme.de/de) ist das Ziel für den Funktionsumfang (Vorgabe Alexander 19.10.2026): nur Funktionen wie 2D/3D, Podest/Sonderbauteile, Freiform, Grundriss-Import – nicht deren Sortiment. Je Schritt beschreiben und mit der alten Version (M1-01) vergleichen.
   - Abnahme: Inventar je Schritt mit Vergleich alt ↔ neu; „nicht Teil der Kopie“ aktualisiert; Auswirkungen auf Architektur und Roadmap benannt, fehlende Funktionen als Issues angelegt
+  - Ergebnis: `docs/fachkonzept/13-neue-planer-version.md`; Auswahl Alexander: zum Go-Live M2-08, M3-10, M4-14, M5-11–13, M6-12, M7-06; danach neuer Meilenstein M12 (3D, AR, KI-Vorschau, Grundriss-Import, Podest/Ankerart, Sicherung, Sonderbauteile). Nur Robinie (später Kastanie); Betonfundament und schwimmende Terrasse entfallen.
 
 ## M2 Artikeldaten & Regelwerk
 
@@ -140,6 +142,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/3
 - [ ] **M2-07 Artikelbilder bereitstellen** ([#23](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/23)) – `feature/m2-07-artikelbilder-bereitstellen`
   - Abbildung 1–3 je Artikel (Planer_Bilder) ausliefern, für Web optimiert.
   - Abnahme: Jeder Artikel mit Bild oder definiertem Platzhalter
+- [ ] **M2-08 Holzart als Fachmodell (Robinie, später Kastanie)** ([#112](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/112)) – `feature/m2-08-holzart-als-fachmodell-robinie-spaeter-k`
+  - Holzart als eigener Teil des Fachmodells mit ihren Planungseigenschaften (Längen, Breiten, Stärken, UK-Regeln, Gewicht/Rohdichte, Befestigung). Zum Go-Live nur Robinie; Kastanie kommt später mit eigenen Eigenschaften und soll ohne Umbau ergänzt werden können (Alexander, 19.10.2026).
+  - Abnahme: Robinie vollständig als Holzart mit Planungseigenschaften beschrieben; Zweite Holzart lässt sich nur über Daten ergänzen (Test mit Beispiel-Holzart)
+
 
 ## M3 Oberfläche: Grundgerüst
 
@@ -174,6 +180,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/4
 - [ ] **M3-09 Lokale Bedienungseinstellungen (Darkmode, Sprache)** ([#94](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/94)) – `feature/m3-09-lokale-einstellungen`
   - Das Frontend bleibt „doof“ (Vorgabe Alexander 02.10.2026): einzig lokal im Browser gespeichert werden Bedienungseinstellungen – Darkmode (hell/dunkel/System), Sprache, zuletzt geöffnete Konfigurationsnummer bzw. Sitzungsschlüssel für „Weiterplanen“. Keine Fachdaten im Browser.
   - Abnahme: Darkmode umschaltbar, folgt standardmäßig dem System, bleibt nach Neuladen erhalten; Sprache bleibt erhalten (M3-07); Speicher fehlt/gesperrt (privates Fenster) → App funktioniert mit Standardwerten
+- [ ] **M3-10 Architektur für 3D und AR vorbereiten** ([#113](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/113)) – `feature/m3-10-architektur-fuer-3d-und-ar-vorbereiten` · Benchmark
+  - 3D und AR folgen direkt nach dem Go-Live (M12). Vorher festlegen: ein Geometriemodell im domain-Paket für 2D, 3D und alle Berechnungen; der Server erzeugt daraus ein 3D-Modell (z. B. glTF/GLB), die App zeigt es nur an (WebGL) – „Frontend bleibt doof“. Dieselbe Datei für Download und AR. Muss vor M4-01 (Geometrie-Kern) entschieden sein.
+  - Abnahme: Architektur-Entscheidung in docs/architektur/ mit Varianten und Begründung; Prototyp: Server erzeugt GLB einer Rechteck-Terrasse, App zeigt es im Browser an; Benchmark: Erzeugung und Übertragung des 3D-Modells
+
 
 ## M4 Grundriss
 
@@ -220,6 +230,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/5
 - [ ] **M4-13 Fläche und Volumen** ([#43](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/43)) – `feature/m4-13-flaeche-und-volumen`
   - Laufende Anzeige Terrassenfläche (m²) und Holzvolumen (m³).
   - Abnahme: Werte stimmen mit Referenzfällen (M1-02) überein
+- [ ] **M4-14 Mehrere Flächen und Häufigkeit** ([#114](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/114)) – `feature/m4-14-mehrere-flaechen-und-haeufigkeit`
+  - Eine Konfiguration enthält mehrere Flächen (Reiter 1, 2, … mit Hinzufügen/Löschen), jede mit eigenen Einstellungen in allen Schritten. „Häufigkeit der Fläche“ vervielfacht die Materialmengen. Gesamtfläche, Materialliste und Zuschnitt summieren über alle Flächen.
+  - Abnahme: Flächen anlegen, wechseln, löschen; Häufigkeit wirkt auf alle Mengen dieser Fläche; Summen über alle Flächen stimmen (Tests)
+
 
 ## M5 Terrassenbelag
 
@@ -257,6 +271,16 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/6
 - [ ] **M5-10 Grenzwerte und Meldungen Belag** ([#53](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/53)) – `feature/m5-10-grenzwerte-und-meldungen-belag`
   - Grenzen für Belagbreite, -länge, -stärke und Profile mit verständlichen Meldungen.
   - Abnahme: Jede Grenze getestet
+- [ ] **M5-11 Rahmendielen** ([#115](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/115)) – `feature/m5-11-rahmendielen`
+  - Option Rahmendielen: umlaufender Dielenrahmen um die Fläche, Belag innen; Ecken auf Gehrung (siehe M5-06).
+  - Abnahme: Rahmen für Rechteck, L-Form und Freiform korrekt; Material und Zuschnitt enthalten die Rahmendielen
+- [ ] **M5-12 Wechselnde Dielenbreiten** ([#116](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/116)) – `feature/m5-12-wechselnde-dielenbreiten`
+  - Gemischte Dielenbreiten in einer Fläche (Muster aus mehreren Breiten derselben Serie).
+  - Abnahme: Muster aus mehreren Breiten wählbar; Verlegung, Material und Zuschnitt berücksichtigen die Breiten
+- [ ] **M5-13 Automatische Designverlegung** ([#117](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/117)) – `feature/m5-13-automatische-designverlegung` · Benchmark
+  - Verlegevorschlag automatisch nach Gestaltungsregeln (z. B. Stoßverteilung, keine schmalen Reststreifen, symmetrische Ränder) statt manueller Wahl; manuell bleibt möglich. Regeln mit Alexander abstimmen.
+  - Abnahme: Gestaltungsregeln dokumentiert und von Alexander freigegeben; Vorschlag für alle Referenzformen nachvollziehbar; Benchmark: große Freiform
+
 
 ## M6 Unterkonstruktion
 
@@ -297,6 +321,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/7
 - [ ] **M6-11 Berechnung Stelzfüße/Pads mit Höhenzuordnung** ([#64](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/64)) – `feature/m6-11-berechnung-stelzfuesse-pads-mit-hoehenzu` · Benchmark
   - Anzahl und Höhe je Stelzfuß aus Höhenpunkten, Tabelle der Höhenzuordnung.
   - Abnahme: Höhen je Stelzfuß nachvollziehbar und getestet
+- [ ] **M6-12 Unterkonstruktion von Hand anpassen** ([#118](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/118)) – `feature/m6-12-unterkonstruktion-von-hand-anpassen`
+  - Automatisch berechnete UK-Elemente von Hand ergänzen oder entfernen: Traversen, Querträger (inkl. „automatische Querträger“), Stützen/Stelzlager, Stützenhöhe ändern, Stütze in Fundamentpfosten umwandeln. Material und Zuschnitt folgen den Änderungen.
+  - Abnahme: Hinzufügen, Entfernen, Ändern je Elementart; Rückgängig/Wiederherstellen für diese Änderungen; Materialliste folgt den Änderungen (Tests)
+
 
 ## M7 Anschluss, Entwässerung, Treppen
 
@@ -319,6 +347,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/8
 - [ ] **M7-05 Treppen** ([#69](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/69)) – `feature/m7-05-treppen`
   - Treppe an einer Seite: Startpunkt, Maße L × B × H, Anzahl Stufen, individuelle Stufenmaße (Höhe, Tiefe).
   - Abnahme: Treppe in Zeichnung und Material
+- [ ] **M7-06 Drainageroste** ([#119](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/119)) – `feature/m7-06-drainageroste`
+  - Drainageroste in der Fläche platzieren (Position, Länge); Belag und UK werden ausgespart, Material ergänzt.
+  - Abnahme: Rost platzieren, verschieben, löschen; Aussparung in Belag und UK, Material in der Liste
+
 
 ## M8 Zubehör
 
@@ -428,3 +460,34 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/12
 - [ ] **M11-08 Deployment mehrerer Knoten** ([#102](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/102)) – `feature/m11-08-deployment-mehrere-knoten`
   - Ansible/Container für mehrere Backend-Knoten und Router (Sternstruktur), getestet mit Molecule.
   - Abnahme: Mehrknoten-Szenario in Molecule grün; Knoten hinzufügen/entfernen dokumentiert
+
+## M12 3D, AR & Erweiterungen nach Go-Live
+
+Funktionen der neuen Planer-Version, die direkt nach dem Go-Live folgen (Auswahl Alexander 19.10.2026, `docs/fachkonzept/13-neue-planer-version.md`). Architektur dafür wird vorher in M3-10 festgelegt.
+
+GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/13
+
+- [ ] **M12-01 3D-Ansicht** ([#120](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/120)) – `feature/m12-01-3d-ansicht` · Benchmark
+  - 3D-Darstellung aller Flächen mit Ebenen ein/aus (Belag, UK, Traglattung, Stützen, Befestigung, Verblendung, Bemaßung), minimalistische Darstellung, Tageslicht. Grundlage: Architektur aus M3-10.
+  - Abnahme: 3D für alle Formen, Treppen und Verblendungen; Ebenen schaltbar; Benchmark: Ladezeit und Bildrate großer Projekte
+- [ ] **M12-02 Aufbauanimation** ([#121](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/121)) – `feature/m12-02-aufbauanimation`
+  - Schrittweiser Aufbau der Terrasse in 3D (Untergrund → Stützen → UK → Belag → Verblendung → Treppen).
+  - Abnahme: Animation startet, pausiert, läuft durch alle Schichten
+- [ ] **M12-03 3D-Modell-Download und AR** ([#122](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/122)) – `feature/m12-03-3d-modell-download-und-ar`
+  - 3D-Modell der Planung herunterladen und als AR-Datei exportieren (Ansicht im Garten per Handy, QR-Code).
+  - Abnahme: Download der 3D-Datei; AR auf Android und iOS geprüft
+- [ ] **M12-04 KI-Terrassenvorschau** ([#123](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/123)) – `feature/m12-04-ki-terrassenvorschau`
+  - Terrasse in ein Foto des Kunden einsetzen (Bild tauschen, neu generieren, herunterladen). Externer Dienst: Kosten und Datenschutz vorher mit Alexander klären.
+  - Abnahme: Entscheidung Dienst, Kosten, Datenschutz dokumentiert; Vorschau aus eigener Planung und eigenem Foto
+- [ ] **M12-05 Grundriss-Import mit KI** ([#124](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/124)) – `feature/m12-05-grundriss-import-mit-ki`
+  - Plan oder Foto (jpg/png/webp, ggf. PDF) hochladen und daraus einen Grundriss erzeugen, danach von Hand korrigieren. Externer Dienst: Kosten und Datenschutz vorher klären.
+  - Abnahme: Entscheidung Dienst, Kosten, Datenschutz dokumentiert; Import erzeugt bearbeitbaren Grundriss
+- [ ] **M12-06 Podest und Ankerart bei Hochterrasse** ([#125](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/125)) – `feature/m12-06-podest-und-ankerart-bei-hochterrasse`
+  - Terrassenart Podest (eine Höhe, kein Gefälle) und Auswahl der Auflage bei der Hochterrasse: Anker, Fundamentschrauben oder Mauern. (Betonfundament mit Mauern und schwimmende Terrasse/Steg entfallen – Alexander, 19.10.2026.)
+  - Abnahme: Podest planbar inkl. Material; Ankerart wirkt auf Material und Zuschnitt
+- [ ] **M12-07 Sicherung der Terrasse** ([#126](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/126)) – `feature/m12-07-sicherung-der-terrasse`
+  - Wind- und Sogschutz, Beschwerung, Kipp- und Wipplast berücksichtigen (Gewichte, Hinweise, Material).
+  - Abnahme: Regeln mit Alexander abgestimmt; Auswirkung auf Material und Hinweise getestet
+- [ ] **M12-08 Sonderbauteile aus Robinie** ([#127](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/127)) – `feature/m12-08-sonderbauteile-aus-robinie`
+  - Sonderbauteile als eigene Flächen: Hochbeet (Rahmenmaße), Rampe (Höhe Fuß/Kopf, Neigung, Ausrichtung), freistehende Treppe, Bank (Lehne, Sitzfläche, Konstruktionsbreite) – alles aus unserem Robinien-Material (Alexander, 19.10.2026).
+  - Abnahme: Alle vier Bauteile planbar inkl. Material und Zuschnitt; Konstruktionsregeln mit Alexander abgestimmt

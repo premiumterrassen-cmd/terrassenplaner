@@ -79,24 +79,30 @@ Zusammenfassung der Konfiguration (siehe Überblick), PDF mit Stückliste, Anfra
 
 **Schon geplant, Umfang wächst:** M3-03 (Rückgängig/Wiederherstellen, Zentrieren, Rotieren), M3-04 (Ansichten, Ebenen), M3-07 (Englisch), M4-08 (Freiform + Oval, Einrasten, Zeichnungshilfe), M4-09 (Punkte hinzufügen/entfernen), M4-11 (Rundung mit Radius), M4-12 (mehrere Flächen statt nur Ausschnitte), M5-01/02 (Belag mit Farbe, mehrere Lieferlängen), M5-04 (Viertelverband, Querdiele), M5-06 (Gehrungsschnitte), M6-01 (neue Terrassenarten), M6-02 (Oberflächengefälle, erhöhter Aufbau), M6-06/08/10/11 (UK-Varianten, Konterlattung), M7-01–05 (Wandanschluss, Seitenabdeckung, Teilverblendung, Blendenhöhe, Rinnen in der Fläche, Treppen-Einrückung/Höhendifferenz), M9-03/06/07 (Zusammenfassung, Anzahl der Planungen, Anfrage-Assistent mit Upload).
 
-**Neu (Vorschlag für Issues – Auswahl durch Alexander):**
+**Neu – Entscheidung Alexander (19.10.2026):**
 
-| Vorschlag | Inhalt | Meilenstein |
+| Funktion | Zeitpunkt | Issue |
 |---|---|---|
-| 3D-Ansicht | Terrasse in 3D mit Ebenen, Tageslicht, minimalistischer Darstellung | M3 (Architektur) + eigener Meilenstein |
-| Aufbauanimation | schrittweiser Aufbau in 3D | 3D |
-| 3D-Modell-Download und AR-Export | Datei für AR auf dem Handy | 3D |
-| KI-Terrassenvorschau | Terrasse in ein Foto des Kunden einsetzen | später |
-| Grundriss-Import mit KI | Plan/Foto → Grundriss | später |
-| Mehrere Flächen und Häufigkeit | Reiter je Fläche, Mengen × n | M4 |
-| Sonderbauteile | Hochbeet, Rampe, Treppe, Bank | M7 oder eigener |
-| Neue Terrassenarten | Betonfundament mit Mauern, Podest, schwimmend/Steg, Ankerart bei Hochterrasse | M6 |
-| Rahmendielen | umlaufender Dielenrahmen | M5 |
-| Wechselnde Dielenbreiten | gemischte Breiten in einer Fläche | M5 |
-| Automatische Designverlegung | Verlegevorschlag nach Gestaltungsregeln | M5 |
-| UK von Hand anpassen | Traversen, Querträger, Stützen ergänzen/entfernen | M6 |
-| Sicherung der Terrasse | Wind/Sog, Beschwerung, Kipp-/Wipplast | M6 |
-| Drainageroste | platzierbare Roste | M7 |
+| Holzart als Fachmodell (Robinie, später Kastanie) | zum Go-Live | [M2-08](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/112) |
+| Architektur für 3D und AR vorbereiten | zum Go-Live (vor M4) | [M3-10](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/113) |
+| Mehrere Flächen und Häufigkeit | zum Go-Live | [M4-14](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/114) |
+| Rahmendielen | zum Go-Live | [M5-11](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/115) |
+| Wechselnde Dielenbreiten | zum Go-Live | [M5-12](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/116) |
+| Automatische Designverlegung | zum Go-Live | [M5-13](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/117) |
+| UK von Hand anpassen | zum Go-Live | [M6-12](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/118) |
+| Drainageroste | zum Go-Live | [M7-06](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/119) |
+| 3D-Ansicht | direkt nach Go-Live | [M12-01](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/120) |
+| Aufbauanimation | nach Go-Live | [M12-02](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/121) |
+| 3D-Modell-Download und AR | direkt nach Go-Live | [M12-03](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/122) |
+| KI-Terrassenvorschau | nach Go-Live | [M12-04](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/123) |
+| Grundriss-Import mit KI | nach Go-Live | [M12-05](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/124) |
+| Podest und Ankerart bei Hochterrasse | nach Go-Live | [M12-06](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/125) |
+| Sicherung der Terrasse | nach Go-Live | [M12-07](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/126) |
+| Sonderbauteile (Hochbeet, Rampe, Treppe, Bank – aus Robinie) | nach Go-Live | [M12-08](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/127) |
+| Betonfundament mit Mauern, schwimmende Terrasse / Steg | **entfällt** | – |
+| Belagtypen WPC, Bambus, Kunstrasen, Platten | **entfällt** – nur Robinie, später Kastanie | – |
+
+Die Funktionen „nach Go-Live“ bilden den Meilenstein M12.
 
 ## Auswirkungen auf die Architektur
 
@@ -105,11 +111,11 @@ Zusammenfassung der Konfiguration (siehe Überblick), PDF mit Stückliste, Anfra
 - **Rückgängig/Wiederherstellen** über alle Schritte setzt einen Änderungsverlauf der Konfiguration voraus (passt zu unveränderlichen Versionen im Datenmodell).
 - **KI-Funktionen** (Vorschau, Grundriss-Import) brauchen einen externen Dienst – Kosten und Datenschutz klären, bevor sie geplant werden.
 
-## Fragen an Alexander
+## Antworten Alexander (19.10.2026)
 
-1. Welche der neuen Funktionen aus der Tabelle „Neu“ sollen in den Planer – und welche erst nach dem Go-Live?
-2. Belagtypen: Nur Robinie (Dielen, Systemdielen, Fliesen) oder auch WPC, Bambus, Kunstrasen, Platten?
-3. Terrassenarten: Werden schwimmende Terrasse / Steg und Betonfundament mit Mauern gebraucht?
-4. 3D/AR: Gehört das zum ersten Go-Live oder kommt es danach?
-5. KI-Vorschau und Grundriss-Import: gewünscht? (externer Dienst, Kosten, Datenschutz)
-6. Sonderbauteile (Hochbeet, Rampe, Bank): passen sie zu unserem Sortiment (z. B. Robinie-Hochbeet)?
+1. Auswahl der neuen Funktionen: siehe Tabelle oben.
+2. Beläge: nur Robinie; später Kastanie mit eigenen Planungseigenschaften.
+3. Schwimmende Terrasse / Steg und Betonfundament mit Mauern: nein.
+4. 3D und AR: direkt nach dem Go-Live.
+5. KI-Vorschau und Grundriss-Import: nach dem Go-Live.
+6. Sonderbauteile: ja, alles aus unserem Robinien-Material baubar – nach dem Go-Live.
