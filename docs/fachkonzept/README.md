@@ -20,6 +20,7 @@ Messwerte (Fläche, Verschnitt, Volumen, Materialliste) gelten für den genannte
 | [10 Offene Fragen](10-offene-fragen.md) | Klärung mit Alexander (M1-03/M1-04) |
 | [11 Referenzfälle](11-referenzfaelle.md) | 47 anonymisierte Prüffälle aus Planungsunterlagen (M1-02) |
 | [12 Referenzkonfigurationen](12-referenzkonfigurationen.md) | 43 gezielt nachgestellte Konfigurationen mit Material- und Zuschnittliste (M1-03) |
+| [13 Neue Planer-Version](13-neue-planer-version.md) | Ziel-Funktionsumfang (2D/3D/AR, mehrere Flächen, Sonderbauteile …), Vergleich alt ↔ neu (M1-05) |
 | [14 Planungsregeln](14-planungsregeln.md) | Regelkatalog aus Firmenwissen mit Quelle je Regel, Abweichungen des alten Planers (M1-04) |
 
 ## Begriffe
