@@ -12,6 +12,29 @@ void main() {
     });
   });
 
+  group('Freidielen (R-B09) und Wandabstand (R-C10)', () {
+    test('Staffel: ab 25 eine, ab 50 zwei, ab 100 je 50 eine mehr', () {
+      final faelle = {
+        0: 0,
+        24: 0,
+        25: 1,
+        49: 1,
+        50: 2,
+        99: 2,
+        100: 3,
+        149: 3,
+        150: 4,
+        199: 4,
+        200: 5,
+        586: 12,
+      };
+      for (final MapEntry(:key, :value) in faelle.entries) {
+        expect(freidielen(key), value, reason: '$key Dielen');
+      }
+    });
+    test('Wandabstand 2 cm', () => expect(wandabstandMm, 20));
+  });
+
   group('Dielenstärken (R-A04, B-032)', () {
     test('BASIC 21/26 genutet, glattkant nur 21', () {
       expect(dielenstaerkenMm(Serie.basic, Profil.genutet), {21, 26});

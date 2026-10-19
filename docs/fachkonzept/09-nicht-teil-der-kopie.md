@@ -46,6 +46,8 @@ Artikel und Zubehör des Online-Planers sind veraltet (Alexander, 19.10.2026). E
 - einseitig genutete Anfangsdielen – werden nicht mehr verkauft, Anfangs-/Enddiele = normale Diele (B-033);
 - KOPPLEX-Gummiband – wird abverkauft und durch GUMO ersetzt (B-039);
 - Stärke „22 mm“ – gibt es nicht, richtig 21 mm (B-032);
+- Zwischenlängen 3,0/4,5/5,5 m – gibt es nicht mehr, nur 4/5/6 m (ECO SELECT auch 7 m) (B-035, Alexander 19.10.2026);
+- Freidielen: abweichende Anzahl bei Grenzfällen und großen Mengen – es gilt die Staffel aus R-B09 ([14](14-planungsregeln.md));
 - Längen und Formate außerhalb der Sortimentsmatrix (B-030, B-034, B-035).
 
 Fehler beheben und neue Funktionen einbauen kommt nach dem funktionalen Nachbau (Alexander, 19.10.2026).

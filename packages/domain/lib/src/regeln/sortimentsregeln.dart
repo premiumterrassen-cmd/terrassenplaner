@@ -45,6 +45,19 @@ const fugeMm = 5;
 /// Ab dieser Dielenzahl gibt es Freidielen (R-B09, B-079).
 const freidielenAbDielen = 25;
 
+/// Wandabstand der Terrasse in mm (R-C10, Alexander 19.10.2026).
+const wandabstandMm = 20;
+
+/// Freidielen zur Anzahl der Hauptdielen des Deckbelags (R-B09, B-079,
+/// Alexander 19.10.2026): ab 25 eine, ab 50 zwei, ab 100 je weitere 50 eine.
+int freidielen(int hauptdielen) => hauptdielen < freidielenAbDielen
+    ? 0
+    : hauptdielen < 50
+    ? 1
+    : hauptdielen < 100
+    ? 2
+    : 2 + (hauptdielen - 50) ~/ 50;
+
 /// Dielenstärken je Serie und Profil in mm (R-A04, B-032, Matrix Z. 10/15).
 Set<int> dielenstaerkenMm(Serie serie, Profil profil) => switch (serie) {
   Serie.basic => profil == Profil.genutet ? const {21, 26} : const {21},

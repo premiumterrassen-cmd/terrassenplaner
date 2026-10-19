@@ -17,7 +17,7 @@ Die mit ⚙ markierten Regeln sind im domain-Paket als ausführbare Regeln umges
 | R-A03 ⚙ | Verbindlich ist die Sortimentsmatrix 2027_07; Formate außerhalb sind keine Planungsoption. | B-030 | gilt |
 | R-A04 ⚙ | Dielenstärken: BASIC 21 und 26 mm (26 nur genutet, glattkant nur 21), ECO SELECT und PREMIUM SELECT 23 mm, MASSIV 25 mm. **„22 mm“ gibt es nicht** (= 21). | B-032, Matrix Z. 10/15 | gilt · Abweichung alt: „60 x 22 mm“ |
 | R-A05 ⚙ | Dielenbreiten genutet: BASIC 60/80/100/110, ECO SELECT 50/60/80/100, PREMIUM SELECT 60/80/90/100/118, MASSIV 50–90 (in 10er-Schritten). Glattkant: BASIC 50/60/80/100/110, ECO SELECT 50/60/80/100/120, PREMIUM SELECT 60/80/100/118, MASSIV 50–120. | Matrix Z. 9/14, B-036, B-174 | gilt |
-| R-A06 ⚙ | Lieferlängen: ECO SELECT 4/5/6/7 m, BASIC und PREMIUM SELECT 4/5/6 m; MASSIV Längenmix 0,8/1,2/1,6/2,0 m (Endlosverlegung, Verkauf je m², Paket 1,5 m²). | B-035, B-036 | gilt · offen: Zwischenlängen (Frage 2) |
+| R-A06 ⚙ | Lieferlängen: ECO SELECT 4/5/6/7 m, BASIC und PREMIUM SELECT 4/5/6 m; MASSIV Längenmix 0,8/1,2/1,6/2,0 m (Endlosverlegung, Verkauf je m², Paket 1,5 m²). | B-035, B-036 | gilt – **keine Zwischenlängen** (Antwort 2) · Abweichung alt: 3,0/4,5/5,5 m |
 | R-A07 ⚙ | **Keine einseitig genuteten Dielen**; Anfangs- und Enddiele sind normale Dielen. | B-033 | gilt · Abweichung alt: einseitig genutete Anfangsdielen |
 | R-A08 ⚙ | UK-Formate: Breite und Stärke sind tauschbar (40 × 100 = 100 × 40, ein Artikel). BASIC 45 × 40/60; PREMIUM SELECT BSH 45 × 60 und 45 × 70; ECO SELECT keilgezinkt und getrocknet nur mit 40 mm auf einer Seite (40/60/80/90/100 × 40), dazu 60 × 60, 60 × 80, 90 × 90 ungetrocknet; **entfallen** 60 × 90, 60 × 100, 90 × 80, 90 × 100. MASSIV-UK 40/60 × 40–100. | B-034, B-212, Matrix Z. 18/19 | gilt |
 | R-A09 | KOPPLEX wird abverkauft und durch GUMO ersetzt; RELO-Alu bleibt normaler Artikel. | B-039 | gilt · Abweichung alt: KOPPLEX |
@@ -33,11 +33,11 @@ Die mit ⚙ markierten Regeln sind im domain-Paket als ausführbare Regeln umges
 | R-B02 ⚙ | Dielen über 100 mm werden empfohlen, dann **ausschließlich von oben verschraubt** (glattkant); 2 Schrauben je Auflager ab 100 mm. | B-090, Matrix Artikelbeschreibungen | gilt |
 | R-B03 | Ab 80 mm Breite Bombierung empfehlen; 60 und 80 mm sind am besten geeignet. | Montagehinweise Regel 7 | gilt (Hinweis) |
 | R-B04 | Befestigungsmaterial wie bisher (CLIP-FIXX/DUO schwarz beschichtet), keine A4-Pflicht. | B-095 | gilt |
-| R-B05 | Verschraubung von unten ist nicht zulässig. | Merkblatt M-10 | offen (Frage 6) |
-| R-B06 | Fuge (Abstand der Dielen nebeneinander): **5 mm** im Planer; ERP-Flächenformel rechnet mit Breite + 5 mm. | Alexander (Frage 2), ERP-Plugins | gilt · offen: Clip ca. 6 mm, Merkblatt 7 mm (Frage 3) |
-| R-B07 | Längsstoß (Stirnseiten) 0–2 mm, Stirnkanten fasen und paraffinieren. | Merkblatt M-06 | offen (Frage 6) |
+| R-B05 | Verschraubung von unten ist nicht zulässig. | Merkblatt M-10, Antwort 6 | gilt (Hinweis) |
+| R-B06 | Fuge (Abstand der Dielen nebeneinander): **5 mm** im Planer; ERP-Flächenformel rechnet mit Breite + 5 mm. | Alexander (Frage 2), ERP-Plugins, Antwort 3 | gilt – 5 mm überall („auf der sicheren Seite“) |
+| R-B07 | Längsstoß (Stirnseiten) 0–2 mm, Stirnkanten fasen und paraffinieren. | Merkblatt M-06, Antwort 6 | gilt (Hinweis) |
 | R-B08 | Keine Dielenüberstände – UK bis an den Rand. | B-096 | gilt |
-| R-B09 | Freidielen im Planer und ERP fest **ab 25 Dielen**, immer in der längsten Lieferlänge. | B-079; Befund Exporte | gilt · offen: genaue Anzahl (Frage 1) |
+| R-B09 ⚙ | Freidielen im Planer und ERP: **ab 25 Hauptdielen eine, ab 50 zwei, ab 100 je weitere 50 eine** (100 → 3, 150 → 4 …); gezählt und geliefert wird die Hauptdiele des Deckbelags (im alten Planer in der längsten Lieferlänge). | B-079, Antwort 1 | gilt · Abweichung alt: Grenzfälle und große Mengen |
 | R-B10 | Dielenlänge: der Planer wählt die passende Lieferlänge automatisch; man kann eine Länge erzwingen (z. B. Lagerbestand). | Alexander (Frage 4) | gilt |
 | R-B11 | Verschnitt = geliefert minus geplant (Diele für 480 cm in 500 cm geliefert → 20 cm), für Belag und UK. | Alexander (Frage 3) | gilt |
 | R-B12 | „Kurze Stücke verbinden“: ein Stoß muss nicht durchgehend sein, wenn bei nicht rechtwinkligen Terrassen ein kurzes Stück durch eine ganze Diele ersetzt werden kann. | Alexander (Frage 16) | gilt |
@@ -47,7 +47,7 @@ Die mit ⚙ markierten Regeln sind im domain-Paket als ausführbare Regeln umges
 
 | Nr. | Regel | Quelle | Status |
 |---|---|---|---|
-| R-C01 ⚙ | **UK-Achsabstand höchstens 40 cm**, sicherer unter 35 cm. | Montagehinweise Regel 3, Matrix Artikelbeschreibungen | gilt · offen: Merkblatt 45 cm, PREMIUM-UK-Text 50 cm (Frage 4) |
+| R-C01 ⚙ | **UK-Achsabstand höchstens 40 cm**, sicherer unter 35 cm. | Montagehinweise Regel 3, Antwort 4 | gilt – max. 40 cm im Planer (auch PREMIUM-UK) |
 | R-C02 | UK auf den Auflagern verschrauben (Ecken, Ränder, ausgewählte Punkte). | Montagehinweise Regel 2 | gilt (Hinweis) |
 | R-C03 | Aussteifung: Leiterverband (Querstreben) oder Kopfband 45°. **Querstreben-Abstand 60 cm.** | Montagehinweise Regel 5, Alexander (Frage 17) | gilt |
 | R-C04 | Gummiband/Pads (GUMO) zwischen Diele und UK bzw. unter der UK. | Montagehinweise Regel 8, B-039 | gilt |
@@ -56,7 +56,7 @@ Die mit ⚙ markierten Regeln sind im domain-Paket als ausführbare Regeln umges
 | R-C07 | Untergrund ist nur Information für die Beratung, keine Wirkung auf die Berechnung. | Alexander (Frage 6) | gilt |
 | R-C08 | Unter einer Rinne geht die UK bis 1–2 cm vor die Hauswand; darunter Auflageprofile, darauf Ventilationsprofile. | Alexander (Frage 14) | gilt |
 | R-C09 | Gewerbliche Nutzung bleibt wie im alten Planer (nur mehr Gummiband); „UK zwingend versteift, nur PREMIUM SELECT“ ist zurückgestellt. | Alexander (Frage 13) | gilt |
-| R-C10 | Unterlüftung mind. 12 cm, Gefälle 1–2 % in Dielenlängsrichtung, ca. 3 cm Abstand zu Wänden. | Merkblatt M-07 | offen (Frage 5) |
+| R-C10 ⚙ | Unterlüftung mind. 12 cm und Gefälle 1–2 % in Dielenlängsrichtung als **Hinweise**; der Planer rechnet mit **2 cm Wandabstand**. | Merkblatt M-07, Antwort 5 | gilt |
 
 ## D Anschluss, Treppen, Zubehör
 
@@ -72,13 +72,13 @@ Die mit ⚙ markierten Regeln sind im domain-Paket als ausführbare Regeln umges
 
 ## Widersprüche zum alten Planer
 
-Werden **nicht** übernommen (Liste in [09](09-nicht-teil-der-kopie.md)): einseitig genutete Anfangsdielen (R-A07), KOPPLEX statt GUMO (R-A09), „22 mm“ (R-A04), Dielen 7000 mm bei Serien mit 4/5/6 m und UK 6500 mm (R-A06, F14), Treppe Fundament wie Konstruktion (R-D02, F40), veraltete Artikel (R-A01).
+Werden **nicht** übernommen (Liste in [09](09-nicht-teil-der-kopie.md)): einseitig genutete Anfangsdielen (R-A07), KOPPLEX statt GUMO (R-A09), „22 mm“ (R-A04), Zwischenlängen 3,0/4,5/5,5 m sowie Dielen 7000 mm bei Serien mit 4/5/6 m und UK 6500 mm (R-A06, F14), abweichende Freidielen-Anzahl bei Grenzfällen und großen Mengen (R-B09), Treppe Fundament wie Konstruktion (R-D02, F40), veraltete Artikel (R-A01).
 
-## Fragen an Alexander
+## Antworten Alexander (19.10.2026)
 
-1. **Freidielen (R-B09):** Wie viele genau? Der alte Planer gibt bei bis zu ca. 100 Dielen eine je volle 25 (48 → 1, 74 → 2, 96 → 3), bei großen Mengen weniger (251 → 8, 588 → 19) und bei 30 glattkanten Dielen keine. Ist es „1 je 25 Dielen“, „1 je ca. 150 lfm“ oder etwas anderes – und gilt es auch für glattkant und MASSIV?
-2. **Zwischenlängen (R-A06):** Der alte Planer plant auch 3,0 / 4,5 / 5,5 m. Laut B-035 gibt es 4/5/6 (ECO auch 7) m, die Artikelbeschreibungen nennen Zwischenlängen „auf Anfrage“. Darf der Planer Zwischenlängen automatisch wählen?
-3. **Fuge (R-B06):** Im Planer 5 mm (deine Antwort) – CLIP-FIXX ergibt ca. 6 mm, das Merkblatt nennt 7 mm. Rechnen wir überall mit 5 mm?
-4. **UK-Achsabstand (R-C01):** Bleibt es bei max. 40 cm (Merkblatt erlaubt 45 cm, Klärungspunkt M-03), auch für PREMIUM-BSH-UK (Entwurfstext „max. 50 cm“)?
-5. **Unterlüftung, Gefälle, Wandabstand (R-C10):** Sollen 12 cm, 1–2 % und 3 cm als Hinweise/Prüfungen in den Planer (Klärungspunkt M-07)? Die neue Planer-Version zeigt bei Gefälle einen solchen Hinweis.
-6. **Längsstoß 0–2 mm und Verschraubung von unten (R-B07, R-B05):** als Hinweis im Planer aufnehmen (M-06, M-10)?
+1. **Freidielen:** „bei 25 eine Diele, bei 50 zwei Dielen bis 100 und dann aller 50 Stück eine Freidiele“; sie beziehen sich immer auf die Hauptdiele des Deckbelags → R-B09.
+2. **Zwischenlängen:** gibt es nicht mehr, es gilt B-035 → R-A06.
+3. **Fuge:** überall 5 mm, „da sind wir auf der sicheren Seite“ → R-B06.
+4. **UK-Achsabstand:** maximal 40 cm im Planer → R-C01.
+5. **Unterlüftung, Gefälle:** nur Hinweise; Wandabstand im Planer 2 cm → R-C10.
+6. **Längsstoß 0–2 mm, keine Verschraubung von unten:** beides korrekt (Hinweise) → R-B07, R-B05.

@@ -51,7 +51,7 @@ void main() {
     expect(alle.where((m) => m.bezeichnung.startsWith('KOPPLEX')), isNotEmpty);
   });
 
-  test('R-A06: Dielenlängen des alten Planers außerhalb 4/5/6/7 m', () {
+  test('R-A06 Abweichung alt: Zwischenlängen, die es nicht mehr gibt', () {
     final laengen = {
       for (final m in alle.where(_istDiele))
         if (m.laengeMm != null) m.laengeMm!,
@@ -59,23 +59,25 @@ void main() {
     final standard = {
       for (final serie in Serie.values) ...lieferlaengenMm(serie),
     };
-    // Zwischenlängen (Frage 2 an Alexander) – der alte Planer plant sie.
     expect(laengen.difference(standard), containsAll([3000, 4500, 5500]));
   });
 
-  test('R-B09: Freidielen ab 25 Dielen, immer in der längsten Länge', () {
-    for (final id in ['F01', 'F02', 'F13', 'F16', 'F17']) {
+  test('R-B09: Staffel stimmt bei kleinen Mengen mit dem alten Planer', () {
+    for (final id in ['F01', 'F02', 'F09', 'F15', 'F16', 'F17', 'F20']) {
       final dielen = _fall(id).materialliste.where(_istDiele).toList();
-      final frei = dielen.where((m) => m.bezeichnung.contains('Freidiele'));
-      final normal = dielen.where((m) => !m.bezeichnung.contains('Freidiele'));
-      final anzahl = normal.fold(0, (s, m) => s + m.anzahl);
-      expect(frei.isNotEmpty, anzahl >= freidielenAbDielen, reason: id);
-      final laengste = normal
-          .map((m) => m.laengeMm!)
-          .reduce((a, b) => a > b ? a : b);
-      for (final f in frei) {
-        expect(f.laengeMm, laengste, reason: id);
-      }
+      final frei = dielen
+          .where((m) => m.bezeichnung.contains('Freidiele'))
+          .fold(0, (s, m) => s + m.anzahl);
+      final haupt = dielen
+          .where((m) => m.typ == 'Deckbelag')
+          .where((m) => !m.bezeichnung.contains('Freidiele'))
+          .fold(0, (s, m) => s + m.anzahl);
+      expect(frei, freidielen(haupt), reason: id);
     }
+  });
+
+  test('R-B09 Abweichung alt: Grenzfälle und große Mengen', () {
+    // F13: 92 Hauptdielen → alt 3, Regel 2; F39: 50 → alt 1, Regel 2.
+    expect([freidielen(92), freidielen(50)], [2, 2]);
   });
 }
