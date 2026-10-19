@@ -2,7 +2,7 @@
 
 ## Im alten Planer abgeschaltete Funktionen
 
-In der Oberfläche vom 08.10.2026 nicht vorhanden und daher nicht Teil der funktionalen Kopie:
+In der Oberfläche vom 08.10.2026 nicht vorhanden. **Seit 19.10.2026 überholt:** Die neue Planer-Version hat 3D, Grundriss-Upload, Podest und Gehrungsschnitte – sie sind damit Ziel-Funktionen (siehe [13](13-neue-planer-version.md)); Auswahl durch Alexander.
 
 | Funktion | Befund |
 |---|---|

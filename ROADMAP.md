@@ -109,6 +109,9 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/2
 - [ ] **M1-04 Planungsregeln aus Firmenwissen** ([#16](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/16)) – `feature/m1-04-planungsregeln-aus-firmenwissen`
   - Regeln aus Unternehmensprofil, Sortimentsmatrix und Beschlussregister als Fachregeln beschreiben: UK-Achsabstand max. 40 cm, Befestigung nach B-094 (CLIP-FIXX bis < 100 mm, DUO-CLIP-FIXX für PREMIUM SELECT ab 100 mm), Freidielen ab 25 Dielen (B-079), keine einseitig genuteten Dielen/Anfangs-/Enddiele = normale Diele (B-033), Längen je Werk (B-035), UK Breite/Stärke tauschbar (B-034), Nummern wie im Shop (B-152).
   - Abnahme: Regelkatalog mit Quelle (Beschluss-Nr.) je Regel; Widersprüche zum alten Planer sind markiert und von Alexander entschieden
+- [ ] **M1-05 Funktionsinventar der neuen Planer-Version** ([#111](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/111)) – `feature/m1-05-funktionsinventar-neue-planer-version`
+  - Die neue Version des Konfigurators (https://terrassenplaner.terrassen-montagesysteme.de/de) ist das Ziel für den Funktionsumfang (Vorgabe Alexander 19.10.2026): nur Funktionen wie 2D/3D, Podest/Sonderbauteile, Freiform, Grundriss-Import – nicht deren Sortiment. Je Schritt beschreiben und mit der alten Version (M1-01) vergleichen.
+  - Abnahme: Inventar je Schritt mit Vergleich alt ↔ neu; „nicht Teil der Kopie“ aktualisiert; Auswirkungen auf Architektur und Roadmap benannt, fehlende Funktionen als Issues angelegt
 
 ## M2 Artikeldaten & Regelwerk
 

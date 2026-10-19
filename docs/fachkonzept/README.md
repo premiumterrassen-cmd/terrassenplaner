@@ -19,6 +19,7 @@ Messwerte (Fläche, Verschnitt, Volumen, Materialliste) gelten für den genannte
 | [09 Nicht Teil der Kopie](09-nicht-teil-der-kopie.md) | Abgeschaltete Funktionen und Fehler des Altsystems |
 | [10 Offene Fragen](10-offene-fragen.md) | Klärung mit Alexander (M1-03/M1-04) |
 | [11 Referenzfälle](11-referenzfaelle.md) | 47 anonymisierte Prüffälle aus Planungsunterlagen (M1-02) |
+| [13 Neue Planer-Version](13-neue-planer-version.md) | Ziel-Funktionsumfang (2D/3D/AR, mehrere Flächen, Sonderbauteile …), Vergleich alt ↔ neu (M1-05) |
 
 ## Begriffe
 
