@@ -7,6 +7,7 @@ export 'src/datenmodell/uuid_v7.dart';
 export 'src/projekt_info.dart';
 export 'src/referenz/referenzfall.dart';
 export 'src/referenz/referenzkonfiguration.dart';
+export 'src/regeln/sortimentsregeln.dart';
 export 'src/schema/ausschnitt_leser.dart';
 export 'src/schema/stapel.dart';
 export 'src/schema/transport.g.dart';
