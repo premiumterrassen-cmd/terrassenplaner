@@ -7,6 +7,10 @@ resolution: workspace
 environment:
   sdk: ^3.13.5
 
+# Gleiche Laufzeit wie objectbox und connectanum_core (Speicher- = Wire-Format, #110).
+dependencies:
+  flat_buffers: 25.9.23
+
 dev_dependencies:
   benchmark_harness: ^2.4.0
   test: ^1.26.0

@@ -18,6 +18,10 @@ Vorgaben Alexander (02.10.2026):
 | **Änderungsprotokoll ab Tag 1:** jede schreibende Transaktion legt einen Eintrag `(knoten, seq, entität, uid, partition, hlc, art)` in derselben Transaktion an. | Lückenlose Grundlage für Replikation (M11), Audit und Monitoring (Rückstand). |
 | **Schema-Version** in Datensätzen mit eingebetteten Dokumenten (`schema`). | Knoten mit unterschiedlichem Softwarestand können Daten erkennen und migrieren. |
 
+## Transportformat = Speicherformat (#110)
+
+Entitäten, die über WAMP laufen, haben **ein** Layout für Leitung und Datenbank: das ObjectBox-FlatBuffers-Format. Das domain-Paket erhält dafür erzeugten Code (`transport.g.dart`, aus `objectbox-model.json`); freigegeben wird je Entität in `packages/server/lib/src/schema/transport_schema.dart`. Nach jeder Modelländerung: `dart run packages/server/bin/schema_erzeugen.dart` (der Drift-Test erzwingt das). Neue Felder nur anhängen (neue Property-IDs), nie IDs wiederverwenden – sonst passen alte und neue Clients nicht mehr zusammen.
+
 ## Entitäten nach Meilenstein
 
 ### Referenzdaten – überall vollständig repliziert (lesen viel, schreiben selten)
