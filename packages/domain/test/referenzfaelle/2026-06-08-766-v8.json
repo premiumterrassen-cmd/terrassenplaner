@@ -1,0 +1,1830 @@
+{
+  "id": "2026-06-08-766-v8",
+  "quelle": {
+    "konfigurationsnummer": "2026-06-08-766",
+    "version": 8,
+    "datum": "2026-06-08",
+    "seiten": 20,
+    "export": true
+  },
+  "eingaben": {
+    "grundriss": {
+      "form": "Freiform",
+      "eckpunkte": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "H",
+        "I",
+        "J",
+        "K",
+        "L",
+        "M",
+        "N"
+      ],
+      "kanten_cm": {
+        "A-B": 149,
+        "B-C": 168,
+        "C-D": 318,
+        "D-E": 375,
+        "E-F": 344,
+        "F-G": 780,
+        "G-H": 214,
+        "H-I": 141,
+        "I-J": 133,
+        "J-K": 120,
+        "K-L": 100,
+        "L-M": 300,
+        "M-N": 576,
+        "N-A": 1388
+      },
+      "radius_cm": null,
+      "ausschnitte": [
+        {
+          "name": "A1",
+          "kanten_cm": {
+            "A1-B1": 168,
+            "B1-C1": null,
+            "C1-D1": 207,
+            "D1-E1": 344,
+            "E1-F1": 375,
+            "F1-A1": 318
+          },
+          "funktion": "unbekannt"
+        },
+        {
+          "name": "A2",
+          "kanten_cm": {
+            "A2-B2": 1180,
+            "B2-C2": 341,
+            "C2-D2": 141,
+            "D2-E2": 214,
+            "E2-F2": 987,
+            "F2-A2": 123
+          },
+          "funktion": "unbekannt"
+        }
+      ],
+      "rundungen": false
+    },
+    "flaeche_m2": 42.774,
+    "volumen_m3": 1.344,
+    "belag": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+    "verlegerichtung": "Waagrecht",
+    "ausgangspunkt": {
+      "punkt": "L",
+      "waagrecht_cm": 0,
+      "senkrecht_cm": 0
+    },
+    "unterkonstruktion": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+    "verblendung": "keine Verblendung",
+    "aufbauhoehen_cm": null,
+    "winkel_grad": null,
+    "uk_abstaende_cm": {
+      "laengs": [
+        39,
+        40,
+        40,
+        39,
+        40,
+        40,
+        39,
+        40,
+        40,
+        39,
+        40,
+        40,
+        39,
+        40,
+        40,
+        39,
+        40,
+        40,
+        39,
+        40,
+        40,
+        39,
+        40,
+        40,
+        27,
+        1,
+        40,
+        40,
+        39,
+        40,
+        22
+      ],
+      "quer": []
+    }
+  },
+  "erwartet": {
+    "unterkonstruktion_stueckliste": [
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "laenge_cm": 576,
+        "stueck": 1,
+        "farbe": "blue"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "laenge_cm": 567,
+        "stueck": 3,
+        "farbe": "blue"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "laenge_cm": 439,
+        "stueck": 1,
+        "farbe": "blue"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "laenge_cm": 357,
+        "stueck": 1,
+        "farbe": "blue"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "laenge_cm": 345,
+        "stueck": 1,
+        "farbe": "blue"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "laenge_cm": 344,
+        "stueck": 6,
+        "farbe": "blue"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "laenge_cm": 340,
+        "stueck": 1,
+        "farbe": "blue"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "laenge_cm": 337,
+        "stueck": 4,
+        "farbe": "blue"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "laenge_cm": 318,
+        "stueck": 5,
+        "farbe": "blue"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "laenge_cm": 216,
+        "stueck": 1,
+        "farbe": "blue"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "laenge_cm": 210,
+        "stueck": 1,
+        "farbe": "blue"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "laenge_cm": 154,
+        "stueck": 1,
+        "farbe": "blue"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "laenge_cm": 133,
+        "stueck": 1,
+        "farbe": "blue"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "laenge_cm": 123,
+        "stueck": 26,
+        "farbe": "blue"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "laenge_cm": 100,
+        "stueck": 4,
+        "farbe": "blue"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "laenge_cm": 22,
+        "stueck": 1,
+        "farbe": "blue"
+      }
+    ],
+    "zuschnitt_unterkonstruktion": [
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 600,
+        "menge": 6,
+        "schnitte_cm": [
+          344,
+          123,
+          123
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 600,
+        "menge": 3,
+        "schnitte_cm": [
+          567
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          123,
+          337,
+          133
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          357,
+          216,
+          22
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          576
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          337,
+          210
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 500,
+        "menge": 2,
+        "schnitte_cm": [
+          123,
+          123,
+          123,
+          123
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 500,
+        "menge": 1,
+        "schnitte_cm": [
+          337,
+          154
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 450,
+        "menge": 5,
+        "schnitte_cm": [
+          318,
+          123
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          439
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          100,
+          100,
+          100,
+          100
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          345
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          340
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          337
+        ]
+      }
+    ],
+    "dielen": [
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 208.9,
+        "breite_cm": 5.5,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 209.2,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 209,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 208.8,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 208.6,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 208.4,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 208.2,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 208,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 207.7,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 207.5,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 207.3,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 207.1,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 206.9,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 206.7,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 206.5,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 206.3,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 206.1,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 205.9,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 205.7,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 205.5,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 205.3,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 205.1,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 204.9,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 204.7,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 204.5,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 204.3,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 204.1,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 203.9,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 203.7,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 203.5,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 203.3,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 203.1,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 202.9,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 202.7,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 202.5,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 202.3,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 202.1,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 201.9,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 201.7,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 201.6,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 201.5,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 201.3,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 201.2,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 201,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 200.9,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 200.7,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 200.6,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 200.4,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 200.3,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 200.1,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 200,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 199.8,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 199.7,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 199.5,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 199.4,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 318.2,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 316.7,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 315.1,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 313.6,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 312.1,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 310.6,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 309.1,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 307.6,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 306.1,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 304.5,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 303,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 301.5,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 207,
+        "breite_cm": 8,
+        "stueck": 3
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 375,
+        "breite_cm": 8,
+        "stueck": 37
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 375,
+        "breite_cm": 3,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 600,
+        "breite_cm": 8,
+        "stueck": 14
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 580,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 578.7,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 577.4,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 576.1,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 574.8,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 573.4,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 572.1,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 570.8,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 569.5,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 568.2,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 566.9,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 565.6,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 564.3,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 562.9,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 600,
+        "breite_cm": 3.5,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 561.6,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 173.3,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 172,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 170.7,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 169.4,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 168.1,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 166.8,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 165.5,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 164.1,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 162.8,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 161.5,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 160.2,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 158.9,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 157.6,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 156.3,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 155,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 153.7,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 152.3,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 151,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 149.7,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 148.4,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 147.1,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 145.8,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 144.5,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 143.2,
+        "breite_cm": 8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 141.8,
+        "breite_cm": 5,
+        "stueck": 1
+      }
+    ],
+    "zuschnitt_deckbelag": [
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          207,
+          375
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          207,
+          207
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 36,
+        "schnitte_cm": [
+          375
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 1 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          375
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 15,
+        "schnitte_cm": [
+          600
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          561.6
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          562.9
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          564.3
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          565.6
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          566.9
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          568.2
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          569.5
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          570.8
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          572.1
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          573.4
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          574.8
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          576.1
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          577.4
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          578.7
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          580
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 500,
+        "menge": 1,
+        "schnitte_cm": [
+          160.2,
+          157.6,
+          156.3
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 500,
+        "menge": 1,
+        "schnitte_cm": [
+          165.5,
+          162.8,
+          161.5
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 500,
+        "menge": 1,
+        "schnitte_cm": [
+          168.1,
+          166.8,
+          164.1
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 500,
+        "menge": 1,
+        "schnitte_cm": [
+          170.7,
+          169.4,
+          158.9
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 500,
+        "menge": 1,
+        "schnitte_cm": [
+          173.3,
+          172,
+          153.7
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 300,
+        "menge": 1,
+        "schnitte_cm": [
+          143.2,
+          141.8
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 300,
+        "menge": 1,
+        "schnitte_cm": [
+          149.7,
+          145.8
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 300,
+        "menge": 1,
+        "schnitte_cm": [
+          151,
+          148.4
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 300,
+        "menge": 1,
+        "schnitte_cm": [
+          152.3,
+          147.1
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 300,
+        "menge": 1,
+        "schnitte_cm": [
+          155,
+          144.5
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          200.1,
+          200,
+          199.8
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          199.4,
+          318.2
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          200.7,
+          200.6
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          201,
+          200.9
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          201.3,
+          201.2
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          201.6,
+          201.5
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          201.9,
+          201.7
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          202.3,
+          202.1
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          202.7,
+          202.5
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          203.1,
+          202.9
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          203.5,
+          203.3
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          203.9,
+          203.7
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          204.3,
+          204.1
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          204.7,
+          204.5
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          205.1,
+          204.9
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          205.5,
+          205.3
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          205.9,
+          205.7
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          206.3,
+          206.1
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          206.7,
+          206.5
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          207.1,
+          206.9
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          207.5,
+          207.3
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          208,
+          207.7
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          208.4,
+          208.2
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          208.8,
+          208.6
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          209.2,
+          209
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          304.5
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          306.1
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          307.6
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          309.1
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          310.6
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          312.1
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          313.6
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          315.1
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          316.7
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          200.3,
+          199.7
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          200.4,
+          199.5
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          303
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 1 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          208.9,
+          301.5
+        ]
+      }
+    ],
+    "materialliste": [
+      {
+        "artikelnummer": "10-10-031",
+        "bezeichnung": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt - Länge: 6000 mm",
+        "laenge_mm": 6000,
+        "anzahl": 12,
+        "einheit": "lfm",
+        "typ": "Unterkonstruktion"
+      },
+      {
+        "artikelnummer": "10-10-031",
+        "bezeichnung": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt - Länge: 5500 mm",
+        "laenge_mm": 5500,
+        "anzahl": 1,
+        "einheit": "lfm",
+        "typ": "Unterkonstruktion"
+      },
+      {
+        "artikelnummer": "10-10-031",
+        "bezeichnung": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt - Länge: 5000 mm",
+        "laenge_mm": 5000,
+        "anzahl": 3,
+        "einheit": "lfm",
+        "typ": "Unterkonstruktion"
+      },
+      {
+        "artikelnummer": "10-10-031",
+        "bezeichnung": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt - Länge: 4500 mm",
+        "laenge_mm": 4500,
+        "anzahl": 6,
+        "einheit": "lfm",
+        "typ": "Unterkonstruktion"
+      },
+      {
+        "artikelnummer": "10-10-031",
+        "bezeichnung": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt - Länge: 4000 mm",
+        "laenge_mm": 4000,
+        "anzahl": 4,
+        "einheit": "lfm",
+        "typ": "Unterkonstruktion"
+      },
+      {
+        "artikelnummer": "10-10-046",
+        "bezeichnung": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert - Länge: 6000 mm Ausschnitt A1 - Freidiele",
+        "laenge_mm": 6000,
+        "anzahl": 3,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": "10-10-046",
+        "bezeichnung": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert - Länge: 6000 mm",
+        "laenge_mm": 6000,
+        "anzahl": 1,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": "10-10-046",
+        "bezeichnung": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert - Länge: 5500 mm",
+        "laenge_mm": 5500,
+        "anzahl": 1,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": "10-10-046",
+        "bezeichnung": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert - Länge: 4500 mm",
+        "laenge_mm": 4500,
+        "anzahl": 23,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": "10-10-046",
+        "bezeichnung": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert - Länge: 4000 mm",
+        "laenge_mm": 4000,
+        "anzahl": 12,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": "10-10-046",
+        "bezeichnung": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert - Länge: 6000 mm Ausschnitt A2",
+        "laenge_mm": 6000,
+        "anzahl": 30,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": "10-10-046",
+        "bezeichnung": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert - Länge: 5000 mm Ausschnitt A2",
+        "laenge_mm": 5000,
+        "anzahl": 5,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": "10-10-046",
+        "bezeichnung": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert - Länge: 3000 mm Ausschnitt A2",
+        "laenge_mm": 3000,
+        "anzahl": 5,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": "10-10-046",
+        "bezeichnung": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert - Länge: 6000 mm Ausschnitt A1",
+        "laenge_mm": 6000,
+        "anzahl": 1,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": "10-10-046",
+        "bezeichnung": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert - Länge: 4500 mm Ausschnitt A1",
+        "laenge_mm": 4500,
+        "anzahl": 1,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": "10-10-046",
+        "bezeichnung": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert - Länge: 4000 mm Ausschnitt A1",
+        "laenge_mm": 4000,
+        "anzahl": 36,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": "10-10-047",
+        "bezeichnung": "Terrassendiele Robinie 80 x 22 mm, einseitig genutet, keilgezinkt, bombiert - Länge: 5500 mm",
+        "laenge_mm": 5500,
+        "anzahl": 1,
+        "einheit": "lfm",
+        "typ": "Anfangsdiele"
+      },
+      {
+        "artikelnummer": "10-10-047",
+        "bezeichnung": "Terrassendiele Robinie 80 x 22 mm, einseitig genutet, keilgezinkt, bombiert - Länge: 4000 mm",
+        "laenge_mm": 4000,
+        "anzahl": 1,
+        "einheit": "lfm",
+        "typ": "Anfangsdiele"
+      },
+      {
+        "artikelnummer": "50-50-005",
+        "bezeichnung": "Terrassenschraube, 5,0 x 50 mm",
+        "laenge_mm": null,
+        "anzahl": 17,
+        "einheit": "Stück",
+        "typ": "BefestigungDeck,Zubehoer"
+      },
+      {
+        "artikelnummer": "50-50-005",
+        "bezeichnung": "Terrassenschraube, 5,0 x 50 mm",
+        "laenge_mm": null,
+        "anzahl": 17,
+        "einheit": "Stück",
+        "typ": "BefestigungDeck,Zubehoer"
+      },
+      {
+        "artikelnummer": "50-60-001",
+        "bezeichnung": "KOPPLEX-1, EPDM-Vollgummi, 10m-Rolle 75mm x 1mm",
+        "laenge_mm": null,
+        "anzahl": 12,
+        "einheit": "Stück",
+        "typ": "EPDM-Band,Zubehoer"
+      },
+      {
+        "artikelnummer": "50-60-003",
+        "bezeichnung": "KOPPLEX-3, EPDM-Vollgummi, 10m-Rolle 40mm x 3mm",
+        "laenge_mm": null,
+        "anzahl": 2,
+        "einheit": "Stück",
+        "typ": "Unterlegpads,Zubehoer"
+      },
+      {
+        "artikelnummer": "50-60-004",
+        "bezeichnung": "GUMO L Unterleger 80 x 30 x 2 mm, VPE zu 150 Stück",
+        "laenge_mm": null,
+        "anzahl": 3,
+        "einheit": "Karton",
+        "typ": "Unterlegpads,Zubehoer"
+      },
+      {
+        "artikelnummer": "80-10-001-250",
+        "bezeichnung": "CLIP-FIXX® \"BLACK EDITION\" - VPE 250",
+        "laenge_mm": null,
+        "anzahl": 6,
+        "einheit": "Stück",
+        "typ": "BefestigungDeck,Zubehoer"
+      },
+      {
+        "artikelnummer": "80-10-001-50",
+        "bezeichnung": "CLIP-FIXX® \"BLACK EDITION\" - VPE 50",
+        "laenge_mm": null,
+        "anzahl": 1,
+        "einheit": "Stück",
+        "typ": "BefestigungDeck,Zubehoer"
+      }
+    ]
+  },
+  "hinweise": [
+    "PDF enthält 16 von 20 Seiten (Seiten 2-5 fehlen, u. a. Terrassengeometrie mit Aufbauhöhen/Winkeln) – aufbauhoehen_cm und winkel_grad daher null.",
+    "Komplexer Grundriss mit 14 Eckpunkten, schräge Kanten M-N (576) und I-J (133); innenliegende Teilflächen A1 (A1-F1) und A2 (A2-F2) sind ebenfalls mit Dielen belegt – Bedeutung der Teilflächen unklar (evtl. separate Belagsflächen), daher funktion 'unbekannt'. Schräge Teilkante B2-C2 = 341.",
+    "Kante B1-C1 in der Zeichnung ohne Maß (kurzes senkrechtes Stück) – null.",
+    "Entlang E-F, F-G, G-H, H-I, I-J, J-K schraffierte Randstreifen zwischen Außenkontur und belegter Fläche (Bedeutung unklar, Verblendung laut Seite 1: keine).",
+    "Dielenlängen ändern sich in 0,1–0,2-cm-Schritten (schräge Kanten); Werte mit Dezimalstellen exakt übernommen.",
+    "UK-Plan: UK-Hölzer senkrecht. laengs = oberste Maßkette über Teilfläche A2. Zweite Kette über Teilfläche A1: 37, 37, 37, 37, 17, 20, 37, 37, 37, 37, 37. Dritte Kette: Gesamtmaß 1.161, danach rechts 36, 40, 40, 39, 40, 40, 39, 40, 40, 41. Links nur Gesamtmaße 337, 344, 567 (UK-Längen) – quer leer.",
+    "Export-Materialliste existiert nur je Konfigurationsnummer (nicht je Version) – Zuordnung zu Version 8 nicht gesichert."
+  ]
+}

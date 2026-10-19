@@ -1,0 +1,93 @@
+{
+  "id": "2026-09-15-3615-v3",
+  "quelle": {
+    "konfigurationsnummer": "2026-09-15-3615",
+    "version": 3,
+    "datum": "2026-09-15",
+    "seiten": 4,
+    "export": false
+  },
+  "eingaben": {
+    "grundriss": {
+      "form": "Freiform",
+      "eckpunkte": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "H",
+        "I",
+        "J"
+      ],
+      "kanten_cm": {
+        "A-B": 116,
+        "B-C": 103,
+        "C-D": null,
+        "D-E": 744,
+        "E-F": null,
+        "F-G": 184,
+        "G-H": 622,
+        "H-I": 353,
+        "I-J": 506,
+        "J-A": 678
+      },
+      "radius_cm": null,
+      "ausschnitte": [],
+      "rundungen": false
+    },
+    "flaeche_m2": 31.83,
+    "volumen_m3": 1.017,
+    "belag": "Terrassendiele Robinie 100 x 23 mm, glattkant, keilgezinkt",
+    "verlegerichtung": "Waagrecht",
+    "ausgangspunkt": {
+      "punkt": "J",
+      "waagrecht_cm": 0,
+      "senkrecht_cm": 0
+    },
+    "unterkonstruktion": "RELO W blank Alu-Unterkonstruktions-Schiene, 56 x 40 x 2000 mm (B x H x L)",
+    "verblendung": "keine Verblendung",
+    "aufbauhoehen_cm": {},
+    "winkel_grad": {},
+    "uk_abstaende_cm": {
+      "laengs": [],
+      "quer": [
+        17,
+        1,
+        29,
+        40,
+        37,
+        39,
+        40,
+        40,
+        39,
+        40,
+        40,
+        39,
+        40,
+        40,
+        39,
+        40,
+        40,
+        22
+      ]
+    }
+  },
+  "erwartet": {
+    "unterkonstruktion_stueckliste": [],
+    "zuschnitt_unterkonstruktion": [],
+    "dielen": [],
+    "zuschnitt_deckbelag": [],
+    "materialliste": []
+  },
+  "hinweise": [
+    "PDF enthält nur 4 von 13 Seiten (Seite 1, 4 'Ihre Terrasse', 7 'Unterkonstruktion', 13 rechtliche Hinweise); Tabellen (Aufbauhöhe/Winkel, UK-Stückliste, Zuschnittspläne, Dielen) fehlen.",
+    "Form: Rechteck-L-Kombination mit seitlichem Versatz C-D/E-F (L-Form mit kleinem Rücksprung links); als Freiform erfasst.",
+    "Kanten C-D und E-F (kleiner Versatz nach links, geschätzt ca. 20-30 cm) sind in der Zeichnung nicht bemaßt -> null. Laut Geometrie gleich lang (G liegt senkrecht über B, 622 = 116 + 506).",
+    "B-C: Beschriftung '103 cm' überlappt mit Buchstabe C. Kontrolle: 103+744+184 = 1031 = 678+353; UK-Zeichnung zeigt Gesamtmaß '1.03' (vermutlich 10,31 m) senkrecht.",
+    "UK-Abstände: Maßkette oben (quer zu den senkrecht laufenden Schienen) = 622 cm Summe; an zwei Stellen Doppelstriche ohne Wert (unbemaßte Kleinstabstände). Keine Maßkette in Schienenlängsrichtung -> laengs leer.",
+    "Unterkonstruktion Alu-Schienen (Akazie/CH-Variante des Planers)."
+  ]
+}

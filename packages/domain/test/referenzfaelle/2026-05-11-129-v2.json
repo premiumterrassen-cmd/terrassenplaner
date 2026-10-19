@@ -1,0 +1,85 @@
+{
+  "id": "2026-05-11-129-v2",
+  "quelle": {
+    "konfigurationsnummer": "2026-05-11-129",
+    "version": 2,
+    "datum": "2026-05-11",
+    "seiten": 4,
+    "export": false
+  },
+  "eingaben": {
+    "grundriss": {
+      "form": "Rechteck",
+      "eckpunkte": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "kanten_cm": {
+        "A-B": 600,
+        "B-C": 600,
+        "C-D": 600,
+        "D-A": 600
+      },
+      "radius_cm": null,
+      "ausschnitte": [],
+      "rundungen": false
+    },
+    "flaeche_m2": 36.0,
+    "volumen_m3": 1.028,
+    "belag": "Terrassendiele Robinie 100 x 22 mm, genutet, keilgezinkt, bombiert",
+    "verlegerichtung": "Waagrecht",
+    "ausgangspunkt": {
+      "punkt": "A",
+      "waagrecht_cm": 0,
+      "senkrecht_cm": 0
+    },
+    "unterkonstruktion": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+    "verblendung": "keine Verblendung",
+    "aufbauhoehen_cm": null,
+    "winkel_grad": null,
+    "uk_abstaende_cm": {
+      "laengs": [
+        37,
+        40,
+        40,
+        39,
+        40,
+        40,
+        39,
+        40,
+        40,
+        39,
+        40,
+        40,
+        39,
+        40,
+        37
+      ],
+      "quer": [
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75
+      ]
+    }
+  },
+  "erwartet": {
+    "unterkonstruktion_stueckliste": [],
+    "zuschnitt_unterkonstruktion": [],
+    "dielen": [],
+    "zuschnitt_deckbelag": [],
+    "materialliste": []
+  },
+  "hinweise": [
+    "Unvollstaendiges PDF: physisch nur 4 Seiten (Beschriftung 'von 11': Seiten 1, 4, 5, 8). UK-Stueckliste, Zuschnittsplan UK, Dielen-nach-Nummer-Tabelle und Zuschnittsplan Deckbelag fehlen -> erwartet-Listen leer.",
+    "Verlegeplan Terrassenbelag (Seite 8) zeigt durchgehende Dielen mit ID 1 und eine letzte Reihe mit ID 2 unten; Stueckzahlen ohne Tabelle nicht belegbar.",
+    "uk_abstaende_cm: laengs = horizontale Masskette ueber der UK-Zeichnung (links nach rechts, Abstaende der senkrechten UK-Hoelzer), quer = vertikale Masskette links (oben nach unten); Querstuecke (green) versetzt.",
+    "Keine Tabelle Aufbauhoehe/Winkel im PDF."
+  ]
+}

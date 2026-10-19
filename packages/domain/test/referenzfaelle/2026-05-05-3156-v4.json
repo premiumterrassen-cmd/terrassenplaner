@@ -1,0 +1,292 @@
+{
+  "id": "2026-05-05-3156-v4",
+  "quelle": {
+    "konfigurationsnummer": "2026-05-05-3156",
+    "version": 4,
+    "datum": "2026-05-05",
+    "seiten": 4,
+    "export": true
+  },
+  "eingaben": {
+    "grundriss": {
+      "form": "Freiform",
+      "eckpunkte": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "H",
+        "I",
+        "J",
+        "K",
+        "L",
+        "M"
+      ],
+      "kanten_cm": {
+        "A-B": 400,
+        "B-C": 710,
+        "C-D": 180,
+        "D-E": 400,
+        "E-F": 220,
+        "F-G": 330,
+        "G-H": 300,
+        "H-I": 330,
+        "I-J": 810,
+        "J-K": 510,
+        "K-L": 400,
+        "L-M": 566,
+        "M-A": 910
+      },
+      "radius_cm": null,
+      "ausschnitte": [],
+      "rundungen": false
+    },
+    "flaeche_m2": 91.5,
+    "volumen_m3": 2.809,
+    "belag": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+    "verlegerichtung": "Waagrecht",
+    "ausgangspunkt": {
+      "punkt": "J",
+      "waagrecht_cm": 0,
+      "senkrecht_cm": 0
+    },
+    "unterkonstruktion": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+    "verblendung": "keine Verblendung",
+    "aufbauhoehen_cm": null,
+    "winkel_grad": null,
+    "uk_abstaende_cm": {
+      "laengs": [
+        75,
+        50,
+        25,
+        10,
+        10,
+        55,
+        24,
+        26,
+        16,
+        10,
+        10,
+        35,
+        12,
+        24,
+        51,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        60,
+        15,
+        75,
+        60,
+        15,
+        75,
+        10
+      ],
+      "quer": [
+        35,
+        39,
+        40,
+        40,
+        26,
+        1,
+        40,
+        40,
+        39,
+        40,
+        38,
+        39,
+        40,
+        40,
+        39,
+        40,
+        40,
+        39,
+        40,
+        34,
+        39,
+        40,
+        40,
+        39,
+        40,
+        40,
+        39,
+        40,
+        40,
+        39,
+        40,
+        40,
+        39,
+        30
+      ]
+    }
+  },
+  "erwartet": {
+    "unterkonstruktion_stueckliste": [],
+    "zuschnitt_unterkonstruktion": [],
+    "dielen": [],
+    "zuschnitt_deckbelag": [],
+    "materialliste": [
+      {
+        "artikelnummer": "10-10-031",
+        "bezeichnung": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt - Länge: 6000 mm",
+        "laenge_mm": 6000,
+        "anzahl": 27,
+        "einheit": "lfm",
+        "typ": "Unterkonstruktion"
+      },
+      {
+        "artikelnummer": "10-10-031",
+        "bezeichnung": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt - Länge: 5500 mm",
+        "laenge_mm": 5500,
+        "anzahl": 8,
+        "einheit": "lfm",
+        "typ": "Unterkonstruktion"
+      },
+      {
+        "artikelnummer": "10-10-031",
+        "bezeichnung": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt - Länge: 5000 mm",
+        "laenge_mm": 5000,
+        "anzahl": 8,
+        "einheit": "lfm",
+        "typ": "Unterkonstruktion"
+      },
+      {
+        "artikelnummer": "10-10-031",
+        "bezeichnung": "Unterkonstruktionsholz Robinie 45 x 60 mm, keilgezinkt - Länge: 4000 mm",
+        "laenge_mm": 4000,
+        "anzahl": 19,
+        "einheit": "lfm",
+        "typ": "Unterkonstruktion"
+      },
+      {
+        "artikelnummer": "10-10-046",
+        "bezeichnung": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert - Länge: 6000 mm - Freidiele",
+        "laenge_mm": 6000,
+        "anzahl": 8,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": "10-10-046",
+        "bezeichnung": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert - Länge: 6000 mm",
+        "laenge_mm": 6000,
+        "anzahl": 46,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": "10-10-046",
+        "bezeichnung": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert - Länge: 5500 mm",
+        "laenge_mm": 5500,
+        "anzahl": 8,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": "10-10-046",
+        "bezeichnung": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert - Länge: 5000 mm",
+        "laenge_mm": 5000,
+        "anzahl": 4,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": "10-10-046",
+        "bezeichnung": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert - Länge: 4500 mm",
+        "laenge_mm": 4500,
+        "anzahl": 23,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": "10-10-046",
+        "bezeichnung": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert - Länge: 4000 mm",
+        "laenge_mm": 4000,
+        "anzahl": 163,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": "10-10-047",
+        "bezeichnung": "Terrassendiele Robinie 80 x 22 mm, einseitig genutet, keilgezinkt, bombiert - Länge: 5500 mm",
+        "laenge_mm": 5500,
+        "anzahl": 1,
+        "einheit": "lfm",
+        "typ": "Anfangsdiele"
+      },
+      {
+        "artikelnummer": "10-10-047",
+        "bezeichnung": "Terrassendiele Robinie 80 x 22 mm, einseitig genutet, keilgezinkt, bombiert - Länge: 4000 mm",
+        "laenge_mm": 4000,
+        "anzahl": 3,
+        "einheit": "lfm",
+        "typ": "Anfangsdiele"
+      },
+      {
+        "artikelnummer": "10-10-071",
+        "bezeichnung": "Terrassendiele Robinie 60 x 22 mm, glattkant, keilgezinkt - Länge: 6000 mm  - Verbinder",
+        "laenge_mm": 6000,
+        "anzahl": 3,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": "50-50-005",
+        "bezeichnung": "Terrassenschraube, 5,0 x 50 mm",
+        "laenge_mm": null,
+        "anzahl": 85,
+        "einheit": "Stück",
+        "typ": "BefestigungDeck,Zubehoer"
+      },
+      {
+        "artikelnummer": "50-60-001",
+        "bezeichnung": "KOPPLEX-1, EPDM-Vollgummi, 10m-Rolle 75mm x 1mm",
+        "laenge_mm": null,
+        "anzahl": 27,
+        "einheit": "Stück",
+        "typ": "EPDM-Band,Zubehoer"
+      },
+      {
+        "artikelnummer": "50-60-003",
+        "bezeichnung": "KOPPLEX-3, EPDM-Vollgummi, 10m-Rolle 40mm x 3mm",
+        "laenge_mm": null,
+        "anzahl": 11,
+        "einheit": "Stück",
+        "typ": "Unterlegpads,Zubehoer"
+      },
+      {
+        "artikelnummer": "80-10-001-100",
+        "bezeichnung": "CLIP-FIXX® \"\"BLACK EDITION\"\" - VPE 100",
+        "laenge_mm": null,
+        "anzahl": 2,
+        "einheit": "Stück",
+        "typ": "BefestigungDeck,Zubehoer"
+      },
+      {
+        "artikelnummer": "80-10-001-250",
+        "bezeichnung": "CLIP-FIXX® \"\"BLACK EDITION\"\" - VPE 250",
+        "laenge_mm": null,
+        "anzahl": 12,
+        "einheit": "Stück",
+        "typ": "BefestigungDeck,Zubehoer"
+      }
+    ]
+  },
+  "hinweise": [
+    "Datum aus der Konfigurationsnummer abgeleitet; „seiten“ = physische Seitenzahl der PDF-Datei.",
+    "Grundriss aus L- und Zusatzflächen mit schräger Kante L-M (566 cm, ca. 45°); B liegt auf A-C, K liegt auf J-L (J-K 510 + K-L 400). Fläche nachgerechnet: 91,5 m² stimmt.",
+    "PDF unvollständig: nur 4 physische Seiten (Seite 1, 5, 6 und 16 von 16). Keine Aufbauhöhen/Winkel, keine UK-Stückliste, keine Zuschnittspläne, keine Dielenliste im PDF – erwartet-Listen daher leer (außer materialliste aus Export).",
+    "UK-Maßketten aus sehr kleiner Beschriftung per Vergrößerung gelesen. quer (waagrecht A→L) Summe 1274 cm (Gesamtbreite 1310 cm; Randabstände nicht beschriftet). laengs (senkrecht A→E) Summe 1493 cm: zwischen „26“ und „16“ liegt ein unbeschrifteter Kurzabschnitt (ca. 9 cm), nicht aufgenommen.",
+    "uk_abstaende: \"quer\" = Maßkette der Abstände zwischen den UK-Trägern, \"laengs\" = Maßkette in Trägerrichtung (Lage der Querverbinder/Stöße), jeweils wie im UK-Plan beschriftet."
+  ]
+}

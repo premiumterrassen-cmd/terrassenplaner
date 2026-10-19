@@ -1,0 +1,162 @@
+{
+  "id": "2026-05-19-3958-v4",
+  "quelle": {
+    "konfigurationsnummer": "2026-05-19-3958",
+    "version": 4,
+    "datum": "2026-05-19",
+    "seiten": 11,
+    "export": false
+  },
+  "eingaben": {
+    "grundriss": {
+      "form": "Rechteck",
+      "eckpunkte": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "kanten_cm": {
+        "A-B": 200,
+        "B-C": 820,
+        "C-D": 200,
+        "D-A": 820
+      },
+      "radius_cm": null,
+      "ausschnitte": [],
+      "rundungen": false
+    },
+    "flaeche_m2": 16.4,
+    "volumen_m3": 0.404,
+    "belag": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+    "verlegerichtung": "Waagrecht",
+    "ausgangspunkt": {
+      "punkt": "A",
+      "waagrecht_cm": 0,
+      "senkrecht_cm": 0
+    },
+    "unterkonstruktion": "ALUecofix M 45x23mm blank",
+    "verblendung": "Holzverblendung",
+    "aufbauhoehen_cm": {
+      "A": 5,
+      "B": 7.5,
+      "C": 7.5,
+      "D": 5
+    },
+    "winkel_grad": {
+      "A": 90,
+      "B": 90,
+      "C": 90,
+      "D": 90
+    },
+    "uk_abstaende_cm": {
+      "laengs": [
+        37,
+        39,
+        39,
+        39,
+        36
+      ],
+      "quer": [
+        820
+      ]
+    }
+  },
+  "erwartet": {
+    "unterkonstruktion_stueckliste": [
+      {
+        "artikel": "ALUecofix M 45x23mm blank",
+        "laenge_cm": 400,
+        "stueck": 12,
+        "farbe": "red"
+      },
+      {
+        "artikel": "ALUecofix M 45x23mm blank",
+        "laenge_cm": 20,
+        "stueck": 6,
+        "farbe": "blue"
+      }
+    ],
+    "zuschnitt_unterkonstruktion": [
+      {
+        "artikel": "ALUecofix M 45x23mm blank",
+        "ausgangslaenge_cm": 400,
+        "menge": 12,
+        "schnitte_cm": [
+          400
+        ]
+      },
+      {
+        "artikel": "ALUecofix M 45x23mm blank",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          20,
+          20,
+          20,
+          20,
+          20,
+          20,
+          7.4,
+          6.9,
+          6.5,
+          6,
+          5.6,
+          5.1
+        ]
+      }
+    ],
+    "dielen": [
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 200,
+        "breite_cm": 8,
+        "stueck": 96
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 200,
+        "breite_cm": 3.5,
+        "stueck": 1
+      }
+    ],
+    "zuschnitt_deckbelag": [
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 31,
+        "schnitte_cm": [
+          200,
+          200,
+          200
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          200,
+          200
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm - FJ 1 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          200,
+          200
+        ]
+      }
+    ],
+    "materialliste": []
+  },
+  "hinweise": [
+    "Holzverblendung nur an Kante D-A (schraffiert); an Kante D-C ein gelb markierter Randstreifen (Bedeutung im PDF nicht erklaert, evtl. Schmaldiele 3.5 cm); keine Verblendungs-Stueckliste.",
+    "Gefaelle: Aufbauhoehe A/D 5 cm, B/C 7.5 cm. Seite 'Terrassengeometrie' zeigt je UK-Strang Unterlagehoehen von links nach rechts 0.5, 0.9, 1.4, 1.9, 2.4, 2.8 (passend zu den Zuschnitten 5.1-7.4 cm in der UK-Zuschnittliste).",
+    "uk_abstaende_cm: laengs = horizontale Masskette ueber der UK-Zeichnung (Abstaende der senkrechten Alu-Profile, links nach rechts), quer = vertikale Masskette (nur Gesamtmass 820).",
+    "Kopfzeile Projektbezeichnung mit Zusatz ' - 2'; Konfigurationsdatum (2026-05-19) weicht vom Dateidatum ab.",
+    "Seitenbeschriftung 'von 13', physisch 11 Seiten."
+  ]
+}

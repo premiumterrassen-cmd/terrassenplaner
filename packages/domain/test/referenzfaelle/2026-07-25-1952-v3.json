@@ -1,0 +1,91 @@
+{
+  "id": "2026-07-25-1952-v3",
+  "quelle": {
+    "konfigurationsnummer": "2026-07-25-1952",
+    "version": 3,
+    "datum": "2026-07-25",
+    "seiten": 4,
+    "export": false
+  },
+  "eingaben": {
+    "grundriss": {
+      "form": "T-Form",
+      "eckpunkte": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "H"
+      ],
+      "kanten_cm": {
+        "A-B": 360,
+        "B-C": 250,
+        "C-D": 60,
+        "D-E": 150,
+        "E-F": 460,
+        "F-G": 150,
+        "G-H": null,
+        "H-A": 250
+      },
+      "radius_cm": null,
+      "ausschnitte": [],
+      "rundungen": false
+    },
+    "flaeche_m2": 15.9,
+    "volumen_m3": 0.49,
+    "belag": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+    "verlegerichtung": "Senkrecht",
+    "ausgangspunkt": {
+      "punkt": "A",
+      "waagrecht_cm": 0,
+      "senkrecht_cm": 0
+    },
+    "unterkonstruktion": "RELO C blank Alu-Unterkonstruktions-Schiene, 56 x 27 x 2000 mm (B x H x L)",
+    "verblendung": "keine Verblendung",
+    "aufbauhoehen_cm": null,
+    "winkel_grad": null,
+    "uk_abstaende_cm": {
+      "laengs": [
+        1,
+        75,
+        15,
+        60,
+        15,
+        60,
+        15,
+        60,
+        15,
+        60,
+        75
+      ],
+      "quer": [
+        36,
+        40,
+        39,
+        40,
+        39,
+        40,
+        16,
+        23,
+        40,
+        39,
+        38
+      ]
+    }
+  },
+  "erwartet": {
+    "unterkonstruktion_stueckliste": [],
+    "zuschnitt_unterkonstruktion": [],
+    "dielen": [],
+    "zuschnitt_deckbelag": [],
+    "materialliste": []
+  },
+  "hinweise": [
+    "Unvollstaendiges PDF: physisch nur 4 Seiten (Beschriftung 'von 14': Seiten 1, 5, 8, 14). Terrassengeometrie/Aufbauhoehen, UK-Stueckliste, Zuschnittsplaene und Dielentabelle fehlen -> Listen leer.",
+    "Grundriss: umgedrehte T-Form; Kante G-H im PDF nicht bemasst (rechnerisch 460 - 360 - 60 = 40 cm, daher null).",
+    "Verlegerichtung senkrecht, Alu-Schienen (RELO C) liegen waagrecht. uk_abstaende_cm: laengs = horizontale Masskette ueber der UK-Zeichnung (links nach rechts; Stoss-/Verbinderbereiche 15 cm), quer = vertikale Masskette links (oben nach unten) = Schienenabstaende; Schienen rot/blau, Querverbinder gruen."
+  ]
+}

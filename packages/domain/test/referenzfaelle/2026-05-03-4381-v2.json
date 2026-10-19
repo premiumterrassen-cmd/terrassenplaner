@@ -1,0 +1,248 @@
+{
+  "id": "2026-05-03-4381-v2",
+  "quelle": {
+    "konfigurationsnummer": "2026-05-03-4381",
+    "version": 2,
+    "datum": "2026-05-03",
+    "seiten": 9,
+    "export": false
+  },
+  "eingaben": {
+    "grundriss": {
+      "form": "Rechteck",
+      "eckpunkte": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "kanten_cm": {
+        "A-B": 404,
+        "B-C": 304,
+        "C-D": 404,
+        "D-A": 304
+      },
+      "radius_cm": null,
+      "ausschnitte": [],
+      "rundungen": false
+    },
+    "flaeche_m2": 12.282,
+    "volumen_m3": 0.458,
+    "belag": "Terrassendiele Robinie 80 x 26 mm, genutet, keilgezinkt, bombiert",
+    "verlegerichtung": "Waagrecht",
+    "ausgangspunkt": {
+      "punkt": "A",
+      "waagrecht_cm": 0,
+      "senkrecht_cm": 0
+    },
+    "unterkonstruktion": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+    "verblendung": "Holzverblendung",
+    "aufbauhoehen_cm": null,
+    "winkel_grad": null,
+    "uk_abstaende_cm": {
+      "laengs": [
+        30,
+        32,
+        33,
+        32,
+        33,
+        32,
+        32,
+        33,
+        32,
+        33,
+        32,
+        30
+      ],
+      "quer": [
+        75,
+        75,
+        75,
+        75
+      ]
+    }
+  },
+  "erwartet": {
+    "unterkonstruktion_stueckliste": [
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "laenge_cm": 304,
+        "stueck": 15,
+        "farbe": "blue"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "laenge_cm": 29,
+        "stueck": 8,
+        "farbe": "green"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "laenge_cm": 28,
+        "stueck": 12,
+        "farbe": "green"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "laenge_cm": 26,
+        "stueck": 4,
+        "farbe": "green"
+      }
+    ],
+    "zuschnitt_unterkonstruktion": [
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          28,
+          28,
+          29,
+          29,
+          28,
+          28,
+          26,
+          26,
+          304
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          26,
+          26,
+          28,
+          28,
+          29,
+          29,
+          28,
+          28,
+          29,
+          29,
+          28,
+          28,
+          28,
+          28,
+          29,
+          29
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 400,
+        "menge": 14,
+        "schnitte_cm": [
+          304
+        ]
+      }
+    ],
+    "dielen": [
+      {
+        "artikel": "Terrassendiele Robinie 80 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 404,
+        "breite_cm": 8,
+        "stueck": 12
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 269.3,
+        "breite_cm": 8,
+        "stueck": 23
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 134.7,
+        "breite_cm": 8,
+        "stueck": 23
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 134.7,
+        "breite_cm": 6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 269.3,
+        "breite_cm": 6,
+        "stueck": 1
+      }
+    ],
+    "zuschnitt_deckbelag": [
+      {
+        "artikel": "Terrassendiele Robinie 80 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 550,
+        "menge": 11,
+        "schnitte_cm": [
+          269.3,
+          269.3
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 550,
+        "menge": 5,
+        "schnitte_cm": [
+          134.7,
+          134.7,
+          134.7,
+          134.7
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          134.7,
+          404
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          269.3,
+          134.7,
+          134.7
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 10,
+        "schnitte_cm": [
+          404
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 26 mm - FJ 1 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          404,
+          134.7
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 26 mm - FJ 1 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 300,
+        "menge": 1,
+        "schnitte_cm": [
+          269.3
+        ]
+      }
+    ],
+    "materialliste": []
+  },
+  "hinweise": [
+    "Holzverblendung umlaufend an allen vier Kanten (schraffiert in Grundriss und UK-Plan); keine eigene Verblendungs-Stueckliste im PDF.",
+    "Kopfzeile nennt neben der Konfigurationsnummer (Version 2) eine abweichende 'Version: 1' in der Projektbezeichnungszeile; Version 2 uebernommen.",
+    "uk_abstaende_cm: laengs = horizontale Masskette ueber der UK-Zeichnung (links nach rechts), in drei Abschnitte zu je 4 Werten unterteilt (Diel-Stossbereiche, doppelte UK); quer = vertikale Masskette links (oben nach unten).",
+    "Dielen versetzt verlegt (404 / 269.3 + 134.7 im Wechsel).",
+    "Keine Tabelle Aufbauhoehe/Winkel im PDF; Seitenbeschriftung 'von 12', physisch 9 Seiten."
+  ]
+}

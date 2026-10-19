@@ -1,0 +1,148 @@
+{
+  "id": "2026-05-11-2229-v3",
+  "quelle": {
+    "konfigurationsnummer": "2026-05-11-2229",
+    "version": 3,
+    "datum": "2026-05-11",
+    "seiten": 6,
+    "export": false
+  },
+  "eingaben": {
+    "grundriss": {
+      "form": "L-Form",
+      "eckpunkte": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F"
+      ],
+      "kanten_cm": {
+        "A-B": 380,
+        "B-C": 1080,
+        "C-D": 165,
+        "D-E": 500,
+        "E-F": 215,
+        "F-A": 580
+      },
+      "radius_cm": null,
+      "ausschnitte": [],
+      "rundungen": false
+    },
+    "flaeche_m2": 30.29,
+    "volumen_m3": 0.924,
+    "belag": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+    "verlegerichtung": "Waagrecht",
+    "ausgangspunkt": {
+      "punkt": "A",
+      "waagrecht_cm": 0,
+      "senkrecht_cm": 0
+    },
+    "unterkonstruktion": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+    "verblendung": "keine Verblendung",
+    "aufbauhoehen_cm": null,
+    "winkel_grad": null,
+    "uk_abstaende_cm": {
+      "laengs": [
+        35,
+        38,
+        37,
+        38,
+        37,
+        30,
+        37,
+        38,
+        37,
+        35
+      ],
+      "quer": [
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        30
+      ]
+    }
+  },
+  "erwartet": {
+    "unterkonstruktion_stueckliste": [
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "laenge_cm": 600,
+        "stueck": 5,
+        "farbe": "red"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "laenge_cm": 580,
+        "stueck": 6,
+        "farbe": "blue"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "laenge_cm": 500,
+        "stueck": 1,
+        "farbe": "blue"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "laenge_cm": 480,
+        "stueck": 5,
+        "farbe": "blue"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "laenge_cm": 34,
+        "stueck": 13,
+        "farbe": "green"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "laenge_cm": 33,
+        "stueck": 22,
+        "farbe": "green"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "laenge_cm": 31,
+        "stueck": 11,
+        "farbe": "green"
+      }
+    ],
+    "zuschnitt_unterkonstruktion": [],
+    "dielen": [
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 380,
+        "breite_cm": 8,
+        "stueck": 69
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 165,
+        "breite_cm": 8,
+        "stueck": 58
+      }
+    ],
+    "zuschnitt_deckbelag": [],
+    "materialliste": []
+  },
+  "hinweise": [
+    "Unvollstaendiges PDF: physisch 6 Seiten (Beschriftung 'von 12': Seiten 1, 5, 6, 7, 9, 10). Zuschnittsplan Unterkonstruktion und Zuschnittsplan Deckbelag fehlen -> Listen leer.",
+    "uk_abstaende_cm: laengs = horizontale Masskette ueber der UK-Zeichnung (links nach rechts); die Kette ist nach dem 6. Wert (30) unterbrochen: 35+38+37+38+37+30 = 215 (Kante E-F), 37+38+37+35 = 147 im Bereich ueber D-C. quer = vertikale Masskette links (oben nach unten), Summe 1080.",
+    "UK-Plan: rechter Bereich (ueber C-D-Streifen hinaus nach oben) mit roten 600-cm-Hoelzern, linker oberer Bereich und unterer Streifen mit blauen Hoelzern.",
+    "Verlegeplan: Dielen ID 1 (380 cm) im oberen Rechteck A-B-E-F, Dielen ID 2 (165 cm) im unteren Streifen.",
+    "Keine Tabelle Aufbauhoehe/Winkel im PDF."
+  ]
+}

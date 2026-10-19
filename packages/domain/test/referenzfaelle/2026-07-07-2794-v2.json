@@ -1,0 +1,360 @@
+{
+  "id": "2026-07-07-2794-v2",
+  "quelle": {
+    "konfigurationsnummer": "2026-07-07-2794",
+    "version": 2,
+    "datum": "2026-07-07",
+    "seiten": 11,
+    "export": false
+  },
+  "eingaben": {
+    "grundriss": {
+      "form": "Rechteck",
+      "eckpunkte": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "kanten_cm": {
+        "A-B": 1050,
+        "B-C": 1000,
+        "C-D": 1050,
+        "D-A": 1000
+      },
+      "radius_cm": null,
+      "ausschnitte": [],
+      "rundungen": false
+    },
+    "flaeche_m2": 105.0,
+    "volumen_m3": 2.818,
+    "belag": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt, bombiert",
+    "verlegerichtung": "Waagrecht",
+    "ausgangspunkt": {
+      "punkt": "A",
+      "waagrecht_cm": 0,
+      "senkrecht_cm": 0
+    },
+    "unterkonstruktion": "Unterkonstruktionsholz Robinie 40 x 40 mm, keilgezinkt",
+    "verblendung": "keine Verblendung",
+    "aufbauhoehen_cm": {
+      "A": 8.6,
+      "B": 8.6,
+      "C": 8.6,
+      "D": 8.6
+    },
+    "winkel_grad": {
+      "A": 90,
+      "B": 90,
+      "C": 90,
+      "D": 90
+    },
+    "uk_abstaende_cm": {
+      "laengs": [
+        35,
+        37,
+        37,
+        37,
+        37,
+        37,
+        37,
+        37,
+        37,
+        37,
+        37,
+        38,
+        36,
+        36,
+        36,
+        37,
+        37,
+        37,
+        37,
+        37,
+        37,
+        37,
+        37,
+        37,
+        37,
+        37,
+        37,
+        35
+      ],
+      "quer": [
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        25
+      ]
+    }
+  },
+  "erwartet": {
+    "unterkonstruktion_stueckliste": [
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 40 mm, keilgezinkt",
+        "laenge_cm": 600,
+        "stueck": 31,
+        "farbe": "red"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 40 mm, keilgezinkt",
+        "laenge_cm": 400,
+        "stueck": 31,
+        "farbe": "blue"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 40 mm, keilgezinkt",
+        "laenge_cm": 34,
+        "stueck": 6,
+        "farbe": "green"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 40 mm, keilgezinkt",
+        "laenge_cm": 33,
+        "stueck": 144,
+        "farbe": "green"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 40 mm, keilgezinkt",
+        "laenge_cm": 32,
+        "stueck": 19,
+        "farbe": "green"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 40 mm, keilgezinkt",
+        "laenge_cm": 31,
+        "stueck": 13,
+        "farbe": "green"
+      }
+    ],
+    "zuschnitt_unterkonstruktion": [
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 40 mm, keilgezinkt",
+        "ausgangslaenge_cm": 600,
+        "menge": 31,
+        "schnitte_cm": [
+          600
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 40 mm, keilgezinkt",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          33,
+          33,
+          33,
+          33,
+          33,
+          33,
+          33,
+          33,
+          33,
+          33,
+          33,
+          33
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 40 mm, keilgezinkt",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          33,
+          33,
+          33,
+          33,
+          33,
+          33,
+          33,
+          33,
+          33,
+          33,
+          33,
+          33,
+          33,
+          34,
+          34,
+          34,
+          34,
+          34
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 40 mm, keilgezinkt",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          31,
+          400
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 40 mm, keilgezinkt",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          34,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 40 mm, keilgezinkt",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          31,
+          31,
+          31,
+          31,
+          31,
+          31,
+          31,
+          33,
+          33,
+          33,
+          33,
+          33,
+          33,
+          33
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 40 mm, keilgezinkt",
+        "ausgangslaenge_cm": 400,
+        "menge": 30,
+        "schnitte_cm": [
+          400
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 40 mm, keilgezinkt",
+        "ausgangslaenge_cm": 300,
+        "menge": 12,
+        "schnitte_cm": [
+          33,
+          33,
+          33,
+          33,
+          33,
+          33,
+          33,
+          33,
+          33
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 40 mm, keilgezinkt",
+        "ausgangslaenge_cm": 300,
+        "menge": 1,
+        "schnitte_cm": [
+          33,
+          33,
+          33,
+          33,
+          31,
+          31,
+          31,
+          31,
+          31
+        ]
+      }
+    ],
+    "dielen": [
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 450,
+        "breite_cm": 6,
+        "stueck": 153
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 600,
+        "breite_cm": 6,
+        "stueck": 153
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 600,
+        "breite_cm": 5,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 450,
+        "breite_cm": 5,
+        "stueck": 1
+      }
+    ],
+    "zuschnitt_deckbelag": [
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 152,
+        "schnitte_cm": [
+          600
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 152,
+        "schnitte_cm": [
+          450
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 1 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 2,
+        "schnitte_cm": [
+          600
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 1 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 2,
+        "schnitte_cm": [
+          450
+        ]
+      }
+    ],
+    "materialliste": []
+  },
+  "hinweise": [
+    "uk_abstaende_cm: laengs = horizontale Masskette ueber der UK-Zeichnung (links nach rechts), in drei Abschnitte unterteilt (Unterbrechungen nach 38 und nach dem 4. Wert des mittleren Abschnitts: 35..38 | 36,36,36,37 | 37..35) - entspricht den Diel-Stossbereichen (450 + 600 cm je Reihe); quer = vertikale Masskette links (oben nach unten), Summe 1000.",
+    "UK: oberer Bereich rote 600-cm-Hoelzer, unterer Bereich blaue 400-cm-Hoelzer, doppelte UK an den Stossstellen.",
+    "Seite 'Terrassengeometrie' zeigt an allen UK-Auflagepunkten den Wert 2.3 (vermutlich Hoehe der Auflager/Pads, Bedeutung unklar); Tabelle Aufbauhoehe an den Eckpunkten: alle 8.6 cm / 90 Grad.",
+    "Dielen: je Reihe eine 450-cm- und eine 600-cm-Diele (im Grundriss gestrichelte Stosslinien).",
+    "Seitenbeschriftung 'Seite x von 14', physisch 11 Seiten."
+  ]
+}

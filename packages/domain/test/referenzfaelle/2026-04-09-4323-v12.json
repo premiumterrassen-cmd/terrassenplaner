@@ -1,0 +1,1752 @@
+{
+  "id": "2026-04-09-4323-v12",
+  "quelle": {
+    "konfigurationsnummer": "2026-04-09-4323",
+    "version": 12,
+    "datum": "2026-04-09",
+    "seiten": 17,
+    "export": true
+  },
+  "eingaben": {
+    "grundriss": {
+      "form": "Freiform",
+      "eckpunkte": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "H",
+        "I",
+        "J",
+        "K",
+        "L",
+        "M",
+        "N",
+        "O",
+        "P",
+        "Q",
+        "R",
+        "S",
+        "T",
+        "U",
+        "V",
+        "W",
+        "X",
+        "Y",
+        "Z",
+        "AA",
+        "AB",
+        "AC",
+        "AD"
+      ],
+      "kanten_cm": {
+        "A-B": 937,
+        "B-C": 177,
+        "C-D": 323,
+        "D-E": 730,
+        "E-F": 155,
+        "F-G": 50,
+        "G-H": 5,
+        "H-I": 192,
+        "I-J": 5,
+        "J-K": 84,
+        "K-L": 5,
+        "L-M": 192,
+        "M-N": 5,
+        "N-O": 212,
+        "O-P": 369,
+        "P-Q": 51,
+        "Q-R": 13,
+        "R-S": 92,
+        "S-T": 13,
+        "T-U": 51,
+        "U-V": 51,
+        "V-W": 12,
+        "W-X": 192,
+        "X-Y": 12,
+        "Y-Z": 52,
+        "Z-AA": 12,
+        "AA-AB": 192,
+        "AB-AC": 12,
+        "AC-AD": 51,
+        "AD-A": 259
+      },
+      "radius_cm": null,
+      "ausschnitte": [],
+      "rundungen": false
+    },
+    "flaeche_m2": 49.154,
+    "volumen_m3": 2.178,
+    "belag": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+    "verlegerichtung": "Waagrecht",
+    "ausgangspunkt": {
+      "punkt": "B",
+      "waagrecht_cm": 0,
+      "senkrecht_cm": 0
+    },
+    "unterkonstruktion": "ALUecofix XL 45x85 mm schwarz",
+    "verblendung": "Holzverblendung",
+    "aufbauhoehen_cm": {
+      "A": 24,
+      "B": 24,
+      "C": 24,
+      "D": 24,
+      "E": 24,
+      "F": 24,
+      "G": 24,
+      "H": 24,
+      "I": 24,
+      "J": 24,
+      "K": 24,
+      "L": 24,
+      "M": 24,
+      "N": 24,
+      "O": 24,
+      "P": 24,
+      "Q": 24,
+      "R": 24,
+      "S": 24,
+      "T": 24,
+      "U": 24,
+      "V": 24,
+      "W": 24,
+      "X": 24,
+      "Y": 24,
+      "Z": 24,
+      "AA": 24,
+      "AB": 24,
+      "AC": 24,
+      "AD": 24
+    },
+    "winkel_grad": {
+      "A": 90,
+      "B": 90,
+      "C": 135,
+      "D": 135,
+      "E": 180,
+      "F": 90,
+      "G": 90,
+      "H": 270,
+      "I": 90,
+      "J": 90,
+      "K": 270,
+      "L": 270,
+      "M": 90,
+      "N": 90,
+      "O": 270,
+      "P": 270,
+      "Q": 90,
+      "R": 270,
+      "S": 90,
+      "T": 90,
+      "U": 270,
+      "V": 270,
+      "W": 270,
+      "X": 90,
+      "Y": 90,
+      "Z": 270,
+      "AA": 270,
+      "AB": 90,
+      "AC": 90,
+      "AD": 270
+    },
+    "uk_abstaende_cm": {
+      "laengs": [],
+      "quer": []
+    }
+  },
+  "erwartet": {
+    "unterkonstruktion_stueckliste": [],
+    "zuschnitt_unterkonstruktion": [
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 14,
+        "schnitte_cm": [
+          400
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 3,
+        "schnitte_cm": [
+          226,
+          24,
+          24,
+          24,
+          24,
+          24,
+          24,
+          24
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 3,
+        "schnitte_cm": [
+          379
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 2,
+        "schnitte_cm": [
+          216,
+          24,
+          24,
+          24,
+          24,
+          24,
+          24,
+          24
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 2,
+        "schnitte_cm": [
+          225,
+          24,
+          24,
+          24,
+          24,
+          24,
+          24,
+          24
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 2,
+        "schnitte_cm": [
+          362,
+          24
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          215,
+          24,
+          24,
+          24
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          189,
+          187,
+          24
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          254,
+          24,
+          24,
+          24,
+          24,
+          24,
+          24
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          200,
+          188
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          262,
+          24,
+          24,
+          24,
+          24,
+          24
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          338,
+          24,
+          24
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          215,
+          54,
+          54,
+          52,
+          24
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          245,
+          90,
+          54
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          215,
+          87,
+          51,
+          24
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          237,
+          153
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          214,
+          183
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          237,
+          133,
+          24
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          214,
+          184
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          237,
+          122,
+          13,
+          24
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          333,
+          50,
+          13
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          253,
+          104,
+          14,
+          13,
+          12
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          95,
+          174,
+          106,
+          8,
+          15
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          335,
+          15,
+          12,
+          32
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          36,
+          36,
+          36,
+          35,
+          257
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          36,
+          36,
+          36,
+          36,
+          36,
+          35,
+          35,
+          35,
+          36,
+          36,
+          36,
+          7
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          36,
+          36,
+          36,
+          36,
+          35,
+          35,
+          35,
+          35,
+          36,
+          36,
+          36,
+          7
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          35,
+          35,
+          35,
+          35,
+          35,
+          36,
+          36,
+          36,
+          36,
+          36,
+          36,
+          8
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          35,
+          36,
+          36,
+          36,
+          36,
+          36,
+          36,
+          36,
+          36,
+          36,
+          36
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          36,
+          36,
+          36,
+          36,
+          36,
+          36,
+          36,
+          35,
+          35,
+          35,
+          35,
+          6
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          35,
+          35,
+          36,
+          36,
+          36,
+          36,
+          36,
+          35,
+          35,
+          35,
+          36,
+          6
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          380
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          369
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          255
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm schwarz",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          187
+        ]
+      }
+    ],
+    "dielen": [
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 23.1,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 44.1,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 65.1,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 86.1,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 107.1,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 128.1,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 149.1,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 170.1,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 191.1,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 212.1,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 233.1,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 254.1,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 275.1,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 296.1,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 317.1,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 338.1,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 359.1,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 373.2,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 376.8,
+        "breite_cm": 10,
+        "stueck": 9
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 388.3,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 395.2,
+        "breite_cm": 10,
+        "stueck": 24
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 12.2,
+        "breite_cm": 5.6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 382.9,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 394.3,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 396.3,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 417.3,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 438.3,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 18.2,
+        "breite_cm": 8.6,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 479.1,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 500.1,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 521.1,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 542.1,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 563.1,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 577,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 574.8,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 585.3,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 595.8,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 600,
+        "breite_cm": 10,
+        "stueck": 2
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 3.2,
+        "breite_cm": 5.8,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 589.6,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 579.1,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 568.6,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 558.1,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 547.6,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 537.1,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 526.6,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 516.1,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 505.6,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 495.1,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 484.6,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 474.1,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 461.8,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 440.8,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 419.8,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 398.8,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 377.8,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 356.8,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 335.8,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 314.8,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 293.8,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 272.8,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 251.8,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 230.8,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 229.7,
+        "breite_cm": 10,
+        "stueck": 21
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 239.6,
+        "breite_cm": 10,
+        "stueck": 25
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 232.1,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 238.3,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 226.7,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 213.2,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 192.2,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 171.2,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 150.2,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 129.2,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 108.2,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 87.2,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 66.2,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 45.2,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 24.2,
+        "breite_cm": 10,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 3.2,
+        "breite_cm": 1.1,
+        "stueck": 1
+      }
+    ],
+    "zuschnitt_deckbelag": [
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 2,
+        "schnitte_cm": [
+          600
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          335.8,
+          229.7
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          356.8,
+          229.7
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          574.8
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          563.1
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          376.8,
+          213.2
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          373.2,
+          226.7
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          359.1,
+          229.7
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          212.1,
+          233.1,
+          129.2,
+          24.2
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          128.1,
+          149.1,
+          170.1,
+          150.2
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          577
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          314.8,
+          229.7
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          542.1
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          521.1
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          500.1
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          376.8,
+          171.2
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          338.1,
+          192.2
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          317.1,
+          230.8
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          296.1,
+          251.8
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          275.1,
+          272.8
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 500,
+        "menge": 12,
+        "schnitte_cm": [
+          239.6,
+          239.6
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 500,
+        "menge": 8,
+        "schnitte_cm": [
+          229.7,
+          229.7
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 500,
+        "menge": 1,
+        "schnitte_cm": [
+          232.1,
+          238.3
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 500,
+        "menge": 1,
+        "schnitte_cm": [
+          229.7,
+          239.6
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 500,
+        "menge": 1,
+        "schnitte_cm": [
+          461.8
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 500,
+        "menge": 1,
+        "schnitte_cm": [
+          474.1
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 500,
+        "menge": 1,
+        "schnitte_cm": [
+          479.1
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          419.8
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          440.8
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          438.3
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          417.3
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          376.8,
+          66.2
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 450,
+        "menge": 1,
+        "schnitte_cm": [
+          23.1,
+          44.1,
+          65.1,
+          86.1,
+          107.1,
+          12.2,
+          18.2,
+          3.2,
+          87.2,
+          3.2
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 24,
+        "schnitte_cm": [
+          395.2
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 6,
+        "schnitte_cm": [
+          376.8
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          377.8
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          398.8
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          396.3
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          394.3
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          382.9
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          388.3
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 300,
+        "menge": 1,
+        "schnitte_cm": [
+          293.8
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 300,
+        "menge": 1,
+        "schnitte_cm": [
+          254.1,
+          45.2
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 300,
+        "menge": 1,
+        "schnitte_cm": [
+          191.1,
+          108.2
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 1 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          558.1
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 1 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          568.6
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 1 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          579.1
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 1 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          589.6
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 1 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          595.8
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 1 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          585.3
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 1 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          505.6
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 1 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          516.1
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 1 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          526.6
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 1 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          537.1
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 1 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          547.6
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 1 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 500,
+        "menge": 1,
+        "schnitte_cm": [
+          484.6
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 100 x 26 mm - FJ 1 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 500,
+        "menge": 1,
+        "schnitte_cm": [
+          495.1
+        ]
+      }
+    ],
+    "materialliste": [
+      {
+        "artikelnummer": "10-10-122",
+        "bezeichnung": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert - Länge: 6000 mm - Freidiele",
+        "laenge_mm": 6000,
+        "anzahl": 3,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": "10-10-122",
+        "bezeichnung": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert - Länge: 6000 mm",
+        "laenge_mm": 6000,
+        "anzahl": 12,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": "10-10-122",
+        "bezeichnung": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert - Länge: 5500 mm",
+        "laenge_mm": 5500,
+        "anzahl": 9,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": "10-10-122",
+        "bezeichnung": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert - Länge: 5000 mm",
+        "laenge_mm": 5000,
+        "anzahl": 25,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": "10-10-122",
+        "bezeichnung": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert - Länge: 4500 mm",
+        "laenge_mm": 4500,
+        "anzahl": 6,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": "10-10-122",
+        "bezeichnung": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert - Länge: 4000 mm",
+        "laenge_mm": 4000,
+        "anzahl": 36,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": "10-10-122",
+        "bezeichnung": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert - Länge: 3000 mm",
+        "laenge_mm": 3000,
+        "anzahl": 3,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": "10-10-124",
+        "bezeichnung": "Terrassendiele Robinie 100 x 26 mm, einseitig genutet, keilgezinkt, bombiert - Länge: 6000 mm",
+        "laenge_mm": 6000,
+        "anzahl": 6,
+        "einheit": "lfm",
+        "typ": "Anfangsdiele"
+      },
+      {
+        "artikelnummer": "10-10-124",
+        "bezeichnung": "Terrassendiele Robinie 100 x 26 mm, einseitig genutet, keilgezinkt, bombiert - Länge: 5500 mm",
+        "laenge_mm": 5500,
+        "anzahl": 5,
+        "einheit": "lfm",
+        "typ": "Anfangsdiele"
+      },
+      {
+        "artikelnummer": "10-10-124",
+        "bezeichnung": "Terrassendiele Robinie 100 x 26 mm, einseitig genutet, keilgezinkt, bombiert - Länge: 5000 mm",
+        "laenge_mm": 5000,
+        "anzahl": 2,
+        "einheit": "lfm",
+        "typ": "Anfangsdiele"
+      },
+      {
+        "artikelnummer": "10-10-146",
+        "bezeichnung": "Terrassendiele Robinie 100 x 22 mm, glattkant, keilgezinkt - Länge: 6000 mm  - Verblendung",
+        "laenge_mm": 6000,
+        "anzahl": 7,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": "10-10-146",
+        "bezeichnung": "Terrassendiele Robinie 100 x 22 mm, glattkant, keilgezinkt - Länge: 5500 mm  - Verblendung",
+        "laenge_mm": 5500,
+        "anzahl": 2,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": "10-10-146",
+        "bezeichnung": "Terrassendiele Robinie 100 x 22 mm, glattkant, keilgezinkt - Länge: 5000 mm  - Verblendung",
+        "laenge_mm": 5000,
+        "anzahl": 1,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": "10-10-146",
+        "bezeichnung": "Terrassendiele Robinie 100 x 22 mm, glattkant, keilgezinkt - Länge: 4000 mm  - Verblendung",
+        "laenge_mm": 4000,
+        "anzahl": 6,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": null,
+        "bezeichnung": "ALUecofix XL T-Träger 76,5mm",
+        "laenge_mm": null,
+        "anzahl": 112,
+        "einheit": "Stück",
+        "typ": "Eckverbinder"
+      },
+      {
+        "artikelnummer": null,
+        "bezeichnung": "Profilkopplung 300mm für 45x23, 45x38 & 45x85mm",
+        "laenge_mm": null,
+        "anzahl": 28,
+        "einheit": "Stück",
+        "typ": "Laengsverbinder"
+      },
+      {
+        "artikelnummer": null,
+        "bezeichnung": "ALUecofix XL 45x85 mm schwarz - Länge: 4000 mm",
+        "laenge_mm": 4000,
+        "anzahl": 55,
+        "einheit": "Stück",
+        "typ": "Unterkonstruktion"
+      },
+      {
+        "artikelnummer": null,
+        "bezeichnung": "2D Kopplung für 45x85mm",
+        "laenge_mm": null,
+        "anzahl": 203,
+        "einheit": "Stück",
+        "typ": "VariablerEckverbinder"
+      },
+      {
+        "artikelnummer": "50-60-001",
+        "bezeichnung": "KOPPLEX-1, EPDM-Vollgummi, 10m-Rolle 75mm x 1mm",
+        "laenge_mm": null,
+        "anzahl": 13,
+        "einheit": "Stück",
+        "typ": "EPDM-Band,Zubehoer"
+      },
+      {
+        "artikelnummer": "50-80-001",
+        "bezeichnung": "Schutz-Vlies, 1,6m x 10m",
+        "laenge_mm": null,
+        "anzahl": 3,
+        "einheit": "Stück",
+        "typ": "Zubehoer"
+      },
+      {
+        "artikelnummer": "60-55-152",
+        "bezeichnung": "ROBI-LIFT, 120er Pack, Terrassenfuß, 95 - 135 mm",
+        "laenge_mm": null,
+        "anzahl": 3,
+        "einheit": "Karton",
+        "typ": "Stellfuss,Zubehoer"
+      },
+      {
+        "artikelnummer": "80-10-001-250",
+        "bezeichnung": "CLIP-FIXX® \"BLACK EDITION\" - VPE 250",
+        "laenge_mm": null,
+        "anzahl": 6,
+        "einheit": "Stück",
+        "typ": "BefestigungDeck,Zubehoer"
+      },
+      {
+        "artikelnummer": "80-10-001-50",
+        "bezeichnung": "CLIP-FIXX® \"BLACK EDITION\" - VPE 50",
+        "laenge_mm": null,
+        "anzahl": 1,
+        "einheit": "Stück",
+        "typ": "BefestigungDeck,Zubehoer"
+      }
+    ]
+  },
+  "hinweise": [
+    "Datum aus der Konfigurationsnummer abgeleitet; „seiten“ = physische Seitenzahl der PDF-Datei.",
+    "Grundriss: L-artige Freiform mit 30 Eckpunkten, Fase B-C (ca. 45°), D liegt auf der Geraden C-E (180°). Die Innenkanten haben viele kleine Versprünge, deren Beschriftungen sich in der Zeichnung überlagern.",
+    "Sicher gelesen: A-B 937, B-C 177, C-D 323, D-E 730, E-F 155, H-I 192, J-K 84, L-M 192, N-O 212, O-P 369, P-Q 51, R-S 92, W-X 192, Y-Z 52, AA-AB 192, AD-A 259.",
+    "UNSICHER (überlagerte Beschriftung, per Pixelmessung/Plausibilität geschätzt): F-G 50 (aus 730 minus Summe der übrigen Abschnitte), G-H/I-J/K-L/M-N je 5 (Versprünge ca. 5–7 cm), Q-R und S-T je 13 (gemessen ca. 13–14), T-U 51 (gemessen ca. 51–54), U-V 51, V-W/X-Y/Z-AA/AB-AC je 12 (gemessen ca. 12–13), AC-AD 51.",
+    "Kontrolle mit diesen Werten: Polygon schließt horizontal (1062 cm = Gesamtbreite laut UK-Plan), vertikal Restfehler ca. 5 cm; berechnete Fläche ca. 48,7 m² gegenüber 49,154 m² laut PDF.",
+    "UK-Plan enthält statt Trägerabständen (Träger diagonal) eine Maßkette: waagrecht gesamt 1062; senkrecht 256 | 12 | 42 | 140 | 215 | 277 | 188 | 51 (Summe 1181). Daher uk_abstaende leer.",
+    "Verlegerichtung laut Seite 1 „Waagrecht“, in Zeichnung und UK-Plan sind Dielen jedoch diagonal verlegt.",
+    "Die Winkel-Tabelle ist gegenüber der Zeichnung um einen Eckpunkt verschoben: der Winkel, der geometrisch zu Eckpunkt X gehört, steht in der Tabelle beim nachfolgenden Buchstaben (Werte unverändert wie im PDF übernommen).",
+    "Verblendung: „Holzverblendung“ (gelbe Kanten in der Zeichnung, u. a. A-B, B-C, C-E, E-F, AD-A); keine eigene Verblendungsseite im PDF.",
+    "PDF hat 17 physische Seiten, Seitenzählung „von 21“; es fehlen Seiten 2–4 und Seite 9 (dort vermutlich die UK-Stückliste mit Farbkennzeichnung) – unterkonstruktion_stueckliste daher leer.",
+    "Seite 6 (TERRASSENGEOMETRIE) zeigt nur Grafik mit Stützpunkt-/Abstandsbeschriftungen 12,8 ohne weitere Tabellen."
+  ]
+}

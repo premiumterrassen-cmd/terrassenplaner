@@ -1,0 +1,266 @@
+{
+  "id": "2026-06-30-2295-v5",
+  "quelle": {
+    "konfigurationsnummer": "2026-06-30-2295",
+    "version": 5,
+    "datum": "2026-06-30",
+    "seiten": 8,
+    "export": true
+  },
+  "eingaben": {
+    "grundriss": {
+      "form": "Rechteck",
+      "eckpunkte": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "kanten_cm": {
+        "A-B": 2500,
+        "B-C": 973,
+        "C-D": 2500,
+        "D-A": 973
+      },
+      "radius_cm": null,
+      "ausschnitte": [],
+      "rundungen": false
+    },
+    "flaeche_m2": 243.25,
+    "volumen_m3": 9.116,
+    "belag": "Terrassendiele Robinie 80 x 26 mm, genutet, keilgezinkt, bombiert",
+    "verlegerichtung": "Waagrecht",
+    "ausgangspunkt": {
+      "punkt": "A",
+      "waagrecht_cm": 0,
+      "senkrecht_cm": 0
+    },
+    "unterkonstruktion": "ALUecofix XL 45x85 mm blank",
+    "verblendung": "keine Verblendung",
+    "aufbauhoehen_cm": {
+      "A": 8.6,
+      "B": 8.6,
+      "C": 8.6,
+      "D": 8.6
+    },
+    "winkel_grad": {
+      "A": 90,
+      "B": 90,
+      "C": 90,
+      "D": 90
+    },
+    "uk_abstaende_cm": {
+      "laengs": [],
+      "quer": [
+        34,
+        37,
+        37,
+        36,
+        37,
+        37,
+        37,
+        37,
+        36,
+        37,
+        37,
+        37,
+        37,
+        37,
+        37,
+        37,
+        37,
+        37,
+        37,
+        37,
+        36,
+        37,
+        37,
+        37,
+        37,
+        35
+      ]
+    }
+  },
+  "erwartet": {
+    "unterkonstruktion_stueckliste": [
+      {
+        "artikel": "ALUecofix XL 45x85 mm blank",
+        "laenge_cm": 400,
+        "stueck": 174,
+        "farbe": "red"
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm blank",
+        "laenge_cm": 100,
+        "stueck": 29,
+        "farbe": "blue"
+      }
+    ],
+    "zuschnitt_unterkonstruktion": [
+      {
+        "artikel": "ALUecofix XL 45x85 mm blank",
+        "ausgangslaenge_cm": 400,
+        "menge": 174,
+        "schnitte_cm": [
+          400
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm blank",
+        "ausgangslaenge_cm": 400,
+        "menge": 7,
+        "schnitte_cm": [
+          100,
+          100,
+          100,
+          100
+        ]
+      },
+      {
+        "artikel": "ALUecofix XL 45x85 mm blank",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          100
+        ]
+      }
+    ],
+    "dielen": [
+      {
+        "artikel": "Terrassendiele Robinie 80 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 600,
+        "breite_cm": 8,
+        "stueck": 294
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 26 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 373,
+        "breite_cm": 8,
+        "stueck": 294
+      }
+    ],
+    "zuschnitt_deckbelag": [
+      {
+        "artikel": "Terrassendiele Robinie 80 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 293,
+        "schnitte_cm": [
+          600
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 293,
+        "schnitte_cm": [
+          373
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 26 mm - FJ 1 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          600
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 80 x 26 mm - FJ 1 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          373
+        ]
+      }
+    ],
+    "materialliste": [
+      {
+        "artikelnummer": "10-10-080",
+        "bezeichnung": "Terrassendiele Robinie 80 x 26 mm, genutet, keilgezinkt, bombiert - Länge: 6000 mm - Freidiele",
+        "laenge_mm": 6000,
+        "anzahl": 19,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": "10-10-080",
+        "bezeichnung": "Terrassendiele Robinie 80 x 26 mm, genutet, keilgezinkt, bombiert - Länge: 6000 mm",
+        "laenge_mm": 6000,
+        "anzahl": 293,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": "10-10-080",
+        "bezeichnung": "Terrassendiele Robinie 80 x 26 mm, genutet, keilgezinkt, bombiert - Länge: 4000 mm",
+        "laenge_mm": 4000,
+        "anzahl": 293,
+        "einheit": "lfm",
+        "typ": "Deckbelag"
+      },
+      {
+        "artikelnummer": "10-10-082",
+        "bezeichnung": "Terrassendiele Robinie 80 x 26 mm, einseitig genutet, keilgezinkt, bombiert - Länge: 6000 mm",
+        "laenge_mm": 6000,
+        "anzahl": 1,
+        "einheit": "lfm",
+        "typ": "Anfangsdiele"
+      },
+      {
+        "artikelnummer": "10-10-082",
+        "bezeichnung": "Terrassendiele Robinie 80 x 26 mm, einseitig genutet, keilgezinkt, bombiert - Länge: 4000 mm",
+        "laenge_mm": 4000,
+        "anzahl": 1,
+        "einheit": "lfm",
+        "typ": "Anfangsdiele"
+      },
+      {
+        "artikelnummer": null,
+        "bezeichnung": "Stelzlager Base 19-27 mm",
+        "laenge_mm": null,
+        "anzahl": 1247,
+        "einheit": "Stück",
+        "typ": "Stellfuss,Zubehoer"
+      },
+      {
+        "artikelnummer": null,
+        "bezeichnung": "Profilkopplung 300mm für 45x23, 45x38 & 45x85mm",
+        "laenge_mm": null,
+        "anzahl": 348,
+        "einheit": "Stück",
+        "typ": "Laengsverbinder"
+      },
+      {
+        "artikelnummer": null,
+        "bezeichnung": "ALUecofix XL 45x85 mm blank - Länge: 4000 mm",
+        "laenge_mm": 4000,
+        "anzahl": 182,
+        "einheit": "Stück",
+        "typ": "Unterkonstruktion"
+      },
+      {
+        "artikelnummer": "50-60-001",
+        "bezeichnung": "KOPPLEX-1, EPDM-Vollgummi, 10m-Rolle 75mm x 1mm",
+        "laenge_mm": null,
+        "anzahl": 73,
+        "einheit": "Stück",
+        "typ": "EPDM-Band,Zubehoer"
+      },
+      {
+        "artikelnummer": "80-10-001-250",
+        "bezeichnung": "CLIP-FIXX® \"BLACK EDITION\" - VPE 250",
+        "laenge_mm": null,
+        "anzahl": 34,
+        "einheit": "Stück",
+        "typ": "BefestigungDeck,Zubehoer"
+      }
+    ]
+  },
+  "hinweise": [
+    "Datum aus der Konfigurationsnummer abgeleitet; „seiten“ = physische Seitenzahl der PDF-Datei.",
+    "Verlegerichtung laut Seite 1 „Waagrecht“, in der Zeichnung verlaufen die Dielen jedoch senkrecht (Dielen 600 + 373 = 973 cm über die Höhe A-D); UK-Träger liegen waagrecht.",
+    "UK-Maßkette (senkrecht, A→D) aus sehr kleiner Beschriftung per Vergrößerung gelesen: 26 beschriftete Abstände, Summe 954 cm; zusätzlich zwei Doppelträger (bei den Dielenstößen) mit unbeschrifteten Kleinstabständen, daher Differenz zu 973 cm. Maßkette in Trägerrichtung (waagrecht) nicht beschriftet außer Gesamtmaß.",
+    "PDF hat 8 physische Seiten, Seitenzählung „von 10“; Seiten 2–3 fehlen in der Datei.",
+    "uk_abstaende: \"quer\" = Maßkette der Abstände zwischen den UK-Trägern, \"laengs\" = Maßkette in Trägerrichtung (Lage der Querverbinder/Stöße), jeweils wie im UK-Plan beschriftet."
+  ]
+}

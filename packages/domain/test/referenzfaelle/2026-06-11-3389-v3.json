@@ -1,0 +1,95 @@
+{
+  "id": "2026-06-11-3389-v3",
+  "quelle": {
+    "konfigurationsnummer": "2026-06-11-3389",
+    "version": 3,
+    "datum": "2026-06-11",
+    "seiten": 7,
+    "export": false
+  },
+  "eingaben": {
+    "grundriss": {
+      "form": "Rechteck",
+      "eckpunkte": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "kanten_cm": {
+        "A-B": 270,
+        "B-C": 390,
+        "C-D": 270,
+        "D-A": 390
+      },
+      "radius_cm": null,
+      "ausschnitte": [],
+      "rundungen": false
+    },
+    "flaeche_m2": 10.53,
+    "volumen_m3": 0.287,
+    "belag": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt, bombiert",
+    "verlegerichtung": "Waagrecht",
+    "ausgangspunkt": {
+      "punkt": "A",
+      "waagrecht_cm": 0,
+      "senkrecht_cm": 0
+    },
+    "unterkonstruktion": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+    "verblendung": "keine Verblendung",
+    "aufbauhoehen_cm": {},
+    "winkel_grad": {},
+    "uk_abstaende_cm": {
+      "laengs": [
+        390
+      ],
+      "quer": [
+        35,
+        38,
+        38,
+        38,
+        38,
+        38,
+        35
+      ]
+    }
+  },
+  "erwartet": {
+    "unterkonstruktion_stueckliste": [],
+    "zuschnitt_unterkonstruktion": [],
+    "dielen": [
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 270,
+        "breite_cm": 6,
+        "stueck": 60
+      }
+    ],
+    "zuschnitt_deckbelag": [
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 550,
+        "menge": 29,
+        "schnitte_cm": [
+          270,
+          270
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 1 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 550,
+        "menge": 1,
+        "schnitte_cm": [
+          270,
+          270
+        ]
+      }
+    ],
+    "materialliste": []
+  },
+  "hinweise": [
+    "PDF enthält 7 von 11 Seiten (1, 4 Zeichnung, 5 UK, 8 Belag, 9 Dielen, 10 Zuschnitt Deckbelag, 11 Rechtliches); Aufbauhöhe/Winkel, UK-Stückliste und UK-Zuschnitt fehlen.",
+    "UK-Abstände quer (Maßkette oben) summieren sich auf 260 cm bei 270 cm Breite; Enden mit Doppelstrich ohne Wert (vermutlich je ca. 5 cm Randabstand). laengs = Gesamtmaß 390 (keine Unterteilung bemaßt), Balken mit 8 Auflagerreihen gezeichnet.",
+    "Zuschnitt Deckbelag: letzte Rohdiele 'FJ 1 CLIP' statt 'FJ 2 CLIP'."
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "id": "2026-05-18-3484-v3",
+  "quelle": {
+    "konfigurationsnummer": "2026-05-18-3484",
+    "version": 3,
+    "datum": "2026-05-18",
+    "seiten": 3,
+    "export": false
+  },
+  "eingaben": {
+    "grundriss": {
+      "form": "Rechteck",
+      "eckpunkte": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "kanten_cm": {
+        "A-B": 319,
+        "B-C": 700,
+        "C-D": 319,
+        "D-A": 700
+      },
+      "radius_cm": null,
+      "ausschnitte": [],
+      "rundungen": false
+    },
+    "flaeche_m2": 22.33,
+    "volumen_m3": 0.745,
+    "belag": "Terrassendiele Robinie 100 x 26 mm, genutet, keilgezinkt, bombiert",
+    "verlegerichtung": "Waagrecht",
+    "ausgangspunkt": {
+      "punkt": "A",
+      "waagrecht_cm": 0,
+      "senkrecht_cm": 0
+    },
+    "unterkonstruktion": "ALUecofix S 45x15mm blank",
+    "verblendung": "keine Verblendung",
+    "aufbauhoehen_cm": null,
+    "winkel_grad": null,
+    "uk_abstaende_cm": {
+      "laengs": [
+        700
+      ],
+      "quer": [
+        37,
+        39,
+        39,
+        40,
+        39,
+        39,
+        39,
+        37
+      ]
+    }
+  },
+  "erwartet": {
+    "unterkonstruktion_stueckliste": [],
+    "zuschnitt_unterkonstruktion": [],
+    "dielen": [],
+    "zuschnitt_deckbelag": [],
+    "materialliste": []
+  },
+  "hinweise": [
+    "Datum aus der Konfigurationsnummer abgeleitet; „seiten“ = physische Seitenzahl der PDF-Datei.",
+    "PDF unvollständig: nur 3 physische Seiten (Seite 1, 4 und 5 von 11). Keine Aufbauhöhen/Winkel, keine UK-Stückliste, keine Zuschnittspläne, keine Dielenliste – erwartet-Listen daher leer.",
+    "Fläche nachgerechnet: 3,19 x 7,00 = 22,33 m² stimmt.",
+    "UK-Plan: Träger in zwei Längen (rot/blau) gestoßen, Längen aber nicht beschriftet.",
+    "uk_abstaende: \"quer\" = Maßkette der Abstände zwischen den UK-Trägern, \"laengs\" = Maßkette in Trägerrichtung (Lage der Querverbinder/Stöße), jeweils wie im UK-Plan beschriftet."
+  ]
+}

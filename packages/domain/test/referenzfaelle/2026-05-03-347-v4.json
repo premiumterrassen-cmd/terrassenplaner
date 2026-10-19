@@ -1,0 +1,219 @@
+{
+  "id": "2026-05-03-347-v4",
+  "quelle": {
+    "konfigurationsnummer": "2026-05-03-347",
+    "version": 4,
+    "datum": "2026-05-03",
+    "seiten": 9,
+    "export": false
+  },
+  "eingaben": {
+    "grundriss": {
+      "form": "Rechteck",
+      "eckpunkte": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "kanten_cm": {
+        "A-B": 585,
+        "B-C": 345,
+        "C-D": 585,
+        "D-A": 345
+      },
+      "radius_cm": null,
+      "ausschnitte": [],
+      "rundungen": false
+    },
+    "flaeche_m2": 20.183,
+    "volumen_m3": 0.814,
+    "belag": "Terrassendiele Robinie 60 x 26 mm, genutet, stehende Keilzinkung, BOM",
+    "verlegerichtung": "Waagrecht",
+    "ausgangspunkt": {
+      "punkt": "A",
+      "waagrecht_cm": 0,
+      "senkrecht_cm": 0
+    },
+    "unterkonstruktion": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+    "verblendung": "Holzverblendung",
+    "aufbauhoehen_cm": {},
+    "winkel_grad": {},
+    "uk_abstaende_cm": {
+      "laengs": [
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        75,
+        60
+      ],
+      "quer": [
+        35,
+        38,
+        38,
+        38,
+        37,
+        38,
+        38,
+        38,
+        35
+      ]
+    }
+  },
+  "erwartet": {
+    "unterkonstruktion_stueckliste": [
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "laenge_cm": 585,
+        "stueck": 10,
+        "farbe": "blue"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "laenge_cm": 34,
+        "stueck": 20,
+        "farbe": "green"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "laenge_cm": 33,
+        "stueck": 4,
+        "farbe": "green"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "laenge_cm": 31,
+        "stueck": 8,
+        "farbe": "green"
+      }
+    ],
+    "zuschnitt_unterkonstruktion": [
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 600,
+        "menge": 9,
+        "schnitte_cm": [
+          585,
+          8.7
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          585
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 500,
+        "menge": 1,
+        "schnitte_cm": [
+          34,
+          34,
+          34,
+          34,
+          34,
+          31,
+          31,
+          31,
+          8.7,
+          8.7,
+          8.7,
+          8.7,
+          8.7,
+          8.7,
+          8.7,
+          8.7,
+          8.7,
+          8.7,
+          8.7,
+          8.7,
+          8.7,
+          8.7,
+          8.7,
+          8.7,
+          8.7,
+          8.7,
+          8.7,
+          8.7,
+          8.7,
+          8.7,
+          8.7,
+          8.7,
+          8.7,
+          8.7,
+          8.7
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 500,
+        "menge": 1,
+        "schnitte_cm": [
+          31,
+          31,
+          31,
+          31,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          34,
+          33
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 300,
+        "menge": 1,
+        "schnitte_cm": [
+          33,
+          33,
+          33,
+          34,
+          34,
+          34,
+          34,
+          34,
+          31
+        ]
+      }
+    ],
+    "dielen": [
+      {
+        "artikel": "Terrassendiele Robinie 60 x 26 mm, genutet, stehende Keilzinkung, BOM",
+        "laenge_cm": 345,
+        "breite_cm": 6,
+        "stueck": 90
+      }
+    ],
+    "zuschnitt_deckbelag": [
+      {
+        "artikel": "Terrassendiele Robinie 60 x 26 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 90,
+        "schnitte_cm": [
+          345
+        ]
+      }
+    ],
+    "materialliste": []
+  },
+  "hinweise": [
+    "PDF enthält 9 von 11 Seiten (Seiten 2-3 fehlen, vermutlich Aufbauhöhe/Winkel); aufbauhoehen_cm und winkel_grad daher leer.",
+    "Eckpunkte im Uhrzeigersinn von oben links: D, A, B, C (D-A oben 345, A-B rechts 585). Kante A-B schraffiert (vermutlich Wand/Anschluss), Kanten B-C, C-D, D-A gelb markiert (Holzverblendung).",
+    "Zuschnitt UK: 36 Stück à 8,7 cm (9 + 27) ohne Entsprechung in der UK-Stückliste (vermutlich Abstandsklötze/Verblendungsträger).",
+    "UK-Abstände quer summieren sich auf 335 cm bei 345 cm Breite; Enden mit Doppelstrich ohne Wert. Zeichnung zeigt versetzte Querverbinder (green) zwischen Doppelbalken.",
+    "Belagbezeichnung im PDF abgeschnitten ('... stehende Keilzinkung, BOM')."
+  ]
+}

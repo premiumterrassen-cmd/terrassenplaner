@@ -1,0 +1,277 @@
+{
+  "id": "2026-06-01-4502-v2",
+  "quelle": {
+    "konfigurationsnummer": "2026-06-01-4502",
+    "version": 2,
+    "datum": "2026-06-01",
+    "seiten": 11,
+    "export": false
+  },
+  "eingaben": {
+    "grundriss": {
+      "form": "Freiform",
+      "eckpunkte": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "H"
+      ],
+      "kanten_cm": {
+        "A-B": 1105,
+        "B-C": 123,
+        "C-D": 730,
+        "D-E": 319,
+        "E-F": 545,
+        "F-G": 319,
+        "G-H": 170,
+        "H-A": 123
+      },
+      "radius_cm": null,
+      "ausschnitte": [],
+      "rundungen": false
+    },
+    "flaeche_m2": 30.977,
+    "volumen_m3": 0.852,
+    "belag": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt, bombiert",
+    "verlegerichtung": "Waagrecht",
+    "ausgangspunkt": {
+      "punkt": "A",
+      "waagrecht_cm": 0,
+      "senkrecht_cm": 0
+    },
+    "unterkonstruktion": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+    "verblendung": "keine Verblendung",
+    "aufbauhoehen_cm": {
+      "A": 13,
+      "B": 13,
+      "C": 13,
+      "D": 13,
+      "E": 13,
+      "F": 13,
+      "G": 13,
+      "H": 13
+    },
+    "winkel_grad": {
+      "A": 90,
+      "B": 90,
+      "C": 90,
+      "D": 90,
+      "E": 270,
+      "F": 90,
+      "G": 90,
+      "H": 90
+    },
+    "uk_abstaende_cm": {
+      "laengs": [
+        40,
+        39,
+        40,
+        40,
+        37,
+        40,
+        40,
+        39,
+        40,
+        40,
+        39,
+        40,
+        40,
+        1,
+        29,
+        40,
+        40,
+        39,
+        40,
+        40,
+        39,
+        40,
+        40,
+        39,
+        40,
+        40,
+        39,
+        40,
+        40,
+        39,
+        40,
+        40,
+        21
+      ],
+      "quer": []
+    }
+  },
+  "erwartet": {
+    "unterkonstruktion_stueckliste": [
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "laenge_cm": 442,
+        "stueck": 9,
+        "farbe": "blue"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "laenge_cm": 319,
+        "stueck": 8,
+        "farbe": "blue"
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "laenge_cm": 123,
+        "stueck": 21,
+        "farbe": "blue"
+      }
+    ],
+    "zuschnitt_unterkonstruktion": [
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          123,
+          123,
+          319
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 500,
+        "menge": 3,
+        "schnitte_cm": [
+          123,
+          123,
+          123,
+          123
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 450,
+        "menge": 9,
+        "schnitte_cm": [
+          442
+        ]
+      },
+      {
+        "artikel": "Unterkonstruktionsholz Robinie 40 x 60 mm, keilgezinkt",
+        "ausgangslaenge_cm": 450,
+        "menge": 7,
+        "schnitte_cm": [
+          319,
+          123
+        ]
+      }
+    ],
+    "dielen": [
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 600,
+        "breite_cm": 6,
+        "stueck": 19
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 505,
+        "breite_cm": 6,
+        "stueck": 18
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 505,
+        "breite_cm": 5.5,
+        "stueck": 1
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 170,
+        "breite_cm": 6,
+        "stueck": 49
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm, genutet, keilgezinkt, bombiert",
+        "laenge_cm": 375,
+        "breite_cm": 6,
+        "stueck": 49
+      }
+    ],
+    "zuschnitt_deckbelag": [
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 18,
+        "schnitte_cm": [
+          600
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 550,
+        "menge": 47,
+        "schnitte_cm": [
+          375,
+          170
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 550,
+        "menge": 17,
+        "schnitte_cm": [
+          505
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 2 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          375
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 1 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 600,
+        "menge": 1,
+        "schnitte_cm": [
+          600
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 1 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 550,
+        "menge": 2,
+        "schnitte_cm": [
+          505
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 1 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          170,
+          170
+        ]
+      },
+      {
+        "artikel": "Terrassendiele Robinie 60 x 22 mm - FJ 1 CLIP BOMBIERT",
+        "ausgangslaenge_cm": 400,
+        "menge": 1,
+        "schnitte_cm": [
+          375
+        ]
+      }
+    ],
+    "materialliste": []
+  },
+  "hinweise": [
+    "PDF enthält 8 von 11 Seiten (Seiten 2-4 fehlen).",
+    "Stufenförmiger Grundriss (oberer Streifen A-B-C-D, unterer Block H-D-E-F-G, nach links versetzt); als Freiform erfasst.",
+    "Winkeltabelle: nur E mit 270° markiert, obwohl D und H in der Zeichnung die einspringenden Ecken sind – so aus PDF übernommen.",
+    "UK-Plan: UK-Hölzer laufen senkrecht; obere Maßkette (laengs) von links (G) nach rechts (B); links nur Gesamtmaß 442 (UK-Länge), keine Einzelabstände – quer leer.",
+    "Terrassengeometrie-Plan zeigt an den Stützpunkten den Wert 4.7 (Bedeutung unklar)."
+  ]
+}
