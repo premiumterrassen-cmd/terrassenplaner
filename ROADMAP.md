@@ -107,7 +107,7 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/2
   - Gezielte Testfälle im alten Planer durchspielen (jede Form, jede Verlegeart/-richtung, Gefälle, Ausschnitt, Rundung, Treppe, Verblendung, Rinne) und Ergebnisse (PDF, Materialliste) festhalten.
   - Abnahme: Mind. ein Fall je Option aus M1-01; Ergebnisse als Referenz neben M1-02
   - Ergebnis: 43 Konfigurationen F01–F43 in `packages/domain/test/referenzkonfigurationen/` mit Materialliste und Zuschnittliste (ERP-Exporte, ohne Preise/EAN), Modell `Referenzkonfiguration`, Befunde als Tests, Fehler des alten Planers als `fehlerverdacht` markiert (nicht übernehmen); Übersicht und Lücken (Rundung, Querstreben) in `docs/fachkonzept/12-referenzkonfigurationen.md`.
-- [ ] **M1-04 Planungsregeln aus Firmenwissen** ([#16](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/16)) – `feature/m1-04-planungsregeln-aus-firmenwissen`
+- [~] **M1-04 Planungsregeln aus Firmenwissen** ([#16](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/16)) – `feature/m1-04-planungsregeln-aus-firmenwissen`
   - Regeln aus Unternehmensprofil, Sortimentsmatrix und Beschlussregister als Fachregeln beschreiben: UK-Achsabstand max. 40 cm, Befestigung nach B-094 (CLIP-FIXX bis < 100 mm, DUO-CLIP-FIXX für PREMIUM SELECT ab 100 mm), Freidielen ab 25 Dielen (B-079), keine einseitig genuteten Dielen/Anfangs-/Enddiele = normale Diele (B-033), Längen je Werk (B-035), UK Breite/Stärke tauschbar (B-034), Nummern wie im Shop (B-152).
   - Abnahme: Regelkatalog mit Quelle (Beschluss-Nr.) je Regel; Widersprüche zum alten Planer sind markiert und von Alexander entschieden
 
