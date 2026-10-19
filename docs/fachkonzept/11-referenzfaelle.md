@@ -19,7 +19,7 @@
 - **Unvollständige PDFs:** fast alle Unterlagen sind Auszüge (meist fehlen Seiten 2–4); 8 Fälle haben nur Seite 1, Grundriss und UK-Plan.
 - **Verlegerichtung:** in 3 Fällen steht auf Seite 1 „Waagrecht“, die Zeichnung zeigt eine andere Richtung.
 - **Winkeltabelle** teilweise um einen Eckpunkt verschoben gegenüber der Zeichnung.
-- **UK-Zuschnitt enthält kurze Stücke (8,6 / 8,7 / 11 cm), die in der UK-Stückliste fehlen** – vermutlich Verbinder/Distanzstücke (Fall mit Verblendung oder Rahmen); klären.
+- **UK-Zuschnitt enthält kurze Stücke (8,6 / 8,7 / 11 cm), die in der UK-Stückliste fehlen:** das sind die im 90°-Winkel an den Sichtseiten angesetzten UK-Stücke, an denen die Blenden (Verblendung) befestigt werden (Alexander, 19.10.2026). Sie entstehen aus dem Zuschnitt, stehen aber nicht als eigene Position in der Stückliste – der neue Planer weist sie bei Verblendung aus.
 - Exporte gelten je Konfigurationsnummer, nicht je Version – bei zwei Fällen passte die Liste nicht zur Version und wurde dort nicht übernommen.
 - Fläche ohne Abzug leerer Ausschnitte (bestätigt `docs/fachkonzept/01-grundriss.md`).
 

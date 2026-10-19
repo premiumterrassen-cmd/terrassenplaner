@@ -14,3 +14,7 @@ Zur Klärung mit Alexander (in M1-03/M1-04 abhaken).
 10. **Zubehör-Mengen**: Eintrag „Tatsächlich“ änderte die Summe sofort nicht – wann fließt er ein (Angebot/PDF)?
 11. **Konstruktionsart Fundament** (Treppe): Wirkung auf die Materialliste?
 12. **Login**: Wer meldet sich an (Mitarbeiter/Händler), und was sehen sie zusätzlich?
+
+## Beantwortet
+
+- **Kurze UK-Stücke 8,6 / 8,7 / 11 cm im UK-Zuschnitt** (aus M1-02): im 90°-Winkel an den Sichtseiten angesetzte UK-Stücke, an denen die Blenden befestigt werden (Alexander, 19.10.2026).
