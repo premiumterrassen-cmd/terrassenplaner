@@ -7,4 +7,9 @@ abstract final class WampNamen {
 
   /// Hallo-Welt-Prozedur (M0-12): prüft die Verbindung App → Router → Dienst.
   static const hallo = '${kunde}hallo';
+
+  /// Payload-Passthrough (PPT) für typisierte FlatBuffers-Nutzlasten (#110):
+  /// eigenes Anwendungsschema (`x_`-Präfix nach WAMP-Spezifikation).
+  static const pptSchema = 'x_terrassenplaner';
+  static const pptSerializer = 'flatbuffers';
 }
