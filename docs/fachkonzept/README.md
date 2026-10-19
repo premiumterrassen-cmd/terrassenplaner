@@ -19,9 +19,10 @@ Messwerte (Fläche, Verschnitt, Volumen, Materialliste) gelten für den genannte
 | [09 Nicht Teil der Kopie](09-nicht-teil-der-kopie.md) | Abgeschaltete Funktionen und Fehler des Altsystems |
 | [10 Offene Fragen](10-offene-fragen.md) | Klärung mit Alexander (M1-03/M1-04) |
 | [11 Referenzfälle](11-referenzfaelle.md) | 47 anonymisierte Prüffälle aus Planungsunterlagen (M1-02) |
+| [12 Referenzkonfigurationen](12-referenzkonfigurationen.md) | 43 gezielt nachgestellte Konfigurationen mit Material- und Zuschnittliste (M1-03) |
 
 ## Begriffe
 
 - **Eckpunkte** werden im Uhrzeigersinn mit A, B, C … benannt, Seiten als „A — B“.
 - **Kennzahlen** (rechts oben): Fläche (m², drei Nachkommastellen), Verschnitt (%), Volumen (m³, Holz gesamt).
-- **Materialliste**: automatisch berechnete Artikel mit Gesamtpreis, ohne sichtbare Menge.
+- **Materialliste**: automatisch berechnete Artikel mit Gesamtpreis; Menge und Exporte nur in der Mitarbeiter-Ansicht (siehe [08](08-ergebnisse.md#mitarbeiter-ansicht-und-erp-exporte)).
