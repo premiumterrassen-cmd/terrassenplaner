@@ -8,7 +8,7 @@ Messwerte: Grundfall aus [00 Rahmen](00-rahmen.md) (2.066,57 €), jeweils nur e
 |---|---|---|
 | Normale Terrasse (Vorgabe) | 8,6 cm | – |
 | Hochterrasse | 54,2 cm | doppelte UK (Lattenkreuz); UK-Holz 3000/4000/5000 mm, Bodenanker L zur Aufständerung 0–23 mm, mehr KOPPLEX-1, kein KOPPLEX-3 → 3.120,27 € |
-| Vorhandene UK | 14,2 cm (Minimum) | Feld „Spannweite der Unterkonstruktion – Spannweite: cm“; 3.6 Nutzungsart entfällt; Meldung „Der Höhenreferenz Punkt unterschreitet die minimale Höhe. Er wurde korrigiert“ |
+| Vorhandene UK | 14,2 cm (Minimum) | neue UK wird **auf** die vorhandene gebaut (daher weiter UK-Holz und Bodenanker); Feld „Spannweite der Unterkonstruktion – Spannweite: cm“; 3.6 Nutzungsart entfällt; Meldung „Der Höhenreferenz Punkt unterschreitet die minimale Höhe. Er wurde korrigiert“ |
 
 ## 3.2 Höhenpunkte (mit Hilfe-Symbol)
 
@@ -27,7 +27,7 @@ Auswahl, im Test nur „600 cm“. Die Materialliste verwendet trotzdem Stücke 
 
 ## 3.5 Auf welchem Untergrund wird die Terrasse aufgebaut?
 
-Schotter (verdichtet) (Vorgabe) | Beton | Bitumenabdichtung. Im Grundfall (ohne Gefälle) ohne Wirkung auf Zeichnung und Materialliste; Wirkung auf das Auflager bei Gefälle/Höhe in M1-03 prüfen.
+Schotter (verdichtet) (Vorgabe) | Beton | Bitumenabdichtung. **Nur Information für die Planer** (richtige Unterbauhinweise an den Kunden) – keine Wirkung auf die Berechnung.
 
 ## 3.6 Art der Terrassennutzung
 
@@ -41,7 +41,7 @@ Schotter (verdichtet) (Vorgabe) | Beton | Bitumenabdichtung. Im Grundfall (ohne 
 
 ## 3.7 Querstreben
 
-„Möchten Sie zusätzliche Querstreben hinzufügen?“ – „Querstreben Hinzufügen“ startet einen Bearbeitungsmodus („Änderungen übernehmen (ESC)“). Wie Querstreben gesetzt werden, ließ sich nicht ermitteln.
+„Möchten Sie zusätzliche Querstreben hinzufügen?“ – „Querstreben Hinzufügen“ startet einen Bearbeitungsmodus („Änderungen übernehmen (ESC)“). Wie Querstreben in der Zeichnung gesetzt werden, ließ sich nicht ermitteln. Fachlich: Querstreben kommen als **Leiterverband zwischen die UK-Hölzer** und versteifen die Unterkonstruktion.
 
 ## 3.8 Nutzung privat oder gewerblich
 

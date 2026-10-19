@@ -9,7 +9,7 @@
 | Start | Auswahl einer Seite – nur freie Seiten (nicht an Bauelement, nicht mit Rinne; verblendete Seiten sind erlaubt) |
 | Seite | Abstand vom Startpunkt der Seite in cm (Vorgabe 0) |
 | Breite | cm (Vorgabe 100) |
-| Konstruktionsart | Fundament \| Konstruktion (Vorgabe Konstruktion) |
+| Konstruktionsart | Fundament \| Konstruktion (Vorgabe Konstruktion) – Fundament: Betontreppe vorhanden, wird nur belegt; Konstruktion: der Planer erstellt und berechnet die Treppe konstruktiv |
 | Treppenart | Reguläre Treppe \| 2-teilige Fächertreppe \| 3-teilige Fächertreppe |
 | Individuelle Stufenmaße? | Ja \| Nein (Vorgabe Nein) |
 | Anzahl der Stufen | −/+ (Vorgabe 2) |
@@ -20,3 +20,4 @@
 - Reguläre Treppe 100 cm an D — A: Treppenmaße 100 × 54 × 31,2; zusätzliche UK und Dielen (4000 mm), Volumen 0,429 → 0,466 m³, Summe +135,48 €.
 - 2-teilige Fächertreppe: Treppenmaße 104 × 108 × 46,8.
 - Die Treppe erscheint in der Zeichnung an der gewählten Seite, mit Stufenlinien.
+- Treppenhöhe unabhängig von der Terrassenhöhe ist gewollt: teilweise sind andere Bauteile vorhanden, die nicht mitgeplant werden.

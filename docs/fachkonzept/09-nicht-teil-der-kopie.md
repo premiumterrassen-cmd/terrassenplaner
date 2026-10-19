@@ -19,8 +19,8 @@ In der Oberfläche vom 08.10.2026 nicht vorhanden und daher nicht Teil der funkt
 - **Holzfliesen** mit „Preis per lfm“ statt Preis je Stück.
 - Abgeschnittener Produkttitel („… keilgezinkt, BOM“), Zusatz „UK geliefert in 40mm breite“ in Belagsbeschreibungen.
 - Uneinheitliche Zahlenformate: „Verschnitt: 7.44%“ (Punkt) neben „10,150 m²“ (Komma); „Fuge: 0.5 mm“.
-- **Vorhandene UK** bringt trotzdem neues UK-Holz und Bodenanker in die Materialliste.
 - „Länge der Unterkonstruktion“ bietet nur 600 cm an, die Materialliste nimmt aber andere Längen.
+- „Fuge: 0.5 mm“ statt 5 mm.
 - **SPEICHERN** legt ohne Rückfrage eine Konfiguration auf dem Server an.
 - Die Materialliste zeigt keine Mengen, nur Gesamtpreise.
 

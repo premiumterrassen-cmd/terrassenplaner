@@ -1,6 +1,6 @@
 # 06 Zubehör
 
-Akkordeon mit acht Kategorien; es ist immer nur eine geöffnet. Jede Kategorie zeigt eine Tabelle „Bezeichnung | Tatsächlich“ mit Bild, Artikelname und Mengenfeld. Hier wählt man Zubehör von Hand, **zusätzlich** zur automatisch berechneten Materialliste.
+Akkordeon mit acht Kategorien; es ist immer nur eine geöffnet. Jede Kategorie zeigt eine Tabelle „Bezeichnung | Tatsächlich“ mit Bild, Artikelname und Mengenfeld. „Tatsächlich“ startet mit dem vom Planer berechneten Wert und lässt sich ändern; der geänderte Wert erscheint im finalen Angebot **unter** dem berechneten Wert des Planers.
 
 | Kategorie | Inhalt (Altsystem, Referenz) |
 |---|---|
