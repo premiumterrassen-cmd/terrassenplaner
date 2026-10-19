@@ -24,6 +24,6 @@ Knopf „Jetzt Angebot anfordern“ (Materialliste) öffnet „Angebot anfordern
 
 ## Weitere
 
-- **ANMELDEN**: Dialog „Login“ mit E-Mail-Adresse und Passwort (vermutlich für Mitarbeiter, siehe Rollen in M0-08).
+- **ANMELDEN**: Dialog „Login“ mit E-Mail-Adresse und Passwort – **nur für Mitarbeiter** (Rollen in M0-08).
 - **Video Beratung buchen**: externer Terminlink (nicht geöffnet).
 - **Kontakt-Knopf** (rot, rechts): E-Mail-Kontakt.

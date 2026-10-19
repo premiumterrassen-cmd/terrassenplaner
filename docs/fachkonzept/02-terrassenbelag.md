@@ -4,7 +4,7 @@ Messwerte in diesem Kapitel: Rechteck 480 × 309 cm, Diele 60 × 22 genutet, son
 
 ## 2.1 Terrassenbelag auswählen
 
-- Anzeige des gewählten Belags: Bild, Name, „Maße: 600 x 6 x 2.2 cm“, „Fuge: 0.5 mm“, Knopf „Produktauswahl“.
+- Anzeige des gewählten Belags: Bild, Name, „Maße: 600 x 6 x 2.2 cm“, „Fuge: 0.5 mm“ (richtig: **5 mm** – Anzeigefehler im alten Planer), Knopf „Produktauswahl“.
 - Vorgabe: Terrassendiele Robinie 60 × 22 mm, genutet, keilgezinkt, bombiert.
 - Dialog „Terrassenbelag auswählen“:
   - Kategorien als Bildknöpfe: **Unsichtbar befestigt** (genutet) | **Sichtbar befestigt** (glattkant) | **Holzfliese**.
@@ -17,7 +17,8 @@ Messwerte in diesem Kapitel: Rechteck 480 × 309 cm, Diele 60 × 22 genutet, son
 
 ## 2.2 Soll die Dielenlänge automatisch ermittelt werden?
 
-- **Ja** (Vorgabe): Längen werden automatisch gewählt (Materialliste z. B. 5000 mm).
+- **Ja** (Vorgabe): der Planer sucht die passende Lieferlänge automatisch aus (Materialliste z. B. 5000 mm).
+- **Nein** dient dazu, eine bestimmte Länge zu erzwingen, z. B. weil nur diese am Lager ist.
 - **Nein**: „Mögliche Originallängen (in cm):“ Einzelauswahl 300, 400, 450, 500, 550, 600.
   - Beispiel 400: Stoßfuge bei 400 cm, Reststück 80 cm → Verschnitt 0,99 %, Volumen 0,434 m³ (automatisch: 4 %, 0,435 m³).
 

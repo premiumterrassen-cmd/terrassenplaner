@@ -19,4 +19,5 @@ Beispiel B — C (309 cm): + „Terrassendiele Robinie 80 x 22 mm, glattkant, ke
   - außerhalb des bodentiefen Elements
   - nur vor dem bodentiefen Element
 - Produktkarte „RELO V Ventilationsprofil, Einzelstück(e)“.
+- Lage und bodentiefes Element sind **fest im Artikel verankert**: Rinnen werden nur an den Seiten verbaut, als Ventilationsprofil oder Entwässerungsrinne; die Lageauswahl wählt die Artikelvariante.
 - Beispiel C — D (480 cm), gesamte Seite: Fläche 14,832 → 14,256 m² (Rinne 12 cm breit), + Ventilationsprofil, + Auflagerprofil, weniger Dielen → 2.421,13 €.
