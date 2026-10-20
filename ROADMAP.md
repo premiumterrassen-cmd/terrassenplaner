@@ -123,9 +123,10 @@ Artikel aus dem Blatt „Import Terrassenplaner“ der Master-Artikelliste werde
 
 GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/3
 
-- [ ] **M2-01 Fachmodell Artikel** ([#17](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/17)) – `feature/m2-01-fachmodell-artikel`
+- [x] **M2-01 Fachmodell Artikel** ([#17](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/17)) – `feature/m2-01-fachmodell-artikel`
   - Eigenes Fachmodell für Dielen, Unterkonstruktion, Befestigung, Stellfüße, Pads, Verbinder (längs, quer, Eck, variabel), Verblendung, Rinnen, Zubehör – mit Einheiten (mm, lfm, Stück, VPE) und Preisangaben (Anzeige).
   - Abnahme: Modell im Paket `domain`, unabhängig vom Importformat; Einheiten typsicher (keine nackten Zahlen für mm/cm)
+  - Ergebnis: `packages/domain/lib/src/artikel/` – typsichere Einheiten (Millimeter, Gramm, Cent, Verkaufseinheit) und Artikelmodell (Artikelart mit Bereich, Abmessungen, Serie/Profil/Oberseite, Abbildungen); Beschreibung in `docs/architektur/artikelmodell.md`.
 - [ ] **M2-02 Import aus „Import Terrassenplaner“** ([#18](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/18)) – `feature/m2-02-import-aus-import-terrassenplaner` · Benchmark
   - Importer für das Blatt „Import Terrassenplaner“ der Master-Artikelliste (xlsx) → geprüfte Artikeldatei für den Server. Nur Verkaufsdaten, niemals Einstandspreise/Werks-EK (B-020).
   - Abnahme: Import der aktuellen Liste (234 Zeilen) ohne Fehler; Test: EK-Spalten werden nie übernommen; Hinweis: Maßspalten heißen _cm, enthalten aber mm

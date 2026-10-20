@@ -1,6 +1,8 @@
 /// Fachlogik des Terrassenplaners, gemeinsam genutzt von App und Server.
 library;
 
+export 'src/artikel/artikel.dart';
+export 'src/artikel/einheiten.dart';
 export 'src/begruessung.dart';
 export 'src/datenmodell/hlc.dart';
 export 'src/datenmodell/uuid_v7.dart';
