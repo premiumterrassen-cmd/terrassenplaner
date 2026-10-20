@@ -38,7 +38,10 @@ void main() {
     final uk = _fall('F01').zuschnitt.where((z) => z.artikel.contains('Unter'));
     final hoelzer = uk.fold(0, (s, z) => s + z.menge);
     expect(hoelzer, 13);
-    expect((4800 - 40) / (hoelzer - 1), lessThanOrEqualTo(ukAchsabstandMaxMm));
+    expect(
+      (4800 - 40) / (hoelzer - 1),
+      lessThanOrEqualTo(robinie.ukAchsabstandMax.mm),
+    );
   });
 
   test('R-A07 Abweichung alt: einseitig genutete Anfangsdielen', () {
@@ -57,7 +60,8 @@ void main() {
         if (m.laengeMm != null) m.laengeMm!,
     };
     final standard = {
-      for (final serie in Serie.values) ...lieferlaengenMm(serie),
+      for (final regeln in robinie.serien.values)
+        for (final l in regeln.lieferlaengen) l.mm,
     };
     expect(laengen.difference(standard), containsAll([3000, 4500, 5500]));
   });

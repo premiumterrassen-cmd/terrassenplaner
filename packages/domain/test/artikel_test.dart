@@ -4,7 +4,9 @@ import 'package:test/test.dart';
 Artikel _diele({
   String nummer = '10-10-073-R',
   String titel = 'Terrassendiele Robinie PREMIUM SELECT 60 x 23 mm',
-  Serie? serie = Serie.premiumSelect,
+  Serie? serie = premiumSelect,
+  Holzart? holzart,
+  bool mitHolzart = true,
   Artikelart art = Artikelart.diele,
   Iterable<String> bilder = const ['a.webp'],
 }) => Artikel(
@@ -19,6 +21,7 @@ Artikel _diele({
   ),
   preisBrutto: const Cent(449),
   gewicht: const Gramm(1035),
+  holzart: mitHolzart ? (holzart ?? robinie) : null,
   serie: serie,
   profil: Profil.genutet,
   oberseite: Oberseite.bombiert,
@@ -115,7 +118,7 @@ void main() {
       expect([a.preisBrutto, a.gewicht], [const Cent(449), const Gramm(1035)]);
       expect(
         [a.serie, a.profil, a.oberseite],
-        [Serie.premiumSelect, Profil.genutet, Oberseite.bombiert],
+        [premiumSelect, Profil.genutet, Oberseite.bombiert],
       );
       expect(a.bilder, ['a.webp']);
       expect(() => a.bilder.add('b'), throwsUnsupportedError);
@@ -151,8 +154,19 @@ void main() {
     });
     test('Holzartikel brauchen eine Serie, andere keine', () {
       expect(() => _diele(serie: null), throwsArgumentError);
+      expect(() => _diele(mitHolzart: false), throwsArgumentError);
       expect(() => _diele(art: Artikelart.clip), throwsArgumentError);
-      expect(_diele(art: Artikelart.clip, serie: null).serie, isNull);
+      expect(
+        () => _diele(art: Artikelart.clip, serie: null),
+        throwsArgumentError,
+        reason: 'Holzart ohne Serie',
+      );
+      final clip = _diele(art: Artikelart.clip, serie: null, mitHolzart: false);
+      expect([clip.serie, clip.holzart], [null, null]);
+      expect(_diele().holzart, robinie);
+    });
+    test('Serie muss zur Holzart gehören', () {
+      expect(() => _diele(serie: const Serie('GOLD')), throwsArgumentError);
     });
   });
 }

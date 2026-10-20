@@ -1,4 +1,4 @@
-import '../regeln/sortimentsregeln.dart';
+import '../holzart/holzart.dart';
 import 'einheiten.dart';
 
 /// Artikelnummer wie im Shop (B-152) – der fachliche Schlüssel eines
@@ -55,7 +55,7 @@ enum Artikelart {
 
   final Bereich bereich;
 
-  /// Holzartikel mit Serie, Profil und Lieferlängen.
+  /// Holzartikel mit Holzart, Serie, Profil und Lieferlängen (M2-08).
   bool get istHolz =>
       this == diele || this == systemdiele || this == unterkonstruktion;
 }
@@ -102,6 +102,7 @@ final class Artikel {
     Abmessungen? abmessungen,
     this.preisBrutto,
     this.gewicht,
+    this.holzart,
     this.serie,
     this.profil,
     this.oberseite,
@@ -115,13 +116,15 @@ final class Artikel {
     if (this.bilder.length > 3) {
       throw ArgumentError.value(bilder, 'bilder', 'höchstens 3 Abbildungen');
     }
-    if (art.istHolz != (serie != null)) {
+    final holzangaben = [holzart, serie].nonNulls.length;
+    if (holzangaben != (art.istHolz ? 2 : 0)) {
       throw ArgumentError.value(
         serie,
         'serie',
-        'Holzartikel brauchen eine Serie, andere keine (${art.name})',
+        'Holzartikel brauchen Holzart und Serie, andere keine (${art.name})',
       );
     }
+    if (serie case final s?) holzart?.serie(s);
   }
 
   final Artikelnummer nummer;
@@ -136,6 +139,8 @@ final class Artikel {
   /// Gewicht je Verkaufseinheit.
   final Gramm? gewicht;
 
+  /// Holzart und Serie – nur bei Holzartikeln (M2-08).
+  final Holzart? holzart;
   final Serie? serie;
   final Profil? profil;
   final Oberseite? oberseite;
