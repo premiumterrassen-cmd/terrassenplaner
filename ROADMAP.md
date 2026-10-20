@@ -127,9 +127,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/3
   - Eigenes Fachmodell für Dielen, Unterkonstruktion, Befestigung, Stellfüße, Pads, Verbinder (längs, quer, Eck, variabel), Verblendung, Rinnen, Zubehör – mit Einheiten (mm, lfm, Stück, VPE) und Preisangaben (Anzeige).
   - Abnahme: Modell im Paket `domain`, unabhängig vom Importformat; Einheiten typsicher (keine nackten Zahlen für mm/cm)
   - Ergebnis: `packages/domain/lib/src/artikel/` – typsichere Einheiten (Millimeter, Gramm, Cent, Verkaufseinheit) und Artikelmodell (Artikelart mit Bereich, Abmessungen, Serie/Profil/Oberseite, Abbildungen); Beschreibung in `docs/architektur/artikelmodell.md`.
-- [ ] **M2-02 Import aus „Import Terrassenplaner“** ([#18](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/18)) – `feature/m2-02-import-aus-import-terrassenplaner` · Benchmark
+- [x] **M2-02 Import aus „Import Terrassenplaner“** ([#18](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/18)) – `feature/m2-02-import-aus-import-terrassenplaner` · Benchmark
   - Importer für das Blatt „Import Terrassenplaner“ der Master-Artikelliste (xlsx) → geprüfte Artikeldatei für den Server. Nur Verkaufsdaten, niemals Einstandspreise/Werks-EK (B-020).
   - Abnahme: Import der aktuellen Liste (234 Zeilen) ohne Fehler; Test: EK-Spalten werden nie übernommen; Hinweis: Maßspalten heißen _cm, enthalten aber mm
+  - Ergebnis: Importer `packages/server/lib/src/import/` und `bin/artikel_importieren.dart` (Upload-Datei → geprüfte Artikeldatei mit Prüfbericht und Version); Spalten-Whitelist ohne EK/`marke`; Artikeldatei nicht im Repo. Upload-Datei v6: 241 Artikel ohne Fehler (`docs/betrieb/artikelimport.md`).
 - [ ] **M2-03 Datenprüfung beim Import** ([#19](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/19)) – `feature/m2-03-datenpruefung-beim-import`
   - Prüfungen: Pflichtfelder, plausible Maße, doppelte Artikelnummern, Verweise auf nicht vorhandene Artikel, unbekannte Artikeltypen; verständlicher Prüfbericht.
   - Abnahme: Prüfbericht listet jeden Befund mit Zeile und Feld; Import bricht bei kritischen Fehlern ab

@@ -11,3 +11,7 @@ artefakte/
 deploy/inventories/*/group_vars/all/vault.yml.unverschluesselt
 packages/server/lib/libobjectbox.dylib
 packages/server/lib/libobjectbox.so
+
+# Artikeldateien aus dem Import (EANs der Fremdartikel, B-155) – nie einchecken
+/artikel*.json
+/packages/server/artikel*.json
