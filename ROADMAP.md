@@ -148,6 +148,7 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/3
 - [x] **M2-08 Holzart als Fachmodell (Robinie, später Kastanie)** ([#112](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/112)) – `feature/m2-08-holzart-als-fachmodell-robinie-spaeter-k`
   - Holzart als eigener Teil des Fachmodells mit ihren Planungseigenschaften (Längen, Breiten, Stärken, UK-Regeln, Gewicht/Rohdichte, Befestigung). Zum Go-Live nur Robinie; Kastanie kommt später mit eigenen Eigenschaften und soll ohne Umbau ergänzt werden können (Alexander, 19.10.2026).
   - Abnahme: Robinie vollständig als Holzart mit Planungseigenschaften beschrieben; Zweite Holzart lässt sich nur über Daten ergänzen (Test mit Beispiel-Holzart)
+  - Ergebnis: `packages/domain/lib/src/holzart/` – Holzart und Serienregeln als Daten (Formate, Längen, UK-Formate, Befestigung, Achsabstand, Rechengewicht); Robinie als Datensatz, zweite Holzart per JSON (Test); holzunabhängige Regeln in `regeln/planungsregeln.dart`.
 
 
 ## M3 Oberfläche: Grundgerüst
@@ -156,7 +157,6 @@ Rahmen der App mit Schrittleiste, nummeriertem Menü, Zeichenfläche, Ansichtsop
 
 GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/4
 
-  - Ergebnis: `packages/domain/lib/src/holzart/` – Holzart und Serienregeln als Daten (Formate, Längen, UK-Formate, Befestigung, Achsabstand, Rechengewicht); Robinie als Datensatz, zweite Holzart per JSON (Test); holzunabhängige Regeln in `regeln/planungsregeln.dart`.
 - [ ] **M3-01 App-Rahmen und Design-System** ([#24](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/24)) – `feature/m3-01-app-rahmen-und-design-system`
   - Kopfbereich mit Logo, Schrittleiste mit sieben Stationen (Fortschritt), nummeriertes Bearbeitungsmenü (ein-/ausklappbar), Zeichenfläche, Anzeige Fläche/Volumen; Markenfarben (#B0864B, #95c11c), Schrift. Eigenes Design-System.
   - Abnahme: Smoke-Test: alle Stationen erreichbar; Layout Desktop und Tablet
