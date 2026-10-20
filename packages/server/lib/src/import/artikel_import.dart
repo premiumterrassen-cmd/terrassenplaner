@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
+import 'datenpruefung.dart';
 import 'xlsx_leser.dart';
 
 /// Blatt der Upload-Datei für den Planer (Master-Artikelliste, B-156/B-218).
@@ -120,29 +121,19 @@ ImportErgebnis importiereArtikel(
   if (befunde.isNotEmpty) return ImportErgebnis(null, befunde);
 
   final holz = holzarten.isEmpty ? [robinie] : holzarten.toList();
-  final eintraege = <Artikeleintrag>[];
+  final liste = <({int zeile, Artikeleintrag eintrag})>[];
   for (final zeile in blatt.zeilen) {
     final werte = {
       for (final MapEntry(:key, :value) in zeile.werte.entries)
         if (gelesenenSpalten.contains(key)) key: value,
     };
     final eintrag = _eintrag(zeile.nummer, werte, holz, befunde);
-    if (eintrag != null) eintraege.add(eintrag);
+    if (eintrag != null) liste.add((zeile: zeile.nummer, eintrag: eintrag));
   }
-  final nummern = <Artikelnummer, int>{};
-  for (final (i, e) in eintraege.indexed) {
-    final vorher = nummern[e.artikel.nummer];
-    if (vorher != null) {
-      befunde.add(
-        Befund(
-          blatt.zeilen[i].nummer,
-          'Artikelnummer',
-          'doppelt (wie Zeile $vorher): ${e.artikel.nummer.wert}',
-        ),
-      );
-    }
-    nummern[e.artikel.nummer] = blatt.zeilen[i].nummer;
-  }
+  befunde
+    ..addAll(pruefeArtikel(liste))
+    ..sort((a, b) => a.zeile - b.zeile);
+  final eintraege = [for (final (:eintrag, zeile: _) in liste) eintrag];
   if (befunde.any((b) => b.kritisch)) return ImportErgebnis(null, befunde);
   final ohneVersion = Artikeldatei(
     quelle: quelle,

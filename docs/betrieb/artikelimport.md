@@ -18,6 +18,26 @@ Der Importer schreibt einen Prüfbericht (FEHLER/Hinweis mit Excel-Zeile und Spa
 - Die Spalte „Gewicht“ enthält die Rohdichte (750) und wird nicht als Artikelgewicht übernommen – die Rohdichte steht in der Holzart.
 - **Die Artikeldatei gehört nicht ins Repository:** Artikelnummern der Fremdartikel sind EANs (B-155). `.gitignore` schließt `artikel*.json` im Wurzelverzeichnis und im Server-Paket aus.
 
+## Datenprüfung (M2-03)
+
+Nach dem Einlesen prüft der Importer alle Artikel gemeinsam; jeder Befund nennt Excel-Zeile und Spalte, sortiert nach Zeile.
+
+| Prüfung | Art |
+|---|---|
+| Pflichtfelder, Zahlen, Einheit, Artikeltyp, Holzart/Serie erkennbar | FEHLER |
+| doppelte Artikelnummer (mit erster Zeile) | FEHLER |
+| Verweis (mögliche …, benötigtes Zubehör) auf nicht vorhandenen Artikel | FEHLER |
+| Dielenformat bzw. UK-Format nicht im Sortiment der Holzart (B-030, B-034) | FEHLER |
+| Länge keine Lieferlänge der Serie (B-035) | FEHLER |
+| MinHoehe > MaxHoehe, Maß über 12 m | FEHLER |
+| UK nur ungetrocknet lieferbar (B-212) | Hinweis |
+| UK-Abstand über dem Höchstwert der Holzart (R-C01) | Hinweis |
+| Schraubenlänge passt nicht zum Titel („5,5 x 60 mm“) | Hinweis |
+| kein Preis (B-055), keine Abbildung (M2-07) | Hinweis |
+| Maß unter 1 mm | Hinweis |
+
+Bei einem FEHLER entsteht keine Artikeldatei.
+
 ## Stand 20.10.2026 (Upload-Datei v6)
 
-241 Artikel ohne Fehler importiert, ein Hinweis: Zeile 42 (Unkrautvlies) Stärke 0,1 mm nicht übernommen. Auffällig für die Datenprüfung (M2-03): Speedfix-Flügelbohrschraube 5,5 × 60 mm hat als Länge 45 eingetragen.
+241 Artikel ohne Fehler importiert, fünf Hinweise: Zeile 42 Unkrautvlies 0,1 mm nicht übernommen; Zeile 109 Speedfix-Flügelbohrschraube 5,5 × 60 mm mit Länge 45 eingetragen (in der Master-Artikelliste korrigieren); Zeilen 173, 226, 227 ECO-UK 60 × 60, 60 × 80, 90 × 90 nur ungetrocknet (B-212, wie beschlossen).

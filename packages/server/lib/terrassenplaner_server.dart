@@ -7,6 +7,7 @@ export 'src/datenhaltung/entitaeten.dart';
 export 'src/datenhaltung/roh_speicher.dart';
 export 'src/dienste/hallo_dienst.dart';
 export 'src/import/artikel_import.dart';
+export 'src/import/datenpruefung.dart';
 export 'src/import/xlsx_leser.dart';
 export 'src/router/auth_server_einstellungen.dart';
 export 'src/router/auth_server_prozess.dart';

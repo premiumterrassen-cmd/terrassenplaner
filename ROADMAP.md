@@ -131,9 +131,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/3
   - Importer für das Blatt „Import Terrassenplaner“ der Master-Artikelliste (xlsx) → geprüfte Artikeldatei für den Server. Nur Verkaufsdaten, niemals Einstandspreise/Werks-EK (B-020).
   - Abnahme: Import der aktuellen Liste (234 Zeilen) ohne Fehler; Test: EK-Spalten werden nie übernommen; Hinweis: Maßspalten heißen _cm, enthalten aber mm
   - Ergebnis: Importer `packages/server/lib/src/import/` und `bin/artikel_importieren.dart` (Upload-Datei → geprüfte Artikeldatei mit Prüfbericht und Version); Spalten-Whitelist ohne EK/`marke`; Artikeldatei nicht im Repo. Upload-Datei v6: 241 Artikel ohne Fehler (`docs/betrieb/artikelimport.md`).
-- [ ] **M2-03 Datenprüfung beim Import** ([#19](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/19)) – `feature/m2-03-datenpruefung-beim-import`
+- [x] **M2-03 Datenprüfung beim Import** ([#19](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/19)) – `feature/m2-03-datenpruefung-beim-import`
   - Prüfungen: Pflichtfelder, plausible Maße, doppelte Artikelnummern, Verweise auf nicht vorhandene Artikel, unbekannte Artikeltypen; verständlicher Prüfbericht.
   - Abnahme: Prüfbericht listet jeden Befund mit Zeile und Feld; Import bricht bei kritischen Fehlern ab
+  - Ergebnis: `packages/server/lib/src/import/datenpruefung.dart` – Prüfbericht mit Zeile und Feld (Verweise, Sortiment der Holzart, Lieferlängen, Höhen, Plausibilität; Hinweise für Preis, Bild, ungetrocknete UK, Schraubenlänge); bei FEHLER keine Artikeldatei. Upload-Datei v6: 0 Fehler, 5 Hinweise.
 - [ ] **M2-04 Regelwerk Abhängigkeiten** ([#20](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/20)) – `feature/m2-04-regelwerk-abhaengigkeiten` · Benchmark
   - Eigenes Regelwerk für „was passt zu was“: Befestigung je Belag, Zubehör, Stellfüße privat/gewerblich, Unterlegpads, Längs-/Quer-/Eck-/variable Verbinder, Verblendung, Entwässerung, Pflichtzubehör mit Anzahl; Abstände (UK, Stellfüße, Randabstand), Min-/Max-Höhe.
   - Abnahme: Für jeden Belag liefert das Regelwerk dieselben Auswahlmöglichkeiten wie der alte Planer (Abgleich mit M1); Regeln datengetrieben aus dem Import, nicht im Code fest verdrahtet

@@ -135,9 +135,26 @@ List<Object?> _zeile({
   'GEHEIM-EK-4711',
 ];
 
+/// Die von den Dielen referenzierten Clips (stehen am Ende des Blatts).
+List<List<Object?>> _clips() => [
+  for (final vpe in [50, 100])
+    _zeile(
+      nummer: '80-10-001-$vpe',
+      titel: 'CLIP-FIXX VPE $vpe',
+      typ: 'BefestigungDeck,Zubehoer',
+      vpe: 'Karton',
+      inhalt: vpe,
+      breite: null,
+      staerke: null,
+      laenge: null,
+      befestigung: '',
+      abstandUk: null,
+    ),
+];
+
 ImportErgebnis _import(List<List<Object?>> zeilen, {bool geteilt = false}) =>
     importiereArtikel(
-      _xlsx([_kopf, ...zeilen], geteilt: geteilt),
+      _xlsx([_kopf, ...zeilen, ..._clips()], geteilt: geteilt),
       quelle: 'test.xlsx',
     );
 
@@ -297,7 +314,7 @@ void main() {
       final datei = ergebnis.datei!;
       expect(datei.quelle, 'test.xlsx');
       expect(datei.version, matches(RegExp(r'^[0-9a-f]{16}$')));
-      final e = datei.eintraege.single;
+      final e = datei[const Artikelnummer('10-10-073-R')]!;
       final a = e.artikel;
       expect(
         [a.nummer.wert, a.art, a.holzart, a.serie, a.profil, a.oberseite],
@@ -349,11 +366,16 @@ void main() {
           nummer: 'B',
           titel: 'Systemdiele Robinie MASSIV 80 x 25 mm',
           obergruppe: 'Sichtbar befestigt',
+          breite: 80,
+          staerke: 25,
+          laenge: 2000,
         ),
         _zeile(
           nummer: 'C',
           titel: 'Unterkonstruktion Robinie BASIC 45 x 60 mm',
           typ: 'Unterkonstruktion',
+          breite: 45,
+          staerke: 60,
         ),
         _zeile(
           nummer: 'D',
@@ -370,7 +392,7 @@ void main() {
           befestigung: '',
           abstandUk: null,
           reichweite: 'true',
-          benoetigt: 'X1;X2',
+          benoetigt: '80-10-001-50;80-10-001-100',
           anzahl: '1; 3',
         ),
         _zeile(
@@ -423,8 +445,8 @@ void main() {
       expect(d.verweise, isEmpty);
       expect(d.angaben, {'Reichweite': 1});
       expect(d.benoetigt, {
-        const Artikelnummer('X1'): 1,
-        const Artikelnummer('X2'): 3,
+        const Artikelnummer('80-10-001-50'): 1,
+        const Artikelnummer('80-10-001-100'): 3,
       });
       expect(
         [
@@ -438,10 +460,22 @@ void main() {
     });
 
     test('Maß unter 1 mm ist nur ein Hinweis', () {
-      final ergebnis = _import([_zeile(staerke: '0,1')]);
+      final ergebnis = _import([
+        _zeile(
+          titel: 'Unkrautvlies',
+          typ: 'Zubehoer',
+          vpe: 'Stück',
+          staerke: '0,1',
+          befestigung: '',
+        ),
+      ]);
       expect(ergebnis.erfolgreich, isTrue);
       expect(
-        ergebnis.datei!.eintraege.single.artikel.abmessungen.staerke,
+        ergebnis
+            .datei![const Artikelnummer('10-10-073-R')]!
+            .artikel
+            .abmessungen
+            .staerke,
         isNull,
       );
       final hinweis = ergebnis.befunde.single;
@@ -545,11 +579,15 @@ void main() {
         _xlsx([
           _kopf,
           _zeile(titel: 'Terrassendiele Kastanie PREMIUM SELECT 60 x 23 mm'),
+          ..._clips(),
         ]),
         quelle: 'q',
         holzarten: [kastanie],
       );
-      expect(ergebnis.datei!.eintraege.single.artikel.holzart, kastanie);
+      expect(
+        ergebnis.datei![const Artikelnummer('10-10-073-R')]!.artikel.holzart,
+        kastanie,
+      );
     });
   });
 }
