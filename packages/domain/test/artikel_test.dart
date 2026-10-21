@@ -1,6 +1,8 @@
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import 'package:test/test.dart';
 
+import 'argument_fehler.dart';
+
 Artikel _diele({
   String nummer = '10-10-073-R',
   String titel = 'Terrassendiele Robinie PREMIUM SELECT 60 x 23 mm',
@@ -32,7 +34,10 @@ void main() {
   group('Artikelnummer', () {
     test('wird getrimmt und darf nicht leer sein', () {
       expect(Artikelnummer.pruefe(' 10-10-073 ').wert, '10-10-073');
-      expect(() => Artikelnummer.pruefe('  '), throwsArgumentError);
+      expect(
+        () => Artikelnummer.pruefe('  '),
+        wirftArgumentFehler('text', '  ', 'Artikelnummer ist leer'),
+      );
     });
   });
 
@@ -76,6 +81,16 @@ void main() {
   });
 
   group('Abmessungen', () {
+    test('Längen werden sortiert', () {
+      final a = Abmessungen(
+        laengen: const [Millimeter(6000), Millimeter(4000), Millimeter(5000)],
+      );
+      expect(a.laengen, const [
+        Millimeter(4000),
+        Millimeter(5000),
+        Millimeter(6000),
+      ]);
+    });
     test('Längen aufsteigend ohne Doppelte, längste Länge', () {
       final a = Abmessungen(
         laengen: const [Millimeter(5000), Millimeter(4000), Millimeter(5000)],
@@ -89,15 +104,15 @@ void main() {
     test('Maße müssen größer als 0 sein', () {
       expect(
         () => Abmessungen(breite: const Millimeter(0)),
-        throwsArgumentError,
+        wirftArgumentFehler('breite', 0, 'muss größer als 0 sein'),
       );
       expect(
         () => Abmessungen(staerke: const Millimeter(-1)),
-        throwsArgumentError,
+        wirftArgumentFehler('staerke', -1, 'muss größer als 0 sein'),
       );
       expect(
         () => Abmessungen(laengen: const [Millimeter(0)]),
-        throwsArgumentError,
+        wirftArgumentFehler('laengen', 0, 'muss größer als 0 sein'),
       );
       expect(
         Abmessungen(breite: const Millimeter(1)).breite,
@@ -148,8 +163,19 @@ void main() {
       expect(_diele(), isNot(Object()));
     });
     test('Pflichtangaben', () {
-      expect(() => _diele(titel: ' '), throwsArgumentError);
-      expect(() => _diele(bilder: ['1', '2', '3', '4']), throwsArgumentError);
+      expect(
+        () => _diele(titel: ' '),
+        wirftArgumentFehler('titel', ' ', 'Titel ist leer'),
+      );
+      expect(
+        () => _diele(bilder: ['1', '2', '3', '4']),
+        wirftArgumentFehler('bilder', [
+          '1',
+          '2',
+          '3',
+          '4',
+        ], 'höchstens 3 Abbildungen'),
+      );
       expect(_diele(bilder: ['1', '2', '3']).bilder, hasLength(3));
     });
     test('Holzartikel brauchen eine Serie, andere keine', () {

@@ -2,6 +2,8 @@
 /// Maße, Gewichte und Preise.
 library;
 
+import 'dart:math' as math;
+
 /// Länge in ganzen Millimetern.
 extension type const Millimeter(int mm) implements Object {
   /// Aus Zentimetern, auf ganze Millimeter gerundet.
@@ -48,12 +50,13 @@ extension type const Cent(int cent) implements Object {
   String get anzeige {
     final negativ = cent < 0;
     final betrag = cent.abs();
-    final euroTeil = (betrag ~/ 100).toString();
+    final euro = betrag ~/ 100;
+    final euroTeil = euro.toString();
     final gruppen = <String>[];
     for (var ende = euroTeil.length; ende > 0; ende -= 3) {
       gruppen.insert(0, euroTeil.substring(ende < 3 ? 0 : ende - 3, ende));
     }
-    final rest = (betrag % 100).toString().padLeft(2, '0');
+    final rest = (betrag - euro * 100).toString().padLeft(2, '0');
     return '${negativ ? '-' : ''}${gruppen.join('.')},$rest €';
   }
 }
@@ -107,7 +110,7 @@ final class Verkaufseinheit {
   final Mengeneinheit? inhaltEinheit;
 
   /// Anzahl Verkaufseinheiten für einen Bedarf (immer aufgerundet).
-  int fuerBedarf(num bedarf) => bedarf <= 0 ? 0 : (bedarf / inhalt).ceil();
+  int fuerBedarf(num bedarf) => math.max(0, (bedarf / inhalt).ceil());
 
   @override
   bool operator ==(Object other) =>

@@ -1,6 +1,8 @@
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import 'package:test/test.dart';
 
+import 'argument_fehler.dart';
+
 void main() {
   group('Millimeter', () {
     test('aus cm und m, gerundet', () {
@@ -100,7 +102,11 @@ void main() {
     test('Inhalt muss größer als 0 sein', () {
       expect(
         () => Verkaufseinheit(Mengeneinheit.karton, inhalt: 0),
-        throwsArgumentError,
+        wirftArgumentFehler('inhalt', 0, 'muss größer als 0 sein'),
+      );
+      expect(
+        () => Verkaufseinheit(Mengeneinheit.karton, inhalt: -1),
+        wirftArgumentFehler('inhalt', -1, 'muss größer als 0 sein'),
       );
       expect(Verkaufseinheit(Mengeneinheit.stueck).inhalt, 1);
     });
@@ -119,6 +125,7 @@ void main() {
         9,
       ]);
       expect(Verkaufseinheit(Mengeneinheit.laufmeter).fuerBedarf(2.2), 3);
+      expect(karton.fuerBedarf(-150), 0, reason: 'negativer Bedarf');
     });
     test('Gleichheit und Anzeige', () {
       final a = Verkaufseinheit(
@@ -132,6 +139,10 @@ void main() {
         inhaltEinheit: Mengeneinheit.stueck,
       );
       expect(a, b);
+      expect(
+        a.hashCode,
+        Object.hash(Mengeneinheit.karton, 100, Mengeneinheit.stueck),
+      );
       expect(a.hashCode, b.hashCode);
       expect(
         a,

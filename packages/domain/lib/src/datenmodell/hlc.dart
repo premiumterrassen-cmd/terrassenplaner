@@ -7,6 +7,9 @@
 class Hlc implements Comparable<Hlc> {
   const Hlc(this.millis, this.zaehler, this.knoten);
 
+  /// Nullzeitpunkt eines Knotens (Ausgangswert vor dem ersten Ereignis).
+  const Hlc.anfang(this.knoten) : millis = 0, zaehler = 0;
+
   factory Hlc.ausText(String text) {
     final teile = text.split('-');
     if (teile.length < 3) throw FormatException('Ungültiger HLC', text);
@@ -62,7 +65,7 @@ class HlcUhr {
   /// Knoten – liegt sicher nach beiden.
   Hlc empfange(Hlc fremd) {
     final physisch = _uhr().millisecondsSinceEpoch;
-    final letzter = _letzter ?? Hlc(0, 0, knoten);
+    final letzter = _letzter ?? Hlc.anfang(knoten);
     final millis = [
       physisch,
       letzter.millis,

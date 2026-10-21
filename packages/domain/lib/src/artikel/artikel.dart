@@ -71,7 +71,7 @@ final class Abmessungen {
     this.staerke,
     Iterable<Millimeter> laengen = const [],
   }) : laengen = List.unmodifiable(
-         laengen.toSet().toList()..sort((a, b) => a.mm - b.mm),
+         laengen.toSet().toList()..sort((a, b) => a.mm.compareTo(b.mm)),
        ) {
     for (final (name, wert) in [
       ('breite', breite),

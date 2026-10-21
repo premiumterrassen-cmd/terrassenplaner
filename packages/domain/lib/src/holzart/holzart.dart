@@ -3,6 +3,8 @@
 /// werden kann. Regelkatalog: `docs/fachkonzept/14-planungsregeln.md`.
 library;
 
+import 'dart:math' as math;
+
 import '../artikel/einheiten.dart';
 
 /// Serie einer Holzart, z. B. „PREMIUM SELECT“ – nur der Name, keine Werke
@@ -62,7 +64,7 @@ final class Serienregeln {
     this.duoClipAb,
   }) : dielen = Map.unmodifiable(dielen),
        lieferlaengen = List.unmodifiable(
-         lieferlaengen.toList()..sort((x, y) => x.mm - y.mm),
+         lieferlaengen.toList()..sort((x, y) => x.mm.compareTo(y.mm)),
        ),
        ukSeiten = List.unmodifiable(ukSeiten),
        ukUngetrocknet = Set.unmodifiable(ukUngetrocknet.map(_sortiert));
@@ -113,7 +115,10 @@ final class Serienregeln {
   }
 }
 
-UkMasse _sortiert(UkMasse m) => m.a <= m.b ? m : (a: m.b, b: m.a);
+UkMasse _sortiert(UkMasse m) => (
+  a: Millimeter(math.min(m.a.mm, m.b.mm)),
+  b: Millimeter(math.max(m.a.mm, m.b.mm)),
+);
 
 /// Holzart mit ihren Planungseigenschaften (M2-08).
 final class Holzart {

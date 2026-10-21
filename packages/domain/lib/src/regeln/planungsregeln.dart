@@ -23,8 +23,6 @@ int freidielen(int hauptdielen) => hauptdielen < freidielenAbDielen
     ? 0
     : hauptdielen < 50
     ? 1
-    : hauptdielen < 100
-    ? 2
     : 2 + (hauptdielen - 50) ~/ 50;
 
 /// Stärke aus Altdaten: „22 mm“ gibt es nicht, gemeint ist 21 mm (R-A04,

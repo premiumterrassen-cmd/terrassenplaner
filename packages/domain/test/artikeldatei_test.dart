@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import 'package:test/test.dart';
 
+import 'argument_fehler.dart';
+
 Artikeleintrag _diele() => Artikeleintrag(
   artikel: Artikel(
     nummer: const Artikelnummer('10-10-073-R'),
@@ -131,7 +133,10 @@ void main() {
       version: 'v',
       eintraege: [_diele()],
     ).alsJson();
-    expect(() => Artikeldatei.ausJson(json, const []), throwsArgumentError);
+    expect(
+      () => Artikeldatei.ausJson(json, const []),
+      wirftArgumentFehler('holzart', 'robinie', 'unbekannt'),
+    );
   });
 
   test('Inhalte sind unveränderlich', () {

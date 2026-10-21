@@ -1,6 +1,8 @@
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import 'package:test/test.dart';
 
+import 'argument_fehler.dart';
+
 Set<Millimeter> _mm(Iterable<int> werte) => {
   for (final w in werte) Millimeter(w),
 };
@@ -127,6 +129,7 @@ void main() {
       expect(s(premiumSelect, Profil.genutet, 100), 2);
       expect(s(ecoSelect, Profil.glattkant, 99), 1);
       expect(s(ecoSelect, Profil.glattkant, 100), 2);
+      expect(s(ecoSelect, Profil.glattkant, 120), 2);
     });
 
     test('UK-Formate (R-A08: B-034, B-212), tauschbar', () {
@@ -143,6 +146,12 @@ void main() {
       expect(u(massiv, 40, 40), UkFormat.gueltig);
       expect(u(massiv, 100, 60), UkFormat.gueltig);
       expect(u(massiv, 80, 90), UkFormat.ungueltig);
+      for (final a in [40, 60]) {
+        for (final b in [40, 60, 80, 90, 100]) {
+          expect(u(massiv, a, b), UkFormat.gueltig, reason: 'MASSIV $a×$b');
+        }
+      }
+      expect(u(massiv, 40, 70), UkFormat.ungueltig);
       for (final g in [40, 60, 80, 90, 100]) {
         expect(u(ecoSelect, 40, g), UkFormat.gueltig);
         expect(u(ecoSelect, g, 40), UkFormat.gueltig);
@@ -174,7 +183,10 @@ void main() {
     });
 
     test('unbekannte Serie wird abgelehnt', () {
-      expect(() => robinie.serie(const Serie('GOLD')), throwsArgumentError);
+      expect(
+        () => robinie.serie(const Serie('GOLD')),
+        wirftArgumentFehler('serie', 'GOLD', 'keine Serie von Robinie'),
+      );
     });
 
     test('Daten sind unveränderlich', () {
@@ -267,14 +279,18 @@ void main() {
     test('Holzart braucht Serien und stimmige Achsabstände', () {
       expect(
         () => Holzart.ausJson({..._beispielDaten, 'serien': <Object?>[]}),
-        throwsArgumentError,
+        wirftArgumentFehler('serien', 'beispiel', 'Holzart ohne Serie'),
       );
       expect(
         () => Holzart.ausJson({
           ..._beispielDaten,
           'uk_achsabstand_empfohlen_mm': 451,
         }),
-        throwsArgumentError,
+        wirftArgumentFehler(
+          'ukAchsabstandEmpfohlen',
+          451,
+          'größer als der höchste Achsabstand',
+        ),
       );
       expect(
         Holzart.ausJson({..._beispielDaten, 'uk_achsabstand_empfohlen_mm': 450})
