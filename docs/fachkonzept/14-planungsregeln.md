@@ -6,7 +6,7 @@ Fachregeln für den neuen Planer aus dem Firmenwissen von ALTO HOLZ. Gelesen am 
 
 **Status:** **gilt** = Beschluss oder Antwort Alexander · **offen** = Quellen widersprechen sich oder fehlen, Frage unten · **Abweichung alt** = der alte Planer macht es anders (wird nicht übernommen, siehe [09](09-nicht-teil-der-kopie.md)).
 
-Die mit ⚙ markierten Regeln sind im domain-Paket als ausführbare Regeln umgesetzt (`lib/src/regeln/`) und mit Tests belegt; die übrigen setzen die Feature-Issues ab M2 um.
+Die mit ⚙ markierten Regeln sind im domain-Paket ausführbar und mit Tests belegt: holzabhängige Werte als **Daten der Holzart** (`lib/src/holzart/robinie.dart`, M2-08), holzunabhängige in `lib/src/regeln/planungsregeln.dart`. Die übrigen setzen die Feature-Issues ab M2 um.
 
 ## A Sortiment und Daten
 

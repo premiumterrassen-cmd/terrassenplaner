@@ -37,6 +37,8 @@ void main() {
       // ignore: unrelated_type_equality_checks
       expect(const Hlc(1, 2, 'a') == '1', isFalse);
       expect(const Hlc(1, 2, 'a').hashCode, const Hlc(1, 2, 'a').hashCode);
+      expect(const Hlc(1, 2, 'a').hashCode, Object.hash(1, 2, 'a'));
+      expect(const Hlc.anfang('k'), const Hlc(0, 0, 'k'));
     });
   });
 

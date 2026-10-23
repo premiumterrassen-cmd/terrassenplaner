@@ -123,15 +123,18 @@ Artikel aus dem Blatt „Import Terrassenplaner“ der Master-Artikelliste werde
 
 GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/3
 
-- [ ] **M2-01 Fachmodell Artikel** ([#17](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/17)) – `feature/m2-01-fachmodell-artikel`
+- [x] **M2-01 Fachmodell Artikel** ([#17](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/17)) – `feature/m2-01-fachmodell-artikel`
   - Eigenes Fachmodell für Dielen, Unterkonstruktion, Befestigung, Stellfüße, Pads, Verbinder (längs, quer, Eck, variabel), Verblendung, Rinnen, Zubehör – mit Einheiten (mm, lfm, Stück, VPE) und Preisangaben (Anzeige).
   - Abnahme: Modell im Paket `domain`, unabhängig vom Importformat; Einheiten typsicher (keine nackten Zahlen für mm/cm)
-- [ ] **M2-02 Import aus „Import Terrassenplaner“** ([#18](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/18)) – `feature/m2-02-import-aus-import-terrassenplaner` · Benchmark
+  - Ergebnis: `packages/domain/lib/src/artikel/` – typsichere Einheiten (Millimeter, Gramm, Cent, Verkaufseinheit) und Artikelmodell (Artikelart mit Bereich, Abmessungen, Serie/Profil/Oberseite, Abbildungen); Beschreibung in `docs/architektur/artikelmodell.md`.
+- [x] **M2-02 Import aus „Import Terrassenplaner“** ([#18](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/18)) – `feature/m2-02-import-aus-import-terrassenplaner` · Benchmark
   - Importer für das Blatt „Import Terrassenplaner“ der Master-Artikelliste (xlsx) → geprüfte Artikeldatei für den Server. Nur Verkaufsdaten, niemals Einstandspreise/Werks-EK (B-020).
   - Abnahme: Import der aktuellen Liste (234 Zeilen) ohne Fehler; Test: EK-Spalten werden nie übernommen; Hinweis: Maßspalten heißen _cm, enthalten aber mm
-- [ ] **M2-03 Datenprüfung beim Import** ([#19](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/19)) – `feature/m2-03-datenpruefung-beim-import`
+  - Ergebnis: Importer `packages/server/lib/src/import/` und `bin/artikel_importieren.dart` (Upload-Datei → geprüfte Artikeldatei mit Prüfbericht und Version); Spalten-Whitelist ohne EK/`marke`; Artikeldatei nicht im Repo. Upload-Datei v6: 241 Artikel ohne Fehler (`docs/betrieb/artikelimport.md`).
+- [x] **M2-03 Datenprüfung beim Import** ([#19](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/19)) – `feature/m2-03-datenpruefung-beim-import`
   - Prüfungen: Pflichtfelder, plausible Maße, doppelte Artikelnummern, Verweise auf nicht vorhandene Artikel, unbekannte Artikeltypen; verständlicher Prüfbericht.
   - Abnahme: Prüfbericht listet jeden Befund mit Zeile und Feld; Import bricht bei kritischen Fehlern ab
+  - Ergebnis: `packages/server/lib/src/import/datenpruefung.dart` – Prüfbericht mit Zeile und Feld (Verweise, Sortiment der Holzart, Lieferlängen, Höhen, Plausibilität; Hinweise für Preis, Bild, ungetrocknete UK, Schraubenlänge); bei FEHLER keine Artikeldatei. Upload-Datei v6: 0 Fehler, 5 Hinweise.
 - [ ] **M2-04 Regelwerk Abhängigkeiten** ([#20](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/20)) – `feature/m2-04-regelwerk-abhaengigkeiten` · Benchmark
   - Eigenes Regelwerk für „was passt zu was“: Befestigung je Belag, Zubehör, Stellfüße privat/gewerblich, Unterlegpads, Längs-/Quer-/Eck-/variable Verbinder, Verblendung, Entwässerung, Pflichtzubehör mit Anzahl; Abstände (UK, Stellfüße, Randabstand), Min-/Max-Höhe.
   - Abnahme: Für jeden Belag liefert das Regelwerk dieselben Auswahlmöglichkeiten wie der alte Planer (Abgleich mit M1); Regeln datengetrieben aus dem Import, nicht im Code fest verdrahtet
@@ -144,9 +147,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/3
 - [ ] **M2-07 Artikelbilder bereitstellen** ([#23](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/23)) – `feature/m2-07-artikelbilder-bereitstellen`
   - Abbildung 1–3 je Artikel (Planer_Bilder) ausliefern, für Web optimiert.
   - Abnahme: Jeder Artikel mit Bild oder definiertem Platzhalter
-- [ ] **M2-08 Holzart als Fachmodell (Robinie, später Kastanie)** ([#112](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/112)) – `feature/m2-08-holzart-als-fachmodell-robinie-spaeter-k`
+- [x] **M2-08 Holzart als Fachmodell (Robinie, später Kastanie)** ([#112](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/112)) – `feature/m2-08-holzart-als-fachmodell-robinie-spaeter-k`
   - Holzart als eigener Teil des Fachmodells mit ihren Planungseigenschaften (Längen, Breiten, Stärken, UK-Regeln, Gewicht/Rohdichte, Befestigung). Zum Go-Live nur Robinie; Kastanie kommt später mit eigenen Eigenschaften und soll ohne Umbau ergänzt werden können (Alexander, 19.10.2026).
   - Abnahme: Robinie vollständig als Holzart mit Planungseigenschaften beschrieben; Zweite Holzart lässt sich nur über Daten ergänzen (Test mit Beispiel-Holzart)
+  - Ergebnis: `packages/domain/lib/src/holzart/` – Holzart und Serienregeln als Daten (Formate, Längen, UK-Formate, Befestigung, Achsabstand, Rechengewicht); Robinie als Datensatz, zweite Holzart per JSON (Test); holzunabhängige Regeln in `regeln/planungsregeln.dart`.
 
 
 ## M3 Oberfläche: Grundgerüst
