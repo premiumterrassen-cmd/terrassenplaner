@@ -33,4 +33,13 @@ Alle holzabhängigen Planungseigenschaften sind **Daten**: `Holzart` mit Recheng
 - Eine weitere Holzart (z. B. Kastanie) entsteht nur aus Daten über `Holzart.ausJson` – ein Test mit einer Beispiel-Holzart belegt das.
 - Holzunabhängige Firmenregeln (Fuge 5 mm, Wandabstand 2 cm, Querstreben 60 cm, Freidielen-Staffel) stehen in `lib/src/regeln/planungsregeln.dart`.
 
-Folgeschritt: Abhängigkeiten „was passt zu was“ in M2-04.
+## Regelwerk „was passt zu was“ (`lib/src/regeln/regelwerk.dart`, M2-04)
+
+`Regelwerk` arbeitet nur auf der Artikeldatei – keine Auswahl ist im Code fest verdrahtet. Jede `Beziehung` entspricht einer Verweis-Spalte der Upload-Datei (Befestigung, Zubehör, Stellfüße privat/gewerblich, Unterlegpads, Längs-/Quer-/Eck-/variable Verbinder, Verblendung, Drainage, Start-/End-Clip).
+
+- `moeglich(nummer, beziehung)` liefert die Artikel in Datenreihenfolge – so wie der alte Planer dieselben Spalten anzeigt; `stellfuesse(nummer, gewerblich:)` wählt die passende Spalte.
+- `pflichtzubehoer` liefert das benötigte Zubehör mit Anzahl, `abstaende` die Abstände (Stelzfüße, UK, Randabstand), Min-/Max-Höhe und den Schalter „Reichweite“, `imBereich` z. B. alle Beläge.
+- `befestigungWiderspruch` vergleicht die Befestigungsverweise mit der Firmenregel der Holzart (B-094, B-090: genutet nur Clips, glattkant nur Schrauben). Die Datenprüfung meldet einen Widerspruch als FEHLER – so kann die Upload-Datei keine falsche Befestigung in den Planer bringen.
+- Die Artikeldatei schlägt Nummern über einen Index nach (Benchmark `domain.Regelwerk.auswahlJeBelag`: 50 Beläge × alle Beziehungen ≈ 0,4 ms).
+
+Upload-Datei v6: alle 47 Beläge haben Befestigung, Zubehör, Verblendung und Drainage; kein Befestigungswiderspruch.

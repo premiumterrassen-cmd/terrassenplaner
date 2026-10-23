@@ -3,6 +3,7 @@
   "einheit": "µs je Durchlauf",
   "werte": {
     "domain.ProjektInfo.titel": 640.9905,
-    "server.Router.rpcRundlauf": 2622.2346002621234
+    "server.Router.rpcRundlauf": 2622.2346002621234,
+    "domain.Regelwerk.auswahlJeBelag": 403.30966666666666
   }
 }

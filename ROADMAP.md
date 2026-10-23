@@ -135,9 +135,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/3
   - Prüfungen: Pflichtfelder, plausible Maße, doppelte Artikelnummern, Verweise auf nicht vorhandene Artikel, unbekannte Artikeltypen; verständlicher Prüfbericht.
   - Abnahme: Prüfbericht listet jeden Befund mit Zeile und Feld; Import bricht bei kritischen Fehlern ab
   - Ergebnis: `packages/server/lib/src/import/datenpruefung.dart` – Prüfbericht mit Zeile und Feld (Verweise, Sortiment der Holzart, Lieferlängen, Höhen, Plausibilität; Hinweise für Preis, Bild, ungetrocknete UK, Schraubenlänge); bei FEHLER keine Artikeldatei. Upload-Datei v6: 0 Fehler, 5 Hinweise.
-- [ ] **M2-04 Regelwerk Abhängigkeiten** ([#20](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/20)) – `feature/m2-04-regelwerk-abhaengigkeiten` · Benchmark
+- [x] **M2-04 Regelwerk Abhängigkeiten** ([#20](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/20)) – `feature/m2-04-regelwerk-abhaengigkeiten` · Benchmark
   - Eigenes Regelwerk für „was passt zu was“: Befestigung je Belag, Zubehör, Stellfüße privat/gewerblich, Unterlegpads, Längs-/Quer-/Eck-/variable Verbinder, Verblendung, Entwässerung, Pflichtzubehör mit Anzahl; Abstände (UK, Stellfüße, Randabstand), Min-/Max-Höhe.
   - Abnahme: Für jeden Belag liefert das Regelwerk dieselben Auswahlmöglichkeiten wie der alte Planer (Abgleich mit M1); Regeln datengetrieben aus dem Import, nicht im Code fest verdrahtet
+  - Ergebnis: `packages/domain/lib/src/regeln/regelwerk.dart` – Auswahl je Beziehung aus den Verweis-Spalten in Datenreihenfolge, Pflichtzubehör mit Anzahl, Abstände/Höhen; Befestigungswiderspruch zu B-094/B-090 ist in der Datenprüfung ein FEHLER. Artikeldatei mit Index (Benchmark ≈ 0,4 ms für 50 Beläge). Upload-Datei v6: 47 Beläge, kein Widerspruch.
 - [ ] **M2-05 Artikelnummern vereinheitlichen (B-152)** ([#21](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/21)) – `feature/m2-05-artikelnummern-vereinheitlichen-b-152`
   - Verweise in den Abhängigkeiten nutzen teils EAN, teils Artikelnummern. Zuordnungstabelle EAN → Shop-Artikelnummer erstellen; Lücken Alexander zur Entscheidung vorlegen.
   - Abnahme: Alle Verweise auf Shop-Artikelnummern abgebildet oder als offen markiert; Freigabe Alexander dokumentiert

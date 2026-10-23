@@ -244,6 +244,80 @@ void main() {
     ]);
     expect(befunde.map((b) => b.zeile), [2, 3]);
   });
+
+  group('Befestigung passt zur Firmenregel (B-094, B-090)', () {
+    final clip = _eintrag(nummer: 'C', art: Artikelart.clip);
+    final schraube = _eintrag(nummer: 'S', art: Artikelart.schraube);
+    Artikeleintrag diele(Profil profil, List<String> befestigung) => _eintrag(
+      nummer: 'D',
+      art: Artikelart.diele,
+      breite: const Millimeter(60),
+      staerke: const Millimeter(23),
+      laengen: const [Millimeter(6000)],
+      serie: premiumSelect,
+      profil: profil,
+      verweise: {
+        'moeglicheBefestigungDeck': [
+          for (final b in befestigung) Artikelnummer(b),
+        ],
+      },
+    );
+
+    test('passende Befestigung ohne Befund', () {
+      expect(
+        _pruefe([
+          diele(Profil.genutet, ['C']),
+          clip,
+          schraube,
+        ]),
+        isEmpty,
+      );
+      expect(
+        _pruefe([
+          diele(Profil.glattkant, ['S']),
+          clip,
+          schraube,
+        ]),
+        isEmpty,
+      );
+    });
+
+    test('Widerspruch ist kritisch', () {
+      expect(
+        _texte([
+          clip,
+          diele(Profil.glattkant, ['S', 'C']),
+          schraube,
+        ]),
+        [
+          'F 3 moeglicheBefestigungDeck: verschraubungVonOben verlangt '
+              'schraube, verweist aber auf C',
+        ],
+      );
+    });
+
+    test('fehlende Verweise werden nur einmal gemeldet', () {
+      expect(
+        _texte([
+          diele(Profil.genutet, ['S', 'X']),
+          schraube,
+        ]),
+        ['F 2 moeglicheBefestigungDeck: Artikel X nicht vorhanden'],
+      );
+    });
+
+    test('doppelte Zeile wird nicht nochmals geprüft', () {
+      expect(
+        _texte([
+          diele(Profil.genutet, ['C']),
+          diele(Profil.genutet, ['S']),
+          clip,
+          schraube,
+        ]),
+        ['F 3 Artikelnummer: doppelt (wie Zeile 2): D'],
+      );
+    });
+  });
 }
 
 extension on Artikeleintrag {

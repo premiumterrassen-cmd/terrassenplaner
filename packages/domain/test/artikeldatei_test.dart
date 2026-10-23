@@ -125,6 +125,19 @@ void main() {
         ),
       ),
     );
+    final clip = _clip();
+    expect(
+      () => Artikeldatei(
+        quelle: 'q',
+        version: 'v',
+        eintraege: [clip, _diele(), clip, clip, _diele()],
+      ),
+      wirftArgumentFehler(
+        'eintraege',
+        '80-10-001-100, 10-10-073-R',
+        'doppelte Artikelnummern',
+      ),
+    );
   });
 
   test('unbekannte Holzart wird abgelehnt', () {

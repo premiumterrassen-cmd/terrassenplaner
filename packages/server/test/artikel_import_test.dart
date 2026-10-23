@@ -378,11 +378,13 @@ void main() {
           nummer: 'A',
           titel: 'Terrassendiele Robinie ECO SELECT 100 x 23 mm, glattkant',
           obergruppe: '',
+          befestigung: 'D',
         ),
         _zeile(
           nummer: 'B',
           titel: 'Systemdiele Robinie MASSIV 80 x 25 mm',
           obergruppe: 'Sichtbar befestigt',
+          befestigung: 'D',
           breite: 80,
           staerke: 25,
           laenge: 2000,

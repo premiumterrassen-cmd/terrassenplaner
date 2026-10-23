@@ -39,9 +39,13 @@ final class Artikeldatei {
     required Iterable<Artikeleintrag> eintraege,
   }) : eintraege = List.unmodifiable(eintraege) {
     final doppelt = <Artikelnummer>{};
-    final gesehen = <Artikelnummer>{};
     for (final e in this.eintraege) {
-      if (!gesehen.add(e.artikel.nummer)) doppelt.add(e.artikel.nummer);
+      final nummer = e.artikel.nummer;
+      if (_nachNummer.containsKey(nummer)) {
+        doppelt.add(nummer);
+      } else {
+        _nachNummer[nummer] = e;
+      }
     }
     if (doppelt.isNotEmpty) {
       throw ArgumentError.value(
@@ -76,13 +80,10 @@ final class Artikeldatei {
 
   final List<Artikeleintrag> eintraege;
 
+  final _nachNummer = <Artikelnummer, Artikeleintrag>{};
+
   /// Artikel zur Nummer oder `null`.
-  Artikeleintrag? operator [](Artikelnummer nummer) {
-    for (final e in eintraege) {
-      if (e.artikel.nummer == nummer) return e;
-    }
-    return null;
-  }
+  Artikeleintrag? operator [](Artikelnummer nummer) => _nachNummer[nummer];
 
   Map<String, Object?> alsJson() => {
     'quelle': quelle,
