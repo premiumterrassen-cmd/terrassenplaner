@@ -397,7 +397,6 @@ void main() {
         _zeile(
           nummer: 'D',
           titel: 'Speedfix Flügelbohrschraube',
-          konfi: 'egal',
           typ: 'BefestigungDeck,Zubehoer',
           vpe: 'Karton',
           inhalt: 100,
@@ -474,6 +473,28 @@ void main() {
         ['Titel aus Konfi', Artikelart.sonstiges, 1],
       );
       expect(e('E').angaben, {'Abstand_UK': 400, 'Reichweite': 0});
+    });
+
+    test('Titel aus ArtikelbezeichnungKonfi (Name wie im Planer)', () {
+      final datei = _import([
+        _zeile(
+          nummer: 'K',
+          titel: 'schwarz beschichtet, Clipbefestigung zur Verschraubung',
+          konfi: 'CLIP-FIXX® "BLACK EDITION" - VPE 50',
+          typ: 'BefestigungDeck,Zubehoer',
+          vpe: 'Karton',
+          inhalt: 50,
+          breite: null,
+          staerke: null,
+          laenge: null,
+          befestigung: '',
+        ),
+      ]).datei!;
+      final a = datei[const Artikelnummer('K')]!.artikel;
+      expect(
+        [a.titel, a.art],
+        ['CLIP-FIXX® "BLACK EDITION" - VPE 50', Artikelart.clip],
+      );
     });
 
     test('Maß unter 1 mm ist nur ein Hinweis', () {

@@ -14,6 +14,7 @@ Der Importer schreibt einen Prüfbericht (FEHLER/Hinweis mit Excel-Zeile und Spa
 - **Nur Werte:** Die Master-Artikelliste selbst enthält im Blatt „Import Terrassenplaner“ nur Formeln ohne gespeicherte Werte – der Importer bricht dann mit einem Hinweis auf die Upload-Datei ab.
 - **Whitelist:** gelesen werden nur die Planer-Spalten (Nummer, Titel, Typ, Einheit, Preis, Maße, Abbildungen, Verweise, Abstände). Einkaufsdaten werden nie gelesen (B-020), die Spalte `marke` (Fertiger der Eigenmarken) ebenfalls nicht (B-023).
 - **Maße:** Die Spalten heißen `_cm`, enthalten aber Millimeter. Werte unter 1 mm werden nicht übernommen (Hinweis).
+- **Titel:** aus „ArtikelbezeichnungKonfi“ (Name wie im Planer), nur wenn leer aus „Artikelbezeichnung“ – dort steht oft eine Beschreibung („… zur sichtverdeckten Verschraubung“), die Clips sonst zu Schrauben machen würde.
 - **Holz:** Holzart und Serie werden aus dem Titel erkannt (Robinie; BASIC, ECO SELECT, PREMIUM SELECT, MASSIV); Profil aus „genutet/glattkant“ bzw. „sichtbar/unsichtbar befestigt“, Oberseite aus „bombiert“.
 - Die Spalte „Gewicht“ enthält die Rohdichte (750) und wird nicht als Artikelgewicht übernommen – die Rohdichte steht in der Holzart.
 - **Die Artikeldatei gehört nicht ins Repository:** Artikelnummern der Fremdartikel sind EANs (B-155). `.gitignore` schließt `artikel*.json` im Wurzelverzeichnis und im Server-Paket aus.

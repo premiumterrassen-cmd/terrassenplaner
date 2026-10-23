@@ -188,9 +188,10 @@ Artikeleintrag? _eintrag(
   }
 
   final nummer = text('Artikelnummer');
-  final titel = text('Artikelbezeichnung').isNotEmpty
-      ? text('Artikelbezeichnung')
-      : text('ArtikelbezeichnungKonfi');
+  // Name wie im Planer; „Artikelbezeichnung“ enthält oft eine Beschreibung.
+  final titel = text('ArtikelbezeichnungKonfi').isNotEmpty
+      ? text('ArtikelbezeichnungKonfi')
+      : text('Artikelbezeichnung');
   if (nummer.isEmpty) fehler('Artikelnummer', 'fehlt');
   if (titel.isEmpty) fehler('Artikelbezeichnung', 'fehlt');
   final art = artikelartFuer(text('Artikeltyp'), titel, text('Zubehoergruppe'));
