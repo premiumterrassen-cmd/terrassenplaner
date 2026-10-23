@@ -229,6 +229,9 @@ void main() {
       'H 2 Preis_pro_Einheit: kein Preis – Anzeige ohne Preis (B-055)',
       'H 2 Abbildung_1: keine Abbildung – Platzhalter (M2-07)',
     ]);
+    expect(_texte([_eintrag(preis: const Cent(-1))]), [
+      'H 2 Preis_pro_Einheit: kein Preis – Anzeige ohne Preis (B-055)',
+    ]);
     expect(_texte([_eintrag(preis: const Cent(0))]), [
       'H 2 Preis_pro_Einheit: kein Preis – Anzeige ohne Preis (B-055)',
     ]);

@@ -53,9 +53,9 @@ Blatt leseBlatt(List<int> bytes, String blattname) {
         ];
 
   var ohneWert = 0;
-  final roh = <(int, Map<int, String>)>[];
+  final roh = <(int, Map<String, String>)>[];
   for (final zeile in XmlDocument.parse(text(ziel)).findAllElements('row')) {
-    final werte = <int, String>{};
+    final werte = <String, String>{};
     for (final zelle in zeile.findElements('c')) {
       final spalte = _spalte(zelle.getAttribute('r')!);
       final typ = zelle.getAttribute('t');
@@ -76,7 +76,7 @@ Blatt leseBlatt(List<int> bytes, String blattname) {
   if (roh.isEmpty) throw FormatException('Blatt „$blattname“ ist leer');
 
   final (_, kopfZellen) = roh.first;
-  final spalten = kopfZellen.keys.toList()..sort();
+  final spalten = kopfZellen.keys.toList()..sort(_spaltenfolge);
   final kopf = [for (final s in spalten) kopfZellen[s]!.trim()];
   return Blatt(kopf, [
     for (final (nummer, werte) in roh.skip(1))
@@ -91,12 +91,9 @@ Blatt leseBlatt(List<int> bytes, String blattname) {
   ], formelnOhneWert: ohneWert);
 }
 
-/// Spaltenindex (0 = A) aus einer Zellreferenz wie „AB12“.
-int _spalte(String referenz) {
-  var index = 0;
-  for (final code in referenz.codeUnits) {
-    if (code < 65 || code > 90) break;
-    index = index * 26 + (code - 64);
-  }
-  return index - 1;
-}
+/// Spaltenbuchstaben einer Zellreferenz, z. B. „AB“ aus „AB12“.
+String _spalte(String referenz) => RegExp('^[A-Z]+').stringMatch(referenz)!;
+
+/// Reihenfolge der Spalten wie in Excel: A … Z, AA …
+int _spaltenfolge(String a, String b) =>
+    a.length != b.length ? a.length.compareTo(b.length) : a.compareTo(b);

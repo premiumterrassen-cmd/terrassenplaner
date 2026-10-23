@@ -13,6 +13,7 @@ List<int> _xlsx(
   String blatt = importBlatt,
   bool geteilt = false,
   bool mitMappe = true,
+  bool relativ = false,
 }) {
   final gemeinsam = <String>[];
   String spalte(int i) => i < 26
@@ -27,7 +28,10 @@ List<int> _xlsx(
       if (wert is num) {
         xml.write('<c r="$ref"><v>$wert</v></c>');
       } else if ('$wert'.startsWith('=')) {
-        xml.write('<c r="$ref"><f>${'$wert'.substring(1)}</f></c>');
+        // „=Formel“ ohne Wert, „=Formel|Wert“ mit gespeichertem Wert.
+        final teile = '$wert'.substring(1).split('|');
+        final gespeichert = teile.length > 1 ? '<v>${teile[1]}</v>' : '';
+        xml.write('<c r="$ref"><f>${teile[0]}</f>$gespeichert</c>');
       } else if (geteilt) {
         gemeinsam.add('$wert');
         xml.write('<c r="$ref" t="s"><v>${gemeinsam.length - 1}</v></c>');
@@ -53,7 +57,8 @@ List<int> _xlsx(
   }
   datei(
     'xl/_rels/workbook.xml.rels',
-    '<Relationships><Relationship Target="/xl/worksheets/sheet1.xml" '
+    '<Relationships><Relationship Target="${relativ ? '' : '/xl/'}'
+        'worksheets/sheet1.xml" '
         'Id="rId1"/></Relationships>',
   );
   datei('xl/worksheets/sheet1.xml', '$xml');
@@ -182,6 +187,17 @@ void main() {
       },
     );
 
+    test('relativer Pfad zum Blatt', () {
+      final blatt = leseBlatt(
+        _xlsx([
+          ['A'],
+          ['x'],
+        ], relativ: true),
+        importBlatt,
+      );
+      expect(blatt.zeilen.single.werte, {'A': 'x'});
+    });
+
     test('Spalten jenseits von Z und Formeln ohne Wert', () {
       final kopf = [for (var i = 0; i < 28; i++) 'S$i'];
       final blatt = leseBlatt(
@@ -189,13 +205,13 @@ void main() {
           kopf,
           [
             for (var i = 0; i < 28; i++)
-              i == 27 ? 'AB' : (i == 1 ? '=A2' : null),
+              i == 27 ? 'AB' : (i == 1 ? '=A2' : (i == 2 ? '=A3|7' : null)),
           ],
         ]),
         importBlatt,
       );
       expect(blatt.kopf.last, 'S27');
-      expect(blatt.zeilen.single.werte, {'S27': 'AB'});
+      expect(blatt.zeilen.single.werte, {'S2': '7', 'S27': 'AB'});
       expect(blatt.formelnOhneWert, 1);
     });
 
@@ -236,7 +252,7 @@ void main() {
           isA<FormatException>().having(
             (e) => e.message,
             'm',
-            contains('workbook.xml'),
+            'xl/workbook.xml fehlt in der xlsx-Datei',
           ),
         ),
       );
@@ -291,6 +307,7 @@ void main() {
             Artikelart.schraube,
         ('Zubehoer', 'DUO-Clip', 'Clips & Schrauben'): Artikelart.clip,
         ('Zubehoer', 'Bit TX25', ''): Artikelart.werkzeug,
+        ('Zubehoer', 'TX20 weiss 50 mm', ''): Artikelart.werkzeug,
         ('Zubehoer', 'Handschuh', ''): Artikelart.werkzeug,
         ('Zubehoer', 'Unkrautvlies', ''): Artikelart.sonstiges,
         ('Gartenzwerg', 'x', ''): null,
@@ -565,7 +582,8 @@ void main() {
       expect(formeln.erfolgreich, isFalse);
       expect(
         formeln.befunde.single.text,
-        startsWith('2 Formeln ohne gespeicherten Wert'),
+        '2 Formeln ohne gespeicherten Wert – bitte die Upload-Datei (Werte) '
+        'verwenden, nicht die Master-Artikelliste',
       );
     });
 
