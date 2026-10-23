@@ -26,9 +26,21 @@ List<Befund> pruefeArtikel(List<({int zeile, Artikeleintrag eintrag})> liste) {
       zeileVon[nummer] = zeile;
     }
   }
+  final vorhanden = zeileVon.keys.toSet();
+  final regelwerk = Regelwerk(
+    Artikeldatei(
+      quelle: '',
+      version: '',
+      eintraege: [
+        for (final (:zeile, :eintrag) in liste)
+          if (zeileVon[eintrag.artikel.nummer] == zeile) eintrag,
+      ],
+    ),
+  );
   for (final (:zeile, :eintrag) in liste) {
     befunde
-      ..addAll(_verweise(zeile, eintrag, zeileVon.keys.toSet()))
+      ..addAll(_verweise(zeile, eintrag, vorhanden))
+      ..addAll(_befestigung(zeile, eintrag, regelwerk, vorhanden))
       ..addAll(_masse(zeile, eintrag.artikel))
       ..addAll(_holz(zeile, eintrag))
       ..addAll(_angaben(zeile, eintrag))
@@ -57,6 +69,24 @@ Iterable<Befund> _verweise(
         'Artikel ${ziel.wert} nicht vorhanden',
       );
     }
+  }
+}
+
+/// Befestigung laut Verweisen muss zur Firmenregel passen (B-094, B-090);
+/// nur bei ersten Vorkommen mit vollständigen Verweisen.
+Iterable<Befund> _befestigung(
+  int zeile,
+  Artikeleintrag e,
+  Regelwerk regelwerk,
+  Set<Artikelnummer> vorhanden,
+) sync* {
+  final ziele = e.verweise[Beziehung.befestigung.spalte] ?? const [];
+  if (regelwerk.datei[e.artikel.nummer] != e || !vorhanden.containsAll(ziele)) {
+    return;
+  }
+  final widerspruch = regelwerk.befestigungWiderspruch(e.artikel.nummer);
+  if (widerspruch != null) {
+    yield Befund(zeile, Beziehung.befestigung.spalte, widerspruch);
   }
 }
 

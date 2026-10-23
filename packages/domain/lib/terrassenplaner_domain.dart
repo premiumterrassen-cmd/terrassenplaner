@@ -13,6 +13,7 @@ export 'src/projekt_info.dart';
 export 'src/referenz/referenzfall.dart';
 export 'src/referenz/referenzkonfiguration.dart';
 export 'src/regeln/planungsregeln.dart';
+export 'src/regeln/regelwerk.dart';
 export 'src/schema/ausschnitt_leser.dart';
 export 'src/schema/stapel.dart';
 export 'src/schema/transport.g.dart';
