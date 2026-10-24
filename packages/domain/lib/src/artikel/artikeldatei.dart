@@ -1,6 +1,6 @@
 import '../holzart/holzart.dart';
 import 'artikel.dart';
-import 'einheiten.dart';
+import 'artikel_json.dart';
 
 /// Geprüfte Artikeldatei für den Server (M2-02): Artikel plus die Angaben
 /// und Verweise des Planer-Blatts, aus denen M2-04 das Regelwerk baut.
@@ -92,90 +92,39 @@ final class Artikeldatei {
   };
 }
 
-Map<String, Object?> _eintragAlsJson(Artikeleintrag e) {
-  final a = e.artikel;
-  return {
-    'nummer': a.nummer.wert,
-    'titel': a.titel,
-    'art': a.art.name,
-    'einheit': a.einheit.einheit.name,
-    'inhalt': a.einheit.inhalt,
-    'inhalt_einheit': a.einheit.inhaltEinheit?.name,
-    'breite_mm': a.abmessungen.breite?.mm,
-    'staerke_mm': a.abmessungen.staerke?.mm,
-    'laengen_mm': [for (final l in a.abmessungen.laengen) l.mm],
-    'preis_brutto_cent': a.preisBrutto?.cent,
-    'gewicht_g': a.gewicht?.g,
-    'holzart': a.holzart?.id,
-    'serie': a.serie?.name,
-    'profil': a.profil?.name,
-    'oberseite': a.oberseite?.name,
-    'bilder': a.bilder,
-    'verweise': {
-      for (final MapEntry(:key, :value) in e.verweise.entries)
-        key: [for (final n in value) n.wert],
-    },
-    'angaben': e.angaben,
-    'benoetigt': {
-      for (final MapEntry(:key, :value) in e.benoetigt.entries) key.wert: value,
-    },
-  };
-}
+Map<String, Object?> _eintragAlsJson(Artikeleintrag e) => {
+  ...artikelAlsJson(e.artikel),
+  'verweise': {
+    for (final MapEntry(:key, :value) in e.verweise.entries)
+      key: [for (final n in value) n.wert],
+  },
+  'angaben': e.angaben,
+  'benoetigt': {
+    for (final MapEntry(:key, :value) in e.benoetigt.entries) key.wert: value,
+  },
+};
 
 Artikeleintrag _eintragAusJson(
   Map<String, Object?> j,
   Map<String, Holzart> holzarten,
-) {
-  T? opt<T, R>(String feld, T Function(R) wandle) =>
-      j[feld] == null ? null : wandle(j[feld] as R);
-  final holzartId = j['holzart'] as String?;
-  final holzart = holzartId == null
-      ? null
-      : holzarten[holzartId] ??
-            (throw ArgumentError.value(holzartId, 'holzart', 'unbekannt'));
-  return Artikeleintrag(
-    artikel: Artikel(
-      nummer: Artikelnummer.pruefe(j['nummer']! as String),
-      titel: j['titel']! as String,
-      art: Artikelart.values.byName(j['art']! as String),
-      einheit: Verkaufseinheit(
-        Mengeneinheit.values.byName(j['einheit']! as String),
-        inhalt: j['inhalt']! as num,
-        inhaltEinheit: opt('inhalt_einheit', Mengeneinheit.values.byName),
-      ),
-      abmessungen: Abmessungen(
-        breite: opt('breite_mm', Millimeter.new),
-        staerke: opt('staerke_mm', Millimeter.new),
-        laengen: [
-          for (final l in j['laengen_mm']! as List<Object?>)
-            Millimeter(l! as int),
-        ],
-      ),
-      preisBrutto: opt('preis_brutto_cent', Cent.new),
-      gewicht: opt('gewicht_g', Gramm.new),
-      holzart: holzart,
-      serie: opt('serie', Serie.new),
-      profil: opt('profil', Profil.values.byName),
-      oberseite: opt('oberseite', Oberseite.values.byName),
-      bilder: [for (final b in j['bilder']! as List<Object?>) b! as String],
-    ),
-    verweise: {
-      for (final MapEntry(:key, :value)
-          in (j['verweise']! as Map<String, Object?>).entries)
-        key: [
-          for (final n in value! as List<Object?>)
-            Artikelnummer.pruefe(n! as String),
-        ],
-    },
-    angaben: {
-      for (final MapEntry(:key, :value)
-          in (j['angaben']! as Map<String, Object?>).entries)
-        key: value! as int,
-    },
-    benoetigt: {
-      for (final MapEntry(:key, :value)
-          in (j['benoetigt']! as Map<String, Object?>).entries)
-        Artikelnummer.pruefe(key): value! as int,
-    },
-  );
-}
+) => Artikeleintrag(
+  artikel: artikelAusJson(j, holzarten),
+  verweise: {
+    for (final MapEntry(:key, :value)
+        in (j['verweise']! as Map<String, Object?>).entries)
+      key: [
+        for (final n in value! as List<Object?>)
+          Artikelnummer.pruefe(n! as String),
+      ],
+  },
+  angaben: {
+    for (final MapEntry(:key, :value)
+        in (j['angaben']! as Map<String, Object?>).entries)
+      key: value! as int,
+  },
+  benoetigt: {
+    for (final MapEntry(:key, :value)
+        in (j['benoetigt']! as Map<String, Object?>).entries)
+      Artikelnummer.pruefe(key): value! as int,
+  },
+);

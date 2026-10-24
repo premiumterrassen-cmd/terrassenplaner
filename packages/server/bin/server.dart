@@ -9,6 +9,20 @@ Future<void> main() async {
   final einstellungen = RouterEinstellungen.ausUmgebung(Platform.environment);
   final router = PlanerRouter.starte(einstellungen);
   final hallo = await HalloDienst.starte(router);
+  final artikel = await ArtikelDienst.starte(router, ArtikeldateiQuelle.leer);
+  final quelle = ArtikeldateiQuelle(
+    Platform.environment[ArtikeldateiQuelle.umgebungsvariable] ??
+        ArtikeldateiQuelle.standardPfad,
+  );
+  await artikel.aktualisiere(quelle, stdout.writeln);
+  if (artikel.datei.version == ArtikeldateiQuelle.leer.version) {
+    stderr.writeln('WARNUNG: keine Artikeldatei unter ${quelle.pfad}');
+  }
+  // Neue Artikeldaten wirken ohne Neustart und ohne App-Update (M2-06).
+  final nachladen = Timer.periodic(
+    const Duration(seconds: 30),
+    (_) => artikel.aktualisiere(quelle, stdout.writeln),
+  );
   stdout.writeln(
     '${startMeldung()} – WAMP ws://${einstellungen.host}:'
     '${router.webSocketPort}${einstellungen.webSocketPfad}, '
@@ -16,6 +30,8 @@ Future<void> main() async {
     'Auth-Server ${einstellungen.authAdresse}',
   );
   await _warteAufStoppsignal();
+  nachladen.cancel();
+  await artikel.stoppe();
   await hallo.stoppe();
   await router.stoppe();
   stdout.writeln('Server beendet');

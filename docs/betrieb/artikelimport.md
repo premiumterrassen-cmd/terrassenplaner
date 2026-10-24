@@ -31,6 +31,7 @@ Nach dem Einlesen prüft der Importer alle Artikel gemeinsam; jeder Befund nennt
 | Dielenformat bzw. UK-Format nicht im Sortiment der Holzart (B-030, B-034) | FEHLER |
 | Länge keine Lieferlänge der Serie (B-035) | FEHLER |
 | MinHoehe > MaxHoehe, Maß über 12 m | FEHLER |
+| Befestigung widerspricht der Firmenregel (genutet nur Clips, glattkant nur Schrauben; B-094, B-090; M2-04) | FEHLER |
 | UK nur ungetrocknet lieferbar (B-212) | Hinweis |
 | UK-Abstand über dem Höchstwert der Holzart (R-C01) | Hinweis |
 | Schraubenlänge passt nicht zum Titel („5,5 x 60 mm“) | Hinweis |
@@ -42,3 +43,32 @@ Bei einem FEHLER entsteht keine Artikeldatei.
 ## Stand 20.10.2026 (Upload-Datei v6)
 
 241 Artikel ohne Fehler importiert, fünf Hinweise: Zeile 42 Unkrautvlies 0,1 mm nicht übernommen; Zeile 109 Speedfix-Flügelbohrschraube 5,5 × 60 mm mit Länge 45 eingetragen (in der Master-Artikelliste korrigieren); Zeilen 173, 226, 227 ECO-UK 60 × 60, 60 × 80, 90 × 90 nur ungetrocknet (B-212, wie beschlossen).
+
+## Artikeldaten auf dem Server (M2-06)
+
+Der Router liest die Artikeldatei aus `PLANER_ARTIKELDATEI` (Ansible: `/var/lib/terrassenplaner/planer-router/artikel.json`, Container: `/daten/artikel.json` im Volume `router-daten`; ohne Variable `artikel.json` im Arbeitsverzeichnis). Alle 30 Sekunden prüft er, ob ein neuer Stand vorliegt:
+
+- Neue Version → der Artikeldienst arbeitet sofort mit den neuen Daten und meldet die Version über `…kunde.artikel.geaendert`; offene Apps verwerfen ihren Zwischenspeicher. Kein Neustart, kein App-Update.
+- Fehlerhafte Datei → Meldung im Log, der bisherige Stand bleibt in Betrieb.
+- Keine Datei → der Router startet mit leeren Artikeldaten (Version `leer`) und warnt im Log.
+
+Neue Artikeldaten einspielen (Root-Server):
+
+```bash
+dart run bin/artikel_importieren.dart <upload.xlsx> artikel.json
+scp artikel.json happysrv:/var/lib/terrassenplaner/planer-router/artikel.json.neu
+ssh happysrv 'cd /var/lib/terrassenplaner/planer-router && chown planer-router: artikel.json.neu && mv artikel.json.neu artikel.json'
+```
+
+Das `mv` am Schluss tauscht die Datei in einem Schritt aus, damit der Router nie eine halb kopierte Datei liest.
+
+WAMP-Schnittstelle (`WampNamen`, Rolle Kunde):
+
+| Prozedur | Argumente | Antwort |
+|---|---|---|
+| `…kunde.artikel.version` | – | Versionskennung |
+| `…kunde.artikel.liste` | Filter als Keywords (`bereich`, `art`, `holzart`, `serie`, `profil`, `oberseite`) | `{version, artikel: […]}` in Datenreihenfolge |
+| `…kunde.artikel.regeln` | Artikelnummer | `Artikelregeln`: Auswahl je Beziehung, Pflichtzubehör mit Anzahl, Abstände |
+
+Fehler: `…kunde.fehler.artikel_unbekannt`, `…kunde.fehler.filter_ungueltig`. In der App kapselt `ArtikelQuelle` die Aufrufe und hält Antworten nur im Speicher.
+

@@ -2,13 +2,16 @@
 library;
 
 export 'src/artikel/artikel.dart';
+export 'src/artikel/artikel_json.dart';
 export 'src/artikel/artikeldatei.dart';
+export 'src/artikel/artikelfilter.dart';
 export 'src/artikel/einheiten.dart';
 export 'src/begruessung.dart';
 export 'src/datenmodell/hlc.dart';
 export 'src/datenmodell/uuid_v7.dart';
 export 'src/holzart/holzart.dart';
 export 'src/holzart/robinie.dart';
+export 'src/json_werte.dart';
 export 'src/projekt_info.dart';
 export 'src/referenz/referenzfall.dart';
 export 'src/referenz/referenzkonfiguration.dart';

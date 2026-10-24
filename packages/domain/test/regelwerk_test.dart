@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import 'package:test/test.dart';
 
@@ -311,5 +313,84 @@ void main() {
       expect(werk.befestigungWiderspruch(_uk.artikel.nummer), isNull);
       expect(werk.befestigungWiderspruch(_clip.artikel.nummer), isNull);
     });
+  });
+
+  group('regeln (M2-06)', () {
+    test('fasst Auswahl, Pflichtzubehör und Abstände zusammen', () {
+      final r = regelwerk.regeln(_uk.artikel.nummer);
+      expect(r.version, '1');
+      expect(r.moeglich, {
+        Beziehung.stellfussPrivat: [_fussPrivat.artikel],
+        Beziehung.stellfussGewerblich: [
+          _fussGewerblich.artikel,
+          _fussPrivat.artikel,
+        ],
+      });
+      expect(r.pflichtzubehoer, {_schraube.artikel: 4, _clip.artikel: 2});
+      expect(r.abstaende.uk, const Millimeter(400));
+    });
+
+    test('Rundreise über JSON erhält alles', () {
+      final r = _regelwerk([genutet]).regeln(genutet.artikel.nummer);
+      final json = jsonDecode(jsonEncode(r.alsJson())) as Map<String, Object?>;
+      final zurueck = Artikelregeln.ausJson(json, {robinie.id: robinie});
+      expect(zurueck.alsJson(), r.alsJson());
+      expect(zurueck.version, r.version);
+      expect(zurueck.moeglich[Beziehung.befestigung]!.map((a) => a.titel), [
+        _duo.artikel.titel,
+        _clip.artikel.titel,
+      ]);
+
+      final uk = regelwerk.regeln(_uk.artikel.nummer);
+      final ukZurueck = Artikelregeln.ausJson(
+        jsonDecode(jsonEncode(uk.alsJson())) as Map<String, Object?>,
+        {robinie.id: robinie},
+      );
+      expect(ukZurueck.pflichtzubehoer.values, [4, 2]);
+      final a = ukZurueck.abstaende;
+      expect(
+        [
+          a.stelzfuesse,
+          a.uk,
+          a.ukVomRand,
+          a.minHoehe,
+          a.maxHoehe,
+          a.reichweite,
+        ],
+        [
+          const Millimeter(500),
+          const Millimeter(400),
+          const Millimeter(50),
+          const Millimeter(30),
+          const Millimeter(200),
+          true,
+        ],
+      );
+      expect(uk.abstaende.alsJson(), {
+        'stelzfuesse_mm': 500,
+        'uk_mm': 400,
+        'uk_vom_rand_mm': 50,
+        'min_hoehe_mm': 30,
+        'max_hoehe_mm': 200,
+        'reichweite': true,
+      });
+      final leer = Abstaende.ausJson(const Abstaende().alsJson());
+      expect([leer.uk, leer.reichweite], [null, false]);
+    });
+
+    test('Ergebnis ist unveränderlich', () {
+      final r = regelwerk.regeln(_uk.artikel.nummer);
+      expect(r.moeglich.clear, throwsUnsupportedError);
+      expect(r.pflichtzubehoer.clear, throwsUnsupportedError);
+    });
+  });
+
+  test('finde liefert passende Artikel in Datenreihenfolge', () {
+    final glatt = _diele('10-10-080-R', profil: Profil.glattkant);
+    final werk = _regelwerk([genutet, glatt]);
+    expect(werk.finde(const Artikelfilter(profil: Profil.glattkant)), [
+      glatt.artikel,
+    ]);
+    expect(werk.finde(const Artikelfilter()).length, 8);
   });
 }
