@@ -406,7 +406,8 @@ void main() {
           breite: null,
           staerke: 0,
           laenge: 45,
-          bild1: '',
+          bild1: 'Kein Bild',
+          bild2: 'schraube.webp',
           befestigung: '',
           abstandUk: null,
           reichweite: 'true',
@@ -459,7 +460,8 @@ void main() {
         [d.artikel.abmessungen.breite, d.artikel.abmessungen.staerke],
         [null, null],
       );
-      expect(d.artikel.bilder, isEmpty);
+      expect(d.artikel.bilder, ['schraube.webp'], reason: 'ohne „Kein Bild“');
+      expect(keinBild, 'Kein Bild');
       expect(d.verweise, isEmpty);
       expect(d.angaben, {'Reichweite': 1});
       expect(d.benoetigt, {

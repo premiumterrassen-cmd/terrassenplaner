@@ -72,3 +72,22 @@ WAMP-Schnittstelle (`WampNamen`, Rolle Kunde):
 
 Fehler: `…kunde.fehler.artikel_unbekannt`, `…kunde.fehler.filter_ungueltig`. In der App kapselt `ArtikelQuelle` die Aufrufe und hält Antworten nur im Speicher.
 
+## Artikelbilder (M2-07)
+
+Die Abbildungen 1–3 je Artikel kommen aus den Bildordnern der Upload-Datei (z. B. `Analyse Claude/Planer_Bilder_Upload_2026-10-14`) und – für die Bilder, die nur im alten Planer lagen – aus einem einmaligen Abzug von dort (24.10.2026, 129 Dateien; Freigabe Alexander). Das Werkzeug bereitet sie für das Web auf:
+
+```bash
+cd packages/server
+dart run bin/artikelbilder_aufbereiten.dart artikel.json artikelbilder <bildordner> [<bildordner> …]
+```
+
+- Jedes Bild der Artikeldatei wird im ersten passenden Ordner gesucht und als **WebP, höchstens 800 px breit, Qualität 80, ohne Metadaten** geschrieben (`cwebp` ≥ 1.5, z. B. `brew install webp`). Der Dateiname bleibt, die Endung wird `.webp` (`artikelbildDatei`).
+- Fehlende Bilder meldet das Werkzeug als Hinweis; die App zeigt dort den Platzhalter (`ArtikelbildPlatzhalter`). „Kein Bild“ in den Abbildungsspalten zählt als keine Abbildung.
+- Stand Upload-Datei v6: 230 Bilder (3,4 MB statt rund 13 MB), es fehlt nur `robinie-terrassenfliese-decktile-01.jpg` (auch im alten Planer nicht vorhanden).
+
+Ausgeliefert werden die Bilder von nginx unter `/artikelbilder/` (ein Tag Cache) – Root-Server: `/var/lib/terrassenplaner/artikelbilder/`, Container: `artikelbilder/` im Container-Verzeichnis. Wie die Artikeldatei gehören sie nicht ins Repository und wirken ohne Deployment:
+
+```bash
+rsync -a --delete artikelbilder/ happysrv:/var/lib/terrassenplaner/artikelbilder/
+```
+

@@ -3,6 +3,7 @@ library;
 
 export 'src/artikel/artikel.dart';
 export 'src/artikel/artikel_json.dart';
+export 'src/artikel/artikelbild.dart';
 export 'src/artikel/artikeldatei.dart';
 export 'src/artikel/artikelfilter.dart';
 export 'src/artikel/einheiten.dart';
