@@ -5,6 +5,8 @@ export 'src/datenhaltung/datenbank.dart';
 export 'src/datenhaltung/datenbank_mitarbeiter.dart';
 export 'src/datenhaltung/entitaeten.dart';
 export 'src/datenhaltung/roh_speicher.dart';
+export 'src/dienste/artikel_dienst.dart';
+export 'src/dienste/artikeldatei_quelle.dart';
 export 'src/dienste/hallo_dienst.dart';
 export 'src/import/artikel_import.dart';
 export 'src/import/datenpruefung.dart';

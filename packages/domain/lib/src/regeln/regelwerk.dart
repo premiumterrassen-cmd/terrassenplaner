@@ -1,5 +1,7 @@
 import '../artikel/artikel.dart';
+import '../artikel/artikel_json.dart';
 import '../artikel/artikeldatei.dart';
+import '../artikel/artikelfilter.dart';
 import '../artikel/einheiten.dart';
 import '../holzart/holzart.dart';
 
@@ -35,6 +37,20 @@ final class Abstaende {
     this.reichweite = false,
   });
 
+  /// Liest [alsJson].
+  factory Abstaende.ausJson(Map<String, Object?> j) {
+    Millimeter? mm(String feld) =>
+        j[feld] == null ? null : Millimeter(j[feld]! as int);
+    return Abstaende(
+      stelzfuesse: mm('stelzfuesse_mm'),
+      uk: mm('uk_mm'),
+      ukVomRand: mm('uk_vom_rand_mm'),
+      minHoehe: mm('min_hoehe_mm'),
+      maxHoehe: mm('max_hoehe_mm'),
+      reichweite: j['reichweite']! as bool,
+    );
+  }
+
   /// Höchster Abstand der Stelzfüße.
   final Millimeter? stelzfuesse;
 
@@ -48,6 +64,74 @@ final class Abstaende {
 
   /// Schalter „Reichweite“ der Artikeldaten.
   final bool reichweite;
+
+  Map<String, Object?> alsJson() => {
+    'stelzfuesse_mm': stelzfuesse?.mm,
+    'uk_mm': uk?.mm,
+    'uk_vom_rand_mm': ukVomRand?.mm,
+    'min_hoehe_mm': minHoehe?.mm,
+    'max_hoehe_mm': maxHoehe?.mm,
+    'reichweite': reichweite,
+  };
+}
+
+/// Alle Regeln zu einem Artikel in einer Antwort (M2-06): die App fragt sie
+/// beim Server ab und rechnet selbst nichts aus (Frontend bleibt „doof“).
+final class Artikelregeln {
+  Artikelregeln({
+    required this.version,
+    required Map<Beziehung, List<Artikel>> moeglich,
+    required Map<Artikel, int> pflichtzubehoer,
+    required this.abstaende,
+  }) : moeglich = Map.unmodifiable(moeglich),
+       pflichtzubehoer = Map.unmodifiable(pflichtzubehoer);
+
+  /// Liest [alsJson]; [holzarten] löst die Holzart-Kennungen auf.
+  factory Artikelregeln.ausJson(
+    Map<String, Object?> j,
+    Map<String, Holzart> holzarten,
+  ) {
+    Artikel artikel(Object? a) =>
+        artikelAusJson(a! as Map<String, Object?>, holzarten);
+    return Artikelregeln(
+      version: j['version']! as String,
+      moeglich: {
+        for (final MapEntry(:key, :value)
+            in (j['moeglich']! as Map<String, Object?>).entries)
+          Beziehung.values.byName(key): [
+            for (final a in value! as List<Object?>) artikel(a),
+          ],
+      },
+      pflichtzubehoer: {
+        for (final p
+            in (j['pflichtzubehoer']! as List<Object?>)
+                .cast<Map<String, Object?>>())
+          artikel(p['artikel']): p['anzahl']! as int,
+      },
+      abstaende: Abstaende.ausJson(j['abstaende']! as Map<String, Object?>),
+    );
+  }
+
+  /// Versionskennung der Artikeldaten, aus denen die Regeln stammen.
+  final String version;
+
+  /// Auswahl je Beziehung; Beziehungen ohne Auswahl fehlen.
+  final Map<Beziehung, List<Artikel>> moeglich;
+  final Map<Artikel, int> pflichtzubehoer;
+  final Abstaende abstaende;
+
+  Map<String, Object?> alsJson() => {
+    'version': version,
+    'moeglich': {
+      for (final MapEntry(:key, :value) in moeglich.entries)
+        key.name: [for (final a in value) artikelAlsJson(a)],
+    },
+    'pflichtzubehoer': [
+      for (final MapEntry(:key, :value) in pflichtzubehoer.entries)
+        {'artikel': artikelAlsJson(key), 'anzahl': value},
+    ],
+    'abstaende': abstaende.alsJson(),
+  };
 }
 
 /// Regelwerk „was passt zu was“ (M2-04) – vollständig aus der Artikeldatei,
@@ -96,6 +180,24 @@ final class Regelwerk {
       reichweite: g['Reichweite'] == 1,
     );
   }
+
+  /// Alle Regeln zu einem Artikel – Antwort des Artikeldienstes (M2-06).
+  Artikelregeln regeln(Artikelnummer nummer) => Artikelregeln(
+    version: datei.version,
+    moeglich: {
+      for (final b in Beziehung.values)
+        if (moeglich(nummer, b) case final auswahl when auswahl.isNotEmpty)
+          b: auswahl,
+    },
+    pflichtzubehoer: pflichtzubehoer(nummer),
+    abstaende: abstaende(nummer),
+  );
+
+  /// Artikel, auf die [filter] passt, in Datenreihenfolge.
+  List<Artikel> finde(Artikelfilter filter) => [
+    for (final e in datei.eintraege)
+      if (filter.passt(e.artikel)) e.artikel,
+  ];
 
   /// Alle Artikel eines Bereichs, z. B. die Beläge zur Auswahl.
   List<Artikel> imBereich(Bereich bereich) => [

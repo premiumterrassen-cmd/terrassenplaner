@@ -4,6 +4,8 @@
   "werte": {
     "domain.ProjektInfo.titel": 640.9905,
     "server.Router.rpcRundlauf": 2622.2346002621234,
-    "domain.Regelwerk.auswahlJeBelag": 403.30966666666666
+    "domain.Regelwerk.auswahlJeBelag": 403.30966666666666,
+    "server.ArtikelDienst.liste": 5825.328488372093,
+    "server.ArtikelDienst.regeln": 3892.4241245136186
   }
 }

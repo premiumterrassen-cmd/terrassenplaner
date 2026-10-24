@@ -142,9 +142,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/3
 - [ ] **M2-05 Artikelnummern vereinheitlichen (B-152)** ([#21](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/21)) – `feature/m2-05-artikelnummern-vereinheitlichen-b-152`
   - Verweise in den Abhängigkeiten nutzen teils EAN, teils Artikelnummern. Zuordnungstabelle EAN → Shop-Artikelnummer erstellen; Lücken Alexander zur Entscheidung vorlegen.
   - Abnahme: Alle Verweise auf Shop-Artikelnummern abgebildet oder als offen markiert; Freigabe Alexander dokumentiert
-- [ ] **M2-06 Artikeldienst über WAMP** ([#22](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/22)) – `feature/m2-06-artikeldienst-ueber-wamp` · Benchmark
+- [x] **M2-06 Artikeldienst über WAMP** ([#22](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/22)) – `feature/m2-06-artikeldienst-ueber-wamp` · Benchmark
   - RPCs zum Abruf von Artikeln, Filtern (Material, Farbe, Oberseite) und Regelwerk; Client-seitiges Zwischenspeichern; Versionskennung der Artikeldaten.
   - Abnahme: App lädt Artikel nur über WAMP; Neue Artikeldaten ohne App-Update wirksam
+  - Ergebnis: `ArtikelDienst` (server) mit `…kunde.artikel.version/liste/regeln` und Ereignis `…artikel.geaendert`; Filter nach Bereich, Art, Holzart, Serie, Profil, Oberseite (Farbe ist kein Feld der Artikeldaten – Farbtöne sind eigene Artikel); `ArtikelQuelle` (app) mit Zwischenspeicher bis zur nächsten Version; Server lädt `PLANER_ARTIKELDATEI` alle 30 s nach (`docs/betrieb/artikelimport.md`). Benchmark `server.ArtikelDienst.liste/regeln`.
 - [ ] **M2-07 Artikelbilder bereitstellen** ([#23](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/23)) – `feature/m2-07-artikelbilder-bereitstellen`
   - Abbildung 1–3 je Artikel (Planer_Bilder) ausliefern, für Web optimiert.
   - Abnahme: Jeder Artikel mit Bild oder definiertem Platzhalter

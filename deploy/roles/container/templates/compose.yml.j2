@@ -63,6 +63,7 @@ services:
       PLANER_REALM: {{ planer_realm }}
       PLANER_HEALTH_LISTEN: 0.0.0.0:8081
       PLANER_AUTH_ADRESSE: auth:8082
+      PLANER_ARTIKELDATEI: /daten/artikel.json
     volumes: [router-daten:/daten]
     networks: [intern, proxy, monitoring]
     depends_on:
