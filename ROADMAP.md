@@ -146,9 +146,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/3
   - RPCs zum Abruf von Artikeln, Filtern (Material, Farbe, Oberseite) und Regelwerk; Client-seitiges Zwischenspeichern; Versionskennung der Artikeldaten.
   - Abnahme: App lädt Artikel nur über WAMP; Neue Artikeldaten ohne App-Update wirksam
   - Ergebnis: `ArtikelDienst` (server) mit `…kunde.artikel.version/liste/regeln` und Ereignis `…artikel.geaendert`; Filter nach Bereich, Art, Holzart, Serie, Profil, Oberseite (Farbe ist kein Feld der Artikeldaten – Farbtöne sind eigene Artikel); `ArtikelQuelle` (app) mit Zwischenspeicher bis zur nächsten Version; Server lädt `PLANER_ARTIKELDATEI` alle 30 s nach (`docs/betrieb/artikelimport.md`). Benchmark `server.ArtikelDienst.liste/regeln`.
-- [ ] **M2-07 Artikelbilder bereitstellen** ([#23](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/23)) – `feature/m2-07-artikelbilder-bereitstellen`
+- [x] **M2-07 Artikelbilder bereitstellen** ([#23](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/23)) – `feature/m2-07-artikelbilder-bereitstellen`
   - Abbildung 1–3 je Artikel (Planer_Bilder) ausliefern, für Web optimiert.
   - Abnahme: Jeder Artikel mit Bild oder definiertem Platzhalter
+  - Ergebnis: `bin/artikelbilder_aufbereiten.dart` (WebP ≤ 800 px, Bericht fehlender Bilder), Auslieferung durch nginx unter `/artikelbilder/` (Root-Server und Container, Molecule-Test), `Artikelbild` mit `ArtikelbildPlatzhalter` in der App. Upload-Datei v6: 230 Bilder, 3,4 MB; fehlende 129 Bilder einmalig aus dem alten Planer übernommen, eins fehlt auch dort (Platzhalter).
 - [x] **M2-08 Holzart als Fachmodell (Robinie, später Kastanie)** ([#112](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/112)) – `feature/m2-08-holzart-als-fachmodell-robinie-spaeter-k`
   - Holzart als eigener Teil des Fachmodells mit ihren Planungseigenschaften (Längen, Breiten, Stärken, UK-Regeln, Gewicht/Rohdichte, Befestigung). Zum Go-Live nur Robinie; Kastanie kommt später mit eigenen Eigenschaften und soll ohne Umbau ergänzt werden können (Alexander, 19.10.2026).
   - Abnahme: Robinie vollständig als Holzart mit Planungseigenschaften beschrieben; Zweite Holzart lässt sich nur über Daten ergänzen (Test mit Beispiel-Holzart)

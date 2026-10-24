@@ -9,3 +9,4 @@ packages/domain/lib/src/wamp_namen.dart
 packages/server/bin/schema_erzeugen.dart
 packages/server/lib/src/schema/transport_schema.dart
 packages/server/bin/artikel_importieren.dart
+packages/server/bin/artikelbilder_aufbereiten.dart

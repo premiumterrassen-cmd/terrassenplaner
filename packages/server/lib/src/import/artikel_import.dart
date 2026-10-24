@@ -38,6 +38,9 @@ final class ImportErgebnis {
 /// Spalten, die der Importer liest – **nur diese** (Whitelist). Alles andere,
 /// z. B. Einkaufspreise oder die Spalte `marke` (Fertiger der Eigenmarken,
 /// B-023), wird nie gelesen (B-020).
+/// Eintrag der Abbildungsspalten für „keine Abbildung“ (M2-07).
+const keinBild = 'Kein Bild';
+
 const gelesenenSpalten = {
   'Artikelnummer',
   'Artikelbezeichnung',
@@ -267,7 +270,9 @@ Artikeleintrag? _eintrag(
             : null,
         bilder: [
           for (final spalte in ['Abbildung_1', 'Abbildung_2', 'Abbildung_3'])
-            if (text(spalte).isNotEmpty) text(spalte),
+            // „Kein Bild“ steht in den Daten für eine fehlende Abbildung.
+            if (text(spalte).isNotEmpty && text(spalte) != keinBild)
+              text(spalte),
         ],
       ),
       verweise: verweise,

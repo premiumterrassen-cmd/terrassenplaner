@@ -16,6 +16,12 @@
     mode: "0644"
     directory_mode: "0755"
 
+- name: Verzeichnis der Artikelbilder (Inhalt kommt mit den Artikeldaten, M2-07)
+  ansible.builtin.file:
+    path: "{{ planer_daten }}/artikelbilder"
+    state: directory
+    mode: "0755"
+
 - name: Nginx-Site für die Web-App
   ansible.builtin.template:
     src: planer-web.conf.j2

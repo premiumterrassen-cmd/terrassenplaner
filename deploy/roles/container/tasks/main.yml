@@ -16,7 +16,8 @@
     path: "{{ container_verzeichnis }}/{{ item }}"
     state: directory
     mode: "0755"
-  loop: [auth_server, server, web, traefik]
+  # artikelbilder: Inhalt kommt mit den Artikeldaten (M2-07).
+  loop: [auth_server, server, web, traefik, artikelbilder]
 
 - name: Programme und Web-App ausliefern (Linux-Bündel aus der Build-Chain)
   ansible.builtin.copy:

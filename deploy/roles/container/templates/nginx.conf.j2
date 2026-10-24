@@ -16,6 +16,12 @@ server {
     add_header Cross-Origin-Opener-Policy "same-origin" always;
     add_header Cross-Origin-Embedder-Policy "require-corp" always;
   }
+  # Artikelbilder (M2-07): Daten wie artikel.json, kein Teil der Web-App –
+  # neue Bilder wirken ohne Deployment. Fehlt ein Bild, zeigt die App den Platzhalter.
+  location /artikelbilder/ {
+    alias /usr/share/nginx/artikelbilder/;
+    add_header Cache-Control "public, max-age=86400";
+  }
   location / {
     try_files $uri $uri/ /index.html;
   }
