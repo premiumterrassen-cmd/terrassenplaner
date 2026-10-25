@@ -139,9 +139,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/3
   - Eigenes Regelwerk für „was passt zu was“: Befestigung je Belag, Zubehör, Stellfüße privat/gewerblich, Unterlegpads, Längs-/Quer-/Eck-/variable Verbinder, Verblendung, Entwässerung, Pflichtzubehör mit Anzahl; Abstände (UK, Stellfüße, Randabstand), Min-/Max-Höhe.
   - Abnahme: Für jeden Belag liefert das Regelwerk dieselben Auswahlmöglichkeiten wie der alte Planer (Abgleich mit M1); Regeln datengetrieben aus dem Import, nicht im Code fest verdrahtet
   - Ergebnis: `packages/domain/lib/src/regeln/regelwerk.dart` – Auswahl je Beziehung aus den Verweis-Spalten in Datenreihenfolge, Pflichtzubehör mit Anzahl, Abstände/Höhen; Befestigungswiderspruch zu B-094/B-090 ist in der Datenprüfung ein FEHLER. Artikeldatei mit Index (Benchmark ≈ 0,4 ms für 50 Beläge). Upload-Datei v6: 47 Beläge, kein Widerspruch.
-- [ ] **M2-05 Artikelnummern vereinheitlichen (B-152)** ([#21](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/21)) – `feature/m2-05-artikelnummern-vereinheitlichen-b-152`
+- [x] **M2-05 Artikelnummern vereinheitlichen (B-152)** ([#21](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/21)) – `feature/m2-05-artikelnummern-vereinheitlichen-b-152`
   - Verweise in den Abhängigkeiten nutzen teils EAN, teils Artikelnummern. Zuordnungstabelle EAN → Shop-Artikelnummer erstellen; Lücken Alexander zur Entscheidung vorlegen.
   - Abnahme: Alle Verweise auf Shop-Artikelnummern abgebildet oder als offen markiert; Freigabe Alexander dokumentiert
+  - Ergebnis: Abgleich Upload-Datei v6 mit Master-Artikelliste v26 – alle 112 Verweisziele vorhanden, nichts umzuschlüsseln; 53 Fremdartikel (B-155) behalten die EAN als Nummer, 18 Artikel ohne Shop-Eintrag ihre GrandTotal-Nummer (B-152). Freigabe Alexander 25.10.2026, dokumentiert in `docs/betrieb/artikelimport.md`; die Datenprüfung (M2-03) sichert die Verweise bei jedem Import.
 - [x] **M2-06 Artikeldienst über WAMP** ([#22](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/22)) – `feature/m2-06-artikeldienst-ueber-wamp` · Benchmark
   - RPCs zum Abruf von Artikeln, Filtern (Material, Farbe, Oberseite) und Regelwerk; Client-seitiges Zwischenspeichern; Versionskennung der Artikeldaten.
   - Abnahme: App lädt Artikel nur über WAMP; Neue Artikeldaten ohne App-Update wirksam
