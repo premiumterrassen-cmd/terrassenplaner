@@ -19,6 +19,18 @@ Der Importer schreibt einen Prüfbericht (FEHLER/Hinweis mit Excel-Zeile und Spa
 - Die Spalte „Gewicht“ enthält die Rohdichte (750) und wird nicht als Artikelgewicht übernommen – die Rohdichte steht in der Holzart.
 - **Die Artikeldatei gehört nicht ins Repository:** Artikelnummern der Fremdartikel sind EANs (B-155). `.gitignore` schließt `artikel*.json` im Wurzelverzeichnis und im Server-Paket aus.
 
+## Artikelnummern (M2-05, B-152)
+
+Abgleich der Upload-Datei v6 mit der Master-Artikelliste v26 (24.10.2026):
+
+- Alle 112 Verweisziele (mögliche Befestigung, Zubehör, Stellfüße …, benötigtes Zubehör) zeigen auf Artikel, die im Planer vorhanden sind – es gibt nichts umzuschlüsseln. Die Datenprüfung (M2-03) hält das bei jedem Import fest: ein Verweis auf einen fehlenden Artikel ist ein FEHLER.
+- 53 Verweisziele tragen eine EAN als Artikelnummer. Das sind ausnahmslos Fremdartikel aus der gemeinsam ausgewählten Zubehör-Auswahl (B-155), die es im Shop nicht gibt; kein Shop-Artikel hat dieselbe EAN.
+- 18 weitere Planer-Artikel stehen nicht (oder nur als Entwurf) im Shop und behalten ihre GrandTotal-Nummer (B-152: Artikel ohne Shop-Eintrag behalten ihren GrandTotal-Stand) – u. a. Stelzlager-Reihe 60-62-0xx, Schrauben, Vlies, Handschuhe, Anlieferung.
+
+**Freigabe Alexander, 25.10.2026:** Fremdartikel aus B-155 behalten die EAN als Artikelnummer; Planer-Artikel ohne Shop-Eintrag behalten ihre GrandTotal-Nummer. Offene Punkte: keine.
+
+Die EANs selbst stehen nur in der Artikeldatei, nicht im Repository (B-023).
+
 ## Datenprüfung (M2-03)
 
 Nach dem Einlesen prüft der Importer alle Artikel gemeinsam; jeder Befund nennt Excel-Zeile und Spalte, sortiert nach Zeile.
