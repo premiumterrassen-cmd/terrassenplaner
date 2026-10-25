@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
@@ -179,13 +180,15 @@ final class _Netz {
   final Float32List normalen;
   final Uint32List indizes;
 
-  List<double> get min => _grenze((a, b) => a < b ? a : b);
-  List<double> get max => _grenze((a, b) => a > b ? a : b);
+  List<double> get min => _grenze(math.min);
+  List<double> get max => _grenze(math.max);
 
   List<double> _grenze(double Function(double, double) waehle) => [
-    for (var achse = 0; achse < 3; achse++)
-      [for (var i = achse; i < positionen.length; i += 3) positionen[i]]
-          .reduce(waehle),
+    for (final achse in const [0, 1, 2])
+      Iterable.generate(
+        positionen.length ~/ 3,
+        (ecke) => positionen[ecke * 3 + achse],
+      ).reduce(waehle),
   ];
 }
 
