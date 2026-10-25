@@ -15,6 +15,12 @@ abstract final class WampNamen {
   static const artikelRegeln = '${kunde}artikel.regeln';
   static const artikelGeaendert = '${kunde}artikel.geaendert';
 
+  /// 3D-Modell (M3-10): GLB einer Rechteck-Terrasse (Prototyp).
+  static const modell3dRechteck = '${kunde}modell3d.rechteck';
+
+  /// Fehler-URI für ungültige Maße.
+  static const masseUngueltig = '${kunde}fehler.masse_ungueltig';
+
   /// Fehler-URI für unbekannte Artikelnummern.
   static const artikelUnbekannt = '${kunde}fehler.artikel_unbekannt';
 

@@ -189,9 +189,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/4
 - [ ] **M3-09 Lokale Bedienungseinstellungen (Darkmode, Sprache)** ([#94](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/94)) – `feature/m3-09-lokale-einstellungen`
   - Das Frontend bleibt „doof“ (Vorgabe Alexander 02.10.2026): einzig lokal im Browser gespeichert werden Bedienungseinstellungen – Darkmode (hell/dunkel/System), Sprache, zuletzt geöffnete Konfigurationsnummer bzw. Sitzungsschlüssel für „Weiterplanen“. Keine Fachdaten im Browser.
   - Abnahme: Darkmode umschaltbar, folgt standardmäßig dem System, bleibt nach Neuladen erhalten; Sprache bleibt erhalten (M3-07); Speicher fehlt/gesperrt (privates Fenster) → App funktioniert mit Standardwerten
-- [ ] **M3-10 Architektur für 3D und AR vorbereiten** ([#113](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/113)) – `feature/m3-10-architektur-fuer-3d-und-ar-vorbereiten` · Benchmark
+- [x] **M3-10 Architektur für 3D und AR vorbereiten** ([#113](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/113)) – `feature/m3-10-architektur-fuer-3d-und-ar-vorbereiten` · Benchmark
   - 3D und AR folgen direkt nach dem Go-Live (M12). Vorher festlegen: ein Geometriemodell im domain-Paket für 2D, 3D und alle Berechnungen; der Server erzeugt daraus ein 3D-Modell (z. B. glTF/GLB), die App zeigt es nur an (WebGL) – „Frontend bleibt doof“. Dieselbe Datei für Download und AR. Muss vor M4-01 (Geometrie-Kern) entschieden sein.
   - Abnahme: Architektur-Entscheidung in docs/architektur/ mit Varianten und Begründung; Prototyp: Server erzeugt GLB einer Rechteck-Terrasse, App zeigt es im Browser an; Benchmark: Erzeugung und Übertragung des 3D-Modells
+  - Ergebnis: `docs/architektur/3d-und-ar.md` – ein Geometriemodell (Bauteile als Quader, domain), Server erzeugt GLB (eigener glTF-Schreiber), Übertragung als Binärargument über WAMP, Anzeige mit model-viewer 4.4.0 (Apache-2.0, erst bei Bedarf geladen), dieselbe Datei für Download und AR. Prototyp `…/?prototyp=3d` (4 x 3 m), Smoke-Test in Chrome; Benchmark `server.Modell3d.*` (GLB 4 x 3 m 0,6 ms / 28 KB, Abruf 3,4 ms).
 
 
 ## M4 Grundriss
