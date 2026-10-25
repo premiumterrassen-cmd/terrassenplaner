@@ -10,6 +10,7 @@ export 'src/artikel/einheiten.dart';
 export 'src/begruessung.dart';
 export 'src/datenmodell/hlc.dart';
 export 'src/datenmodell/uuid_v7.dart';
+export 'src/geometrie/terrassenmodell.dart';
 export 'src/holzart/holzart.dart';
 export 'src/holzart/robinie.dart';
 export 'src/json_werte.dart';

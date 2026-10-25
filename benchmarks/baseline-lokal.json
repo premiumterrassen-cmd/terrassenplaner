@@ -6,6 +6,9 @@
     "server.Router.rpcRundlauf": 2622.2346002621234,
     "domain.Regelwerk.auswahlJeBelag": 403.30966666666666,
     "server.ArtikelDienst.liste": 5825.328488372093,
-    "server.ArtikelDienst.regeln": 3892.4241245136186
+    "server.ArtikelDienst.regeln": 3892.4241245136186,
+    "server.Modell3d.glb.4x3m": 623.21175,
+    "server.Modell3d.glb.12x8m": 1439.9165,
+    "server.Modell3d.rpc.4x3m": 3355.07202680067
   }
 }

@@ -1,6 +1,9 @@
 # Dateien ohne Unit-Test-Abdeckung – nur reine Startpunkte, die ausschließlich
 # getestete Funktionen aufrufen, oder Dateien nur mit Konstanten (kein
-# ausführbarer Code, erscheinen daher nicht im Bericht). Pfad ab Workspace-Wurzel.
+# ausführbarer Code, erscheinen daher nicht im Bericht), dazu reiner Browser-Code,
+# der auf der Dart-VM nicht läuft und per Smoke-Test in Chrome geprüft wird
+# (modell3d_ansicht_web.dart → integration_test/modell3d_test.dart).
+# Pfad ab Workspace-Wurzel.
 packages/app/lib/main.dart
 packages/server/bin/server.dart
 packages/server/bin/mitarbeiter_zugang.dart
@@ -10,3 +13,4 @@ packages/server/bin/schema_erzeugen.dart
 packages/server/lib/src/schema/transport_schema.dart
 packages/server/bin/artikel_importieren.dart
 packages/server/bin/artikelbilder_aufbereiten.dart
+packages/app/lib/src/modell3d/modell3d_ansicht_web.dart

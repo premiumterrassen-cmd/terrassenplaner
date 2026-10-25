@@ -22,6 +22,8 @@
     <regex pattern="[\s]for[\s]*\(.*?\)[\s]*{" dotAll="true"/>
     <regex pattern="[\s]while[\s]*\(.*?\)[\s]*{.*?}" dotAll="true"/>
     <file>packages/app/lib/main.dart</file>
+    <!-- reiner Browser-Code, geprüft per Smoke-Test in Chrome (M3-10) -->
+    <file>packages/app/lib/src/modell3d/modell3d_ansicht_web.dart</file>
     <file>**/*.g.dart</file>
   </exclude>
   <!-- Qualitätsschwelle: Ziel 95 % erkannte Mutationen (CLAUDE.md). -->

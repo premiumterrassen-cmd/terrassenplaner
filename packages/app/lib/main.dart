@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 import 'planer_app.dart';
+import 'src/modell3d/modell3d_seite.dart';
 import 'src/verbindung/planer_verbindung.dart';
 import 'src/verbindung/wamp_adresse.dart';
 
@@ -9,5 +11,21 @@ void main() {
     Uri.base,
     vorgabe: const String.fromEnvironment('PLANER_WAMP_URL'),
   );
-  runApp(PlanerApp(hallo: PlanerVerbindung(adresse).hallo));
+  final verbindung = PlanerVerbindung(adresse);
+  // Prototyp der 3D-Vorschau (M3-10): …/?prototyp=3d
+  if (Uri.base.queryParameters['prototyp'] == '3d') {
+    runApp(
+      MaterialApp(
+        title: Modell3dSeite.titel,
+        home: Modell3dSeite(
+          lade: () => verbindung.modell3dRechteck(
+            const Millimeter(4000),
+            const Millimeter(3000),
+          ),
+        ),
+      ),
+    );
+    return;
+  }
+  runApp(PlanerApp(hallo: verbindung.hallo));
 }
