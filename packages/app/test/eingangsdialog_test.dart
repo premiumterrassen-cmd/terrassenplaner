@@ -8,6 +8,8 @@ import 'package:terrassenplaner_app/src/rahmen/planer_rahmen.dart';
 import 'package:terrassenplaner_app/src/start/eingangsdialog.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
+import 'hilfe.dart';
+
 final _gefunden = KonfigurationsStand(
   const Konfigurationsnummer('2026-10-08-1511'),
   3,
@@ -42,11 +44,11 @@ void main() {
     await _starte(tester);
     expect(_dialog, findsOneWidget);
     expect(find.byType(PlanerRahmen), findsOneWidget);
-    expect(find.text(Eingangsdialog.titel), findsOneWidget);
-    expect(find.text(Eingangsdialog.text), findsOneWidget);
-    expect(find.text(Eingangsdialog.ladenKnopf), findsOneWidget);
-    expect(find.text(Eingangsdialog.neuKnopf), findsOneWidget);
-    expect(find.text(Eingangsdialog.weiterKnopf), findsNothing);
+    expect(find.text(de.willkommenTitel), findsOneWidget);
+    expect(find.text(de.willkommenText), findsOneWidget);
+    expect(find.text(de.konfigurationLadenKnopf), findsOneWidget);
+    expect(find.text(de.neuKnopf), findsOneWidget);
+    expect(find.text(de.weiterplanen), findsNothing);
     expect(
       tester.widget<Image>(
         find.descendant(of: _dialog, matching: find.byType(Image)),
@@ -82,7 +84,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(_ladenDialog, findsOneWidget);
     // Titel und Knopf heißen gleich (wie im alten Planer).
-    expect(find.text(LadenDialog.titel), findsNWidgets(2));
+    expect(find.text(de.ladenTitel), findsNWidgets(2));
     expect(
       tester.widget<Text>(find.byKey(const ValueKey('version'))).data,
       '1',
@@ -120,7 +122,7 @@ void main() {
     await tester.enterText(find.byKey(const ValueKey('nummer')), '2026-10-08');
     await tester.tap(find.byKey(const ValueKey('laden-bestaetigen')));
     await tester.pump();
-    expect(find.text(LadenDialog.nummerFehler), findsOneWidget);
+    expect(find.text(de.nummerFehler), findsOneWidget);
     expect(geladen, isEmpty);
 
     // Enter im Feld lädt ebenfalls; der Fehlertext verschwindet.
@@ -130,7 +132,7 @@ void main() {
     );
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
-    expect(find.text(LadenDialog.nummerFehler), findsNothing);
+    expect(find.text(de.nummerFehler), findsNothing);
     expect(geladen, [
       KonfigurationsStand(const Konfigurationsnummer('2026-10-08-1511'), 1),
     ]);
@@ -151,10 +153,10 @@ void main() {
     expect(tester.widget<FilledButton>(knopf).onPressed, isNull);
     antwort.completeError(StateError('nicht gefunden'));
     await tester.pumpAndSettle();
-    expect(find.text(LadenDialog.ladeFehler), findsOneWidget);
+    expect(find.text(de.ladeFehler), findsOneWidget);
     expect(tester.widget<FilledButton>(knopf).onPressed, isNotNull);
     expect(_ladenDialog, findsOneWidget);
-    final fehler = tester.widget<Text>(find.text(LadenDialog.ladeFehler));
+    final fehler = tester.widget<Text>(find.text(de.ladeFehler));
     expect(
       fehler.style!.color,
       Theme.of(tester.element(_ladenDialog)).colorScheme.error,
@@ -165,7 +167,7 @@ void main() {
     await _starte(tester);
     await tester.tap(find.byKey(const ValueKey('laden')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text(LadenDialog.zurueckKnopf));
+    await tester.tap(find.text(de.zurueck));
     await tester.pumpAndSettle();
     expect(_ladenDialog, findsNothing);
     expect(_dialog, findsOneWidget);
@@ -174,7 +176,10 @@ void main() {
   testWidgets('Weg 3: gefundene Konfiguration – weiterplanen', (tester) async {
     await _starte(tester, gefunden: _gefunden);
     expect(
-      find.text('${Eingangsdialog.gefundenText} (2026-10-08-1511, Version 3)'),
+      find.text(
+        'Wir haben eine Konfiguration gefunden. Möchten Sie mit dieser '
+        'weiterplanen? (2026-10-08-1511, Version 3)',
+      ),
       findsOneWidget,
     );
     final knopf = find.byKey(const ValueKey('weiterplanen'));
@@ -207,38 +212,32 @@ void main() {
 
   test('Texte', () {
     expect(
-      Eingangsdialog.titel,
+      de.willkommenTitel,
       'Willkommen beim RobinienWelt Terrassenkonfigurator!',
     );
-    expect(Eingangsdialog.ladenKnopf, 'KONFIGURATION LADEN');
-    expect(Eingangsdialog.neuKnopf, 'WUNSCHTERRASSE KONFIGURIEREN');
-    expect(Eingangsdialog.weiterKnopf, 'WEITERPLANEN');
+    expect(de.konfigurationLadenKnopf, 'KONFIGURATION LADEN');
+    expect(de.neuKnopf, 'WUNSCHTERRASSE KONFIGURIEREN');
+    expect(de.weiterplanen, 'WEITERPLANEN');
     expect(
-      Eingangsdialog.gefundenText,
-      'Wir haben eine Konfiguration gefunden. Möchten Sie mit dieser '
-      'weiterplanen?',
+      en.gefunden('2026-10-08-1511', 3),
+      'We found a configuration. Would you like to continue planning with '
+      'it? (2026-10-08-1511, version 3)',
     );
     expect(
-      Eingangsdialog.text,
+      de.willkommenText,
       'Planen Sie Ihre Wunschterrasse aus Robinie mit wenigen Klicks: '
       'Dielen, Verlegung und Unterkonstruktion wählen Sie selbst. Danach '
       'bestellen Sie direkt oder fordern ein Angebot an. Persönliche Hilfe '
       'bekommen Sie in der Video-Beratung.',
     );
-    expect(
-      LadenDialog.nummerFehler,
-      'Bitte im Format JJJJ-MM-TT-NNNN eingeben',
-    );
-    expect(
-      LadenDialog.ladeFehler,
-      'Die Konfiguration konnte nicht geladen werden.',
-    );
-    expect(LadenDialog.zurueckKnopf, 'Zurück');
-    expect(LadenDialog.titel, 'Konfiguration laden');
-    expect(LadenDialog.nummerFeld, 'Konfigurationsnummer');
-    expect(LadenDialog.nummerHinweis, 'z. B. 2026-10-08-1511');
-    expect(LadenDialog.versionText, 'Version');
-    expect(LadenDialog.ladenKnopf, 'Konfiguration laden');
+    expect(de.nummerFehler, 'Bitte im Format JJJJ-MM-TT-NNNN eingeben');
+    expect(de.ladeFehler, 'Die Konfiguration konnte nicht geladen werden.');
+    expect(de.zurueck, 'Zurück');
+    expect(de.ladenTitel, 'Konfiguration laden');
+    expect(de.nummerFeld, 'Konfigurationsnummer');
+    expect(de.nummerHinweis, 'z. B. 2026-10-08-1511');
+    expect(de.version, 'Version');
+    expect(de.ladenTitel, 'Konfiguration laden');
     expect(Startweg.values, [
       Startweg.neu,
       Startweg.geladen,

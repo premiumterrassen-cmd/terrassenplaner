@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../design/planer_design.dart';
+import '../sprache/sprache.dart';
 import 'aktionen.dart';
 import 'ansichtsoptionen.dart';
 import 'planer_schritt.dart';
@@ -22,6 +23,7 @@ class PlanerRahmen extends StatefulWidget {
     this.optionen,
     this.zeichnung,
     this.aktionen = const RahmenAktionen(),
+    this.sprache,
   });
 
   /// Inhalt der Statuszeile (z. B. Verbindung zum Server).
@@ -39,10 +41,8 @@ class PlanerRahmen extends StatefulWidget {
   /// Links und Ergebnis-Knöpfe (M3-06).
   final RahmenAktionen aktionen;
 
-  /// Meldung, solange Angebot und PDF noch fehlen (M9).
-  static const folgt = 'Diese Funktion folgt in Kürze.';
-
-  static const titel = 'TERRASSENKONFIGURATOR';
+  /// Sprachauswahl in der Kopfzeile (M3-07); ohne Steuerung keine Auswahl.
+  final SprachSteuerung? sprache;
 
   @override
   State<PlanerRahmen> createState() => _PlanerRahmenState();
@@ -65,9 +65,11 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
   /// Ergebnis oder Angebot: erst der Hinweis auf Standardwerte (M3-05).
   Future<void> _zumErgebnis(Future<void> Function()? aktion) async {
     final messenger = ScaffoldMessenger.of(context);
+    // Meldung, solange Angebot und PDF noch fehlen (M9).
+    final folgt = context.texte.folgt;
     if (!await pruefeStandardwerte(context, _zustand)) return;
     if (aktion == null) {
-      messenger.showSnackBar(const SnackBar(content: Text(PlanerRahmen.folgt)));
+      messenger.showSnackBar(SnackBar(content: Text(folgt)));
       return;
     }
     await aktion();
@@ -98,6 +100,7 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
             children: [
               Kopfzeile(
                 breit: desktop,
+                sprache: widget.sprache,
                 onZuruecksetzen: _zuruecksetzen,
                 onVideoberatung: () =>
                     widget.aktionen.oeffne(PlanerLinks.videoberatung),
@@ -153,7 +156,8 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
   );
 }
 
-/// Kopfzeile mit Logo, Titel und Knöpfen (M3-03, M3-06); schmal nur Symbole.
+/// Kopfzeile mit Logo, Titel, Sprachauswahl und Knöpfen (M3-03, M3-06,
+/// M3-07); ohne Platz nur Symbole.
 class Kopfzeile extends StatelessWidget {
   const Kopfzeile({
     required this.breit,
@@ -162,27 +166,29 @@ class Kopfzeile extends StatelessWidget {
     required this.onPdf,
     required this.onAnfordern,
     super.key,
+    this.sprache,
   });
 
   final bool breit;
+  final SprachSteuerung? sprache;
   final VoidCallback onZuruecksetzen;
   final VoidCallback onVideoberatung;
   final VoidCallback onPdf;
   final VoidCallback onAnfordern;
 
-  static const zuruecksetzen = 'ZURÜCKSETZEN';
-  static const videoberatung = 'Video-Beratung buchen';
-  static const pdf = 'PDF';
-  static const anfordern = 'KONFIGURATION ANFORDERN';
-
   static const logo = 'assets/bilder/robinienwelt_logo.png';
+
+  /// Ab dieser Breite (px) tragen die Knöpfe ihre Beschriftung; darunter
+  /// nur Symbole mit Tooltip – auch für längere Übersetzungen (M3-07).
+  static const textAb = 1280.0;
 
   Widget _knopf(
     String schluessel,
     IconData symbol,
     String text,
-    VoidCallback onPressed,
-  ) => breit
+    VoidCallback onPressed, {
+    required bool mitText,
+  }) => mitText
       ? TextButton.icon(
           key: ValueKey(schluessel),
           onPressed: onPressed,
@@ -197,56 +203,73 @@ class Kopfzeile extends StatelessWidget {
         );
 
   @override
-  Widget build(BuildContext context) => Container(
-    height: 64,
-    padding: const EdgeInsets.symmetric(horizontal: PlanerAbstand.mittel),
-    decoration: const BoxDecoration(
-      color: PlanerFarben.weiss,
-      border: Border(bottom: BorderSide(color: PlanerFarben.linie)),
-    ),
-    child: Row(
-      children: [
-        Image.asset(logo, height: 48, semanticLabel: 'RobinienWelt'),
-        // Schmal: nur das Logo, sonst würde der Titel abgeschnitten.
-        if (breit) ...[
-          const SizedBox(width: PlanerAbstand.mittel),
-          Flexible(
-            child: Text(
-              PlanerRahmen.titel,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: PlanerFarben.braun,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 1.5,
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, raum) =>
+        _zeile(context, mitText: raum.maxWidth >= textAb),
+  );
+
+  Widget _zeile(BuildContext context, {required bool mitText}) {
+    final t = context.texte;
+    return Container(
+      height: 64,
+      padding: const EdgeInsets.symmetric(horizontal: PlanerAbstand.mittel),
+      decoration: const BoxDecoration(
+        color: PlanerFarben.weiss,
+        border: Border(bottom: BorderSide(color: PlanerFarben.linie)),
+      ),
+      child: Row(
+        children: [
+          Image.asset(logo, height: 48, semanticLabel: t.logoBeschreibung),
+          // Schmal: nur das Logo, sonst würde der Titel abgeschnitten.
+          if (breit) ...[
+            const SizedBox(width: PlanerAbstand.mittel),
+            Flexible(
+              child: Text(
+                t.planerTitel,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: PlanerFarben.braun,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 1.5,
+                ),
               ),
             ),
+          ],
+          const Spacer(),
+          if (sprache case final sprache?) Sprachauswahl(sprache: sprache),
+          _knopf(
+            'videoberatung',
+            Icons.video_call_outlined,
+            t.videoberatung,
+            onVideoberatung,
+            mitText: mitText,
+          ),
+          _knopf(
+            'zuruecksetzen',
+            Icons.restart_alt,
+            t.zuruecksetzen,
+            onZuruecksetzen,
+            mitText: mitText,
+          ),
+          _knopf(
+            'pdf',
+            Icons.picture_as_pdf_outlined,
+            t.pdf,
+            onPdf,
+            mitText: mitText,
+          ),
+          const SizedBox(width: PlanerAbstand.klein),
+          FilledButton.icon(
+            key: const ValueKey('anfordern'),
+            style: FilledButton.styleFrom(backgroundColor: PlanerFarben.gruen),
+            onPressed: onAnfordern,
+            icon: const Icon(Icons.send_outlined),
+            label: Text(mitText ? t.anfordern : t.anfordernKurz),
           ),
         ],
-        const Spacer(),
-        _knopf(
-          'videoberatung',
-          Icons.video_call_outlined,
-          videoberatung,
-          onVideoberatung,
-        ),
-        _knopf(
-          'zuruecksetzen',
-          Icons.restart_alt,
-          zuruecksetzen,
-          onZuruecksetzen,
-        ),
-        _knopf('pdf', Icons.picture_as_pdf_outlined, pdf, onPdf),
-        const SizedBox(width: PlanerAbstand.klein),
-        FilledButton.icon(
-          key: const ValueKey('anfordern'),
-          style: FilledButton.styleFrom(backgroundColor: PlanerFarben.gruen),
-          onPressed: onAnfordern,
-          icon: const Icon(Icons.send_outlined),
-          label: Text(breit ? anfordern : 'ANFORDERN'),
-        ),
-      ],
-    ),
-  );
+      ),
+    );
+  }
 }
 
 /// Schrittleiste mit sieben Stationen und Fortschritt.
@@ -282,7 +305,7 @@ class Schrittleiste extends StatelessWidget {
             value: zustand.fortschritt,
             color: PlanerFarben.gruen,
             backgroundColor: PlanerFarben.linie,
-            semanticsLabel: 'Fortschritt',
+            semanticsLabel: context.texte.fortschritt,
           ),
         ),
       ],
@@ -335,8 +358,8 @@ class Station extends StatelessWidget {
             LayoutBuilder(
               builder: (context, raum) => Text(
                 raum.maxWidth < Station.schmalUnter
-                    ? schritt.getrennterTitel
-                    : schritt.titel,
+                    ? schritt.getrennterTitel(context.texte)
+                    : schritt.titel(context.texte),
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -362,45 +385,48 @@ class Bearbeitungsmenue extends StatelessWidget {
   final RahmenZustand zustand;
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-    key: const ValueKey('bearbeitungsmenue'),
-    width: PlanerLayout.menuBreite,
-    child: Material(
-      color: PlanerFarben.weiss,
-      child: ListView(
-        children: [
-          for (final schritt in PlanerSchritt.values) ...[
-            ListTile(
-              key: ValueKey('menu-${schritt.name}'),
-              selected: schritt == zustand.aktiv,
-              selectedColor: PlanerFarben.braun,
-              title: Text(
-                '${schritt.nummer}. ${schritt.titel}',
-                style: const TextStyle(fontWeight: FontWeight.w500),
-              ),
-              trailing: Icon(
-                schritt == zustand.aktiv
-                    ? Icons.expand_less
-                    : Icons.expand_more,
-              ),
-              onTap: () => zustand.waehle(schritt),
-            ),
-            if (schritt == zustand.aktiv)
-              for (final punkt in schritt.nummerierteUnterpunkte)
-                Padding(
-                  padding: const EdgeInsets.only(
-                    left: PlanerAbstand.gross,
-                    right: PlanerAbstand.mittel,
-                    bottom: PlanerAbstand.klein,
-                  ),
-                  child: Text(punkt),
+  Widget build(BuildContext context) {
+    final t = context.texte;
+    return SizedBox(
+      key: const ValueKey('bearbeitungsmenue'),
+      width: PlanerLayout.menuBreite,
+      child: Material(
+        color: PlanerFarben.weiss,
+        child: ListView(
+          children: [
+            for (final schritt in PlanerSchritt.values) ...[
+              ListTile(
+                key: ValueKey('menu-${schritt.name}'),
+                selected: schritt == zustand.aktiv,
+                selectedColor: PlanerFarben.braun,
+                title: Text(
+                  '${schritt.nummer}. ${schritt.titel(t)}',
+                  style: const TextStyle(fontWeight: FontWeight.w500),
                 ),
-            const Divider(height: 1),
+                trailing: Icon(
+                  schritt == zustand.aktiv
+                      ? Icons.expand_less
+                      : Icons.expand_more,
+                ),
+                onTap: () => zustand.waehle(schritt),
+              ),
+              if (schritt == zustand.aktiv)
+                for (final punkt in schritt.nummerierteUnterpunkte(t))
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      left: PlanerAbstand.gross,
+                      right: PlanerAbstand.mittel,
+                      bottom: PlanerAbstand.klein,
+                    ),
+                    child: Text(punkt),
+                  ),
+              const Divider(height: 1),
+            ],
           ],
-        ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 /// Grüner Griff zum Ein- und Ausklappen des Menüs.
@@ -409,9 +435,6 @@ class MenuGriff extends StatelessWidget {
 
   final bool offen;
   final VoidCallback onTap;
-
-  static const einklappen = 'Menü einklappen';
-  static const ausklappen = 'Menü ausklappen';
 
   @override
   Widget build(BuildContext context) => Material(
@@ -424,7 +447,9 @@ class MenuGriff extends StatelessWidget {
         child: Icon(
           offen ? Icons.chevron_left : Icons.chevron_right,
           color: PlanerFarben.weiss,
-          semanticLabel: offen ? einklappen : ausklappen,
+          semanticLabel: offen
+              ? context.texte.menuEinklappen
+              : context.texte.menuAusklappen,
         ),
       ),
     ),
@@ -442,24 +467,27 @@ class Kennzahlen extends StatelessWidget {
   /// Holzvolumen in m³, `null` = noch nicht berechnet.
   final double? volumen;
 
-  static String zahl(double? wert, String einheit) => wert == null
-      ? '– $einheit'
-      : '${wert.toStringAsFixed(2).replaceAll('.', ',')} $einheit';
+  /// Wert mit zwei Nachkommastellen im Format der Sprache („12,50 m²“).
+  static String zahl(PlanerTexte t, double? wert, String einheit) =>
+      wert == null ? '– $einheit' : '${zahlText(t, wert, '0.00')} $einheit';
 
   @override
-  Widget build(BuildContext context) => Card(
-    key: const ValueKey('kennzahlen'),
-    child: Padding(
-      padding: const EdgeInsets.all(PlanerAbstand.klein),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text('Fläche: ${zahl(flaeche, 'm²')}'),
-          Text('Volumen: ${zahl(volumen, 'm³')}'),
-        ],
+  Widget build(BuildContext context) {
+    final t = context.texte;
+    return Card(
+      key: const ValueKey('kennzahlen'),
+      child: Padding(
+        padding: const EdgeInsets.all(PlanerAbstand.klein),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(t.flaeche(zahl(t, flaeche, 'm²'))),
+            Text(t.volumen(zahl(t, volumen, 'm³'))),
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 /// Fußbereich (M3-06): Status links, rechtliche Links rechts.
@@ -469,74 +497,68 @@ class Statuszeile extends StatelessWidget {
   final Widget child;
   final LinkOeffner oeffne;
 
-  static const agb = 'AGB';
-  static const datenschutz = 'Datenschutz';
-  static const impressum = 'Impressum';
-
   @override
-  Widget build(BuildContext context) => Container(
-    height: 32,
-    padding: const EdgeInsets.symmetric(horizontal: PlanerAbstand.mittel),
-    decoration: const BoxDecoration(
-      color: PlanerFarben.sand,
-      border: Border(top: BorderSide(color: PlanerFarben.linie)),
-    ),
-    child: DefaultTextStyle.merge(
-      style: const TextStyle(fontSize: 12, color: PlanerFarben.text),
-      child: Row(
-        children: [
-          Expanded(child: child),
-          for (final (text, adresse) in [
-            (agb, PlanerLinks.agb),
-            (datenschutz, PlanerLinks.datenschutz),
-            (impressum, PlanerLinks.impressum),
-          ])
-            TextButton(
-              key: ValueKey('link-$text'),
-              style: TextButton.styleFrom(
-                textStyle: const TextStyle(fontSize: 12),
-                visualDensity: VisualDensity.compact,
-              ),
-              onPressed: () => oeffne(adresse),
-              child: Text(text),
-            ),
-        ],
+  Widget build(BuildContext context) {
+    final t = context.texte;
+    return Container(
+      height: 32,
+      padding: const EdgeInsets.symmetric(horizontal: PlanerAbstand.mittel),
+      decoration: const BoxDecoration(
+        color: PlanerFarben.sand,
+        border: Border(top: BorderSide(color: PlanerFarben.linie)),
       ),
-    ),
-  );
+      child: DefaultTextStyle.merge(
+        style: const TextStyle(fontSize: 12, color: PlanerFarben.text),
+        child: Row(
+          children: [
+            Expanded(child: child),
+            for (final (name, text, adresse) in [
+              ('agb', t.agb, PlanerLinks.agb),
+              ('datenschutz', t.datenschutz, PlanerLinks.datenschutz),
+              ('impressum', t.impressum, PlanerLinks.impressum),
+            ])
+              TextButton(
+                key: ValueKey('link-$name'),
+                style: TextButton.styleFrom(
+                  textStyle: const TextStyle(fontSize: 12),
+                  visualDensity: VisualDensity.compact,
+                ),
+                onPressed: () => oeffne(adresse),
+                child: Text(text),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 /// Sicherheitsabfrage vor dem Zurücksetzen (Fachkonzept 08).
 class ZuruecksetzenDialog extends StatelessWidget {
   const ZuruecksetzenDialog({super.key});
 
-  static const titel = 'Planung zurücksetzen?';
-  static const text =
-      'Sind Sie sicher, dass Sie die Planung zurücksetzen möchten? Dadurch '
-      'geht Ihr Fortschritt verloren. Stellen Sie sicher, dass Sie die '
-      'Konfiguration gespeichert und die Konfigurationsnummer notiert haben.';
-  static const zurueck = 'Zurück zur Konfiguration';
-  static const bestaetigen = 'Konfiguration zurücksetzen';
-
   @override
-  Widget build(BuildContext context) => AlertDialog(
-    key: const ValueKey('zuruecksetzen-dialog'),
-    title: const Text(titel),
-    content: const Text(text),
-    actions: [
-      TextButton(
-        key: const ValueKey('zuruecksetzen-abbrechen'),
-        onPressed: () => Navigator.of(context).pop(false),
-        child: const Text(zurueck),
-      ),
-      FilledButton(
-        key: const ValueKey('zuruecksetzen-bestaetigen'),
-        style: FilledButton.styleFrom(
-          backgroundColor: Theme.of(context).colorScheme.error,
+  Widget build(BuildContext context) {
+    final t = context.texte;
+    return AlertDialog(
+      key: const ValueKey('zuruecksetzen-dialog'),
+      title: Text(t.zuruecksetzenTitel),
+      content: Text(t.zuruecksetzenText),
+      actions: [
+        TextButton(
+          key: const ValueKey('zuruecksetzen-abbrechen'),
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text(t.zuruecksetzenZurueck),
         ),
-        onPressed: () => Navigator.of(context).pop(true),
-        child: const Text(bestaetigen),
-      ),
-    ],
-  );
+        FilledButton(
+          key: const ValueKey('zuruecksetzen-bestaetigen'),
+          style: FilledButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+          onPressed: () => Navigator.of(context).pop(true),
+          child: Text(t.zuruecksetzenBestaetigen),
+        ),
+      ],
+    );
+  }
 }

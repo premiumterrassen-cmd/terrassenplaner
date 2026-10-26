@@ -9,6 +9,8 @@ import 'package:terrassenplaner_app/src/rahmen/steuerung.dart';
 import 'package:terrassenplaner_app/src/rahmen/zeichenflaeche.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
+import 'hilfe.dart';
+
 /// Unterscheidbarer Planungsstand für Tests (der echte wächst ab M4).
 final class _Stand extends Planungsstand {
   const _Stand(this.n) : super.leer();
@@ -35,7 +37,7 @@ Future<({PlanungsSteuerung planung, AnsichtSteuerung ansicht})> _zeige(
   addTearDown(planung.dispose);
   addTearDown(ansicht.dispose);
   await tester.pumpWidget(
-    MaterialApp(
+    testApp(
       theme: planerThema(),
       home: PlanerRahmen(
         status: const Text('Status'),
@@ -203,8 +205,8 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('wiederherstellen')));
       await tester.pump();
       expect(s.planung.aktuell, const _Stand(2));
-      expect(find.byTooltip(Werkzeugleiste.rueckgaengig), findsOneWidget);
-      expect(find.byTooltip(Werkzeugleiste.wiederherstellen), findsOneWidget);
+      expect(find.byTooltip(de.rueckgaengig), findsOneWidget);
+      expect(find.byTooltip(de.wiederherstellen), findsOneWidget);
     });
 
     testWidgets('Zoom per Knopf, Regler und Zentrieren', (tester) async {
@@ -224,7 +226,7 @@ void main() {
         find.byKey(const ValueKey('zoom-regler')),
       );
       expect(regler.value, closeTo(s.ansicht.reglerWert, 1e-9));
-      expect(regler.label, Werkzeugleiste.zoom);
+      expect(regler.label, de.zoom);
       regler.onChanged!(1);
       await tester.pump();
       expect(prozent(), '400 %');
@@ -232,14 +234,10 @@ void main() {
       await tester.pump();
       expect(prozent(), '100 %');
       expect(s.ansicht.verschiebung, Offset.zero);
-      for (final t in [
-        Werkzeugleiste.zentrieren,
-        Werkzeugleiste.verkleinern,
-        Werkzeugleiste.vergroessern,
-      ]) {
+      for (final t in [de.zentrieren, de.verkleinern, de.vergroessern]) {
         expect(find.byTooltip(t), findsOneWidget);
       }
-      final hinweis = tester.widget<Text>(find.text(Werkzeugleiste.hinweis));
+      final hinweis = tester.widget<Text>(find.text(de.bedienHinweis));
       expect(
         [hinweis.style!.fontSize, hinweis.style!.color],
         [12, PlanerFarben.text],
@@ -285,10 +283,10 @@ void main() {
         find.byKey(const ValueKey('zuruecksetzen-dialog')),
         findsOneWidget,
       );
-      expect(find.text(ZuruecksetzenDialog.titel), findsOneWidget);
-      expect(find.text(ZuruecksetzenDialog.text), findsOneWidget);
-      expect(find.text(ZuruecksetzenDialog.zurueck), findsOneWidget);
-      expect(find.text(ZuruecksetzenDialog.bestaetigen), findsOneWidget);
+      expect(find.text(de.zuruecksetzenTitel), findsOneWidget);
+      expect(find.text(de.zuruecksetzenText), findsOneWidget);
+      expect(find.text(de.zuruecksetzenZurueck), findsOneWidget);
+      expect(find.text(de.zuruecksetzenBestaetigen), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('zuruecksetzen-abbrechen')));
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey('zuruecksetzen-dialog')), findsNothing);
@@ -329,16 +327,16 @@ void main() {
     });
 
     test('Texte', () {
-      expect(Kopfzeile.zuruecksetzen, 'ZURÜCKSETZEN');
-      expect(ZuruecksetzenDialog.titel, 'Planung zurücksetzen?');
+      expect(de.zuruecksetzen, 'ZURÜCKSETZEN');
+      expect(de.zuruecksetzenTitel, 'Planung zurücksetzen?');
       expect(
-        ZuruecksetzenDialog.text,
+        de.zuruecksetzenText,
         'Sind Sie sicher, dass Sie die Planung zurücksetzen möchten? Dadurch '
         'geht Ihr Fortschritt verloren. Stellen Sie sicher, dass Sie die '
         'Konfiguration gespeichert und die Konfigurationsnummer notiert haben.',
       );
-      expect(ZuruecksetzenDialog.zurueck, 'Zurück zur Konfiguration');
-      expect(ZuruecksetzenDialog.bestaetigen, 'Konfiguration zurücksetzen');
+      expect(de.zuruecksetzenZurueck, 'Zurück zur Konfiguration');
+      expect(de.zuruecksetzenBestaetigen, 'Konfiguration zurücksetzen');
     });
   });
 
@@ -346,7 +344,7 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(
-      const MaterialApp(home: PlanerRahmen(status: Text('x'))),
+      testApp(home: const PlanerRahmen(status: Text('x'))),
     );
     await tester.pumpWidget(const SizedBox());
     expect(tester.takeException(), isNull);

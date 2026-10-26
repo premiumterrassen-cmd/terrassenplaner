@@ -25,6 +25,8 @@
     <!-- reiner Browser-Code, geprüft per Smoke-Test in Chrome (M3-10) -->
     <file>packages/app/lib/src/modell3d/modell3d_ansicht_web.dart</file>
     <file>**/*.g.dart</file>
+    <!-- von flutter gen-l10n erzeugte Übersetzungen (M3-07) -->
+    <file>packages/app/lib/l10n/*.dart</file>
   </exclude>
   <!-- Qualitätsschwelle: Ziel 95 % erkannte Mutationen (CLAUDE.md). -->
   <threshold failure="95">

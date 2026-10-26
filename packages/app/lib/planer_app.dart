@@ -3,19 +3,21 @@ import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 import 'src/design/planer_design.dart';
 import 'src/rahmen/planer_rahmen.dart';
+import 'src/sprache/sprache.dart';
 import 'src/start/eingangsdialog.dart';
 
 /// Liefert die Begrüßung des Servers (M0-12); in Tests austauschbar.
 typedef HalloAbfrage = Future<String> Function();
 
 /// Wurzel-Widget der Planer-Oberfläche.
-class PlanerApp extends StatelessWidget {
+class PlanerApp extends StatefulWidget {
   const PlanerApp({
     required this.hallo,
     required this.laden,
     required this.gespeichert,
     super.key,
     this.info = terrassenplaner,
+    this.sprache,
   });
 
   final ProjektInfo info;
@@ -23,15 +25,40 @@ class PlanerApp extends StatelessWidget {
   final KonfigurationLaden laden;
   final GespeicherteKonfiguration gespeichert;
 
+  /// Von außen vorgegebene Sprache (Tests); sonst Deutsch (M3-07).
+  final SprachSteuerung? sprache;
+
   @override
-  Widget build(BuildContext context) => MaterialApp(
-    title: info.titel,
-    theme: planerThema(),
-    debugShowCheckedModeBanner: false,
-    home: PlanerStart(
-      laden: laden,
-      gespeichert: gespeichert,
-      child: PlanerRahmen(status: ServerStatus(hallo: hallo)),
+  State<PlanerApp> createState() => _PlanerAppState();
+}
+
+class _PlanerAppState extends State<PlanerApp> {
+  late final SprachSteuerung _sprache = widget.sprache ?? SprachSteuerung();
+
+  @override
+  void dispose() {
+    if (widget.sprache == null) _sprache.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => ValueListenableBuilder(
+    valueListenable: _sprache,
+    builder: (context, sprache, _) => MaterialApp(
+      title: widget.info.titel,
+      theme: planerThema(),
+      debugShowCheckedModeBanner: false,
+      locale: sprache,
+      localizationsDelegates: PlanerTexte.localizationsDelegates,
+      supportedLocales: SprachSteuerung.sprachen,
+      home: PlanerStart(
+        laden: widget.laden,
+        gespeichert: widget.gespeichert,
+        child: PlanerRahmen(
+          status: ServerStatus(hallo: widget.hallo),
+          sprache: _sprache,
+        ),
+      ),
     ),
   );
 }
@@ -80,9 +107,6 @@ class ServerStatus extends StatefulWidget {
 
   final HalloAbfrage hallo;
 
-  static const verbinde = 'Verbinde mit dem Server …';
-  static const keineVerbindung = 'Keine Verbindung zum Server';
-
   @override
   State<ServerStatus> createState() => _ServerStatusState();
 }
@@ -96,8 +120,8 @@ class _ServerStatusState extends State<ServerStatus> {
       future: _antwort,
       builder: (context, stand) => Text(switch (stand) {
         AsyncSnapshot(hasData: true, :final data) => data!,
-        AsyncSnapshot(hasError: true) => ServerStatus.keineVerbindung,
-        _ => ServerStatus.verbinde,
+        AsyncSnapshot(hasError: true) => context.texte.keineVerbindung,
+        _ => context.texte.verbinde,
       }),
     );
   }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
+import '../sprache/sprache.dart';
+
 /// Erstes Bild eines Artikels (M2-07) – oder der Platzhalter, wenn der
 /// Artikel kein Bild hat oder es nicht geladen werden kann.
 class Artikelbild extends StatelessWidget {
@@ -30,15 +32,13 @@ class Artikelbild extends StatelessWidget {
 class ArtikelbildPlatzhalter extends StatelessWidget {
   const ArtikelbildPlatzhalter({super.key, this.groesse = 96});
 
-  static const text = 'Kein Bild';
-
   final double groesse;
 
   @override
   Widget build(BuildContext context) {
     final farben = Theme.of(context).colorScheme;
     return Semantics(
-      label: text,
+      label: context.texte.keinBild,
       child: Container(
         width: groesse,
         height: groesse,

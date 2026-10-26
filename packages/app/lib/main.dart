@@ -3,6 +3,7 @@ import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 import 'planer_app.dart';
 import 'src/modell3d/modell3d_seite.dart';
+import 'src/sprache/sprache.dart';
 import 'src/verbindung/planer_verbindung.dart';
 import 'src/verbindung/wamp_adresse.dart';
 
@@ -16,7 +17,10 @@ void main() {
   if (Uri.base.queryParameters['prototyp'] == '3d') {
     runApp(
       MaterialApp(
-        title: Modell3dSeite.titel,
+        onGenerateTitle: (context) => context.texte.modell3dTitel,
+        locale: SprachSteuerung.standard,
+        localizationsDelegates: PlanerTexte.localizationsDelegates,
+        supportedLocales: SprachSteuerung.sprachen,
         home: Modell3dSeite(
           lade: () => verbindung.modell3dRechteck(
             const Millimeter(4000),

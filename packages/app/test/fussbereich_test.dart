@@ -7,9 +7,10 @@ import 'package:terrassenplaner_app/src/rahmen/ansichtsoptionen.dart';
 import 'package:terrassenplaner_app/src/rahmen/planer_rahmen.dart';
 import 'package:terrassenplaner_app/src/rahmen/planer_schritt.dart';
 import 'package:terrassenplaner_app/src/rahmen/rahmen_zustand.dart';
-import 'package:terrassenplaner_app/src/rahmen/standardwert_hinweis.dart';
 import 'package:url_launcher_platform_interface/link.dart';
 import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
+
+import 'hilfe.dart';
 
 /// Zeichnet geöffnete Adressen auf, statt einen Browser zu starten.
 class _Plattform extends UrlLauncherPlatform with MockPlatformInterfaceMixin {
@@ -45,7 +46,7 @@ _zeige(
     }
   }
   await tester.pumpWidget(
-    MaterialApp(
+    testApp(
       theme: planerThema(),
       home: PlanerRahmen(
         status: const Text('Status'),
@@ -88,12 +89,8 @@ void main() {
   ) async {
     final s = await _zeige(tester);
     expect(find.text('Status'), findsOneWidget);
-    for (final text in [
-      Statuszeile.agb,
-      Statuszeile.datenschutz,
-      Statuszeile.impressum,
-    ]) {
-      await tester.tap(find.byKey(ValueKey('link-$text')));
+    for (final name in ['agb', 'datenschutz', 'impressum']) {
+      await tester.tap(find.byKey(ValueKey('link-$name')));
     }
     expect(s.links, [
       PlanerLinks.agb,
@@ -101,18 +98,18 @@ void main() {
       PlanerLinks.impressum,
     ]);
     expect(
-      [Statuszeile.agb, Statuszeile.datenschutz, Statuszeile.impressum],
+      [de.agb, de.datenschutz, de.impressum],
       ['AGB', 'Datenschutz', 'Impressum'],
     );
     final link = tester.widget<TextButton>(
-      find.byKey(const ValueKey('link-AGB')),
+      find.byKey(const ValueKey('link-agb')),
     );
     expect(link.style!.textStyle!.resolve({})!.fontSize, 12);
   });
 
   testWidgets('Video-Beratung öffnet das Shop-Produkt', (tester) async {
     final s = await _zeige(tester);
-    expect(find.text(Kopfzeile.videoberatung), findsOneWidget);
+    expect(find.text(de.videoberatung), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('videoberatung')));
     expect(s.links, [PlanerLinks.videoberatung]);
   });
@@ -121,8 +118,8 @@ void main() {
     tester,
   ) async {
     final s = await _zeige(tester);
-    expect(find.text(Kopfzeile.pdf), findsOneWidget);
-    expect(find.text(Kopfzeile.anfordern), findsOneWidget);
+    expect(find.text(de.pdf), findsOneWidget);
+    expect(find.text(de.anfordern), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('pdf')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('anfordern')));
@@ -155,24 +152,20 @@ void main() {
     await _zeige(tester, mitAktionen: false);
     await tester.tap(find.byKey(const ValueKey('anfordern')));
     await tester.pumpAndSettle();
-    expect(find.text(PlanerRahmen.folgt), findsOneWidget);
-    expect(PlanerRahmen.folgt, 'Diese Funktion folgt in Kürze.');
+    expect(find.text(de.folgt), findsOneWidget);
+    expect(de.folgt, 'Diese Funktion folgt in Kürze.');
   });
 
   testWidgets('Tablet: Knöpfe als Symbole mit Tooltip, ohne Überlauf', (
     tester,
   ) async {
     final s = await _zeige(tester, groesse: const Size(768, 1024));
-    for (final t in [
-      Kopfzeile.videoberatung,
-      Kopfzeile.zuruecksetzen,
-      Kopfzeile.pdf,
-    ]) {
+    for (final t in [de.videoberatung, de.zuruecksetzen, de.pdf]) {
       expect(find.byTooltip(t), findsOneWidget);
       expect(find.text(t), findsNothing);
     }
     expect(find.text('ANFORDERN'), findsOneWidget);
-    expect(find.text(PlanerRahmen.titel), findsNothing);
+    expect(find.text(de.planerTitel), findsNothing);
     await tester.tap(find.byKey(const ValueKey('videoberatung')));
     expect(s.links, [PlanerLinks.videoberatung]);
     expect(tester.takeException(), isNull);
@@ -183,7 +176,7 @@ void main() {
     (tester) async {
       final optionen = AnsichtsOptionen();
       await tester.pumpWidget(
-        MaterialApp(
+        testApp(
           home: PlanerRahmen(status: const Text('x'), optionen: optionen),
         ),
       );
@@ -195,10 +188,10 @@ void main() {
   );
 
   testWidgets('Texte der Kopfzeile', (tester) async {
-    expect(Kopfzeile.videoberatung, 'Video-Beratung buchen');
-    expect(Kopfzeile.pdf, 'PDF');
-    expect(Kopfzeile.anfordern, 'KONFIGURATION ANFORDERN');
-    expect(StandardwertHinweis.fortfahren, 'Fortfahren');
+    expect(de.videoberatung, 'Video-Beratung buchen');
+    expect(de.pdf, 'PDF');
+    expect(de.anfordern, 'KONFIGURATION ANFORDERN');
+    expect(de.fortfahren, 'Fortfahren');
   });
 
   test('Standard: öffnet im neuen Tab über url_launcher', () async {

@@ -28,6 +28,10 @@ jobs:
       - run: tool/objectbox_bibliothek.sh
       - run: dart format --output=none --set-exit-if-changed .
       - run: dart analyze --fatal-infos
+      - name: Übersetzungen aktuell (M3-07)
+        run: |
+          (cd packages/app && flutter gen-l10n)
+          git diff --exit-code packages/app/lib/l10n
 
   unit-tests:
     name: Unit-Tests mit Abdeckung (100 %)
