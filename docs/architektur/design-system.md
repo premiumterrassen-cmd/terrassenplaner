@@ -48,6 +48,11 @@ Laden und Suche nach einer zwischengespeicherten Konfiguration sind Funktionen, 
 - Beschriftungen: Eckpunkte A, B, C … außen an der Ecke, Innenwinkel innen (auch einspringende Ecken, 270°, unabhängig von der Umlaufrichtung), Seitenlängen in cm außen neben der Kantenmitte; jeder Text liegt nach seiner eigenen Größe vollständig neben der Linie.
 - Auf schmalen Flächen (< 1000 px) entfallen Zoom-Regler und Bedienhinweis in der Werkzeugleiste.
 
+## Hinweis bei Standardwerten (M3-05)
+
+- `RahmenZustand` merkt sich, in welchen Schritten der Kunde eine Eingabe **geändert** hat (`markiereGeaendert`, ab M4 von den Eingabefeldern aufgerufen); Ansehen allein zählt nicht (Vorgabe Alexander 26.10.2026). Zurücksetzen vergisst alle Änderungen.
+- `pruefeStandardwerte` wird **vor Ergebnis und Angebot** aufgerufen (Materialliste, PDF, „Konfiguration anfordern“ – M3-06, M9): Gibt es Schritte ohne Änderung, listet `StandardwertHinweis` sie in Schrittreihenfolge („• 3. UNTERKONSTRUKTION“); „Fortfahren“ geht weiter, „Zurück“ (oder Tippen daneben) öffnet den ersten unveränderten Schritt. Ohne solche Schritte erscheint kein Hinweis.
+
 ## Prüfung
 
 Widget-Tests für Desktop (1440 × 900) und Tablet (768 × 1024) ohne Überlauf; Smoke-Test `integration_test/rahmen_test.dart` erreicht in Chrome alle sieben Stationen.

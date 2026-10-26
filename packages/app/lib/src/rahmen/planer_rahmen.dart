@@ -60,6 +60,7 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
     );
     if (bestaetigt ?? false) {
       _planung.zuruecksetzen();
+      _zustand.vergissAenderungen();
       _ansicht.zentriere();
     }
   }

@@ -179,9 +179,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/4
   - Terrassenbelag, Unterkonstruktion, Terrassenmaße ein-/ausblenden; Beschriftungen für Seitenlängen, Winkel, Punkte, Abläufe schaltbar.
   - Abnahme: Jede Option wirkt sofort auf die Zeichnung
   - Ergebnis: `AnsichtsOptionen` (Ebenen Belag/UK/Maße, Beschriftungen Seitenlängen/Winkel/Punkte/Abläufe) und `ZeichnungsMaler` für die Draufsicht aus Server-Daten (`Zeichnung`: Umriss, Bauteile, Abläufe); Tests mit Rechteck und L-Form zeigen, dass jede Option sofort wirkt. Gezeichnete Planung folgt mit M4.
-- [ ] **M3-05 Hinweis bei beibehaltenen Standardwerten** ([#28](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/28)) – `feature/m3-05-hinweis-bei-beibehaltenen-standardwerten`
+- [x] **M3-05 Hinweis bei beibehaltenen Standardwerten** ([#28](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/28)) – `feature/m3-05-hinweis-bei-beibehaltenen-standardwerten`
   - Vor dem Weitergehen Hinweis, bei welchen Schritten Standardwerte beibehalten wurden (fortfahren/zurück).
   - Abnahme: Hinweis listet die betroffenen Schritte korrekt
+  - Ergebnis: `RahmenZustand` merkt geänderte Schritte (Ansehen zählt nicht), `pruefeStandardwerte` zeigt vor Ergebnis/Angebot den `StandardwertHinweis` mit allen unveränderten Schritten – „Zurück“ öffnet den ersten davon, „Fortfahren“ geht weiter (Vorgaben Alexander 26.10.2026). Aufgerufen von den Ergebnis-Knöpfen ab M3-06/M9.
 - [ ] **M3-06 Rechtliche Links und Fußbereich** ([#29](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/29)) – `feature/m3-06-rechtliche-links-und-fussbereich`
   - Links AGB, Datenschutz, Impressum; Schaltflächen „Konfiguration anfordern“, „Montageanleitung“, „PDF“, „Video-Beratung buchen“.
   - Abnahme: Links zeigen auf die aktuellen Seiten von robinienwelt.de
