@@ -175,9 +175,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/4
   - Vergrößern/Verkleinern, Zoom zurücksetzen, Fläche verschieben, rückgängig, Konfiguration zurücksetzen mit Sicherheitsabfrage.
   - Abnahme: Rückgängig stellt den vorherigen Planungsstand exakt wieder her; Zurücksetzen nur nach Bestätigung
   - Ergebnis: `Verlauf<Planungsstand>` (domain, unveränderliche Stände, 200 Schritte) mit Rückgängig/Wiederherstellen; Zoom per Mausrad, −/+ und Regler (25–400 %), Verschieben, Zentrieren (`AnsichtSteuerung`); Zurücksetzen mit Sicherheitsabfrage. Benchmark `domain.Verlauf.aendernRueckgaengig` ≈ 0,9 ms.
-- [ ] **M3-04 Ansichtsoptionen** ([#27](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/27)) – `feature/m3-04-ansichtsoptionen`
+- [x] **M3-04 Ansichtsoptionen** ([#27](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/27)) – `feature/m3-04-ansichtsoptionen`
   - Terrassenbelag, Unterkonstruktion, Terrassenmaße ein-/ausblenden; Beschriftungen für Seitenlängen, Winkel, Punkte, Abläufe schaltbar.
   - Abnahme: Jede Option wirkt sofort auf die Zeichnung
+  - Ergebnis: `AnsichtsOptionen` (Ebenen Belag/UK/Maße, Beschriftungen Seitenlängen/Winkel/Punkte/Abläufe) und `ZeichnungsMaler` für die Draufsicht aus Server-Daten (`Zeichnung`: Umriss, Bauteile, Abläufe); Tests mit Rechteck und L-Form zeigen, dass jede Option sofort wirkt. Gezeichnete Planung folgt mit M4.
 - [ ] **M3-05 Hinweis bei beibehaltenen Standardwerten** ([#28](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/28)) – `feature/m3-05-hinweis-bei-beibehaltenen-standardwerten`
   - Vor dem Weitergehen Hinweis, bei welchen Schritten Standardwerte beibehalten wurden (fortfahren/zurück).
   - Abnahme: Hinweis listet die betroffenen Schritte korrekt

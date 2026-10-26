@@ -40,6 +40,14 @@ Laden und Suche nach einer zwischengespeicherten Konfiguration sind Funktionen, 
 - **Zurücksetzen** (Kopfzeile) fragt immer nach (Text aus Fachkonzept 08, Rechtschreibung korrigiert: „Sind Sie sicher … Ihr Fortschritt …“); nur „Konfiguration zurücksetzen“ leert Planung und Verlauf und zentriert die Ansicht, „Zurück zur Konfiguration“ oder Tippen daneben ändert nichts.
 - Benchmark `domain.Verlauf.aendernRueckgaengig`: 500 Änderungen, alles rückgängig und wieder hergestellt ≈ 0,9 ms.
 
+## Ansichtsoptionen und Draufsicht (M3-04)
+
+- **Ebenen** Belag | UK | Maße als Mehrfach-Schalter in der Werkzeugleiste, **Beschriftungen** Seitenlängen, Winkel, Punkte, Abläufe als Menü mit Häkchen (`AnsichtsOptionen`, anfangs alles an). Jede Änderung zeichnet sofort neu (`ZeichnungsMaler` hört auf Optionen und Ansicht).
+- **Zeichnung** (`Zeichnung`): Umriss (Eckpunkte in mm), Bauteile (Quader aus dem Geometriemodell, M3-10) und Abläufe – fertig vom Server berechnet; die App zeichnet nur (1 m = 100 px bei 100 %). Bis M4 ist die Zeichnung leer.
+- Unterkonstruktion liegt unter dem Belag; ohne Belag sieht man die UK. Maße = Gesamtbreite und -tiefe neben dem Umriss.
+- Beschriftungen: Eckpunkte A, B, C … außen an der Ecke, Innenwinkel innen (auch einspringende Ecken, 270°, unabhängig von der Umlaufrichtung), Seitenlängen in cm außen neben der Kantenmitte; jeder Text liegt nach seiner eigenen Größe vollständig neben der Linie.
+- Auf schmalen Flächen (< 1000 px) entfallen Zoom-Regler und Bedienhinweis in der Werkzeugleiste.
+
 ## Prüfung
 
 Widget-Tests für Desktop (1440 × 900) und Tablet (768 × 1024) ohne Überlauf; Smoke-Test `integration_test/rahmen_test.dart` erreicht in Chrome alle sieben Stationen.
