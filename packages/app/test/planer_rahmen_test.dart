@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:terrassenplaner_app/src/design/planer_design.dart';
@@ -80,6 +78,19 @@ void main() {
 
   testWidgets('Menüeintrag wählt den Schritt', (tester) async {
     final zustand = await _zeige(tester, _desktop);
+    ListTile eintrag(PlanerSchritt s) =>
+        tester.widget<ListTile>(find.byKey(ValueKey('menu-${s.name}')));
+    expect(eintrag(PlanerSchritt.grundriss).selected, isTrue);
+    expect(eintrag(PlanerSchritt.treppen).selected, isFalse);
+    expect(
+      (eintrag(PlanerSchritt.grundriss).trailing! as Icon).icon,
+      Icons.expand_less,
+    );
+    expect(
+      (eintrag(PlanerSchritt.treppen).trailing! as Icon).icon,
+      Icons.expand_more,
+    );
+    expect(eintrag(PlanerSchritt.treppen).selectedColor, PlanerFarben.braun);
     await tester.tap(find.byKey(const ValueKey('menu-treppen')));
     await tester.pump();
     expect(zustand.aktiv, PlanerSchritt.treppen);
@@ -135,6 +146,22 @@ void main() {
     expect(farbe(PlanerSchritt.treppen), PlanerFarben.gruen);
     expect(farbe(PlanerSchritt.grundriss), PlanerFarben.braun);
     expect(farbe(PlanerSchritt.zubehoer), PlanerFarben.linie);
+    TextStyle titel(PlanerSchritt s) => tester
+        .widget<Text>(
+          find.descendant(
+            of: find.byKey(ValueKey('station-${s.name}')),
+            matching: find.text(s.titel),
+          ),
+        )
+        .style!;
+    expect(
+      [
+        titel(PlanerSchritt.treppen).fontSize,
+        titel(PlanerSchritt.treppen).fontWeight,
+      ],
+      [11, FontWeight.w700],
+    );
+    expect(titel(PlanerSchritt.zubehoer).fontWeight, FontWeight.w400);
   });
 
   test('Kennzahlen mit Komma und Einheit', () {
@@ -149,32 +176,6 @@ void main() {
     );
     expect(find.text('Fläche: 12,00 m²'), findsOneWidget);
     expect(find.text('Volumen: 0,25 m³'), findsOneWidget);
-  });
-
-  test('Raster neu zeichnen nur bei anderem Abstand', () {
-    const maler = RasterMaler();
-    expect(maler.abstand, 40);
-    expect(maler.shouldRepaint(const RasterMaler()), isFalse);
-    expect(maler.shouldRepaint(const RasterMaler(abstand: 20)), isTrue);
-  });
-
-  test('Raster: Linien im Abstand über die ganze Fläche', () {
-    final aufnahme = PictureRecorder();
-    final leinwand = _ZaehlendeLeinwand(Canvas(aufnahme));
-    const RasterMaler(abstand: 50).paint(leinwand, const Size(100, 60));
-    // x = 0, 50, 100 und y = 0, 50
-    expect(leinwand.linien, [
-      (const Offset(0, 0), const Offset(0, 60)),
-      (const Offset(50, 0), const Offset(50, 60)),
-      (const Offset(100, 0), const Offset(100, 60)),
-      (const Offset(0, 0), const Offset(100, 0)),
-      (const Offset(0, 50), const Offset(100, 50)),
-    ]);
-    expect(
-      {for (final f in leinwand.farben) f.toARGB32()},
-      {PlanerFarben.linie.toARGB32()},
-    );
-    aufnahme.endRecording();
   });
 
   test('Design: Farben, Breakpoints, Thema', () {
@@ -192,6 +193,7 @@ void main() {
     expect(thema.colorScheme.secondary, PlanerFarben.gruen);
     expect(thema.textTheme.bodyMedium!.fontFamily, planerSchrift);
     expect(planerSchrift, 'Roboto');
+    expect(Kopfzeile.logo, 'assets/bilder/robinienwelt_logo.png');
     expect(thema.cardTheme.color, PlanerFarben.weiss);
     expect(thema.cardTheme.surfaceTintColor, PlanerFarben.weiss);
     expect(thema.cardTheme.elevation, 1);
@@ -200,22 +202,4 @@ void main() {
     expect(thema.dialogTheme.surfaceTintColor, PlanerFarben.weiss);
     expect(thema.scaffoldBackgroundColor, PlanerFarben.weiss);
   });
-}
-
-class _ZaehlendeLeinwand implements Canvas {
-  _ZaehlendeLeinwand(this._ziel);
-
-  final Canvas _ziel;
-  final linien = <(Offset, Offset)>[];
-  final farben = <Color>[];
-
-  @override
-  void drawLine(Offset p1, Offset p2, Paint paint) {
-    linien.add((p1, p2));
-    farben.add(paint.color);
-    _ziel.drawLine(p1, p2, paint);
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

@@ -3,17 +3,27 @@ import 'package:flutter/material.dart';
 import '../design/planer_design.dart';
 import 'planer_schritt.dart';
 import 'rahmen_zustand.dart';
+import 'steuerung.dart';
+import 'zeichenflaeche.dart';
 
 /// Rahmen der Planer-Oberfläche (M3-01): Kopfzeile, Schrittleiste,
 /// Bearbeitungsmenü, Zeichenfläche mit Kennzahlen und Statuszeile.
 class PlanerRahmen extends StatefulWidget {
-  const PlanerRahmen({required this.status, super.key, this.zustand});
+  const PlanerRahmen({
+    required this.status,
+    super.key,
+    this.zustand,
+    this.planung,
+    this.ansicht,
+  });
 
   /// Inhalt der Statuszeile (z. B. Verbindung zum Server).
   final Widget status;
 
   /// Von außen vorgegebener Zustand (Tests); sonst ein eigener.
   final RahmenZustand? zustand;
+  final PlanungsSteuerung? planung;
+  final AnsichtSteuerung? ansicht;
 
   static const titel = 'TERRASSENKONFIGURATOR';
 
@@ -23,6 +33,26 @@ class PlanerRahmen extends StatefulWidget {
 
 class _PlanerRahmenState extends State<PlanerRahmen> {
   late final RahmenZustand _zustand = widget.zustand ?? RahmenZustand();
+  late final PlanungsSteuerung _planung = widget.planung ?? PlanungsSteuerung();
+  late final AnsichtSteuerung _ansicht = widget.ansicht ?? AnsichtSteuerung();
+
+  @override
+  void dispose() {
+    if (widget.planung == null) _planung.dispose();
+    if (widget.ansicht == null) _ansicht.dispose();
+    super.dispose();
+  }
+
+  Future<void> _zuruecksetzen() async {
+    final bestaetigt = await showDialog<bool>(
+      context: context,
+      builder: (_) => const ZuruecksetzenDialog(),
+    );
+    if (bestaetigt ?? false) {
+      _planung.zuruecksetzen();
+      _ansicht.zentriere();
+    }
+  }
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -35,7 +65,7 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
           final menu = Bearbeitungsmenue(zustand: _zustand);
           return Column(
             children: [
-              const Kopfzeile(),
+              Kopfzeile(onZuruecksetzen: _zuruecksetzen),
               Schrittleiste(zustand: _zustand),
               Expanded(
                 child: Row(
@@ -49,7 +79,12 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
                     Expanded(
                       child: Stack(
                         children: [
-                          const Positioned.fill(child: Zeichenflaeche()),
+                          Positioned.fill(
+                            child: Zeichenflaeche(
+                              planung: _planung,
+                              ansicht: _ansicht,
+                            ),
+                          ),
                           const Positioned(
                             top: PlanerAbstand.mittel,
                             right: PlanerAbstand.mittel,
@@ -80,7 +115,11 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
 
 /// Kopfzeile mit Logo und Titel.
 class Kopfzeile extends StatelessWidget {
-  const Kopfzeile({super.key});
+  const Kopfzeile({required this.onZuruecksetzen, super.key});
+
+  final VoidCallback onZuruecksetzen;
+
+  static const zuruecksetzen = 'ZURÜCKSETZEN';
 
   static const logo = 'assets/bilder/robinienwelt_logo.png';
 
@@ -103,6 +142,13 @@ class Kopfzeile extends StatelessWidget {
             fontWeight: FontWeight.w500,
             letterSpacing: 1.5,
           ),
+        ),
+        const Spacer(),
+        TextButton.icon(
+          key: const ValueKey('zuruecksetzen'),
+          onPressed: onZuruecksetzen,
+          icon: const Icon(Icons.restart_alt),
+          label: const Text(zuruecksetzen),
         ),
       ],
     ),
@@ -291,42 +337,6 @@ class MenuGriff extends StatelessWidget {
   );
 }
 
-/// Zeichenfläche (Raster); Zeichnen, Zoom und Verschieben folgen mit M3-03
-/// und M4.
-class Zeichenflaeche extends StatelessWidget {
-  const Zeichenflaeche({super.key});
-
-  @override
-  Widget build(BuildContext context) => const ColoredBox(
-    key: ValueKey('zeichenflaeche'),
-    color: PlanerFarben.weiss,
-    child: CustomPaint(painter: RasterMaler()),
-  );
-}
-
-/// Zeichnet ein Raster im Abstand von [abstand] Pixeln.
-class RasterMaler extends CustomPainter {
-  const RasterMaler({this.abstand = 40});
-
-  final double abstand;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final stift = Paint()
-      ..color = PlanerFarben.linie
-      ..strokeWidth = 1;
-    for (var x = 0.0; x <= size.width; x += abstand) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), stift);
-    }
-    for (var y = 0.0; y <= size.height; y += abstand) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), stift);
-    }
-  }
-
-  @override
-  bool shouldRepaint(RasterMaler alt) => alt.abstand != abstand;
-}
-
 /// Kennzahlen rechts oben: Fläche und Volumen (Werte kommen ab M4/M5 vom
 /// Server).
 class Kennzahlen extends StatelessWidget {
@@ -377,5 +387,40 @@ class Statuszeile extends StatelessWidget {
       style: const TextStyle(fontSize: 12, color: PlanerFarben.text),
       child: child,
     ),
+  );
+}
+
+/// Sicherheitsabfrage vor dem Zurücksetzen (Fachkonzept 08).
+class ZuruecksetzenDialog extends StatelessWidget {
+  const ZuruecksetzenDialog({super.key});
+
+  static const titel = 'Planung zurücksetzen?';
+  static const text =
+      'Sind Sie sicher, dass Sie die Planung zurücksetzen möchten? Dadurch '
+      'geht Ihr Fortschritt verloren. Stellen Sie sicher, dass Sie die '
+      'Konfiguration gespeichert und die Konfigurationsnummer notiert haben.';
+  static const zurueck = 'Zurück zur Konfiguration';
+  static const bestaetigen = 'Konfiguration zurücksetzen';
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    key: const ValueKey('zuruecksetzen-dialog'),
+    title: const Text(titel),
+    content: const Text(text),
+    actions: [
+      TextButton(
+        key: const ValueKey('zuruecksetzen-abbrechen'),
+        onPressed: () => Navigator.of(context).pop(false),
+        child: const Text(zurueck),
+      ),
+      FilledButton(
+        key: const ValueKey('zuruecksetzen-bestaetigen'),
+        style: FilledButton.styleFrom(
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+        onPressed: () => Navigator.of(context).pop(true),
+        child: const Text(bestaetigen),
+      ),
+    ],
   );
 }

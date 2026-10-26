@@ -15,6 +15,8 @@ export 'src/holzart/holzart.dart';
 export 'src/holzart/robinie.dart';
 export 'src/json_werte.dart';
 export 'src/konfiguration/konfigurationsnummer.dart';
+export 'src/konfiguration/planungsstand.dart';
+export 'src/konfiguration/verlauf.dart';
 export 'src/projekt_info.dart';
 export 'src/referenz/referenzfall.dart';
 export 'src/referenz/referenzkonfiguration.dart';

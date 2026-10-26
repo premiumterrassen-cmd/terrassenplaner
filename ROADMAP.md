@@ -171,9 +171,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/4
   - Neu konfigurieren · Konfiguration laden (Nummer + Version) · „Weiterplanen“, wenn eine zwischengespeicherte Konfiguration gefunden wird.
   - Abnahme: Alle drei Wege funktionieren (Laden ab M9-05)
   - Ergebnis: `Eingangsdialog` beim Start (neu konfigurieren · Konfiguration laden mit geprüfter Nummer `JJJJ-MM-TT-NNNN` und Version · „Weiterplanen“ bei gefundener Konfiguration); Laden und Zwischenspeicher als übergebene Funktionen – Server-Laden folgt mit M9-05, Browser-Zwischenspeicher mit M3-09. Smoke-Test in Chrome.
-- [ ] **M3-03 Zeichenfläche: Zoom, Verschieben, Rückgängig, Zurücksetzen** ([#26](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/26)) – `feature/m3-03-zeichenflaeche-zoom-verschieben-rueckgae` · Benchmark
+- [x] **M3-03 Zeichenfläche: Zoom, Verschieben, Rückgängig, Zurücksetzen** ([#26](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/26)) – `feature/m3-03-zeichenflaeche-zoom-verschieben-rueckgae` · Benchmark
   - Vergrößern/Verkleinern, Zoom zurücksetzen, Fläche verschieben, rückgängig, Konfiguration zurücksetzen mit Sicherheitsabfrage.
   - Abnahme: Rückgängig stellt den vorherigen Planungsstand exakt wieder her; Zurücksetzen nur nach Bestätigung
+  - Ergebnis: `Verlauf<Planungsstand>` (domain, unveränderliche Stände, 200 Schritte) mit Rückgängig/Wiederherstellen; Zoom per Mausrad, −/+ und Regler (25–400 %), Verschieben, Zentrieren (`AnsichtSteuerung`); Zurücksetzen mit Sicherheitsabfrage. Benchmark `domain.Verlauf.aendernRueckgaengig` ≈ 0,9 ms.
 - [ ] **M3-04 Ansichtsoptionen** ([#27](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/27)) – `feature/m3-04-ansichtsoptionen`
   - Terrassenbelag, Unterkonstruktion, Terrassenmaße ein-/ausblenden; Beschriftungen für Seitenlängen, Winkel, Punkte, Abläufe schaltbar.
   - Abnahme: Jede Option wirkt sofort auf die Zeichnung
