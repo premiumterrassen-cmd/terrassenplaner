@@ -46,3 +46,5 @@
 |---|---|---|
 | Feature-Branch M3-04 (vorher, alles) | alle Pakete | 3 h 29 min |
 | lokal, eine geänderte domain-Datei | 1 (25 Mutanten) | 30 s |
+| Build-Chain, Branch nur mit Werkzeugänderung | 0 (alle Pakete übersprungen) | 21 s |
+| Build-Chain, Probe-Branch mit Inhalt von M3-05 (app) | 3 (62 Mutanten, 100 % erkannt) | 19 min 22 s |
