@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
+import 'src/design/planer_design.dart';
+import 'src/rahmen/planer_rahmen.dart';
+
 /// Liefert die Begrüßung des Servers (M0-12); in Tests austauschbar.
 typedef HalloAbfrage = Future<String> Function();
 
@@ -16,23 +19,12 @@ class PlanerApp extends StatelessWidget {
   final HalloAbfrage hallo;
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: info.titel,
-      home: Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(info.titel),
-              const SizedBox(height: 12),
-              ServerStatus(hallo: hallo),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => MaterialApp(
+    title: info.titel,
+    theme: planerThema(),
+    debugShowCheckedModeBanner: false,
+    home: PlanerRahmen(status: ServerStatus(hallo: hallo)),
+  );
 }
 
 /// Zeigt, ob die Verbindung zum Server steht.

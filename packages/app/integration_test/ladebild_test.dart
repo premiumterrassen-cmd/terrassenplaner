@@ -21,6 +21,6 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 100));
     }
     expect(web.document.getElementById('ladebild'), isNull);
-    expect(find.text('Terrassenplaner – ALTO HOLZ'), findsOneWidget);
+    expect(find.text('TERRASSENKONFIGURATOR'), findsOneWidget);
   });
 }

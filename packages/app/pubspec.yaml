@@ -24,3 +24,14 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/bilder/
+  # Eigene Schrift statt Abruf von Google-Servern (M3-01, Datenschutz).
+  fonts:
+    - family: Roboto
+      fonts:
+        - asset: assets/schriften/Roboto-Regular.ttf
+        - asset: assets/schriften/Roboto-Medium.ttf
+          weight: 500
+        - asset: assets/schriften/Roboto-Bold.ttf
+          weight: 700

@@ -1,19 +1,32 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:terrassenplaner_app/planer_app.dart';
+import 'package:terrassenplaner_app/src/design/planer_design.dart';
+import 'package:terrassenplaner_app/src/rahmen/planer_rahmen.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 void main() {
-  testWidgets('zeigt den Projekttitel', (tester) async {
+  testWidgets('Projekttitel im Browser-Tab, Rahmen mit Planer-Thema', (
+    tester,
+  ) async {
     await tester.pumpWidget(PlanerApp(hallo: () async => 'x'));
-    expect(find.text('Terrassenplaner – ALTO HOLZ'), findsOneWidget);
+    final app = tester.widget<MaterialApp>(find.byType(MaterialApp));
+    expect(app.title, 'Terrassenplaner – ALTO HOLZ');
+    expect(app.debugShowCheckedModeBanner, isFalse);
+    expect(app.theme!.colorScheme.primary, PlanerFarben.braun);
+    expect(find.byType(PlanerRahmen), findsOneWidget);
+    expect(find.text(PlanerRahmen.titel), findsOneWidget);
   });
 
-  testWidgets('zeigt übergebene Projektdaten', (tester) async {
+  testWidgets('übergebene Projektdaten im Browser-Tab', (tester) async {
     const info = ProjektInfo(name: 'Test', firma: 'X');
     await tester.pumpWidget(PlanerApp(hallo: () async => 'x', info: info));
-    expect(find.text('Test – X'), findsOneWidget);
+    expect(
+      tester.widget<MaterialApp>(find.byType(MaterialApp)).title,
+      'Test – X',
+    );
   });
 
   testWidgets('Status: erst „Verbinde …“, dann die Antwort des Servers', (

@@ -163,9 +163,10 @@ Rahmen der App mit Schrittleiste, nummeriertem Menü, Zeichenfläche, Ansichtsop
 
 GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/4
 
-- [ ] **M3-01 App-Rahmen und Design-System** ([#24](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/24)) – `feature/m3-01-app-rahmen-und-design-system`
+- [x] **M3-01 App-Rahmen und Design-System** ([#24](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/24)) – `feature/m3-01-app-rahmen-und-design-system`
   - Kopfbereich mit Logo, Schrittleiste mit sieben Stationen (Fortschritt), nummeriertes Bearbeitungsmenü (ein-/ausklappbar), Zeichenfläche, Anzeige Fläche/Volumen; Markenfarben (#B0864B, #95c11c), Schrift. Eigenes Design-System.
   - Abnahme: Smoke-Test: alle Stationen erreichbar; Layout Desktop und Tablet
+  - Ergebnis: Design-System `planer_design.dart` (Markenfarben, Abstände, Breakpoints, mitgelieferte Roboto ohne Google-Abruf) und Rahmen `lib/src/rahmen/` (Kopfzeile mit Logo, Schrittleiste mit Fortschritt, nummeriertes Menü mit Griff, Zeichenfläche mit Kennzahlen, Statuszeile); Desktop und Tablet getestet, Smoke-Test erreicht alle Stationen (`docs/architektur/design-system.md`).
 - [ ] **M3-02 Eingangsdialog** ([#25](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/25)) – `feature/m3-02-eingangsdialog`
   - Neu konfigurieren · Konfiguration laden (Nummer + Version) · „Weiterplanen“, wenn eine zwischengespeicherte Konfiguration gefunden wird.
   - Abnahme: Alle drei Wege funktionieren (Laden ab M9-05)
