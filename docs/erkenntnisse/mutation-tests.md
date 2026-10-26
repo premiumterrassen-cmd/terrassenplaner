@@ -20,3 +20,29 @@
 - Die eingebauten Regeln mutieren Operatoren und Bedingungen (`==`/`!=`, `<`/`<=`, `&&`/`||`, `if`-Negation …). Code ohne solche Stellen ergibt 0 Mutationen und gilt als bestanden.
 - Negativprobe: Funktion `text.length > 10` mit einem Test ohne Prüfung → 1/1 Mutation unerkannt, Bewertung F, `tool/mutation.sh` endet mit Exit-Code 1.
 - Laufzeit wächst mit (Mutationen × Testdauer). Wenn die Suite größer wird: Abdeckungsdaten (`-c coverage/<paket>.info`) übergeben, damit nicht abgedeckte Zeilen übersprungen werden, und in PR-Läufen nur geänderte Dateien mutieren.
+
+## Feature-Branches mutieren nur geänderte Dateien (26.10.2026)
+
+**Anlass:** Der Job „Mutation-Tests (≥ 95 %)“ brauchte zuletzt 95–210 Minuten je Lauf (Feature-Branch M3-04: 3 h 29 min), vor allem wegen `packages/app` – jeder Mutant startet `flutter test` neu. Das verzögerte jeden Merge um Stunden und wuchs mit jedem Feature.
+
+**Lösung:** `tool/mutation.sh` liest `MUTATION_BASIS` (Build-Chain: `origin/main` auf allen Branches außer `main`).
+
+- Geänderte Dateien = `git diff --name-only --diff-filter=d $(git merge-base $MUTATION_BASIS HEAD)` plus unversionierte neue Dateien (für lokale Läufe vor dem Commit).
+- Je Paket wird `mutation-test-report/konfiguration/<paket>.xml` aus `tool/mutation/<paket>.xml` erzeugt: `<directories>` wird durch `<files>` mit den geänderten `lib`-Dateien ersetzt; **Testbefehl, Timeout je Mutant, Ausschlüsse und Schwelle 95 % bleiben unverändert** (die Timeouts schützen weiter vor Endlosschleifen-Mutanten, die den Runner sonst per Speicher abschießen – Exit 143).
+- Ein geänderter Test (`test/x/y_test.dart`) zieht sein `lib`-Gegenstück (`lib/x/y.dart`) mit, falls es existiert – so fällt eine abgeschwächte Prüfung schon auf dem Branch auf.
+- Generierter Code (`*.g.dart`) und die in der Paket-XML ausgeschlossenen Dateien werden herausgefiltert, weil `mutation_test` mit leerer Dateiliste abbricht. Bleibt nichts übrig, wird das Paket übersprungen.
+- Ändert sich die Paket-XML selbst (Regeln, Ausschlüsse, Timeouts), läuft dieses Paket vollständig.
+- `main` (Push nach dem Merge) mutiert wie bisher **alles**; dort fällt auf, was die Auswahl nicht sieht (z. B. ein geänderter Test ohne gleichnamige `lib`-Datei, der andere Dateien schwächer prüft).
+- `checkout` im Mutations-Job mit `fetch-depth: 0`, sonst fehlt der gemeinsame Vorfahr.
+- `MUTATION_NUR_KONFIGURATION=1` erzeugt nur die Konfigurationen. Darauf baut der Selbsttest `tool/mutation_auswahl_test.sh` (Wegwerf-Repository, Analyse-Job) auf.
+
+**Lokal:** `MUTATION_BASIS=origin/main tool/mutation.sh` prüft vor dem Push genau das, was die Build-Chain prüft.
+
+**Vorsicht beim Abbrechen:** `mutation_test` mutiert die Quelldateien an Ort und Stelle. Ein abgebrochener Lauf (auch `pkill` auf `dart run`, der Snapshot-Prozess läuft weiter) hinterlässt einen Mutanten im Arbeitsbaum – vor dem nächsten Commit `git status` prüfen.
+
+**Messwerte:**
+
+| Lauf | Dateien | Dauer Mutations-Job |
+|---|---|---|
+| Feature-Branch M3-04 (vorher, alles) | alle Pakete | 3 h 29 min |
+| lokal, eine geänderte domain-Datei | 1 (25 Mutanten) | 30 s |
