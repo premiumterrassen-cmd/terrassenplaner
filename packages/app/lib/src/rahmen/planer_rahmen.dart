@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../design/planer_design.dart';
+import 'aktionen.dart';
 import 'ansichtsoptionen.dart';
 import 'planer_schritt.dart';
 import 'rahmen_zustand.dart';
+import 'standardwert_hinweis.dart';
 import 'steuerung.dart';
 import 'zeichenflaeche.dart';
 import 'zeichnung.dart';
@@ -19,6 +21,7 @@ class PlanerRahmen extends StatefulWidget {
     this.ansicht,
     this.optionen,
     this.zeichnung,
+    this.aktionen = const RahmenAktionen(),
   });
 
   /// Inhalt der Statuszeile (z. B. Verbindung zum Server).
@@ -32,6 +35,12 @@ class PlanerRahmen extends StatefulWidget {
 
   /// Was gezeichnet wird; ab M4 vom Server, bis dahin leer.
   final Zeichnung? zeichnung;
+
+  /// Links und Ergebnis-Knöpfe (M3-06).
+  final RahmenAktionen aktionen;
+
+  /// Meldung, solange Angebot und PDF noch fehlen (M9).
+  static const folgt = 'Diese Funktion folgt in Kürze.';
 
   static const titel = 'TERRASSENKONFIGURATOR';
 
@@ -51,6 +60,17 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
     if (widget.ansicht == null) _ansicht.dispose();
     if (widget.optionen == null) _optionen.dispose();
     super.dispose();
+  }
+
+  /// Ergebnis oder Angebot: erst der Hinweis auf Standardwerte (M3-05).
+  Future<void> _zumErgebnis(Future<void> Function()? aktion) async {
+    final messenger = ScaffoldMessenger.of(context);
+    if (!await pruefeStandardwerte(context, _zustand)) return;
+    if (aktion == null) {
+      messenger.showSnackBar(const SnackBar(content: Text(PlanerRahmen.folgt)));
+      return;
+    }
+    await aktion();
   }
 
   Future<void> _zuruecksetzen() async {
@@ -76,7 +96,14 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
           final menu = Bearbeitungsmenue(zustand: _zustand);
           return Column(
             children: [
-              Kopfzeile(onZuruecksetzen: _zuruecksetzen),
+              Kopfzeile(
+                breit: desktop,
+                onZuruecksetzen: _zuruecksetzen,
+                onVideoberatung: () =>
+                    widget.aktionen.oeffne(PlanerLinks.videoberatung),
+                onPdf: () => _zumErgebnis(widget.aktionen.pdf),
+                onAnfordern: () => _zumErgebnis(widget.aktionen.anfordern),
+              ),
               Schrittleiste(zustand: _zustand),
               Expanded(
                 child: Row(
@@ -117,7 +144,7 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
                   ],
                 ),
               ),
-              Statuszeile(child: widget.status),
+              Statuszeile(oeffne: widget.aktionen.oeffne, child: widget.status),
             ],
           );
         },
@@ -126,15 +153,48 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
   );
 }
 
-/// Kopfzeile mit Logo und Titel.
+/// Kopfzeile mit Logo, Titel und Knöpfen (M3-03, M3-06); schmal nur Symbole.
 class Kopfzeile extends StatelessWidget {
-  const Kopfzeile({required this.onZuruecksetzen, super.key});
+  const Kopfzeile({
+    required this.breit,
+    required this.onZuruecksetzen,
+    required this.onVideoberatung,
+    required this.onPdf,
+    required this.onAnfordern,
+    super.key,
+  });
 
+  final bool breit;
   final VoidCallback onZuruecksetzen;
+  final VoidCallback onVideoberatung;
+  final VoidCallback onPdf;
+  final VoidCallback onAnfordern;
 
   static const zuruecksetzen = 'ZURÜCKSETZEN';
+  static const videoberatung = 'Video-Beratung buchen';
+  static const pdf = 'PDF';
+  static const anfordern = 'KONFIGURATION ANFORDERN';
 
   static const logo = 'assets/bilder/robinienwelt_logo.png';
+
+  Widget _knopf(
+    String schluessel,
+    IconData symbol,
+    String text,
+    VoidCallback onPressed,
+  ) => breit
+      ? TextButton.icon(
+          key: ValueKey(schluessel),
+          onPressed: onPressed,
+          icon: Icon(symbol),
+          label: Text(text),
+        )
+      : IconButton(
+          key: ValueKey(schluessel),
+          tooltip: text,
+          onPressed: onPressed,
+          icon: Icon(symbol),
+        );
 
   @override
   Widget build(BuildContext context) => Container(
@@ -147,21 +207,42 @@ class Kopfzeile extends StatelessWidget {
     child: Row(
       children: [
         Image.asset(logo, height: 48, semanticLabel: 'RobinienWelt'),
-        const SizedBox(width: PlanerAbstand.mittel),
-        Text(
-          PlanerRahmen.titel,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            color: PlanerFarben.braun,
-            fontWeight: FontWeight.w500,
-            letterSpacing: 1.5,
+        // Schmal: nur das Logo, sonst würde der Titel abgeschnitten.
+        if (breit) ...[
+          const SizedBox(width: PlanerAbstand.mittel),
+          Flexible(
+            child: Text(
+              PlanerRahmen.titel,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: PlanerFarben.braun,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 1.5,
+              ),
+            ),
           ),
-        ),
+        ],
         const Spacer(),
-        TextButton.icon(
-          key: const ValueKey('zuruecksetzen'),
-          onPressed: onZuruecksetzen,
-          icon: const Icon(Icons.restart_alt),
-          label: const Text(zuruecksetzen),
+        _knopf(
+          'videoberatung',
+          Icons.video_call_outlined,
+          videoberatung,
+          onVideoberatung,
+        ),
+        _knopf(
+          'zuruecksetzen',
+          Icons.restart_alt,
+          zuruecksetzen,
+          onZuruecksetzen,
+        ),
+        _knopf('pdf', Icons.picture_as_pdf_outlined, pdf, onPdf),
+        const SizedBox(width: PlanerAbstand.klein),
+        FilledButton.icon(
+          key: const ValueKey('anfordern'),
+          style: FilledButton.styleFrom(backgroundColor: PlanerFarben.gruen),
+          onPressed: onAnfordern,
+          icon: const Icon(Icons.send_outlined),
+          label: Text(breit ? anfordern : 'ANFORDERN'),
         ),
       ],
     ),
@@ -381,16 +462,20 @@ class Kennzahlen extends StatelessWidget {
   );
 }
 
-/// Statuszeile am unteren Rand.
+/// Fußbereich (M3-06): Status links, rechtliche Links rechts.
 class Statuszeile extends StatelessWidget {
-  const Statuszeile({required this.child, super.key});
+  const Statuszeile({required this.child, required this.oeffne, super.key});
 
   final Widget child;
+  final LinkOeffner oeffne;
+
+  static const agb = 'AGB';
+  static const datenschutz = 'Datenschutz';
+  static const impressum = 'Impressum';
 
   @override
   Widget build(BuildContext context) => Container(
-    height: 28,
-    alignment: Alignment.centerLeft,
+    height: 32,
     padding: const EdgeInsets.symmetric(horizontal: PlanerAbstand.mittel),
     decoration: const BoxDecoration(
       color: PlanerFarben.sand,
@@ -398,7 +483,25 @@ class Statuszeile extends StatelessWidget {
     ),
     child: DefaultTextStyle.merge(
       style: const TextStyle(fontSize: 12, color: PlanerFarben.text),
-      child: child,
+      child: Row(
+        children: [
+          Expanded(child: child),
+          for (final (text, adresse) in [
+            (agb, PlanerLinks.agb),
+            (datenschutz, PlanerLinks.datenschutz),
+            (impressum, PlanerLinks.impressum),
+          ])
+            TextButton(
+              key: ValueKey('link-$text'),
+              style: TextButton.styleFrom(
+                textStyle: const TextStyle(fontSize: 12),
+                visualDensity: VisualDensity.compact,
+              ),
+              onPressed: () => oeffne(adresse),
+              child: Text(text),
+            ),
+        ],
+      ),
     ),
   );
 }

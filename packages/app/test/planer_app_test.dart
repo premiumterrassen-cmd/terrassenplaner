@@ -15,6 +15,10 @@ void main() {
   testWidgets('Projekttitel im Browser-Tab, Rahmen mit Planer-Thema', (
     tester,
   ) async {
+    tester.view
+      ..physicalSize = const Size(1440, 900)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     await tester.pumpWidget(
       PlanerApp(laden: _laden, gespeichert: _nichts, hallo: () async => 'x'),
     );

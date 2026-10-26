@@ -183,9 +183,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/4
   - Vor dem Weitergehen Hinweis, bei welchen Schritten Standardwerte beibehalten wurden (fortfahren/zurück).
   - Abnahme: Hinweis listet die betroffenen Schritte korrekt
   - Ergebnis: `RahmenZustand` merkt geänderte Schritte (Ansehen zählt nicht), `pruefeStandardwerte` zeigt vor Ergebnis/Angebot den `StandardwertHinweis` mit allen unveränderten Schritten – „Zurück“ öffnet den ersten davon, „Fortfahren“ geht weiter (Vorgaben Alexander 26.10.2026). Aufgerufen von den Ergebnis-Knöpfen ab M3-06/M9.
-- [ ] **M3-06 Rechtliche Links und Fußbereich** ([#29](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/29)) – `feature/m3-06-rechtliche-links-und-fussbereich`
+- [x] **M3-06 Rechtliche Links und Fußbereich** ([#29](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/29)) – `feature/m3-06-rechtliche-links-und-fussbereich`
   - Links AGB, Datenschutz, Impressum; Schaltflächen „Konfiguration anfordern“, „Montageanleitung“, „PDF“, „Video-Beratung buchen“.
   - Abnahme: Links zeigen auf die aktuellen Seiten von robinienwelt.de
+  - Ergebnis: Fußbereich mit AGB/Datenschutz/Impressum auf den Shop-Seiten (shop.robinienwelt.de/policies/…), Kopfzeile mit „Video-Beratung buchen“ (Shop-Produkt), „PDF“ und „KONFIGURATION ANFORDERN“ (mit Standardwert-Hinweis; Funktion folgt mit M9). „Montageanleitung“ entfällt, bis es eine Seite gibt (Vorgaben Alexander 26.10.2026).
 - [ ] **M3-07 Mehrsprachigkeit vorbereiten** ([#30](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/30)) – `feature/m3-07-mehrsprachigkeit-vorbereiten`
   - Alle Texte über Übersetzungsdateien (Deutsch zuerst); der alte Planer hat eine Sprachauswahl.
   - Abnahme: Keine fest im Code stehenden Oberflächentexte
