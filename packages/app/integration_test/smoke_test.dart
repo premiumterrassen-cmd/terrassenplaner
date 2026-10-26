@@ -11,7 +11,7 @@ void main() {
   ) async {
     app.main();
     await tester.pumpAndSettle();
-    expect(find.text('Terrassenplaner – ALTO HOLZ'), findsOneWidget);
+    expect(find.text('TERRASSENKONFIGURATOR'), findsOneWidget);
     // Ende-zu-Ende (M0-12): Web-App → Router → Hallo-Dienst
     for (
       var i = 0;
