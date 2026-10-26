@@ -167,9 +167,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/4
   - Kopfbereich mit Logo, Schrittleiste mit sieben Stationen (Fortschritt), nummeriertes Bearbeitungsmenü (ein-/ausklappbar), Zeichenfläche, Anzeige Fläche/Volumen; Markenfarben (#B0864B, #95c11c), Schrift. Eigenes Design-System.
   - Abnahme: Smoke-Test: alle Stationen erreichbar; Layout Desktop und Tablet
   - Ergebnis: Design-System `planer_design.dart` (Markenfarben, Abstände, Breakpoints, mitgelieferte Roboto ohne Google-Abruf) und Rahmen `lib/src/rahmen/` (Kopfzeile mit Logo, Schrittleiste mit Fortschritt, nummeriertes Menü mit Griff, Zeichenfläche mit Kennzahlen, Statuszeile); Desktop und Tablet getestet, Smoke-Test erreicht alle Stationen (`docs/architektur/design-system.md`).
-- [ ] **M3-02 Eingangsdialog** ([#25](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/25)) – `feature/m3-02-eingangsdialog`
+- [x] **M3-02 Eingangsdialog** ([#25](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/25)) – `feature/m3-02-eingangsdialog`
   - Neu konfigurieren · Konfiguration laden (Nummer + Version) · „Weiterplanen“, wenn eine zwischengespeicherte Konfiguration gefunden wird.
   - Abnahme: Alle drei Wege funktionieren (Laden ab M9-05)
+  - Ergebnis: `Eingangsdialog` beim Start (neu konfigurieren · Konfiguration laden mit geprüfter Nummer `JJJJ-MM-TT-NNNN` und Version · „Weiterplanen“ bei gefundener Konfiguration); Laden und Zwischenspeicher als übergebene Funktionen – Server-Laden folgt mit M9-05, Browser-Zwischenspeicher mit M3-09. Smoke-Test in Chrome.
 - [ ] **M3-03 Zeichenfläche: Zoom, Verschieben, Rückgängig, Zurücksetzen** ([#26](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/26)) – `feature/m3-03-zeichenflaeche-zoom-verschieben-rueckgae` · Benchmark
   - Vergrößern/Verkleinern, Zoom zurücksetzen, Fläche verschieben, rückgängig, Konfiguration zurücksetzen mit Sicherheitsabfrage.
   - Abnahme: Rückgängig stellt den vorherigen Planungsstand exakt wieder her; Zurücksetzen nur nach Bestätigung

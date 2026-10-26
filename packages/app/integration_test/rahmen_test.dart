@@ -10,6 +10,8 @@ void main() {
   testWidgets('alle sieben Stationen sind erreichbar (M3-01)', (tester) async {
     app.main();
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('neu')));
+    await tester.pumpAndSettle();
     for (final schritt in PlanerSchritt.values) {
       await tester.tap(find.byKey(ValueKey('station-${schritt.name}')));
       await tester.pumpAndSettle();

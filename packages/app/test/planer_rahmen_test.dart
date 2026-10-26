@@ -196,6 +196,8 @@ void main() {
     expect(thema.cardTheme.surfaceTintColor, PlanerFarben.weiss);
     expect(thema.cardTheme.elevation, 1);
     expect(thema.dividerColor, PlanerFarben.linie);
+    expect(thema.dialogTheme.backgroundColor, PlanerFarben.weiss);
+    expect(thema.dialogTheme.surfaceTintColor, PlanerFarben.weiss);
     expect(thema.scaffoldBackgroundColor, PlanerFarben.weiss);
   });
 }

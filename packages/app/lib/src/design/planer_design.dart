@@ -52,5 +52,9 @@ ThemeData planerThema() {
       surfaceTintColor: PlanerFarben.weiss,
       elevation: 1,
     ),
+    dialogTheme: const DialogThemeData(
+      backgroundColor: PlanerFarben.weiss,
+      surfaceTintColor: PlanerFarben.weiss,
+    ),
   );
 }

@@ -27,5 +27,14 @@ void main() {
     );
     return;
   }
-  runApp(PlanerApp(hallo: verbindung.hallo));
+  runApp(
+    PlanerApp(
+      hallo: verbindung.hallo,
+      // Laden über den Server folgt mit M9-05, der Browser-Zwischenspeicher
+      // für „Weiterplanen“ mit M3-09.
+      laden: (stand) =>
+          Future.error(UnsupportedError('Laden folgt mit M9-05: $stand')),
+      gespeichert: () async => null,
+    ),
+  );
 }
