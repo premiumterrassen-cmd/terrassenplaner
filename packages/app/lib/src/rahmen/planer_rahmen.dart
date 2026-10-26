@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../design/planer_design.dart';
+import 'ansichtsoptionen.dart';
 import 'planer_schritt.dart';
 import 'rahmen_zustand.dart';
 import 'steuerung.dart';
 import 'zeichenflaeche.dart';
+import 'zeichnung.dart';
 
 /// Rahmen der Planer-Oberfläche (M3-01): Kopfzeile, Schrittleiste,
 /// Bearbeitungsmenü, Zeichenfläche mit Kennzahlen und Statuszeile.
@@ -15,6 +17,8 @@ class PlanerRahmen extends StatefulWidget {
     this.zustand,
     this.planung,
     this.ansicht,
+    this.optionen,
+    this.zeichnung,
   });
 
   /// Inhalt der Statuszeile (z. B. Verbindung zum Server).
@@ -24,6 +28,10 @@ class PlanerRahmen extends StatefulWidget {
   final RahmenZustand? zustand;
   final PlanungsSteuerung? planung;
   final AnsichtSteuerung? ansicht;
+  final AnsichtsOptionen? optionen;
+
+  /// Was gezeichnet wird; ab M4 vom Server, bis dahin leer.
+  final Zeichnung? zeichnung;
 
   static const titel = 'TERRASSENKONFIGURATOR';
 
@@ -35,11 +43,13 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
   late final RahmenZustand _zustand = widget.zustand ?? RahmenZustand();
   late final PlanungsSteuerung _planung = widget.planung ?? PlanungsSteuerung();
   late final AnsichtSteuerung _ansicht = widget.ansicht ?? AnsichtSteuerung();
+  late final AnsichtsOptionen _optionen = widget.optionen ?? AnsichtsOptionen();
 
   @override
   void dispose() {
     if (widget.planung == null) _planung.dispose();
     if (widget.ansicht == null) _ansicht.dispose();
+    if (widget.optionen == null) _optionen.dispose();
     super.dispose();
   }
 
@@ -83,6 +93,8 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
                             child: Zeichenflaeche(
                               planung: _planung,
                               ansicht: _ansicht,
+                              optionen: _optionen,
+                              zeichnung: widget.zeichnung ?? Zeichnung.leer,
                             ),
                           ),
                           const Positioned(
