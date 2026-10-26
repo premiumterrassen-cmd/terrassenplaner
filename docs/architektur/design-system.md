@@ -23,6 +23,16 @@ Eigenes Design-System der Planer-Oberfläche – funktional wie der alte Planer 
 
 Texte stehen noch als Konstanten im Code; M3-07 verschiebt sie in Übersetzungsdateien.
 
+## Eingangsdialog (M3-02, `lib/src/start/eingangsdialog.dart`)
+
+Beim Start liegt der Dialog über dem Rahmen (nicht durch Tippen daneben schließbar): Logo, „Willkommen beim RobinienWelt Terrassenkonfigurator!“, kurzer Einführungstext und drei Wege:
+
+1. **WUNSCHTERRASSE KONFIGURIEREN** – schließt den Dialog.
+2. **KONFIGURATION LADEN** – Konfigurationsnummer (`JJJJ-MM-TT-NNNN`, Datum wird geprüft – `Konfigurationsnummer` im domain-Paket) und Version (−/+, ab 1); Laden über den Server folgt mit M9-05, bis dahin meldet der Dialog „Die Konfiguration konnte nicht geladen werden.“
+3. **WEITERPLANEN** – nur wenn eine zwischengespeicherte Konfiguration gefunden wurde („Wir haben eine Konfiguration gefunden …“); den Browser-Zwischenspeicher liefert M3-09.
+
+Laden und Suche nach einer zwischengespeicherten Konfiguration sind Funktionen, die `PlanerApp` übergeben bekommt – die App selbst speichert nichts.
+
 ## Prüfung
 
 Widget-Tests für Desktop (1440 × 900) und Tablet (768 × 1024) ohne Überlauf; Smoke-Test `integration_test/rahmen_test.dart` erreicht in Chrome alle sieben Stationen.
