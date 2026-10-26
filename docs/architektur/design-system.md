@@ -56,10 +56,19 @@ Laden und Suche nach einer zwischengespeicherten Konfiguration sind Funktionen, 
 ## Rechtliche Links und Knöpfe (M3-06)
 
 - **Fußbereich** (`Statuszeile`): links der Serverstatus, rechts **AGB · Datenschutz · Impressum** – die Seiten des Shops (`PlanerLinks`, Vorgabe Alexander 26.10.2026): `shop.robinienwelt.de/policies/terms-of-service`, `/privacy-policy`, `/legal-notice`. Der alte Planer verlinkte www.robinienwelt.de und eine AGB-PDF von 2022.
-- **Kopfzeile:** „Video-Beratung buchen“ (Shop-Produkt `products/online-videoberatung-buchen`), „ZURÜCKSETZEN“, „PDF“ und „KONFIGURATION ANFORDERN“ (grün). PDF und Anfordern zeigen zuerst den Standardwert-Hinweis (M3-05); bis M9 meldet der Planer „Diese Funktion folgt in Kürze.“ Unter 1024 px nur Symbole mit Tooltip und ohne Titel.
+- **Kopfzeile:** „Video-Beratung buchen“ (Shop-Produkt `products/online-videoberatung-buchen`), „ZURÜCKSETZEN“, „PDF“ und „KONFIGURATION ANFORDERN“ (grün). PDF und Anfordern zeigen zuerst den Standardwert-Hinweis (M3-05); bis M9 meldet der Planer „Diese Funktion folgt in Kürze.“ Unter 1280 px (`Kopfzeile.textAb`) nur Symbole mit Tooltip, unter 1024 px zusätzlich ohne Titel.
 - **Montageanleitung:** entfällt vorerst, bis es eine Seite oder PDF gibt (Alexander 26.10.2026) – dann nur einen Link in `PlanerLinks` ergänzen.
 - Links öffnen in einem neuen Tab (`url_launcher`, `oeffneImBrowser`); in Tests wird der Öffner ersetzt.
 
+## Mehrsprachigkeit (M3-07)
+
+- **Übersetzungsdateien:** alle Oberflächentexte stehen in `packages/app/lib/l10n/planer_de.arb` (Vorlage, Deutsch) und `planer_en.arb` (Englisch, Ziel aus Fachkonzept 13). `flutter gen-l10n` (Einstellungen in `packages/app/l10n.yaml`) erzeugt daraus `PlanerTexte`; die erzeugten Dateien sind eingecheckt, die Build-Chain prüft, dass sie zur ARB-Datei passen. Neue Sprache = neue `planer_<code>.arb`, sonst nichts.
+- **Im Code:** `context.texte.<schlüssel>` (`lib/src/sprache/sprache.dart`); Schritte, Ebenen und Beschriftungen liefern ihre Namen über `titel(texte)`. Zahlen erscheinen im Format der Sprache (`zahlText`: „12,50 m²“ / „12.50 m²“). Keine Texte als Konstanten im Code – ein Test (`test/sprache_test.dart`) sucht feste Texte in Widgets und prüft, dass beide Sprachen dieselben Schlüssel und Platzhalter haben.
+- **Sprachauswahl:** Weltkugel mit Sprachkürzel in der Kopfzeile, wechselt sofort ohne Neuladen. Standard ist Deutsch; die Wahl ist eine reine Bedienungseinstellung (`SprachSteuerung`) und wird ab M3-09 im Browser gespeichert.
+- **Längere Übersetzungen:** Ebenen-Knöpfe kurz („Belag | UK | Maße“, „Deck | Sub | Dims“) mit ausgeschriebenem Namen als Tooltip, weil alle Segmente so breit sind wie das längste.
+- Produktnamen (z. B. „RIBOL“) bleiben in allen Sprachen unverändert.
+- **Ladebildschirm** (`web/ladebild/`, vor Flutter): eigene Texttabelle in `fortschritt.js`, vorerst nur Deutsch; Englisch kommt mit der gespeicherten Sprache (M3-09), damit beide dieselbe Sprache zeigen.
+
 ## Prüfung
 
-Widget-Tests für Desktop (1440 × 900) und Tablet (768 × 1024) ohne Überlauf; Smoke-Test `integration_test/rahmen_test.dart` erreicht in Chrome alle sieben Stationen.
+Widget-Tests für Desktop (1440 × 900) und Tablet (768 × 1024) ohne Überlauf, in beiden Sprachen zusätzlich bei 1024, 1279 und 1280 px; Smoke-Test `integration_test/rahmen_test.dart` erreicht in Chrome alle sieben Stationen.
