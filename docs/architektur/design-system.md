@@ -53,6 +53,13 @@ Laden und Suche nach einer zwischengespeicherten Konfiguration sind Funktionen, 
 - `RahmenZustand` merkt sich, in welchen Schritten der Kunde eine Eingabe **geändert** hat (`markiereGeaendert`, ab M4 von den Eingabefeldern aufgerufen); Ansehen allein zählt nicht (Vorgabe Alexander 26.10.2026). Zurücksetzen vergisst alle Änderungen.
 - `pruefeStandardwerte` wird **vor Ergebnis und Angebot** aufgerufen (Materialliste, PDF, „Konfiguration anfordern“ – M3-06, M9): Gibt es Schritte ohne Änderung, listet `StandardwertHinweis` sie in Schrittreihenfolge („• 3. UNTERKONSTRUKTION“); „Fortfahren“ geht weiter, „Zurück“ (oder Tippen daneben) öffnet den ersten unveränderten Schritt. Ohne solche Schritte erscheint kein Hinweis.
 
+## Rechtliche Links und Knöpfe (M3-06)
+
+- **Fußbereich** (`Statuszeile`): links der Serverstatus, rechts **AGB · Datenschutz · Impressum** – die Seiten des Shops (`PlanerLinks`, Vorgabe Alexander 26.10.2026): `shop.robinienwelt.de/policies/terms-of-service`, `/privacy-policy`, `/legal-notice`. Der alte Planer verlinkte www.robinienwelt.de und eine AGB-PDF von 2022.
+- **Kopfzeile:** „Video-Beratung buchen“ (Shop-Produkt `products/online-videoberatung-buchen`), „ZURÜCKSETZEN“, „PDF“ und „KONFIGURATION ANFORDERN“ (grün). PDF und Anfordern zeigen zuerst den Standardwert-Hinweis (M3-05); bis M9 meldet der Planer „Diese Funktion folgt in Kürze.“ Unter 1024 px nur Symbole mit Tooltip und ohne Titel.
+- **Montageanleitung:** entfällt vorerst, bis es eine Seite oder PDF gibt (Alexander 26.10.2026) – dann nur einen Link in `PlanerLinks` ergänzen.
+- Links öffnen in einem neuen Tab (`url_launcher`, `oeffneImBrowser`); in Tests wird der Öffner ersetzt.
+
 ## Prüfung
 
 Widget-Tests für Desktop (1440 × 900) und Tablet (768 × 1024) ohne Überlauf; Smoke-Test `integration_test/rahmen_test.dart` erreicht in Chrome alle sieben Stationen.

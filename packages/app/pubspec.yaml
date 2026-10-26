@@ -12,6 +12,7 @@ dependencies:
   flutter:
     sdk: flutter
   terrassenplaner_domain: ^0.1.0
+  url_launcher: ^6.3.3
   web: ^1.1.1
 
 dev_dependencies:
@@ -20,7 +21,9 @@ dev_dependencies:
     sdk: flutter
   integration_test:
     sdk: flutter
+  plugin_platform_interface: ^2.1.8
   terrassenplaner_server: ^0.1.0
+  url_launcher_platform_interface: ^2.3.2
 
 flutter:
   uses-material-design: true
