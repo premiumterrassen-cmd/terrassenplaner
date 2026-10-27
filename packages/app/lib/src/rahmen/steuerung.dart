@@ -20,6 +20,13 @@ class PlanungsSteuerung extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Ersetzt den aktuellen Stand ohne neuen Rückgängig-Schritt (Ziehen,
+  /// M4-09).
+  void ersetze(Planungsstand stand) {
+    _verlauf.ersetze(stand);
+    notifyListeners();
+  }
+
   void rueckgaengig() {
     _verlauf.rueckgaengig();
     notifyListeners();

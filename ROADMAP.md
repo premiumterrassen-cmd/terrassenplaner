@@ -244,9 +244,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/5
   - Punkte setzen, Form schließen (mind. 3 Punkte), Einrastfunktion, Zeichnungshilfe (Seitenlänge/Winkel korrigieren), letzten Punkt entfernen, Rückmeldungen.
   - Abnahme: Form lässt sich nur mit ≥ 3 Punkten schließen; Zeichnungshilfe korrigiert Länge und Winkel auf Eingabewert
   - Ergebnis: `FreiformGrundriss` (offen als Linienzug ohne Fläche; schließen ab 3 Punkten und ohne kreuzende Kanten, Kanten 10–3000 cm) und `Zeichenhilfe` (Einrasten auf 10 cm, Ausrichten auf 15°-Schritte, Punkt aus Länge und Winkel; Winkel wie in der Zeichnung: 0° rechts, 90° unten). App: Antippen der Zeichenfläche setzt Punkte, Taste x schließt, unter 1.2 Schalter Einrastfunktion/Zeichnungshilfe, Maßeingabe Strecke | Koordinaten für den letzten Punkt, „Letzten Punkt entfernen“, „Form schließen“, Rückmeldungen als Hinweis. Behoben: Gleichheit von Grundrissen mit verschieden vielen Maßen. Smoke-Test in Chrome zeichnet und schließt eine Freiform.
-- [ ] **M4-09 Eckpunkte und Kanten bearbeiten** ([#39](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/39)) – `feature/m4-09-eckpunkte-und-kanten-bearbeiten`
+- [x] **M4-09 Eckpunkte und Kanten bearbeiten** ([#39](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/39)) – `feature/m4-09-eckpunkte-und-kanten-bearbeiten`
   - Eckpunkte hinzufügen/entfernen (min. 3)/ziehen, Kanten verschieben, Maße per Eingabe; Umschalter Koordinaten/Strecke.
   - Abnahme: Mindestens 3 Eckpunkte erzwungen; Eingabe per Koordinaten und per Strecke
+  - Ergebnis: Ziehpunkte auf der Zeichenfläche – Ecken (antippen wählt aus, ziehen verschiebt, mit Einrasten), Kantenmitten (antippen fügt einen Punkt ein, ziehen verschiebt die Kante parallel); feste Formen werden beim Ziehen zur geschlossenen Freiform, der Kreis hat keine Ecken. Ein Rückgängig-Schritt je Ziehen (`Verlauf.ersetze`). Unter 1.2 für die ausgewählte Ecke Maßeingabe Strecke | Koordinaten und „Punkt entfernen“ (mindestens 3 Ecken). Smoke-Test zieht eine Ecke in Chrome.
 - [ ] **M4-10 Form drehen und zentrieren** ([#40](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/40)) – `feature/m4-10-form-drehen-und-zentrieren`
   - Form rotieren (Hinweis: Ausschnitte werden zurückgesetzt), zentrieren.
   - Abnahme: Ausschnitte werden nach Bestätigung zurückgesetzt

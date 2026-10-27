@@ -84,4 +84,19 @@ void main() {
     v.setze('x');
     expect(v.rueckgaengig(), 'neu');
   });
+
+  test('ersetzen: kein neuer Schritt, Wiederherstellen entfällt', () {
+    final v = Verlauf('a')
+      ..setze('b')
+      ..setze('c')
+      ..rueckgaengig();
+    expect(v.kannWiederherstellen, isTrue);
+    v.ersetze('b2');
+    expect(v.aktuell, 'b2');
+    expect(v.kannWiederherstellen, isFalse);
+    expect(v.rueckgaengig(), 'a');
+    expect(v.wiederherstellen(), 'b2');
+    v.ersetze('b3');
+    expect(v.rueckgaengig(), 'a');
+  });
 }

@@ -51,5 +51,11 @@ void main() {
     }
     await tester.sendKeyEvent(LogicalKeyboardKey.keyX);
     await warteAuf(tester, 'Fläche: 3,00 m²');
+    // M4-09: Ecke B um 1 m nach rechts ziehen → Dreieck 4 × 2 m / 2
+    await tester.drag(
+      find.byKey(const ValueKey('ecke-1')),
+      const Offset(100, 0),
+    );
+    await warteAuf(tester, 'Fläche: 4,00 m²');
   });
 }

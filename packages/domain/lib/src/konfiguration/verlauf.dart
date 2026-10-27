@@ -32,6 +32,15 @@ final class Verlauf<T extends Object> {
     _position = _staende.length - 1;
   }
 
+  /// Ersetzt den aktuellen Stand durch [neu], ohne einen Schritt anzulegen
+  /// (z. B. während ein Punkt gezogen wird, M4-09); wiederherstellbare Stände
+  /// entfallen wie bei [setze].
+  void ersetze(T neu) {
+    _staende
+      ..removeRange(_position + 1, _staende.length)
+      ..[_position] = neu;
+  }
+
   /// Einen Schritt zurück; ohne Vorgänger bleibt alles, wie es ist.
   T rueckgaengig() {
     if (kannRueckgaengig) _position--;

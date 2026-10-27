@@ -95,6 +95,11 @@ sealed class Grundriss {
 
   Kontur get kontur => Kontur(ecken);
 
+  /// Als geschlossene Freiform zum freien Bearbeiten der Ecken (M4-09);
+  /// der Kreis hat keine Ecken und bleibt ein Kreis (`null`).
+  FreiformGrundriss? get alsFreiform =>
+      ecken.isEmpty ? null : FreiformGrundriss(ecken, geschlossen: true);
+
   /// Kopie mit neuem Wert für das Eingabemaß [index].
   Grundriss mitMass(int index, Millimeter wert) =>
       Grundriss.aus(form, [...masse]..[index] = wert);
@@ -473,4 +478,46 @@ final class FreiformGrundriss extends Grundriss {
   /// Die geschlossene Form.
   FreiformGrundriss geschlossene() =>
       FreiformGrundriss(punkte, geschlossen: true);
+
+  /// Ecke [index] an [ort] gezogen (M4-09).
+  FreiformGrundriss mitPunktAn(int index, Punkt ort) =>
+      FreiformGrundriss([...punkte]..[index] = ort, geschlossen: geschlossen);
+
+  /// Neuer Punkt in der Mitte der Kante [kante] (von Punkt [kante] zum
+  /// nächsten).
+  FreiformGrundriss mitPunktAufKante(int kante) {
+    final a = punkte[kante], b = punkte[(kante + 1) % punkte.length];
+    return FreiformGrundriss(
+      [...punkte]..insert(kante + 1, (a + b) * 0.5),
+      geschlossen: geschlossen,
+    );
+  }
+
+  /// Ohne die Ecke [index]; eine geschlossene Form behält mindestens drei
+  /// (M4-09).
+  FreiformGrundriss ohnePunkt(int index) {
+    if (geschlossen && punkte.length <= 3) {
+      throw ArgumentError.value(
+        punkte.length,
+        'punkte',
+        'mindestens 3 Eckpunkte',
+      );
+    }
+    return FreiformGrundriss(
+      [...punkte]..removeAt(index),
+      geschlossen: geschlossen,
+    );
+  }
+
+  /// Kante [kante] parallel verschoben: beide Endpunkte um den Anteil von
+  /// [versatz] senkrecht zur Kante (Ziehen an der Kantenmitte).
+  FreiformGrundriss mitVerschobenerKante(int kante, Punkt versatz) {
+    final ende = (kante + 1) % punkte.length;
+    final normale = (punkte[ende] - punkte[kante]).links.einheit;
+    final schritt = normale * versatz.punktprodukt(normale);
+    final neu = [...punkte];
+    neu[kante] = neu[kante] + schritt;
+    neu[ende] = neu[ende] + schritt;
+    return FreiformGrundriss(neu, geschlossen: geschlossen);
+  }
 }

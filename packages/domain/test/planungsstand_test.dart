@@ -510,6 +510,67 @@ void main() {
     });
   });
 
+  group('Eckpunkte und Kanten bearbeiten (M4-09)', () {
+    final rechteck = RechteckGrundriss(
+      const Millimeter(4000),
+      const Millimeter(3000),
+    ).alsFreiform!;
+
+    test('feste Formen als Freiform, der Kreis nicht', () {
+      expect(rechteck.geschlossen, isTrue);
+      expect(rechteck.punkte, const [
+        Punkt(0, 0),
+        Punkt(4000, 0),
+        Punkt(4000, 3000),
+        Punkt(0, 3000),
+      ]);
+      expect(LGrundriss.vorgabe.alsFreiform!.punkte, LGrundriss.vorgabe.ecken);
+      expect(KreisGrundriss.vorgabe.alsFreiform, isNull);
+    });
+
+    test('Ecke ziehen, Punkt auf Kante einfügen', () {
+      final gezogen = rechteck.mitPunktAn(2, const Punkt(4500, 3500));
+      expect(gezogen.punkte[2], const Punkt(4500, 3500));
+      expect(gezogen.geschlossen, isTrue);
+      final mehr = rechteck.mitPunktAufKante(3);
+      expect(mehr.punkte, hasLength(5));
+      expect(mehr.punkte[4], const Punkt(0, 1500));
+      expect(rechteck.mitPunktAufKante(0).punkte[1], const Punkt(2000, 0));
+      expect(
+        () => rechteck.mitPunktAn(0, const Punkt(4000, 3000)),
+        throwsArgumentError,
+      );
+      final offen = FreiformGrundriss(const [Punkt(0, 0), Punkt(1000, 0)]);
+      expect(offen.mitPunktAn(1, const Punkt(2000, 0)).geschlossen, isFalse);
+    });
+
+    test('mindestens 3 Eckpunkte (Abnahme M4-09)', () {
+      final dreieck = rechteck.ohnePunkt(3);
+      expect(dreieck.punkte, hasLength(3));
+      expect(dreieck.geschlossen, isTrue);
+      expect(dreieck.kontur.flaeche, 6000000);
+      expect(
+        () => dreieck.ohnePunkt(0),
+        wirftArgumentFehler('punkte', 3, 'mindestens 3 Eckpunkte'),
+      );
+      // offen darf es weniger werden
+      final offen = FreiformGrundriss(const [Punkt(0, 0), Punkt(1000, 0)]);
+      expect(offen.ohnePunkt(0).punkte, const [Punkt(1000, 0)]);
+    });
+
+    test('Kante parallel verschieben, nur senkrecht zur Kante', () {
+      final breiter = rechteck.mitVerschobenerKante(1, const Punkt(500, 777));
+      expect(breiter.punkte[1], const Punkt(4500, 0));
+      expect(breiter.punkte[2], const Punkt(4500, 3000));
+      expect(breiter.kontur.flaeche, 4500 * 3000);
+      // letzte Kante D—A
+      final links = rechteck.mitVerschobenerKante(3, const Punkt(-200, 50));
+      expect(links.punkte[3], const Punkt(-200, 3000));
+      expect(links.punkte[0], const Punkt(-200, 0));
+      expect(links.geschlossen, isTrue);
+    });
+  });
+
   group('Zeichenhilfe (M4-08)', () {
     test('Einrasten auf 10 cm', () {
       expect(Zeichenhilfe.raster, const Millimeter(100));
