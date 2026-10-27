@@ -283,6 +283,73 @@ void main() {
     });
   });
 
+  group('O-Form und Ausschnitt (M4-06)', () {
+    Future<PlanungsSteuerung> zeige(WidgetTester tester) async {
+      final planung = PlanungsSteuerung(
+        Planungsstand.start.mitForm(Terrassenform.oForm),
+      );
+      addTearDown(planung.dispose);
+      await tester.pumpWidget(
+        testApp(
+          home: Scaffold(
+            body: ListenableBuilder(
+              listenable: planung,
+              builder: (context, _) => SingleChildScrollView(
+                child: AusschnittMasse(planung: planung, onGeaendert: () {}),
+              ),
+            ),
+          ),
+        ),
+      );
+      return planung;
+    }
+
+    testWidgets('Block „Ausschnitt A1“ mit X, Y, Länge, Breite', (
+      tester,
+    ) async {
+      final planung = await zeige(tester);
+      expect(find.text('Ausschnitt A1'), findsOneWidget);
+      for (final name in ['X', 'Y', 'Länge', 'Breite']) {
+        expect(find.text('$name: cm'), findsOneWidget);
+      }
+      await tester.enterText(
+        find.byKey(const ValueKey('ausschnitt-0-0')),
+        '-20',
+      );
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+      expect(
+        planung.aktuell.ausschnitte.single,
+        Ausschnitt.oForm.mitMass(0, const Millimeter(-200)),
+      );
+      await tester.enterText(find.byKey(const ValueKey('ausschnitt-0-3')), '9');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+      expect(find.text('Bitte 10 bis 3000 cm eingeben'), findsOneWidget);
+      expect(planung.aktuell.ausschnitte.single.breite, const Millimeter(1800));
+    });
+
+    testWidgets('ohne Ausschnitte kein Block', (tester) async {
+      final planung = PlanungsSteuerung();
+      addTearDown(planung.dispose);
+      await tester.pumpWidget(
+        testApp(
+          home: Scaffold(
+            body: AusschnittMasse(planung: planung, onGeaendert: () {}),
+          ),
+        ),
+      );
+      expect(find.byType(TextField), findsNothing);
+    });
+
+    test('englische Feldnamen', () {
+      expect(en.ausschnittTitel('A1'), 'Cut-out A1');
+      expect([en.feldLaenge, en.feldBreite], ['Length', 'Width']);
+      expect(FormWahl.name(de, Terrassenform.oForm), 'O-Form');
+      expect(FormWahl.name(en, Terrassenform.oForm), 'O-shape');
+    });
+  });
+
   group('Rahmen mit Berechnung', () {
     Future<({RahmenZustand zustand, PlanungsSteuerung planung})> zeige(
       WidgetTester tester,
@@ -349,6 +416,48 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Fläche: 14,83 m²'), findsOneWidget);
       expect(find.byKey(const ValueKey('mass-3')), findsNothing);
+    });
+
+    testWidgets('O-Form: Ausschnitt gezeichnet, Fläche außen', (tester) async {
+      final s = await zeige(tester, (stand) async {
+        final k = stand.grundriss.kontur;
+        return Berechnung(
+          umriss: k.punkte,
+          flaeche: k.flaeche,
+          ausschnitte: [for (final a in stand.ausschnitte) a.kontur.punkte],
+        );
+      });
+      await tester.tap(find.byKey(const ValueKey('form-oForm')));
+      await tester.pumpAndSettle();
+      expect(find.text('Fläche: 19,44 m²'), findsOneWidget);
+      expect(s.planung.aktuell.ausschnitte, [Ausschnitt.oForm]);
+      final maler = tester
+          .widgetList<CustomPaint>(find.byType(CustomPaint))
+          .map((c) => c.painter)
+          .whereType<ZeichnungsMaler>()
+          .single;
+      expect(maler.zeichnung.ausschnitte.single.first, const Offset(1500, 900));
+      await tester.scrollUntilVisible(
+        find.text('Ausschnitt A1'),
+        200,
+        scrollable: find
+            .descendant(
+              of: find.byKey(const ValueKey('bearbeitungsmenue')),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      expect(find.text('Ausschnitt A1'), findsOneWidget);
+      // Eingabe im Ausschnitt zählt als Änderung im Grundriss
+      s.zustand.vergissAenderungen();
+      await tester.enterText(
+        find.byKey(const ValueKey('ausschnitt-0-0')),
+        '100',
+      );
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      expect(s.zustand.unveraendert, isNot(contains(PlanerSchritt.grundriss)));
+      expect(s.planung.aktuell.ausschnitte.single.x, const Millimeter(1000));
     });
 
     testWidgets('Felder nur unter 1.1 und 1.2', (tester) async {

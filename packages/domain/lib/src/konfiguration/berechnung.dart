@@ -5,22 +5,29 @@ import 'package:flat_buffers/flat_buffers.dart' as fb;
 import '../geometrie/punkt.dart';
 
 /// Was der Server aus einem Planungsstand berechnet und die App nur anzeigt
-/// (M4-02): Umriss für die Zeichnung und Kennzahlen. Bauteile, Volumen und
-/// Materialliste folgen mit M4-13 und M5.
+/// (M4-02): Umriss und Ausschnitte (M4-06) für die Zeichnung und Kennzahlen.
+/// Bauteile, Volumen und Materialliste folgen mit M4-13 und M5.
 final class Berechnung {
-  Berechnung({required List<Punkt> umriss, required this.flaeche})
-    : umriss = List.unmodifiable(umriss);
+  Berechnung({
+    required List<Punkt> umriss,
+    required this.flaeche,
+    List<List<Punkt>> ausschnitte = const [],
+  }) : umriss = List.unmodifiable(umriss),
+       ausschnitte = List.unmodifiable([
+         for (final a in ausschnitte) List<Punkt>.unmodifiable(a),
+       ]);
 
   /// Liest eine Berechnung aus dem Transportformat ([zuBytes]).
   factory Berechnung.ausBytes(Uint8List bytes) {
     final puffer = fb.BufferContext.fromBytes(bytes);
     final wurzel = puffer.derefObject(0);
-    final koordinaten = const fb.ListReader<double>(fb.Float64Reader())
-        .vTableGet(puffer, wurzel, _versatz(_umrissPlatz), const []);
     return Berechnung(
-      umriss: [
-        for (var i = 1; i < koordinaten.length; i += 2)
-          Punkt(koordinaten[i - 1], koordinaten[i]),
+      umriss: _punkte(puffer, wurzel, _umrissPlatz),
+      ausschnitte: [
+        for (final ort in const fb.ListReader<int>(
+          _Tabellenort(),
+        ).vTableGet(puffer, wurzel, _versatz(_ausschnittePlatz), const []))
+          _punkte(puffer, ort, 0),
       ],
       flaeche: const fb.Float64Reader().vTableGet(
         puffer,
@@ -34,29 +41,64 @@ final class Berechnung {
   /// Eckpunkte des Grundrisses in mm, beginnend bei A.
   final List<Punkt> umriss;
 
-  /// Terrassenfläche in mm².
+  /// Ausschnitte (Eckpunkte in mm), in der Reihenfolge des Planungsstands.
+  final List<List<Punkt>> ausschnitte;
+
+  /// Terrassenfläche in mm² – wie im alten Planer die Außenfläche, leere
+  /// Ausschnitte zählen mit (Fachkonzept 1.4).
   final double flaeche;
 
   /// Terrassenfläche in m² für die Anzeige.
   double get flaecheQuadratmeter => flaeche / 1e6;
 
   /// FlatBuffer für den Weg zur App (#110):
-  /// `{ 0: umriss ([float64] x, y je Punkt), 1: flaeche (float64 mm²) }`.
+  /// `{ 0: umriss ([float64] x, y je Punkt), 1: flaeche (float64 mm²),
+  /// 2: ausschnitte ([{ 0: punkte ([float64]) }]) }`.
   Uint8List zuBytes() {
     final fbb = fb.Builder();
-    final umrissOrt = fbb.writeListFloat64([
-      for (final p in umriss) ...[p.x, p.y],
+    final umrissOrt = _schreibe(fbb, umriss);
+    final ausschnitteOrt = fbb.writeList([
+      for (final a in ausschnitte) _ausschnitt(fbb, a),
     ]);
     fbb
-      ..startTable(2)
+      ..startTable(3)
       ..addOffset(_umrissPlatz, umrissOrt)
-      ..addFloat64(_flaechePlatz, flaeche);
+      ..addFloat64(_flaechePlatz, flaeche)
+      ..addOffset(_ausschnittePlatz, ausschnitteOrt);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
   }
 
+  static int _schreibe(fb.Builder fbb, List<Punkt> punkte) =>
+      fbb.writeListFloat64([
+        for (final p in punkte) ...[p.x, p.y],
+      ]);
+
+  static int _ausschnitt(fb.Builder fbb, List<Punkt> punkte) {
+    final ort = _schreibe(fbb, punkte);
+    fbb
+      ..startTable(1)
+      ..addOffset(0, ort);
+    return fbb.endTable();
+  }
+
+  static List<Punkt> _punkte(fb.BufferContext puffer, int ort, int platz) {
+    final k = const fb.ListReader<double>(fb.Float64Reader())
+        .vTableGet(puffer, ort, _versatz(platz), const []);
+    return [for (var i = 1; i < k.length; i += 2) Punkt(k[i - 1], k[i])];
+  }
+
   static const _umrissPlatz = 0;
   static const _flaechePlatz = 1;
+  static const _ausschnittePlatz = 2;
 
   static int _versatz(int platz) => 4 + 2 * platz;
+}
+
+/// Liest nur den Ort einer Tabelle – die Felder liest der Aufrufer.
+final class _Tabellenort extends fb.TableReader<int> {
+  const _Tabellenort();
+
+  @override
+  int createObject(fb.BufferContext puffer, int ort) => ort;
 }

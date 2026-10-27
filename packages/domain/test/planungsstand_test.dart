@@ -355,11 +355,224 @@ void main() {
     });
   });
 
+  group('O-Form und Ausschnitt (M4-06)', () {
+    Ausschnitt a({
+      String bezeichnung = 'A1',
+      int x = 1500,
+      int y = 900,
+      int laenge = 2400,
+      int breite = 1800,
+    }) => Ausschnitt(
+      bezeichnung: bezeichnung,
+      x: Millimeter(x),
+      y: Millimeter(y),
+      laenge: Millimeter(laenge),
+      breite: Millimeter(breite),
+    );
+
+    test(
+      'Vorgabe wie im alten Planer: außen 540 × 360, A1 240 × 180 mittig',
+      () {
+        final stand = Planungsstand.start.mitForm(Terrassenform.oForm);
+        expect(stand.grundriss, OGrundriss.vorgabe);
+        expect(stand.grundriss.form, Terrassenform.oForm);
+        expect(Terrassenform.oForm.nummer, 4);
+        expect(Terrassenform.oForm.vorgabe, OGrundriss.vorgabe);
+        expect(Terrassenform.oForm.eingabekanten, ['A — B', 'B — C']);
+        expect(stand.ausschnitte, [Ausschnitt.oForm]);
+        expect(Ausschnitt.oForm, a());
+        expect(OGrundriss.vorgabe.masse.map((m) => m.mm), [5400, 3600]);
+        expect(
+          [OGrundriss.vorgabe.ab.mm, OGrundriss.vorgabe.bc.mm],
+          [5400, 3600],
+        );
+        expect(stand.grundriss.kontur.flaeche, 19440000);
+        final innen = Ausschnitt.oForm.kontur;
+        expect(innen.punkte.first, const Punkt(1500, 900));
+        expect(innen.punkte[2], const Punkt(3900, 2700));
+        // mittig: links/rechts je 150 cm, oben/unten je 90 cm Rand
+        expect(5400 - innen.punkte[2].x, 1500);
+        expect(3600 - innen.punkte[2].y, 900);
+        expect(
+          OGrundriss(const Millimeter(4000), const Millimeter(3000)).ecken[2],
+          const Punkt(4000, 3000),
+        );
+      },
+    );
+
+    test('andere Form: ohne Ausschnitt', () {
+      final o = Planungsstand.start.mitForm(Terrassenform.oForm);
+      expect(o.mitForm(Terrassenform.lForm).ausschnitte, isEmpty);
+      expect(o.mitForm(Terrassenform.lForm).grundriss, LGrundriss.vorgabe);
+      // Außenmaße ändern behält den Ausschnitt
+      final groesser = o.mitGrundriss(
+        o.grundriss.mitMass(0, const Millimeter(6000)),
+      );
+      expect(groesser.ausschnitte, [Ausschnitt.oForm]);
+    });
+
+    test('Ausschnitt ändern: X, Y, Länge, Breite', () {
+      final o = Planungsstand.start.mitForm(Terrassenform.oForm);
+      final neu = o.mitAusschnitt(
+        0,
+        Ausschnitt.oForm.mitMass(1, const Millimeter(-200)),
+      );
+      expect(neu.ausschnitte.single, a(y: -200));
+      expect(Ausschnitt.oForm.mitMass(0, const Millimeter(10)), a(x: 10));
+      expect(
+        Ausschnitt.oForm.mitMass(2, const Millimeter(100)),
+        a(laenge: 100),
+      );
+      expect(
+        Ausschnitt.oForm.mitMass(3, const Millimeter(30000)),
+        a(breite: 30000),
+      );
+      expect(Ausschnitt.oForm.masse.map((m) => m.mm), [1500, 900, 2400, 1800]);
+      expect(neu == o, isFalse);
+      expect(o.ausschnitte, [Ausschnitt.oForm]);
+    });
+
+    test('Grenzen und Bezeichnung', () {
+      const text = 'muss zwischen 10 und 3000 cm liegen';
+      expect(() => a(laenge: 99), wirftArgumentFehler('laenge', 99, text));
+      expect(
+        () => a(breite: 30001),
+        wirftArgumentFehler('breite', 30001, text),
+      );
+      expect(Ausschnitt.kleinsteSeite, const Millimeter(100));
+      expect(
+        () => a(bezeichnung: ''),
+        wirftArgumentFehler('bezeichnung', '', 'braucht 1 bis 10 Zeichen'),
+      );
+      expect(
+        () => a(bezeichnung: 'Pool-Ecke-1'),
+        wirftArgumentFehler(
+          'bezeichnung',
+          'Pool-Ecke-1',
+          'braucht 1 bis 10 Zeichen',
+        ),
+      );
+      expect(a(bezeichnung: 'Pool-Ecke1').bezeichnung, 'Pool-Ecke1');
+    });
+
+    test('Gleichheit', () {
+      expect(a(), a());
+      expect(a().hashCode, a().hashCode);
+      for (final anders in [
+        a(bezeichnung: 'A2'),
+        a(x: 1),
+        a(y: 1),
+        a(laenge: 1000),
+        a(breite: 1000),
+      ]) {
+        expect(anders == a(), isFalse);
+      }
+      expect(a() == Object(), isFalse);
+      final o = Planungsstand.start.mitForm(Terrassenform.oForm);
+      expect(
+        o,
+        Planungsstand(grundriss: OGrundriss.vorgabe, ausschnitte: [a()]),
+      );
+      expect(
+        o.hashCode,
+        Planungsstand(
+          grundriss: OGrundriss.vorgabe,
+          ausschnitte: [a()],
+        ).hashCode,
+      );
+      expect(
+        o ==
+            Planungsstand(
+              grundriss: OGrundriss.vorgabe,
+              ausschnitte: [a(x: 1)],
+            ),
+        isFalse,
+      );
+      expect(o == const Planungsstand(grundriss: OGrundriss.vorgabe), isFalse);
+      expect(
+        o ==
+            Planungsstand(
+              grundriss: OGrundriss.vorgabe,
+              ausschnitte: [
+                a(),
+                a(bezeichnung: 'A2'),
+              ],
+            ),
+        isFalse,
+      );
+    });
+
+    test('Transportformat mit Ausschnitten', () {
+      final stand = Planungsstand(
+        grundriss: OGrundriss.vorgabe,
+        ausschnitte: [
+          a(),
+          a(bezeichnung: 'A2', x: -500, y: -300),
+        ],
+      );
+      final zurueck = Planungsstand.ausBytes(stand.zuBytes());
+      expect(zurueck, stand);
+      expect(() => zurueck.ausschnitte.add(a()), returnsNormally);
+      // Ausschnitt mit falscher Anzahl Maße
+      final fbb = fb.Builder();
+      final grundrissMasse = fbb.writeListInt32([4000, 3000]);
+      fbb
+        ..startTable(2)
+        ..addUint8(0, 0)
+        ..addOffset(1, grundrissMasse);
+      final grundriss = fbb.endTable();
+      final name = fbb.writeString('A1');
+      final masse = fbb.writeListInt32([1, 2, 3]);
+      fbb
+        ..startTable(2)
+        ..addOffset(0, name)
+        ..addOffset(1, masse);
+      final ausschnitt = fbb.endTable();
+      final liste = fbb.writeList([ausschnitt]);
+      fbb
+        ..startTable(3)
+        ..addOffset(1, grundriss)
+        ..addOffset(2, liste);
+      fbb.finish(fbb.endTable());
+      expect(
+        () => Planungsstand.ausBytes(fbb.buffer),
+        throwsA(
+          isA<FormatException>().having(
+            (e) => e.message,
+            'message',
+            'Ausschnitt braucht 4 Maße, nicht 3',
+          ),
+        ),
+      );
+    });
+
+    test('Berechnung trägt die Ausschnitte', () {
+      final b = Berechnung(
+        umriss: OGrundriss.vorgabe.ecken,
+        flaeche: 19440000,
+        ausschnitte: [Ausschnitt.oForm.kontur.punkte, a(x: 0).kontur.punkte],
+      );
+      final zurueck = Berechnung.ausBytes(b.zuBytes());
+      expect(zurueck.ausschnitte, hasLength(2));
+      expect(zurueck.ausschnitte[0], Ausschnitt.oForm.kontur.punkte);
+      expect(zurueck.ausschnitte[1].first, const Punkt(0, 900));
+      expect(() => b.ausschnitte.add(const []), throwsUnsupportedError);
+      expect(
+        () => b.ausschnitte.first.add(Punkt.ursprung),
+        throwsUnsupportedError,
+      );
+      expect(Berechnung(umriss: const [], flaeche: 0).ausschnitte, isEmpty);
+    });
+  });
+
   group('Planungsstand', () {
     test('Gleichheit über den Grundriss, Kopie mit neuem Grundriss', () {
       const start = Planungsstand.start;
       expect(start, const Planungsstand());
-      expect(start.hashCode, RechteckGrundriss.start.hashCode);
+      expect(
+        start.hashCode,
+        Object.hash(RechteckGrundriss.start, Object.hashAll(const [])),
+      );
       final neu = start.mitGrundriss(_rechteck(5400, 3600));
       expect(neu.grundriss, _rechteck(5400, 3600));
       expect(neu == start, isFalse);

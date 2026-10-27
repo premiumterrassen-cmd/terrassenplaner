@@ -3,13 +3,17 @@ import '../geometrie/kontur.dart';
 import '../geometrie/punkt.dart';
 
 /// Terrassenformen des Grundrisses (Fachkonzept 1.1); weitere folgen mit
-/// M4-06 bis M4-08. Die Nummer ist der Wert im Transportformat und bleibt
+/// M4-07 und M4-08. Die Nummer ist der Wert im Transportformat und bleibt
 /// fest.
 enum Terrassenform {
   rechteck(0, ['A — B', 'B — C']),
   lForm(1, ['A — B', 'B — C', 'C — D', 'D — E']),
   tForm(2, ['B — C', 'C — D', 'D — E', 'E — F', 'G — H', 'H — A']),
-  uForm(3, ['A — B', 'B — C', 'C — D', 'E — F', 'F — G', 'H — A']);
+  uForm(3, ['A — B', 'B — C', 'C — D', 'E — F', 'F — G', 'H — A']),
+
+  /// Rechteck mit innerem Ausschnitt; der Ausschnitt ist ein eigener Block
+  /// (Fachkonzept 1.1/1.4).
+  oForm(4, ['A — B', 'B — C']);
 
   const Terrassenform(this.nummer, this.eingabekanten);
 
@@ -25,6 +29,7 @@ enum Terrassenform {
     lForm => LGrundriss.vorgabe,
     tForm => TGrundriss.vorgabe,
     uForm => UGrundriss.vorgabe,
+    oForm => OGrundriss.vorgabe,
   };
 }
 
@@ -53,6 +58,7 @@ sealed class Grundriss {
         masse[4],
         masse[5],
       ),
+      Terrassenform.oForm => OGrundriss(masse[0], masse[1]),
       Terrassenform.uForm => UGrundriss(
         masse[0],
         masse[1],
@@ -143,6 +149,31 @@ final class RechteckGrundriss extends Grundriss {
     final x = ab.mm.toDouble(), y = bc.mm.toDouble();
     return [Punkt.ursprung, Punkt(x, 0), Punkt(x, y), Punkt(0, y)];
   }
+}
+
+/// Außenrand der O-Form (M4-06): ein Rechteck wie [RechteckGrundriss], die
+/// innere Aussparung ist ein [Ausschnitt] im Planungsstand.
+final class OGrundriss extends Grundriss {
+  OGrundriss(this.ab, this.bc) {
+    _pruefeSeiten();
+  }
+
+  const OGrundriss._(this.ab, this.bc);
+
+  /// Vorgabe des alten Planers: außen 540 × 360 cm (Fachkonzept 1.1).
+  static const vorgabe = OGrundriss._(Millimeter(5400), Millimeter(3600));
+
+  final Millimeter ab;
+  final Millimeter bc;
+
+  @override
+  Terrassenform get form => Terrassenform.oForm;
+
+  @override
+  List<Millimeter> get masse => [ab, bc];
+
+  @override
+  List<Punkt> get ecken => RechteckGrundriss._(ab, bc).ecken;
 }
 
 /// L-Form (M4-03): Ausschnitt oben rechts. Eingegeben werden A—B, B—C, C—D

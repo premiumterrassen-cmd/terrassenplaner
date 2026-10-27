@@ -31,9 +31,16 @@ class BerechnungsSteuerung extends ChangeNotifier {
 
   /// Was die Zeichenfläche zeigt.
   Zeichnung get zeichnung => switch (_ergebnis) {
-    final b? => Zeichnung(umriss: [for (final p in b.umriss) Offset(p.x, p.y)]),
+    final b? => Zeichnung(
+      umriss: _offsets(b.umriss),
+      ausschnitte: [for (final a in b.ausschnitte) _offsets(a)],
+    ),
     null => Zeichnung.leer,
   };
+
+  static List<Offset> _offsets(List<Punkt> punkte) => [
+    for (final p in punkte) Offset(p.x, p.y),
+  ];
 
   /// Terrassenfläche in m² für die Kennzahlen.
   double? get flaeche => _ergebnis?.flaecheQuadratmeter;

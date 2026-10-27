@@ -84,6 +84,15 @@ void main() {
       Punkt(0, 3600),
     ]);
     expect(b.flaecheQuadratmeter, 19.44);
+    expect(b.ausschnitte, isEmpty);
+  });
+
+  test('O-Form: Ausschnitt in der Zeichnung, Fläche außen (M4-06)', () {
+    final b = PlanungsDienst.berechne(
+      Planungsstand.start.mitForm(Terrassenform.oForm),
+    );
+    expect(b.flaecheQuadratmeter, 19.44);
+    expect(b.ausschnitte.single, Ausschnitt.oForm.kontur.punkte);
   });
 
   test('typisiert hin und zurück über den Router', () async {

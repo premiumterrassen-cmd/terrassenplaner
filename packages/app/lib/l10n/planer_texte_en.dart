@@ -97,6 +97,20 @@ class PlanerTexteEn extends PlanerTexte {
   String get formUForm => 'U-shape';
 
   @override
+  String get formOForm => 'O-shape';
+
+  @override
+  String ausschnittTitel(String bezeichnung) {
+    return 'Cut-out $bezeichnung';
+  }
+
+  @override
+  String get feldLaenge => 'Length';
+
+  @override
+  String get feldBreite => 'Width';
+
+  @override
   String massUngueltig(int min, int max) {
     return 'Please enter $min to $max cm';
   }

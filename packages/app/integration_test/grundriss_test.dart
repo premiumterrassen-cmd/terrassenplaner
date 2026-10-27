@@ -28,5 +28,8 @@ void main() {
     // M4-03: L-Form mit Vorgabemaßen, Form 1 im Transportformat
     await tester.tap(find.byKey(const ValueKey('form-lForm')));
     await warteAuf(tester, 'Fläche: 14,58 m²');
+    // M4-06: O-Form mit Ausschnitt A1 (Ausschnitte im Transportformat)
+    await tester.tap(find.byKey(const ValueKey('form-oForm')));
+    await warteAuf(tester, 'Fläche: 19,44 m²');
   });
 }
