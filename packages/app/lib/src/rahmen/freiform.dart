@@ -333,7 +333,7 @@ class _Masse extends StatelessWidget {
         final Punkt neu;
         if (strecke) {
           // beim Zeichnen der vorletzte Punkt, sonst die Ecke davor
-          final von = punkte[index == null ? n - 2 : (i + n - 1) % n];
+          final von = punkte[index == null ? n - 2 : (i == 0 ? n : i) - 1];
           final laenge = feld == 0 ? wert.mm.toDouble() : punkt.abstand(von);
           // Winkel kommt als Zahl wie ein Maß in cm: 90 → 900 „mm“
           final winkel = feld == 1

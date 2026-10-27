@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:terrassenplaner_app/src/design/planer_design.dart';
+import 'package:terrassenplaner_app/src/rahmen/ansichtsoptionen.dart';
 import 'package:terrassenplaner_app/src/rahmen/freiform.dart';
 import 'package:terrassenplaner_app/src/rahmen/planer_rahmen.dart';
 import 'package:terrassenplaner_app/src/rahmen/rahmen_zustand.dart';
 import 'package:terrassenplaner_app/src/rahmen/steuerung.dart';
+import 'package:terrassenplaner_app/src/rahmen/zeichenflaeche.dart';
+import 'package:terrassenplaner_app/src/rahmen/zeichnung.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 import 'hilfe.dart';
@@ -175,6 +178,7 @@ void main() {
       s.modus.auswahl = 2;
       await tester.pump();
       expect(find.text('Punkt C'), findsOneWidget);
+      expect(find.byKey(const ValueKey('punkt-ausgewaehlt')), findsOneWidget);
       // Strecke von B: Länge 400 cm, Winkel bleibt 90°
       await gib(tester, 'freiform-0', '400');
       var c = _f(s.planung).punkte[2];
@@ -296,6 +300,129 @@ void main() {
       s.planung.setze(Planungsstand.start.mitForm(Terrassenform.kreis));
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey('ecke-0')), findsNothing);
+    });
+  });
+
+  group('Ziehpunkte bei Zoom 200 % und verschobener Ansicht', () {
+    const rechteck = [
+      Offset(0, 0),
+      Offset(4000, 0),
+      Offset(4000, 3000),
+      Offset(0, 3000),
+    ];
+
+    Future<({PlanungsSteuerung planung, Offset ursprung})> zeige(
+      WidgetTester tester, {
+      Planungsstand? stand,
+      Zeichnung? zeichnung,
+    }) async {
+      tester.view
+        ..physicalSize = const Size(1440, 900)
+        ..devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final s = _bedienung(stand);
+      final ansicht = AnsichtSteuerung()
+        ..value = (Matrix4.identity()
+          ..translateByDouble(30, 40, 0, 1)
+          ..scaleByDouble(2, 2, 2, 1));
+      final optionen = AnsichtsOptionen();
+      addTearDown(s.planung.dispose);
+      addTearDown(ansicht.dispose);
+      await tester.pumpWidget(
+        testApp(
+          home: Scaffold(
+            body: ListenableBuilder(
+              listenable: s.planung,
+              builder: (context, _) => Zeichenflaeche(
+                planung: s.planung,
+                ansicht: ansicht,
+                optionen: optionen,
+                freiform: s.b,
+                zeichnung:
+                    zeichnung ??
+                    Zeichnung(
+                      umriss: [
+                        for (final p in s.planung.aktuell.grundriss.ecken)
+                          Offset(p.x, p.y),
+                      ],
+                    ),
+              ),
+            ),
+          ),
+        ),
+      );
+      return (
+        planung: s.planung,
+        ursprung: tester.getTopLeft(
+          find.byKey(const ValueKey('zeichenflaeche')),
+        ),
+      );
+    }
+
+    testWidgets('Lage der Griffe folgt Zoom und Verschiebung', (tester) async {
+      final s = await zeige(tester);
+      // 4000 mm · 0,1 px/mm · 2 = 800 px, dazu die Verschiebung (30|40)
+      expect(
+        tester.getCenter(find.byKey(const ValueKey('ecke-1'))),
+        s.ursprung + const Offset(830, 40),
+      );
+      expect(
+        tester.getCenter(find.byKey(const ValueKey('ecke-2'))),
+        s.ursprung + const Offset(830, 640),
+      );
+      expect(
+        tester.getCenter(find.byKey(const ValueKey('kante-0'))),
+        s.ursprung + const Offset(430, 40),
+      );
+      expect(
+        tester.getCenter(find.byKey(const ValueKey('kante-3'))),
+        s.ursprung + const Offset(30, 340),
+      );
+    });
+
+    testWidgets('Ziehen bei 200 %: 100 px sind 50 cm', (tester) async {
+      final s = await zeige(tester);
+      await tester.drag(
+        find.byKey(const ValueKey('ecke-2')),
+        const Offset(100, 0),
+      );
+      await tester.pump();
+      expect(_f(s.planung).punkte[2], const Punkt(4500, 3000));
+    });
+
+    testWidgets('keine Griffe für Kreis oder offenen Umriss', (tester) async {
+      await zeige(
+        tester,
+        stand: Planungsstand.start.mitForm(Terrassenform.kreis),
+        zeichnung: Zeichnung(umriss: rechteck),
+      );
+      expect(find.byKey(const ValueKey('ecke-0')), findsNothing);
+      await zeige(
+        tester,
+        zeichnung: Zeichnung(umriss: rechteck, geschlossen: false),
+      );
+      expect(find.byKey(const ValueKey('ecke-0')), findsNothing);
+      await zeige(
+        tester,
+        zeichnung: Zeichnung(umriss: rechteck.take(2).toList()),
+      );
+      expect(find.byKey(const ValueKey('ecke-0')), findsNothing);
+    });
+
+    testWidgets('Bildschirm in mm mit Verschiebung', (tester) async {
+      final s = _bedienung();
+      final ansicht = AnsichtSteuerung()
+        ..value = (Matrix4.identity()
+          ..translateByDouble(30, 40, 0, 1)
+          ..scaleByDouble(2, 2, 2, 1));
+      final z = Zeichenflaeche(
+        planung: s.planung,
+        ansicht: ansicht,
+        optionen: AnsichtsOptionen(),
+        zeichnung: Zeichnung.leer,
+      );
+      final p = z.inMillimeter(const Offset(230, 140));
+      expect(p, const Punkt(1000, 500));
     });
   });
 
