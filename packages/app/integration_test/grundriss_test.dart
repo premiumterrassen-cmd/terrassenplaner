@@ -31,5 +31,8 @@ void main() {
     // M4-06: O-Form mit Ausschnitt A1 (Ausschnitte im Transportformat)
     await tester.tap(find.byKey(const ValueKey('form-oForm')));
     await warteAuf(tester, 'Fläche: 19,44 m²');
+    // M4-07: Kreis Ø 360 cm, exakt π·r²
+    await tester.tap(find.byKey(const ValueKey('form-kreis')));
+    await warteAuf(tester, 'Fläche: 10,18 m²');
   });
 }

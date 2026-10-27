@@ -30,6 +30,7 @@
   "formTForm": "T-shape",
   "formUForm": "U-shape",
   "formOForm": "O-shape",
+  "formKreis": "Circle",
   "ausschnittTitel": "Cut-out {bezeichnung}",
   "feldLaenge": "Length",
   "feldBreite": "Width",

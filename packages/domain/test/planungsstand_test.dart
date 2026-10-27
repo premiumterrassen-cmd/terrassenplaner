@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flat_buffers/flat_buffers.dart' as fb;
@@ -352,6 +353,70 @@ void main() {
         () => u([1350, 400, 1350, 1350, 2700, 2700]),
         wirftArgumentFehler('bc', 400, text),
       );
+    });
+  });
+
+  group('Kreis (M4-07)', () {
+    test('Vorgabe Ø 360 cm, Fläche exakt π·r²', () {
+      const k = KreisGrundriss.vorgabe;
+      expect(Terrassenform.kreis.vorgabe, k);
+      expect(k.form, Terrassenform.kreis);
+      expect(Terrassenform.kreis.nummer, 5);
+      expect(Terrassenform.kreis.eingabekanten, ['Radius']);
+      expect(k.radius, const Millimeter(1800));
+      expect(k.masse, [const Millimeter(1800)]);
+      expect(k.ecken, isEmpty);
+      // nicht 10,150 m² wie das Vieleck des alten Planers
+      expect(k.kontur.flaeche, closeTo(math.pi * 1800 * 1800, 1e-6));
+      expect(k.kontur.flaeche / 1e6, closeTo(10.179, 0.0005));
+      final u = k.kontur.huellrechteck;
+      expect(u.min.x, closeTo(0, 1e-6));
+      expect(u.min.y, closeTo(0, 0.1));
+      expect(u.max.x, closeTo(3600, 1e-6));
+    });
+
+    test('Durchmesser zwischen 50 und 3000 cm, Transport', () {
+      const text = 'Durchmesser muss zwischen 50 und 3000 cm liegen';
+      expect(
+        () => KreisGrundriss(const Millimeter(249)),
+        wirftArgumentFehler('radius', 249, text),
+      );
+      expect(
+        () => KreisGrundriss(const Millimeter(15001)),
+        wirftArgumentFehler('radius', 15001, text),
+      );
+      expect(KreisGrundriss(const Millimeter(250)).radius.mm, 250);
+      expect(KreisGrundriss(const Millimeter(15000)).radius.mm, 15000);
+      final stand = Planungsstand(
+        grundriss: KreisGrundriss(const Millimeter(2000)),
+      );
+      expect(Planungsstand.ausBytes(stand.zuBytes()), stand);
+      expect(
+        KreisGrundriss.vorgabe.mitMass(0, const Millimeter(1000)),
+        KreisGrundriss(const Millimeter(1000)),
+      );
+      expect(
+        Planungsstand.start.mitForm(Terrassenform.kreis).ausschnitte,
+        isEmpty,
+      );
+    });
+
+    test('Berechnung: Ecken getrennt vom Umriss', () {
+      final b = Berechnung(
+        umriss: const [Punkt(0, 0), Punkt(1, 0), Punkt(0, 1)],
+        ecken: const [],
+        flaeche: 1,
+      );
+      final zurueck = Berechnung.ausBytes(b.zuBytes());
+      expect(zurueck.ecken, isEmpty);
+      expect(zurueck.umriss, hasLength(3));
+      expect(() => b.ecken.add(Punkt.ursprung), throwsUnsupportedError);
+      final ohne = Berechnung(
+        umriss: const [Punkt(0, 0), Punkt(1, 0)],
+        flaeche: 1,
+      );
+      expect(ohne.ecken, ohne.umriss);
+      expect(Berechnung.ausBytes(ohne.zuBytes()).ecken, ohne.umriss);
     });
   });
 

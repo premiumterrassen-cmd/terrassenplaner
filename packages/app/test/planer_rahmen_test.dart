@@ -104,11 +104,22 @@ void main() {
     ListTile eintrag(PlanerSchritt s) =>
         tester.widget<ListTile>(find.byKey(ValueKey('menu-${s.name}')));
     expect(eintrag(PlanerSchritt.grundriss).selected, isTrue);
-    expect(eintrag(PlanerSchritt.treppen).selected, isFalse);
     expect(
       (eintrag(PlanerSchritt.grundriss).trailing! as Icon).icon,
       Icons.expand_less,
     );
+    // das Menü scrollt, sobald Eingaben darin stehen (ab M4)
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('menu-treppen')),
+      200,
+      scrollable: find
+          .descendant(
+            of: find.byKey(const ValueKey('bearbeitungsmenue')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    expect(eintrag(PlanerSchritt.treppen).selected, isFalse);
     expect(
       (eintrag(PlanerSchritt.treppen).trailing! as Icon).icon,
       Icons.expand_more,

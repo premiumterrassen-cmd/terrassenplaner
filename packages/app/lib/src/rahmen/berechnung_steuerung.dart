@@ -33,6 +33,7 @@ class BerechnungsSteuerung extends ChangeNotifier {
   Zeichnung get zeichnung => switch (_ergebnis) {
     final b? => Zeichnung(
       umriss: _offsets(b.umriss),
+      ecken: _offsets(b.ecken),
       ausschnitte: [for (final a in b.ausschnitte) _offsets(a)],
     ),
     null => Zeichnung.leer,

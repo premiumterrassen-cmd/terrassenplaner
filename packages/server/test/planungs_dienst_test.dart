@@ -93,6 +93,19 @@ void main() {
     );
     expect(b.flaecheQuadratmeter, 19.44);
     expect(b.ausschnitte.single, Ausschnitt.oForm.kontur.punkte);
+    expect(b.ecken, b.umriss);
+  });
+
+  test('Kreis: Fläche exakt, Umriss als Sehnenzug ohne Ecken (M4-07)', () {
+    final b = PlanungsDienst.berechne(
+      Planungsstand.start.mitForm(Terrassenform.kreis),
+    );
+    expect(b.flaecheQuadratmeter, closeTo(10.179, 0.0005));
+    expect(b.ecken, isEmpty);
+    expect(b.umriss.length, greaterThan(100));
+    for (final p in b.umriss) {
+      expect(p.abstand(const Punkt(1800, 1800)), closeTo(1800, 1e-6));
+    }
   });
 
   test('typisiert hin und zurück über den Router', () async {

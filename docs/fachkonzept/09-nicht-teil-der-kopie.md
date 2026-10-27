@@ -23,6 +23,7 @@ Grundsatz (Alexander, 19.10.2026): Der alte Planer hat Fehler; sie werden **nich
 - Uneinheitliche Zahlenformate: „Verschnitt: 7.44%“ (Punkt) neben „10,150 m²“ (Komma); „Fuge: 0.5 mm“.
 - „Länge der Unterkonstruktion“ bietet nur 600 cm an, die Materialliste nimmt aber andere Längen.
 - „Fuge: 0.5 mm“ statt 5 mm.
+- **Kreisfläche als Vieleck** (Ø 360 cm: 10,150 statt 10,179 m²): Der neue Planer rechnet exakt π·r² (Alexander, 27.10.2026, M4-07).
 - **SPEICHERN** legt ohne Rückfrage eine Konfiguration auf dem Server an.
 - Die Materialliste zeigt keine Mengen, nur Gesamtpreise.
 
