@@ -257,6 +257,104 @@ void main() {
     });
   });
 
+  group('U-Form (M4-05)', () {
+    UGrundriss u(List<int> mm) => UGrundriss(
+      Millimeter(mm[0]),
+      Millimeter(mm[1]),
+      Millimeter(mm[2]),
+      Millimeter(mm[3]),
+      Millimeter(mm[4]),
+      Millimeter(mm[5]),
+    );
+
+    List<int> seiten(Grundriss g) {
+      final e = g.ecken;
+      return [
+        for (var i = 0; i < e.length; i++)
+          e[i].abstand(e[(i + 1) % e.length]).round(),
+      ];
+    }
+
+    test('Vorgabe wie im alten Planer: 9,72 m², D—E und G—H abgeleitet', () {
+      const v = UGrundriss.vorgabe;
+      expect(Terrassenform.uForm.vorgabe, v);
+      expect(v.form, Terrassenform.uForm);
+      expect(Terrassenform.uForm.nummer, 3);
+      expect(v.masse.map((m) => m.mm), [1350, 900, 1350, 1350, 2700, 2700]);
+      expect([v.ab, v.bc, v.cd, v.ef, v.fg, v.ha].map((m) => m.mm), [
+        1350,
+        900,
+        1350,
+        1350,
+        2700,
+        2700,
+      ]);
+      expect(v.kontur.flaeche, 9720000);
+      // A—B 135, B—C 90, C—D 135, D—E 90, E—F 135, F—G 270, G—H 405, H—A 270
+      expect(seiten(v), [1350, 900, 1350, 900, 1350, 2700, 4050, 2700]);
+      expect(v.kontur.innenwinkel.map((w) => w.round()), [
+        90,
+        90,
+        270,
+        270,
+        90,
+        90,
+        90,
+        90,
+      ]);
+      expect(Terrassenform.uForm.eingabekanten, [
+        'A — B',
+        'B — C',
+        'C — D',
+        'E — F',
+        'F — G',
+        'H — A',
+      ]);
+    });
+
+    test('Schenkel verschieden lang, Fläche folgt', () {
+      // links 100 breit und 300 hoch, Öffnung 200 breit und 120 tief,
+      // rechts 150 breit und 250 hoch → D—E = 120 + 250 − 300 = 70
+      final f = u([1000, 1200, 2000, 1500, 2500, 3000]);
+      expect(f.ecken, const [
+        Punkt(0, 0),
+        Punkt(1000, 0),
+        Punkt(1000, 1200),
+        Punkt(3000, 1200),
+        Punkt(3000, 500),
+        Punkt(4500, 500),
+        Punkt(4500, 3000),
+        Punkt(0, 3000),
+      ]);
+      expect(seiten(f), [1000, 1200, 2000, 700, 1500, 2500, 4500, 3000]);
+      expect(
+        f.kontur.flaeche,
+        1000 * 3000 + 2000 * (3000 - 1200) + 1500 * 2500,
+      );
+      expect(
+        Planungsstand.ausBytes(Planungsstand(grundriss: f).zuBytes()).grundriss,
+        f,
+      );
+    });
+
+    test('Grenzen auch für abgeleitete Seiten', () {
+      const text = 'muss zwischen 50 und 3000 cm liegen';
+      // D—E = 90 + 200 − 270 = 20 cm zu kurz
+      expect(
+        () => u([1350, 900, 1350, 1350, 2000, 2700]),
+        wirftArgumentFehler('de', 200, text),
+      );
+      expect(
+        () => u([15000, 900, 15000, 1350, 2700, 2700]),
+        wirftArgumentFehler('gh', 31350, text),
+      );
+      expect(
+        () => u([1350, 400, 1350, 1350, 2700, 2700]),
+        wirftArgumentFehler('bc', 400, text),
+      );
+    });
+  });
+
   group('Planungsstand', () {
     test('Gleichheit über den Grundriss, Kopie mit neuem Grundriss', () {
       const start = Planungsstand.start;

@@ -228,9 +228,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/5
   - T-Form mit allen Seitenmaßen.
   - Abnahme: Seitenmaße editierbar, Fläche korrekt
   - Ergebnis: `TGrundriss` (Balken oben, Steg unten; eingegeben B—C, C—D, D—E, E—F, G—H, H—A wie im alten Planer, A—B und F—G abgeleitet, Balken links und rechts auch verschieden hoch), Vorgabe = 9,72 m² wie Fachkonzept 1.1; Formwahl um „T-Form“ ergänzt.
-- [ ] **M4-05 U-Form** ([#35](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/35)) – `feature/m4-05-u-form`
+- [x] **M4-05 U-Form** ([#35](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/35)) – `feature/m4-05-u-form`
   - U-Form mit allen Seitenmaßen.
   - Abnahme: Seitenmaße editierbar, Fläche korrekt
+  - Ergebnis: `UGrundriss` (Öffnung oben; eingegeben A—B, B—C, C—D, E—F, F—G, H—A wie im alten Planer, D—E und G—H abgeleitet, Schenkel auch verschieden hoch), Vorgabe 9,72 m² wie Fachkonzept 1.1; Formwahl um „U-Form“ ergänzt.
 - [ ] **M4-06 O-Form** ([#36](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/36)) – `feature/m4-06-o-form`
   - O-Form (Fläche mit innerer Aussparung).
   - Abnahme: Innen- und Außenmaße editierbar

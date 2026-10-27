@@ -3,12 +3,13 @@ import '../geometrie/kontur.dart';
 import '../geometrie/punkt.dart';
 
 /// Terrassenformen des Grundrisses (Fachkonzept 1.1); weitere folgen mit
-/// M4-05 bis M4-08. Die Nummer ist der Wert im Transportformat und bleibt
+/// M4-06 bis M4-08. Die Nummer ist der Wert im Transportformat und bleibt
 /// fest.
 enum Terrassenform {
   rechteck(0, ['A — B', 'B — C']),
   lForm(1, ['A — B', 'B — C', 'C — D', 'D — E']),
-  tForm(2, ['B — C', 'C — D', 'D — E', 'E — F', 'G — H', 'H — A']);
+  tForm(2, ['B — C', 'C — D', 'D — E', 'E — F', 'G — H', 'H — A']),
+  uForm(3, ['A — B', 'B — C', 'C — D', 'E — F', 'F — G', 'H — A']);
 
   const Terrassenform(this.nummer, this.eingabekanten);
 
@@ -23,6 +24,7 @@ enum Terrassenform {
     rechteck => RechteckGrundriss.start,
     lForm => LGrundriss.vorgabe,
     tForm => TGrundriss.vorgabe,
+    uForm => UGrundriss.vorgabe,
   };
 }
 
@@ -44,6 +46,14 @@ sealed class Grundriss {
       Terrassenform.rechteck => RechteckGrundriss(masse[0], masse[1]),
       Terrassenform.lForm => LGrundriss(masse[0], masse[1], masse[2], masse[3]),
       Terrassenform.tForm => TGrundriss(
+        masse[0],
+        masse[1],
+        masse[2],
+        masse[3],
+        masse[4],
+        masse[5],
+      ),
+      Terrassenform.uForm => UGrundriss(
         masse[0],
         masse[1],
         masse[2],
@@ -228,6 +238,60 @@ final class TGrundriss extends Grundriss {
       Punkt(links, unten),
       Punkt(links, balkenLinks),
       Punkt(0, balkenLinks),
+    ];
+  }
+}
+
+/// U-Form (M4-05): Öffnung oben zwischen den Schenkeln. Eingegeben werden
+/// A—B, B—C, C—D, E—F, F—G und H—A (Fachkonzept 1.1); daraus
+/// G—H = A—B + C—D + E—F und D—E = B—C + F—G − H—A, damit die Unterkante
+/// gerade bleibt.
+final class UGrundriss extends Grundriss {
+  UGrundriss(this.ab, this.bc, this.cd, this.ef, this.fg, this.ha) {
+    _pruefeSeiten();
+  }
+
+  const UGrundriss._(this.ab, this.bc, this.cd, this.ef, this.fg, this.ha);
+
+  /// Vorgabemaße des alten Planers: Schenkel 135 cm breit, Öffnung
+  /// 135 × 90 cm, außen 405 × 270 cm (9,72 m²).
+  static const vorgabe = UGrundriss._(
+    Millimeter(1350),
+    Millimeter(900),
+    Millimeter(1350),
+    Millimeter(1350),
+    Millimeter(2700),
+    Millimeter(2700),
+  );
+
+  final Millimeter ab;
+  final Millimeter bc;
+  final Millimeter cd;
+  final Millimeter ef;
+  final Millimeter fg;
+  final Millimeter ha;
+
+  @override
+  Terrassenform get form => Terrassenform.uForm;
+
+  @override
+  List<Millimeter> get masse => [ab, bc, cd, ef, fg, ha];
+
+  @override
+  List<Punkt> get ecken {
+    final links = ab.mm.toDouble(), rechts = links + cd.mm;
+    final breite = rechts + ef.mm;
+    final unten = ha.mm.toDouble(), boden = bc.mm.toDouble();
+    final rechtsOben = unten - fg.mm;
+    return [
+      Punkt.ursprung,
+      Punkt(links, 0),
+      Punkt(links, boden),
+      Punkt(rechts, boden),
+      Punkt(rechts, rechtsOben),
+      Punkt(breite, rechtsOben),
+      Punkt(breite, unten),
+      Punkt(0, unten),
     ];
   }
 }
