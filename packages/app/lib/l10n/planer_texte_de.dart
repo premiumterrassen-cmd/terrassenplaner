@@ -85,6 +85,12 @@ class PlanerTexteDe extends PlanerTexte {
   }
 
   @override
+  String get formRechteck => 'Rechteck';
+
+  @override
+  String get formLForm => 'L-Form';
+
+  @override
   String massUngueltig(int min, int max) {
     return 'Bitte $min bis $max cm eingeben';
   }

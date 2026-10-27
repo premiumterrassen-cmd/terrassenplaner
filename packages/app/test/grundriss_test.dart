@@ -20,9 +20,8 @@ Future<Berechnung> _wieServer(Planungsstand stand) async {
   return Berechnung(umriss: k.punkte, flaeche: k.flaeche);
 }
 
-RechteckGrundriss _rechteck(Planungsstand stand) => switch (stand.grundriss) {
-  final RechteckGrundriss r => r,
-};
+RechteckGrundriss _rechteck(Planungsstand stand) =>
+    stand.grundriss as RechteckGrundriss;
 
 void main() {
   group('BerechnungsSteuerung', () {
@@ -142,7 +141,7 @@ void main() {
       await tester.pumpWidget(
         testApp(
           home: Scaffold(
-            body: RechteckMasse(
+            body: GrundrissMasse(
               planung: planung,
               onGeaendert: () => geaendert.add(geaendert.length),
             ),
@@ -179,7 +178,7 @@ void main() {
 
     testWidgets('ungültige Eingaben: Hinweis, Planung bleibt', (tester) async {
       final s = await zeige(tester);
-      for (final text in ['abc', '49', '3001', '']) {
+      for (final text in ['abc', '49', '3001', '', '-']) {
         await tester.enterText(find.byKey(const ValueKey('mass-1')), text);
         await tester.testTextInput.receiveAction(TextInputAction.done);
         await tester.pump();
@@ -196,6 +195,87 @@ void main() {
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pump();
       expect(_rechteck(s.planung.aktuell).ab, const Millimeter(30000));
+    });
+  });
+
+  group('Formwahl (M4-03)', () {
+    Future<({PlanungsSteuerung planung, List<int> geaendert})> zeige(
+      WidgetTester tester,
+    ) async {
+      final planung = PlanungsSteuerung();
+      addTearDown(planung.dispose);
+      final geaendert = <int>[];
+      await tester.pumpWidget(
+        testApp(
+          home: Scaffold(
+            body: ListenableBuilder(
+              listenable: planung,
+              builder: (context, _) => Column(
+                children: [
+                  FormWahl(
+                    planung: planung,
+                    onGeaendert: () => geaendert.add(geaendert.length),
+                  ),
+                  GrundrissMasse(
+                    key: ValueKey(planung.aktuell.grundriss.form),
+                    planung: planung,
+                    onGeaendert: () => geaendert.add(geaendert.length),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      return (planung: planung, geaendert: geaendert);
+    }
+
+    ChoiceChip chip(WidgetTester tester, Terrassenform form) =>
+        tester.widget(find.byKey(ValueKey('form-${form.name}')));
+
+    testWidgets('L-Form mit Vorgabemaßen und vier Feldern', (tester) async {
+      final s = await zeige(tester);
+      expect(chip(tester, Terrassenform.rechteck).selected, isTrue);
+      expect(chip(tester, Terrassenform.lForm).selected, isFalse);
+      expect(find.byType(TextField), findsNWidgets(2));
+      await tester.tap(find.text('L-Form'));
+      await tester.pump();
+      expect(s.planung.aktuell.grundriss, LGrundriss.vorgabe);
+      expect(chip(tester, Terrassenform.lForm).selected, isTrue);
+      expect(find.byType(TextField), findsNWidgets(4));
+      expect(find.text('C — D: cm'), findsOneWidget);
+      expect(find.text('D — E: cm'), findsOneWidget);
+      expect(s.geaendert, [0]);
+      // dieselbe Form erneut: keine Änderung
+      await tester.tap(find.text('L-Form'));
+      await tester.pump();
+      expect(s.geaendert, [0]);
+      expect(s.planung.kannRueckgaengig, isTrue);
+      await tester.enterText(find.byKey(const ValueKey('mass-2')), '100');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+      expect(
+        s.planung.aktuell.grundriss,
+        LGrundriss.vorgabe.mitMass(2, const Millimeter(1000)),
+      );
+      expect(s.geaendert, [0, 1]);
+      // abgeleitete Seite E—F zu lang
+      await tester.enterText(find.byKey(const ValueKey('mass-0')), '2950');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+      expect(find.text('Bitte 50 bis 3000 cm eingeben'), findsOneWidget);
+      // zurück zum Rechteck: dessen Vorgabe
+      await tester.tap(find.text('Rechteck'));
+      await tester.pump();
+      expect(s.planung.aktuell.grundriss, RechteckGrundriss.start);
+      expect(find.byType(TextField), findsNWidgets(2));
+    });
+
+    test('Formnamen in beiden Sprachen', () {
+      expect(FormWahl.name(de, Terrassenform.rechteck), 'Rechteck');
+      expect(FormWahl.name(de, Terrassenform.lForm), 'L-Form');
+      expect(FormWahl.name(en, Terrassenform.rechteck), 'Rectangle');
+      expect(FormWahl.name(en, Terrassenform.lForm), 'L-shape');
     });
   });
 
@@ -254,12 +334,27 @@ void main() {
       expect(maler.texte().map((t) => t.text), contains('540 cm'));
     });
 
-    testWidgets('Felder nur unter 1.2 Terrassenmaße', (tester) async {
+    testWidgets('L-Form: Zeichnung mit sechs Ecken', (tester) async {
       final s = await zeige(tester, _wieServer);
-      expect(find.byType(RechteckMasse), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('form-lForm')));
+      await tester.pumpAndSettle();
+      expect(find.text('Fläche: 14,58 m²'), findsOneWidget);
+      expect(find.byKey(const ValueKey('mass-3')), findsOneWidget);
+      expect(s.zustand.unveraendert, isNot(contains(PlanerSchritt.grundriss)));
+      s.planung.rueckgaengig();
+      await tester.pumpAndSettle();
+      expect(find.text('Fläche: 14,83 m²'), findsOneWidget);
+      expect(find.byKey(const ValueKey('mass-3')), findsNothing);
+    });
+
+    testWidgets('Felder nur unter 1.1 und 1.2', (tester) async {
+      final s = await zeige(tester, _wieServer);
+      expect(find.byType(FormWahl), findsOneWidget);
+      expect(find.byType(GrundrissMasse), findsOneWidget);
       s.zustand.waehle(PlanerSchritt.terrassenbelag);
       await tester.pumpAndSettle();
-      expect(find.byType(RechteckMasse), findsNothing);
+      expect(find.byType(GrundrissMasse), findsNothing);
+      expect(find.byType(FormWahl), findsNothing);
     });
 
     testWidgets('Fehler der Berechnung als Hinweis', (tester) async {

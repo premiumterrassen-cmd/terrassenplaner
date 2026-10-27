@@ -124,7 +124,7 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     body: ListenableBuilder(
-      listenable: Listenable.merge([_zustand, _berechnung]),
+      listenable: Listenable.merge([_zustand, _planung, _berechnung]),
       builder: (context, _) => LayoutBuilder(
         builder: (context, raum) {
           final desktop = PlanerLayout.istDesktop(raum.maxWidth);
@@ -437,7 +437,13 @@ class Bearbeitungsmenue extends StatelessWidget {
   /// Eingaben unter einem Unterpunkt (Schritt, Index ab 0).
   Widget? _eingabe(PlanerSchritt schritt, int unterpunkt) =>
       switch ((schritt, unterpunkt)) {
-        (PlanerSchritt.grundriss, 1) => RechteckMasse(
+        (PlanerSchritt.grundriss, 0) => FormWahl(
+          planung: planung,
+          onGeaendert: () => zustand.markiereGeaendert(schritt),
+        ),
+        // je Form eigene Felder: neue Form, neuer Zustand
+        (PlanerSchritt.grundriss, 1) => GrundrissMasse(
+          key: ValueKey(planung.aktuell.grundriss.form),
           planung: planung,
           onGeaendert: () => zustand.markiereGeaendert(schritt),
         ),

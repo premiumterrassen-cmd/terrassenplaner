@@ -29,6 +29,8 @@
     "volumen": "Volumen: {wert}",
   "@volumen": {"placeholders": {"wert": {"type": "String"}}},
   "massPlatzhalter": "{kante}: cm",
+  "formRechteck": "Rechteck",
+  "formLForm": "L-Form",
   "@massPlatzhalter": {"placeholders": {"kante": {"type": "String"}}},
   "massUngueltig": "Bitte {min} bis {max} cm eingeben",
   "@massUngueltig": {"placeholders": {"min": {"type": "int"}, "max": {"type": "int"}}},
