@@ -27,6 +27,12 @@ for file in "$ROOT"/packages/*/benchmark/*_benchmark.dart; do
   echo "== Benchmark: ${file#"$ROOT"/}"
   (cd "$pkg_dir" && dart run "benchmark/$(basename "$file")") | tee -a "$raw"
 done
+# Ladebildschirm (M3-08) im Browser: nur mit gebauter Web-App (LADEBILD_WEB,
+# flutter build web --wasm + tool/startgroessen.py) und Chrome.
+if [ -n "${LADEBILD_WEB:-}" ]; then
+  echo "== Benchmark: tool/ladebild/pruefung.mjs --benchmark"
+  node "$ROOT/tool/ladebild/pruefung.mjs" --benchmark "$LADEBILD_WEB" | tee -a "$raw"
+fi
 
 python3 - "$raw" "$OUT" "$BASELINE" "$MODE" "$THRESHOLD" <<'PY'
 import json, re, sys, os, datetime

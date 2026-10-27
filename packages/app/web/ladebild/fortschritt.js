@@ -60,12 +60,14 @@
     zeichne();
   }
 
-  // Sobald der Renderer feststeht (skwasm oder canvaskit), ist klar, welche
-  // Dateien der Start braucht: Einstieg des passenden Builds + Renderer.
+  // Sobald der Renderer feststeht, ist klar, welche Dateien der Start braucht:
+  // Einstieg des passenden Builds + Renderer. Flutter wählt je nach Browser
+  // eine Variante: canvaskit/{,chromium/,webparagraph/}canvaskit.* für den
+  // JS-Build, canvaskit/{skwasm,skwasm_heavy,wimp}.* für WebAssembly.
   function waehlePlan(p) {
     if (plan || !builds.length || p.indexOf('canvaskit/') !== 0) return;
     var stamm = p.split('/').pop().replace(/\.(js|wasm)$/, '');
-    var renderer = stamm === 'canvaskit' ? 'canvaskit' : (stamm.indexOf('skwasm') === 0 ? 'skwasm' : null);
+    var renderer = stamm === 'canvaskit' ? 'canvaskit' : (/^(skwasm|wimp)/.test(stamm) ? 'skwasm' : null);
     var build = builds.filter(function (b) { return b.renderer === renderer; })[0];
     if (!build) return;
     var einstieg = build.compileTarget === 'dart2wasm' ? ['main.dart.wasm', 'main.dart.mjs'] : ['main.dart.js'];
@@ -104,28 +106,26 @@
   }
 
   // fetch durchreichen und Bytes mitzählen – ohne Puffern, damit
-  // WebAssembly weiter streamend kompiliert werden kann.
+  // WebAssembly weiter streamend kompiliert werden kann. Der Browser leitet
+  // die Daten selbst weiter (pipeThrough), das Skript zählt nur mit.
   var originalFetch = window.fetch;
   function gezaehltesFetch(eingabe, optionen) {
     var url = typeof eingabe === 'string' || eingabe instanceof URL ? eingabe : eingabe && eingabe.url;
     var p = pfad(url);
     if (beendet || !p) return originalFetch.apply(this, arguments);
     return originalFetch.apply(this, arguments).then(function (antwort) {
-      if (!antwort.ok || !antwort.body || typeof ReadableStream === 'undefined') return antwort;
-      var leser = antwort.body.getReader();
+      if (!antwort.ok || !antwort.body || typeof TransformStream === 'undefined') return antwort;
       var bytes = 0;
-      var koerper = new ReadableStream({
-        pull: function (ziel) {
-          return leser.read().then(function (stueck) {
-            if (stueck.done) { erfasse(p, bytes, true); ziel.close(); return; }
-            bytes += stueck.value.byteLength;
-            erfasse(p, bytes, false);
-            ziel.enqueue(stueck.value);
-          }, function (fehler) { ziel.error(fehler); });
+      var zaehler = new TransformStream({
+        transform: function (stueck, ziel) {
+          bytes += stueck.byteLength;
+          erfasse(p, bytes, false);
+          ziel.enqueue(stueck);
         },
-        cancel: function (grund) { return leser.cancel(grund); }
+        flush: function () { erfasse(p, bytes, true); }
       });
-      var neu = new Response(koerper, { status: antwort.status, statusText: antwort.statusText, headers: antwort.headers });
+      var neu = new Response(antwort.body.pipeThrough(zaehler),
+        { status: antwort.status, statusText: antwort.statusText, headers: antwort.headers });
       ['url', 'type', 'redirected'].forEach(function (k) { Object.defineProperty(neu, k, { value: antwort[k] }); });
       return neu;
     });
@@ -177,6 +177,8 @@
     fertig: function () {
       if (beendet) return;
       aufraeumen();
+      // Messpunkt „Zeit bis zum ersten Bild“ (Benchmark, tool/ladebild/pruefung.mjs).
+      if (performance.mark) performance.mark('planer-erstes-bild');
       var wurzel = el('ladebild');
       el('ladebild-fuellung').style.width = '100%';
       el('ladebild-prozent').textContent = prozent() === null ? '' : '100 %';

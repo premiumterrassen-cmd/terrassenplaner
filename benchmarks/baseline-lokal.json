@@ -10,6 +10,9 @@
     "server.Modell3d.glb.4x3m": 623.21175,
     "server.Modell3d.glb.12x8m": 1439.9165,
     "server.Modell3d.rpc.4x3m": 3355.07202680067,
-    "domain.Verlauf.aendernRueckgaengig": 943.64625
+    "domain.Verlauf.aendernRueckgaengig": 943.64625,
+    "app.Ladebild.ErstesBild": 131235.0,
+    "app.Ladebild.ErstesBildOhneZaehlen": 138665.0,
+    "app.Ladebild.Skriptzeit": 13174.0
   }
 }
