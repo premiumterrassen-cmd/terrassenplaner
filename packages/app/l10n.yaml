@@ -1,0 +1,9 @@
+# Übersetzungen (M3-07): Vorlage Deutsch, erzeugt mit `flutter gen-l10n`.
+arb-dir: lib/l10n
+template-arb-file: planer_de.arb
+output-dir: lib/l10n
+output-localization-file: planer_texte.dart
+output-class: PlanerTexte
+nullable-getter: false
+required-resource-attributes: false
+header: "// coverage:ignore-file\n// Von `flutter gen-l10n` erzeugt – nicht von Hand ändern."

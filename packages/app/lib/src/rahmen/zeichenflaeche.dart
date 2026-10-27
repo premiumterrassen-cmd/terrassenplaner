@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../design/planer_design.dart';
+import '../sprache/sprache.dart';
 import 'ansichtsoptionen.dart';
 import 'steuerung.dart';
 import 'zeichnung.dart';
@@ -43,6 +44,7 @@ class Zeichenflaeche extends StatelessWidget {
                         zeichnung: zeichnung,
                         optionen: optionen,
                         ansicht: ansicht,
+                        sprache: context.texte,
                       ),
                     ),
                   ),
@@ -115,15 +117,6 @@ class Werkzeugleiste extends StatelessWidget {
   final AnsichtSteuerung ansicht;
   final AnsichtsOptionen optionen;
 
-  static const rueckgaengig = 'Rückgängig';
-  static const wiederherstellen = 'Wiederherstellen';
-  static const zentrieren = 'Zentrieren';
-  static const verkleinern = 'Verkleinern';
-  static const vergroessern = 'Vergrößern';
-  static const zoom = 'Zoom';
-  static const hinweis = 'Mausrad: Zoom · Ziehen: Verschieben';
-  static const beschriftungen = 'Beschriftungen';
-
   /// Ab dieser Breite zeigt die Leiste Zoom-Regler und Bedienhinweis.
   static const breitAb = 1000.0;
 
@@ -131,11 +124,12 @@ class Werkzeugleiste extends StatelessWidget {
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: Listenable.merge([planung, ansicht, optionen]),
     builder: (context, _) => LayoutBuilder(
-      builder: (context, raum) => _leiste(raum.maxWidth >= breitAb),
+      builder: (context, raum) =>
+          _leiste(context.texte, breit: raum.maxWidth >= breitAb),
     ),
   );
 
-  Widget _leiste(bool breit) => Container(
+  Widget _leiste(PlanerTexte t, {required bool breit}) => Container(
     key: const ValueKey('werkzeugleiste'),
     height: 48,
     padding: const EdgeInsets.symmetric(horizontal: PlanerAbstand.klein),
@@ -147,13 +141,13 @@ class Werkzeugleiste extends StatelessWidget {
       children: [
         IconButton(
           key: const ValueKey('rueckgaengig'),
-          tooltip: rueckgaengig,
+          tooltip: t.rueckgaengig,
           icon: const Icon(Icons.undo),
           onPressed: planung.kannRueckgaengig ? planung.rueckgaengig : null,
         ),
         IconButton(
           key: const ValueKey('wiederherstellen'),
-          tooltip: wiederherstellen,
+          tooltip: t.wiederherstellen,
           icon: const Icon(Icons.redo),
           onPressed: planung.kannWiederherstellen
               ? planung.wiederherstellen
@@ -161,13 +155,13 @@ class Werkzeugleiste extends StatelessWidget {
         ),
         IconButton(
           key: const ValueKey('zentrieren'),
-          tooltip: zentrieren,
+          tooltip: t.zentrieren,
           icon: const Icon(Icons.center_focus_strong),
           onPressed: ansicht.zentriere,
         ),
         IconButton(
           key: const ValueKey('verkleinern'),
-          tooltip: verkleinern,
+          tooltip: t.verkleinern,
           icon: const Icon(Icons.zoom_out),
           onPressed: ansicht.verkleinern,
         ),
@@ -176,14 +170,14 @@ class Werkzeugleiste extends StatelessWidget {
             width: 160,
             child: Slider(
               key: const ValueKey('zoom-regler'),
-              label: zoom,
+              label: t.zoom,
               value: ansicht.reglerWert.clamp(0, 1),
               onChanged: ansicht.setzeReglerWert,
             ),
           ),
         IconButton(
           key: const ValueKey('vergroessern'),
-          tooltip: vergroessern,
+          tooltip: t.vergroessern,
           icon: const Icon(Icons.zoom_in),
           onPressed: ansicht.vergroessern,
         ),
@@ -203,14 +197,18 @@ class Werkzeugleiste extends StatelessWidget {
           showSelectedIcon: false,
           segments: [
             for (final e in Ebene.values)
-              ButtonSegment(value: e, label: Text(e.titel)),
+              ButtonSegment(
+                value: e,
+                label: Text(e.titel(t)),
+                tooltip: e.langerTitel(t),
+              ),
           ],
           selected: optionen.ebenen,
           onSelectionChanged: optionen.setzeEbenen,
         ),
         PopupMenuButton<Beschriftung>(
           key: const ValueKey('beschriftungen'),
-          tooltip: beschriftungen,
+          tooltip: t.beschriftungen,
           icon: const Icon(Icons.label_outline),
           onSelected: optionen.schalte,
           itemBuilder: (_) => [
@@ -219,17 +217,17 @@ class Werkzeugleiste extends StatelessWidget {
                 key: ValueKey('beschriftung-${b.name}'),
                 value: b,
                 checked: optionen.beschriftet(b),
-                child: Text(b.titel),
+                child: Text(b.titel(t)),
               ),
           ],
         ),
         if (breit) ...[
           const SizedBox(width: PlanerAbstand.klein),
-          const Flexible(
+          Flexible(
             child: Text(
-              hinweis,
+              t.bedienHinweis,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 12, color: PlanerFarben.text),
+              style: const TextStyle(fontSize: 12, color: PlanerFarben.text),
             ),
           ),
         ],

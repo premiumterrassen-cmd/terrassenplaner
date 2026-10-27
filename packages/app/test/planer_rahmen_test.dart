@@ -5,6 +5,8 @@ import 'package:terrassenplaner_app/src/rahmen/planer_rahmen.dart';
 import 'package:terrassenplaner_app/src/rahmen/planer_schritt.dart';
 import 'package:terrassenplaner_app/src/rahmen/rahmen_zustand.dart';
 
+import 'hilfe.dart';
+
 Future<RahmenZustand> _zeige(WidgetTester tester, Size groesse) async {
   tester.view
     ..physicalSize = groesse
@@ -12,7 +14,7 @@ Future<RahmenZustand> _zeige(WidgetTester tester, Size groesse) async {
   addTearDown(tester.view.reset);
   final zustand = RahmenZustand();
   await tester.pumpWidget(
-    MaterialApp(
+    testApp(
       theme: planerThema(),
       home: PlanerRahmen(status: const Text('Status'), zustand: zustand),
     ),
@@ -28,14 +30,14 @@ void main() {
     tester,
   ) async {
     await _zeige(tester, _desktop);
-    expect(find.text(PlanerRahmen.titel), findsOneWidget);
+    expect(find.text(de.planerTitel), findsOneWidget);
     expect(
       tester.widget<Image>(find.byType(Image)).image,
       const AssetImage(Kopfzeile.logo),
     );
     for (final s in PlanerSchritt.values) {
       expect(find.byKey(ValueKey('station-${s.name}')), findsOneWidget);
-      expect(find.text('${s.nummer}. ${s.titel}'), findsOneWidget);
+      expect(find.text('${s.nummer}. ${s.titel(de)}'), findsOneWidget);
     }
     expect(find.byKey(const ValueKey('bearbeitungsmenue')), findsOneWidget);
     expect(find.text('1.1 Terrassenform auswählen'), findsOneWidget);
@@ -46,7 +48,7 @@ void main() {
     expect(find.text('Status'), findsOneWidget);
     final logo = tester.widget<Image>(find.byType(Image));
     expect([logo.height, logo.semanticLabel], [48, 'RobinienWelt']);
-    final titel = tester.widget<Text>(find.text(PlanerRahmen.titel)).style!;
+    final titel = tester.widget<Text>(find.text(de.planerTitel)).style!;
     expect(
       [titel.color, titel.fontWeight, titel.letterSpacing],
       [PlanerFarben.braun, FontWeight.w500, 1.5],
@@ -68,7 +70,7 @@ void main() {
       await tester.tap(find.byKey(ValueKey('station-${s.name}')));
       await tester.pump();
       expect(zustand.aktiv, s);
-      expect(find.text(s.nummerierteUnterpunkte.first), findsOneWidget);
+      expect(find.text(s.nummerierteUnterpunkte(de).first), findsOneWidget);
     }
     final fortschritt = tester.widget<LinearProgressIndicator>(
       find.byType(LinearProgressIndicator),
@@ -100,11 +102,11 @@ void main() {
 
   testWidgets('Griff klappt das Menü ein und aus (Desktop)', (tester) async {
     await _zeige(tester, _desktop);
-    expect(find.bySemanticsLabel(MenuGriff.einklappen), findsOneWidget);
+    expect(find.bySemanticsLabel(de.menuEinklappen), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('menu-griff')));
     await tester.pump();
     expect(find.byKey(const ValueKey('bearbeitungsmenue')), findsNothing);
-    expect(find.bySemanticsLabel(MenuGriff.ausklappen), findsOneWidget);
+    expect(find.bySemanticsLabel(de.menuAusklappen), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('menu-griff')));
     await tester.pump();
     expect(find.byKey(const ValueKey('bearbeitungsmenue')), findsOneWidget);
@@ -150,7 +152,7 @@ void main() {
         .widget<Text>(
           find.descendant(
             of: find.byKey(ValueKey('station-${s.name}')),
-            matching: find.text(s.titel),
+            matching: find.text(s.titel(de)),
           ),
         )
         .style!;
@@ -165,14 +167,14 @@ void main() {
   });
 
   test('Kennzahlen mit Komma und Einheit', () {
-    expect(Kennzahlen.zahl(null, 'm²'), '– m²');
-    expect(Kennzahlen.zahl(14.835, 'm²'), '14,84 m²');
-    expect(Kennzahlen.zahl(0.5, 'm³'), '0,50 m³');
+    expect(Kennzahlen.zahl(de, null, 'm²'), '– m²');
+    expect(Kennzahlen.zahl(de, 14.835, 'm²'), '14,84 m²');
+    expect(Kennzahlen.zahl(de, 0.5, 'm³'), '0,50 m³');
   });
 
   testWidgets('Kennzahlen mit Werten', (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(home: Kennzahlen(flaeche: 12, volumen: 0.25)),
+      testApp(home: const Kennzahlen(flaeche: 12, volumen: 0.25)),
     );
     expect(find.text('Fläche: 12,00 m²'), findsOneWidget);
     expect(find.text('Volumen: 0,25 m³'), findsOneWidget);

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:terrassenplaner_app/main.dart' as app;
-import 'package:terrassenplaner_app/src/start/eingangsdialog.dart';
+
+import '../test/hilfe.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -12,8 +13,8 @@ void main() {
   ) async {
     app.main();
     await tester.pumpAndSettle();
-    expect(find.text(Eingangsdialog.titel), findsOneWidget);
-    expect(find.text(Eingangsdialog.weiterKnopf), findsNothing);
+    expect(find.text(de.willkommenTitel), findsOneWidget);
+    expect(find.text(de.weiterplanen), findsNothing);
 
     await tester.tap(find.byKey(const ValueKey('laden')));
     await tester.pumpAndSettle();
@@ -24,13 +25,13 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('laden-bestaetigen')));
     await tester.pumpAndSettle();
     // Laden über den Server folgt mit M9-05.
-    expect(find.text(LadenDialog.ladeFehler), findsOneWidget);
-    await tester.tap(find.text(LadenDialog.zurueckKnopf));
+    expect(find.text(de.ladeFehler), findsOneWidget);
+    await tester.tap(find.text(de.zurueck));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('neu')));
     await tester.pumpAndSettle();
-    expect(find.text(Eingangsdialog.titel), findsNothing);
+    expect(find.text(de.willkommenTitel), findsNothing);
     expect(find.text('TERRASSENKONFIGURATOR'), findsOneWidget);
   });
 }

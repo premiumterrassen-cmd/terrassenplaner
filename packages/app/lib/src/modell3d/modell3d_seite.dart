@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
+import '../sprache/sprache.dart';
 import 'modell3d_ansicht.dart';
 
 /// Lädt das GLB vom Server; in Tests austauschbar.
@@ -14,10 +15,6 @@ class Modell3dSeite extends StatefulWidget {
 
   final Modell3dAbfrage lade;
 
-  static const titel = '3D-Vorschau (Prototyp): Terrasse 4 x 3 m';
-  static const laedt = 'Lade 3D-Modell …';
-  static const fehler = '3D-Modell konnte nicht geladen werden';
-
   @override
   State<Modell3dSeite> createState() => _Modell3dSeiteState();
 }
@@ -26,20 +23,23 @@ class _Modell3dSeiteState extends State<Modell3dSeite> {
   late final Future<Uint8List> _glb = widget.lade();
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text(Modell3dSeite.titel)),
-    body: FutureBuilder<Uint8List>(
-      future: _glb,
-      builder: (context, stand) => switch (stand) {
-        AsyncSnapshot(hasData: true, :final data) => modell3dAnsicht(
-          data!,
-          titel: Modell3dSeite.titel,
-        ),
-        AsyncSnapshot(hasError: true) => const Center(
-          child: Text(Modell3dSeite.fehler),
-        ),
-        _ => const Center(child: Text(Modell3dSeite.laedt)),
-      },
-    ),
-  );
+  Widget build(BuildContext context) {
+    final t = context.texte;
+    return Scaffold(
+      appBar: AppBar(title: Text(t.modell3dTitel)),
+      body: FutureBuilder<Uint8List>(
+        future: _glb,
+        builder: (context, stand) => switch (stand) {
+          AsyncSnapshot(hasData: true, :final data) => modell3dAnsicht(
+            data!,
+            titel: t.modell3dTitel,
+          ),
+          AsyncSnapshot(hasError: true) => Center(
+            child: Text(t.modell3dFehler),
+          ),
+          _ => Center(child: Text(t.modell3dLaedt)),
+        },
+      ),
+    );
+  }
 }

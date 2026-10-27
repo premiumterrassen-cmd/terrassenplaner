@@ -8,7 +8,10 @@ import 'package:terrassenplaner_app/src/rahmen/planer_rahmen.dart';
 import 'package:terrassenplaner_app/src/rahmen/steuerung.dart';
 import 'package:terrassenplaner_app/src/rahmen/zeichenflaeche.dart';
 import 'package:terrassenplaner_app/src/rahmen/zeichnung.dart';
+import 'package:terrassenplaner_app/src/sprache/sprache.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
+
+import 'hilfe.dart';
 
 /// Rechteck 4 × 3 m aus dem Prototyp-Modell (M3-10) mit einem Ablauf.
 Zeichnung _rechteck() => Zeichnung(
@@ -44,10 +47,12 @@ ZeichnungsMaler _maler(
   Zeichnung z,
   AnsichtsOptionen o, [
   AnsichtSteuerung? a,
+  PlanerTexte? sprache,
 ]) => ZeichnungsMaler(
   zeichnung: z,
   optionen: o,
   ansicht: a ?? AnsichtSteuerung(),
+  sprache: sprache ?? de,
 );
 
 List<String> _texte(ZeichnungsMaler m) => [for (final t in m.texte()) t.text];
@@ -73,9 +78,12 @@ void main() {
     });
 
     test('Titel', () {
-      expect([for (final e in Ebene.values) e.titel], ['Belag', 'UK', 'Maße']);
       expect(
-        [for (final b in Beschriftung.values) b.titel],
+        [for (final e in Ebene.values) e.titel(de)],
+        ['Belag', 'UK', 'Maße'],
+      );
+      expect(
+        [for (final b in Beschriftung.values) b.titel(de)],
         ['Seitenlängen', 'Winkel', 'Punkte', 'Abläufe'],
       );
     });
@@ -250,17 +258,20 @@ void main() {
     });
 
     test('Zentimeter und Punktnamen', () {
-      expect(ZeichnungsMaler.zentimeter(4800), '480 cm');
-      expect(ZeichnungsMaler.zentimeter(125), '12,5 cm');
-      expect(ZeichnungsMaler.zentimeter(1234.4), '123,4 cm');
-      expect(ZeichnungsMaler.zentimeter(1239.6), '124 cm');
+      final maler = _maler(Zeichnung.leer, AnsichtsOptionen());
+      expect(maler.zentimeter(4800), '480 cm');
+      expect(maler.zentimeter(125), '12,5 cm');
+      expect(maler.zentimeter(1234.4), '123,4 cm');
+      expect(maler.zentimeter(1239.6), '124 cm');
+      final englisch = _maler(Zeichnung.leer, AnsichtsOptionen(), null, en);
+      expect(englisch.zentimeter(125), '12.5 cm');
       expect(
         [
           for (final i in [0, 1, 25, 26]) ZeichnungsMaler.punktname(i),
         ],
         ['A', 'B', 'Z', 'A'],
       );
-      expect(ZeichnungsMaler.ablaufText, 'Ablauf');
+      expect(de.ablauf, 'Ablauf');
     });
 
     test('leere Zeichnung: nichts zu zeichnen, keine Maße', () {
@@ -356,7 +367,7 @@ void main() {
       final o = AnsichtsOptionen();
       addTearDown(o.dispose);
       await tester.pumpWidget(
-        MaterialApp(
+        testApp(
           theme: planerThema(),
           home: PlanerRahmen(
             status: const Text('x'),
@@ -426,7 +437,7 @@ void main() {
             .checked,
         isFalse,
       );
-      expect(find.byTooltip(Werkzeugleiste.beschriftungen), findsOneWidget);
+      expect(find.byTooltip(de.beschriftungen), findsOneWidget);
     });
 
     testWidgets('genau 1000 px Leiste: mit Regler und Hinweis', (tester) async {
@@ -436,7 +447,7 @@ void main() {
         ..devicePixelRatio = 1;
       addTearDown(tester.view.reset);
       await tester.pumpWidget(
-        const MaterialApp(home: PlanerRahmen(status: Text('x'))),
+        testApp(home: const PlanerRahmen(status: Text('x'))),
       );
       expect(
         tester.getSize(find.byKey(const ValueKey('werkzeugleiste'))).width,
@@ -451,10 +462,10 @@ void main() {
         ..devicePixelRatio = 1;
       addTearDown(tester.view.reset);
       await tester.pumpWidget(
-        const MaterialApp(home: PlanerRahmen(status: Text('x'))),
+        testApp(home: const PlanerRahmen(status: Text('x'))),
       );
       expect(find.byKey(const ValueKey('zoom-regler')), findsNothing);
-      expect(find.text(Werkzeugleiste.hinweis), findsNothing);
+      expect(find.text(de.bedienHinweis), findsNothing);
       expect(find.byKey(const ValueKey('ebenen')), findsOneWidget);
       expect(Werkzeugleiste.breitAb, 1000);
       expect(tester.takeException(), isNull);

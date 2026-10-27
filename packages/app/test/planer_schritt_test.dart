@@ -2,10 +2,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:terrassenplaner_app/src/rahmen/planer_schritt.dart';
 import 'package:terrassenplaner_app/src/rahmen/rahmen_zustand.dart';
 
+import 'hilfe.dart';
+
 void main() {
   test('sieben Schritte in der Reihenfolge des alten Planers', () {
     expect(
-      [for (final s in PlanerSchritt.values) '${s.nummer}. ${s.titel}'],
+      [for (final s in PlanerSchritt.values) '${s.nummer}. ${s.titel(de)}'],
       [
         '1. GRUNDRISS',
         '2. TERRASSENBELAG',
@@ -17,14 +19,14 @@ void main() {
       ],
     );
     expect(
-      [for (final s in PlanerSchritt.values) s.unterpunkte.length],
+      [for (final s in PlanerSchritt.values) s.unterpunkte(de).length],
       [4, 5, 8, 3, 1, 8, 1],
     );
   });
 
   test('getrennte Titel für schmale Stationen', () {
     expect(
-      [for (final s in PlanerSchritt.values) s.getrennterTitel],
+      [for (final s in PlanerSchritt.values) s.getrennterTitel(de)],
       [
         'GRUNDRISS',
         'TERRASSEN-\nBELAG',
@@ -39,7 +41,7 @@ void main() {
 
   test('alle Unterpunkte im Wortlaut', () {
     expect(
-      {for (final s in PlanerSchritt.values) s.name: s.unterpunkte},
+      {for (final s in PlanerSchritt.values) s.name: s.unterpunkte(de)},
       {
         'grundriss': [
           'Terrassenform auswählen',
@@ -86,18 +88,18 @@ void main() {
   });
 
   test('Unterpunkte nummeriert', () {
-    expect(PlanerSchritt.grundriss.nummerierteUnterpunkte, [
+    expect(PlanerSchritt.grundriss.nummerierteUnterpunkte(de), [
       '1.1 Terrassenform auswählen',
       '1.2 Terrassenmaße',
       '1.3 Ecken und Seiten abrunden',
       '1.4 Ausschnitte und Teilflächen',
     ]);
     expect(
-      PlanerSchritt.unterkonstruktion.nummerierteUnterpunkte.last,
+      PlanerSchritt.unterkonstruktion.nummerierteUnterpunkte(de).last,
       '3.8 Nutzung privat oder gewerblich',
     );
     expect(
-      PlanerSchritt.zubehoer.nummerierteUnterpunkte.last,
+      PlanerSchritt.zubehoer.nummerierteUnterpunkte(de).last,
       '6.8 Terrassenöl RIBOL',
     );
   });

@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:terrassenplaner_app/src/artikel/artikelbild_widget.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
+import 'hilfe.dart';
+
 Artikel _artikel(List<String> bilder) => Artikel(
   nummer: const Artikelnummer('80-10-001'),
   titel: 'CLIP-FIXX',
@@ -11,14 +13,14 @@ Artikel _artikel(List<String> bilder) => Artikel(
   bilder: bilder,
 );
 
-Widget _rahmen(Widget kind) => MaterialApp(home: Scaffold(body: kind));
+Widget _rahmen(Widget kind) => testApp(home: Scaffold(body: kind));
 
 void main() {
   testWidgets('ohne Bild: Platzhalter', (tester) async {
     await tester.pumpWidget(_rahmen(Artikelbild(_artikel(const []))));
     expect(find.byType(ArtikelbildPlatzhalter), findsOneWidget);
     expect(find.byType(Image), findsNothing);
-    expect(find.bySemanticsLabel(ArtikelbildPlatzhalter.text), findsOneWidget);
+    expect(find.bySemanticsLabel(de.keinBild), findsOneWidget);
     expect(
       tester.getSize(find.byType(ArtikelbildPlatzhalter)),
       const Size(96, 96),

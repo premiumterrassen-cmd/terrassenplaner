@@ -6,11 +6,13 @@ import 'package:terrassenplaner_app/src/rahmen/planer_schritt.dart';
 import 'package:terrassenplaner_app/src/rahmen/rahmen_zustand.dart';
 import 'package:terrassenplaner_app/src/rahmen/standardwert_hinweis.dart';
 
+import 'hilfe.dart';
+
 /// Knopf „Weiter zum Ergebnis“ für den Test – in der App ab M3-06/M9.
 Future<List<bool>> _zeige(WidgetTester tester, RahmenZustand zustand) async {
   final ergebnisse = <bool>[];
   await tester.pumpWidget(
-    MaterialApp(
+    testApp(
       theme: planerThema(),
       home: Builder(
         builder: (context) => Scaffold(
@@ -68,9 +70,9 @@ void main() {
       await _zeige(tester, z);
       await tester.tap(find.text('Weiter'));
       await tester.pumpAndSettle();
-      expect(find.text(StandardwertHinweis.titel), findsOneWidget);
-      expect(find.text(StandardwertHinweis.text), findsOneWidget);
-      expect(find.text(StandardwertHinweis.frage), findsOneWidget);
+      expect(find.text(de.standardwertTitel), findsOneWidget);
+      expect(find.text(de.standardwertText), findsOneWidget);
+      expect(find.text(de.standardwertFrage), findsOneWidget);
       expect(find.text('• 3. UNTERKONSTRUKTION'), findsOneWidget);
       expect(find.text('• 6. ZUBEHÖR'), findsOneWidget);
       expect(
@@ -138,15 +140,15 @@ void main() {
     });
 
     test('Texte', () {
-      expect(StandardwertHinweis.titel, 'Standardwerte beibehalten');
+      expect(de.standardwertTitel, 'Standardwerte beibehalten');
       expect(
-        StandardwertHinweis.text,
+        de.standardwertText,
         'In diesen Schritten haben Sie nichts verändert – dort gelten die '
         'Standardwerte des Planers:',
       );
-      expect(StandardwertHinweis.frage, 'Möchten Sie trotzdem fortfahren?');
-      expect(StandardwertHinweis.zurueck, 'Zurück');
-      expect(StandardwertHinweis.fortfahren, 'Fortfahren');
+      expect(de.standardwertFrage, 'Möchten Sie trotzdem fortfahren?');
+      expect(de.zurueck, 'Zurück');
+      expect(de.fortfahren, 'Fortfahren');
     });
   });
 
@@ -159,7 +161,7 @@ void main() {
     addTearDown(tester.view.reset);
     final z = RahmenZustand()..markiereGeaendert(PlanerSchritt.grundriss);
     await tester.pumpWidget(
-      MaterialApp(
+      testApp(
         home: PlanerRahmen(status: const Text('x'), zustand: z),
       ),
     );

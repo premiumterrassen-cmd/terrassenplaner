@@ -11,6 +11,9 @@ dependencies:
   connectanum_client: 3.0.0-beta.8
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.3
   terrassenplaner_domain: ^0.1.0
   url_launcher: ^6.3.3
   web: ^1.1.1
@@ -27,6 +30,8 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  # Übersetzungen aus lib/l10n/*.arb (M3-07).
+  generate: true
   assets:
     - assets/bilder/
   # Eigene Schrift statt Abruf von Google-Servern (M3-01, Datenschutz).

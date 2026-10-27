@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 import '../design/planer_design.dart';
+import '../sprache/sprache.dart';
 import 'ansichtsoptionen.dart';
 import 'steuerung.dart';
 
@@ -44,11 +45,15 @@ class ZeichnungsMaler extends CustomPainter {
     required this.zeichnung,
     required this.optionen,
     required this.ansicht,
+    required this.sprache,
   }) : super(repaint: Listenable.merge([optionen, ansicht]));
 
   final Zeichnung zeichnung;
   final AnsichtsOptionen optionen;
   final AnsichtSteuerung ansicht;
+
+  /// Beschriftungen und Zahlen in der Sprache der Oberfläche (M3-07).
+  final PlanerTexte sprache;
 
   /// Abstand der Maßlinien vom Umriss in Pixeln.
   static const masslinienAbstand = 44.0;
@@ -111,7 +116,7 @@ class ZeichnungsMaler extends CustomPainter {
       if (optionen.beschriftet(Beschriftung.ablaeufe))
         for (final a in zeichnung.ablaeufe)
           (
-            text: ablaufText,
+            text: sprache.ablauf,
             ort: bildschirm(a) + const Offset(0, -beschriftungsAbstand),
             richtung: const Offset(0, -1),
           ),
@@ -166,19 +171,13 @@ class ZeichnungsMaler extends CustomPainter {
     punkte.map((p) => p.dy).reduce(math.max),
   );
 
-  static const ablaufText = 'Ablauf';
-
   /// Eckpunktnamen wie im alten Planer: A, B, C …
   static String punktname(int i) => String.fromCharCode(0x41 + i.remainder(26));
 
-  /// Länge in mm als Zentimeter („480 cm“, „12,5 cm“).
-  static String zentimeter(double mm) {
-    final cm = mm.round() / 10;
-    final text = cm == cm.roundToDouble()
-        ? cm.toStringAsFixed(0)
-        : cm.toStringAsFixed(1).replaceAll('.', ',');
-    return '$text cm';
-  }
+  /// Länge in mm als Zentimeter, auf den Millimeter gerundet
+  /// („480 cm“, „12,5 cm“ – auf Englisch „12.5 cm“).
+  String zentimeter(double mm) =>
+      '${zahlText(sprache, mm.round() / 10, '0.#')} cm';
 
   /// Innenwinkel am Eckpunkt [i] in Grad – auch für einspringende Ecken
   /// (L-Form: 270°), unabhängig von der Umlaufrichtung.
@@ -262,5 +261,6 @@ class ZeichnungsMaler extends CustomPainter {
   bool shouldRepaint(ZeichnungsMaler alt) =>
       alt.zeichnung != zeichnung ||
       alt.optionen != optionen ||
-      alt.ansicht != ansicht;
+      alt.ansicht != ansicht ||
+      alt.sprache != sprache;
 }

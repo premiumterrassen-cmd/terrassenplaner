@@ -1,26 +1,40 @@
 import 'package:flutter/foundation.dart';
 
+import '../sprache/sprache.dart';
+
 /// Ebenen der Draufsicht (Fachkonzept 00: „Belag | UK | Maße“).
 enum Ebene {
-  belag('Belag'),
-  unterkonstruktion('UK'),
-  masse('Maße');
+  belag,
+  unterkonstruktion,
+  masse;
 
-  const Ebene(this.titel);
+  String titel(PlanerTexte t) => switch (this) {
+    belag => t.ebeneBelag,
+    unterkonstruktion => t.ebeneUnterkonstruktion,
+    masse => t.ebeneMasse,
+  };
 
-  final String titel;
+  /// Ausgeschriebener Name für Tooltip und Vorleser.
+  String langerTitel(PlanerTexte t) => switch (this) {
+    belag => t.ebeneBelagLang,
+    unterkonstruktion => t.ebeneUnterkonstruktionLang,
+    masse => t.ebeneMasseLang,
+  };
 }
 
 /// Schaltbare Beschriftungen der Zeichnung.
 enum Beschriftung {
-  seitenlaengen('Seitenlängen'),
-  winkel('Winkel'),
-  punkte('Punkte'),
-  ablaeufe('Abläufe');
+  seitenlaengen,
+  winkel,
+  punkte,
+  ablaeufe;
 
-  const Beschriftung(this.titel);
-
-  final String titel;
+  String titel(PlanerTexte t) => switch (this) {
+    seitenlaengen => t.beschriftungSeitenlaengen,
+    winkel => t.beschriftungWinkel,
+    punkte => t.beschriftungPunkte,
+    ablaeufe => t.beschriftungAblaeufe,
+  };
 }
 
 /// Was die Zeichenfläche zeigt (M3-04) – reine Bedienung, keine Planung;

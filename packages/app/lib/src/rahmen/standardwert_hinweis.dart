@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../design/planer_design.dart';
+import '../sprache/sprache.dart';
 import 'planer_schritt.dart';
 import 'rahmen_zustand.dart';
 
@@ -11,46 +12,41 @@ class StandardwertHinweis extends StatelessWidget {
 
   final List<PlanerSchritt> schritte;
 
-  static const titel = 'Standardwerte beibehalten';
-  static const text =
-      'In diesen Schritten haben Sie nichts verändert – dort gelten die '
-      'Standardwerte des Planers:';
-  static const frage = 'Möchten Sie trotzdem fortfahren?';
-  static const zurueck = 'Zurück';
-  static const fortfahren = 'Fortfahren';
-
   @override
-  Widget build(BuildContext context) => AlertDialog(
-    key: const ValueKey('standardwert-hinweis'),
-    title: const Text(titel),
-    content: Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(text),
-        const SizedBox(height: PlanerAbstand.klein),
-        for (final s in schritte)
-          Text(
-            '• ${s.nummer}. ${s.titel}',
-            key: ValueKey('standardwert-${s.name}'),
-          ),
-        const SizedBox(height: PlanerAbstand.mittel),
-        const Text(frage),
+  Widget build(BuildContext context) {
+    final t = context.texte;
+    return AlertDialog(
+      key: const ValueKey('standardwert-hinweis'),
+      title: Text(t.standardwertTitel),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(t.standardwertText),
+          const SizedBox(height: PlanerAbstand.klein),
+          for (final s in schritte)
+            Text(
+              '• ${s.nummer}. ${s.titel(t)}',
+              key: ValueKey('standardwert-${s.name}'),
+            ),
+          const SizedBox(height: PlanerAbstand.mittel),
+          Text(t.standardwertFrage),
+        ],
+      ),
+      actions: [
+        TextButton(
+          key: const ValueKey('standardwert-zurueck'),
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text(t.zurueck),
+        ),
+        FilledButton(
+          key: const ValueKey('standardwert-fortfahren'),
+          onPressed: () => Navigator.of(context).pop(true),
+          child: Text(t.fortfahren),
+        ),
       ],
-    ),
-    actions: [
-      TextButton(
-        key: const ValueKey('standardwert-zurueck'),
-        onPressed: () => Navigator.of(context).pop(false),
-        child: const Text(zurueck),
-      ),
-      FilledButton(
-        key: const ValueKey('standardwert-fortfahren'),
-        onPressed: () => Navigator.of(context).pop(true),
-        child: const Text(fortfahren),
-      ),
-    ],
-  );
+    );
+  }
 }
 
 /// Vor Ergebnis oder Angebot aufrufen (M3-06, M9): ohne unveränderte

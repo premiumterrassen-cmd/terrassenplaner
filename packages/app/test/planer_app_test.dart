@@ -7,6 +7,8 @@ import 'package:terrassenplaner_app/src/design/planer_design.dart';
 import 'package:terrassenplaner_app/src/rahmen/planer_rahmen.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
+import 'hilfe.dart';
+
 Future<void> _laden(KonfigurationsStand _) async {}
 
 Future<KonfigurationsStand?> _nichts() async => null;
@@ -27,7 +29,7 @@ void main() {
     expect(app.debugShowCheckedModeBanner, isFalse);
     expect(app.theme!.colorScheme.primary, PlanerFarben.braun);
     expect(find.byType(PlanerRahmen), findsOneWidget);
-    expect(find.text(PlanerRahmen.titel), findsOneWidget);
+    expect(find.text(de.planerTitel), findsOneWidget);
   });
 
   testWidgets('übergebene Projektdaten im Browser-Tab', (tester) async {
@@ -57,7 +59,7 @@ void main() {
         hallo: () => antwort.future,
       ),
     );
-    expect(find.text(ServerStatus.verbinde), findsOneWidget);
+    expect(find.text(de.verbinde), findsOneWidget);
     antwort.complete('Verbunden mit Test');
     await tester.pump();
     expect(find.text('Verbunden mit Test'), findsOneWidget);
@@ -72,11 +74,11 @@ void main() {
       ),
     );
     await tester.pump();
-    expect(find.text(ServerStatus.keineVerbindung), findsOneWidget);
+    expect(find.text(de.keineVerbindung), findsOneWidget);
   });
 
   test('Texte des Status', () {
-    expect(ServerStatus.verbinde, 'Verbinde mit dem Server …');
-    expect(ServerStatus.keineVerbindung, 'Keine Verbindung zum Server');
+    expect(de.verbinde, 'Verbinde mit dem Server …');
+    expect(de.keineVerbindung, 'Keine Verbindung zum Server');
   });
 }
