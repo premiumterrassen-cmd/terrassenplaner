@@ -420,9 +420,10 @@ final class FreiformGrundriss extends Grundriss {
         'braucht Kennung und Punktpaare',
       );
     }
+    // Zählschleife mit i++ (siehe Berechnung): kein Endlos-Mutant
     return FreiformGrundriss([
-      for (var i = 2; i < masse.length; i += 2)
-        Punkt(masse[i - 1].mm.toDouble(), masse[i].mm.toDouble()),
+      for (var i = 0; i < masse.length ~/ 2; i++)
+        Punkt(masse[2 * i + 1].mm.toDouble(), masse[2 * i + 2].mm.toDouble()),
     ], geschlossen: masse[0].mm == 1);
   }
 
