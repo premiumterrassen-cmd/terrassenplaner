@@ -8,6 +8,9 @@ abstract final class PlanerFarben {
   static const text = Color(0xFF3A3A3A);
   static const linie = Color(0xFFDCDCDC);
   static const weiss = Color(0xFFFFFFFF);
+
+  /// Teilfläche mit anderem Terrassenbelag (M4-12), heller als der Belag.
+  static const belagAnders = Color(0xFFE8D2A8);
 }
 
 /// Abstände im Raster von 4 px.

@@ -73,57 +73,6 @@ class GrundrissMasse extends StatelessWidget {
   );
 }
 
-/// Ausschnitte im Grundriss (Fachkonzept 1.4, M4-06): je Ausschnitt ein
-/// Block „Ausschnitt A1“ mit X, Y, Länge und Breite in cm.
-class AusschnittMasse extends StatelessWidget {
-  const AusschnittMasse({
-    required this.planung,
-    required this.onGeaendert,
-    super.key,
-  });
-
-  final PlanungsSteuerung planung;
-
-  /// Meldet eine übernommene Eingabe (Standardwert-Hinweis, M3-05).
-  final VoidCallback onGeaendert;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.texte;
-    final ausschnitte = planung.aktuell.ausschnitte;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        for (final (i, a) in ausschnitte.indexed) ...[
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: PlanerAbstand.klein),
-            child: Text(
-              t.ausschnittTitel(a.bezeichnung),
-              style: const TextStyle(fontWeight: FontWeight.w500),
-            ),
-          ),
-          MassFelder(
-            key: ValueKey('ausschnitt-$i'),
-            schluessel: 'ausschnitt-$i',
-            namen: ['X', 'Y', t.feldLaenge, t.feldBreite],
-            kleinstes: Ausschnitt.kleinsteSeite,
-            uebernimm: (feld, wert) {
-              final stand = planung.aktuell;
-              planung.setze(
-                stand.mitAusschnitt(
-                  i,
-                  stand.ausschnitte[i].mitMass(feld, wert),
-                ),
-              );
-              onGeaendert();
-            },
-          ),
-        ],
-      ],
-    );
-  }
-}
-
 /// Maßfelder in cm (M4-02): wie im alten Planer zeigen sie nur Platzhalter,
 /// die aktuellen Maße stehen in der Zeichnung; Enter übernimmt den Wert.
 /// Wirft [uebernimm] (keine Zahl, Grenze verletzt), erscheint ein Hinweis

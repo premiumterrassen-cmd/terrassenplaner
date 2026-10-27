@@ -562,6 +562,108 @@ abstract class PlanerTexte {
   /// **'Sie verlassen das Abrunden von Ecken und Seiten.'**
   String get rundungVerlassenText;
 
+  /// No description provided for @weitereFlaeche.
+  ///
+  /// In de, this message translates to:
+  /// **'Weitere Flächen hinzufügen'**
+  String get weitereFlaeche;
+
+  /// No description provided for @ausschnittEntfernen.
+  ///
+  /// In de, this message translates to:
+  /// **'Fläche entfernen'**
+  String get ausschnittEntfernen;
+
+  /// No description provided for @formDreieck.
+  ///
+  /// In de, this message translates to:
+  /// **'Dreieck'**
+  String get formDreieck;
+
+  /// No description provided for @formSechseck.
+  ///
+  /// In de, this message translates to:
+  /// **'Sechseck'**
+  String get formSechseck;
+
+  /// No description provided for @funktionLeer.
+  ///
+  /// In de, this message translates to:
+  /// **'leere Fläche'**
+  String get funktionLeer;
+
+  /// No description provided for @funktionBelag.
+  ///
+  /// In de, this message translates to:
+  /// **'anderer Terrassenbelag'**
+  String get funktionBelag;
+
+  /// No description provided for @inhaltLeer.
+  ///
+  /// In de, this message translates to:
+  /// **'leer/weiß'**
+  String get inhaltLeer;
+
+  /// No description provided for @inhaltKies.
+  ///
+  /// In de, this message translates to:
+  /// **'Kies hell'**
+  String get inhaltKies;
+
+  /// No description provided for @inhaltStein.
+  ///
+  /// In de, this message translates to:
+  /// **'Stein dunkel'**
+  String get inhaltStein;
+
+  /// No description provided for @inhaltPool.
+  ///
+  /// In de, this message translates to:
+  /// **'Pool'**
+  String get inhaltPool;
+
+  /// No description provided for @inhaltRasen.
+  ///
+  /// In de, this message translates to:
+  /// **'Rasen'**
+  String get inhaltRasen;
+
+  /// No description provided for @inhaltErde.
+  ///
+  /// In de, this message translates to:
+  /// **'Erde'**
+  String get inhaltErde;
+
+  /// No description provided for @feldBezeichnung.
+  ///
+  /// In de, this message translates to:
+  /// **'Flächenbezeichnung'**
+  String get feldBezeichnung;
+
+  /// No description provided for @meldungAusserhalb.
+  ///
+  /// In de, this message translates to:
+  /// **'Der Ausschnitt darf nicht außerhalb der Terrasse sein!'**
+  String get meldungAusserhalb;
+
+  /// No description provided for @meldungKollision.
+  ///
+  /// In de, this message translates to:
+  /// **'{a} und {b} dürfen sich nicht überschneiden.'**
+  String meldungKollision(String a, String b);
+
+  /// No description provided for @meldungTeilung.
+  ///
+  /// In de, this message translates to:
+  /// **'{a} darf die Terrasse nicht teilen.'**
+  String meldungTeilung(String a);
+
+  /// No description provided for @schliessen.
+  ///
+  /// In de, this message translates to:
+  /// **'SCHLIESSEN'**
+  String get schliessen;
+
   /// No description provided for @formDrehen.
   ///
   /// In de, this message translates to:

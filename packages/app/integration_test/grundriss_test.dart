@@ -77,5 +77,23 @@ void main() {
       const Offset(50, 50),
     );
     await warteAuf(tester, 'Fläche: 14,72 m²');
+    // M4-12: weitere Fläche A1 – Ausschnitte mit Form im Transport, die
+    // Fläche bleibt wie im alten Planer die Außenfläche
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('weitere-flaeche')),
+      200,
+      scrollable: find
+          .descendant(
+            of: find.byKey(const ValueKey('bearbeitungsmenue')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    await tester.tap(find.byKey(const ValueKey('weitere-flaeche')));
+    await tester.pumpAndSettle();
+    expect(find.text('Ausschnitt A1'), findsOneWidget);
+    await warteAuf(tester, 'Fläche: 14,72 m²');
   });
 }

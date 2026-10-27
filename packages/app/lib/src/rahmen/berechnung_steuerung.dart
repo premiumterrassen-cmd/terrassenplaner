@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
+import '../design/planer_design.dart';
 import 'steuerung.dart';
 import 'zeichnung.dart';
 
@@ -36,8 +37,23 @@ class BerechnungsSteuerung extends ChangeNotifier {
       ecken: _offsets(b.ecken),
       geschlossen: b.geschlossen,
       ausschnitte: [for (final a in b.ausschnitte) _offsets(a)],
+      ausschnittDarstellung: [
+        for (final a in planung.aktuell.ausschnitte)
+          (name: a.bezeichnung, farbe: farbe(a)),
+      ],
     ),
     null => Zeichnung.leer,
+  };
+
+  /// Füllung eines Ausschnitts (Fachkonzept 1.4: nur Darstellung).
+  static Color farbe(Ausschnitt a) => switch ((a.funktion, a.inhalt)) {
+    (Ausschnittfunktion.andererBelag, _) => PlanerFarben.belagAnders,
+    (_, Ausschnittinhalt.leer) => PlanerFarben.weiss,
+    (_, Ausschnittinhalt.kiesHell) => const Color(0xFFD8D4CC),
+    (_, Ausschnittinhalt.steinDunkel) => const Color(0xFF6E6A66),
+    (_, Ausschnittinhalt.pool) => const Color(0xFF7FC4E8),
+    (_, Ausschnittinhalt.rasen) => const Color(0xFF8DC26F),
+    (_, Ausschnittinhalt.erde) => const Color(0xFF8B6A4E),
   };
 
   static List<Offset> _offsets(List<Punkt> punkte) => [
