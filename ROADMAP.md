@@ -224,9 +224,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/5
   - L-Form (im alten Planer ist eine L-Variante aktiv) mit allen Seitenmaßen.
   - Abnahme: Seitenmaße editierbar, Fläche korrekt
   - Ergebnis: `LGrundriss` (Ausschnitt oben rechts; A—B, B—C, C—D, D—E eingegeben, E—F und F—A abgeleitet, alle Seiten 50–3000 cm), Vorgabe 270/180/270/180 cm = 14,58 m² wie Fachkonzept 1.1; `Grundriss` jetzt allgemein (Eckpunkte, Gleichheit, `mitMass`). App: Formwahl unter 1.1 (Rechteck, L-Form – weitere Formen folgen), Maßfelder je Form unter 1.2. Smoke-Test in Chrome. Hinweis: F15 (L-Form nach Zurücksetzen, 10,26 m²) leitete der alte Planer aus anderen Maßen ab; maßgeblich sind die Vorgaben aus 1.1.
-- [ ] **M4-04 T-Form** ([#34](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/34)) – `feature/m4-04-t-form`
+- [x] **M4-04 T-Form** ([#34](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/34)) – `feature/m4-04-t-form`
   - T-Form mit allen Seitenmaßen.
   - Abnahme: Seitenmaße editierbar, Fläche korrekt
+  - Ergebnis: `TGrundriss` (Balken oben, Steg unten; eingegeben B—C, C—D, D—E, E—F, G—H, H—A wie im alten Planer, A—B und F—G abgeleitet, Balken links und rechts auch verschieden hoch), Vorgabe = 9,72 m² wie Fachkonzept 1.1; Formwahl um „T-Form“ ergänzt.
 - [ ] **M4-05 U-Form** ([#35](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/35)) – `feature/m4-05-u-form`
   - U-Form mit allen Seitenmaßen.
   - Abnahme: Seitenmaße editierbar, Fläche korrekt

@@ -3,11 +3,12 @@ import '../geometrie/kontur.dart';
 import '../geometrie/punkt.dart';
 
 /// Terrassenformen des Grundrisses (Fachkonzept 1.1); weitere folgen mit
-/// M4-04 bis M4-08. Die Nummer ist der Wert im Transportformat und bleibt
+/// M4-05 bis M4-08. Die Nummer ist der Wert im Transportformat und bleibt
 /// fest.
 enum Terrassenform {
   rechteck(0, ['A — B', 'B — C']),
-  lForm(1, ['A — B', 'B — C', 'C — D', 'D — E']);
+  lForm(1, ['A — B', 'B — C', 'C — D', 'D — E']),
+  tForm(2, ['B — C', 'C — D', 'D — E', 'E — F', 'G — H', 'H — A']);
 
   const Terrassenform(this.nummer, this.eingabekanten);
 
@@ -21,6 +22,7 @@ enum Terrassenform {
   Grundriss get vorgabe => switch (this) {
     rechteck => RechteckGrundriss.start,
     lForm => LGrundriss.vorgabe,
+    tForm => TGrundriss.vorgabe,
   };
 }
 
@@ -41,6 +43,14 @@ sealed class Grundriss {
     return switch (form) {
       Terrassenform.rechteck => RechteckGrundriss(masse[0], masse[1]),
       Terrassenform.lForm => LGrundriss(masse[0], masse[1], masse[2], masse[3]),
+      Terrassenform.tForm => TGrundriss(
+        masse[0],
+        masse[1],
+        masse[2],
+        masse[3],
+        masse[4],
+        masse[5],
+      ),
     };
   }
 
@@ -164,6 +174,60 @@ final class LGrundriss extends Grundriss {
       Punkt(d, c),
       Punkt(d, e),
       Punkt(0, e),
+    ];
+  }
+}
+
+/// T-Form (M4-04): Balken oben, Steg nach unten. Eingegeben werden B—C,
+/// C—D, D—E, E—F, G—H und H—A (Fachkonzept 1.1); daraus
+/// A—B = G—H + E—F + C—D und F—G = B—C + D—E − H—A, damit die Unterkante
+/// des Stegs gerade bleibt.
+final class TGrundriss extends Grundriss {
+  TGrundriss(this.bc, this.cd, this.de, this.ef, this.gh, this.ha) {
+    _pruefeSeiten();
+  }
+
+  const TGrundriss._(this.bc, this.cd, this.de, this.ef, this.gh, this.ha);
+
+  /// Vorgabemaße des alten Planers: A—B 405, sonst 180 bzw. 135 cm
+  /// (9,72 m²).
+  static const vorgabe = TGrundriss._(
+    Millimeter(1800),
+    Millimeter(1350),
+    Millimeter(1800),
+    Millimeter(1350),
+    Millimeter(1350),
+    Millimeter(1800),
+  );
+
+  final Millimeter bc;
+  final Millimeter cd;
+  final Millimeter de;
+  final Millimeter ef;
+  final Millimeter gh;
+  final Millimeter ha;
+
+  @override
+  Terrassenform get form => Terrassenform.tForm;
+
+  @override
+  List<Millimeter> get masse => [bc, cd, de, ef, gh, ha];
+
+  @override
+  List<Punkt> get ecken {
+    final links = gh.mm.toDouble(), rechts = links + ef.mm;
+    final breite = rechts + cd.mm;
+    final balkenRechts = bc.mm.toDouble(), unten = balkenRechts + de.mm;
+    final balkenLinks = ha.mm.toDouble();
+    return [
+      Punkt.ursprung,
+      Punkt(breite, 0),
+      Punkt(breite, balkenRechts),
+      Punkt(rechts, balkenRechts),
+      Punkt(rechts, unten),
+      Punkt(links, unten),
+      Punkt(links, balkenLinks),
+      Punkt(0, balkenLinks),
     ];
   }
 }

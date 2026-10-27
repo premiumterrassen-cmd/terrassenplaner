@@ -162,6 +162,101 @@ void main() {
     });
   });
 
+  group('T-Form (M4-04)', () {
+    TGrundriss t(List<int> mm) => TGrundriss(
+      Millimeter(mm[0]),
+      Millimeter(mm[1]),
+      Millimeter(mm[2]),
+      Millimeter(mm[3]),
+      Millimeter(mm[4]),
+      Millimeter(mm[5]),
+    );
+
+    test('Vorgabe wie im alten Planer: 9,72 m², A—B und F—G abgeleitet', () {
+      const v = TGrundriss.vorgabe;
+      expect(Terrassenform.tForm.vorgabe, v);
+      expect(v.form, Terrassenform.tForm);
+      expect(Terrassenform.tForm.nummer, 2);
+      expect(v.masse.map((m) => m.mm), [1800, 1350, 1800, 1350, 1350, 1800]);
+      expect([v.bc, v.cd, v.de, v.ef, v.gh, v.ha].map((m) => m.mm), [
+        1800,
+        1350,
+        1800,
+        1350,
+        1350,
+        1800,
+      ]);
+      expect(v.kontur.flaeche, 9720000);
+      // A—B 405, B—C 180, C—D 135, D—E 180, E—F 135, F—G 180, G—H 135, H—A 180
+      final e = v.ecken;
+      expect(
+        [
+          for (var i = 0; i < e.length; i++)
+            e[i].abstand(e[(i + 1) % e.length]).round(),
+        ],
+        [4050, 1800, 1350, 1800, 1350, 1800, 1350, 1800],
+      );
+      expect(v.kontur.innenwinkel.map((w) => w.round()), [
+        90,
+        90,
+        90,
+        270,
+        90,
+        90,
+        270,
+        90,
+      ]);
+    });
+
+    test('Balken links und rechts verschieden hoch, Fläche folgt', () {
+      // Balken 100 + 200 + 150 = 450 breit, rechts 150 hoch, links 100 hoch,
+      // Steg 200 breit und bis 150 + 120 = 270 tief
+      final f = t([1500, 1500, 1200, 2000, 1000, 1000]);
+      expect(f.ecken, const [
+        Punkt(0, 0),
+        Punkt(4500, 0),
+        Punkt(4500, 1500),
+        Punkt(3000, 1500),
+        Punkt(3000, 2700),
+        Punkt(1000, 2700),
+        Punkt(1000, 1000),
+        Punkt(0, 1000),
+      ]);
+      expect(f.kontur.flaeche, 1000 * 1000 + 2000 * 2700 + 1500 * 1500);
+      expect(
+        Planungsstand.ausBytes(Planungsstand(grundriss: f).zuBytes()).grundriss,
+        f,
+      );
+    });
+
+    test('Grenzen auch für abgeleitete Seiten', () {
+      const text = 'muss zwischen 50 und 3000 cm liegen';
+      expect(
+        () => t([1800, 15000, 1800, 15000, 1350, 1800]),
+        wirftArgumentFehler('ab', 31350, text),
+      );
+      // F—G = 100 + 60 − 130 = 30 cm zu kurz
+      expect(
+        () => t([1000, 1350, 600, 1350, 1350, 1300]),
+        wirftArgumentFehler('fg', 300, text),
+      );
+      expect(
+        () =>
+            t([1800, 1350, 2000, 1350, 1350, 1800])
+                .mitMass(5, const Millimeter(3400)),
+        wirftArgumentFehler('fg', 400, text),
+      );
+      expect(Terrassenform.tForm.eingabekanten, [
+        'B — C',
+        'C — D',
+        'D — E',
+        'E — F',
+        'G — H',
+        'H — A',
+      ]);
+    });
+  });
+
   group('Planungsstand', () {
     test('Gleichheit über den Grundriss, Kopie mit neuem Grundriss', () {
       const start = Planungsstand.start;

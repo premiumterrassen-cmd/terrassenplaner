@@ -244,6 +244,12 @@ abstract class PlanerTexte {
   /// **'L-Form'**
   String get formLForm;
 
+  /// No description provided for @formTForm.
+  ///
+  /// In de, this message translates to:
+  /// **'T-Form'**
+  String get formTForm;
+
   /// No description provided for @massUngueltig.
   ///
   /// In de, this message translates to:
