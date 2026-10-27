@@ -29,6 +29,7 @@ Zwei Browser-Umgebungen: mit WebGL (Software-Rendering) wählt Flutter WebAssemb
 - **CI-Linux: `--disable-gpu` reicht nicht für den JS-Build.** Chrome bietet dort weiter WebGL über SwiftShader an, der Loader nimmt WebAssembly. Die JS-Umgebung schaltet WebGL zusätzlich mit `--disable-webgl --disable-3d-apis` ab.
 - **Prüfung „sofort sichtbar“:** Mit Software-WebGL meldet Chrome `first-contentful-paint` erst nach dem GPU-Start (> 2 s, teils nach dem Entfernen des Ladebilds). Der Vergleich mit dem Entfernen gilt darum nur ohne WebGL (dort ≈ 50–70 ms). Mit WebGL wird geprüft, dass das Ladebild im ersten HTML steht und per CSS sichtbar ist.
 - **Tab im Hintergrund:** Dort pausiert `requestAnimationFrame`. Das Ladebild bleibt dann stehen, bis der Tab sichtbar wird (gewollt). Die Prüfung holt deshalb jede Testseite nach vorn (`Page.bringToFront`), sonst schlug „langsam“ gelegentlich fehl.
+- **Späte Abfang-Ereignisse:** Nach `Fetch.disable` kann noch ein `Fetch.requestPaused` eintreffen. Das `continueRequest` darauf scheitert („Fetch domain is not enabled“) und brachte die Prüfung in der CI zum Absturz. Fehler nach dem Freigeben werden jetzt ignoriert (Chrome setzt die Anfrage selbst fort), solange das Abfangen aktiv ist, landen sie als Konsolenfehler im Fall.
 - **Ohne erreichbaren WAMP-Router wirft die App eine unbehandelte Ausnahme** (beide Builds, nach dem Ladebild). Gehört zum Verbindungsaufbau, nicht zum Ladebild – eigener Punkt. Die Prüfung läuft darum mit Router (`/ws` wird wie von Traefik weitergereicht).
 
 ## Benchmark
