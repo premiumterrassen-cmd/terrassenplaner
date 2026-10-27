@@ -83,5 +83,5 @@ final class RechteckGrundriss extends Grundriss {
       other is RechteckGrundriss && other.ab == ab && other.bc == bc;
 
   @override
-  int get hashCode => Object.hash(ab, bc);
+  int get hashCode => Object.hashAll(masse);
 }

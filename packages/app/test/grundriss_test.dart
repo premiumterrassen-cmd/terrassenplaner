@@ -231,6 +231,11 @@ void main() {
     ) async {
       final s = await zeige(tester, _wieServer);
       expect(find.text('Fläche: 14,83 m²'), findsOneWidget);
+      // gelungene Berechnung: kein Fehlerhinweis
+      expect(
+        find.text('Berechnung nicht möglich – bitte Verbindung prüfen'),
+        findsNothing,
+      );
       expect(s.zustand.unveraendert, contains(PlanerSchritt.grundriss));
       await tester.enterText(find.byKey(const ValueKey('mass-0')), '540');
       await tester.testTextInput.receiveAction(TextInputAction.done);

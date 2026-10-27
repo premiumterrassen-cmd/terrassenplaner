@@ -45,6 +45,10 @@ void main() {
     test('Gleichheit nach Maßen', () {
       expect(_rechteck(4000, 3000), _rechteck(4000, 3000));
       expect(_rechteck(4000, 3000).hashCode, _rechteck(4000, 3000).hashCode);
+      expect(
+        _rechteck(4000, 3000).hashCode,
+        Object.hashAll(const [Millimeter(4000), Millimeter(3000)]),
+      );
       expect(_rechteck(4000, 3000) == _rechteck(4000, 3001), isFalse);
       expect(_rechteck(4000, 3000) == _rechteck(4001, 3000), isFalse);
       expect(_rechteck(4000, 3000) == Object(), isFalse);

@@ -43,7 +43,7 @@ final class Berechnung {
   /// FlatBuffer für den Weg zur App (#110):
   /// `{ 0: umriss ([float64] x, y je Punkt), 1: flaeche (float64 mm²) }`.
   Uint8List zuBytes() {
-    final fbb = fb.Builder(initialSize: 64 + 16 * umriss.length);
+    final fbb = fb.Builder();
     final umrissOrt = fbb.writeListFloat64([
       for (final p in umriss) ...[p.x, p.y],
     ]);
