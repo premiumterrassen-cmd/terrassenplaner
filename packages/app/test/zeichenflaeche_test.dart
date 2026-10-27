@@ -11,18 +11,10 @@ import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 import 'hilfe.dart';
 
-/// Unterscheidbarer Planungsstand für Tests (der echte wächst ab M4).
-final class _Stand extends Planungsstand {
-  const _Stand(this.n) : super.leer();
-
-  final int n;
-
-  @override
-  bool operator ==(Object other) => other is _Stand && other.n == n;
-
-  @override
-  int get hashCode => n;
-}
+/// Unterscheidbarer Planungsstand für Tests.
+Planungsstand _stand(int n) => Planungsstand(
+  grundriss: RechteckGrundriss(Millimeter(1000 + n), const Millimeter(1000)),
+);
 
 Future<({PlanungsSteuerung planung, AnsichtSteuerung ansicht})> _zeige(
   WidgetTester tester, {
@@ -58,25 +50,25 @@ void main() {
       final p = PlanungsSteuerung();
       var meldungen = 0;
       p.addListener(() => meldungen++);
-      expect(p.aktuell, const Planungsstand.leer());
+      expect(p.aktuell, Planungsstand.start);
       expect([p.kannRueckgaengig, p.kannWiederherstellen], [false, false]);
       p
-        ..setze(const _Stand(1))
-        ..setze(const _Stand(2));
-      expect(p.aktuell, const _Stand(2));
+        ..setze(_stand(1))
+        ..setze(_stand(2));
+      expect(p.aktuell, _stand(2));
       p.rueckgaengig();
-      expect(p.aktuell, const _Stand(1));
+      expect(p.aktuell, _stand(1));
       expect([p.kannRueckgaengig, p.kannWiederherstellen], [true, true]);
       p.wiederherstellen();
-      expect(p.aktuell, const _Stand(2));
+      expect(p.aktuell, _stand(2));
       p.zuruecksetzen();
-      expect(p.aktuell, const Planungsstand.leer());
+      expect(p.aktuell, Planungsstand.start);
       expect([p.kannRueckgaengig, p.kannWiederherstellen], [false, false]);
       expect(meldungen, 5);
     });
 
     test('Anfangsstand übergeben', () {
-      expect(PlanungsSteuerung(const _Stand(7)).aktuell, const _Stand(7));
+      expect(PlanungsSteuerung(_stand(7)).aktuell, _stand(7));
     });
   });
 
@@ -202,16 +194,16 @@ void main() {
       expect(_knopf(tester, 'rueckgaengig').onPressed, isNull);
       expect(_knopf(tester, 'wiederherstellen').onPressed, isNull);
       s.planung
-        ..setze(const _Stand(1))
-        ..setze(const _Stand(2));
+        ..setze(_stand(1))
+        ..setze(_stand(2));
       await tester.pump();
       expect(_knopf(tester, 'wiederherstellen').onPressed, isNull);
       await tester.tap(find.byKey(const ValueKey('rueckgaengig')));
       await tester.pump();
-      expect(s.planung.aktuell, const _Stand(1));
+      expect(s.planung.aktuell, _stand(1));
       await tester.tap(find.byKey(const ValueKey('wiederherstellen')));
       await tester.pump();
-      expect(s.planung.aktuell, const _Stand(2));
+      expect(s.planung.aktuell, _stand(2));
       expect(find.byTooltip(de.rueckgaengig), findsOneWidget);
       expect(find.byTooltip(de.wiederherstellen), findsOneWidget);
     });
@@ -282,7 +274,7 @@ void main() {
       tester,
     ) async {
       final s = await _zeige(tester);
-      s.planung.setze(const _Stand(1));
+      s.planung.setze(_stand(1));
       s.ansicht.vergroessern();
       await tester.tap(find.byKey(const ValueKey('zuruecksetzen')));
       await tester.pumpAndSettle();
@@ -297,7 +289,7 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('zuruecksetzen-abbrechen')));
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey('zuruecksetzen-dialog')), findsNothing);
-      expect(s.planung.aktuell, const _Stand(1));
+      expect(s.planung.aktuell, _stand(1));
       expect(s.ansicht.zoom, closeTo(1.25, 1e-9));
     });
 
@@ -305,7 +297,7 @@ void main() {
       tester,
     ) async {
       final s = await _zeige(tester);
-      s.planung.setze(const _Stand(1));
+      s.planung.setze(_stand(1));
       s.ansicht.vergroessern();
       await tester.tap(find.byKey(const ValueKey('zuruecksetzen')));
       await tester.pumpAndSettle();
@@ -318,19 +310,19 @@ void main() {
       );
       await tester.tap(find.byKey(const ValueKey('zuruecksetzen-bestaetigen')));
       await tester.pumpAndSettle();
-      expect(s.planung.aktuell, const Planungsstand.leer());
+      expect(s.planung.aktuell, Planungsstand.start);
       expect(s.planung.kannRueckgaengig, isFalse);
       expect(s.ansicht.zoom, 1);
     });
 
     testWidgets('Tippen neben den Dialog setzt nicht zurück', (tester) async {
       final s = await _zeige(tester);
-      s.planung.setze(const _Stand(1));
+      s.planung.setze(_stand(1));
       await tester.tap(find.byKey(const ValueKey('zuruecksetzen')));
       await tester.pumpAndSettle();
       await tester.tapAt(const Offset(5, 5));
       await tester.pumpAndSettle();
-      expect(s.planung.aktuell, const _Stand(1));
+      expect(s.planung.aktuell, _stand(1));
     });
 
     test('Texte', () {

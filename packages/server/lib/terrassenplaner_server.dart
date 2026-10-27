@@ -9,6 +9,7 @@ export 'src/dienste/artikel_dienst.dart';
 export 'src/dienste/artikeldatei_quelle.dart';
 export 'src/dienste/hallo_dienst.dart';
 export 'src/dienste/modell3d_dienst.dart';
+export 'src/dienste/planungs_dienst.dart';
 export 'src/import/artikel_import.dart';
 export 'src/import/artikelbilder.dart';
 export 'src/import/datenpruefung.dart';

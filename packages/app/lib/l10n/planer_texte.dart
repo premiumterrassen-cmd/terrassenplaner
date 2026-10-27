@@ -226,6 +226,24 @@ abstract class PlanerTexte {
   /// **'Volumen: {wert}'**
   String volumen(String wert);
 
+  /// No description provided for @massPlatzhalter.
+  ///
+  /// In de, this message translates to:
+  /// **'{kante}: cm'**
+  String massPlatzhalter(String kante);
+
+  /// No description provided for @massUngueltig.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte {min} bis {max} cm eingeben'**
+  String massUngueltig(int min, int max);
+
+  /// No description provided for @berechnungFehler.
+  ///
+  /// In de, this message translates to:
+  /// **'Berechnung nicht möglich – bitte Verbindung prüfen'**
+  String get berechnungFehler;
+
   /// No description provided for @agb.
   ///
   /// In de, this message translates to:

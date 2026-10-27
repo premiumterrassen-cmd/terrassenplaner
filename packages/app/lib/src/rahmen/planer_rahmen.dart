@@ -5,6 +5,8 @@ import '../design/planer_design.dart';
 import '../sprache/sprache.dart';
 import 'aktionen.dart';
 import 'ansichtsoptionen.dart';
+import 'berechnung_steuerung.dart';
+import 'grundriss_eingabe.dart';
 import 'planer_schritt.dart';
 import 'rahmen_zustand.dart';
 import 'standardwert_hinweis.dart';
@@ -23,6 +25,7 @@ class PlanerRahmen extends StatefulWidget {
     this.ansicht,
     this.optionen,
     this.zeichnung,
+    this.berechne,
     this.aktionen = const RahmenAktionen(),
     this.sprache,
     this.darstellung,
@@ -37,8 +40,11 @@ class PlanerRahmen extends StatefulWidget {
   final AnsichtSteuerung? ansicht;
   final AnsichtsOptionen? optionen;
 
-  /// Was gezeichnet wird; ab M4 vom Server, bis dahin leer.
+  /// Was gezeichnet wird, fest vorgegeben (Tests); sonst die Berechnung.
   final Zeichnung? zeichnung;
+
+  /// Berechnung auf dem Server (M4-02); ohne sie bleibt die Zeichnung leer.
+  final PlanungBerechnen? berechne;
 
   /// Links und Ergebnis-Knöpfe (M3-06).
   final RahmenAktionen aktionen;
@@ -59,9 +65,31 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
   late final PlanungsSteuerung _planung = widget.planung ?? PlanungsSteuerung();
   late final AnsichtSteuerung _ansicht = widget.ansicht ?? AnsichtSteuerung();
   late final AnsichtsOptionen _optionen = widget.optionen ?? AnsichtsOptionen();
+  late final BerechnungsSteuerung? _berechnung = switch (widget.berechne) {
+    final berechne? => BerechnungsSteuerung(
+      planung: _planung,
+      berechne: berechne,
+    ),
+    null => null,
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    _berechnung?.addListener(_meldeFehler);
+  }
+
+  /// Fehler der Berechnung als Hinweis; Zeichnung und Kennzahlen behalten
+  /// den letzten gültigen Stand.
+  void _meldeFehler() {
+    if (_berechnung?.fehler == null) return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(context.texte.berechnungFehler)));
+  }
 
   @override
   void dispose() {
+    _berechnung?.dispose();
     if (widget.planung == null) _planung.dispose();
     if (widget.ansicht == null) _ansicht.dispose();
     if (widget.optionen == null) _optionen.dispose();
@@ -96,12 +124,12 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     body: ListenableBuilder(
-      listenable: _zustand,
+      listenable: Listenable.merge([_zustand, _berechnung]),
       builder: (context, _) => LayoutBuilder(
         builder: (context, raum) {
           final desktop = PlanerLayout.istDesktop(raum.maxWidth);
           final menuOffen = _zustand.menuOffen(desktop: desktop);
-          final menu = Bearbeitungsmenue(zustand: _zustand);
+          final menu = Bearbeitungsmenue(zustand: _zustand, planung: _planung);
           return Column(
             children: [
               Kopfzeile(
@@ -132,13 +160,16 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
                               planung: _planung,
                               ansicht: _ansicht,
                               optionen: _optionen,
-                              zeichnung: widget.zeichnung ?? Zeichnung.leer,
+                              zeichnung:
+                                  widget.zeichnung ??
+                                  _berechnung?.zeichnung ??
+                                  Zeichnung.leer,
                             ),
                           ),
-                          const Positioned(
+                          Positioned(
                             top: PlanerAbstand.mittel,
                             right: PlanerAbstand.mittel,
-                            child: Kennzahlen(),
+                            child: Kennzahlen(flaeche: _berechnung?.flaeche),
                           ),
                           // Tablet: Menü liegt über der Zeichenfläche.
                           if (menuOffen && !desktop)
@@ -392,11 +423,26 @@ class Station extends StatelessWidget {
 }
 
 /// Nummeriertes Bearbeitungsmenü: je Schritt ein Abschnitt, der aktive ist
-/// aufgeklappt und zeigt seine Unterpunkte.
+/// aufgeklappt und zeigt seine Unterpunkte mit ihren Eingaben (ab M4).
 class Bearbeitungsmenue extends StatelessWidget {
-  const Bearbeitungsmenue({required this.zustand, super.key});
+  const Bearbeitungsmenue({
+    required this.zustand,
+    required this.planung,
+    super.key,
+  });
 
   final RahmenZustand zustand;
+  final PlanungsSteuerung planung;
+
+  /// Eingaben unter einem Unterpunkt (Schritt, Index ab 0).
+  Widget? _eingabe(PlanerSchritt schritt, int unterpunkt) =>
+      switch ((schritt, unterpunkt)) {
+        (PlanerSchritt.grundriss, 1) => RechteckMasse(
+          planung: planung,
+          onGeaendert: () => zustand.markiereGeaendert(schritt),
+        ),
+        _ => null,
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -425,14 +471,18 @@ class Bearbeitungsmenue extends StatelessWidget {
                 onTap: () => zustand.waehle(schritt),
               ),
               if (schritt == zustand.aktiv)
-                for (final punkt in schritt.nummerierteUnterpunkte(t))
+                for (final (i, punkt)
+                    in schritt.nummerierteUnterpunkte(t).indexed)
                   Padding(
                     padding: const EdgeInsets.only(
                       left: PlanerAbstand.gross,
                       right: PlanerAbstand.mittel,
                       bottom: PlanerAbstand.klein,
                     ),
-                    child: Text(punkt),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [Text(punkt), ?_eingabe(schritt, i)],
+                    ),
                   ),
               const Divider(height: 1),
             ],
@@ -470,8 +520,7 @@ class MenuGriff extends StatelessWidget {
   );
 }
 
-/// Kennzahlen rechts oben: Fläche und Volumen (Werte kommen ab M4/M5 vom
-/// Server).
+/// Kennzahlen rechts oben: Fläche (vom Server, M4-02) und Volumen (M4-13).
 class Kennzahlen extends StatelessWidget {
   const Kennzahlen({super.key, this.flaeche, this.volumen});
 

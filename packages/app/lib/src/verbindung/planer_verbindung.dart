@@ -25,6 +25,30 @@ class PlanerVerbindung {
         return antwort.arguments!.single as Uint8List;
       });
 
+  /// Lässt den Server Umriss und Kennzahlen des [stand]es berechnen (M4-02);
+  /// beide Richtungen als typisierte FlatBuffers (Packed PPT, #110).
+  Future<Berechnung> berechne(Planungsstand stand) =>
+      _mitSitzung((sitzung) async {
+        final antwort = await sitzung.callSingleLazyPayloadView(
+          WampNamen.planungBerechnen,
+          payload: verpacke(stand.zuBytes()),
+          options: CallOptions(
+            pptScheme: WampNamen.pptSchema,
+            pptSerializer: WampNamen.pptSerializer,
+          ),
+        );
+        return Berechnung.ausBytes(antwort.payload.packedPayloadBytes!);
+      });
+
+  /// FlatBuffer als Packed-PPT-Nutzlast; materialisiert ist es ein
+  /// Binärargument.
+  static LazyMessagePayload verpacke(Uint8List bytes) =>
+      LazyMessagePayload.packed(
+        encoding: LazyPayloadEncoding.flatbuffers,
+        packedPayloadBytes: bytes,
+        packedPayloadDecoder: (b) => (arguments: [b], argumentsKeywords: null),
+      );
+
   Future<T> _mitSitzung<T>(Future<T> Function(Session sitzung) aufgabe) async {
     // FlatBuffers (wamp.2.flatbuffers, #110): schnellster Weg für kleine
     // Nachrichten; typisierte Nutzlasten folgen mit dem gemeinsamen Schema.

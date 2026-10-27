@@ -17,7 +17,7 @@ final class Referenzfall {
       version: quelle['version']! as int,
       datum: DateTime.parse(quelle['datum']! as String),
       mitExport: quelle['export']! as bool,
-      grundriss: Grundriss.ausJson(_map(eingaben['grundriss'])),
+      grundriss: ReferenzGrundriss.ausJson(_map(eingaben['grundriss'])),
       flaecheM2: _zahl(eingaben['flaeche_m2']),
       volumenM3: _zahl(eingaben['volumen_m3']),
       belag: eingaben['belag'] as String?,
@@ -75,7 +75,7 @@ final class Referenzfall {
   /// Ob die Materialliste aus einem Export des alten Planers stammt.
   final bool mitExport;
 
-  final Grundriss grundriss;
+  final ReferenzGrundriss grundriss;
   final double? flaecheM2;
   final double? volumenM3;
   final String? belag;
@@ -105,8 +105,8 @@ final class Referenzfall {
 }
 
 /// Grundriss der Terrasse: Form, Eckpunkte und Kantenlängen.
-final class Grundriss {
-  Grundriss.ausJson(Map<String, Object?> json)
+final class ReferenzGrundriss {
+  ReferenzGrundriss.ausJson(Map<String, Object?> json)
     : form = json['form']! as String,
       eckpunkte = List.unmodifiable(json['eckpunkte']! as List<Object?>),
       kantenCm = _kanten(json['kanten_cm']),

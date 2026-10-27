@@ -10,6 +10,7 @@ Future<void> main() async {
   final router = PlanerRouter.starte(einstellungen);
   final hallo = await HalloDienst.starte(router);
   final modell3d = await Modell3dDienst.starte(router);
+  final planung = await PlanungsDienst.starte(router);
   final artikel = await ArtikelDienst.starte(router, ArtikeldateiQuelle.leer);
   final quelle = ArtikeldateiQuelle(
     Platform.environment[ArtikeldateiQuelle.umgebungsvariable] ??
@@ -33,6 +34,7 @@ Future<void> main() async {
   await _warteAufStoppsignal();
   nachladen.cancel();
   await artikel.stoppe();
+  await planung.stoppe();
   await modell3d.stoppe();
   await hallo.stoppe();
   await router.stoppe();
