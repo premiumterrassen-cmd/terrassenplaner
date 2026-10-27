@@ -18,6 +18,7 @@ class FormWahl extends StatelessWidget {
   static String name(PlanerTexte t, Terrassenform form) => switch (form) {
     Terrassenform.rechteck => t.formRechteck,
     Terrassenform.lForm => t.formLForm,
+    Terrassenform.tForm => t.formTForm,
   };
 
   @override

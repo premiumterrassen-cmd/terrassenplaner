@@ -27,6 +27,7 @@
   "massPlatzhalter": "{kante}: cm",
   "formRechteck": "Rectangle",
   "formLForm": "L-shape",
+  "formTForm": "T-shape",
   "massUngueltig": "Please enter {min} to {max} cm",
   "berechnungFehler": "Calculation not possible – please check the connection",
 
