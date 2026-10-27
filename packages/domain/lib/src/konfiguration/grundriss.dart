@@ -37,10 +37,10 @@ sealed class Grundriss {
 
   Kontur get kontur;
 
-  /// Kleinste und größte Seitenlänge, die der Planer annimmt (Annahme bis
-  /// zur Klärung mit Alexander: wie der 3D-Prototyp, M3-10).
+  /// Kleinste und größte Seitenlänge, die der Planer annimmt (größte:
+  /// Alexander, 27.10.2026).
   static const kleinsteSeite = Millimeter(500);
-  static const groessteSeite = Millimeter(20000);
+  static const groessteSeite = Millimeter(30000);
 
   static Millimeter _seite(Millimeter wert, String name) {
     if (wert < kleinsteSeite || wert > groessteSeite) {

@@ -109,7 +109,7 @@ void main() {
     fbb.finish(fbb.endTable());
     await expectLater(
       rufe(fbb.buffer),
-      fehler('muss zwischen 50 und 2000 cm liegen'),
+      fehler('muss zwischen 50 und 3000 cm liegen'),
     );
   });
 

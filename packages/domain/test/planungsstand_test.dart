@@ -28,18 +28,18 @@ void main() {
 
     test('Fläche folgt den Maßen', () {
       expect(_rechteck(5400, 3600).kontur.flaeche, 19440000);
-      expect(_rechteck(500, 20000).kontur.flaeche, 10000000);
+      expect(_rechteck(500, 30000).kontur.flaeche, 15000000);
     });
 
-    test('Seiten zwischen 50 und 2000 cm', () {
-      const text = 'muss zwischen 50 und 2000 cm liegen';
+    test('Seiten zwischen 50 und 3000 cm', () {
+      const text = 'muss zwischen 50 und 3000 cm liegen';
       expect(() => _rechteck(499, 3000), wirftArgumentFehler('ab', 499, text));
       expect(
-        () => _rechteck(3000, 20001),
-        wirftArgumentFehler('bc', 20001, text),
+        () => _rechteck(3000, 30001),
+        wirftArgumentFehler('bc', 30001, text),
       );
       expect(Grundriss.kleinsteSeite, const Millimeter(500));
-      expect(Grundriss.groessteSeite, const Millimeter(20000));
+      expect(Grundriss.groessteSeite, const Millimeter(30000));
     });
 
     test('Gleichheit nach Maßen', () {

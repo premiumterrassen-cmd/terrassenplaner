@@ -179,23 +179,23 @@ void main() {
 
     testWidgets('ungültige Eingaben: Hinweis, Planung bleibt', (tester) async {
       final s = await zeige(tester);
-      for (final text in ['abc', '49', '2001', '']) {
+      for (final text in ['abc', '49', '3001', '']) {
         await tester.enterText(find.byKey(const ValueKey('mass-1')), text);
         await tester.testTextInput.receiveAction(TextInputAction.done);
         await tester.pump();
-        expect(find.text('Bitte 50 bis 2000 cm eingeben'), findsOneWidget);
+        expect(find.text('Bitte 50 bis 3000 cm eingeben'), findsOneWidget);
       }
       expect(s.planung.aktuell, Planungsstand.start);
       expect(s.geaendert, isEmpty);
       await tester.enterText(find.byKey(const ValueKey('mass-1')), '50');
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pump();
-      expect(find.text('Bitte 50 bis 2000 cm eingeben'), findsNothing);
+      expect(find.text('Bitte 50 bis 3000 cm eingeben'), findsNothing);
       expect(_rechteck(s.planung.aktuell).bc, const Millimeter(500));
-      await tester.enterText(find.byKey(const ValueKey('mass-0')), '2000');
+      await tester.enterText(find.byKey(const ValueKey('mass-0')), '3000');
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pump();
-      expect(_rechteck(s.planung.aktuell).ab, const Millimeter(20000));
+      expect(_rechteck(s.planung.aktuell).ab, const Millimeter(30000));
     });
   });
 
@@ -300,7 +300,7 @@ void main() {
 
   test('englische Texte der Maßeingabe', () {
     expect(en.massPlatzhalter('A — B'), 'A — B: cm');
-    expect(en.massUngueltig(50, 2000), 'Please enter 50 to 2000 cm');
+    expect(en.massUngueltig(50, 3000), 'Please enter 50 to 3000 cm');
     expect(
       en.berechnungFehler,
       'Calculation not possible – please check the connection',

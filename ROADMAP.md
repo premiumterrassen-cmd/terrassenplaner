@@ -219,7 +219,7 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/5
 - [x] **M4-02 Rechteck mit Maßen** ([#32](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/32)) – `feature/m4-02-rechteck-mit-massen`
   - Rechteck als Standardform, Maße A–B und B–C in cm.
   - Abnahme: Fläche und Zeichnung stimmen mit Eingabe überein
-  - Ergebnis: `Planungsstand` mit `Grundriss` (Start-Rechteck 480 × 309 cm wie F01) und `Berechnung`, beide als typisierte FlatBuffers (Packed PPT, #110); `PlanungsDienst` (`kunde.planung.berechnen`) rechnet Umriss und Fläche mit dem Geometrie-Kern; App: Felder A — B / B — C unter 1.2 (Platzhalter wie im alten Planer, Enter übernimmt), Zeichnung und Kennzahl Fläche kommen vom Server. Smoke-Test in Chrome gegen den echten Server. Grenzen vorläufig 50–2000 cm (offene Frage 18).
+  - Ergebnis: `Planungsstand` mit `Grundriss` (Start-Rechteck 480 × 309 cm wie F01) und `Berechnung`, beide als typisierte FlatBuffers (Packed PPT, #110); `PlanungsDienst` (`kunde.planung.berechnen`) rechnet Umriss und Fläche mit dem Geometrie-Kern; App: Felder A — B / B — C unter 1.2 (Platzhalter wie im alten Planer, Enter übernimmt), Zeichnung und Kennzahl Fläche kommen vom Server. Smoke-Test in Chrome gegen den echten Server. Seiten 50–3000 cm (größte: Alexander, 27.10.2026).
 - [ ] **M4-03 L-Form** ([#33](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/33)) – `feature/m4-03-l-form`
   - L-Form (im alten Planer ist eine L-Variante aktiv) mit allen Seitenmaßen.
   - Abnahme: Seitenmaße editierbar, Fläche korrekt
