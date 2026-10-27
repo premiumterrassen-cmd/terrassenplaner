@@ -216,9 +216,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/5
   - Polygone mit Bögen, Fläche, Umfang, Winkel, Punkt-in-Fläche, Schnitt/Vereinigung/Differenz, Abstands- und Kollisionsprüfung – Grundlage für Grundriss, Belag und UK.
   - Abnahme: Eigenschaftsbasierte Tests (z. B. Fläche invariant unter Drehung); Benchmark für komplexe Formen mit Ausschnitten
   - Ergebnis: `docs/architektur/geometrie.md` – `Punkt`, `Kante` (Strecke oder Kreisbogen über die Wölbung), `Kontur` (exakte Fläche auch mit Bögen, Umfang, Innenwinkel, Punkt im Inneren, Abstand, Selbstüberschneidung, Drehen/Verschieben), `Flaeche` mit Löchern und `verknuepfe` (Vereinigung/Schnitt/Differenz, eigenes Verfahren, deckungsgleiche Kanten kein Sonderfall); Prüfungen `umschliesst`/`ueberschneidet`/`abstand`/Teilung für M4-12. Eigenschaftsbasierte Tests (Drehung, Umlaufsinn, Winkelsumme, Einschluss-Ausschluss, Zufallspunkte, Rasterrechtecke auch gedreht). Benchmark `domain.Geometrie.uFormMitAusschnitten`: 6,7 ms je Durchlauf (U-Form mit Rundungen, sechs Ausschnitte).
-- [ ] **M4-02 Rechteck mit Maßen** ([#32](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/32)) – `feature/m4-02-rechteck-mit-massen`
+- [x] **M4-02 Rechteck mit Maßen** ([#32](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/32)) – `feature/m4-02-rechteck-mit-massen`
   - Rechteck als Standardform, Maße A–B und B–C in cm.
   - Abnahme: Fläche und Zeichnung stimmen mit Eingabe überein
+  - Ergebnis: `Planungsstand` mit `Grundriss` (Start-Rechteck 480 × 309 cm wie F01) und `Berechnung`, beide als typisierte FlatBuffers (Packed PPT, #110); `PlanungsDienst` (`kunde.planung.berechnen`) rechnet Umriss und Fläche mit dem Geometrie-Kern; App: Felder A — B / B — C unter 1.2 (Platzhalter wie im alten Planer, Enter übernimmt), Zeichnung und Kennzahl Fläche kommen vom Server. Smoke-Test in Chrome gegen den echten Server. Grenzen vorläufig 50–2000 cm (offene Frage 18).
 - [ ] **M4-03 L-Form** ([#33](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/33)) – `feature/m4-03-l-form`
   - L-Form (im alten Planer ist eine L-Variante aktiv) mit allen Seitenmaßen.
   - Abnahme: Seitenmaße editierbar, Fläche korrekt

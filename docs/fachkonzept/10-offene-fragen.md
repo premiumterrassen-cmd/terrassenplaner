@@ -22,6 +22,7 @@ Aus M1-03 (Verdacht auf Fehler des alten Planers, siehe [09](09-nicht-teil-der-k
 15. ~~**Dielenlängen über 600 cm** (F14)~~ → Fehler laut B-035 (7 m nur Serbien; UK 6,5 m gibt es nicht).
 16. ~~**Kurze Stücke verbinden** (F13)~~ → beantwortet.
 17. ~~**Querstreben**~~ → beantwortet.
+18. **Grenzen der Terrassenmaße** (M4-02): Welche kleinste und größte Seitenlänge soll der Planer annehmen? Vorläufig 50–2000 cm (wie der 3D-Prototyp M3-10); der alte Planer nennt keine Grenze.
 
 ## Beantwortet
 
