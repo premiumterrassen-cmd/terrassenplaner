@@ -46,6 +46,7 @@ class ZeichnungsMaler extends CustomPainter {
     required this.optionen,
     required this.ansicht,
     required this.sprache,
+    this.strich = PlanerFarben.text,
   }) : super(repaint: Listenable.merge([optionen, ansicht]));
 
   final Zeichnung zeichnung;
@@ -54,6 +55,9 @@ class ZeichnungsMaler extends CustomPainter {
 
   /// Beschriftungen und Zahlen in der Sprache der Oberfläche (M3-07).
   final PlanerTexte sprache;
+
+  /// Farbe von Umriss, Kanten und Beschriftung (hell/dunkel, M3-09).
+  final Color strich;
 
   /// Abstand der Maßlinien vom Umriss in Pixeln.
   static const masslinienAbstand = 44.0;
@@ -219,7 +223,7 @@ class ZeichnungsMaler extends CustomPainter {
         ..drawRect(
           rechteck,
           Paint()
-            ..color = PlanerFarben.text.withValues(alpha: 0.3)
+            ..color = strich.withValues(alpha: 0.3)
             ..style = PaintingStyle.stroke,
         );
     }
@@ -228,7 +232,7 @@ class ZeichnungsMaler extends CustomPainter {
       canvas.drawPath(
         Path()..addPolygon(umriss, true),
         Paint()
-          ..color = PlanerFarben.text
+          ..color = strich
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2,
       );
@@ -242,7 +246,7 @@ class ZeichnungsMaler extends CustomPainter {
       final maler = TextPainter(
         text: TextSpan(
           text: text,
-          style: const TextStyle(fontSize: 12, color: PlanerFarben.text),
+          style: TextStyle(fontSize: 12, color: strich),
         ),
         textDirection: TextDirection.ltr,
       )..layout();
@@ -262,5 +266,6 @@ class ZeichnungsMaler extends CustomPainter {
       alt.zeichnung != zeichnung ||
       alt.optionen != optionen ||
       alt.ansicht != ansicht ||
-      alt.sprache != sprache;
+      alt.sprache != sprache ||
+      alt.strich != strich;
 }

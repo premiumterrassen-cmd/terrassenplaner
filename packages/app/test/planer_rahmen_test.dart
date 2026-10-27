@@ -203,5 +203,35 @@ void main() {
     expect(thema.dialogTheme.backgroundColor, PlanerFarben.weiss);
     expect(thema.dialogTheme.surfaceTintColor, PlanerFarben.weiss);
     expect(thema.scaffoldBackgroundColor, PlanerFarben.weiss);
+    expect(thema.brightness, Brightness.light);
+    expect(thema.colorScheme.surface, PlanerFarben.weiss);
+    expect(thema.colorScheme.surfaceContainer, PlanerFarben.sand);
+    expect(thema.colorScheme.onSurface, PlanerFarben.text);
+    expect(thema.colorScheme.outlineVariant, PlanerFarben.linie);
+    expect(thema.colorScheme.onPrimary, PlanerFarben.weiss);
+    expect(thema.colorScheme.onSecondary, PlanerFarben.weiss);
+  });
+
+  test('dunkles Thema (M3-09): Markenfarben bleiben, Flächen dunkel', () {
+    final thema = planerThema(Brightness.dark);
+    expect(thema.brightness, Brightness.dark);
+    expect(thema.colorScheme.primary, PlanerFarben.braun);
+    expect(thema.colorScheme.secondary, PlanerFarben.gruen);
+    expect(thema.colorScheme.onPrimary, PlanerFarben.weiss);
+    expect(thema.colorScheme.surface, PlanerFarbenDunkel.grund);
+    expect(thema.colorScheme.surfaceContainer, PlanerFarbenDunkel.leiste);
+    expect(thema.colorScheme.onSurface, PlanerFarbenDunkel.text);
+    expect(thema.colorScheme.outlineVariant, PlanerFarbenDunkel.linie);
+    expect(thema.scaffoldBackgroundColor, PlanerFarbenDunkel.grund);
+    expect(thema.dividerColor, PlanerFarbenDunkel.linie);
+    expect(thema.cardTheme.color, PlanerFarbenDunkel.grund);
+    expect(thema.cardTheme.surfaceTintColor, PlanerFarbenDunkel.grund);
+    expect(thema.dialogTheme.backgroundColor, PlanerFarbenDunkel.grund);
+    expect(thema.dialogTheme.surfaceTintColor, PlanerFarbenDunkel.grund);
+    expect(thema.textTheme.bodyMedium!.fontFamily, planerSchrift);
+    expect(PlanerFarbenDunkel.grund, const Color(0xFF1F1D1A));
+    expect(PlanerFarbenDunkel.leiste, const Color(0xFF2B2824));
+    expect(PlanerFarbenDunkel.text, const Color(0xFFE9E3D9));
+    expect(PlanerFarbenDunkel.linie, const Color(0xFF4A453F));
   });
 }

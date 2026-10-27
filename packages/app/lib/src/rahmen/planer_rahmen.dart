@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../design/darstellung.dart';
 import '../design/planer_design.dart';
 import '../sprache/sprache.dart';
 import 'aktionen.dart';
@@ -24,6 +25,7 @@ class PlanerRahmen extends StatefulWidget {
     this.zeichnung,
     this.aktionen = const RahmenAktionen(),
     this.sprache,
+    this.darstellung,
   });
 
   /// Inhalt der Statuszeile (z. B. Verbindung zum Server).
@@ -43,6 +45,10 @@ class PlanerRahmen extends StatefulWidget {
 
   /// Sprachauswahl in der Kopfzeile (M3-07); ohne Steuerung keine Auswahl.
   final SprachSteuerung? sprache;
+
+  /// Darstellungsauswahl in der Kopfzeile (M3-09); ohne Steuerung keine
+  /// Auswahl.
+  final DarstellungSteuerung? darstellung;
 
   @override
   State<PlanerRahmen> createState() => _PlanerRahmenState();
@@ -101,6 +107,7 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
               Kopfzeile(
                 breit: desktop,
                 sprache: widget.sprache,
+                darstellung: widget.darstellung,
                 onZuruecksetzen: _zuruecksetzen,
                 onVideoberatung: () =>
                     widget.aktionen.oeffne(PlanerLinks.videoberatung),
@@ -156,8 +163,8 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
   );
 }
 
-/// Kopfzeile mit Logo, Titel, Sprachauswahl und Knöpfen (M3-03, M3-06,
-/// M3-07); ohne Platz nur Symbole.
+/// Kopfzeile mit Logo, Titel, Sprach- und Darstellungsauswahl und Knöpfen
+/// (M3-03, M3-06, M3-07, M3-09); ohne Platz nur Symbole.
 class Kopfzeile extends StatelessWidget {
   const Kopfzeile({
     required this.breit,
@@ -167,10 +174,12 @@ class Kopfzeile extends StatelessWidget {
     required this.onAnfordern,
     super.key,
     this.sprache,
+    this.darstellung,
   });
 
   final bool breit;
   final SprachSteuerung? sprache;
+  final DarstellungSteuerung? darstellung;
   final VoidCallback onZuruecksetzen;
   final VoidCallback onVideoberatung;
   final VoidCallback onPdf;
@@ -179,8 +188,9 @@ class Kopfzeile extends StatelessWidget {
   static const logo = 'assets/bilder/robinienwelt_logo.png';
 
   /// Ab dieser Breite (px) tragen die Knöpfe ihre Beschriftung; darunter
-  /// nur Symbole mit Tooltip – auch für längere Übersetzungen (M3-07).
-  static const textAb = 1280.0;
+  /// nur Symbole mit Tooltip – auch für längere Übersetzungen (M3-07) und
+  /// mit Sprach- und Darstellungsauswahl (M3-09, Englisch braucht 1322 px).
+  static const textAb = 1366.0;
 
   Widget _knopf(
     String schluessel,
@@ -213,9 +223,11 @@ class Kopfzeile extends StatelessWidget {
     return Container(
       height: 64,
       padding: const EdgeInsets.symmetric(horizontal: PlanerAbstand.mittel),
-      decoration: const BoxDecoration(
-        color: PlanerFarben.weiss,
-        border: Border(bottom: BorderSide(color: PlanerFarben.linie)),
+      decoration: BoxDecoration(
+        color: context.farben.surface,
+        border: Border(
+          bottom: BorderSide(color: context.farben.outlineVariant),
+        ),
       ),
       child: Row(
         children: [
@@ -237,6 +249,8 @@ class Kopfzeile extends StatelessWidget {
           ],
           const Spacer(),
           if (sprache case final sprache?) Sprachauswahl(sprache: sprache),
+          if (darstellung case final darstellung?)
+            Darstellungsauswahl(darstellung: darstellung),
           _knopf(
             'videoberatung',
             Icons.video_call_outlined,
@@ -280,7 +294,7 @@ class Schrittleiste extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    color: PlanerFarben.sand,
+    color: context.farben.surfaceContainer,
     padding: const EdgeInsets.symmetric(vertical: PlanerAbstand.klein),
     child: Column(
       children: [
@@ -304,7 +318,7 @@ class Schrittleiste extends StatelessWidget {
           child: LinearProgressIndicator(
             value: zustand.fortschritt,
             color: PlanerFarben.gruen,
-            backgroundColor: PlanerFarben.linie,
+            backgroundColor: context.farben.outlineVariant,
             semanticsLabel: context.texte.fortschritt,
           ),
         ),
@@ -348,7 +362,7 @@ class Station extends StatelessWidget {
                   ? PlanerFarben.gruen
                   : besucht
                   ? PlanerFarben.braun
-                  : PlanerFarben.linie,
+                  : context.farben.outlineVariant,
               child: Text(
                 '${schritt.nummer}',
                 style: const TextStyle(color: PlanerFarben.weiss, fontSize: 13),
@@ -366,7 +380,7 @@ class Station extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: aktiv ? FontWeight.w700 : FontWeight.w400,
-                  color: PlanerFarben.text,
+                  color: context.farben.onSurface,
                 ),
               ),
             ),
@@ -391,7 +405,7 @@ class Bearbeitungsmenue extends StatelessWidget {
       key: const ValueKey('bearbeitungsmenue'),
       width: PlanerLayout.menuBreite,
       child: Material(
-        color: PlanerFarben.weiss,
+        color: context.farben.surface,
         child: ListView(
           children: [
             for (final schritt in PlanerSchritt.values) ...[
@@ -503,12 +517,12 @@ class Statuszeile extends StatelessWidget {
     return Container(
       height: 32,
       padding: const EdgeInsets.symmetric(horizontal: PlanerAbstand.mittel),
-      decoration: const BoxDecoration(
-        color: PlanerFarben.sand,
-        border: Border(top: BorderSide(color: PlanerFarben.linie)),
+      decoration: BoxDecoration(
+        color: context.farben.surfaceContainer,
+        border: Border(top: BorderSide(color: context.farben.outlineVariant)),
       ),
       child: DefaultTextStyle.merge(
-        style: const TextStyle(fontSize: 12, color: PlanerFarben.text),
+        style: TextStyle(fontSize: 12, color: context.farben.onSurface),
         child: Row(
           children: [
             Expanded(child: child),

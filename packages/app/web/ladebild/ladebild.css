@@ -5,6 +5,16 @@
   --sand: #f5f0e8;
   --grau: #dcdcdc;
   --text: #3a3a3a;
+  --karte: rgba(255, 255, 255, 0.92);
+  --hinweis: #6b6b6b;
+}
+/* Dunkle Darstellung wie im Planer (M3-09, lib/src/design/planer_design.dart). */
+html.dunkel {
+  --sand: #1f1d1a;
+  --grau: #4a453f;
+  --text: #e9e3d9;
+  --karte: rgba(43, 40, 36, 0.92);
+  --hinweis: #b5ada2;
 }
 html, body { margin: 0; height: 100%; background: var(--sand); }
 #ladebild {
@@ -22,7 +32,7 @@ html, body { margin: 0; height: 100%; background: var(--sand); }
 .ladebild-logo { position: relative; width: min(340px, 70vw); height: auto; }
 .ladebild-karte {
   position: relative; width: min(380px, calc(100vw - 32px)); box-sizing: border-box; padding: 22px 26px 18px;
-  background: rgba(255, 255, 255, 0.92); border-radius: 6px; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08); text-align: center;
+  background: var(--karte); border-radius: 6px; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08); text-align: center;
 }
 .ladebild-titel { margin: 0 0 14px; font-size: 17px; font-weight: 500; color: var(--braun); }
 .ladebild-balken { height: 6px; border-radius: 3px; background: var(--grau); overflow: hidden; }
@@ -30,7 +40,7 @@ html, body { margin: 0; height: 100%; background: var(--sand); }
 .ladebild-balken.unbestimmt .ladebild-fuellung { width: 35%; animation: ladebild-wandern 1.4s ease-in-out infinite; }
 @keyframes ladebild-wandern { from { transform: translateX(-110%); } to { transform: translateX(300%); } }
 .ladebild-prozent { margin: 10px 0 0; font-size: 14px; font-variant-numeric: tabular-nums; color: var(--braun); min-height: 1.2em; }
-.ladebild-status { margin: 4px 0 0; font-size: 13px; color: #6b6b6b; min-height: 1.2em; }
+.ladebild-status { margin: 4px 0 0; font-size: 13px; color: var(--hinweis); min-height: 1.2em; }
 .ladebild-erneut {
   margin-top: 14px; padding: 8px 18px; border: 0; border-radius: 4px; background: var(--gruen); color: #fff;
   font: inherit; font-size: 14px; cursor: pointer;

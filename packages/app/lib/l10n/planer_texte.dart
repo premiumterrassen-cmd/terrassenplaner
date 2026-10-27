@@ -112,6 +112,30 @@ abstract class PlanerTexte {
   /// **'Sprache'**
   String get sprache;
 
+  /// Auswahl hell/dunkel/wie System in der Kopfzeile (M3-09)
+  ///
+  /// In de, this message translates to:
+  /// **'Darstellung'**
+  String get darstellung;
+
+  /// No description provided for @darstellungHell.
+  ///
+  /// In de, this message translates to:
+  /// **'Hell'**
+  String get darstellungHell;
+
+  /// No description provided for @darstellungDunkel.
+  ///
+  /// In de, this message translates to:
+  /// **'Dunkel'**
+  String get darstellungDunkel;
+
+  /// No description provided for @darstellungSystem.
+  ///
+  /// In de, this message translates to:
+  /// **'Wie System'**
+  String get darstellungSystem;
+
   /// No description provided for @planerTitel.
   ///
   /// In de, this message translates to:

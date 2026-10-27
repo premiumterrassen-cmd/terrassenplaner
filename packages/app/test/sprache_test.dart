@@ -210,7 +210,7 @@ void main() {
       expect(find.text(de.planerTitel), findsOneWidget);
     });
 
-    for (final breite in [768.0, 1024.0, 1279.0, 1280.0, 1440.0]) {
+    for (final breite in [768.0, 1024.0, 1280.0, 1365.0, 1366.0, 1440.0]) {
       testWidgets('beide Sprachen ohne Überlauf bei $breite px', (
         tester,
       ) async {
@@ -218,7 +218,7 @@ void main() {
         for (final t in [de, en]) {
           sprache.value = Locale(t.localeName);
           await tester.pumpAndSettle();
-          // Unter 1280 px nur Symbole mit Tooltip (Kopfzeile.textAb).
+          // Unter 1366 px nur Symbole mit Tooltip (Kopfzeile.textAb).
           final mitText = breite >= Kopfzeile.textAb;
           expect(
             find.text(t.videoberatung),

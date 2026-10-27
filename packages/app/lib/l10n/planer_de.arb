@@ -3,6 +3,11 @@
   "sprachname": "Deutsch",
   "@sprachname": {"description": "Name der Sprache in der Sprachauswahl, in der Sprache selbst"},
   "sprache": "Sprache",
+  "darstellung": "Darstellung",
+  "@darstellung": {"description": "Auswahl hell/dunkel/wie System in der Kopfzeile (M3-09)"},
+  "darstellungHell": "Hell",
+  "darstellungDunkel": "Dunkel",
+  "darstellungSystem": "Wie System",
 
   "planerTitel": "TERRASSENKONFIGURATOR",
   "logoBeschreibung": "RobinienWelt",

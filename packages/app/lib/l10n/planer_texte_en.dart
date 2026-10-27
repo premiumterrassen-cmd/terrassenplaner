@@ -19,6 +19,18 @@ class PlanerTexteEn extends PlanerTexte {
   String get sprache => 'Language';
 
   @override
+  String get darstellung => 'Appearance';
+
+  @override
+  String get darstellungHell => 'Light';
+
+  @override
+  String get darstellungDunkel => 'Dark';
+
+  @override
+  String get darstellungSystem => 'System';
+
+  @override
   String get planerTitel => 'DECKING CONFIGURATOR';
 
   @override

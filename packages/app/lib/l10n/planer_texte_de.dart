@@ -19,6 +19,18 @@ class PlanerTexteDe extends PlanerTexte {
   String get sprache => 'Sprache';
 
   @override
+  String get darstellung => 'Darstellung';
+
+  @override
+  String get darstellungHell => 'Hell';
+
+  @override
+  String get darstellungDunkel => 'Dunkel';
+
+  @override
+  String get darstellungSystem => 'Wie System';
+
+  @override
   String get planerTitel => 'TERRASSENKONFIGURATOR';
 
   @override

@@ -179,6 +179,13 @@ void main() {
         );
       }
       expect(maler.shouldRepaint(RasterMaler(ansicht: a)), isFalse);
+      expect(maler.linie, PlanerFarben.linie);
+      expect(
+        maler.shouldRepaint(
+          RasterMaler(ansicht: a, linie: PlanerFarbenDunkel.linie),
+        ),
+        isTrue,
+      );
       expect(maler.shouldRepaint(RasterMaler(ansicht: a, abstand: 20)), isTrue);
       expect(
         maler.shouldRepaint(RasterMaler(ansicht: AnsichtSteuerung())),

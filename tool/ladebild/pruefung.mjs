@@ -26,10 +26,14 @@ const wampPort = process.env.LADEBILD_WAMP_PORT;
 
 // Texte des Ladebildschirms (web/ladebild/fortschritt.js, Deutsch).
 const TEXT = {
+  titel: 'Ihr Terrassenplaner wird geladen',
   langsam: 'Das Laden dauert länger. Bitte prüfen Sie Ihre Verbindung.',
   offline: 'Sie sind offline. Bitte prüfen Sie Ihre Verbindung.',
   fehlerTitel: 'Start nicht möglich',
 };
+// Schlüssel der lokalen Einstellungen (lib/src/einstellungen/lokale_einstellungen.dart).
+const SPRACH_SCHLUESSEL = 'terrassenplaner.sprache';
+const DARSTELLUNG_SCHLUESSEL = 'terrassenplaner.darstellung';
 
 // ---------------------------------------------------------------- Server
 
@@ -226,6 +230,9 @@ class Seite {
   }
 
   sende(methode, parameter) { return this.p.sende(methode, parameter, this.sitzung); }
+
+  /** Führt [quelle] vor jedem Skript der Seite aus (z. B. Speicher vorbelegen). */
+  vorab(quelle) { return this.sende('Page.addScriptToEvaluateOnNewDocument', { source: quelle }); }
 
   async schliessen({ kontextBehalten } = {}) {
     await this.p.sende('Target.closeTarget', { targetId: this.kontext.targetId });
@@ -445,6 +452,63 @@ const FAELLE = {
     await pruefeStart(seite, adresse);
     await seite.schliessen();
     return 'Fehlerzustand mit Knopf, Neustart erfolgreich';
+  },
+
+  async 'Sprache aus den Einstellungen: Englisch gespeichert, Ladebild englisch'(p, adresse) {
+    const seite = await Seite.oeffne(p);
+    await seite.vorab(`localStorage.setItem('${SPRACH_SCHLUESSEL}', 'en')`);
+    await seite.abfangen({ halten: ['main.dart.wasm'] });
+    await seite.oeffneUrl(adresse);
+    await seite.warte("window.planerLadebildschirm", 'Ladebild bereit');
+    const texte = await seite.werte(`({ lang: document.documentElement.lang,
+      titel: document.getElementById('ladebild-titel').textContent,
+      balken: document.getElementById('ladebild-balken').getAttribute('aria-label'),
+      knopf: document.getElementById('ladebild-erneut').textContent,
+      status: document.getElementById('ladebild-status').textContent })`);
+    pruefe(texte.lang === 'en', `html lang nicht en: ${texte.lang}`);
+    pruefe(texte.titel === 'Your decking configurator is loading', `Titel nicht englisch: ${texte.titel}`);
+    pruefe(texte.balken === 'Loading progress' && texte.knopf === 'Try again', `feste Texte nicht englisch: ${JSON.stringify(texte)}`);
+    pruefe(texte.status === 'Loading planning data …', `Status nicht englisch: ${texte.status}`);
+    await seite.freigeben();
+    await pruefeStart(seite, adresse);
+    await seite.schliessen();
+    return `lang=en, „${texte.titel}“`;
+  },
+
+  async 'Darstellung wie im Planer: gespeichert dunkel/hell, sonst wie das System'(p, adresse) {
+    // [gespeichert, System dunkel?, erwartet dunkel?]
+    const faelle = [['dark', false, true], [null, true, true], ['light', true, false], [null, false, false]];
+    for (const [gespeichert, systemDunkel, erwartet] of faelle) {
+      const seite = await Seite.oeffne(p);
+      if (gespeichert) await seite.vorab(`localStorage.setItem('${DARSTELLUNG_SCHLUESSEL}', '${gespeichert}')`);
+      await seite.sende('Emulation.setEmulatedMedia', {
+        features: [{ name: 'prefers-color-scheme', value: systemDunkel ? 'dark' : 'light' }],
+      });
+      await seite.oeffneUrl(adresse);
+      await seite.warte('window.planerLadebildschirm', 'Ladebild bereit');
+      const stand = await seite.werte(`({ dunkel: document.documentElement.classList.contains('dunkel'),
+        grund: getComputedStyle(document.getElementById('ladebild')).backgroundColor })`);
+      const fall = `gespeichert=${gespeichert}, System ${systemDunkel ? 'dunkel' : 'hell'}`;
+      pruefe(stand.dunkel === erwartet, `${fall}: dunkel=${stand.dunkel}`);
+      pruefe(stand.grund === (erwartet ? 'rgb(31, 29, 26)' : 'rgb(245, 240, 232)'), `${fall}: Hintergrund ${stand.grund}`);
+      await pruefeStart(seite, adresse);
+      await seite.schliessen();
+    }
+    return 'dark → dunkel, System dunkel → dunkel, light → hell, System hell → hell';
+  },
+
+  async 'Speicher gesperrt (privates Fenster): Deutsch, App startet ohne Fehler'(p, adresse) {
+    const seite = await Seite.oeffne(p);
+    // Wie bei gesperrten Website-Daten: schon der Zugriff auf localStorage wirft.
+    await seite.vorab(`Object.defineProperty(window, 'localStorage', {
+      get() { throw new DOMException('Speicher gesperrt', 'SecurityError'); } })`);
+    await seite.oeffneUrl(adresse);
+    await seite.warte("window.planerLadebildschirm", 'Ladebild bereit');
+    pruefe(await seite.text('ladebild-titel') === TEXT.titel, 'Titel nicht deutsch');
+    pruefe(await seite.werte('document.documentElement.lang') === 'de', 'html lang nicht de');
+    await pruefeStart(seite, adresse);
+    await seite.schliessen();
+    return 'Standardwerte, keine Konsolenfehler';
   },
 };
 

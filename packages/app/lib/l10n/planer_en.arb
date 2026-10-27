@@ -2,6 +2,10 @@
   "@@locale": "en",
   "sprachname": "English",
   "sprache": "Language",
+  "darstellung": "Appearance",
+  "darstellungHell": "Light",
+  "darstellungDunkel": "Dark",
+  "darstellungSystem": "System",
 
   "planerTitel": "DECKING CONFIGURATOR",
   "logoBeschreibung": "RobinienWelt",
