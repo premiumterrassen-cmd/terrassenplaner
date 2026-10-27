@@ -198,6 +198,7 @@ class Seite {
     this.halten = [];
     this.scheitern = [];
     this.ersetzen = {};
+    this.abfangAktiv = false;
     protokoll.auf((n) => {
       if (n.sessionId !== sitzung) return;
       if (n.method === 'Network.requestWillBeSent') this.anfragen.push(n.params.request.url);
@@ -205,7 +206,13 @@ class Seite {
       if (n.method === 'Runtime.consoleAPICalled' && n.params.type === 'error') {
         this.fehlerMeldungen.push(n.params.args.map((a) => a.value ?? a.description).join(' '));
       }
-      if (n.method === 'Fetch.requestPaused') this.#pausiert(n.params);
+      // Nach Fetch.disable kann noch ein angehaltenes Ereignis eintreffen;
+      // Chrome hat die Anfrage dann schon selbst fortgesetzt.
+      if (n.method === 'Fetch.requestPaused') {
+        this.#pausiert(n.params).catch((e) => {
+          if (this.abfangAktiv) this.fehlerMeldungen.push(`Abfangen: ${e.message}`);
+        });
+      }
     });
   }
 
@@ -239,6 +246,7 @@ class Seite {
     this.halten = halten;
     this.scheitern = scheitern;
     this.ersetzen = ersetzen;
+    this.abfangAktiv = true;
     const muster = [...halten, ...scheitern, ...Object.keys(ersetzen)]
       .map((t) => ({ urlPattern: `*${t}*`, requestStage: 'Request' }));
     await this.sende('Fetch.enable', { patterns: muster });
@@ -273,6 +281,7 @@ class Seite {
       for (const requestId of ids) await this.sende('Fetch.continueRequest', { requestId });
     }
     this.gehalten.clear();
+    this.abfangAktiv = false;
     await this.sende('Fetch.disable');
   }
 
