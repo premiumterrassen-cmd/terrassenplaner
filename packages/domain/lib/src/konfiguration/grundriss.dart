@@ -515,7 +515,7 @@ final class FreiformGrundriss extends Grundriss {
   /// Ohne die Ecke [index]; eine geschlossene Form behält mindestens drei
   /// (M4-09).
   FreiformGrundriss ohnePunkt(int index) {
-    if (geschlossen && punkte.length <= 3) {
+    if (geschlossen && punkte.length < 4) {
       throw ArgumentError.value(
         punkte.length,
         'punkte',

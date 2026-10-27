@@ -368,6 +368,33 @@ void main() {
       expect(_f(s.planung).geschlossen, isFalse);
     });
 
+    testWidgets('x wirkt beim Drücken; Antippen holt den Fokus zurück', (
+      tester,
+    ) async {
+      final s = await zeige(tester);
+      await tester.tap(find.byKey(const ValueKey('form-freiform')));
+      await tester.pumpAndSettle();
+      // Fokus erst in ein Eingabefeld des Menüs
+      await tester.tap(find.byKey(const ValueKey('freiform-0')));
+      await tester.pump();
+      final ursprung = tester.getTopLeft(
+        find.byKey(const ValueKey('freiform-zeichnen')),
+      );
+      for (final p in const [
+        Offset(100, 100),
+        Offset(400, 100),
+        Offset(400, 300),
+      ]) {
+        await tester.tapAt(ursprung + p);
+        await tester.pumpAndSettle();
+      }
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.keyX);
+      await tester.pump();
+      expect(_f(s.planung).geschlossen, isTrue);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.keyX);
+      await tester.pumpAndSettle();
+    });
+
     test('Bildschirm in mm', () {
       final ansicht = AnsichtSteuerung()..zoomeAuf(2);
       final z = Zeichenflaeche(
