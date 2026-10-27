@@ -96,9 +96,13 @@ function chromePfad() {
 
 // Zwei Browser-Umgebungen: mit WebGL (Software-Rendering) wählt Flutter den
 // WebAssembly-Build mit Skwasm, ohne WebGL den JS-Build mit CanvasKit.
+// (Linux-Chrome bietet trotz --disable-gpu WebGL über SwiftShader an, darum
+// WebGL ausdrücklich abschalten.) Mit Software-WebGL meldet Chrome das erste
+// Bild erst nach dem GPU-Start (> 2 s, teils nach fertig()); „sofort
+// sichtbar“ wird deshalb nur ohne WebGL über first-contentful-paint geprüft.
 const UMGEBUNGEN = [
   { name: 'WebAssembly', einstieg: 'main.dart.wasm', schalter: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] },
-  { name: 'JavaScript ohne WebGL', einstieg: 'main.dart.js', schalter: ['--disable-gpu'], nur: ['kalter Start', 'Cache'] },
+  { name: 'JavaScript ohne WebGL', einstieg: 'main.dart.js', schalter: ['--disable-gpu', '--disable-webgl', '--disable-3d-apis'], nur: ['kalter Start', 'Cache'], erstesBildMessbar: true },
 ];
 
 async function starteChrome(schalter) {
@@ -208,6 +212,9 @@ class Seite {
     const seite = new Seite(protokoll, sessionId, { browserContextId, targetId });
     for (const domain of ['Page', 'Runtime', 'Network']) await seite.sende(`${domain}.enable`);
     await seite.sende('Page.addScriptToEvaluateOnNewDocument', { source: SONDE });
+    // Im Hintergrund pausiert requestAnimationFrame – das Ladebild verschwindet
+    // erst, wenn der Tab sichtbar ist. Deshalb jede Testseite nach vorn holen.
+    await seite.sende('Page.bringToFront');
     return seite;
   }
 
@@ -277,7 +284,8 @@ class Seite {
       await new Promise((r) => setTimeout(r, 100));
     }
     // Für die Fehlersuche: Zustand des Ladebilds und geladene Dateien.
-    const stand = await this.werte(`JSON.stringify({ zustand: window.planerLadebildschirm
+    const stand = await this.werte(`JSON.stringify({ sichtbar: document.visibilityState,
+      zustand: window.planerLadebildschirm
       && window.planerLadebildschirm.zustand(), dateien: performance.getEntriesByType('resource')
       .map((e) => e.name.replace(location.origin, '') + ' ' + e.initiatorType + ' ' + e.decodedBodySize) })`)
       .catch((e) => e.message);
@@ -323,19 +331,20 @@ const FAELLE = {
     const seite = await Seite.oeffne(p);
     await seite.oeffneUrl(adresse);
     await seite.warte("document.getElementById('ladebild')", 'Ladebild im ersten HTML');
+    pruefe(await seite.werte(`(() => { const s = getComputedStyle(document.getElementById('ladebild'));
+      return s.display !== 'none' && s.visibility !== 'hidden' && s.opacity !== '0'; })()`), 'Ladebild per CSS verborgen');
     await seite.warte('window.planerLadebildschirm.zustand().plan', 'Plan der Startdateien erkannt');
     const zustand = await seite.zustand();
     pruefe(zustand.verlaesslich, `Größen passen nicht: ${JSON.stringify(zustand)}`);
     pruefe(zustand.plan.includes(umgebung.einstieg), `${umgebung.einstieg} nicht im Plan: ${zustand.plan}`);
     await pruefeStart(seite, adresse);
     // Das Ladebild steht im ersten HTML (ohne Skript); es muss gemalt sein,
-    // bevor es entfernt wird. (Headless mit Software-WebGL malt das erste
-    // Bild verzögert, darum nicht gegen den Zeitpunkt von fertig() prüfen.)
+    // bevor es entfernt wird – messbar nur ohne Software-WebGL (s. o.).
     const zeiten = await seite.werte(`({
       fcp: (performance.getEntriesByName('first-contentful-paint')[0] || {}).startTime,
       bild: performance.getEntriesByName('planer-erstes-bild')[0].startTime,
       entfernt: window.__ladebild.entferntNach })`);
-    pruefe(zeiten.fcp < zeiten.entfernt, `Ladebild nie sichtbar: ${JSON.stringify(zeiten)}`);
+    if (umgebung.erstesBildMessbar) pruefe(zeiten.fcp < zeiten.entfernt, `Ladebild nie sichtbar: ${JSON.stringify(zeiten)}`);
     await seite.schliessen();
     return `Plan ${zustand.plan.join(', ')}; Ladebild nach ${zeiten.fcp.toFixed(0)} ms, App nach ${zeiten.bild.toFixed(0)} ms`;
   },
