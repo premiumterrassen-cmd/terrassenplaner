@@ -3,9 +3,11 @@ import 'dart:math' as math;
 /// Abstand in Millimetern, unter dem zwei Punkte als gleich gelten (M4-01).
 const geometrieToleranz = 1e-6;
 
-/// Punkt bzw. Vektor der Draufsicht in Millimetern (M4-01): `x` nach rechts,
-/// `y` nach oben, Punkt A der Terrasse liegt bei (0|0). Im 3D-Modell (M3-10)
-/// entspricht `x` der x-Achse und `y` der z-Achse.
+/// Punkt bzw. Vektor der Draufsicht in Millimetern (M4-01): `x` längs,
+/// `y` quer, Punkt A der Terrasse liegt bei (0|0). Die Zeichnung zeigt `y`
+/// nach unten, im 3D-Modell (M3-10) ist es die z-Achse. Umlaufsinn und
+/// Drehrichtung sind mathematisch benannt (als zeige `y` nach oben) – in
+/// der Zeichnung erscheinen sie gespiegelt.
 final class Punkt {
   const Punkt(this.x, this.y);
 

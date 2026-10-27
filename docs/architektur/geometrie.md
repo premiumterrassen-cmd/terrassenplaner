@@ -6,7 +6,7 @@ Grundlage für Grundriss (M4), Belag (M5) und Unterkonstruktion (M6): Flächen m
 
 | Typ | Inhalt |
 |---|---|
-| `Punkt` | Punkt/Vektor in **Millimetern** (`double`): `x` nach rechts, `y` nach oben, Punkt A der Terrasse bei (0\|0), negative Werte erlaubt (Fachkonzept 1.4). Im 3D-Modell ist `x` = x, `y` = z. |
+| `Punkt` | Punkt/Vektor in **Millimetern** (`double`): `x` längs, `y` quer, Punkt A der Terrasse bei (0\|0), negative Werte erlaubt (Fachkonzept 1.4). Die Zeichnung zeigt `y` nach unten (wie die App, M3-04), im 3D-Modell ist `y` die z-Achse. Ein Rechteck A–B–C–D liegt damit wie im alten Planer: A oben links, D–C unten. Umlaufsinn („gegen den Uhrzeigersinn“) und Drehwinkel sind mathematisch benannt (y nach oben gedacht) und erscheinen in der Zeichnung gespiegelt. |
 | `Kante` | Strecke oder Kreisbogen; Bogen über die **Wölbung** `tan(θ/4)` (θ = Mittelpunktswinkel, > 0 gegen den Uhrzeigersinn, ±1 = Halbkreis). Radius, Mittelpunkt, Länge, Tangenten, Abstand werden daraus exakt berechnet. |
 | `Kontur` | geschlossener Linienzug aus Kanten: Fläche (exakt, auch mit Bögen), Umfang, Innenwinkel je Ecke (Grad, zwischen den Tangenten), Punkt-im-Inneren, Abstand zum Rand, Selbstüberschneidung (`istEinfach`), Verschieben, Drehen, Umkehren. `Kontur.rechteck`, `Kontur.kreis`. |
 | `Flaeche` | äußere Kontur ohne Löcher: Fläche, Umfang, Mengenoperationen (`vereinigt`, `geschnitten`, `ohne`), Prüfungen `ueberschneidet`, `umschliesst`, `abstand`. |
