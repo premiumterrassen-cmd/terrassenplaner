@@ -3,8 +3,10 @@ import 'dart:typed_data';
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 
 import '../artikel/einheiten.dart';
+import '../geometrie/kontur.dart';
 import 'ausschnitt.dart';
 import 'grundriss.dart';
+import 'rundungen.dart';
 
 /// Eingaben einer Planung zu einem Zeitpunkt (M3-03) – unveränderlich, damit
 /// Rückgängig exakt auf einen früheren Stand springen kann. Seit M4-02 mit
@@ -14,6 +16,7 @@ final class Planungsstand {
   const Planungsstand({
     this.grundriss = RechteckGrundriss.start,
     this.ausschnitte = const [],
+    this.rundungen = Rundungen.keine,
   });
 
   /// Liest einen Planungsstand aus dem Transportformat ([zuBytes]).
@@ -34,6 +37,10 @@ final class Planungsstand {
         ...const fb.ListReader<Ausschnitt>(_AusschnittLeser())
             .vTableGet(puffer, wurzel, _versatz(_ausschnittePlatz), const []),
       ],
+      rundungen: Rundungen.aus(
+        const fb.ListReader<int>(fb.Int32Reader())
+            .vTableGet(puffer, wurzel, _versatz(_rundungenPlatz), const []),
+      ),
     );
   }
 
@@ -45,9 +52,37 @@ final class Planungsstand {
   /// Ausschnitte im Grundriss (Fachkonzept 1.4), in der Reihenfolge A1, A2 …
   final List<Ausschnitt> ausschnitte;
 
-  /// Kopie mit geändertem Grundriss.
-  Planungsstand mitGrundriss(Grundriss grundriss) =>
-      Planungsstand(grundriss: grundriss, ausschnitte: ausschnitte);
+  /// Rundungen an Ecken und Seiten (Fachkonzept 1.3, M4-11).
+  final Rundungen rundungen;
+
+  /// Kontur des Grundrisses samt Rundungen.
+  Kontur get kontur => rundungen.kontur(grundriss);
+
+  /// Kopie mit geändertem Grundriss; die Rundungen bleiben, solange es
+  /// gleich viele Ecken sind und sie weiter passen.
+  Planungsstand mitGrundriss(Grundriss grundriss) => Planungsstand(
+    grundriss: grundriss,
+    ausschnitte: ausschnitte,
+    rundungen: _passend(grundriss) ? rundungen : Rundungen.keine,
+  );
+
+  bool _passend(Grundriss neu) {
+    if (rundungen.leer) return true;
+    if (neu.ecken.length != grundriss.ecken.length) return false;
+    try {
+      rundungen.kontur(neu);
+      return true;
+    } on ArgumentError {
+      return false;
+    }
+  }
+
+  /// Kopie mit anderen Rundungen (die App prüft sie vorher über [kontur]).
+  Planungsstand mitRundungen(Rundungen rundungen) => Planungsstand(
+    grundriss: grundriss,
+    ausschnitte: ausschnitte,
+    rundungen: rundungen,
+  );
 
   /// Neue Form mit ihren Vorgabemaßen; die O-Form bringt ihren Ausschnitt
   /// mit, alle anderen beginnen ohne (Fachkonzept 1.1).
@@ -66,11 +101,13 @@ final class Planungsstand {
       Planungsstand(
         grundriss: grundriss,
         ausschnitte: [...ausschnitte]..[index] = ausschnitt,
+        rundungen: rundungen,
       );
 
   /// FlatBuffer für den Weg zum Server (#110):
   /// `{ 0: schema (uint16), 1: grundriss { 0: form (uint8), 1: masse ([int32] mm) },
-  /// 2: ausschnitte ([{ 0: bezeichnung (string), 1: masse ([int32] mm) }]) }`.
+  /// 2: ausschnitte ([{ 0: bezeichnung (string), 1: masse ([int32] mm) }]),
+  /// 3: rundungen ([int32] je Art, Nummer, mm) }`.
   /// Neue Felder nur anhängen (docs/architektur/datenmodell.md).
   Uint8List zuBytes() {
     final fbb = fb.Builder();
@@ -85,11 +122,13 @@ final class Planungsstand {
     final ausschnitteOrt = fbb.writeList([
       for (final a in ausschnitte) _ausschnitt(fbb, a),
     ]);
+    final rundungenOrt = fbb.writeListInt32(rundungen.masse);
     fbb
-      ..startTable(3)
+      ..startTable(4)
       ..addUint16(_schemaPlatz, schema)
       ..addOffset(_grundrissPlatz, grundrissOrt)
-      ..addOffset(_ausschnittePlatz, ausschnitteOrt);
+      ..addOffset(_ausschnittePlatz, ausschnitteOrt)
+      ..addOffset(_rundungenPlatz, rundungenOrt);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
   }
@@ -110,11 +149,13 @@ final class Planungsstand {
   static const _schemaPlatz = 0;
   static const _grundrissPlatz = 1;
   static const _ausschnittePlatz = 2;
+  static const _rundungenPlatz = 3;
 
   @override
   bool operator ==(Object other) {
     if (other is! Planungsstand ||
         other.grundriss != grundriss ||
+        other.rundungen != rundungen ||
         other.ausschnitte.length != ausschnitte.length) {
       return false;
     }
@@ -125,7 +166,8 @@ final class Planungsstand {
   }
 
   @override
-  int get hashCode => Object.hash(grundriss, Object.hashAll(ausschnitte));
+  int get hashCode =>
+      Object.hash(grundriss, Object.hashAll(ausschnitte), rundungen);
 }
 
 /// vtable-Versatz eines Feldplatzes.

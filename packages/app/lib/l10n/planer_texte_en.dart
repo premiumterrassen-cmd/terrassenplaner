@@ -228,6 +228,48 @@ class PlanerTexteEn extends PlanerTexte {
   String get zentrieren => 'Center';
 
   @override
+  String get rundungenHinzufuegen => 'Add roundings';
+
+  @override
+  String get rundungenUebernehmen => 'Apply roundings';
+
+  @override
+  String get rundungenZuruecksetzen => 'Reset roundings';
+
+  @override
+  String get rundungHinweis =>
+      'Drag a corner handle inwards to round the corner, drag a side handle to curve the side. Apply changes (ESC).';
+
+  @override
+  String rundungEcke(String name) {
+    return 'Corner $name';
+  }
+
+  @override
+  String rundungSeite(String name) {
+    return 'Side from $name';
+  }
+
+  @override
+  String get feldRadius => 'Radius';
+
+  @override
+  String get feldStich => 'Rise';
+
+  @override
+  String get rundungEntfernen => 'Remove rounding';
+
+  @override
+  String get rundungUnzulaessig => 'This rounding is not possible.';
+
+  @override
+  String get rundungVerlassenTitel => 'Apply roundings?';
+
+  @override
+  String get rundungVerlassenText =>
+      'You are leaving the rounding of corners and sides.';
+
+  @override
   String get formDrehen => 'Rotate shape';
 
   @override

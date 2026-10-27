@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 import '../design/darstellung.dart';
@@ -11,6 +12,7 @@ import 'freiform.dart';
 import 'grundriss_eingabe.dart';
 import 'planer_schritt.dart';
 import 'rahmen_zustand.dart';
+import 'rundung.dart';
 import 'standardwert_hinweis.dart';
 import 'steuerung.dart';
 import 'zeichenflaeche.dart';
@@ -68,6 +70,10 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
   late final AnsichtSteuerung _ansicht = widget.ansicht ?? AnsichtSteuerung();
   late final AnsichtsOptionen _optionen = widget.optionen ?? AnsichtsOptionen();
   final _modus = ZeichenModus();
+  late final _rundung = RundungsBedienung(
+    planung: _planung,
+    onGeaendert: () => _zustand.markiereGeaendert(PlanerSchritt.grundriss),
+  );
   late final _freiform = FreiformBedienung(
     planung: _planung,
     modus: _modus,
@@ -85,6 +91,23 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
   void initState() {
     super.initState();
     _berechnung?.addListener(_meldeFehler);
+    _zustand.addListener(_verlaesstRundung);
+  }
+
+  /// Wer den Grundriss verlässt, während der Rundungsmodus offen ist, wird
+  /// gefragt: übernehmen oder zurücksetzen (Abnahme M4-11).
+  Future<void> _verlaesstRundung() async {
+    if (!_rundung.aktiv || _zustand.aktiv == PlanerSchritt.grundriss) return;
+    final uebernehmen = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const RundungVerlassenDialog(),
+    );
+    if (uebernehmen ?? false) {
+      _rundung.uebernimm();
+    } else {
+      _rundung.setzeZurueck();
+    }
   }
 
   /// Fehler der Berechnung als Hinweis; Zeichnung und Kennzahlen behalten
@@ -99,6 +122,8 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
   void dispose() {
     _berechnung?.dispose();
     _modus.dispose();
+    _zustand.removeListener(_verlaesstRundung);
+    _rundung.dispose();
     if (widget.planung == null) _planung.dispose();
     if (widget.ansicht == null) _ansicht.dispose();
     if (widget.optionen == null) _optionen.dispose();
@@ -131,9 +156,19 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) => CallbackShortcuts(
+    // „Änderungen übernehmen (ESC)“ im Rundungsmodus (Fachkonzept 1.3)
+    bindings: {
+      const SingleActivator(LogicalKeyboardKey.escape): () {
+        if (_rundung.aktiv) _rundung.uebernimm();
+      },
+    },
+    child: Focus(autofocus: true, child: _seite(context)),
+  );
+
+  Widget _seite(BuildContext context) => Scaffold(
     body: ListenableBuilder(
-      listenable: Listenable.merge([_zustand, _planung, _berechnung]),
+      listenable: Listenable.merge([_zustand, _planung, _berechnung, _rundung]),
       builder: (context, _) => LayoutBuilder(
         builder: (context, raum) {
           final desktop = PlanerLayout.istDesktop(raum.maxWidth);
@@ -142,6 +177,7 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
             zustand: _zustand,
             planung: _planung,
             freiform: _freiform,
+            rundung: _rundung,
           );
           return Column(
             children: [
@@ -174,6 +210,7 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
                               ansicht: _ansicht,
                               optionen: _optionen,
                               freiform: _freiform,
+                              rundung: _rundung,
                               zeichnung:
                                   widget.zeichnung ??
                                   _berechnung?.zeichnung ??
@@ -443,12 +480,14 @@ class Bearbeitungsmenue extends StatelessWidget {
     required this.zustand,
     required this.planung,
     required this.freiform,
+    required this.rundung,
     super.key,
   });
 
   final RahmenZustand zustand;
   final PlanungsSteuerung planung;
   final FreiformBedienung freiform;
+  final RundungsBedienung rundung;
 
   /// Eingaben unter einem Unterpunkt (Schritt, Index ab 0).
   Widget? _eingabe(PlanerSchritt schritt, int unterpunkt) =>
@@ -466,6 +505,7 @@ class Bearbeitungsmenue extends StatelessWidget {
           planung: planung,
           onGeaendert: () => zustand.markiereGeaendert(schritt),
         ),
+        (PlanerSchritt.grundriss, 2) => RundungsEingabe(bedienung: rundung),
         (PlanerSchritt.grundriss, 3) => AusschnittMasse(
           key: ValueKey(planung.aktuell.grundriss.form),
           planung: planung,

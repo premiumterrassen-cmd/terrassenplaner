@@ -228,6 +228,48 @@ class PlanerTexteDe extends PlanerTexte {
   String get zentrieren => 'Zentrieren';
 
   @override
+  String get rundungenHinzufuegen => 'Rundungen hinzufügen';
+
+  @override
+  String get rundungenUebernehmen => 'Rundungen übernehmen';
+
+  @override
+  String get rundungenZuruecksetzen => 'Rundungen zurücksetzen';
+
+  @override
+  String get rundungHinweis =>
+      'Griff an einer Ecke nach innen ziehen rundet die Ecke ab, Griff auf einer Seite zieht sie zum Bogen. Änderungen übernehmen (ESC).';
+
+  @override
+  String rundungEcke(String name) {
+    return 'Ecke $name';
+  }
+
+  @override
+  String rundungSeite(String name) {
+    return 'Seite ab $name';
+  }
+
+  @override
+  String get feldRadius => 'Radius';
+
+  @override
+  String get feldStich => 'Stich';
+
+  @override
+  String get rundungEntfernen => 'Rundung entfernen';
+
+  @override
+  String get rundungUnzulaessig => 'Diese Rundung ist nicht möglich.';
+
+  @override
+  String get rundungVerlassenTitel => 'Rundungen übernehmen?';
+
+  @override
+  String get rundungVerlassenText =>
+      'Sie verlassen das Abrunden von Ecken und Seiten.';
+
+  @override
   String get formDrehen => 'Form drehen';
 
   @override

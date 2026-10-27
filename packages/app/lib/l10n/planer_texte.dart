@@ -490,6 +490,78 @@ abstract class PlanerTexte {
   /// **'Zentrieren'**
   String get zentrieren;
 
+  /// No description provided for @rundungenHinzufuegen.
+  ///
+  /// In de, this message translates to:
+  /// **'Rundungen hinzufügen'**
+  String get rundungenHinzufuegen;
+
+  /// No description provided for @rundungenUebernehmen.
+  ///
+  /// In de, this message translates to:
+  /// **'Rundungen übernehmen'**
+  String get rundungenUebernehmen;
+
+  /// No description provided for @rundungenZuruecksetzen.
+  ///
+  /// In de, this message translates to:
+  /// **'Rundungen zurücksetzen'**
+  String get rundungenZuruecksetzen;
+
+  /// No description provided for @rundungHinweis.
+  ///
+  /// In de, this message translates to:
+  /// **'Griff an einer Ecke nach innen ziehen rundet die Ecke ab, Griff auf einer Seite zieht sie zum Bogen. Änderungen übernehmen (ESC).'**
+  String get rundungHinweis;
+
+  /// No description provided for @rundungEcke.
+  ///
+  /// In de, this message translates to:
+  /// **'Ecke {name}'**
+  String rundungEcke(String name);
+
+  /// No description provided for @rundungSeite.
+  ///
+  /// In de, this message translates to:
+  /// **'Seite ab {name}'**
+  String rundungSeite(String name);
+
+  /// No description provided for @feldRadius.
+  ///
+  /// In de, this message translates to:
+  /// **'Radius'**
+  String get feldRadius;
+
+  /// No description provided for @feldStich.
+  ///
+  /// In de, this message translates to:
+  /// **'Stich'**
+  String get feldStich;
+
+  /// No description provided for @rundungEntfernen.
+  ///
+  /// In de, this message translates to:
+  /// **'Rundung entfernen'**
+  String get rundungEntfernen;
+
+  /// No description provided for @rundungUnzulaessig.
+  ///
+  /// In de, this message translates to:
+  /// **'Diese Rundung ist nicht möglich.'**
+  String get rundungUnzulaessig;
+
+  /// No description provided for @rundungVerlassenTitel.
+  ///
+  /// In de, this message translates to:
+  /// **'Rundungen übernehmen?'**
+  String get rundungVerlassenTitel;
+
+  /// No description provided for @rundungVerlassenText.
+  ///
+  /// In de, this message translates to:
+  /// **'Sie verlassen das Abrunden von Ecken und Seiten.'**
+  String get rundungVerlassenText;
+
   /// No description provided for @formDrehen.
   ///
   /// In de, this message translates to:

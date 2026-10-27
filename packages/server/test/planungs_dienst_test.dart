@@ -96,6 +96,21 @@ void main() {
     expect(b.ecken, b.umriss);
   });
 
+  test('Rundungen fließen in Umriss und Fläche ein (M4-11)', () {
+    final b = PlanungsDienst.berechne(
+      Planungsstand(
+        grundriss: RechteckGrundriss(
+          const Millimeter(5400),
+          const Millimeter(3600),
+        ),
+        rundungen: Rundungen.keine.mitEcke(0, const Millimeter(1261)),
+      ),
+    );
+    expect(b.flaecheQuadratmeter, closeTo(19.099, 0.001));
+    expect(b.umriss.length, greaterThan(10));
+    expect(b.ecken, hasLength(4));
+  });
+
   test('offene Freiform: Linienzug ohne Fläche (M4-08)', () {
     final offen = FreiformGrundriss(const [Punkt(0, 0), Punkt(1000, 0)]);
     final b = PlanungsDienst.berechne(Planungsstand(grundriss: offen));

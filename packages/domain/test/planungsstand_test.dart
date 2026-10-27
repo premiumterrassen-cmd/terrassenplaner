@@ -930,7 +930,11 @@ void main() {
       expect(start, const Planungsstand());
       expect(
         start.hashCode,
-        Object.hash(RechteckGrundriss.start, Object.hashAll(const [])),
+        Object.hash(
+          RechteckGrundriss.start,
+          Object.hashAll(const []),
+          Rundungen.keine,
+        ),
       );
       final neu = start.mitGrundriss(_rechteck(5400, 3600));
       expect(neu.grundriss, _rechteck(5400, 3600));

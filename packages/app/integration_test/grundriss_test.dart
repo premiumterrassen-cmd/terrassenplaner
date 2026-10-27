@@ -57,5 +57,25 @@ void main() {
       const Offset(100, 0),
     );
     await warteAuf(tester, 'Fläche: 4,00 m²');
+    // M4-11: Rechteck, Ecke A um 70,7 cm abrunden (Rundungen im Transport)
+    await tester.tap(find.byKey(const ValueKey('form-rechteck')));
+    await warteAuf(tester, 'Fläche: 14,83 m²');
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('rundungen-hinzufuegen')),
+      200,
+      scrollable: find
+          .descendant(
+            of: find.byKey(const ValueKey('bearbeitungsmenue')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    await tester.tap(find.byKey(const ValueKey('rundungen-hinzufuegen')));
+    await tester.pumpAndSettle();
+    await tester.drag(
+      find.byKey(const ValueKey('rundung-ecke-0')),
+      const Offset(50, 50),
+    );
+    await warteAuf(tester, 'Fläche: 14,72 m²');
   });
 }
