@@ -48,3 +48,7 @@
 | lokal, eine geänderte domain-Datei | 1 (25 Mutanten) | 30 s |
 | Build-Chain, Branch nur mit Werkzeugänderung | 0 (alle Pakete übersprungen) | 21 s |
 | Build-Chain, Probe-Branch mit Inhalt von M3-05 (app) | 3 (62 Mutanten, 100 % erkannt) | 19 min 22 s |
+
+## Endlosschleifen-Mutanten in Collection-`for` (27.10.2026)
+
+Der Ausschluss `[\s]for[\s]*\(.*?\)[\s]*{` in `tool/mutation/*.xml` greift nur bei Schleifen mit Block. Eine Collection-`for` ohne Block (`[for (var i = 1; i < n; i += 2) …]`) wird mutiert; der Mutant `i += 2` → `i = 2` baut dann eine unendliche Liste. Lokal stürzt `dart test` schnell mit Speicherfehler ab (zählt als erkannt), auf dem GitHub-Runner wurde dagegen der ganze Job beendet (Exit 143, M4-06). Regel: In Collection-`for` nur Zählschleifen mit `i++` schreiben (`++` ist vom Mutieren ausgenommen), z. B. `for (var i = 0; i < n ~/ 2; i++) Punkt(k[2 * i], k[2 * i + 1])`.
