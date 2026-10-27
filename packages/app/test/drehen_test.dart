@@ -83,6 +83,7 @@ void main() {
       find.text('Beim Drehen werden alle Ausschnitte zurückgesetzt.'),
       findsOneWidget,
     );
+    expect(find.byKey(const ValueKey('drehen-dialog')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('drehen-abbrechen')));
     await tester.pumpAndSettle();
     expect(s.planung.aktuell, o);
