@@ -13,6 +13,7 @@
     "domain.Verlauf.aendernRueckgaengig": 943.64625,
     "app.Ladebild.ErstesBild": 131235.0,
     "app.Ladebild.ErstesBildOhneZaehlen": 138665.0,
-    "app.Ladebild.Skriptzeit": 13174.0
+    "app.Ladebild.Skriptzeit": 13174.0,
+    "domain.Geometrie.uFormMitAusschnitten": 66852.8
   }
 }
