@@ -220,9 +220,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/5
   - Rechteck als Standardform, Maße A–B und B–C in cm.
   - Abnahme: Fläche und Zeichnung stimmen mit Eingabe überein
   - Ergebnis: `Planungsstand` mit `Grundriss` (Start-Rechteck 480 × 309 cm wie F01) und `Berechnung`, beide als typisierte FlatBuffers (Packed PPT, #110); `PlanungsDienst` (`kunde.planung.berechnen`) rechnet Umriss und Fläche mit dem Geometrie-Kern; App: Felder A — B / B — C unter 1.2 (Platzhalter wie im alten Planer, Enter übernimmt), Zeichnung und Kennzahl Fläche kommen vom Server. Smoke-Test in Chrome gegen den echten Server. Seiten 50–3000 cm (größte: Alexander, 27.10.2026).
-- [ ] **M4-03 L-Form** ([#33](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/33)) – `feature/m4-03-l-form`
+- [x] **M4-03 L-Form** ([#33](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/33)) – `feature/m4-03-l-form`
   - L-Form (im alten Planer ist eine L-Variante aktiv) mit allen Seitenmaßen.
   - Abnahme: Seitenmaße editierbar, Fläche korrekt
+  - Ergebnis: `LGrundriss` (Ausschnitt oben rechts; A—B, B—C, C—D, D—E eingegeben, E—F und F—A abgeleitet, alle Seiten 50–3000 cm), Vorgabe 270/180/270/180 cm = 14,58 m² wie Fachkonzept 1.1; `Grundriss` jetzt allgemein (Eckpunkte, Gleichheit, `mitMass`). App: Formwahl unter 1.1 (Rechteck, L-Form – weitere Formen folgen), Maßfelder je Form unter 1.2. Smoke-Test in Chrome. Hinweis: F15 (L-Form nach Zurücksetzen, 10,26 m²) leitete der alte Planer aus anderen Maßen ab; maßgeblich sind die Vorgaben aus 1.1.
 - [ ] **M4-04 T-Form** ([#34](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/34)) – `feature/m4-04-t-form`
   - T-Form mit allen Seitenmaßen.
   - Abnahme: Seitenmaße editierbar, Fläche korrekt

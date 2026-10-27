@@ -232,6 +232,18 @@ abstract class PlanerTexte {
   /// **'{kante}: cm'**
   String massPlatzhalter(String kante);
 
+  /// No description provided for @formRechteck.
+  ///
+  /// In de, this message translates to:
+  /// **'Rechteck'**
+  String get formRechteck;
+
+  /// No description provided for @formLForm.
+  ///
+  /// In de, this message translates to:
+  /// **'L-Form'**
+  String get formLForm;
+
   /// No description provided for @massUngueltig.
   ///
   /// In de, this message translates to:

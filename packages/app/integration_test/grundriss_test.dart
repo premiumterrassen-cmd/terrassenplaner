@@ -16,7 +16,7 @@ void main() {
     expect(find.text(text), findsOneWidget);
   }
 
-  testWidgets('Rechteckmaße: Fläche vom Server', (tester) async {
+  testWidgets('Rechteckmaße und L-Form: Fläche vom Server', (tester) async {
     app.main();
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('neu')));
@@ -25,5 +25,8 @@ void main() {
     await tester.enterText(find.byKey(const ValueKey('mass-0')), '540');
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await warteAuf(tester, 'Fläche: 16,69 m²');
+    // M4-03: L-Form mit Vorgabemaßen, Form 1 im Transportformat
+    await tester.tap(find.byKey(const ValueKey('form-lForm')));
+    await warteAuf(tester, 'Fläche: 14,58 m²');
   });
 }

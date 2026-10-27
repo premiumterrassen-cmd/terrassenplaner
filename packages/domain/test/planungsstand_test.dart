@@ -47,7 +47,11 @@ void main() {
       expect(_rechteck(4000, 3000).hashCode, _rechteck(4000, 3000).hashCode);
       expect(
         _rechteck(4000, 3000).hashCode,
-        Object.hashAll(const [Millimeter(4000), Millimeter(3000)]),
+        Object.hashAll(const [
+          Terrassenform.rechteck,
+          Millimeter(4000),
+          Millimeter(3000),
+        ]),
       );
       expect(_rechteck(4000, 3000) == _rechteck(4000, 3001), isFalse);
       expect(_rechteck(4000, 3000) == _rechteck(4001, 3000), isFalse);
@@ -64,9 +68,97 @@ void main() {
       );
       expect(
         () => Grundriss.aus(Terrassenform.rechteck, const [Millimeter(4000)]),
-        wirftArgumentFehler('masse', 1, 'Rechteck braucht zwei Maße'),
+        wirftArgumentFehler('masse', 1, 'braucht 2 Maße'),
       );
       expect(Terrassenform.rechteck.nummer, 0);
+    });
+  });
+
+  group('L-Form (M4-03)', () {
+    LGrundriss l(int ab, int bc, int cd, int de) => LGrundriss(
+      Millimeter(ab),
+      Millimeter(bc),
+      Millimeter(cd),
+      Millimeter(de),
+    );
+
+    test('Vorgabe wie im alten Planer: 14,58 m², E—F und F—A abgeleitet', () {
+      const v = LGrundriss.vorgabe;
+      expect(Terrassenform.lForm.vorgabe, v);
+      expect(v.form, Terrassenform.lForm);
+      expect(v.masse.map((m) => m.mm), [2700, 1800, 2700, 1800]);
+      expect([v.ab, v.bc, v.cd, v.de].map((m) => m.mm), [
+        2700,
+        1800,
+        2700,
+        1800,
+      ]);
+      expect(v.kontur.flaeche, 14580000);
+      expect(v.ecken, const [
+        Punkt(0, 0),
+        Punkt(2700, 0),
+        Punkt(2700, 1800),
+        Punkt(5400, 1800),
+        Punkt(5400, 3600),
+        Punkt(0, 3600),
+      ]);
+      expect(v.kontur.innenwinkel.map((w) => w.round()), [
+        90,
+        90,
+        270,
+        90,
+        90,
+        90,
+      ]);
+    });
+
+    test('Maße einzeln ändern, Fläche folgt', () {
+      final neu = LGrundriss.vorgabe.mitMass(2, const Millimeter(1000));
+      expect(neu, l(2700, 1800, 1000, 1800));
+      // 370 × 360 ohne den Ausschnitt C—D × B—C = 100 × 180
+      expect(neu.kontur.flaeche, 3700 * 3600 - 1000 * 1800);
+      expect(l(1800, 1900, 1800, 1900).kontur.flaeche, 10260000);
+      expect(neu == LGrundriss.vorgabe, isFalse);
+      expect(neu == RechteckGrundriss.start, isFalse);
+    });
+
+    test('auch abgeleitete Seiten innerhalb der Grenzen', () {
+      const text = 'muss zwischen 50 und 3000 cm liegen';
+      expect(
+        () => l(2000, 1000, 30010, 1000),
+        wirftArgumentFehler('cd', 30010, text),
+      );
+      expect(
+        () => l(20000, 1000, 15000, 1000),
+        wirftArgumentFehler('ef', 35000, text),
+      );
+      expect(
+        () => l(2000, 20000, 2000, 15000),
+        wirftArgumentFehler('fa', 35000, text),
+      );
+      expect(
+        () => l(2000, 1000, 2000, 499),
+        wirftArgumentFehler('de', 499, text),
+      );
+      expect(l(15000, 1000, 15000, 1000).kontur.punkte[4].x, 30000);
+    });
+
+    test('Transport und Formwahl', () {
+      final stand = Planungsstand(grundriss: l(2000, 1000, 2500, 1500));
+      expect(Planungsstand.ausBytes(stand.zuBytes()), stand);
+      expect(Terrassenform.lForm.nummer, 1);
+      expect(Terrassenform.lForm.eingabekanten, [
+        'A — B',
+        'B — C',
+        'C — D',
+        'D — E',
+      ]);
+      expect(Terrassenform.rechteck.eingabekanten, ['A — B', 'B — C']);
+      expect(Terrassenform.rechteck.vorgabe, RechteckGrundriss.start);
+      expect(
+        () => Grundriss.aus(Terrassenform.lForm, const [Millimeter(4000)]),
+        wirftArgumentFehler('masse', 1, 'braucht 4 Maße'),
+      );
     });
   });
 

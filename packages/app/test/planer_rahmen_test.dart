@@ -37,9 +37,30 @@ void main() {
     );
     for (final s in PlanerSchritt.values) {
       expect(find.byKey(ValueKey('station-${s.name}')), findsOneWidget);
+      // das Menü scrollt, sobald Eingaben darin stehen (ab M4)
+      await tester.scrollUntilVisible(
+        find.text('${s.nummer}. ${s.titel(de)}'),
+        200,
+        scrollable: find
+            .descendant(
+              of: find.byKey(const ValueKey('bearbeitungsmenue')),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
       expect(find.text('${s.nummer}. ${s.titel(de)}'), findsOneWidget);
     }
     expect(find.byKey(const ValueKey('bearbeitungsmenue')), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('1.1 Terrassenform auswählen'),
+      -200,
+      scrollable: find
+          .descendant(
+            of: find.byKey(const ValueKey('bearbeitungsmenue')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
     expect(find.text('1.1 Terrassenform auswählen'), findsOneWidget);
     expect(find.text('2.1 Terrassenbelag auswählen'), findsNothing);
     expect(find.byKey(const ValueKey('zeichenflaeche')), findsOneWidget);

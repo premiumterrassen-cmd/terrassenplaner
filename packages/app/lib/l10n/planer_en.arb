@@ -25,6 +25,8 @@
   "flaeche": "Area: {wert}",
   "volumen": "Volume: {wert}",
   "massPlatzhalter": "{kante}: cm",
+  "formRechteck": "Rectangle",
+  "formLForm": "L-shape",
   "massUngueltig": "Please enter {min} to {max} cm",
   "berechnungFehler": "Calculation not possible – please check the connection",
 
