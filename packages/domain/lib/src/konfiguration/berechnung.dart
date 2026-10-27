@@ -85,7 +85,11 @@ final class Berechnung {
   static List<Punkt> _punkte(fb.BufferContext puffer, int ort, int platz) {
     final k = const fb.ListReader<double>(fb.Float64Reader())
         .vTableGet(puffer, ort, _versatz(platz), const []);
-    return [for (var i = 1; i < k.length; i += 2) Punkt(k[i - 1], k[i])];
+    // Zählschleife mit i++: ein Mutant „i += 2 → i = 2“ liefe endlos und
+    // sprengte den Speicher des Runners (docs/erkenntnisse/mutation-tests.md)
+    return [
+      for (var i = 0; i < k.length ~/ 2; i++) Punkt(k[2 * i], k[2 * i + 1]),
+    ];
   }
 
   static const _umrissPlatz = 0;
