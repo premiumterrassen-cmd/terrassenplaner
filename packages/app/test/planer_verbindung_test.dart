@@ -29,6 +29,8 @@ void main() {
     addTearDown(dienst.stoppe);
     final modell3d = await Modell3dDienst.starte(router);
     addTearDown(modell3d.stoppe);
+    final planung = await PlanungsDienst.starte(router);
+    addTearDown(planung.stoppe);
 
     final verbindung = PlanerVerbindung(
       Uri.parse('ws://127.0.0.1:${router.webSocketPort}/ws'),
@@ -47,5 +49,14 @@ void main() {
       glb,
       Modell3dDienst.rechteck(const Millimeter(4000), const Millimeter(3000)),
     );
+    // M4-02: Planungsstand hin, Berechnung zurück – typisiert
+    final berechnung = await verbindung.berechne(Planungsstand.start);
+    expect(berechnung.flaecheQuadratmeter, 14.832);
+    expect(berechnung.umriss[1], const Punkt(4800, 0));
+  });
+
+  test('Packed-Nutzlast materialisiert als ein Binärargument', () {
+    final bytes = Uint8List.fromList([1, 2, 3]);
+    expect(PlanerVerbindung.verpacke(bytes).arguments, [bytes]);
   });
 }

@@ -80,6 +80,20 @@ class PlanerTexteEn extends PlanerTexte {
   }
 
   @override
+  String massPlatzhalter(String kante) {
+    return '$kante: cm';
+  }
+
+  @override
+  String massUngueltig(int min, int max) {
+    return 'Please enter $min to $max cm';
+  }
+
+  @override
+  String get berechnungFehler =>
+      'Calculation not possible – please check the connection';
+
+  @override
   String get agb => 'Terms';
 
   @override

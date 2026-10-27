@@ -18,8 +18,16 @@ abstract final class WampNamen {
   /// 3D-Modell (M3-10): GLB einer Rechteck-Terrasse (Prototyp).
   static const modell3dRechteck = '${kunde}modell3d.rechteck';
 
+  /// Planungsdienst (M4-02): berechnet aus einem Planungsstand Umriss und
+  /// Kennzahlen; beides als typisierte FlatBuffers (Packed PPT, #110).
+  static const planungBerechnen = '${kunde}planung.berechnen';
+
   /// Fehler-URI für ungültige Maße.
   static const masseUngueltig = '${kunde}fehler.masse_ungueltig';
+
+  /// Fehler-URI für einen Planungsstand, der sich nicht lesen oder nicht
+  /// berechnen lässt (z. B. Maße außerhalb der Grenzen).
+  static const planungUngueltig = '${kunde}fehler.planung_ungueltig';
 
   /// Fehler-URI für unbekannte Artikelnummern.
   static const artikelUnbekannt = '${kunde}fehler.artikel_unbekannt';

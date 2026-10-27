@@ -38,6 +38,7 @@ void main() {
   runApp(
     PlanerApp(
       hallo: verbindung.hallo,
+      berechne: verbindung.berechne,
       // Laden über den Server folgt mit M9-05; eine geladene Konfiguration
       // wird für „Weiterplanen“ gemerkt (M3-09).
       laden: einstellungen.merkend(

@@ -24,6 +24,9 @@
   "menuAusklappen": "Expand menu",
   "flaeche": "Area: {wert}",
   "volumen": "Volume: {wert}",
+  "massPlatzhalter": "{kante}: cm",
+  "massUngueltig": "Please enter {min} to {max} cm",
+  "berechnungFehler": "Calculation not possible – please check the connection",
 
   "agb": "Terms",
   "datenschutz": "Privacy",

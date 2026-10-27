@@ -3,6 +3,7 @@ import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 import 'src/design/darstellung.dart';
 import 'src/design/planer_design.dart';
+import 'src/rahmen/berechnung_steuerung.dart';
 import 'src/rahmen/planer_rahmen.dart';
 import 'src/sprache/sprache.dart';
 import 'src/start/eingangsdialog.dart';
@@ -18,6 +19,7 @@ class PlanerApp extends StatefulWidget {
     required this.gespeichert,
     super.key,
     this.info = terrassenplaner,
+    this.berechne,
     this.sprache,
     this.darstellung,
   });
@@ -26,6 +28,9 @@ class PlanerApp extends StatefulWidget {
   final HalloAbfrage hallo;
   final KonfigurationLaden laden;
   final GespeicherteKonfiguration gespeichert;
+
+  /// Berechnung auf dem Server (M4-02).
+  final PlanungBerechnen? berechne;
 
   /// Sprache aus den lokalen Einstellungen (M3-09); ohne Vorgabe Deutsch
   /// (M3-07).
@@ -68,6 +73,7 @@ class _PlanerAppState extends State<PlanerApp> {
         gespeichert: widget.gespeichert,
         child: PlanerRahmen(
           status: ServerStatus(hallo: widget.hallo),
+          berechne: widget.berechne,
           sprache: _sprache,
           darstellung: _darstellung,
         ),

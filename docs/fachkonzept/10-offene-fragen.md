@@ -22,6 +22,7 @@ Aus M1-03 (Verdacht auf Fehler des alten Planers, siehe [09](09-nicht-teil-der-k
 15. ~~**Dielenlängen über 600 cm** (F14)~~ → Fehler laut B-035 (7 m nur Serbien; UK 6,5 m gibt es nicht).
 16. ~~**Kurze Stücke verbinden** (F13)~~ → beantwortet.
 17. ~~**Querstreben**~~ → beantwortet.
+18. ~~**Grenzen der Terrassenmaße** (M4-02)~~ → beantwortet.
 
 ## Beantwortet
 
@@ -45,4 +46,6 @@ Aus M1-03 (Verdacht auf Fehler des alten Planers, siehe [09](09-nicht-teil-der-k
 - **Kurze Stücke verbinden** (Frage 16): Ein Stoß muss dann nicht durchgehend sein – bei nicht rechtwinkligen Terrassen darf ein kurzes Stück durch eine ganze Diele ersetzt werden. Beim Rechteck (F13) daher ohne Wirkung, das ist richtig.
 - **Querstreben** (Frage 17): Abstand 60 cm (so im alten Planer hinterlegt, gewollt).
 
-(Alle Antworten Alexander, 19.10.2026.)
+- **Grenzen der Terrassenmaße** (Frage 18): größte Seitenlänge 3000 cm (Alexander, 27.10.2026); kleinste bleibt vorläufig 50 cm.
+
+(Alle Antworten Alexander, 19.10.2026, sofern nicht anders angegeben.)

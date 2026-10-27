@@ -6,7 +6,7 @@ import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 /// Planungsstände mit Rückgängig, Wiederherstellen und Zurücksetzen
 /// (M3-03) für die Oberfläche.
 class PlanungsSteuerung extends ChangeNotifier {
-  PlanungsSteuerung([Planungsstand anfang = const Planungsstand.leer()])
+  PlanungsSteuerung([Planungsstand anfang = Planungsstand.start])
     : _verlauf = Verlauf(anfang);
 
   final Verlauf<Planungsstand> _verlauf;
@@ -30,9 +30,9 @@ class PlanungsSteuerung extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Neue, leere Planung – nur nach Bestätigung aufrufen.
+  /// Neue Planung mit der Startkonfiguration – nur nach Bestätigung aufrufen.
   void zuruecksetzen() {
-    _verlauf.zuruecksetzen(const Planungsstand.leer());
+    _verlauf.zuruecksetzen(Planungsstand.start);
     notifyListeners();
   }
 }

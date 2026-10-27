@@ -84,19 +84,4 @@ void main() {
     v.setze('x');
     expect(v.rueckgaengig(), 'neu');
   });
-
-  test('leerer Planungsstand ist gleich sich selbst', () {
-    const leer = Planungsstand.leer();
-    expect(leer, const Planungsstand.leer());
-    expect(leer.hashCode, const Planungsstand.leer().hashCode);
-    expect(leer.hashCode, (Planungsstand).hashCode);
-    expect(leer == Object(), isFalse);
-    expect(leer == const _Anderer(), isFalse);
-    final v = Verlauf(leer)..setze(const Planungsstand.leer());
-    expect(v.kannRueckgaengig, isFalse);
-  });
-}
-
-final class _Anderer extends Planungsstand {
-  const _Anderer() : super.leer();
 }
