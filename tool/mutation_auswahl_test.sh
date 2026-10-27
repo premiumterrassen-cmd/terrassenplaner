@@ -37,7 +37,8 @@ cp -r "$ROOT/tool/mutation.sh" "$ROOT/tool/mutation" "$REPO/tool/"
 for datei in packages/domain/lib/a.dart packages/domain/lib/b.dart \
   packages/domain/lib/c.dart packages/server/lib/x/y.dart \
   packages/server/test/x/y_test.dart packages/app/lib/main.dart \
-  packages/app/lib/seite.dart packages/app/lib/src/modell3d/modell3d_ansicht_web.dart; do
+  packages/app/lib/seite.dart packages/app/lib/src/modell3d/modell3d_ansicht_web.dart \
+  packages/app/lib/l10n/texte_de.dart; do
   anlegen "$datei"
 done
 git_ init -q -b main
@@ -57,6 +58,7 @@ git_ rm -q packages/domain/lib/c.dart
 echo "// geändert" >>"$REPO/packages/server/test/x/y_test.dart"
 echo "// geändert" >>"$REPO/packages/app/lib/main.dart"
 echo "// geändert" >>"$REPO/packages/app/lib/src/modell3d/modell3d_ansicht_web.dart"
+echo "// geändert" >>"$REPO/packages/app/lib/l10n/texte_de.dart"
 anlegen packages/app/test/ohne_gegenstueck_test.dart
 git_ add -A && git_ commit -qm feature
 anlegen packages/domain/lib/unversioniert.dart
@@ -75,7 +77,7 @@ pruefe "domain: Testbefehl samt Timeout erhalten" grep -qF 'timeout="300">dart t
 pruefe "domain: Schwelle erhalten" grep -qF '<threshold failure="95">' "$domain"
 pruefe "server: Gegenstück eines geänderten Tests" grep -qF "<file>packages/server/lib/x/y.dart</file>" "$server"
 pruefe "server: Timeout erhalten" grep -qF 'timeout="120">dart test --fail-fast</command>' "$server"
-pruefe "app: nur ausgeschlossene Dateien → übersprungen" grep -qF "app – keine geänderten Quelldateien" <<<"$ausgabe"
+pruefe "app: nur ausgeschlossene Dateien (auch per Muster) → übersprungen" grep -qF "app – keine geänderten Quelldateien" <<<"$ausgabe"
 
 # Geänderte Paketkonfiguration: dieses Paket vollständig
 echo "<!-- geändert -->" >>"$REPO/tool/mutation/app.xml"

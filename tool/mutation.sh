@@ -25,13 +25,23 @@ geaenderte_dateien() {
     git ls-files --others --exclude-standard; } | sort -u
 }
 
+# Passt [datei] auf eines der Ausschlussmuster (eines je Zeile, * auch über /)?
+ausgeschlossen() {
+  local muster
+  while IFS= read -r muster; do
+    # shellcheck disable=SC2053 # Muster bewusst ohne Anführungszeichen
+    [[ -n "$muster" && "$1" == $muster ]] && return 0
+  done <<<"$2"
+  return 1
+}
+
 # Zu mutierende Quelldateien eines Pakets: geänderte lib-Dateien und die
 # lib-Gegenstücke geänderter Tests (test/x/y_test.dart → lib/x/y.dart), ohne
 # generierten Code und ohne die in der Paketkonfiguration ausgeschlossenen Dateien.
 quelldateien() {
   local pkg="$1" vorlage="tool/mutation/$1.xml" datei kandidat
-  local ausgeschlossen
-  ausgeschlossen="$(sed -n 's#^ *<file>\(packages/[^<]*\)</file>#\1#p' "$vorlage")"
+  local ausschluesse
+  ausschluesse="$(sed -n 's#^ *<file>\(packages/[^<]*\)</file>#\1#p' "$vorlage")"
   while IFS= read -r datei; do
     case "$datei" in
       "packages/$pkg/lib/"*.dart) kandidat="$datei" ;;
@@ -42,7 +52,7 @@ quelldateien() {
     esac
     [[ "$kandidat" == *.g.dart ]] && continue
     [ -f "$kandidat" ] || continue
-    grep -qxF "$kandidat" <<<"$ausgeschlossen" && continue
+    ausgeschlossen "$kandidat" "$ausschluesse" && continue
     echo "$kandidat"
   done <<<"$GEAENDERT" | sort -u
 }
