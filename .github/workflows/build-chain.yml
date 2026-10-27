@@ -32,6 +32,8 @@ jobs:
         run: |
           (cd packages/app && flutter gen-l10n)
           git diff --exit-code packages/app/lib/l10n
+      - name: Dateiauswahl der Mutation-Tests prüfen
+        run: tool/mutation_auswahl_test.sh
 
   unit-tests:
     name: Unit-Tests mit Abdeckung (100 %)
@@ -59,6 +61,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          # Vollständige Historie für den gemeinsamen Vorfahren mit origin/main.
+          fetch-depth: 0
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
@@ -67,6 +72,9 @@ jobs:
       - run: flutter pub get
       - run: tool/objectbox_bibliothek.sh
       - run: tool/mutation.sh
+        env:
+          # main: alles mutieren; Feature-Branches: nur gegenüber main geänderte Dateien.
+          MUTATION_BASIS: ${{ github.ref != 'refs/heads/main' && 'origin/main' || '' }}
       - uses: actions/upload-artifact@v7
         if: always()
         with:
