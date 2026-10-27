@@ -28,6 +28,7 @@
   "formRechteck": "Rectangle",
   "formLForm": "L-shape",
   "formTForm": "T-shape",
+  "formUForm": "U-shape",
   "massUngueltig": "Please enter {min} to {max} cm",
   "berechnungFehler": "Calculation not possible – please check the connection",
 

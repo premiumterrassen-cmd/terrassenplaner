@@ -19,6 +19,7 @@ class FormWahl extends StatelessWidget {
     Terrassenform.rechteck => t.formRechteck,
     Terrassenform.lForm => t.formLForm,
     Terrassenform.tForm => t.formTForm,
+    Terrassenform.uForm => t.formUForm,
   };
 
   @override

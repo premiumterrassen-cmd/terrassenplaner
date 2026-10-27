@@ -94,6 +94,9 @@ class PlanerTexteDe extends PlanerTexte {
   String get formTForm => 'T-Form';
 
   @override
+  String get formUForm => 'U-Form';
+
+  @override
   String massUngueltig(int min, int max) {
     return 'Bitte $min bis $max cm eingeben';
   }

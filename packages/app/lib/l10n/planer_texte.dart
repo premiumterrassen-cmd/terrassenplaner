@@ -250,6 +250,12 @@ abstract class PlanerTexte {
   /// **'T-Form'**
   String get formTForm;
 
+  /// No description provided for @formUForm.
+  ///
+  /// In de, this message translates to:
+  /// **'U-Form'**
+  String get formUForm;
+
   /// No description provided for @massUngueltig.
   ///
   /// In de, this message translates to:

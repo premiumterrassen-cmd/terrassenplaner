@@ -278,6 +278,8 @@ void main() {
       expect(FormWahl.name(en, Terrassenform.lForm), 'L-shape');
       expect(FormWahl.name(de, Terrassenform.tForm), 'T-Form');
       expect(FormWahl.name(en, Terrassenform.tForm), 'T-shape');
+      expect(FormWahl.name(de, Terrassenform.uForm), 'U-Form');
+      expect(FormWahl.name(en, Terrassenform.uForm), 'U-shape');
     });
   });
 
