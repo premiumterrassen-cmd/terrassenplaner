@@ -37,4 +37,11 @@ for test in integration_test/*_test.dart; do
     --dart-define=PLANER_WAMP_URL="ws://127.0.0.1:$WAMP_PORT/ws" \
     ${CHROME_EXECUTABLE:+--chrome-binary="$CHROME_EXECUTABLE"} || status=1
 done
+
+# Ladebildschirm (M3-08) im Release-Build mit Größenliste: kalter Start, Cache,
+# Barrierefreiheit, langsam, offline, Fehler – WebAssembly- und JS-Weg.
+echo "== Ladebildschirm: tool/ladebild/pruefung.mjs"
+flutter build web --release --wasm
+python3 "$ROOT/tool/startgroessen.py" build/web
+LADEBILD_WAMP_PORT="$WAMP_PORT" node "$ROOT/tool/ladebild/pruefung.mjs" build/web || status=1
 exit $status

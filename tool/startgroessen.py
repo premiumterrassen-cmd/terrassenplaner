@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 
 PLATZHALTER = re.compile(r'(<script id="startgroessen" type="application/json">)\{\}(</script>)')
-RELEVANT = re.compile(r'^(main\.dart\.(js|mjs|wasm)|canvaskit/[^/]+\.(js|wasm)|assets/.*)$')
+RELEVANT = re.compile(r'^(main\.dart\.(js|mjs|wasm)|canvaskit/.+\.(js|wasm)|assets/.*)$')
 
 
 def main():

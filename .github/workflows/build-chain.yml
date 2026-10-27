@@ -110,9 +110,21 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: stable
       - run: flutter pub get
       - run: tool/objectbox_bibliothek.sh
+      - name: Web-App für den Ladebild-Benchmark bauen (M3-08)
+        working-directory: packages/app
+        run: |
+          flutter build web --release --wasm
+          python3 ../../tool/startgroessen.py build/web
       - run: tool/benchmark.sh
+        env:
+          LADEBILD_WEB: packages/app/build/web
+          CHROME_EXECUTABLE: ${{ steps.chrome.outputs.chrome-path }}
       - uses: actions/upload-artifact@v7
         with:
           name: benchmarks
