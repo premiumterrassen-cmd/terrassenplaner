@@ -421,6 +421,14 @@ const FAELLE = {
     await seite.abfangen({ halten: ['main.dart.wasm'] });
     await seite.oeffneUrl(adresse);
     await seite.warte("document.getElementById('ladebild-status').textContent", 'Status sichtbar');
+    // Erst offline gehen, wenn nur noch das gehaltene main.dart.wasm fehlt –
+    // eine abgebrochene Startdatei wäre ein echter Fehler („Start nicht möglich“).
+    await seite.warte(`(() => {
+      const fertig = performance.getEntriesByType('resource')
+        .filter((e) => e.responseEnd > 0).map((e) => new URL(e.name).pathname.slice(1));
+      const plan = window.planerLadebildschirm.zustand().plan ?? [];
+      return plan.length > 0 && plan.every((d) => d === 'main.dart.wasm' || fertig.includes(d));
+    })()`, 'übrige Startdateien geladen');
     const netz = (offline) => seite.sende('Network.emulateNetworkConditions', {
       offline, latency: 0, downloadThroughput: -1, uploadThroughput: -1,
     });
@@ -430,6 +438,10 @@ const FAELLE = {
     await netz(false);
     await seite.warte(`document.getElementById('ladebild-status').textContent !== ${JSON.stringify(TEXT.offline)}`,
       'Hinweis „offline“ verschwindet', 5000);
+    // Das online-Ereignis kommt vor der Netz-Emulation an: Erst freigeben,
+    // wenn eine echte Anfrage wieder durchgeht, sonst scheitert main.dart.wasm.
+    await seite.warte("fetch('/favicon.png?online=' + Date.now(), { cache: 'no-store' }).then((r) => r.ok, () => false)",
+      'Netz wieder erreichbar', 5000);
     await seite.freigeben();
     await pruefeStart(seite, adresse);
     await seite.schliessen();
