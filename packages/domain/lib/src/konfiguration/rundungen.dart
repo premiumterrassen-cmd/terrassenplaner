@@ -66,13 +66,14 @@ final class Rundungen {
     final n = e.length;
     final tangente = List<double>.filled(n, 0);
     final drehung = List<double>.filled(n, 0);
+    int vorher(int i) => i == 0 ? n - 1 : i - 1;
     for (final MapEntry(key: i, value: r) in ecken.entries) {
-      final a = (e[i] - e[(i + n - 1) % n]).einheit;
+      final a = (e[i] - e[vorher(i)]).einheit;
       final b = (e[(i + 1) % n] - e[i]).einheit;
       drehung[i] = math.atan2(a.kreuz(b), a.punktprodukt(b));
       tangente[i] = r.mm * math.tan(drehung[i].abs() / 2);
     }
-    final aussen = Kontur(e).gegenUhrzeigersinn ? 1 : -1;
+    final aussen = Kontur(e).gegenUhrzeigersinn;
     final punkte = <Punkt>[], woelbungen = <double>[];
     for (var i = 0; i < n; i++) {
       final j = (i + 1) % n;
@@ -89,7 +90,7 @@ final class Rundungen {
       final anfang = e[i] + richtung * tangente[i];
       if (tangente[i] > 0) {
         // Bogen der Ecke i vom Ende der vorigen Kante bis hierher
-        punkte.add(e[i] - (e[i] - e[(i + n - 1) % n]).einheit * tangente[i]);
+        punkte.add(e[i] - (e[i] - e[vorher(i)]).einheit * tangente[i]);
         woelbungen.add(math.tan(drehung[i] / 4));
       }
       punkte.add(anfang);
@@ -107,7 +108,9 @@ final class Rundungen {
   }
 
   /// Wölbung der Seite [i] mit Sehne [sehne]: tan(θ/4) = 2·Stich / Sehne.
-  double _woelbung(int i, double sehne, int aussen) {
+  /// [aussen]: Umlauf gegen den Uhrzeigersinn – dort wölbt eine positive
+  /// Wölbung nach außen.
+  double _woelbung(int i, double sehne, bool aussen) {
     final stich = seiten[i]?.mm ?? 0;
     if (stich.abs() * 2 >= sehne) {
       throw ArgumentError.value(
@@ -116,7 +119,8 @@ final class Rundungen {
         'Stich höchstens bis zum Halbkreis der Seite ${_name(i)}',
       );
     }
-    return 2 * stich / sehne * aussen;
+    final w = 2 * stich / sehne;
+    return aussen ? w : -w;
   }
 
   static String _name(int i) => String.fromCharCode(65 + i);

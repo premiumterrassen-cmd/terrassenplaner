@@ -4,11 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:terrassenplaner_app/src/design/planer_design.dart';
+import 'package:terrassenplaner_app/src/rahmen/ansichtsoptionen.dart';
 import 'package:terrassenplaner_app/src/rahmen/planer_rahmen.dart';
 import 'package:terrassenplaner_app/src/rahmen/planer_schritt.dart';
 import 'package:terrassenplaner_app/src/rahmen/rahmen_zustand.dart';
 import 'package:terrassenplaner_app/src/rahmen/rundung.dart';
 import 'package:terrassenplaner_app/src/rahmen/steuerung.dart';
+import 'package:terrassenplaner_app/src/rahmen/zeichenflaeche.dart';
+import 'package:terrassenplaner_app/src/rahmen/zeichnung.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 import 'hilfe.dart';
@@ -199,6 +202,7 @@ void main() {
       s.b.waehle((ecke: true, nummer: 1));
       await tester.pump();
       expect(find.text('Ecke B'), findsOneWidget);
+      expect(find.byKey(const ValueKey('rundung-auswahl')), findsOneWidget);
       expect(find.text('Radius: cm'), findsOneWidget);
       await gib(tester, '100');
       expect(s.planung.aktuell.rundungen.ecken[1], const Millimeter(1000));
@@ -298,6 +302,45 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('rundung-ecke-1')));
       await tester.pumpAndSettle();
       expect(find.text('Ecke B'), findsOneWidget);
+    });
+
+    testWidgets('Griffe folgen dem Zoom', (tester) async {
+      tester.view
+        ..physicalSize = const Size(1440, 900)
+        ..devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final planung = PlanungsSteuerung(_rechteck);
+      final ansicht = AnsichtSteuerung()
+        ..value = (Matrix4.identity()..scaleByDouble(2, 2, 2, 1));
+      final b = RundungsBedienung(planung: planung, onGeaendert: () {})
+        ..oeffne();
+      addTearDown(planung.dispose);
+      addTearDown(ansicht.dispose);
+      await tester.pumpWidget(
+        testApp(
+          home: Scaffold(
+            body: Zeichenflaeche(
+              planung: planung,
+              ansicht: ansicht,
+              optionen: AnsichtsOptionen(),
+              rundung: b,
+              zeichnung: Zeichnung(
+                umriss: [
+                  for (final p in _rechteck.grundriss.ecken) Offset(p.x, p.y),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      final ursprung = tester.getTopLeft(
+        find.byKey(const ValueKey('zeichenflaeche')),
+      );
+      // Seite A—B: Mitte 2700 mm · 0,1 px/mm · 2 = 540 px
+      expect(
+        tester.getCenter(find.byKey(const ValueKey('rundung-seite-0'))),
+        ursprung + const Offset(540, 0),
+      );
     });
 
     testWidgets('ESC übernimmt', (tester) async {

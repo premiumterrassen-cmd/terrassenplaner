@@ -55,6 +55,25 @@ void main() {
     );
   });
 
+  test('spitzer und stumpfer Winkel: Tangentenlänge r · tan(φ/2)', () {
+    // Dreieck mit 60°-Ecke bei A: Richtungswechsel 120°, tan(60°) = √3
+    final dreieck = FreiformGrundriss(const [
+      Punkt(0, 0),
+      Punkt(4000, 0),
+      Punkt(2000, 3464.1016151377544),
+    ], geschlossen: true);
+    final k = Rundungen.keine.mitEcke(1, const Millimeter(500)).kontur(dreieck);
+    final t = 500 * math.sqrt(3);
+    expect(k.punkte[1].gleich(Punkt(4000 - t, 0), 1e-6), isTrue);
+    // stumpfe Ecke der L-Form (270° innen): Richtungswechsel −90°
+    final l = Rundungen.keine
+        .mitEcke(2, const Millimeter(300))
+        .kontur(LGrundriss.vorgabe);
+    expect(l.punkte[2].gleich(const Punkt(2700, 1500), 1e-6), isTrue);
+    expect(l.punkte[3].gleich(const Punkt(3000, 1800), 1e-6), isTrue);
+    expect(l.flaeche, closeTo(14580000 + 300 * 300 * (1 - math.pi / 4), 1e-3));
+  });
+
   test('Ecke und angrenzende Seite zugleich', () {
     final k = Rundungen.keine
         .mitEcke(1, const Millimeter(1000))
@@ -75,6 +94,18 @@ void main() {
     expect(
       () => Rundungen.keine.mitEcke(1, const Millimeter(3600)).kontur(_r540),
       wirftArgumentFehler('ecke', 3600, 'Rundung zu groß für die Kante B—C'),
+    );
+    expect(
+      () => Rundungen.keine.mitSeite(1, const Millimeter(-2000)).kontur(_r540),
+      wirftArgumentFehler(
+        'seite',
+        -2000,
+        'Stich höchstens bis zum Halbkreis der Seite B',
+      ),
+    );
+    expect(
+      Rundungen.keine.mitSeite(1, const Millimeter(1799)).kontur(_r540).flaeche,
+      greaterThan(19440000),
     );
     expect(
       () => Rundungen.keine.mitSeite(1, const Millimeter(1800)).kontur(_r540),
