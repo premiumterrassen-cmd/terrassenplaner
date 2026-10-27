@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
+import 'src/design/darstellung.dart';
 import 'src/design/planer_design.dart';
 import 'src/rahmen/planer_rahmen.dart';
 import 'src/sprache/sprache.dart';
@@ -18,6 +19,7 @@ class PlanerApp extends StatefulWidget {
     super.key,
     this.info = terrassenplaner,
     this.sprache,
+    this.darstellung,
   });
 
   final ProjektInfo info;
@@ -25,8 +27,13 @@ class PlanerApp extends StatefulWidget {
   final KonfigurationLaden laden;
   final GespeicherteKonfiguration gespeichert;
 
-  /// Von außen vorgegebene Sprache (Tests); sonst Deutsch (M3-07).
+  /// Sprache aus den lokalen Einstellungen (M3-09); ohne Vorgabe Deutsch
+  /// (M3-07).
   final SprachSteuerung? sprache;
+
+  /// Darstellung aus den lokalen Einstellungen (M3-09); ohne Vorgabe wie
+  /// das System.
+  final DarstellungSteuerung? darstellung;
 
   @override
   State<PlanerApp> createState() => _PlanerAppState();
@@ -34,21 +41,26 @@ class PlanerApp extends StatefulWidget {
 
 class _PlanerAppState extends State<PlanerApp> {
   late final SprachSteuerung _sprache = widget.sprache ?? SprachSteuerung();
+  late final DarstellungSteuerung _darstellung =
+      widget.darstellung ?? DarstellungSteuerung();
 
   @override
   void dispose() {
     if (widget.sprache == null) _sprache.dispose();
+    if (widget.darstellung == null) _darstellung.dispose();
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) => ValueListenableBuilder(
-    valueListenable: _sprache,
-    builder: (context, sprache, _) => MaterialApp(
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: Listenable.merge([_sprache, _darstellung]),
+    builder: (context, _) => MaterialApp(
       title: widget.info.titel,
       theme: planerThema(),
+      darkTheme: planerThema(Brightness.dark),
+      themeMode: _darstellung.value,
       debugShowCheckedModeBanner: false,
-      locale: sprache,
+      locale: _sprache.value,
       localizationsDelegates: PlanerTexte.localizationsDelegates,
       supportedLocales: SprachSteuerung.sprachen,
       home: PlanerStart(
@@ -57,6 +69,7 @@ class _PlanerAppState extends State<PlanerApp> {
         child: PlanerRahmen(
           status: ServerStatus(hallo: widget.hallo),
           sprache: _sprache,
+          darstellung: _darstellung,
         ),
       ),
     ),

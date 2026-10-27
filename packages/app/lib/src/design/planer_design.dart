@@ -31,30 +31,52 @@ abstract final class PlanerLayout {
 /// Schriftfamilie – mitgeliefert, kein Abruf von Google-Servern.
 const planerSchrift = 'Roboto';
 
-/// Thema des Planers (hell; Dunkelmodus folgt mit M3-09).
-ThemeData planerThema() {
+/// Flächenfarben der dunklen Darstellung (M3-09): warme Grautöne passend
+/// zu Braun und Grün, die Markenfarben bleiben.
+abstract final class PlanerFarbenDunkel {
+  static const grund = Color(0xFF1F1D1A);
+  static const leiste = Color(0xFF2B2824);
+  static const text = Color(0xFFE9E3D9);
+  static const linie = Color(0xFF4A453F);
+}
+
+/// Thema des Planers, hell oder dunkel (M3-09). Flächen über das
+/// Farbschema: `surface` Grund, `surfaceContainer` Leisten (Sand),
+/// `onSurface` Text, `outlineVariant` Linien.
+ThemeData planerThema([Brightness helligkeit = Brightness.light]) {
+  final hell = helligkeit == Brightness.light;
+  final grund = hell ? PlanerFarben.weiss : PlanerFarbenDunkel.grund;
+  final linie = hell ? PlanerFarben.linie : PlanerFarbenDunkel.linie;
   final farben = ColorScheme.fromSeed(
     seedColor: PlanerFarben.braun,
+    brightness: helligkeit,
     primary: PlanerFarben.braun,
     onPrimary: PlanerFarben.weiss,
     secondary: PlanerFarben.gruen,
     onSecondary: PlanerFarben.weiss,
-    surface: PlanerFarben.weiss,
-    onSurface: PlanerFarben.text,
+    surface: grund,
+    surfaceContainer: hell ? PlanerFarben.sand : PlanerFarbenDunkel.leiste,
+    onSurface: hell ? PlanerFarben.text : PlanerFarbenDunkel.text,
+    outlineVariant: linie,
   );
   return ThemeData(
     colorScheme: farben,
     fontFamily: planerSchrift,
-    scaffoldBackgroundColor: PlanerFarben.weiss,
-    dividerColor: PlanerFarben.linie,
-    cardTheme: const CardThemeData(
-      color: PlanerFarben.weiss,
-      surfaceTintColor: PlanerFarben.weiss,
+    scaffoldBackgroundColor: grund,
+    dividerColor: linie,
+    cardTheme: CardThemeData(
+      color: grund,
+      surfaceTintColor: grund,
       elevation: 1,
     ),
-    dialogTheme: const DialogThemeData(
-      backgroundColor: PlanerFarben.weiss,
-      surfaceTintColor: PlanerFarben.weiss,
+    dialogTheme: DialogThemeData(
+      backgroundColor: grund,
+      surfaceTintColor: grund,
     ),
   );
+}
+
+/// Kurzer Zugriff auf die Farben des aktuellen Themas.
+extension FarbenImKontext on BuildContext {
+  ColorScheme get farben => Theme.of(this).colorScheme;
 }

@@ -355,6 +355,15 @@ void main() {
       expect(m.shouldRepaint(_maler(_rechteck(), o, a)), isTrue);
       expect(m.shouldRepaint(_maler(z, AnsichtsOptionen(), a)), isTrue);
       expect(m.shouldRepaint(_maler(z, o, AnsichtSteuerung())), isTrue);
+      expect(m.strich, PlanerFarben.text);
+      final dunkel = ZeichnungsMaler(
+        zeichnung: z,
+        optionen: o,
+        ansicht: a,
+        sprache: de,
+        strich: PlanerFarbenDunkel.text,
+      );
+      expect(m.shouldRepaint(dunkel), isTrue);
     });
   });
 

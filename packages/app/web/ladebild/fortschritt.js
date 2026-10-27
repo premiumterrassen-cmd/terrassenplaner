@@ -11,8 +11,14 @@
 (function () {
   'use strict';
 
+  // Texte in den Sprachen des Planers (M3-07); die Sprache kommt aus den
+  // lokalen Einstellungen der App (M3-09, lib/src/einstellungen/
+  // lokale_einstellungen.dart), ohne Eintrag Deutsch wie im Planer.
   var TEXTE = {
     de: {
+      titel: 'Ihr Terrassenplaner wird geladen',
+      balken: 'Ladefortschritt',
+      erneut: 'Erneut versuchen',
       laden: 'Planungsdaten werden geladen …',
       initialisieren: 'Darstellung wird vorbereitet …',
       starten: 'Ihr Terrassenplaner wird geöffnet …',
@@ -20,10 +26,34 @@
       offline: 'Sie sind offline. Bitte prüfen Sie Ihre Verbindung.',
       fehlerTitel: 'Start nicht möglich',
       fehler: 'Der Terrassenplaner konnte nicht gestartet werden. Bitte versuchen Sie es erneut.'
+    },
+    en: {
+      titel: 'Your decking configurator is loading',
+      balken: 'Loading progress',
+      erneut: 'Try again',
+      laden: 'Loading planning data …',
+      initialisieren: 'Preparing the display …',
+      starten: 'Opening your decking configurator …',
+      langsam: 'Loading is taking longer than usual. Please check your connection.',
+      offline: 'You are offline. Please check your connection.',
+      fehlerTitel: 'Unable to start',
+      fehler: 'The decking configurator could not be started. Please try again.'
     }
   };
-  var sprache = (navigator.language || 'de').slice(0, 2).toLowerCase();
-  var t = TEXTE[sprache] || TEXTE.de;
+  // Wert der lokalen Einstellungen; gesperrter Speicher (privates Fenster)
+  // liefert null, dann gelten die Standardwerte wie im Planer.
+  function einstellung(schluessel) {
+    try { return window.localStorage.getItem(schluessel); } catch (e) { return null; }
+  }
+  var gespeichert = einstellung('terrassenplaner.sprache');
+  var sprache = Object.prototype.hasOwnProperty.call(TEXTE, gespeichert) ? gespeichert : 'de';
+  var t = TEXTE[sprache];
+
+  // Darstellung wie im Planer: hell, dunkel oder wie das System (Standard).
+  var darstellung = einstellung('terrassenplaner.darstellung');
+  var dunkel = darstellung === 'dark' || (darstellung !== 'light' &&
+    !!window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  if (dunkel) document.documentElement.classList.add('dunkel');
 
   var groessen = {};
   try {
@@ -165,7 +195,7 @@
   var ladebild = {
     // Für Tests und Fehlersuche: aktueller Zustand der Fortschrittsberechnung.
     zustand: function () {
-      return { phase: phase, plan: plan, verlaesslich: verlaesslich, geladen: geladen, prozent: prozent(), beendet: beendet };
+      return { sprache: sprache, dunkel: dunkel, phase: phase, plan: plan, verlaesslich: verlaesslich, geladen: geladen, prozent: prozent(), beendet: beendet };
     },
     konfiguriere: function (buildConfig) {
       builds = (buildConfig && buildConfig.builds) || [];
@@ -209,5 +239,10 @@
     }
   };
   window.planerLadebildschirm = ladebild;
+  // Feste Texte aus index.html in der gespeicherten Sprache.
+  document.documentElement.lang = sprache;
+  el('ladebild-titel').textContent = t.titel;
+  el('ladebild-balken').setAttribute('aria-label', t.balken);
+  el('ladebild-erneut').textContent = t.erneut;
   zeichne();
 })();
