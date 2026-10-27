@@ -212,9 +212,10 @@ Alle im alten Planer aktiven Terrassenformen, Freiform-Zeichnen, Eckpunkt-/Kante
 
 GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/5
 
-- [ ] **M4-01 Geometrie-Kern** ([#31](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/31)) – `feature/m4-01-geometrie-kern` · Benchmark
+- [x] **M4-01 Geometrie-Kern** ([#31](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/31)) – `feature/m4-01-geometrie-kern` · Benchmark
   - Polygone mit Bögen, Fläche, Umfang, Winkel, Punkt-in-Fläche, Schnitt/Vereinigung/Differenz, Abstands- und Kollisionsprüfung – Grundlage für Grundriss, Belag und UK.
   - Abnahme: Eigenschaftsbasierte Tests (z. B. Fläche invariant unter Drehung); Benchmark für komplexe Formen mit Ausschnitten
+  - Ergebnis: `docs/architektur/geometrie.md` – `Punkt`, `Kante` (Strecke oder Kreisbogen über die Wölbung), `Kontur` (exakte Fläche auch mit Bögen, Umfang, Innenwinkel, Punkt im Inneren, Abstand, Selbstüberschneidung, Drehen/Verschieben), `Flaeche` mit Löchern und `verknuepfe` (Vereinigung/Schnitt/Differenz, eigenes Verfahren, deckungsgleiche Kanten kein Sonderfall); Prüfungen `umschliesst`/`ueberschneidet`/`abstand`/Teilung für M4-12. Eigenschaftsbasierte Tests (Drehung, Umlaufsinn, Winkelsumme, Einschluss-Ausschluss, Zufallspunkte, Rasterrechtecke auch gedreht). Benchmark `domain.Geometrie.uFormMitAusschnitten`: 6,7 ms je Durchlauf (U-Form mit Rundungen, sechs Ausschnitte).
 - [ ] **M4-02 Rechteck mit Maßen** ([#32](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/32)) – `feature/m4-02-rechteck-mit-massen`
   - Rechteck als Standardform, Maße A–B und B–C in cm.
   - Abnahme: Fläche und Zeichnung stimmen mit Eingabe überein
