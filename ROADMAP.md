@@ -248,9 +248,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/5
   - Eckpunkte hinzufügen/entfernen (min. 3)/ziehen, Kanten verschieben, Maße per Eingabe; Umschalter Koordinaten/Strecke.
   - Abnahme: Mindestens 3 Eckpunkte erzwungen; Eingabe per Koordinaten und per Strecke
   - Ergebnis: Ziehpunkte auf der Zeichenfläche – Ecken (antippen wählt aus, ziehen verschiebt, mit Einrasten), Kantenmitten (antippen fügt einen Punkt ein, ziehen verschiebt die Kante parallel); feste Formen werden beim Ziehen zur geschlossenen Freiform, der Kreis hat keine Ecken. Ein Rückgängig-Schritt je Ziehen (`Verlauf.ersetze`). Unter 1.2 für die ausgewählte Ecke Maßeingabe Strecke | Koordinaten und „Punkt entfernen“ (mindestens 3 Ecken). Smoke-Test zieht eine Ecke in Chrome.
-- [ ] **M4-10 Form drehen und zentrieren** ([#40](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/40)) – `feature/m4-10-form-drehen-und-zentrieren`
+- [x] **M4-10 Form drehen und zentrieren** ([#40](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/40)) – `feature/m4-10-form-drehen-und-zentrieren`
   - Form rotieren (Hinweis: Ausschnitte werden zurückgesetzt), zentrieren.
   - Abnahme: Ausschnitte werden nach Bestätigung zurückgesetzt
+  - Ergebnis: „Form drehen“ in der Werkzeugleiste dreht um 90° (in der Zeichnung rechtsherum), die Form liegt danach wieder an 0|0 und ist eine geschlossene Freiform (`Grundriss.gedreht`, beliebige Winkel im domain-Paket); mit Ausschnitten erst nach Rückfrage, die Ausschnitte werden dann zurückgesetzt. Kreis und offene Freiform: Knopf gesperrt. „Zentrieren“ stellt die Zeichnung bei 100 % in die Mitte der Zeichenfläche. Werkzeugleiste: Zoom-Prozent nur noch in der breiten Leiste (Platz bei 1024 px).
 - [ ] **M4-11 Ecken und Seiten abrunden** ([#41](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/41)) – `feature/m4-11-ecken-und-seiten-abrunden`
   - Rundungen an Ecken und Seiten im eigenen Bearbeitungsmodus; übernehmen/zurücksetzen; unzulässige Rundungen abweisen.
   - Abnahme: Unzulässige Rundung wird gemeldet; Verlassen des Modus fragt nach Übernehmen/Zurücksetzen

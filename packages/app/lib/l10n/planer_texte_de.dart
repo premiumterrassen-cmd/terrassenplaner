@@ -228,6 +228,21 @@ class PlanerTexteDe extends PlanerTexte {
   String get zentrieren => 'Zentrieren';
 
   @override
+  String get formDrehen => 'Form drehen';
+
+  @override
+  String get drehenTitel => 'Form drehen?';
+
+  @override
+  String get drehenText => 'Beim Drehen werden alle Ausschnitte zurückgesetzt.';
+
+  @override
+  String get drehenBestaetigen => 'Drehen';
+
+  @override
+  String get abbrechen => 'Abbrechen';
+
+  @override
   String get verkleinern => 'Verkleinern';
 
   @override

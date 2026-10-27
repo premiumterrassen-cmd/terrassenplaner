@@ -490,6 +490,36 @@ abstract class PlanerTexte {
   /// **'Zentrieren'**
   String get zentrieren;
 
+  /// No description provided for @formDrehen.
+  ///
+  /// In de, this message translates to:
+  /// **'Form drehen'**
+  String get formDrehen;
+
+  /// No description provided for @drehenTitel.
+  ///
+  /// In de, this message translates to:
+  /// **'Form drehen?'**
+  String get drehenTitel;
+
+  /// No description provided for @drehenText.
+  ///
+  /// In de, this message translates to:
+  /// **'Beim Drehen werden alle Ausschnitte zurückgesetzt.'**
+  String get drehenText;
+
+  /// No description provided for @drehenBestaetigen.
+  ///
+  /// In de, this message translates to:
+  /// **'Drehen'**
+  String get drehenBestaetigen;
+
+  /// No description provided for @abbrechen.
+  ///
+  /// In de, this message translates to:
+  /// **'Abbrechen'**
+  String get abbrechen;
+
   /// No description provided for @verkleinern.
   ///
   /// In de, this message translates to:

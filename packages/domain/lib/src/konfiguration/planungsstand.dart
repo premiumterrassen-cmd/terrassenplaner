@@ -56,6 +56,11 @@ final class Planungsstand {
     ausschnitte: [if (form == Terrassenform.oForm) Ausschnitt.oForm],
   );
 
+  /// Grundriss um [grad] gedreht (M4-10); die Ausschnitte werden dabei
+  /// zurückgesetzt – die App fragt vorher nach.
+  Planungsstand gedreht(double grad) =>
+      Planungsstand(grundriss: grundriss.gedreht(grad));
+
   /// Kopie, in der der Ausschnitt [index] durch [ausschnitt] ersetzt ist.
   Planungsstand mitAusschnitt(int index, Ausschnitt ausschnitt) =>
       Planungsstand(
