@@ -103,6 +103,52 @@ class PlanerTexteDe extends PlanerTexte {
   String get formKreis => 'Kreis';
 
   @override
+  String get formFreiform => 'Freiform';
+
+  @override
+  String get freiformHinweis => 'Punkte setzen – [x] zum Schließen der Form';
+
+  @override
+  String get einrastfunktion => 'Einrastfunktion';
+
+  @override
+  String get zeichnungshilfe => 'Zeichnungshilfe';
+
+  @override
+  String get eingabeStrecke => 'Strecke';
+
+  @override
+  String get eingabeKoordinaten => 'Koordinaten';
+
+  @override
+  String get feldWinkel => 'Winkel';
+
+  @override
+  String winkelPlatzhalter(String feld) {
+    return '$feld: °';
+  }
+
+  @override
+  String get letztenPunktEntfernen => 'Letzten Punkt entfernen';
+
+  @override
+  String get formSchliessen => 'Form schließen';
+
+  @override
+  String get formGeschlossen => 'Form geschlossen';
+
+  @override
+  String get freiformMindestens3 => 'Die Form braucht mindestens 3 Punkte.';
+
+  @override
+  String get freiformKreuzt => 'Die Kanten dürfen sich nicht kreuzen.';
+
+  @override
+  String freiformKante(int min, int max) {
+    return 'Kanten müssen $min bis $max cm lang sein.';
+  }
+
+  @override
   String ausschnittTitel(String bezeichnung) {
     return 'Ausschnitt $bezeichnung';
   }

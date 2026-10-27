@@ -103,6 +103,52 @@ class PlanerTexteEn extends PlanerTexte {
   String get formKreis => 'Circle';
 
   @override
+  String get formFreiform => 'Freeform';
+
+  @override
+  String get freiformHinweis => 'Set points – [x] to close the shape';
+
+  @override
+  String get einrastfunktion => 'Snap to grid';
+
+  @override
+  String get zeichnungshilfe => 'Drawing aid';
+
+  @override
+  String get eingabeStrecke => 'Distance';
+
+  @override
+  String get eingabeKoordinaten => 'Coordinates';
+
+  @override
+  String get feldWinkel => 'Angle';
+
+  @override
+  String winkelPlatzhalter(String feld) {
+    return '$feld: °';
+  }
+
+  @override
+  String get letztenPunktEntfernen => 'Remove last point';
+
+  @override
+  String get formSchliessen => 'Close shape';
+
+  @override
+  String get formGeschlossen => 'Shape closed';
+
+  @override
+  String get freiformMindestens3 => 'The shape needs at least 3 points.';
+
+  @override
+  String get freiformKreuzt => 'Edges must not cross.';
+
+  @override
+  String freiformKante(int min, int max) {
+    return 'Edges must be $min to $max cm long.';
+  }
+
+  @override
   String ausschnittTitel(String bezeichnung) {
     return 'Cut-out $bezeichnung';
   }

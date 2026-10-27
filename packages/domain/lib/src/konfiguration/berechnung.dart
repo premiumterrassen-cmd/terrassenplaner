@@ -13,6 +13,7 @@ final class Berechnung {
     required this.flaeche,
     List<List<Punkt>> ausschnitte = const [],
     List<Punkt>? ecken,
+    this.geschlossen = true,
   }) : umriss = List.unmodifiable(umriss),
        ecken = List.unmodifiable(ecken ?? umriss),
        ausschnitte = List.unmodifiable([
@@ -26,6 +27,12 @@ final class Berechnung {
     return Berechnung(
       umriss: _punkte(puffer, wurzel, _umrissPlatz),
       ecken: _punkte(puffer, wurzel, _eckenPlatz),
+      geschlossen: const fb.BoolReader().vTableGet(
+        puffer,
+        wurzel,
+        _versatz(_geschlossenPlatz),
+        true,
+      ),
       ausschnitte: [
         for (final ort in const fb.ListReader<int>(
           _Tabellenort(),
@@ -49,6 +56,10 @@ final class Berechnung {
   /// [umriss], beim Kreis leer.
   final List<Punkt> ecken;
 
+  /// Ob der Umriss eine Fläche umschließt; eine offene Freiform (M4-08) hat
+  /// keine Fläche.
+  final bool geschlossen;
+
   /// Ausschnitte (Eckpunkte in mm), in der Reihenfolge des Planungsstands.
   final List<List<Punkt>> ausschnitte;
 
@@ -61,7 +72,8 @@ final class Berechnung {
 
   /// FlatBuffer für den Weg zur App (#110):
   /// `{ 0: umriss ([float64] x, y je Punkt), 1: flaeche (float64 mm²),
-  /// 2: ausschnitte ([{ 0: punkte ([float64]) }]), 3: ecken ([float64]) }`.
+  /// 2: ausschnitte ([{ 0: punkte ([float64]) }]), 3: ecken ([float64]),
+  /// 4: geschlossen (bool) }`.
   Uint8List zuBytes() {
     final fbb = fb.Builder();
     final umrissOrt = _schreibe(fbb, umriss);
@@ -70,11 +82,12 @@ final class Berechnung {
     ]);
     final eckenOrt = _schreibe(fbb, ecken);
     fbb
-      ..startTable(4)
+      ..startTable(5)
       ..addOffset(_umrissPlatz, umrissOrt)
       ..addFloat64(_flaechePlatz, flaeche)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
-      ..addOffset(_eckenPlatz, eckenOrt);
+      ..addOffset(_eckenPlatz, eckenOrt)
+      ..addBool(_geschlossenPlatz, geschlossen);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
   }
@@ -102,6 +115,7 @@ final class Berechnung {
   static const _flaechePlatz = 1;
   static const _ausschnittePlatz = 2;
   static const _eckenPlatz = 3;
+  static const _geschlossenPlatz = 4;
 
   static int _versatz(int platz) => 4 + 2 * platz;
 }

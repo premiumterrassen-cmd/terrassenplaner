@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 import '../design/planer_design.dart';
 import '../sprache/sprache.dart';
 import 'ansichtsoptionen.dart';
+import 'freiform.dart';
 import 'steuerung.dart';
 import 'zeichnung.dart';
 
@@ -15,12 +18,52 @@ class Zeichenflaeche extends StatelessWidget {
     required this.optionen,
     required this.zeichnung,
     super.key,
+    this.freiform,
   });
 
   final PlanungsSteuerung planung;
   final AnsichtSteuerung ansicht;
   final AnsichtsOptionen optionen;
   final Zeichnung zeichnung;
+
+  /// Zeichnen der Freiform (M4-08): Antippen setzt einen Punkt, Taste x
+  /// schließt die Form – nur solange sie offen ist.
+  final FreiformBedienung? freiform;
+
+  /// Bildschirmpunkt in mm der Zeichnung (Umkehrung der Ansicht).
+  Punkt inMillimeter(Offset lokal) {
+    final mm = (lokal - ansicht.verschiebung) / (pixelJeMm * ansicht.zoom);
+    return Punkt(mm.dx, mm.dy);
+  }
+
+  Widget _zeichnen(BuildContext context, Widget kind) {
+    final bedienung = freiform;
+    if (bedienung?.offen == null) return kind;
+    return Focus(
+      autofocus: true,
+      onKeyEvent: (_, ereignis) {
+        if (ereignis is! KeyDownEvent ||
+            ereignis.logicalKey != LogicalKeyboardKey.keyX) {
+          return KeyEventResult.ignored;
+        }
+        FreiformBedienung.melde(context, bedienung!.schliesse());
+        return KeyEventResult.handled;
+      },
+      child: Builder(
+        builder: (fokus) => GestureDetector(
+          key: const ValueKey('freiform-zeichnen'),
+          onTapUp: (tipp) {
+            Focus.of(fokus).requestFocus();
+            FreiformBedienung.melde(
+              context,
+              bedienung!.setzePunkt(inMillimeter(tipp.localPosition)),
+            );
+          },
+          child: kind,
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) => Column(
@@ -55,12 +98,15 @@ class Zeichenflaeche extends StatelessWidget {
                     ),
                   ),
                   Positioned.fill(
-                    child: InteractiveViewer(
-                      transformationController: ansicht,
-                      minScale: AnsichtSteuerung.kleinsterZoom,
-                      maxScale: AnsichtSteuerung.groessterZoom,
-                      boundaryMargin: const EdgeInsets.all(double.infinity),
-                      child: const SizedBox.expand(),
+                    child: _zeichnen(
+                      context,
+                      InteractiveViewer(
+                        transformationController: ansicht,
+                        minScale: AnsichtSteuerung.kleinsterZoom,
+                        maxScale: AnsichtSteuerung.groessterZoom,
+                        boundaryMargin: const EdgeInsets.all(double.infinity),
+                        child: const SizedBox.expand(),
+                      ),
                     ),
                   ),
                 ],
@@ -238,7 +284,10 @@ class Werkzeugleiste extends StatelessWidget {
               const SizedBox(width: PlanerAbstand.klein),
               Flexible(
                 child: Text(
-                  t.bedienHinweis,
+                  switch (planung.aktuell.grundriss) {
+                    FreiformGrundriss(geschlossen: false) => t.freiformHinweis,
+                    _ => t.bedienHinweis,
+                  },
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 12,

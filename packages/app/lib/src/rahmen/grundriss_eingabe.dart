@@ -22,6 +22,7 @@ class FormWahl extends StatelessWidget {
     Terrassenform.uForm => t.formUForm,
     Terrassenform.oForm => t.formOForm,
     Terrassenform.kreis => t.formKreis,
+    Terrassenform.freiform => t.formFreiform,
   };
 
   @override
@@ -134,7 +135,12 @@ class MassFelder extends StatefulWidget {
     required this.uebernimm,
     super.key,
     this.schluessel = 'mass',
+    this.platzhalter,
   });
+
+  /// Eigene Platzhalter je Feld; `null` (oder ein `null`-Eintrag) ergibt
+  /// „Name: cm“.
+  final List<String?>? platzhalter;
 
   /// Präfix der Feldschlüssel (`mass-0` …), eindeutig je Block.
   final String schluessel;
@@ -166,13 +172,16 @@ class _MassFelderState extends State<MassFelder> {
     final cm = num.tryParse(text.trim().replaceAll(',', '.'));
     try {
       widget.uebernimm(index, Millimeter.ausCm(cm!));
-    } on Object {
-      // keine Zahl, oder ein Maß (auch abgeleitet) außerhalb der Grenzen
+    } on Object catch (fehler) {
+      // keine Zahl, oder ein Maß (auch abgeleitet) außerhalb der Grenzen;
+      // eine Rückmeldung mit eigenem Text (Freiform) wird übernommen
       setState(
-        () => _fehler[index] = context.texte.massUngueltig(
-          widget.kleinstes.mm ~/ 10,
-          Grundriss.groessteSeite.mm ~/ 10,
-        ),
+        () => _fehler[index] = fehler is ArgumentError && fehler.name == null
+            ? '${fehler.message}'
+            : context.texte.massUngueltig(
+                widget.kleinstes.mm ~/ 10,
+                Grundriss.groessteSeite.mm ~/ 10,
+              ),
       );
       return;
     }
@@ -196,7 +205,9 @@ class _MassFelderState extends State<MassFelder> {
             decoration: InputDecoration(
               isDense: true,
               border: const OutlineInputBorder(),
-              hintText: context.texte.massPlatzhalter(widget.namen[i]),
+              hintText:
+                  widget.platzhalter?[i] ??
+                  context.texte.massPlatzhalter(widget.namen[i]),
               errorText: _fehler[i],
             ),
             onSubmitted: (text) => _uebernimm(i, text),

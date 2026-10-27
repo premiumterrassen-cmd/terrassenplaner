@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:terrassenplaner_app/main.dart' as app;
@@ -16,7 +17,7 @@ void main() {
     expect(find.text(text), findsOneWidget);
   }
 
-  testWidgets('Rechteckmaße und L-Form: Fläche vom Server', (tester) async {
+  testWidgets('Formen und Freiform: Fläche vom Server', (tester) async {
     app.main();
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('neu')));
@@ -34,5 +35,21 @@ void main() {
     // M4-07: Kreis Ø 360 cm, exakt π·r²
     await tester.tap(find.byKey(const ValueKey('form-kreis')));
     await warteAuf(tester, 'Fläche: 10,18 m²');
+    // M4-08: Freiform – drei Punkte antippen, x schließt
+    await tester.tap(find.byKey(const ValueKey('form-freiform')));
+    await warteAuf(tester, 'Fläche: – m²');
+    final ursprung = tester.getTopLeft(
+      find.byKey(const ValueKey('freiform-zeichnen')),
+    );
+    for (final p in const [
+      Offset(100, 100),
+      Offset(400, 100),
+      Offset(400, 300),
+    ]) {
+      await tester.tapAt(ursprung + p);
+      await tester.pumpAndSettle();
+    }
+    await tester.sendKeyEvent(LogicalKeyboardKey.keyX);
+    await warteAuf(tester, 'Fläche: 3,00 m²');
   });
 }

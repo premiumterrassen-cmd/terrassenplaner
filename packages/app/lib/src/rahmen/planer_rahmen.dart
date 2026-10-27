@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 import '../design/darstellung.dart';
 import '../design/planer_design.dart';
@@ -6,6 +7,7 @@ import '../sprache/sprache.dart';
 import 'aktionen.dart';
 import 'ansichtsoptionen.dart';
 import 'berechnung_steuerung.dart';
+import 'freiform.dart';
 import 'grundriss_eingabe.dart';
 import 'planer_schritt.dart';
 import 'rahmen_zustand.dart';
@@ -65,6 +67,12 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
   late final PlanungsSteuerung _planung = widget.planung ?? PlanungsSteuerung();
   late final AnsichtSteuerung _ansicht = widget.ansicht ?? AnsichtSteuerung();
   late final AnsichtsOptionen _optionen = widget.optionen ?? AnsichtsOptionen();
+  final _modus = ZeichenModus();
+  late final _freiform = FreiformBedienung(
+    planung: _planung,
+    modus: _modus,
+    onGeaendert: () => _zustand.markiereGeaendert(PlanerSchritt.grundriss),
+  );
   late final BerechnungsSteuerung? _berechnung = switch (widget.berechne) {
     final berechne? => BerechnungsSteuerung(
       planung: _planung,
@@ -90,6 +98,7 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
   @override
   void dispose() {
     _berechnung?.dispose();
+    _modus.dispose();
     if (widget.planung == null) _planung.dispose();
     if (widget.ansicht == null) _ansicht.dispose();
     if (widget.optionen == null) _optionen.dispose();
@@ -129,7 +138,11 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
         builder: (context, raum) {
           final desktop = PlanerLayout.istDesktop(raum.maxWidth);
           final menuOffen = _zustand.menuOffen(desktop: desktop);
-          final menu = Bearbeitungsmenue(zustand: _zustand, planung: _planung);
+          final menu = Bearbeitungsmenue(
+            zustand: _zustand,
+            planung: _planung,
+            freiform: _freiform,
+          );
           return Column(
             children: [
               Kopfzeile(
@@ -160,6 +173,7 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
                               planung: _planung,
                               ansicht: _ansicht,
                               optionen: _optionen,
+                              freiform: _freiform,
                               zeichnung:
                                   widget.zeichnung ??
                                   _berechnung?.zeichnung ??
@@ -428,11 +442,13 @@ class Bearbeitungsmenue extends StatelessWidget {
   const Bearbeitungsmenue({
     required this.zustand,
     required this.planung,
+    required this.freiform,
     super.key,
   });
 
   final RahmenZustand zustand;
   final PlanungsSteuerung planung;
+  final FreiformBedienung freiform;
 
   /// Eingaben unter einem Unterpunkt (Schritt, Index ab 0).
   Widget? _eingabe(PlanerSchritt schritt, int unterpunkt) =>
@@ -441,6 +457,9 @@ class Bearbeitungsmenue extends StatelessWidget {
           planung: planung,
           onGeaendert: () => zustand.markiereGeaendert(schritt),
         ),
+        (PlanerSchritt.grundriss, 1)
+            when planung.aktuell.grundriss.form == Terrassenform.freiform =>
+          FreiformEingabe(bedienung: freiform),
         // je Form eigene Felder: neue Form, neuer Zustand
         (PlanerSchritt.grundriss, 1) => GrundrissMasse(
           key: ValueKey(planung.aktuell.grundriss.form),

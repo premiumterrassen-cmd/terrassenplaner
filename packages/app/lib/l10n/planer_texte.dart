@@ -268,6 +268,90 @@ abstract class PlanerTexte {
   /// **'Kreis'**
   String get formKreis;
 
+  /// No description provided for @formFreiform.
+  ///
+  /// In de, this message translates to:
+  /// **'Freiform'**
+  String get formFreiform;
+
+  /// No description provided for @freiformHinweis.
+  ///
+  /// In de, this message translates to:
+  /// **'Punkte setzen – [x] zum Schließen der Form'**
+  String get freiformHinweis;
+
+  /// No description provided for @einrastfunktion.
+  ///
+  /// In de, this message translates to:
+  /// **'Einrastfunktion'**
+  String get einrastfunktion;
+
+  /// No description provided for @zeichnungshilfe.
+  ///
+  /// In de, this message translates to:
+  /// **'Zeichnungshilfe'**
+  String get zeichnungshilfe;
+
+  /// No description provided for @eingabeStrecke.
+  ///
+  /// In de, this message translates to:
+  /// **'Strecke'**
+  String get eingabeStrecke;
+
+  /// No description provided for @eingabeKoordinaten.
+  ///
+  /// In de, this message translates to:
+  /// **'Koordinaten'**
+  String get eingabeKoordinaten;
+
+  /// No description provided for @feldWinkel.
+  ///
+  /// In de, this message translates to:
+  /// **'Winkel'**
+  String get feldWinkel;
+
+  /// No description provided for @winkelPlatzhalter.
+  ///
+  /// In de, this message translates to:
+  /// **'{feld}: °'**
+  String winkelPlatzhalter(String feld);
+
+  /// No description provided for @letztenPunktEntfernen.
+  ///
+  /// In de, this message translates to:
+  /// **'Letzten Punkt entfernen'**
+  String get letztenPunktEntfernen;
+
+  /// No description provided for @formSchliessen.
+  ///
+  /// In de, this message translates to:
+  /// **'Form schließen'**
+  String get formSchliessen;
+
+  /// No description provided for @formGeschlossen.
+  ///
+  /// In de, this message translates to:
+  /// **'Form geschlossen'**
+  String get formGeschlossen;
+
+  /// No description provided for @freiformMindestens3.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Form braucht mindestens 3 Punkte.'**
+  String get freiformMindestens3;
+
+  /// No description provided for @freiformKreuzt.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Kanten dürfen sich nicht kreuzen.'**
+  String get freiformKreuzt;
+
+  /// No description provided for @freiformKante.
+  ///
+  /// In de, this message translates to:
+  /// **'Kanten müssen {min} bis {max} cm lang sein.'**
+  String freiformKante(int min, int max);
+
   /// No description provided for @ausschnittTitel.
   ///
   /// In de, this message translates to:

@@ -15,6 +15,7 @@ final class Zeichnung {
   Zeichnung({
     List<Offset> umriss = const [],
     List<Offset>? ecken,
+    this.geschlossen = true,
     List<List<Offset>> ausschnitte = const [],
     List<Bauteil> bauteile = const [],
     List<Offset> ablaeufe = const [],
@@ -28,6 +29,10 @@ final class Zeichnung {
 
   /// Eckpunkte in mm (x längs, y quer), Reihenfolge entlang des Umrisses.
   final List<Offset> umriss;
+
+  /// Ob der Umriss geschlossen ist; eine offene Freiform (M4-08) wird als
+  /// Linienzug mit markierten Punkten gezeichnet.
+  final bool geschlossen;
 
   /// Benannte Eckpunkte A, B … für Beschriftungen (ohne Angabe der Umriss,
   /// beim Kreis keine, M4-07).
@@ -102,6 +107,7 @@ class ZeichnungsMaler extends CustomPainter {
   /// Alle Texte der eingeschalteten Beschriftungen und Maße: Seitenlängen
   /// außen neben der Kante, Winkel innen in der Ecke, Punktnamen außen.
   List<Zeichentext> texte() {
+    if (!zeichnung.geschlossen) return _offeneTexte();
     final punkte = zeichnung.ecken;
     final n = punkte.length;
     final schirm = [for (final p in punkte) bildschirm(p)];
@@ -142,6 +148,37 @@ class ZeichnungsMaler extends CustomPainter {
         ..._masse([for (final p in zeichnung.umriss) bildschirm(p)]),
     ];
   }
+
+  /// Radius der Punktmarken beim Zeichnen einer Freiform in Pixeln.
+  static const punktRadius = 4.0;
+
+  /// Offene Freiform (M4-08): Punktnamen oben links am Punkt und die Längen
+  /// der gezeichneten Kanten neben der Kante – ohne Innen und Außen.
+  List<Zeichentext> _offeneTexte() {
+    final punkte = zeichnung.ecken;
+    final schirm = [for (final p in punkte) bildschirm(p)];
+    return [
+      if (optionen.beschriftet(Beschriftung.punkte))
+        for (var i = 0; i < punkte.length; i++)
+          (
+            text: punktname(i),
+            ort: schirm[i] + oben * beschriftungsAbstand,
+            richtung: oben,
+          ),
+      if (optionen.beschriftet(Beschriftung.seitenlaengen))
+        for (var i = 1; i < punkte.length; i++)
+          (
+            text: zentimeter((punkte[i] - punkte[i - 1]).distance),
+            ort:
+                Offset.lerp(schirm[i - 1], schirm[i], 0.5)! +
+                oben * beschriftungsAbstand,
+            richtung: oben,
+          ),
+    ];
+  }
+
+  /// Richtung „nach oben“ für Beschriftungen der offenen Freiform.
+  static const oben = Offset(0, -1);
 
   /// Abstand der Beschriftungen von Kante bzw. Ecke in Pixeln.
   static const beschriftungsAbstand = 6.0;
@@ -248,7 +285,12 @@ class ZeichnungsMaler extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
     if (umriss.isNotEmpty) {
-      canvas.drawPath(Path()..addPolygon(umriss, true), linie);
+      canvas.drawPath(Path()..addPolygon(umriss, zeichnung.geschlossen), linie);
+    }
+    if (!zeichnung.geschlossen) {
+      for (final p in umriss) {
+        canvas.drawCircle(p, punktRadius, Paint()..color = strich);
+      }
     }
     // Ausschnitte als leere Fläche mit eigenem Rand (Fachkonzept 1.4)
     for (final a in zeichnung.ausschnitte) {
