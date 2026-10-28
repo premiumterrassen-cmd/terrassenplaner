@@ -23,6 +23,7 @@ export 'src/konfiguration/berechnung.dart';
 export 'src/konfiguration/grundriss.dart';
 export 'src/konfiguration/konfigurationsnummer.dart';
 export 'src/konfiguration/planungsstand.dart';
+export 'src/konfiguration/rundungen.dart';
 export 'src/konfiguration/verlauf.dart';
 export 'src/konfiguration/zeichenhilfe.dart';
 export 'src/projekt_info.dart';

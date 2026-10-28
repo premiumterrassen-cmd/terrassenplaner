@@ -8,6 +8,7 @@ import '../design/planer_design.dart';
 import '../sprache/sprache.dart';
 import 'ansichtsoptionen.dart';
 import 'freiform.dart';
+import 'rundung.dart';
 import 'steuerung.dart';
 import 'zeichnung.dart';
 
@@ -21,6 +22,7 @@ class Zeichenflaeche extends StatelessWidget {
     required this.zeichnung,
     super.key,
     this.freiform,
+    this.rundung,
   });
 
   final PlanungsSteuerung planung;
@@ -31,6 +33,9 @@ class Zeichenflaeche extends StatelessWidget {
   /// Zeichnen der Freiform (M4-08): Antippen setzt einen Punkt, Taste x
   /// schließt die Form – nur solange sie offen ist.
   final FreiformBedienung? freiform;
+
+  /// Rundungsmodus (M4-11): eigene Griffe statt der Eckenbearbeitung.
+  final RundungsBedienung? rundung;
 
   /// Bildschirmpunkt in mm der Zeichnung (Umkehrung der Ansicht).
   Punkt inMillimeter(Offset lokal) {
@@ -43,6 +48,7 @@ class Zeichenflaeche extends StatelessWidget {
   /// verschiebt die Kante parallel). Sie liegen über der Ansicht, damit
   /// Ziehen an einem Griff die Fläche nicht verschiebt.
   List<Widget> _griffe() {
+    if (rundung case final r? when r.aktiv) return _rundungsGriffe(r);
     final bedienung = freiform;
     final ecken = zeichnung.ecken;
     if (bedienung?.bearbeitbar == null ||
@@ -94,6 +100,65 @@ class Zeichenflaeche extends StatelessWidget {
       ),
     ];
   }
+
+  /// Griffe im Rundungsmodus (M4-11): innen an jeder Ecke (Zugweg nach
+  /// innen = Radius) und auf jeder Seite (Zugweg nach außen = Stich).
+  List<Widget> _rundungsGriffe(RundungsBedienung r) {
+    final ecken = zeichnung.ecken;
+    if (ecken.length < 3) return const [];
+    return [
+      Positioned.fill(
+        child: ListenableBuilder(
+          listenable: Listenable.merge([ansicht, r]),
+          builder: (context, _) {
+            final massstab = pixelJeMm * ansicht.zoom;
+            Offset schirm(Offset mm) => ansicht.verschiebung + mm * massstab;
+            final n = ecken.length;
+            final seiten = planung.aktuell.rundungen.seiten;
+            return Stack(
+              children: [
+                for (var i = 0; i < n; i++) ...[
+                  _rundungsGriff(
+                    r,
+                    (ecke: true, nummer: i),
+                    schirm(ecken[i]) +
+                        ZeichnungsMaler.innen(ecken, i) * Griff.groesse,
+                    ZeichnungsMaler.innen(ecken, i),
+                  ),
+                  _rundungsGriff(
+                    r,
+                    (ecke: false, nummer: i),
+                    schirm(
+                      Offset.lerp(ecken[i], ecken[(i + 1) % n], 0.5)! +
+                          ZeichnungsMaler.aussen(ecken, i) *
+                              (seiten[i]?.mm ?? 0).toDouble(),
+                    ),
+                    ZeichnungsMaler.aussen(ecken, i),
+                  ),
+                ],
+              ],
+            );
+          },
+        ),
+      ),
+    ];
+  }
+
+  Widget _rundungsGriff(
+    RundungsBedienung r,
+    RundungsAuswahl ziel,
+    Offset mitte,
+    Offset richtung,
+  ) => Griff(
+    key: ValueKey('rundung-${ziel.ecke ? 'ecke' : 'seite'}-${ziel.nummer}'),
+    mitte: mitte,
+    kante: !ziel.ecke,
+    ausgewaehlt: r.auswahl == ziel,
+    zoom: ansicht.zoom,
+    onTap: () => r.waehle(ziel),
+    onZiehen: (versatz, {required beginn}) =>
+        r.ziehe(ziel, versatz, Punkt(richtung.dx, richtung.dy), beginn: beginn),
+  );
 
   Widget _zeichnen(BuildContext context, Widget kind) {
     final bedienung = freiform;

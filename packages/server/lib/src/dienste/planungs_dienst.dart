@@ -37,7 +37,7 @@ class PlanungsDienst {
     )) {
       return Berechnung(umriss: punkte, flaeche: 0, geschlossen: false);
     }
-    final kontur = stand.grundriss.kontur;
+    final kontur = stand.kontur;
     return Berechnung(
       // Bögen (Kreis) als Sehnenzug für die Zeichnung, Ecken für die Namen
       umriss: kontur.vieleck(),
