@@ -37,7 +37,7 @@ RESET (mit Rückfrage) · Rückgängig · Wiederherstellen · Zentrieren · Roti
 ### 1 Grundriss
 - **Flächenart** Terrasse | Sonderbauteil.
 - **Formen** Rechteck, L, T, U, O, Kreis, Freiform, Grundriss hochladen (warnt, dass gezeichnete Formen verworfen werden). Standard Rechteck 750 × 500 cm.
-- **Häufigkeit der Fläche** – „Wie oft diese Fläche gebaut wird. Die Materialmengen werden entsprechend vervielfacht.“
+- **Häufigkeit der Fläche** – „Wie oft diese Fläche gebaut wird. Die Materialmengen werden entsprechend vervielfacht.“ Die Gesamtfläche zählt jede Fläche mal ihrer Häufigkeit (Alexander, 28.10.2026, M4-14).
 - **Flächenfunktion** Deckbelag | Leere Fläche.
 - **Art der Terrasse** mit eigenen Feldern:
   - Hochterrasse: Auflage als Anker – Anker / Fundamentschrauben / Mauern; Standardhöhe 60 cm.
