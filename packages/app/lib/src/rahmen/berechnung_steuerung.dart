@@ -34,6 +34,7 @@ class BerechnungsSteuerung extends ChangeNotifier {
     final b? => Zeichnung(
       umriss: _offsets(b.umriss),
       ecken: _offsets(b.ecken),
+      geschlossen: b.geschlossen,
       ausschnitte: [for (final a in b.ausschnitte) _offsets(a)],
     ),
     null => Zeichnung.leer,
@@ -44,7 +45,11 @@ class BerechnungsSteuerung extends ChangeNotifier {
   ];
 
   /// Terrassenfläche in m² für die Kennzahlen.
-  double? get flaeche => _ergebnis?.flaecheQuadratmeter;
+  /// Offene Freiform (M4-08): keine Fläche.
+  double? get flaeche => switch (_ergebnis) {
+    final b? when b.geschlossen => b.flaecheQuadratmeter,
+    _ => null,
+  };
 
   Future<void> _frage() async {
     final nummer = ++_anfrage;

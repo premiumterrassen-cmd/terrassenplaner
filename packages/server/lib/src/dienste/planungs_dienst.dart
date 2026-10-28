@@ -30,6 +30,13 @@ class PlanungsDienst {
   /// Umriss, Ausschnitte und Fläche des Grundrisses; wie im alten Planer
   /// ist die Fläche die Außenfläche (Fachkonzept 1.4).
   static Berechnung berechne(Planungsstand stand) {
+    // offene Freiform (M4-08): nur der gezeichnete Linienzug
+    if (stand.grundriss case FreiformGrundriss(
+      :final punkte,
+      geschlossen: false,
+    )) {
+      return Berechnung(umriss: punkte, flaeche: 0, geschlossen: false);
+    }
     final kontur = stand.grundriss.kontur;
     return Berechnung(
       // Bögen (Kreis) als Sehnenzug für die Zeichnung, Ecken für die Namen

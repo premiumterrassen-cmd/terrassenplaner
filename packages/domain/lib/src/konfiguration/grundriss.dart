@@ -2,9 +2,8 @@ import '../artikel/einheiten.dart';
 import '../geometrie/kontur.dart';
 import '../geometrie/punkt.dart';
 
-/// Terrassenformen des Grundrisses (Fachkonzept 1.1); weitere folgen mit
-/// M4-08. Die Nummer ist der Wert im Transportformat und bleibt
-/// fest.
+/// Terrassenformen des Grundrisses (Fachkonzept 1.1). Die Nummer ist der
+/// Wert im Transportformat und bleibt fest.
 enum Terrassenform {
   rechteck(0, ['A — B', 'B — C']),
   lForm(1, ['A — B', 'B — C', 'C — D', 'D — E']),
@@ -14,7 +13,10 @@ enum Terrassenform {
   /// Rechteck mit innerem Ausschnitt; der Ausschnitt ist ein eigener Block
   /// (Fachkonzept 1.1/1.4).
   oForm(4, ['A — B', 'B — C']),
-  kreis(5, ['Radius']);
+  kreis(5, ['Radius']),
+
+  /// Gezeichnet statt bemaßt (M4-08): keine festen Eingabefelder.
+  freiform(6, []);
 
   const Terrassenform(this.nummer, this.eingabekanten);
 
@@ -32,6 +34,7 @@ enum Terrassenform {
     uForm => UGrundriss.vorgabe,
     oForm => OGrundriss.vorgabe,
     kreis => KreisGrundriss.vorgabe,
+    freiform => FreiformGrundriss.leer,
   };
 }
 
@@ -42,7 +45,9 @@ sealed class Grundriss {
 
   /// Grundriss aus [form] und [masse] (Transportformat, Eingabefelder).
   factory Grundriss.aus(Terrassenform form, List<Millimeter> masse) {
-    if (masse.length != form.eingabekanten.length) {
+    // die Freiform hat keine festen Felder und prüft selbst
+    if (form != Terrassenform.freiform &&
+        masse.length != form.eingabekanten.length) {
       throw ArgumentError.value(
         masse.length,
         'masse',
@@ -62,6 +67,7 @@ sealed class Grundriss {
       ),
       Terrassenform.oForm => OGrundriss(masse[0], masse[1]),
       Terrassenform.kreis => KreisGrundriss(masse[0]),
+      Terrassenform.freiform => FreiformGrundriss._aus(masse),
       Terrassenform.uForm => UGrundriss(
         masse[0],
         masse[1],
@@ -95,15 +101,18 @@ sealed class Grundriss {
 
   /// Prüft alle Seiten, auch die abgeleiteten, gegen die Grenzen; der Name
   /// im Fehler ist die Kante in Kleinbuchstaben (z. B. `ef`).
-  void _pruefeSeiten() {
-    final e = ecken;
-    for (var i = 0; i < e.length; i++) {
+  void _pruefeSeiten() => _pruefeKanten(ecken, ecken.length, kleinsteSeite);
+
+  /// Prüft die ersten [anzahl] Kanten (zyklisch) gegen [kleinste] bis
+  /// [groessteSeite].
+  static void _pruefeKanten(List<Punkt> e, int anzahl, Millimeter kleinste) {
+    for (var i = 0; i < anzahl; i++) {
       final laenge = Millimeter(e[i].abstand(e[(i + 1) % e.length]).round());
-      if (laenge < kleinsteSeite || laenge > groessteSeite) {
+      if (laenge < kleinste || laenge > groessteSeite) {
         throw ArgumentError.value(
           laenge.mm,
           _kante(i, e.length),
-          'muss zwischen ${kleinsteSeite.mm ~/ 10} und '
+          'muss zwischen ${kleinste.mm ~/ 10} und '
           '${groessteSeite.mm ~/ 10} cm liegen',
         );
       }
@@ -117,6 +126,7 @@ sealed class Grundriss {
   bool operator ==(Object other) {
     if (other is! Grundriss || other.form != form) return false;
     final a = masse, b = other.masse;
+    if (a.length != b.length) return false;
     for (var i = 0; i < a.length; i++) {
       if (a[i] != b[i]) return false;
     }
@@ -370,4 +380,97 @@ final class UGrundriss extends Grundriss {
       Punkt(0, unten),
     ];
   }
+}
+
+/// Freiform (M4-08): Punkte in mm in der Reihenfolge des Zeichnens. Offen ist
+/// sie ein Linienzug ohne Fläche; schließen lässt sie sich erst ab drei
+/// Punkten und nur, wenn sich keine Kanten kreuzen (Fachkonzept 1.1).
+final class FreiformGrundriss extends Grundriss {
+  FreiformGrundriss(List<Punkt> punkte, {this.geschlossen = false})
+    : punkte = List.unmodifiable(punkte) {
+    if (geschlossen && punkte.length < 3) {
+      throw ArgumentError.value(
+        punkte.length,
+        'punkte',
+        'mindestens 3 Punkte zum Schließen',
+      );
+    }
+    // offen zählen nur die gezeichneten Kanten, geschlossen auch die letzte
+    Grundriss._pruefeKanten(
+      punkte,
+      geschlossen ? punkte.length : punkte.length - 1,
+      kleinsteKante,
+    );
+    if (geschlossen && !Kontur(punkte).istEinfach) {
+      throw ArgumentError.value(
+        punkte.length,
+        'punkte',
+        'Kanten dürfen sich nicht kreuzen',
+      );
+    }
+  }
+
+  const FreiformGrundriss._leer() : punkte = const [], geschlossen = false;
+
+  factory FreiformGrundriss._aus(List<Millimeter> masse) {
+    if (masse.length.isEven) {
+      throw ArgumentError.value(
+        masse.length,
+        'masse',
+        'braucht Kennung und Punktpaare',
+      );
+    }
+    // Zählschleife mit i++ (siehe Berechnung): kein Endlos-Mutant
+    return FreiformGrundriss([
+      for (var i = 0; i < masse.length ~/ 2; i++)
+        Punkt(masse[2 * i + 1].mm.toDouble(), masse[2 * i + 2].mm.toDouble()),
+    ], geschlossen: masse[0].mm == 1);
+  }
+
+  /// Leeres Raster nach der Formwahl.
+  static const leer = FreiformGrundriss._leer();
+
+  /// Kürzeste gezeichnete Kante (z. B. eine abgeschrägte Ecke).
+  static const kleinsteKante = Millimeter(100);
+
+  final List<Punkt> punkte;
+  final bool geschlossen;
+
+  @override
+  Terrassenform get form => Terrassenform.freiform;
+
+  /// Transportformat: Kennung (1 = geschlossen), dann x, y je Punkt in mm.
+  @override
+  List<Millimeter> get masse => [
+    Millimeter(geschlossen ? 1 : 0),
+    for (final p in punkte) ...[
+      Millimeter(p.x.round()),
+      Millimeter(p.y.round()),
+    ],
+  ];
+
+  @override
+  List<Punkt> get ecken => punkte;
+
+  /// Nur für eine geschlossene Form.
+  @override
+  Kontur get kontur {
+    if (!geschlossen) throw StateError('Freiform ist noch offen');
+    return super.kontur;
+  }
+
+  /// Mit einem weiteren Punkt am Ende.
+  FreiformGrundriss mitPunkt(Punkt p) => FreiformGrundriss([...punkte, p]);
+
+  /// Mit [p] statt des letzten Punkts (Zeichnungshilfe).
+  FreiformGrundriss mitLetztemPunkt(Punkt p) =>
+      FreiformGrundriss([...punkte.take(punkte.length - 1), p]);
+
+  /// Ohne den letzten Punkt, offen.
+  FreiformGrundriss ohneLetztenPunkt() =>
+      FreiformGrundriss(punkte.take(punkte.length - 1).toList());
+
+  /// Die geschlossene Form.
+  FreiformGrundriss geschlossene() =>
+      FreiformGrundriss(punkte, geschlossen: true);
 }

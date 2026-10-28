@@ -356,6 +356,205 @@ void main() {
     });
   });
 
+  group('Freiform (M4-08)', () {
+    const quadrat = [
+      Punkt(0, 0),
+      Punkt(3000, 0),
+      Punkt(3000, 2000),
+      Punkt(0, 2000),
+    ];
+
+    test('leer nach der Formwahl, Punkte setzen, schließen', () {
+      final stand = Planungsstand.start.mitForm(Terrassenform.freiform);
+      expect(stand.grundriss, FreiformGrundriss.leer);
+      expect(Terrassenform.freiform.vorgabe, FreiformGrundriss.leer);
+      expect(Terrassenform.freiform.nummer, 6);
+      expect(Terrassenform.freiform.eingabekanten, isEmpty);
+      var f = FreiformGrundriss.leer;
+      for (final p in quadrat) {
+        f = f.mitPunkt(p);
+      }
+      expect(f.punkte, quadrat);
+      expect(f.ecken, quadrat);
+      expect(f.geschlossen, isFalse);
+      expect(f.form, Terrassenform.freiform);
+      expect(() => f.kontur, throwsStateError);
+      final zu = f.geschlossene();
+      expect(zu.geschlossen, isTrue);
+      expect(zu.kontur.flaeche, 6000000);
+      expect(zu == f, isFalse);
+      // verschieden viele Punkte sind nie gleich (auch nicht der Anfang)
+      expect(
+        FreiformGrundriss.leer.mitPunkt(Punkt.ursprung) ==
+            FreiformGrundriss.leer,
+        isFalse,
+      );
+      expect(
+        FreiformGrundriss.leer ==
+            FreiformGrundriss.leer.mitPunkt(Punkt.ursprung),
+        isFalse,
+      );
+    });
+
+    test('schließen erst ab drei Punkten (Abnahme M4-08)', () {
+      final zwei = FreiformGrundriss.leer
+          .mitPunkt(Punkt.ursprung)
+          .mitPunkt(const Punkt(1000, 0));
+      expect(
+        zwei.geschlossene,
+        wirftArgumentFehler('punkte', 2, 'mindestens 3 Punkte zum Schließen'),
+      );
+      expect(
+        zwei.mitPunkt(const Punkt(0, 1000)).geschlossene().geschlossen,
+        isTrue,
+      );
+    });
+
+    test('keine kreuzenden Kanten, Kanten ab 10 cm', () {
+      expect(
+        () => FreiformGrundriss(const [
+          Punkt(0, 0),
+          Punkt(3000, 1000),
+          Punkt(2000, 0),
+          Punkt(0, 2000),
+        ], geschlossen: true),
+        wirftArgumentFehler('punkte', 4, 'Kanten dürfen sich nicht kreuzen'),
+      );
+      const text = 'muss zwischen 10 und 3000 cm liegen';
+      expect(
+        () => FreiformGrundriss.leer
+            .mitPunkt(Punkt.ursprung)
+            .mitPunkt(const Punkt(99, 0)),
+        wirftArgumentFehler('ab', 99, text),
+      );
+      // offen zählt die Schlusskante nicht, geschlossen schon
+      final offen = FreiformGrundriss(const [
+        Punkt(0, 0),
+        Punkt(1000, 0),
+        Punkt(1000, 1000),
+        Punkt(50, 0),
+      ]);
+      expect(offen.punkte, hasLength(4));
+      expect(offen.geschlossene, wirftArgumentFehler('da', 50, text));
+      expect(FreiformGrundriss.kleinsteKante, const Millimeter(100));
+    });
+
+    test('letzten Punkt ersetzen oder entfernen', () {
+      var f = FreiformGrundriss(quadrat);
+      f = f.mitLetztemPunkt(const Punkt(0, 2500));
+      expect(f.punkte.last, const Punkt(0, 2500));
+      expect(f.punkte, hasLength(4));
+      f = f.ohneLetztenPunkt();
+      expect(f.punkte, quadrat.take(3));
+      expect(f.geschlossen, isFalse);
+      expect(
+        FreiformGrundriss(
+          quadrat,
+          geschlossen: true,
+        ).ohneLetztenPunkt().geschlossen,
+        isFalse,
+      );
+    });
+
+    test('Transportformat: Kennung und Punkte in mm', () {
+      final zu = FreiformGrundriss(quadrat, geschlossen: true);
+      expect(zu.masse.map((m) => m.mm), [
+        1,
+        0,
+        0,
+        3000,
+        0,
+        3000,
+        2000,
+        0,
+        2000,
+      ]);
+      expect(FreiformGrundriss.leer.masse.map((m) => m.mm), [0]);
+      for (final g in [
+        zu,
+        FreiformGrundriss(quadrat),
+        FreiformGrundriss.leer,
+      ]) {
+        final stand = Planungsstand(grundriss: g);
+        expect(Planungsstand.ausBytes(stand.zuBytes()), stand);
+      }
+      expect(
+        () => Grundriss.aus(Terrassenform.freiform, const [
+          Millimeter(0),
+          Millimeter(1),
+        ]),
+        wirftArgumentFehler('masse', 2, 'braucht Kennung und Punktpaare'),
+      );
+      expect(
+        Grundriss.aus(Terrassenform.freiform, const [Millimeter(0)]),
+        FreiformGrundriss.leer,
+      );
+      expect(
+        () => Grundriss.aus(Terrassenform.freiform, const [Millimeter(1)]),
+        wirftArgumentFehler('punkte', 0, 'mindestens 3 Punkte zum Schließen'),
+      );
+    });
+
+    test('Berechnung offen: keine Fläche', () {
+      final b = Berechnung(umriss: quadrat, flaeche: 0, geschlossen: false);
+      final zurueck = Berechnung.ausBytes(b.zuBytes());
+      expect(zurueck.geschlossen, isFalse);
+      expect(
+        Berechnung.ausBytes(Berechnung(umriss: quadrat, flaeche: 1).zuBytes())
+            .geschlossen,
+        isTrue,
+      );
+      final fbb = fb.Builder()..startTable(5);
+      fbb.finish(fbb.endTable());
+      expect(Berechnung.ausBytes(fbb.buffer).geschlossen, isTrue);
+    });
+  });
+
+  group('Zeichenhilfe (M4-08)', () {
+    test('Einrasten auf 10 cm', () {
+      expect(Zeichenhilfe.raster, const Millimeter(100));
+      expect(
+        Zeichenhilfe.einrasten(const Punkt(149, 151)),
+        const Punkt(100, 200),
+      );
+      expect(
+        Zeichenhilfe.einrasten(const Punkt(-149, -151)),
+        const Punkt(-100, -200),
+      );
+    });
+
+    test('Ausrichten auf 15°-Schritte, Länge bleibt', () {
+      expect(Zeichenhilfe.winkelschritt, 15);
+      final p = Zeichenhilfe.ausrichten(
+        const Punkt(100, 100),
+        const Punkt(1100, 160),
+      );
+      expect(p.x, closeTo(100 + math.sqrt(1000 * 1000 + 60 * 60), 1e-6));
+      expect(p.y, closeTo(100, 1e-6));
+      // 50° → 45°
+      final q = Zeichenhilfe.ausrichten(
+        Punkt.ursprung,
+        Zeichenhilfe.streckenpunkt(Punkt.ursprung, 1000, 50),
+      );
+      expect(Zeichenhilfe.winkelVon(Punkt.ursprung, q), closeTo(45, 1e-9));
+      expect(q.laenge, closeTo(1000, 1e-9));
+    });
+
+    test('Strecke aus Länge und Winkel (Abnahme M4-08)', () {
+      final p = Zeichenhilfe.streckenpunkt(const Punkt(100, 200), 2000, 90);
+      expect(p.x, closeTo(100, 1e-9));
+      expect(p.y, closeTo(2200, 1e-9));
+      final r = Zeichenhilfe.streckenpunkt(Punkt.ursprung, 1000, 180);
+      expect(r.x, closeTo(-1000, 1e-9));
+      expect(Zeichenhilfe.winkelVon(Punkt.ursprung, const Punkt(0, -10)), 270);
+      expect(Zeichenhilfe.winkelVon(Punkt.ursprung, const Punkt(10, 0)), 0);
+      expect(
+        Zeichenhilfe.winkelVon(const Punkt(5, 5), const Punkt(5, 15)),
+        closeTo(90, 1e-9),
+      );
+    });
+  });
+
   group('Kreis (M4-07)', () {
     test('Vorgabe Ø 360 cm, Fläche exakt π·r²', () {
       const k = KreisGrundriss.vorgabe;

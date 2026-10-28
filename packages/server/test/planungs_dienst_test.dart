@@ -96,6 +96,21 @@ void main() {
     expect(b.ecken, b.umriss);
   });
 
+  test('offene Freiform: Linienzug ohne Fläche (M4-08)', () {
+    final offen = FreiformGrundriss(const [Punkt(0, 0), Punkt(1000, 0)]);
+    final b = PlanungsDienst.berechne(Planungsstand(grundriss: offen));
+    expect(b.geschlossen, isFalse);
+    expect(b.flaeche, 0);
+    expect(b.umriss, offen.punkte);
+    final zu = PlanungsDienst.berechne(
+      Planungsstand(
+        grundriss: offen.mitPunkt(const Punkt(0, 1000)).geschlossene(),
+      ),
+    );
+    expect(zu.geschlossen, isTrue);
+    expect(zu.flaeche, 500000);
+  });
+
   test('Kreis: Fläche exakt, Umriss als Sehnenzug ohne Ecken (M4-07)', () {
     final b = PlanungsDienst.berechne(
       Planungsstand.start.mitForm(Terrassenform.kreis),

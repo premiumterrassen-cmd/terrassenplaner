@@ -240,9 +240,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/5
   - Kreisförmige Terrasse mit Durchmesser.
   - Abnahme: Fläche korrekt, Verblendung „Fläche verblenden“ statt Seiten (M7)
   - Ergebnis: `KreisGrundriss` (Eingabe Radius wie im alten Planer, Vorgabe Ø 360 cm, Durchmesser 50–3000 cm), Fläche exakt π·r² = 10,179 m² statt 10,150 m² des alten Vieleck-Werts (Alexander, 27.10.2026; 09-nicht-teil-der-kopie.md). Die Berechnung liefert den Umriss als Sehnenzug und die benannten Ecken getrennt (Kreis: keine Punktnamen). „Fläche verblenden“ folgt mit M7.
-- [ ] **M4-08 Freiform zeichnen** ([#38](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/38)) – `feature/m4-08-freiform-zeichnen`
+- [x] **M4-08 Freiform zeichnen** ([#38](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/38)) – `feature/m4-08-freiform-zeichnen`
   - Punkte setzen, Form schließen (mind. 3 Punkte), Einrastfunktion, Zeichnungshilfe (Seitenlänge/Winkel korrigieren), letzten Punkt entfernen, Rückmeldungen.
   - Abnahme: Form lässt sich nur mit ≥ 3 Punkten schließen; Zeichnungshilfe korrigiert Länge und Winkel auf Eingabewert
+  - Ergebnis: `FreiformGrundriss` (offen als Linienzug ohne Fläche; schließen ab 3 Punkten und ohne kreuzende Kanten, Kanten 10–3000 cm) und `Zeichenhilfe` (Einrasten auf 10 cm, Ausrichten auf 15°-Schritte, Punkt aus Länge und Winkel; Winkel wie in der Zeichnung: 0° rechts, 90° unten). App: Antippen der Zeichenfläche setzt Punkte, Taste x schließt, unter 1.2 Schalter Einrastfunktion/Zeichnungshilfe, Maßeingabe Strecke | Koordinaten für den letzten Punkt, „Letzten Punkt entfernen“, „Form schließen“, Rückmeldungen als Hinweis. Behoben: Gleichheit von Grundrissen mit verschieden vielen Maßen. Smoke-Test in Chrome zeichnet und schließt eine Freiform.
 - [ ] **M4-09 Eckpunkte und Kanten bearbeiten** ([#39](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/39)) – `feature/m4-09-eckpunkte-und-kanten-bearbeiten`
   - Eckpunkte hinzufügen/entfernen (min. 3)/ziehen, Kanten verschieben, Maße per Eingabe; Umschalter Koordinaten/Strecke.
   - Abnahme: Mindestens 3 Eckpunkte erzwungen; Eingabe per Koordinaten und per Strecke
