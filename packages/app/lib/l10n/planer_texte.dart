@@ -334,6 +334,24 @@ abstract class PlanerTexte {
   /// **'Form geschlossen'**
   String get formGeschlossen;
 
+  /// No description provided for @punktAusgewaehlt.
+  ///
+  /// In de, this message translates to:
+  /// **'Punkt {name}'**
+  String punktAusgewaehlt(String name);
+
+  /// No description provided for @eckeAntippen.
+  ///
+  /// In de, this message translates to:
+  /// **'Ecke antippen, um sie zu bearbeiten; an der Kantenmitte ziehen verschiebt die Kante, antippen fügt einen Punkt ein.'**
+  String get eckeAntippen;
+
+  /// No description provided for @punktEntfernen.
+  ///
+  /// In de, this message translates to:
+  /// **'Punkt entfernen'**
+  String get punktEntfernen;
+
   /// No description provided for @freiformMindestens3.
   ///
   /// In de, this message translates to:

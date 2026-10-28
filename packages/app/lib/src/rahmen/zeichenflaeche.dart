@@ -36,6 +36,63 @@ class Zeichenflaeche extends StatelessWidget {
     return Punkt(mm.dx, mm.dy);
   }
 
+  /// Ziehpunkte zum Bearbeiten (M4-09): Ecken (antippen wählt aus, ziehen
+  /// verschiebt) und Kantenmitten (antippen fügt einen Punkt ein, ziehen
+  /// verschiebt die Kante parallel). Sie liegen über der Ansicht, damit
+  /// Ziehen an einem Griff die Fläche nicht verschiebt.
+  List<Widget> _griffe() {
+    final bedienung = freiform;
+    final ecken = zeichnung.ecken;
+    if (bedienung?.bearbeitbar == null ||
+        !zeichnung.geschlossen ||
+        ecken.length < 3) {
+      return const [];
+    }
+    return [
+      Positioned.fill(
+        child: ListenableBuilder(
+          listenable: Listenable.merge([ansicht, bedienung!.modus]),
+          builder: (context, _) {
+            Offset schirm(Offset mm) =>
+                ansicht.verschiebung + mm * (pixelJeMm * ansicht.zoom);
+            final n = ecken.length;
+            return Stack(
+              children: [
+                for (var i = 0; i < n; i++) ...[
+                  Griff(
+                    key: ValueKey('ecke-$i'),
+                    mitte: schirm(ecken[i]),
+                    ausgewaehlt: bedienung.modus.auswahl == i,
+                    zoom: ansicht.zoom,
+                    onTap: () => bedienung.modus.auswahl = i,
+                    onZiehen: (versatz, {required beginn}) {
+                      if (beginn) bedienung.modus.auswahl = i;
+                      bedienung.ziehePunkt(i, versatz, beginn: beginn);
+                    },
+                  ),
+                  Griff(
+                    key: ValueKey('kante-$i'),
+                    mitte: schirm(
+                      Offset.lerp(ecken[i], ecken[(i + 1) % n], 0.5)!,
+                    ),
+                    kante: true,
+                    zoom: ansicht.zoom,
+                    onTap: () => FreiformBedienung.melde(
+                      context,
+                      bedienung.fuegePunktEin(i),
+                    ),
+                    onZiehen: (versatz, {required beginn}) =>
+                        bedienung.zieheKante(i, versatz, beginn: beginn),
+                  ),
+                ],
+              ],
+            );
+          },
+        ),
+      ),
+    ];
+  }
+
   Widget _zeichnen(BuildContext context, Widget kind) {
     final bedienung = freiform;
     if (bedienung?.offen == null) return kind;
@@ -109,6 +166,7 @@ class Zeichenflaeche extends StatelessWidget {
                       ),
                     ),
                   ),
+                  ..._griffe(),
                 ],
               ),
             );
@@ -299,4 +357,75 @@ class Werkzeugleiste extends StatelessWidget {
           ],
         ),
       );
+}
+
+/// Ein Ziehpunkt der Zeichenfläche (M4-09): rund für Ecken, eckig für
+/// Kantenmitten. Meldet beim Ziehen den Versatz in mm seit Beginn.
+class Griff extends StatefulWidget {
+  const Griff({
+    required this.mitte,
+    required this.zoom,
+    required this.onTap,
+    required this.onZiehen,
+    super.key,
+    this.kante = false,
+    this.ausgewaehlt = false,
+  });
+
+  /// Lage auf dem Bildschirm.
+  final Offset mitte;
+
+  /// Zoom der Ansicht – rechnet Pixel in Millimeter um.
+  final double zoom;
+  final VoidCallback onTap;
+  final void Function(Punkt versatz, {required bool beginn}) onZiehen;
+  final bool kante;
+  final bool ausgewaehlt;
+
+  /// Kantenlänge der Trefferfläche in Pixeln.
+  static const groesse = 20.0;
+
+  @override
+  State<Griff> createState() => _GriffState();
+}
+
+class _GriffState extends State<Griff> {
+  // vom Aufsetzen an gemessen: die Strecke bis zum Erkennen der Geste
+  // (Touch-Slop) zählt mit, und der Griff selbst wandert mit
+  var _aufgesetzt = Offset.zero;
+  var _beginn = true;
+
+  @override
+  Widget build(BuildContext context) => Positioned(
+    left: widget.mitte.dx - Griff.groesse / 2,
+    top: widget.mitte.dy - Griff.groesse / 2,
+    width: Griff.groesse,
+    height: Griff.groesse,
+    child: GestureDetector(
+      onTap: widget.onTap,
+      onPanDown: (aufsetzen) {
+        _aufgesetzt = aufsetzen.globalPosition;
+        _beginn = true;
+      },
+      onPanUpdate: (ziehen) {
+        final mm =
+            (ziehen.globalPosition - _aufgesetzt) / (pixelJeMm * widget.zoom);
+        widget.onZiehen(Punkt(mm.dx, mm.dy), beginn: _beginn);
+        _beginn = false;
+      },
+      child: Center(
+        child: Container(
+          width: widget.kante ? 8 : 12,
+          height: widget.kante ? 8 : 12,
+          decoration: BoxDecoration(
+            color: widget.ausgewaehlt
+                ? PlanerFarben.gruen
+                : context.farben.surface,
+            border: Border.all(color: PlanerFarben.braun, width: 2),
+            shape: widget.kante ? BoxShape.rectangle : BoxShape.circle,
+          ),
+        ),
+      ),
+    ),
+  );
 }

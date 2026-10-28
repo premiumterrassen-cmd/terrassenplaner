@@ -5,6 +5,7 @@ import '../design/planer_design.dart';
 import '../sprache/sprache.dart';
 import 'grundriss_eingabe.dart';
 import 'steuerung.dart';
+import 'zeichnung.dart';
 
 /// Maßeingabe der Freiform (Fachkonzept 1.1): Strecke (Länge und Winkel vom
 /// vorletzten Punkt) oder Koordinaten des letzten Punkts.
@@ -14,11 +15,20 @@ enum Masseingabe { strecke, koordinaten }
 enum FreiformFehler { mindestens3, kreuzt, kante }
 
 /// Bedienzustand beim Zeichnen (M4-08) – keine Fachdaten: Einrastfunktion,
-/// Zeichnungshilfe und Art der Maßeingabe.
+/// Zeichnungshilfe, Art der Maßeingabe und ausgewählte Ecke (M4-09).
 class ZeichenModus extends ChangeNotifier {
   bool _einrasten = true;
   bool _zeichnungshilfe = true;
   Masseingabe _eingabe = Masseingabe.strecke;
+  int? _auswahl;
+
+  /// Ausgewählte Ecke der geschlossenen Form, `null` = keine.
+  int? get auswahl => _auswahl;
+
+  set auswahl(int? wert) {
+    _auswahl = wert;
+    notifyListeners();
+  }
 
   bool get einrasten => _einrasten;
   bool get zeichnungshilfe => _zeichnungshilfe;
@@ -86,6 +96,60 @@ class FreiformBedienung {
   /// Zeichnungshilfe per Maßeingabe: verlegt den letzten Punkt.
   FreiformFehler? korrigiere(Punkt neu) =>
       _setze(() => offen!.mitLetztemPunkt(neu));
+
+  /// Die Ecken zum Bearbeiten (M4-09): jede Form mit Ecken, die nicht gerade
+  /// gezeichnet wird; der Kreis hat keine (`null`).
+  FreiformGrundriss? get bearbeitbar =>
+      offen == null ? planung.aktuell.grundriss.alsFreiform : null;
+
+  FreiformGrundriss? _vorZiehen;
+
+  /// Zieht Ecke [index] um [versatz] mm (Summe seit Beginn); [beginn] legt
+  /// einen Rückgängig-Schritt an, weitere Schritte ersetzen ihn. Eine feste
+  /// Form wird dabei zur Freiform. Ungültige Zwischenstände bleiben aus.
+  void ziehePunkt(int index, Punkt versatz, {required bool beginn}) =>
+      _ziehe(beginn, (f) {
+        var p = f.punkte[index] + versatz;
+        if (modus.einrasten) p = Zeichenhilfe.einrasten(p);
+        return f.mitPunktAn(index, p);
+      });
+
+  /// Verschiebt Kante [kante] parallel um den Anteil von [versatz] senkrecht
+  /// zu ihr (Ziehen an der Kantenmitte).
+  void zieheKante(int kante, Punkt versatz, {required bool beginn}) =>
+      _ziehe(beginn, (f) => f.mitVerschobenerKante(kante, versatz));
+
+  void _ziehe(bool beginn, FreiformGrundriss Function(FreiformGrundriss) neu) {
+    if (beginn) _vorZiehen = bearbeitbar;
+    final FreiformGrundriss f;
+    try {
+      f = neu(_vorZiehen!);
+    } on ArgumentError {
+      return;
+    }
+    final stand = planung.aktuell.mitGrundriss(f);
+    if (beginn) {
+      planung.setze(stand);
+      onGeaendert();
+    } else {
+      planung.ersetze(stand);
+    }
+  }
+
+  /// Neuer Punkt in der Mitte der Kante [kante] (Antippen der Kantenmitte).
+  FreiformFehler? fuegePunktEin(int kante) =>
+      _setze(() => bearbeitbar!.mitPunktAufKante(kante));
+
+  /// Entfernt die Ecke [index]; mindestens drei bleiben.
+  FreiformFehler? entfernePunkt(int index) {
+    final fehler = _setze(() => bearbeitbar!.ohnePunkt(index));
+    if (fehler == null) modus.auswahl = null;
+    return fehler;
+  }
+
+  /// Maßeingabe für die ausgewählte Ecke [index].
+  FreiformFehler? korrigierePunkt(int index, Punkt neu) =>
+      _setze(() => bearbeitbar!.mitPunktAn(index, neu));
 
   FreiformFehler? _setze(FreiformGrundriss Function() neu) {
     final FreiformGrundriss f;
@@ -157,25 +221,11 @@ class FreiformEingabe extends StatelessWidget {
             value: modus.zeichnungshilfe,
             onChanged: (wert) => modus.zeichnungshilfe = wert,
           ),
-          if (f.geschlossen)
-            Text(t.formGeschlossen, key: const ValueKey('form-geschlossen'))
-          else ...[
-            SegmentedButton<Masseingabe>(
-              key: const ValueKey('masseingabe'),
-              showSelectedIcon: false,
-              segments: [
-                ButtonSegment(
-                  value: Masseingabe.strecke,
-                  label: Text(t.eingabeStrecke),
-                ),
-                ButtonSegment(
-                  value: Masseingabe.koordinaten,
-                  label: Text(t.eingabeKoordinaten),
-                ),
-              ],
-              selected: {modus.eingabe},
-              onSelectionChanged: (auswahl) => modus.eingabe = auswahl.single,
-            ),
+          if (f.geschlossen) ...[
+            Text(t.formGeschlossen, key: const ValueKey('form-geschlossen')),
+            ..._auswahl(context, t, modus),
+          ] else ...[
+            _eingabeArt(t, modus),
             const SizedBox(height: PlanerAbstand.klein),
             _Masse(
               key: ValueKey(modus.eingabe),
@@ -200,13 +250,71 @@ class FreiformEingabe extends StatelessWidget {
   }
 }
 
-/// Felder der Maßeingabe: Strecke (Länge cm, Winkel °) vom vorletzten Punkt
-/// oder Koordinaten (X, Y cm) des letzten Punkts.
+extension on FreiformEingabe {
+  /// Geschlossene Form (M4-09): Hinweis oder die ausgewählte Ecke mit
+  /// Maßeingabe und „Punkt entfernen“.
+  List<Widget> _auswahl(BuildContext context, PlanerTexte t, ZeichenModus m) {
+    final i = m.auswahl;
+    if (i == null) {
+      return [Text(t.eckeAntippen, key: const ValueKey('ecke-antippen'))];
+    }
+    return [
+      Text(
+        t.punktAusgewaehlt(ZeichnungsMaler.punktname(i)),
+        key: const ValueKey('punkt-ausgewaehlt'),
+        style: const TextStyle(fontWeight: FontWeight.w500),
+      ),
+      _eingabeArt(t, m),
+      const SizedBox(height: PlanerAbstand.klein),
+      _Masse(
+        key: ValueKey((i, m.eingabe)),
+        bedienung: bedienung,
+        eingabe: m.eingabe,
+        index: i,
+      ),
+      TextButton(
+        key: const ValueKey('ecke-entfernen'),
+        onPressed: () =>
+            FreiformBedienung.melde(context, bedienung.entfernePunkt(i)),
+        child: Text(t.punktEntfernen),
+      ),
+    ];
+  }
+}
+
+/// Umschalter Strecke | Koordinaten.
+Widget _eingabeArt(PlanerTexte t, ZeichenModus modus) =>
+    SegmentedButton<Masseingabe>(
+      key: const ValueKey('masseingabe'),
+      showSelectedIcon: false,
+      segments: [
+        ButtonSegment(
+          value: Masseingabe.strecke,
+          label: Text(t.eingabeStrecke),
+        ),
+        ButtonSegment(
+          value: Masseingabe.koordinaten,
+          label: Text(t.eingabeKoordinaten),
+        ),
+      ],
+      selected: {modus.eingabe},
+      onSelectionChanged: (auswahl) => modus.eingabe = auswahl.single,
+    );
+
+/// Felder der Maßeingabe: Strecke (Länge cm, Winkel °) vom vorherigen Punkt
+/// oder Koordinaten (X, Y cm) – für den letzten Punkt beim Zeichnen oder die
+/// ausgewählte Ecke [index] einer geschlossenen Form (M4-09).
 class _Masse extends StatelessWidget {
-  const _Masse({required this.bedienung, required this.eingabe, super.key});
+  const _Masse({
+    required this.bedienung,
+    required this.eingabe,
+    this.index,
+    super.key,
+  });
 
   final FreiformBedienung bedienung;
   final Masseingabe eingabe;
+  final int? index;
 
   @override
   Widget build(BuildContext context) {
@@ -217,24 +325,29 @@ class _Masse extends StatelessWidget {
       namen: strecke ? [t.feldLaenge, t.feldWinkel] : const ['X', 'Y'],
       kleinstes: FreiformGrundriss.kleinsteKante,
       platzhalter: strecke ? [null, t.winkelPlatzhalter(t.feldWinkel)] : null,
-      uebernimm: (index, wert) {
-        final punkte = bedienung.offen!.punkte;
-        final letzter = punkte.last;
+      uebernimm: (feld, wert) {
+        final punkte = (bedienung.offen ?? bedienung.bearbeitbar)!.punkte;
+        final n = punkte.length;
+        final i = index ?? n - 1;
+        final punkt = punkte[i];
         final Punkt neu;
         if (strecke) {
-          final von = punkte[punkte.length - 2];
-          final laenge = index == 0 ? wert.mm.toDouble() : letzter.abstand(von);
+          // beim Zeichnen der vorletzte Punkt, sonst die Ecke davor
+          final von = punkte[index == null ? n - 2 : (i == 0 ? n : i) - 1];
+          final laenge = feld == 0 ? wert.mm.toDouble() : punkt.abstand(von);
           // Winkel kommt als Zahl wie ein Maß in cm: 90 → 900 „mm“
-          final winkel = index == 1
+          final winkel = feld == 1
               ? wert.mm / 10
-              : Zeichenhilfe.winkelVon(von, letzter);
+              : Zeichenhilfe.winkelVon(von, punkt);
           neu = Zeichenhilfe.streckenpunkt(von, laenge, winkel);
         } else {
-          neu = index == 0
-              ? Punkt(wert.mm.toDouble(), letzter.y)
-              : Punkt(letzter.x, wert.mm.toDouble());
+          neu = feld == 0
+              ? Punkt(wert.mm.toDouble(), punkt.y)
+              : Punkt(punkt.x, wert.mm.toDouble());
         }
-        final fehler = bedienung.korrigiere(neu);
+        final fehler = index == null
+            ? bedienung.korrigiere(neu)
+            : bedienung.korrigierePunkt(i, neu);
         if (fehler != null) {
           throw ArgumentError(FreiformBedienung.meldung(t, fehler));
         }

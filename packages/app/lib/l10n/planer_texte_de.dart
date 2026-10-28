@@ -138,6 +138,18 @@ class PlanerTexteDe extends PlanerTexte {
   String get formGeschlossen => 'Form geschlossen';
 
   @override
+  String punktAusgewaehlt(String name) {
+    return 'Punkt $name';
+  }
+
+  @override
+  String get eckeAntippen =>
+      'Ecke antippen, um sie zu bearbeiten; an der Kantenmitte ziehen verschiebt die Kante, antippen fügt einen Punkt ein.';
+
+  @override
+  String get punktEntfernen => 'Punkt entfernen';
+
+  @override
   String get freiformMindestens3 => 'Die Form braucht mindestens 3 Punkte.';
 
   @override

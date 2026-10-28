@@ -138,6 +138,18 @@ class PlanerTexteEn extends PlanerTexte {
   String get formGeschlossen => 'Shape closed';
 
   @override
+  String punktAusgewaehlt(String name) {
+    return 'Point $name';
+  }
+
+  @override
+  String get eckeAntippen =>
+      'Tap a corner to edit it; drag an edge midpoint to move the edge, tap it to add a point.';
+
+  @override
+  String get punktEntfernen => 'Remove point';
+
+  @override
   String get freiformMindestens3 => 'The shape needs at least 3 points.';
 
   @override
