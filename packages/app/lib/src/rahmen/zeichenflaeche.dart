@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
@@ -173,7 +175,13 @@ class Zeichenflaeche extends StatelessWidget {
           },
         ),
       ),
-      Werkzeugleiste(planung: planung, ansicht: ansicht, optionen: optionen),
+      Werkzeugleiste(
+        planung: planung,
+        ansicht: ansicht,
+        optionen: optionen,
+        zeichnung: zeichnung,
+        onGeaendert: freiform?.onGeaendert,
+      ),
     ],
   );
 }
@@ -220,20 +228,74 @@ class RasterMaler extends CustomPainter {
 }
 
 /// Werkzeugleiste unter der Zeichenfläche: Rückgängig, Wiederherstellen,
-/// Zentrieren, Zoom −/Regler/+ und Bedienhinweis.
+/// Form drehen, Zentrieren, Zoom −/Regler/+ und Bedienhinweis.
 class Werkzeugleiste extends StatelessWidget {
   const Werkzeugleiste({
     required this.planung,
     required this.ansicht,
     required this.optionen,
     super.key,
+    this.zeichnung,
+    this.onGeaendert,
   });
 
   final PlanungsSteuerung planung;
   final AnsichtSteuerung ansicht;
   final AnsichtsOptionen optionen;
 
-  /// Ab dieser Breite zeigt die Leiste Zoom-Regler und Bedienhinweis.
+  /// Was gezeichnet ist – „Zentrieren“ stellt es in die Mitte (M4-10).
+  final Zeichnung? zeichnung;
+
+  /// Meldet eine Änderung des Grundrisses (Standardwert-Hinweis, M3-05).
+  final VoidCallback? onGeaendert;
+
+  /// Drehwinkel des Knopfs „Form drehen“ (in der Zeichnung rechtsherum).
+  static const drehwinkel = 90.0;
+
+  /// Dreht die Form (M4-10); gibt es Ausschnitte, erst nach Bestätigung,
+  /// denn sie werden dabei zurückgesetzt.
+  Future<void> _drehe(BuildContext context) async {
+    final stand = planung.aktuell;
+    if (stand.ausschnitte.isNotEmpty) {
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (_) => const DrehenDialog(),
+      );
+      if (!(ok ?? false)) return;
+    }
+    planung.setze(stand.gedreht(drehwinkel));
+    onGeaendert?.call();
+  }
+
+  /// Kreis und offene Freiform lassen sich nicht drehen.
+  bool get _drehbar => switch (planung.aktuell.grundriss) {
+    FreiformGrundriss(geschlossen: false) => false,
+    final g => g.alsFreiform != null,
+  };
+
+  void _zentriere() {
+    final umriss = zeichnung?.umriss ?? const [];
+    if (umriss.isEmpty) {
+      ansicht.zentriere();
+      return;
+    }
+    ansicht.zentriereAuf(
+      Rect.fromPoints(
+        Offset(
+          umriss.map((p) => p.dx).reduce(math.min),
+          umriss.map((p) => p.dy).reduce(math.min),
+        ),
+        Offset(
+          umriss.map((p) => p.dx).reduce(math.max),
+          umriss.map((p) => p.dy).reduce(math.max),
+        ),
+      ),
+      pixelJeMm,
+    );
+  }
+
+  /// Ab dieser Breite zeigt die Leiste Zoom-Regler, Prozent und
+  /// Bedienhinweis.
   static const breitAb = 1000.0;
 
   @override
@@ -271,10 +333,16 @@ class Werkzeugleiste extends StatelessWidget {
                   : null,
             ),
             IconButton(
+              key: const ValueKey('form-drehen'),
+              tooltip: t.formDrehen,
+              icon: const Icon(Icons.rotate_right),
+              onPressed: _drehbar ? () => _drehe(context) : null,
+            ),
+            IconButton(
               key: const ValueKey('zentrieren'),
               tooltip: t.zentrieren,
               icon: const Icon(Icons.center_focus_strong),
-              onPressed: ansicht.zentriere,
+              onPressed: _zentriere,
             ),
             IconButton(
               key: const ValueKey('verkleinern'),
@@ -298,15 +366,19 @@ class Werkzeugleiste extends StatelessWidget {
               icon: const Icon(Icons.zoom_in),
               onPressed: ansicht.vergroessern,
             ),
-            SizedBox(
-              width: 56,
-              child: Text(
-                ansicht.prozent,
-                key: const ValueKey('zoom-prozent'),
-                textAlign: TextAlign.right,
+            // schmal (z. B. 1024 px mit Menü) ohne Prozentanzeige – Platz
+            // für „Form drehen“ (M4-10)
+            if (breit) ...[
+              SizedBox(
+                width: 56,
+                child: Text(
+                  ansicht.prozent,
+                  key: const ValueKey('zoom-prozent'),
+                  textAlign: TextAlign.right,
+                ),
               ),
-            ),
-            const SizedBox(width: PlanerAbstand.klein),
+              const SizedBox(width: PlanerAbstand.klein),
+            ],
             SegmentedButton<Ebene>(
               key: const ValueKey('ebenen'),
               multiSelectionEnabled: true,
@@ -428,4 +500,31 @@ class _GriffState extends State<Griff> {
       ),
     ),
   );
+}
+
+/// Rückfrage vor dem Drehen, wenn Ausschnitte zurückgesetzt würden (M4-10).
+class DrehenDialog extends StatelessWidget {
+  const DrehenDialog({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.texte;
+    return AlertDialog(
+      key: const ValueKey('drehen-dialog'),
+      title: Text(t.drehenTitel),
+      content: Text(t.drehenText),
+      actions: [
+        TextButton(
+          key: const ValueKey('drehen-abbrechen'),
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text(t.abbrechen),
+        ),
+        FilledButton(
+          key: const ValueKey('drehen-bestaetigen'),
+          onPressed: () => Navigator.of(context).pop(true),
+          child: Text(t.drehenBestaetigen),
+        ),
+      ],
+    );
+  }
 }

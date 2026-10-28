@@ -571,6 +571,40 @@ void main() {
     });
   });
 
+  group('Form drehen (M4-10)', () {
+    test('Rechteck um 90°: Breite und Tiefe tauschen, wieder an 0|0', () {
+      final g = RechteckGrundriss.start.gedreht(90) as FreiformGrundriss;
+      expect(g.geschlossen, isTrue);
+      expect(g.kontur.flaeche, closeTo(14832000, 1e-3));
+      final h = g.kontur.huellrechteck;
+      expect([h.min.x, h.min.y, h.max.x, h.max.y], [0, 0, 3090, 4800]);
+      // A liegt nach der Drehung oben rechts
+      expect(g.punkte.first, const Punkt(3090, 0));
+    });
+
+    test('beliebiger Winkel, Fläche bleibt; Kreis unverändert', () {
+      final g = LGrundriss.vorgabe.gedreht(30);
+      // Rundung auf 1/1000 mm: höchstens Umfang · 0,0005 mm²
+      expect(g.kontur.flaeche, closeTo(14580000, 10));
+      expect(g.kontur.huellrechteck.min.x, closeTo(0, 1e-3));
+      expect(g.kontur.huellrechteck.min.y, closeTo(0, 1e-3));
+      expect(KreisGrundriss.vorgabe.gedreht(45), KreisGrundriss.vorgabe);
+      // viermal 90° ergibt wieder dieselben Ecken
+      var r = RechteckGrundriss.start as Grundriss;
+      for (var i = 0; i < 4; i++) {
+        r = r.gedreht(90);
+      }
+      expect(r.ecken, RechteckGrundriss.start.ecken);
+    });
+
+    test('Planungsstand: Ausschnitte werden zurückgesetzt', () {
+      final o = Planungsstand.start.mitForm(Terrassenform.oForm);
+      final gedreht = o.gedreht(90);
+      expect(gedreht.ausschnitte, isEmpty);
+      expect(gedreht.grundriss.kontur.flaeche, closeTo(19440000, 1e-3));
+    });
+  });
+
   group('Zeichenhilfe (M4-08)', () {
     test('Einrasten auf 10 cm', () {
       expect(Zeichenhilfe.raster, const Millimeter(100));

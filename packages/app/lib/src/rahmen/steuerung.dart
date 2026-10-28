@@ -80,8 +80,15 @@ class AnsichtSteuerung extends TransformationController {
   void vergroessern() => zoomeAuf(zoom * schritt);
   void verkleinern() => zoomeAuf(zoom / schritt);
 
-  /// Zoom 100 % und Ursprung oben links – „Zentrieren“.
+  /// Zoom 100 % und Ursprung oben links.
   void zentriere() => value = Matrix4.identity();
+
+  /// „Zentrieren“ (M4-10): Zoom 100 %, die Mitte von [mm] (Zeichnung in mm,
+  /// [pixelJeMm] Pixel je mm) in der Mitte der Zeichenfläche.
+  void zentriereAuf(Rect mm, double pixelJeMm) {
+    final mitte = flaeche.center(Offset.zero) - mm.center * pixelJeMm;
+    value = Matrix4.identity()..translateByDouble(mitte.dx, mitte.dy, 0, 1);
+  }
 
   /// Zoom als Prozent, z. B. „125 %“.
   String get prozent => '${(zoom * 100).round()} %';

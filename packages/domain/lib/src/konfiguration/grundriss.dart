@@ -100,6 +100,25 @@ sealed class Grundriss {
   FreiformGrundriss? get alsFreiform =>
       ecken.isEmpty ? null : FreiformGrundriss(ecken, geschlossen: true);
 
+  /// Um [grad] gedreht (M4-10; in der Zeichnung im Uhrzeigersinn) und so
+  /// verschoben, dass die Form wieder an 0|0 grenzt; feste Formen werden
+  /// dabei zur Freiform. Der Kreis bleibt, wie er ist.
+  Grundriss gedreht(double grad) {
+    final f = alsFreiform;
+    if (f == null) return this;
+    final kontur = Kontur(f.punkte).gedreht(grad);
+    final versatz = Punkt.ursprung - kontur.huellrechteck.min;
+    return FreiformGrundriss([
+      for (final p in kontur.punkte) _gerundet(p + versatz),
+    ], geschlossen: true);
+  }
+
+  /// Auf 1/1000 mm gerundet, damit 90°-Drehungen glatte Werte behalten.
+  static Punkt _gerundet(Punkt p) => Punkt(
+    (p.x * 1000).roundToDouble() / 1000,
+    (p.y * 1000).roundToDouble() / 1000,
+  );
+
   /// Kopie mit neuem Wert für das Eingabemaß [index].
   Grundriss mitMass(int index, Millimeter wert) =>
       Grundriss.aus(form, [...masse]..[index] = wert);

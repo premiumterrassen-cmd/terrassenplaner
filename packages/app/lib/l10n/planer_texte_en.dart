@@ -228,6 +228,21 @@ class PlanerTexteEn extends PlanerTexte {
   String get zentrieren => 'Center';
 
   @override
+  String get formDrehen => 'Rotate shape';
+
+  @override
+  String get drehenTitel => 'Rotate shape?';
+
+  @override
+  String get drehenText => 'Rotating resets all cut-outs.';
+
+  @override
+  String get drehenBestaetigen => 'Rotate';
+
+  @override
+  String get abbrechen => 'Cancel';
+
+  @override
   String get verkleinern => 'Zoom out';
 
   @override
