@@ -346,7 +346,7 @@ void main() {
       await tester.sendKeyEvent(LogicalKeyboardKey.keyX);
       await tester.pumpAndSettle();
       expect(_f(s.planung).geschlossen, isTrue);
-      expect(find.text('Fläche: 3,00 m²'), findsOneWidget);
+      expect(find.text('Fläche: 3,000 m²'), findsOneWidget);
       expect(find.byKey(const ValueKey('freiform-zeichnen')), findsNothing);
     });
 

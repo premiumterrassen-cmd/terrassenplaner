@@ -596,7 +596,8 @@ class MenuGriff extends StatelessWidget {
   );
 }
 
-/// Kennzahlen rechts oben: Fläche (vom Server, M4-02) und Volumen (M4-13).
+/// Kennzahlen rechts oben (M4-13): Fläche vom Server und Holzvolumen; das
+/// Volumen ergibt sich erst aus Dielen und Unterkonstruktion (M5-08, M6-10).
 class Kennzahlen extends StatelessWidget {
   const Kennzahlen({super.key, this.flaeche, this.volumen});
 
@@ -606,9 +607,10 @@ class Kennzahlen extends StatelessWidget {
   /// Holzvolumen in m³, `null` = noch nicht berechnet.
   final double? volumen;
 
-  /// Wert mit zwei Nachkommastellen im Format der Sprache („12,50 m²“).
+  /// Wert mit drei Nachkommastellen wie im alten Planer, im Format der
+  /// Sprache („14,832 m²“).
   static String zahl(PlanerTexte t, double? wert, String einheit) =>
-      wert == null ? '– $einheit' : '${zahlText(t, wert, '0.00')} $einheit';
+      wert == null ? '– $einheit' : '${zahlText(t, wert, '0.000')} $einheit';
 
   @override
   Widget build(BuildContext context) {

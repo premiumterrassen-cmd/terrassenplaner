@@ -269,7 +269,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(_f(s.planung).punkte[2].x, 4500);
       // Trapez: 4 × 3 m plus Dreieck 0,5 × 3 m / 2
-      expect(find.text('Fläche: 12,75 m²'), findsOneWidget);
+      expect(find.text('Fläche: 12,750 m²'), findsOneWidget);
       s.planung.rueckgaengig();
       await tester.pumpAndSettle();
       expect(s.planung.aktuell, _rechteck());

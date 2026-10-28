@@ -68,7 +68,7 @@ void main() {
     final g = s.planung.aktuell.grundriss;
     expect(g, isA<FreiformGrundriss>());
     expect(g.kontur.huellrechteck.max, const Punkt(3090, 4800));
-    expect(find.text('Fläche: 14,83 m²'), findsOneWidget);
+    expect(find.text('Fläche: 14,832 m²'), findsOneWidget);
     expect(s.zustand.unveraendert, isNot(contains(PlanerSchritt.grundriss)));
   });
 

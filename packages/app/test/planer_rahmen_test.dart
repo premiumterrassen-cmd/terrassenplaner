@@ -200,16 +200,16 @@ void main() {
 
   test('Kennzahlen mit Komma und Einheit', () {
     expect(Kennzahlen.zahl(de, null, 'm²'), '– m²');
-    expect(Kennzahlen.zahl(de, 14.835, 'm²'), '14,84 m²');
-    expect(Kennzahlen.zahl(de, 0.5, 'm³'), '0,50 m³');
+    expect(Kennzahlen.zahl(de, 14.8346, 'm²'), '14,835 m²');
+    expect(Kennzahlen.zahl(de, 0.5, 'm³'), '0,500 m³');
   });
 
   testWidgets('Kennzahlen mit Werten', (tester) async {
     await tester.pumpWidget(
       testApp(home: const Kennzahlen(flaeche: 12, volumen: 0.25)),
     );
-    expect(find.text('Fläche: 12,00 m²'), findsOneWidget);
-    expect(find.text('Volumen: 0,25 m³'), findsOneWidget);
+    expect(find.text('Fläche: 12,000 m²'), findsOneWidget);
+    expect(find.text('Volumen: 0,250 m³'), findsOneWidget);
   });
 
   test('Design: Farben, Breakpoints, Thema', () {
