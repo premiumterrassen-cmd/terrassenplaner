@@ -27,10 +27,15 @@ class PlanungsDienst {
     pptSerializer: WampNamen.pptSerializer,
   );
 
-  /// Umriss und Fläche des Grundrisses.
+  /// Umriss, Ausschnitte und Fläche des Grundrisses; wie im alten Planer
+  /// ist die Fläche die Außenfläche (Fachkonzept 1.4).
   static Berechnung berechne(Planungsstand stand) {
     final kontur = stand.grundriss.kontur;
-    return Berechnung(umriss: kontur.punkte, flaeche: kontur.flaeche);
+    return Berechnung(
+      umriss: kontur.punkte,
+      flaeche: kontur.flaeche,
+      ausschnitte: [for (final a in stand.ausschnitte) a.kontur.punkte],
+    );
   }
 
   static void _berechne(LazyInvocationPayload aufruf) {

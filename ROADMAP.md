@@ -232,9 +232,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/5
   - U-Form mit allen Seitenmaßen.
   - Abnahme: Seitenmaße editierbar, Fläche korrekt
   - Ergebnis: `UGrundriss` (Öffnung oben; eingegeben A—B, B—C, C—D, E—F, F—G, H—A wie im alten Planer, D—E und G—H abgeleitet, Schenkel auch verschieden hoch), Vorgabe 9,72 m² wie Fachkonzept 1.1; Formwahl um „U-Form“ ergänzt.
-- [ ] **M4-06 O-Form** ([#36](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/36)) – `feature/m4-06-o-form`
+- [x] **M4-06 O-Form** ([#36](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/36)) – `feature/m4-06-o-form`
   - O-Form (Fläche mit innerer Aussparung).
   - Abnahme: Innen- und Außenmaße editierbar
+  - Ergebnis: O-Form = Außenrechteck (`OGrundriss`, A—B, B—C) mit Ausschnitt A1 als eigenem Block wie im alten Planer (Vorgabe außen 540 × 360, A1 240 × 180 mittig). Erste Stufe von `Ausschnitt` (Rechteck, leer, X/Y/Länge/Breite, Bezeichnung bis 10 Zeichen) im Planungsstand und Transportformat; der Server liefert die Ausschnitte für die Zeichnung, die Fläche bleibt wie im alten Planer die Außenfläche. App: Block „Ausschnitt A1“ unter 1.4. Formen, Funktion und Prüfungen der Ausschnitte folgen mit M4-12.
 - [ ] **M4-07 Kreis** ([#37](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/37)) – `feature/m4-07-kreis`
   - Kreisförmige Terrasse mit Durchmesser.
   - Abnahme: Fläche korrekt, Verblendung „Fläche verblenden“ statt Seiten (M7)

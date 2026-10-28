@@ -18,6 +18,7 @@ export 'src/geometrie/terrassenmodell.dart';
 export 'src/holzart/holzart.dart';
 export 'src/holzart/robinie.dart';
 export 'src/json_werte.dart';
+export 'src/konfiguration/ausschnitt.dart';
 export 'src/konfiguration/berechnung.dart';
 export 'src/konfiguration/grundriss.dart';
 export 'src/konfiguration/konfigurationsnummer.dart';

@@ -447,6 +447,11 @@ class Bearbeitungsmenue extends StatelessWidget {
           planung: planung,
           onGeaendert: () => zustand.markiereGeaendert(schritt),
         ),
+        (PlanerSchritt.grundriss, 3) => AusschnittMasse(
+          key: ValueKey(planung.aktuell.grundriss.form),
+          planung: planung,
+          onGeaendert: () => zustand.markiereGeaendert(schritt),
+        ),
         _ => null,
       };
 

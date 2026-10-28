@@ -256,6 +256,30 @@ abstract class PlanerTexte {
   /// **'U-Form'**
   String get formUForm;
 
+  /// No description provided for @formOForm.
+  ///
+  /// In de, this message translates to:
+  /// **'O-Form'**
+  String get formOForm;
+
+  /// No description provided for @ausschnittTitel.
+  ///
+  /// In de, this message translates to:
+  /// **'Ausschnitt {bezeichnung}'**
+  String ausschnittTitel(String bezeichnung);
+
+  /// No description provided for @feldLaenge.
+  ///
+  /// In de, this message translates to:
+  /// **'Länge'**
+  String get feldLaenge;
+
+  /// No description provided for @feldBreite.
+  ///
+  /// In de, this message translates to:
+  /// **'Breite'**
+  String get feldBreite;
+
   /// No description provided for @massUngueltig.
   ///
   /// In de, this message translates to:

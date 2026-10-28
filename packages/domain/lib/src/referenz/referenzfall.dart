@@ -111,7 +111,7 @@ final class ReferenzGrundriss {
       eckpunkte = List.unmodifiable(json['eckpunkte']! as List<Object?>),
       kantenCm = _kanten(json['kanten_cm']),
       rundungen = json['rundungen']! as bool,
-      ausschnitte = _liste(json['ausschnitte'], Ausschnitt.ausJson);
+      ausschnitte = _liste(json['ausschnitte'], ReferenzAusschnitt.ausJson);
 
   /// Rechteck, L-Form, T-Form, U-Form, O-Form, Kreis oder Freiform.
   final String form;
@@ -120,12 +120,12 @@ final class ReferenzGrundriss {
   /// Kante (`A-B`) → Länge in cm; `null`, wenn in der Zeichnung ohne Maß.
   final Map<String, double?> kantenCm;
   final bool rundungen;
-  final List<Ausschnitt> ausschnitte;
+  final List<ReferenzAusschnitt> ausschnitte;
 }
 
 /// Ausschnitt oder Teilfläche im Grundriss (A1 …).
-final class Ausschnitt {
-  Ausschnitt.ausJson(Map<String, Object?> json)
+final class ReferenzAusschnitt {
+  ReferenzAusschnitt.ausJson(Map<String, Object?> json)
     : name = json['name']! as String,
       funktion = json['funktion']! as String,
       kantenCm = _kanten(json['kanten_cm']);

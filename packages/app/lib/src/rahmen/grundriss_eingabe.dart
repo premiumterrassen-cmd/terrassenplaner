@@ -20,6 +20,7 @@ class FormWahl extends StatelessWidget {
     Terrassenform.lForm => t.formLForm,
     Terrassenform.tForm => t.formTForm,
     Terrassenform.uForm => t.formUForm,
+    Terrassenform.oForm => t.formOForm,
   };
 
   @override
@@ -35,7 +36,7 @@ class FormWahl extends StatelessWidget {
             selected: form == aktuell,
             onSelected: (_) {
               if (form == aktuell) return;
-              planung.setze(planung.aktuell.mitGrundriss(form.vorgabe));
+              planung.setze(planung.aktuell.mitForm(form));
               onGeaendert();
             },
           ),
@@ -45,10 +46,8 @@ class FormWahl extends StatelessWidget {
 }
 
 /// Terrassenmaße der gewählten Form (Fachkonzept 1.2, M4-02/M4-03): ein Feld
-/// je Eingabekante in cm. Wie im alten Planer zeigen die Felder nur
-/// Platzhalter, die aktuellen Maße stehen in der Zeichnung; Enter übernimmt
-/// den Wert in den Planungsstand.
-class GrundrissMasse extends StatefulWidget {
+/// je Eingabekante in cm.
+class GrundrissMasse extends StatelessWidget {
   const GrundrissMasse({
     required this.planung,
     required this.onGeaendert,
@@ -61,14 +60,98 @@ class GrundrissMasse extends StatefulWidget {
   final VoidCallback onGeaendert;
 
   @override
-  State<GrundrissMasse> createState() => _GrundrissMasseState();
+  Widget build(BuildContext context) => MassFelder(
+    namen: planung.aktuell.grundriss.form.eingabekanten,
+    kleinstes: Grundriss.kleinsteSeite,
+    uebernimm: (index, wert) {
+      final stand = planung.aktuell;
+      planung.setze(stand.mitGrundriss(stand.grundriss.mitMass(index, wert)));
+      onGeaendert();
+    },
+  );
 }
 
-class _GrundrissMasseState extends State<GrundrissMasse> {
-  late final List<String> _kanten =
-      widget.planung.aktuell.grundriss.form.eingabekanten;
-  late final _felder = [for (final _ in _kanten) TextEditingController()];
-  late final _fehler = <String?>[for (final _ in _kanten) null];
+/// Ausschnitte im Grundriss (Fachkonzept 1.4, M4-06): je Ausschnitt ein
+/// Block „Ausschnitt A1“ mit X, Y, Länge und Breite in cm.
+class AusschnittMasse extends StatelessWidget {
+  const AusschnittMasse({
+    required this.planung,
+    required this.onGeaendert,
+    super.key,
+  });
+
+  final PlanungsSteuerung planung;
+
+  /// Meldet eine übernommene Eingabe (Standardwert-Hinweis, M3-05).
+  final VoidCallback onGeaendert;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.texte;
+    final ausschnitte = planung.aktuell.ausschnitte;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final (i, a) in ausschnitte.indexed) ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: PlanerAbstand.klein),
+            child: Text(
+              t.ausschnittTitel(a.bezeichnung),
+              style: const TextStyle(fontWeight: FontWeight.w500),
+            ),
+          ),
+          MassFelder(
+            key: ValueKey('ausschnitt-$i'),
+            schluessel: 'ausschnitt-$i',
+            namen: ['X', 'Y', t.feldLaenge, t.feldBreite],
+            kleinstes: Ausschnitt.kleinsteSeite,
+            uebernimm: (feld, wert) {
+              final stand = planung.aktuell;
+              planung.setze(
+                stand.mitAusschnitt(
+                  i,
+                  stand.ausschnitte[i].mitMass(feld, wert),
+                ),
+              );
+              onGeaendert();
+            },
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// Maßfelder in cm (M4-02): wie im alten Planer zeigen sie nur Platzhalter,
+/// die aktuellen Maße stehen in der Zeichnung; Enter übernimmt den Wert.
+/// Wirft [uebernimm] (keine Zahl, Grenze verletzt), erscheint ein Hinweis
+/// mit den Grenzen [kleinstes] bis [Grundriss.groessteSeite].
+class MassFelder extends StatefulWidget {
+  const MassFelder({
+    required this.namen,
+    required this.kleinstes,
+    required this.uebernimm,
+    super.key,
+    this.schluessel = 'mass',
+  });
+
+  /// Präfix der Feldschlüssel (`mass-0` …), eindeutig je Block.
+  final String schluessel;
+
+  /// Feldnamen für die Platzhalter („A — B: cm“).
+  final List<String> namen;
+
+  final Millimeter kleinstes;
+
+  final void Function(int index, Millimeter wert) uebernimm;
+
+  @override
+  State<MassFelder> createState() => _MassFelderState();
+}
+
+class _MassFelderState extends State<MassFelder> {
+  late final _felder = [for (final _ in widget.namen) TextEditingController()];
+  late final _fehler = <String?>[for (final _ in widget.namen) null];
 
   @override
   void dispose() {
@@ -79,23 +162,19 @@ class _GrundrissMasseState extends State<GrundrissMasse> {
   }
 
   void _uebernimm(int index, String text) {
-    final stand = widget.planung.aktuell;
     final cm = num.tryParse(text.trim().replaceAll(',', '.'));
-    final Grundriss neu;
     try {
-      neu = stand.grundriss.mitMass(index, Millimeter.ausCm(cm!));
+      widget.uebernimm(index, Millimeter.ausCm(cm!));
     } on Object {
-      // keine Zahl, oder eine Seite (auch abgeleitet) außerhalb der Grenzen
+      // keine Zahl, oder ein Maß (auch abgeleitet) außerhalb der Grenzen
       setState(
         () => _fehler[index] = context.texte.massUngueltig(
-          Grundriss.kleinsteSeite.mm ~/ 10,
+          widget.kleinstes.mm ~/ 10,
           Grundriss.groessteSeite.mm ~/ 10,
         ),
       );
       return;
     }
-    widget.planung.setze(stand.mitGrundriss(neu));
-    widget.onGeaendert();
     _felder[index].clear();
     setState(() => _fehler[index] = null);
   }
@@ -103,17 +182,20 @@ class _GrundrissMasseState extends State<GrundrissMasse> {
   @override
   Widget build(BuildContext context) => Column(
     children: [
-      for (var i = 0; i < _kanten.length; i++)
+      for (var i = 0; i < widget.namen.length; i++)
         Padding(
           padding: const EdgeInsets.only(bottom: PlanerAbstand.klein),
           child: TextField(
-            key: ValueKey('mass-$i'),
+            key: ValueKey('${widget.schluessel}-$i'),
             controller: _felder[i],
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            keyboardType: const TextInputType.numberWithOptions(
+              decimal: true,
+              signed: true,
+            ),
             decoration: InputDecoration(
               isDense: true,
               border: const OutlineInputBorder(),
-              hintText: context.texte.massPlatzhalter(_kanten[i]),
+              hintText: context.texte.massPlatzhalter(widget.namen[i]),
               errorText: _fehler[i],
             ),
             onSubmitted: (text) => _uebernimm(i, text),

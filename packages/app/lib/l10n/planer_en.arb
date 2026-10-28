@@ -29,6 +29,10 @@
   "formLForm": "L-shape",
   "formTForm": "T-shape",
   "formUForm": "U-shape",
+  "formOForm": "O-shape",
+  "ausschnittTitel": "Cut-out {bezeichnung}",
+  "feldLaenge": "Length",
+  "feldBreite": "Width",
   "massUngueltig": "Please enter {min} to {max} cm",
   "berechnungFehler": "Calculation not possible – please check the connection",
 

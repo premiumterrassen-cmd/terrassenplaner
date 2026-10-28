@@ -14,9 +14,11 @@ import 'steuerung.dart';
 final class Zeichnung {
   Zeichnung({
     List<Offset> umriss = const [],
+    List<List<Offset>> ausschnitte = const [],
     List<Bauteil> bauteile = const [],
     List<Offset> ablaeufe = const [],
   }) : umriss = List.unmodifiable(umriss),
+       ausschnitte = List.unmodifiable(ausschnitte),
        bauteile = List.unmodifiable(bauteile),
        ablaeufe = List.unmodifiable(ablaeufe);
 
@@ -24,6 +26,9 @@ final class Zeichnung {
 
   /// Eckpunkte in mm (x längs, y quer), Reihenfolge entlang des Umrisses.
   final List<Offset> umriss;
+
+  /// Ausschnitte (M4-06) in mm, je Ausschnitt seine Eckpunkte.
+  final List<List<Offset>> ausschnitte;
   final List<Bauteil> bauteile;
 
   /// Lage der Abläufe (Entwässerung) in mm.
@@ -64,6 +69,9 @@ class ZeichnungsMaler extends CustomPainter {
 
   static const belagFarbe = Color(0xFFD9B98A);
   static const ukFarbe = Color(0xFF7A5A33);
+
+  /// Füllung leerer Ausschnitte („leer/weiß“ im alten Planer).
+  static const leerFarbe = Color(0xFFFFFFFF);
 
   Offset bildschirm(Offset mm) =>
       ansicht.verschiebung + mm * (pixelJeMm * ansicht.zoom);
@@ -228,14 +236,19 @@ class ZeichnungsMaler extends CustomPainter {
         );
     }
     final umriss = [for (final p in zeichnung.umriss) bildschirm(p)];
+    final linie = Paint()
+      ..color = strich
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
     if (umriss.isNotEmpty) {
-      canvas.drawPath(
-        Path()..addPolygon(umriss, true),
-        Paint()
-          ..color = strich
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2,
-      );
+      canvas.drawPath(Path()..addPolygon(umriss, true), linie);
+    }
+    // Ausschnitte als leere Fläche mit eigenem Rand (Fachkonzept 1.4)
+    for (final a in zeichnung.ausschnitte) {
+      final pfad = Path()..addPolygon([for (final p in a) bildschirm(p)], true);
+      canvas
+        ..drawPath(pfad, Paint()..color = leerFarbe)
+        ..drawPath(pfad, linie);
     }
     if (optionen.beschriftet(Beschriftung.ablaeufe)) {
       for (final a in zeichnung.ablaeufe) {
