@@ -95,5 +95,22 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Ausschnitt A1'), findsOneWidget);
     await warteAuf(tester, 'Fläche: 14,725 m²');
+    // M4-14: zweite Fläche (Start), zweimal gebaut – Planung mit beiden
+    // Flächen im Transport, Gesamtfläche vom Server
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('flaeche-hinzufuegen')),
+      -200,
+      scrollable: find
+          .descendant(
+            of: find.byKey(const ValueKey('bearbeitungsmenue')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    await tester.tap(find.byKey(const ValueKey('flaeche-hinzufuegen')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('haeufigkeit-mehr')));
+    await warteAuf(tester, 'Fläche: 14,832 m²');
+    await warteAuf(tester, 'Gesamtfläche: 44,389 m²');
   });
 }

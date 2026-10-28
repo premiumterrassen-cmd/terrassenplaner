@@ -289,10 +289,10 @@ void main() {
       );
       final b = BerechnungsSteuerung(
         planung: planung,
-        berechne: (stand) async => Berechnung(
-          umriss: stand.grundriss.ecken,
+        berechne: (p) async => Berechnung(
+          umriss: p.aktuell.grundriss.ecken,
           flaeche: 1,
-          ausschnitte: [for (final a in stand.ausschnitte) a.kontur.punkte],
+          ausschnitte: [for (final a in p.aktuell.ausschnitte) a.kontur.punkte],
         ),
       );
       await pumpEventQueue();

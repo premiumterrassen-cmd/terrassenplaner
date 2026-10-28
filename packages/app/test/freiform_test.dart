@@ -295,7 +295,7 @@ void main() {
             zustand: zustand,
             planung: planung,
             ansicht: ansicht,
-            berechne: (stand) async => switch (stand.grundriss) {
+            berechne: (p) async => switch (p.aktuell.grundriss) {
               FreiformGrundriss(geschlossen: false, :final punkte) =>
                 Berechnung(umriss: punkte, flaeche: 0, geschlossen: false),
               final g => Berechnung(

@@ -5,8 +5,9 @@ import '../design/planer_design.dart';
 import 'steuerung.dart';
 import 'zeichnung.dart';
 
-/// Berechnet ein Planungsstand auf dem Server (M4-02); in Tests austauschbar.
-typedef PlanungBerechnen = Future<Berechnung> Function(Planungsstand stand);
+/// Berechnet eine Planung auf dem Server (M4-02, mehrere Flächen M4-14); in
+/// Tests austauschbar.
+typedef PlanungBerechnen = Future<Berechnung> Function(Planung planung);
 
 /// Hält die Berechnung des Servers zum aktuellen Planungsstand (M4-02): bei
 /// jeder Änderung neu angefragt; kommt eine Antwort zu einem älteren Stand
@@ -67,10 +68,20 @@ class BerechnungsSteuerung extends ChangeNotifier {
     _ => null,
   };
 
+  /// Summe aller Flächen mal Häufigkeit in m² (M4-14); `null` bei nur einer
+  /// Fläche, die einmal gebaut wird – dann ist sie gleich der [flaeche].
+  double? get gesamtflaeche => switch (_ergebnis) {
+    final b?
+        when planung.planung.flaechen.length > 1 ||
+            planung.planung.haeufigkeit > 1 =>
+      b.gesamtflaecheQuadratmeter,
+    _ => null,
+  };
+
   Future<void> _frage() async {
     final nummer = ++_anfrage;
     try {
-      final ergebnis = await berechne(planung.aktuell);
+      final ergebnis = await berechne(planung.planung);
       if (nummer != _anfrage) return;
       _ergebnis = ergebnis;
       _fehler = null;

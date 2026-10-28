@@ -9,6 +9,7 @@ import 'aktionen.dart';
 import 'ansichtsoptionen.dart';
 import 'ausschnitte.dart';
 import 'berechnung_steuerung.dart';
+import 'flaechen.dart';
 import 'freiform.dart';
 import 'grundriss_eingabe.dart';
 import 'planer_schritt.dart';
@@ -228,7 +229,10 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
                           Positioned(
                             top: PlanerAbstand.mittel,
                             right: PlanerAbstand.mittel,
-                            child: Kennzahlen(flaeche: _berechnung?.flaeche),
+                            child: Kennzahlen(
+                              flaeche: _berechnung?.flaeche,
+                              gesamtflaeche: _berechnung?.gesamtflaeche,
+                            ),
                           ),
                           // Tablet: Menü liegt über der Zeichenfläche.
                           if (menuOffen && !desktop)
@@ -530,6 +534,11 @@ class Bearbeitungsmenue extends StatelessWidget {
         color: context.farben.surface,
         child: ListView(
           children: [
+            FlaechenReiter(
+              planung: planung,
+              onGeaendert: () =>
+                  zustand.markiereGeaendert(PlanerSchritt.grundriss),
+            ),
             for (final schritt in PlanerSchritt.values) ...[
               ListTile(
                 key: ValueKey('menu-${schritt.name}'),
@@ -599,10 +608,14 @@ class MenuGriff extends StatelessWidget {
 /// Kennzahlen rechts oben (M4-13): Fläche vom Server und Holzvolumen; das
 /// Volumen ergibt sich erst aus Dielen und Unterkonstruktion (M5-08, M6-10).
 class Kennzahlen extends StatelessWidget {
-  const Kennzahlen({super.key, this.flaeche, this.volumen});
+  const Kennzahlen({super.key, this.flaeche, this.gesamtflaeche, this.volumen});
 
-  /// Fläche in m², `null` = noch nicht berechnet.
+  /// Fläche der bearbeiteten Fläche in m², `null` = noch nicht berechnet.
   final double? flaeche;
+
+  /// Summe aller Flächen mal Häufigkeit in m² (M4-14); `null` = nur eine
+  /// Fläche, ohne eigene Zeile.
+  final double? gesamtflaeche;
 
   /// Holzvolumen in m³, `null` = noch nicht berechnet.
   final double? volumen;
@@ -623,6 +636,8 @@ class Kennzahlen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(t.flaeche(zahl(t, flaeche, 'm²'))),
+            if (gesamtflaeche case final g?)
+              Text(t.gesamtflaeche(zahl(t, g, 'm²'))),
             Text(t.volumen(zahl(t, volumen, 'm³'))),
           ],
         ),

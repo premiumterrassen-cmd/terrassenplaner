@@ -3,27 +3,39 @@ import 'dart:math' as math;
 import 'package:flutter/widgets.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
-/// Planungsstände mit Rückgängig, Wiederherstellen und Zurücksetzen
-/// (M3-03) für die Oberfläche.
+/// Planung mit Rückgängig, Wiederherstellen und Zurücksetzen (M3-03) für
+/// die Oberfläche. Seit M4-14 mit mehreren Flächen: [aktuell], [setze] und
+/// [ersetze] wirken auf die bearbeitete Fläche, Anlegen, Wechseln und
+/// Löschen sind ebenfalls Schritte im Verlauf.
 class PlanungsSteuerung extends ChangeNotifier {
   PlanungsSteuerung([Planungsstand anfang = Planungsstand.start])
-    : _verlauf = Verlauf(anfang);
+    : this.mit(Planung([Terrassenflaeche(anfang)]));
 
-  final Verlauf<Planungsstand> _verlauf;
+  PlanungsSteuerung.mit(Planung anfang) : _verlauf = Verlauf(anfang);
 
-  Planungsstand get aktuell => _verlauf.aktuell;
+  final Verlauf<Planung> _verlauf;
+
+  /// Alle Flächen samt bearbeiteter Fläche.
+  Planung get planung => _verlauf.aktuell;
+
+  /// Planungsstand der bearbeiteten Fläche.
+  Planungsstand get aktuell => planung.aktuell;
   bool get kannRueckgaengig => _verlauf.kannRueckgaengig;
   bool get kannWiederherstellen => _verlauf.kannWiederherstellen;
 
-  void setze(Planungsstand stand) {
-    _verlauf.setze(stand);
+  void setze(Planungsstand stand) => setzePlanung(planung.mitStand(stand));
+
+  /// Übernimmt [neu] als Schritt (Flächen anlegen, wechseln, löschen,
+  /// Häufigkeit).
+  void setzePlanung(Planung neu) {
+    _verlauf.setze(neu);
     notifyListeners();
   }
 
   /// Ersetzt den aktuellen Stand ohne neuen Rückgängig-Schritt (Ziehen,
   /// M4-09).
   void ersetze(Planungsstand stand) {
-    _verlauf.ersetze(stand);
+    _verlauf.ersetze(planung.mitStand(stand));
     notifyListeners();
   }
 
@@ -39,7 +51,7 @@ class PlanungsSteuerung extends ChangeNotifier {
 
   /// Neue Planung mit der Startkonfiguration – nur nach Bestätigung aufrufen.
   void zuruecksetzen() {
-    _verlauf.zuruecksetzen(Planungsstand.start);
+    _verlauf.zuruecksetzen(Planung.start);
     notifyListeners();
   }
 }

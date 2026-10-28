@@ -5,8 +5,8 @@ import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 import '../router/planer_router.dart';
 
-/// Planungsdienst (M4-02): berechnet aus dem Planungsstand der App Umriss und
-/// Kennzahlen – die App rechnet nichts selbst (Frontend bleibt „doof“).
+/// Planungsdienst (M4-02): berechnet aus der Planung der App Umriss und
+/// Kennzahlen der bearbeiteten Fläche und die Gesamtfläche (M4-14) – die App rechnet nichts selbst (Frontend bleibt „doof“).
 /// Hin- und Rückweg als typisierte FlatBuffers (Packed PPT, #110).
 class PlanungsDienst {
   PlanungsDienst._(this._sitzung);
@@ -47,11 +47,29 @@ class PlanungsDienst {
     );
   }
 
+  /// Berechnung der bearbeiteten Fläche mit der Gesamtfläche aller Flächen,
+  /// jede mal ihrer Häufigkeit (M4-14).
+  static Berechnung berechnePlanung(Planung planung) {
+    var gesamt = 0.0;
+    for (final f in planung.flaechen) {
+      gesamt += berechne(f.stand).flaeche * f.haeufigkeit;
+    }
+    final b = berechne(planung.aktuell);
+    return Berechnung(
+      umriss: b.umriss,
+      ecken: b.ecken,
+      geschlossen: b.geschlossen,
+      flaeche: b.flaeche,
+      ausschnitte: b.ausschnitte,
+      gesamtflaeche: gesamt,
+    );
+  }
+
   static void _berechne(LazyInvocationPayload aufruf) {
     try {
-      final stand = Planungsstand.ausBytes(_bytes(aufruf));
+      final planung = Planung.ausBytes(_bytes(aufruf));
       aufruf.respondWith(
-        lazyPayload: verpacke(berechne(stand).zuBytes()),
+        lazyPayload: verpacke(berechnePlanung(planung).zuBytes()),
         options: ppt,
       );
     } on Object catch (fehler) {
@@ -65,7 +83,7 @@ class PlanungsDienst {
 
   static Uint8List _bytes(LazyInvocationPayload aufruf) {
     if (aufruf.pptScheme != WampNamen.pptSchema) {
-      throw const FormatException('kein typisierter Planungsstand');
+      throw const FormatException('keine typisierte Planung');
     }
     return aufruf.payload.packedPayloadBytes!;
   }

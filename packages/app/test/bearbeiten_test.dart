@@ -241,8 +241,8 @@ void main() {
             status: const Text('Status'),
             zustand: zustand,
             planung: planung,
-            berechne: (stand) async {
-              final g = stand.grundriss;
+            berechne: (p) async {
+              final g = p.aktuell.grundriss;
               return Berechnung(
                 umriss: g.kontur.vieleck(),
                 ecken: g.ecken,

@@ -49,8 +49,8 @@ void main() {
       glb,
       Modell3dDienst.rechteck(const Millimeter(4000), const Millimeter(3000)),
     );
-    // M4-02: Planungsstand hin, Berechnung zurück – typisiert
-    final berechnung = await verbindung.berechne(Planungsstand.start);
+    // M4-02/M4-14: Planung hin, Berechnung zurück – typisiert
+    final berechnung = await verbindung.berechne(Planung.start);
     expect(berechnung.flaecheQuadratmeter, 14.832);
     expect(berechnung.umriss[1], const Punkt(4800, 0));
   });

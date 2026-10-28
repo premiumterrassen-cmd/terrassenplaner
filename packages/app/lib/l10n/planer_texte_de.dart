@@ -75,6 +75,35 @@ class PlanerTexteDe extends PlanerTexte {
   }
 
   @override
+  String gesamtflaeche(String wert) {
+    return 'Gesamtfläche: $wert';
+  }
+
+  @override
+  String flaecheReiter(int nummer) {
+    return 'Fläche $nummer';
+  }
+
+  @override
+  String get flaecheHinzufuegen => 'Fläche hinzufügen';
+
+  @override
+  String get flaecheLoeschen => 'Fläche löschen';
+
+  @override
+  String get haeufigkeit => 'Häufigkeit der Fläche';
+
+  @override
+  String get haeufigkeitHinweis =>
+      'Wie oft diese Fläche gebaut wird. Die Materialmengen werden entsprechend vervielfacht.';
+
+  @override
+  String get haeufigkeitWeniger => 'Seltener';
+
+  @override
+  String get haeufigkeitMehr => 'Öfter';
+
+  @override
   String volumen(String wert) {
     return 'Volumen: $wert';
   }
