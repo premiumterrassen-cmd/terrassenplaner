@@ -14,10 +14,12 @@ import 'steuerung.dart';
 final class Zeichnung {
   Zeichnung({
     List<Offset> umriss = const [],
+    List<Offset>? ecken,
     List<List<Offset>> ausschnitte = const [],
     List<Bauteil> bauteile = const [],
     List<Offset> ablaeufe = const [],
   }) : umriss = List.unmodifiable(umriss),
+       ecken = List.unmodifiable(ecken ?? umriss),
        ausschnitte = List.unmodifiable(ausschnitte),
        bauteile = List.unmodifiable(bauteile),
        ablaeufe = List.unmodifiable(ablaeufe);
@@ -26,6 +28,10 @@ final class Zeichnung {
 
   /// Eckpunkte in mm (x längs, y quer), Reihenfolge entlang des Umrisses.
   final List<Offset> umriss;
+
+  /// Benannte Eckpunkte A, B … für Beschriftungen (ohne Angabe der Umriss,
+  /// beim Kreis keine, M4-07).
+  final List<Offset> ecken;
 
   /// Ausschnitte (M4-06) in mm, je Ausschnitt seine Eckpunkte.
   final List<List<Offset>> ausschnitte;
@@ -96,7 +102,7 @@ class ZeichnungsMaler extends CustomPainter {
   /// Alle Texte der eingeschalteten Beschriftungen und Maße: Seitenlängen
   /// außen neben der Kante, Winkel innen in der Ecke, Punktnamen außen.
   List<Zeichentext> texte() {
-    final punkte = zeichnung.umriss;
+    final punkte = zeichnung.ecken;
     final n = punkte.length;
     final schirm = [for (final p in punkte) bildschirm(p)];
     return [
@@ -132,7 +138,8 @@ class ZeichnungsMaler extends CustomPainter {
             ort: bildschirm(a) + const Offset(0, -beschriftungsAbstand),
             richtung: const Offset(0, -1),
           ),
-      if (optionen.zeigt(Ebene.masse) && punkte.isNotEmpty) ..._masse(schirm),
+      if (optionen.zeigt(Ebene.masse) && zeichnung.umriss.isNotEmpty)
+        ..._masse([for (final p in zeichnung.umriss) bildschirm(p)]),
     ];
   }
 

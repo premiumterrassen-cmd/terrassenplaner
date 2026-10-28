@@ -347,6 +347,8 @@ void main() {
       expect([en.feldLaenge, en.feldBreite], ['Length', 'Width']);
       expect(FormWahl.name(de, Terrassenform.oForm), 'O-Form');
       expect(FormWahl.name(en, Terrassenform.oForm), 'O-shape');
+      expect(FormWahl.name(de, Terrassenform.kreis), 'Kreis');
+      expect(FormWahl.name(en, Terrassenform.kreis), 'Circle');
     });
   });
 
@@ -458,6 +460,33 @@ void main() {
       await tester.pumpAndSettle();
       expect(s.zustand.unveraendert, isNot(contains(PlanerSchritt.grundriss)));
       expect(s.planung.aktuell.ausschnitte.single.x, const Millimeter(1000));
+    });
+
+    testWidgets('Kreis: Radius, Fläche exakt, keine Punktnamen (M4-07)', (
+      tester,
+    ) async {
+      await zeige(tester, (stand) async {
+        final k = stand.grundriss.kontur;
+        return Berechnung(
+          umriss: k.vieleck(),
+          ecken: stand.grundriss.ecken,
+          flaeche: k.flaeche,
+        );
+      });
+      await tester.tap(find.byKey(const ValueKey('form-kreis')));
+      await tester.pumpAndSettle();
+      expect(find.text('Fläche: 10,18 m²'), findsOneWidget);
+      expect(find.text('Radius: cm'), findsOneWidget);
+      final maler = tester
+          .widgetList<CustomPaint>(find.byType(CustomPaint))
+          .map((c) => c.painter)
+          .whereType<ZeichnungsMaler>()
+          .single;
+      expect(maler.zeichnung.ecken, isEmpty);
+      expect(maler.zeichnung.umriss.length, greaterThan(100));
+      final texte = maler.texte().map((t) => t.text).toList();
+      expect(texte, isNot(contains('A')));
+      expect(texte, contains('360 cm'));
     });
 
     testWidgets('Felder nur unter 1.1 und 1.2', (tester) async {

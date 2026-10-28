@@ -262,6 +262,12 @@ abstract class PlanerTexte {
   /// **'O-Form'**
   String get formOForm;
 
+  /// No description provided for @formKreis.
+  ///
+  /// In de, this message translates to:
+  /// **'Kreis'**
+  String get formKreis;
+
   /// No description provided for @ausschnittTitel.
   ///
   /// In de, this message translates to:

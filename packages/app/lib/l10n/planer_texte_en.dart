@@ -100,6 +100,9 @@ class PlanerTexteEn extends PlanerTexte {
   String get formOForm => 'O-shape';
 
   @override
+  String get formKreis => 'Circle';
+
+  @override
   String ausschnittTitel(String bezeichnung) {
     return 'Cut-out $bezeichnung';
   }

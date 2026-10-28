@@ -3,7 +3,7 @@ import '../geometrie/kontur.dart';
 import '../geometrie/punkt.dart';
 
 /// Terrassenformen des Grundrisses (Fachkonzept 1.1); weitere folgen mit
-/// M4-07 und M4-08. Die Nummer ist der Wert im Transportformat und bleibt
+/// M4-08. Die Nummer ist der Wert im Transportformat und bleibt
 /// fest.
 enum Terrassenform {
   rechteck(0, ['A — B', 'B — C']),
@@ -13,7 +13,8 @@ enum Terrassenform {
 
   /// Rechteck mit innerem Ausschnitt; der Ausschnitt ist ein eigener Block
   /// (Fachkonzept 1.1/1.4).
-  oForm(4, ['A — B', 'B — C']);
+  oForm(4, ['A — B', 'B — C']),
+  kreis(5, ['Radius']);
 
   const Terrassenform(this.nummer, this.eingabekanten);
 
@@ -30,6 +31,7 @@ enum Terrassenform {
     tForm => TGrundriss.vorgabe,
     uForm => UGrundriss.vorgabe,
     oForm => OGrundriss.vorgabe,
+    kreis => KreisGrundriss.vorgabe,
   };
 }
 
@@ -59,6 +61,7 @@ sealed class Grundriss {
         masse[5],
       ),
       Terrassenform.oForm => OGrundriss(masse[0], masse[1]),
+      Terrassenform.kreis => KreisGrundriss(masse[0]),
       Terrassenform.uForm => UGrundriss(
         masse[0],
         masse[1],
@@ -80,7 +83,8 @@ sealed class Grundriss {
   /// Eingegebene Maße in der Reihenfolge von [Terrassenform.eingabekanten].
   List<Millimeter> get masse;
 
-  /// Eckpunkte in mm ab A (A oben links, in der Zeichnung im Uhrzeigersinn).
+  /// Eckpunkte in mm ab A (A oben links, in der Zeichnung im Uhrzeigersinn);
+  /// der Kreis hat keine.
   List<Punkt> get ecken;
 
   Kontur get kontur => Kontur(ecken);
@@ -148,6 +152,47 @@ final class RechteckGrundriss extends Grundriss {
   List<Punkt> get ecken {
     final x = ab.mm.toDouble(), y = bc.mm.toDouble();
     return [Punkt.ursprung, Punkt(x, 0), Punkt(x, y), Punkt(0, y)];
+  }
+}
+
+/// Kreis (M4-07): eingegeben wird der Radius; der Mittelpunkt liegt so, dass
+/// der Kreis oben und links an 0|0 grenzt. Die Fläche ist exakt π·r² – der
+/// alte Planer rechnet ein Vieleck (Ø 360 cm: 10,150 statt 10,179 m²), das
+/// wird nicht übernommen (Alexander, 27.10.2026).
+final class KreisGrundriss extends Grundriss {
+  KreisGrundriss(this.radius) {
+    final durchmesser = radius * 2;
+    if (durchmesser < Grundriss.kleinsteSeite ||
+        durchmesser > Grundriss.groessteSeite) {
+      throw ArgumentError.value(
+        radius.mm,
+        'radius',
+        'Durchmesser muss zwischen ${Grundriss.kleinsteSeite.mm ~/ 10} und '
+            '${Grundriss.groessteSeite.mm ~/ 10} cm liegen',
+      );
+    }
+  }
+
+  const KreisGrundriss._(this.radius);
+
+  /// Vorgabe des alten Planers: Ø 360 cm (Fachkonzept 1.1).
+  static const vorgabe = KreisGrundriss._(Millimeter(1800));
+
+  final Millimeter radius;
+
+  @override
+  Terrassenform get form => Terrassenform.kreis;
+
+  @override
+  List<Millimeter> get masse => [radius];
+
+  @override
+  List<Punkt> get ecken => const [];
+
+  @override
+  Kontur get kontur {
+    final r = radius.mm.toDouble();
+    return Kontur.kreis(Punkt(r, r), r);
   }
 }
 

@@ -32,7 +32,9 @@ class PlanungsDienst {
   static Berechnung berechne(Planungsstand stand) {
     final kontur = stand.grundriss.kontur;
     return Berechnung(
-      umriss: kontur.punkte,
+      // Bögen (Kreis) als Sehnenzug für die Zeichnung, Ecken für die Namen
+      umriss: kontur.vieleck(),
+      ecken: stand.grundriss.ecken,
       flaeche: kontur.flaeche,
       ausschnitte: [for (final a in stand.ausschnitte) a.kontur.punkte],
     );

@@ -34,6 +34,7 @@
   "formTForm": "T-Form",
   "formUForm": "U-Form",
   "formOForm": "O-Form",
+  "formKreis": "Kreis",
   "ausschnittTitel": "Ausschnitt {bezeichnung}",
   "@ausschnittTitel": {"placeholders": {"bezeichnung": {"type": "String"}}},
   "feldLaenge": "Länge",

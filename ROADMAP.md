@@ -236,9 +236,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/5
   - O-Form (Fläche mit innerer Aussparung).
   - Abnahme: Innen- und Außenmaße editierbar
   - Ergebnis: O-Form = Außenrechteck (`OGrundriss`, A—B, B—C) mit Ausschnitt A1 als eigenem Block wie im alten Planer (Vorgabe außen 540 × 360, A1 240 × 180 mittig). Erste Stufe von `Ausschnitt` (Rechteck, leer, X/Y/Länge/Breite, Bezeichnung bis 10 Zeichen) im Planungsstand und Transportformat; der Server liefert die Ausschnitte für die Zeichnung, die Fläche bleibt wie im alten Planer die Außenfläche. App: Block „Ausschnitt A1“ unter 1.4. Formen, Funktion und Prüfungen der Ausschnitte folgen mit M4-12.
-- [ ] **M4-07 Kreis** ([#37](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/37)) – `feature/m4-07-kreis`
+- [x] **M4-07 Kreis** ([#37](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/37)) – `feature/m4-07-kreis`
   - Kreisförmige Terrasse mit Durchmesser.
   - Abnahme: Fläche korrekt, Verblendung „Fläche verblenden“ statt Seiten (M7)
+  - Ergebnis: `KreisGrundriss` (Eingabe Radius wie im alten Planer, Vorgabe Ø 360 cm, Durchmesser 50–3000 cm), Fläche exakt π·r² = 10,179 m² statt 10,150 m² des alten Vieleck-Werts (Alexander, 27.10.2026; 09-nicht-teil-der-kopie.md). Die Berechnung liefert den Umriss als Sehnenzug und die benannten Ecken getrennt (Kreis: keine Punktnamen). „Fläche verblenden“ folgt mit M7.
 - [ ] **M4-08 Freiform zeichnen** ([#38](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/38)) – `feature/m4-08-freiform-zeichnen`
   - Punkte setzen, Form schließen (mind. 3 Punkte), Einrastfunktion, Zeichnungshilfe (Seitenlänge/Winkel korrigieren), letzten Punkt entfernen, Rückmeldungen.
   - Abnahme: Form lässt sich nur mit ≥ 3 Punkten schließen; Zeichnungshilfe korrigiert Länge und Winkel auf Eingabewert
