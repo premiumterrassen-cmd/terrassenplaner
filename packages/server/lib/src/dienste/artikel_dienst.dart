@@ -21,6 +21,10 @@ class ArtikelDienst {
     );
     (await sitzung.register(WampNamen.artikelListe)).onInvoke(dienst._liste);
     (await sitzung.register(WampNamen.artikelRegeln)).onInvoke(dienst._regeln);
+    (await sitzung.register(WampNamen.belagAuswahl)).onInvoke(
+      (aufruf) =>
+          aufruf.respondWith(arguments: [dienst.belagauswahl.alsJson()]),
+    );
     return dienst;
   }
 
@@ -32,6 +36,14 @@ class ArtikelDienst {
 
   /// Aktuelle Artikeldatei.
   Artikeldatei get datei => _regelwerk.datei;
+
+  /// Alle Beläge mit ihren Preisen (M5-01), in Datenreihenfolge.
+  Belagauswahl get belagauswahl => Belagauswahl(datei.version, [
+    for (final a in _regelwerk.finde(
+      const Artikelfilter(bereich: Bereich.belag),
+    ))
+      Belagangebot.aus(a),
+  ]);
 
   /// Tauscht die Artikeldaten aus und meldet die neue Version – ohne
   /// Neustart und ohne App-Update.

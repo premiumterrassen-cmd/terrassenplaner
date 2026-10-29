@@ -20,6 +20,7 @@ Artikeleintrag _diele(String nummer, Profil profil) => Artikeleintrag(
       breite: const Millimeter(60),
       staerke: const Millimeter(23),
     ),
+    preisBrutto: const Cent(1250),
     holzart: robinie,
     serie: premiumSelect,
     profil: profil,
@@ -134,6 +135,23 @@ void main() {
       ((ohneKeywords.arguments!.single as Map)['artikel'] as List).length,
       3,
     );
+  });
+
+  test('Belagauswahl mit Preisen, erster Belag ist die Vorgabe', () async {
+    final antwort = await _rufe(kunde, WampNamen.belagAuswahl);
+    final auswahl = Belagauswahl.ausJson(
+      alsJsonObjekt(antwort.arguments!.single),
+      {robinie.id: robinie},
+    );
+    expect(auswahl.version, 'v1');
+    expect(auswahl.belaege.map((b) => b.artikel.nummer.wert), [
+      '10-10-073-R',
+      '10-10-080-R',
+    ]);
+    expect(auswahl.vorgabe!.artikel.nummer.wert, '10-10-073-R');
+    expect(auswahl.belaege.first.preisJeLfm, const Cent(1250));
+    expect(auswahl.belaege.first.preisJeM2, const Cent(19231));
+    expect(dienst.belagauswahl.belaege, hasLength(2));
   });
 
   test('ungültiger Filter ist ein Fehler', () async {

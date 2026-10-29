@@ -1185,6 +1185,204 @@ abstract class PlanerTexte {
   /// In de, this message translates to:
   /// **'Verschnittvariante auswählen'**
   String get verschnittoptimierung1;
+
+  /// No description provided for @produktauswahl.
+  ///
+  /// In de, this message translates to:
+  /// **'Produktauswahl'**
+  String get produktauswahl;
+
+  /// No description provided for @belagMasse.
+  ///
+  /// In de, this message translates to:
+  /// **'Maße: {masse}'**
+  String belagMasse(String masse);
+
+  /// No description provided for @belagFuge.
+  ///
+  /// In de, this message translates to:
+  /// **'Fuge: {mm} mm'**
+  String belagFuge(int mm);
+
+  /// No description provided for @belagLaedt.
+  ///
+  /// In de, this message translates to:
+  /// **'Beläge werden geladen …'**
+  String get belagLaedt;
+
+  /// No description provided for @belagFehler.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Beläge konnten nicht geladen werden.'**
+  String get belagFehler;
+
+  /// No description provided for @belagKeine.
+  ///
+  /// In de, this message translates to:
+  /// **'Keine Beläge in den Artikeldaten.'**
+  String get belagKeine;
+
+  /// No description provided for @erneutVersuchen.
+  ///
+  /// In de, this message translates to:
+  /// **'Erneut versuchen'**
+  String get erneutVersuchen;
+
+  /// No description provided for @belagDialogTitel.
+  ///
+  /// In de, this message translates to:
+  /// **'Terrassenbelag auswählen'**
+  String get belagDialogTitel;
+
+  /// No description provided for @belagUnsichtbar.
+  ///
+  /// In de, this message translates to:
+  /// **'Unsichtbar befestigt'**
+  String get belagUnsichtbar;
+
+  /// No description provided for @belagSichtbar.
+  ///
+  /// In de, this message translates to:
+  /// **'Sichtbar befestigt'**
+  String get belagSichtbar;
+
+  /// No description provided for @belagHolzfliese.
+  ///
+  /// In de, this message translates to:
+  /// **'Holzfliese'**
+  String get belagHolzfliese;
+
+  /// No description provided for @belagSuche.
+  ///
+  /// In de, this message translates to:
+  /// **'Suche nach Titel oder Artikelnummer'**
+  String get belagSuche;
+
+  /// No description provided for @filterMaterial.
+  ///
+  /// In de, this message translates to:
+  /// **'Material'**
+  String get filterMaterial;
+
+  /// No description provided for @filterOberseite.
+  ///
+  /// In de, this message translates to:
+  /// **'Oberseite'**
+  String get filterOberseite;
+
+  /// No description provided for @filterBreite.
+  ///
+  /// In de, this message translates to:
+  /// **'Breite'**
+  String get filterBreite;
+
+  /// No description provided for @filterStaerke.
+  ///
+  /// In de, this message translates to:
+  /// **'Stärke'**
+  String get filterStaerke;
+
+  /// No description provided for @filterLaenge.
+  ///
+  /// In de, this message translates to:
+  /// **'Länge'**
+  String get filterLaenge;
+
+  /// No description provided for @filterZuruecksetzen.
+  ///
+  /// In de, this message translates to:
+  /// **'Filter zurücksetzen'**
+  String get filterZuruecksetzen;
+
+  /// No description provided for @oberseiteGlatt.
+  ///
+  /// In de, this message translates to:
+  /// **'glatt'**
+  String get oberseiteGlatt;
+
+  /// No description provided for @oberseiteBombiert.
+  ///
+  /// In de, this message translates to:
+  /// **'bombiert'**
+  String get oberseiteBombiert;
+
+  /// No description provided for @profilGenutet.
+  ///
+  /// In de, this message translates to:
+  /// **'genutet'**
+  String get profilGenutet;
+
+  /// No description provided for @profilGlattkant.
+  ///
+  /// In de, this message translates to:
+  /// **'glattkant'**
+  String get profilGlattkant;
+
+  /// No description provided for @abmessungen.
+  ///
+  /// In de, this message translates to:
+  /// **'Abmessungen: {masse}'**
+  String abmessungen(String masse);
+
+  /// No description provided for @preisJeLfm.
+  ///
+  /// In de, this message translates to:
+  /// **'Preis je lfm: {preis} inkl. MwSt.'**
+  String preisJeLfm(String preis);
+
+  /// No description provided for @preisJeM2.
+  ///
+  /// In de, this message translates to:
+  /// **'Preis je m²: {preis} inkl. MwSt.'**
+  String preisJeM2(String preis);
+
+  /// No description provided for @artikelnummer.
+  ///
+  /// In de, this message translates to:
+  /// **'Artikelnummer: {nummer}'**
+  String artikelnummer(String nummer);
+
+  /// No description provided for @materialAngabe.
+  ///
+  /// In de, this message translates to:
+  /// **'Material: {material}'**
+  String materialAngabe(String material);
+
+  /// No description provided for @profilAngabe.
+  ///
+  /// In de, this message translates to:
+  /// **'Profil: {profil}'**
+  String profilAngabe(String profil);
+
+  /// No description provided for @oberseiteAngabe.
+  ///
+  /// In de, this message translates to:
+  /// **'Oberseite: {oberseite}'**
+  String oberseiteAngabe(String oberseite);
+
+  /// No description provided for @artikelinfo.
+  ///
+  /// In de, this message translates to:
+  /// **'Artikelinfo'**
+  String get artikelinfo;
+
+  /// No description provided for @belagKeinTreffer.
+  ///
+  /// In de, this message translates to:
+  /// **'Kein Belag passt zu den Filtern.'**
+  String get belagKeinTreffer;
+
+  /// No description provided for @zurueckZurKonfiguration.
+  ///
+  /// In de, this message translates to:
+  /// **'Zurück zur Konfiguration'**
+  String get zurueckZurKonfiguration;
+
+  /// No description provided for @gewaehlt.
+  ///
+  /// In de, this message translates to:
+  /// **'Gewählt'**
+  String get gewaehlt;
 }
 
 class _PlanerTexteDelegate extends LocalizationsDelegate<PlanerTexte> {

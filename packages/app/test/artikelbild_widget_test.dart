@@ -49,6 +49,18 @@ void main() {
     );
   });
 
+  testWidgets('weitere Bilder über ihre Nummer, fehlende als Platzhalter', (
+    tester,
+  ) async {
+    final artikel = _artikel(const ['clip.jpg', 'zwei.webp']);
+    await tester.pumpWidget(_rahmen(Artikelbild(artikel, nummer: 1)));
+    final bild = tester.widget<Image>(find.byType(Image));
+    expect((bild.image as NetworkImage).url, 'artikelbilder/zwei.webp');
+    await tester.pumpWidget(_rahmen(Artikelbild(artikel, nummer: 2)));
+    expect(find.byType(Image), findsNothing);
+    expect(find.byType(ArtikelbildPlatzhalter), findsOneWidget);
+  });
+
   testWidgets('Ladefehler: Platzhalter in derselben Größe', (tester) async {
     await tester.pumpWidget(
       _rahmen(Artikelbild(_artikel(const ['clip.jpg']), groesse: 64)),

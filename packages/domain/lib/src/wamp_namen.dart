@@ -15,6 +15,10 @@ abstract final class WampNamen {
   static const artikelRegeln = '${kunde}artikel.regeln';
   static const artikelGeaendert = '${kunde}artikel.geaendert';
 
+  /// Belagauswahl (M5-01): alle Beläge in Datenreihenfolge mit Preisen je
+  /// lfm und je m²; der erste ist die Vorgabe.
+  static const belagAuswahl = '${kunde}belag.auswahl';
+
   /// 3D-Modell (M3-10): GLB einer Rechteck-Terrasse (Prototyp).
   static const modell3dRechteck = '${kunde}modell3d.rechteck';
 

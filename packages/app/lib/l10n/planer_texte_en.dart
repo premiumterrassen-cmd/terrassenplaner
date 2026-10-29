@@ -594,4 +594,121 @@ class PlanerTexteEn extends PlanerTexte {
 
   @override
   String get verschnittoptimierung1 => 'Choose cutting variant';
+
+  @override
+  String get produktauswahl => 'Product selection';
+
+  @override
+  String belagMasse(String masse) {
+    return 'Dimensions: $masse';
+  }
+
+  @override
+  String belagFuge(int mm) {
+    return 'Joint: $mm mm';
+  }
+
+  @override
+  String get belagLaedt => 'Loading decking …';
+
+  @override
+  String get belagFehler => 'The decking could not be loaded.';
+
+  @override
+  String get belagKeine => 'No decking in the article data.';
+
+  @override
+  String get erneutVersuchen => 'Try again';
+
+  @override
+  String get belagDialogTitel => 'Select decking';
+
+  @override
+  String get belagUnsichtbar => 'Hidden fastening';
+
+  @override
+  String get belagSichtbar => 'Visible fastening';
+
+  @override
+  String get belagHolzfliese => 'Wood tile';
+
+  @override
+  String get belagSuche => 'Search by title or article number';
+
+  @override
+  String get filterMaterial => 'Material';
+
+  @override
+  String get filterOberseite => 'Top side';
+
+  @override
+  String get filterBreite => 'Width';
+
+  @override
+  String get filterStaerke => 'Thickness';
+
+  @override
+  String get filterLaenge => 'Length';
+
+  @override
+  String get filterZuruecksetzen => 'Reset filters';
+
+  @override
+  String get oberseiteGlatt => 'smooth';
+
+  @override
+  String get oberseiteBombiert => 'convex';
+
+  @override
+  String get profilGenutet => 'grooved';
+
+  @override
+  String get profilGlattkant => 'square edge';
+
+  @override
+  String abmessungen(String masse) {
+    return 'Dimensions: $masse';
+  }
+
+  @override
+  String preisJeLfm(String preis) {
+    return 'Price per running metre: $preis incl. VAT';
+  }
+
+  @override
+  String preisJeM2(String preis) {
+    return 'Price per m²: $preis incl. VAT';
+  }
+
+  @override
+  String artikelnummer(String nummer) {
+    return 'Article number: $nummer';
+  }
+
+  @override
+  String materialAngabe(String material) {
+    return 'Material: $material';
+  }
+
+  @override
+  String profilAngabe(String profil) {
+    return 'Profile: $profil';
+  }
+
+  @override
+  String oberseiteAngabe(String oberseite) {
+    return 'Top side: $oberseite';
+  }
+
+  @override
+  String get artikelinfo => 'Article info';
+
+  @override
+  String get belagKeinTreffer => 'No decking matches the filters.';
+
+  @override
+  String get zurueckZurKonfiguration => 'Back to configuration';
+
+  @override
+  String get gewaehlt => 'Selected';
 }

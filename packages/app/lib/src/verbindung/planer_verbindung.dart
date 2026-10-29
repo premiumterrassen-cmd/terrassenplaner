@@ -40,6 +40,14 @@ class PlanerVerbindung {
     return Berechnung.ausBytes(antwort.payload.packedPayloadBytes!);
   });
 
+  /// Beläge mit Preisen vom Artikeldienst (M5-01).
+  Future<Belagauswahl> belaege() => _mitSitzung((sitzung) async {
+    final antwort = await sitzung.callSingle(WampNamen.belagAuswahl);
+    return Belagauswahl.ausJson(alsJsonObjekt(antwort.arguments!.single), {
+      robinie.id: robinie,
+    });
+  });
+
   /// FlatBuffer als Packed-PPT-Nutzlast; materialisiert ist es ein
   /// Binärargument.
   static LazyMessagePayload verpacke(Uint8List bytes) =>

@@ -934,6 +934,7 @@ void main() {
           RechteckGrundriss.start,
           Object.hashAll(const []),
           Rundungen.keine,
+          null,
         ),
       );
       final neu = start.mitGrundriss(_rechteck(5400, 3600));
@@ -943,6 +944,36 @@ void main() {
       expect(start == Object(), isFalse);
       final v = Verlauf(start)..setze(const Planungsstand());
       expect(v.kannRueckgaengig, isFalse);
+    });
+
+    test('Belag (M5-01): bleibt bei allen Änderungen der Fläche', () {
+      const nummer = Artikelnummer('10-10-060-R');
+      final stand = Planungsstand.start.mitBelag(nummer);
+      expect(Planungsstand.start.belag, isNull);
+      expect(stand.belag, nummer);
+      expect(stand == Planungsstand.start, isFalse);
+      expect(stand.hashCode == Planungsstand.start.hashCode, isFalse);
+      expect(Planungsstand.ausBytes(stand.zuBytes()).belag, nummer);
+      expect(Planungsstand.ausBytes(Planungsstand.start.zuBytes()).belag, null);
+      final mitA = stand.mitNeuemAusschnitt();
+      for (final s in [
+        stand.mitGrundriss(_rechteck(5000, 3000)),
+        stand.mitRundungen(Rundungen.keine),
+        stand.mitForm(Terrassenform.oForm),
+        stand.gedreht(90),
+        mitA,
+        mitA.mitAusschnitt(0, mitA.ausschnitte.single),
+        mitA.ohneAusschnitt(0),
+      ]) {
+        expect(s.belag, nummer);
+      }
+      final geaendert = Planungsstand(
+        grundriss: _rechteck(5000, 3000),
+        rundungen: Rundungen.aus(const [0, 0, 500]),
+      ).mitNeuemAusschnitt().mitBelag(nummer);
+      expect(geaendert.grundriss, _rechteck(5000, 3000));
+      expect(geaendert.ausschnitte, hasLength(1));
+      expect(geaendert.rundungen, Rundungen.aus(const [0, 0, 500]));
     });
 
     test('Transportformat hin und zurück', () {

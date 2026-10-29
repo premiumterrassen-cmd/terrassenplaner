@@ -31,6 +31,28 @@ void main() {
     addTearDown(modell3d.stoppe);
     final planung = await PlanungsDienst.starte(router);
     addTearDown(planung.stoppe);
+    final artikel = await ArtikelDienst.starte(
+      router,
+      Artikeldatei(
+        quelle: 'test.xlsx',
+        version: 'v1',
+        eintraege: [
+          Artikeleintrag(
+            artikel: Artikel(
+              nummer: const Artikelnummer('10-10-060-R'),
+              titel: 'Diele',
+              art: Artikelart.diele,
+              einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+              abmessungen: Abmessungen(breite: const Millimeter(60)),
+              preisBrutto: const Cent(1300),
+              holzart: robinie,
+              serie: premiumSelect,
+            ),
+          ),
+        ],
+      ),
+    );
+    addTearDown(artikel.stoppe);
 
     final verbindung = PlanerVerbindung(
       Uri.parse('ws://127.0.0.1:${router.webSocketPort}/ws'),
@@ -53,6 +75,11 @@ void main() {
     final berechnung = await verbindung.berechne(Planung.start);
     expect(berechnung.flaecheQuadratmeter, 14.832);
     expect(berechnung.umriss[1], const Punkt(4800, 0));
+    // M5-01: Beläge mit Preisen vom Server
+    final belaege = await verbindung.belaege();
+    expect(belaege.version, 'v1');
+    expect(belaege.vorgabe!.artikel.serie, premiumSelect);
+    expect(belaege.vorgabe!.preisJeM2, const Cent(20000));
   });
 
   test('Packed-Nutzlast materialisiert als ein Binärargument', () {

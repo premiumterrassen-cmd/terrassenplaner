@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 
+import '../artikel/artikel.dart';
 import '../artikel/einheiten.dart';
 import '../geometrie/kontur.dart';
 import 'ausschnitt.dart';
@@ -10,13 +11,15 @@ import 'rundungen.dart';
 
 /// Eingaben einer Planung zu einem Zeitpunkt (M3-03) – unveränderlich, damit
 /// Rückgängig exakt auf einen früheren Stand springen kann. Seit M4-02 mit
-/// Grundriss, seit M4-06 mit Ausschnitten; Belag, Unterkonstruktion usw.
-/// folgen als weitere Felder. Berechnet wird daraus auf dem Server.
+/// Grundriss, seit M4-06 mit Ausschnitten, seit M5-01 mit Belag;
+/// Unterkonstruktion usw. folgen als weitere Felder. Berechnet wird daraus
+/// auf dem Server.
 final class Planungsstand {
   const Planungsstand({
     this.grundriss = RechteckGrundriss.start,
     this.ausschnitte = const [],
     this.rundungen = Rundungen.keine,
+    this.belag,
   });
 
   /// Liest einen Planungsstand aus dem Transportformat ([zuBytes]).
@@ -41,6 +44,14 @@ final class Planungsstand {
         const fb.ListReader<int>(fb.Int32Reader())
             .vTableGet(puffer, wurzel, _versatz(_rundungenPlatz), const []),
       ),
+      belag: switch (const fb.StringReader().vTableGetNullable(
+        puffer,
+        wurzel,
+        _versatz(_belagPlatz),
+      )) {
+        final nummer? => Artikelnummer(nummer),
+        null => null,
+      },
     );
   }
 
@@ -55,6 +66,10 @@ final class Planungsstand {
   /// Rundungen an Ecken und Seiten (Fachkonzept 1.3, M4-11).
   final Rundungen rundungen;
 
+  /// Gewählter Belag (M5-01); `null` = Vorgabe, der erste Belag der
+  /// Artikeldaten.
+  final Artikelnummer? belag;
+
   /// Kontur des Grundrisses samt Rundungen.
   Kontur get kontur => rundungen.kontur(grundriss);
 
@@ -64,6 +79,7 @@ final class Planungsstand {
     grundriss: grundriss,
     ausschnitte: ausschnitte,
     rundungen: _passend(grundriss) ? rundungen : Rundungen.keine,
+    belag: belag,
   );
 
   bool _passend(Grundriss neu) {
@@ -82,6 +98,7 @@ final class Planungsstand {
     grundriss: grundriss,
     ausschnitte: ausschnitte,
     rundungen: rundungen,
+    belag: belag,
   );
 
   /// Neue Form mit ihren Vorgabemaßen; die O-Form bringt ihren Ausschnitt
@@ -89,12 +106,13 @@ final class Planungsstand {
   Planungsstand mitForm(Terrassenform form) => Planungsstand(
     grundriss: form.vorgabe,
     ausschnitte: [if (form == Terrassenform.oForm) Ausschnitt.oForm],
+    belag: belag,
   );
 
   /// Grundriss um [grad] gedreht (M4-10); die Ausschnitte werden dabei
   /// zurückgesetzt – die App fragt vorher nach.
   Planungsstand gedreht(double grad) =>
-      Planungsstand(grundriss: grundriss.gedreht(grad));
+      Planungsstand(grundriss: grundriss.gedreht(grad), belag: belag);
 
   /// Mit einer weiteren Fläche (180 × 120 cm, Bezeichnung A1, A2 …) mitten
   /// im Grundriss („Weitere Flächen hinzufügen“, Fachkonzept 1.4).
@@ -118,6 +136,7 @@ final class Planungsstand {
         ),
       ],
       rundungen: rundungen,
+      belag: belag,
     );
   }
 
@@ -126,6 +145,7 @@ final class Planungsstand {
     grundriss: grundriss,
     ausschnitte: [...ausschnitte]..removeAt(index),
     rundungen: rundungen,
+    belag: belag,
   );
 
   /// Kopie, in der der Ausschnitt [index] durch [ausschnitt] ersetzt ist.
@@ -134,12 +154,21 @@ final class Planungsstand {
         grundriss: grundriss,
         ausschnitte: [...ausschnitte]..[index] = ausschnitt,
         rundungen: rundungen,
+        belag: belag,
       );
+
+  /// Kopie mit anderem Belag; die übrigen Eingaben bleiben.
+  Planungsstand mitBelag(Artikelnummer belag) => Planungsstand(
+    grundriss: grundriss,
+    ausschnitte: ausschnitte,
+    rundungen: rundungen,
+    belag: belag,
+  );
 
   /// FlatBuffer für den Weg zum Server (#110):
   /// `{ 0: schema (uint16), 1: grundriss { 0: form (uint8), 1: masse ([int32] mm) },
   /// 2: ausschnitte ([{ 0: bezeichnung (string), 1: masse ([int32] mm) }]),
-  /// 3: rundungen ([int32] je Art, Nummer, mm) }`.
+  /// 3: rundungen ([int32] je Art, Nummer, mm), 4: belag (string) }`.
   /// Neue Felder nur anhängen (docs/architektur/datenmodell.md).
   Uint8List zuBytes() {
     final fbb = fb.Builder();
@@ -155,12 +184,17 @@ final class Planungsstand {
       for (final a in ausschnitte) _ausschnitt(fbb, a),
     ]);
     final rundungenOrt = fbb.writeListInt32(rundungen.masse);
+    final belagOrt = switch (belag) {
+      final nummer? => fbb.writeString(nummer.wert),
+      null => null,
+    };
     fbb
-      ..startTable(4)
+      ..startTable(5)
       ..addUint16(_schemaPlatz, schema)
       ..addOffset(_grundrissPlatz, grundrissOrt)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
-      ..addOffset(_rundungenPlatz, rundungenOrt);
+      ..addOffset(_rundungenPlatz, rundungenOrt)
+      ..addOffset(_belagPlatz, belagOrt);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
   }
@@ -185,12 +219,14 @@ final class Planungsstand {
   static const _grundrissPlatz = 1;
   static const _ausschnittePlatz = 2;
   static const _rundungenPlatz = 3;
+  static const _belagPlatz = 4;
 
   @override
   bool operator ==(Object other) {
     if (other is! Planungsstand ||
         other.grundriss != grundriss ||
         other.rundungen != rundungen ||
+        other.belag != belag ||
         other.ausschnitte.length != ausschnitte.length) {
       return false;
     }
@@ -202,7 +238,7 @@ final class Planungsstand {
 
   @override
   int get hashCode =>
-      Object.hash(grundriss, Object.hashAll(ausschnitte), rundungen);
+      Object.hash(grundriss, Object.hashAll(ausschnitte), rundungen, belag);
 }
 
 /// vtable-Versatz eines Feldplatzes.

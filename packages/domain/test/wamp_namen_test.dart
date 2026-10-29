@@ -11,6 +11,10 @@ void main() {
       'de.robinienwelt.terrassenplaner.mitarbeiter.',
     );
     expect(WampNamen.hallo, 'de.robinienwelt.terrassenplaner.kunde.hallo');
+    expect(
+      WampNamen.belagAuswahl,
+      'de.robinienwelt.terrassenplaner.kunde.belag.auswahl',
+    );
   });
 
   test('Begrüßung nennt den Projekttitel', () {
