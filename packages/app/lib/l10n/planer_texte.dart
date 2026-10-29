@@ -220,6 +220,54 @@ abstract class PlanerTexte {
   /// **'Fläche: {wert}'**
   String flaeche(String wert);
 
+  /// No description provided for @gesamtflaeche.
+  ///
+  /// In de, this message translates to:
+  /// **'Gesamtfläche: {wert}'**
+  String gesamtflaeche(String wert);
+
+  /// No description provided for @flaecheReiter.
+  ///
+  /// In de, this message translates to:
+  /// **'Fläche {nummer}'**
+  String flaecheReiter(int nummer);
+
+  /// No description provided for @flaecheHinzufuegen.
+  ///
+  /// In de, this message translates to:
+  /// **'Fläche hinzufügen'**
+  String get flaecheHinzufuegen;
+
+  /// No description provided for @flaecheLoeschen.
+  ///
+  /// In de, this message translates to:
+  /// **'Fläche löschen'**
+  String get flaecheLoeschen;
+
+  /// No description provided for @haeufigkeit.
+  ///
+  /// In de, this message translates to:
+  /// **'Häufigkeit der Fläche'**
+  String get haeufigkeit;
+
+  /// No description provided for @haeufigkeitHinweis.
+  ///
+  /// In de, this message translates to:
+  /// **'Wie oft diese Fläche gebaut wird. Die Materialmengen werden entsprechend vervielfacht.'**
+  String get haeufigkeitHinweis;
+
+  /// No description provided for @haeufigkeitWeniger.
+  ///
+  /// In de, this message translates to:
+  /// **'Seltener'**
+  String get haeufigkeitWeniger;
+
+  /// No description provided for @haeufigkeitMehr.
+  ///
+  /// In de, this message translates to:
+  /// **'Öfter'**
+  String get haeufigkeitMehr;
+
   /// No description provided for @volumen.
   ///
   /// In de, this message translates to:

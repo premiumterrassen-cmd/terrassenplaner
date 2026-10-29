@@ -17,10 +17,14 @@ import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import 'hilfe.dart';
 
 /// Rechnet wie der Server (M4-02): Umriss und Fläche aus dem Grundriss.
-Future<Berechnung> _wieServer(Planungsstand stand) async {
+Future<Berechnung> _berechneStand(Planungsstand stand) async {
   final k = stand.grundriss.kontur;
   return Berechnung(umriss: k.punkte, flaeche: k.flaeche);
 }
+
+/// Wie [_berechneStand] für die bearbeitete Fläche der Planung.
+Future<Berechnung> _wieServer(Planung planung) =>
+    _berechneStand(planung.aktuell);
 
 RechteckGrundriss _rechteck(Planungsstand stand) =>
     stand.grundriss as RechteckGrundriss;
@@ -32,9 +36,9 @@ void main() {
       final gefragt = <Planungsstand>[];
       final b = BerechnungsSteuerung(
         planung: planung,
-        berechne: (stand) {
-          gefragt.add(stand);
-          return _wieServer(stand);
+        berechne: (p) {
+          gefragt.add(p.aktuell);
+          return _wieServer(p);
         },
       );
       var meldungen = 0;
@@ -76,16 +80,16 @@ void main() {
           RechteckGrundriss(const Millimeter(5400), const Millimeter(3600)),
         ),
       );
-      antworten[1].complete(_wieServer(planung.aktuell));
+      antworten[1].complete(_berechneStand(planung.aktuell));
       await pumpEventQueue();
       expect(b.flaeche, 19.44);
-      antworten[0].complete(_wieServer(Planungsstand.start));
+      antworten[0].complete(_berechneStand(Planungsstand.start));
       await pumpEventQueue();
       expect(b.flaeche, 19.44);
       planung.setze(Planungsstand.start);
       antworten[2].completeError(StateError('weg'));
       planung.rueckgaengig();
-      antworten[3].complete(_wieServer(planung.aktuell));
+      antworten[3].complete(_berechneStand(planung.aktuell));
       await pumpEventQueue();
       expect(b.fehler, isNull);
       b.dispose();
@@ -97,8 +101,8 @@ void main() {
       var fehlschlagen = false;
       final b = BerechnungsSteuerung(
         planung: planung,
-        berechne: (stand) =>
-            fehlschlagen ? Future.error(StateError('weg')) : _wieServer(stand),
+        berechne: (p) =>
+            fehlschlagen ? Future.error(StateError('weg')) : _wieServer(p),
       );
       await pumpEventQueue();
       fehlschlagen = true;
@@ -126,7 +130,7 @@ void main() {
         berechne: (_) => antwort.future,
       );
       b.dispose();
-      antwort.complete(_wieServer(Planungsstand.start));
+      antwort.complete(_berechneStand(Planungsstand.start));
       await pumpEventQueue();
       expect(b.ergebnis, isNull);
       planung.dispose();
@@ -447,7 +451,8 @@ void main() {
     });
 
     testWidgets('O-Form: Ausschnitt gezeichnet, Fläche außen', (tester) async {
-      final s = await zeige(tester, (stand) async {
+      final s = await zeige(tester, (p) async {
+        final stand = p.aktuell;
         final k = stand.grundriss.kontur;
         return Berechnung(
           umriss: k.punkte,
@@ -491,7 +496,8 @@ void main() {
     testWidgets('Kreis: Radius, Fläche exakt, keine Punktnamen (M4-07)', (
       tester,
     ) async {
-      await zeige(tester, (stand) async {
+      await zeige(tester, (p) async {
+        final stand = p.aktuell;
         final k = stand.grundriss.kontur;
         return Berechnung(
           umriss: k.vieleck(),
@@ -529,8 +535,7 @@ void main() {
       var fehlschlagen = false;
       final s = await zeige(
         tester,
-        (stand) =>
-            fehlschlagen ? Future.error(StateError('weg')) : _wieServer(stand),
+        (p) => fehlschlagen ? Future.error(StateError('weg')) : _wieServer(p),
       );
       fehlschlagen = true;
       s.planung.setze(

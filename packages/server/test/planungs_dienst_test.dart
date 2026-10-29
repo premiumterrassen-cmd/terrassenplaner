@@ -46,6 +46,22 @@ void main() {
       )
       .timeout(const Duration(seconds: 5));
 
+  /// Planung mit einer Fläche aus einem rohen Planungsstand-Puffer.
+  Uint8List alsPlanung(Uint8List stand) {
+    final fbb = fb.Builder();
+    final standOrt = fbb.writeListUint8(stand);
+    fbb
+      ..startTable(2)
+      ..addOffset(0, standOrt);
+    final flaeche = fbb.endTable();
+    final liste = fbb.writeList([flaeche]);
+    fbb
+      ..startTable(3)
+      ..addOffset(1, liste);
+    fbb.finish(fbb.endTable());
+    return fbb.buffer;
+  }
+
   Matcher fehler(String text) => throwsA(
     isA<Object>()
         .having(
@@ -139,12 +155,54 @@ void main() {
   });
 
   test('typisiert hin und zurück über den Router', () async {
-    final antwort = await rufe(Planungsstand.start.zuBytes());
+    final antwort = await rufe(Planung.start.zuBytes());
     expect(antwort.pptScheme, WampNamen.pptSchema);
     final b = Berechnung.ausBytes(antwort.payload.packedPayloadBytes!);
     expect(b.flaecheQuadratmeter, 14.832);
+    expect(b.gesamtflaecheQuadratmeter, 14.832);
     expect(b.umriss, hasLength(4));
     expect(b.umriss[2], const Punkt(4800, 3090));
+  });
+
+  test('mehrere Flächen: bearbeitete Fläche, Gesamtfläche mal Häufigkeit '
+      '(M4-14)', () async {
+    final planung = Planung([
+      Terrassenflaeche(Planungsstand.start, haeufigkeit: 2),
+      Terrassenflaeche(
+        Planungsstand(
+          grundriss: RechteckGrundriss(
+            const Millimeter(2000),
+            const Millimeter(1000),
+          ),
+        ),
+        haeufigkeit: 3,
+      ),
+      // offene Freiform zählt nicht
+      Terrassenflaeche(
+        Planungsstand(
+          grundriss: FreiformGrundriss(const [Punkt(0, 0), Punkt(1000, 0)]),
+        ),
+      ),
+    ], aktiv: 1);
+    final b = PlanungsDienst.berechnePlanung(planung);
+    expect(b.flaeche, 2e6);
+    expect(b.gesamtflaeche, 2 * 14832000 + 3 * 2e6);
+    expect(b.umriss, PlanungsDienst.berechne(planung.aktuell).umriss);
+    expect(b.ecken, hasLength(4));
+    expect(b.geschlossen, isTrue);
+    final offen = PlanungsDienst.berechnePlanung(planung.gewaehlt(2));
+    expect(offen.geschlossen, isFalse);
+    expect(offen.flaeche, 0);
+    expect(offen.gesamtflaeche, 2 * 14832000 + 3 * 2e6);
+    final o = PlanungsDienst.berechnePlanung(
+      Planung.start.mitStand(Planungsstand.start.mitForm(Terrassenform.oForm)),
+    );
+    expect(o.ausschnitte, hasLength(1));
+    final antwort = await rufe(planung.zuBytes());
+    expect(
+      Berechnung.ausBytes(antwort.payload.packedPayloadBytes!).gesamtflaeche,
+      b.gesamtflaeche,
+    );
   });
 
   test('ungültige Maße sind ein Fehler', () async {
@@ -160,7 +218,7 @@ void main() {
       ..addOffset(1, grundriss);
     fbb.finish(fbb.endTable());
     await expectLater(
-      rufe(fbb.buffer),
+      rufe(alsPlanung(fbb.buffer)),
       fehler('muss zwischen 50 und 3000 cm liegen'),
     );
   });
@@ -168,12 +226,16 @@ void main() {
   test('ohne Grundriss oder ohne typisierte Nutzlast ein Fehler', () async {
     final fbb = fb.Builder()..startTable(2);
     fbb.finish(fbb.endTable());
-    await expectLater(rufe(fbb.buffer), fehler('Planungsstand ohne Grundriss'));
+    await expectLater(
+      rufe(alsPlanung(fbb.buffer)),
+      fehler('Planungsstand ohne Grundriss'),
+    );
+    await expectLater(rufe(fbb.buffer), fehler('mindestens eine Fläche'));
     await expectLater(
       kunde
           .callSingle(WampNamen.planungBerechnen, arguments: [1, 2])
           .timeout(const Duration(seconds: 5)),
-      fehler('kein typisierter Planungsstand'),
+      fehler('keine typisierte Planung'),
     );
   });
 }

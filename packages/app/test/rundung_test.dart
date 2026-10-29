@@ -251,10 +251,10 @@ void main() {
             status: const Text('Status'),
             zustand: zustand,
             planung: planung,
-            berechne: (stand) async => Berechnung(
-              umriss: stand.kontur.vieleck(),
-              ecken: stand.grundriss.ecken,
-              flaeche: stand.kontur.flaeche,
+            berechne: (p) async => Berechnung(
+              umriss: p.aktuell.kontur.vieleck(),
+              ecken: p.aktuell.grundriss.ecken,
+              flaeche: p.aktuell.kontur.flaeche,
             ),
           ),
         ),

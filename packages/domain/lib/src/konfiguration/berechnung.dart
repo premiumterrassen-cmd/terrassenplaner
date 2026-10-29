@@ -6,7 +6,7 @@ import '../geometrie/punkt.dart';
 
 /// Was der Server aus einem Planungsstand berechnet und die App nur anzeigt
 /// (M4-02): Umriss und Ausschnitte (M4-06) für die Zeichnung und Kennzahlen.
-/// Bauteile, Volumen und Materialliste folgen mit M4-13 und M5.
+/// Bauteile, Volumen und Materialliste folgen mit M5 und M6.
 final class Berechnung {
   Berechnung({
     required List<Punkt> umriss,
@@ -14,7 +14,9 @@ final class Berechnung {
     List<List<Punkt>> ausschnitte = const [],
     List<Punkt>? ecken,
     this.geschlossen = true,
-  }) : umriss = List.unmodifiable(umriss),
+    double? gesamtflaeche,
+  }) : gesamtflaeche = gesamtflaeche ?? flaeche,
+       umriss = List.unmodifiable(umriss),
        ecken = List.unmodifiable(ecken ?? umriss),
        ausschnitte = List.unmodifiable([
          for (final a in ausschnitte) List<Punkt>.unmodifiable(a),
@@ -45,6 +47,11 @@ final class Berechnung {
         _versatz(_flaechePlatz),
         0,
       ),
+      gesamtflaeche: const fb.Float64Reader().vTableGetNullable(
+        puffer,
+        wurzel,
+        _versatz(_gesamtflaechePlatz),
+      ),
     );
   }
 
@@ -70,10 +77,17 @@ final class Berechnung {
   /// Terrassenfläche in m² für die Anzeige.
   double get flaecheQuadratmeter => flaeche / 1e6;
 
+  /// Summe aller Flächen der Planung in mm², jede mal ihrer Häufigkeit
+  /// (M4-14); bei nur einer Fläche gleich [flaeche].
+  final double gesamtflaeche;
+
+  /// Gesamtfläche in m² für die Anzeige.
+  double get gesamtflaecheQuadratmeter => gesamtflaeche / 1e6;
+
   /// FlatBuffer für den Weg zur App (#110):
   /// `{ 0: umriss ([float64] x, y je Punkt), 1: flaeche (float64 mm²),
   /// 2: ausschnitte ([{ 0: punkte ([float64]) }]), 3: ecken ([float64]),
-  /// 4: geschlossen (bool) }`.
+  /// 4: geschlossen (bool), 5: gesamtflaeche (float64 mm², M4-14) }`.
   Uint8List zuBytes() {
     final fbb = fb.Builder();
     final umrissOrt = _schreibe(fbb, umriss);
@@ -82,12 +96,13 @@ final class Berechnung {
     ]);
     final eckenOrt = _schreibe(fbb, ecken);
     fbb
-      ..startTable(5)
+      ..startTable(6)
       ..addOffset(_umrissPlatz, umrissOrt)
       ..addFloat64(_flaechePlatz, flaeche)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
       ..addOffset(_eckenPlatz, eckenOrt)
-      ..addBool(_geschlossenPlatz, geschlossen);
+      ..addBool(_geschlossenPlatz, geschlossen)
+      ..addFloat64(_gesamtflaechePlatz, gesamtflaeche);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
   }
@@ -120,6 +135,7 @@ final class Berechnung {
   static const _ausschnittePlatz = 2;
   static const _eckenPlatz = 3;
   static const _geschlossenPlatz = 4;
+  static const _gesamtflaechePlatz = 5;
 
   static int _versatz(int platz) => 4 + 2 * platz;
 }

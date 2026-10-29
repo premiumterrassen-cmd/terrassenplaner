@@ -25,20 +25,20 @@ class PlanerVerbindung {
         return antwort.arguments!.single as Uint8List;
       });
 
-  /// Lässt den Server Umriss und Kennzahlen des [stand]es berechnen (M4-02);
-  /// beide Richtungen als typisierte FlatBuffers (Packed PPT, #110).
-  Future<Berechnung> berechne(Planungsstand stand) =>
-      _mitSitzung((sitzung) async {
-        final antwort = await sitzung.callSingleLazyPayloadView(
-          WampNamen.planungBerechnen,
-          payload: verpacke(stand.zuBytes()),
-          options: CallOptions(
-            pptScheme: WampNamen.pptSchema,
-            pptSerializer: WampNamen.pptSerializer,
-          ),
-        );
-        return Berechnung.ausBytes(antwort.payload.packedPayloadBytes!);
-      });
+  /// Lässt den Server Umriss und Kennzahlen der [planung] berechnen (M4-02,
+  /// mehrere Flächen M4-14); beide Richtungen als typisierte FlatBuffers
+  /// (Packed PPT, #110).
+  Future<Berechnung> berechne(Planung planung) => _mitSitzung((sitzung) async {
+    final antwort = await sitzung.callSingleLazyPayloadView(
+      WampNamen.planungBerechnen,
+      payload: verpacke(planung.zuBytes()),
+      options: CallOptions(
+        pptScheme: WampNamen.pptSchema,
+        pptSerializer: WampNamen.pptSerializer,
+      ),
+    );
+    return Berechnung.ausBytes(antwort.payload.packedPayloadBytes!);
+  });
 
   /// FlatBuffer als Packed-PPT-Nutzlast; materialisiert ist es ein
   /// Binärargument.

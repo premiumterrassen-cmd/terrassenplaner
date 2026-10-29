@@ -264,9 +264,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/5
   - Laufende Anzeige Terrassenfläche (m²) und Holzvolumen (m³).
   - Abnahme: Fläche stimmt mit den Referenzfällen (M1-02) überein; das Volumen hängt an Dielen und Unterkonstruktion und wird mit M6-10 abgenommen (Alexander, 28.10.2026)
   - Ergebnis: Kennzahlen zeigen Fläche und Volumen mit drei Nachkommastellen wie im alten Planer; die Fläche (Außenfläche, Ausschnitte ziehen nichts ab) stimmt bei allen 26 vergleichbaren Referenzfällen (19 Rechtecke, 5 L-, 2 T-Formen) auf drei Stellen. Nicht verglichen: Freiformen und gerundete Grundrisse (Maße unvollständig), L-/T-Formen mit anderer Lage der Aussparung. Volumen zeigt „–“, bis M5-08/M6-10 die Materialmengen liefern.
-- [ ] **M4-14 Mehrere Flächen und Häufigkeit** ([#114](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/114)) – `feature/m4-14-mehrere-flaechen-und-haeufigkeit`
+- [x] **M4-14 Mehrere Flächen und Häufigkeit** ([#114](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/114)) – `feature/m4-14-mehrere-flaechen-und-haeufigkeit`
   - Eine Konfiguration enthält mehrere Flächen (Reiter 1, 2, … mit Hinzufügen/Löschen), jede mit eigenen Einstellungen in allen Schritten. „Häufigkeit der Fläche“ vervielfacht die Materialmengen. Gesamtfläche, Materialliste und Zuschnitt summieren über alle Flächen.
   - Abnahme: Flächen anlegen, wechseln, löschen; Häufigkeit wirkt auf alle Mengen dieser Fläche; Summen über alle Flächen stimmen (Tests)
+  - Ergebnis: `Planung` mit Flächen (`Terrassenflaeche`: Planungsstand + Häufigkeit 1–99) und bearbeiteter Fläche; Anlegen, Wechseln, Löschen und Häufigkeit sind Schritte im Verlauf (Rückgängig). Die App schickt die ganze Planung an den Server (`planung.berechnen`, FlatBuffer mit je Fläche eingebettetem Planungsstand); der Server liefert die Berechnung der bearbeiteten Fläche und die Gesamtfläche = Summe Fläche × Häufigkeit. Oberfläche: Reiter „Fläche 1, 2 …“ über dem Menü mit Hinzufügen/Löschen und „Häufigkeit der Fläche“ (−/+), Kennzahl „Gesamtfläche“ ab zwei Flächen oder Häufigkeit > 1. Materialliste und Zuschnitt summieren mit M5/M6 über dieselbe Planung.
 
 
 ## M5 Terrassenbelag
