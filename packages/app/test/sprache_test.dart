@@ -129,7 +129,7 @@ void main() {
       expect(zahlText(de, 12.5, '0.00'), '12,50');
       expect(zahlText(en, 12.5, '0.00'), '12.50');
       expect(zahlText(de, 1234.5, '0.#'), '1234,5');
-      expect(Kennzahlen.zahl(en, 0.25, 'm³'), '0.25 m³');
+      expect(Kennzahlen.zahl(en, 0.25, 'm³'), '0.250 m³');
     });
 
     test('Schritte, Ebenen und Beschriftungen auf Englisch', () {

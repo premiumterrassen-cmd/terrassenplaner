@@ -409,7 +409,7 @@ void main() {
       tester,
     ) async {
       final s = await zeige(tester, _wieServer);
-      expect(find.text('Fläche: 14,83 m²'), findsOneWidget);
+      expect(find.text('Fläche: 14,832 m²'), findsOneWidget);
       // gelungene Berechnung: kein Fehlerhinweis
       expect(
         find.text('Berechnung nicht möglich – bitte Verbindung prüfen'),
@@ -421,7 +421,7 @@ void main() {
       await tester.enterText(find.byKey(const ValueKey('mass-1')), '360');
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle();
-      expect(find.text('Fläche: 19,44 m²'), findsOneWidget);
+      expect(find.text('Fläche: 19,440 m²'), findsOneWidget);
       expect(s.zustand.unveraendert, isNot(contains(PlanerSchritt.grundriss)));
       // die Zeichnung zeigt den Umriss vom Server
       final maler = tester
@@ -437,12 +437,12 @@ void main() {
       final s = await zeige(tester, _wieServer);
       await tester.tap(find.byKey(const ValueKey('form-lForm')));
       await tester.pumpAndSettle();
-      expect(find.text('Fläche: 14,58 m²'), findsOneWidget);
+      expect(find.text('Fläche: 14,580 m²'), findsOneWidget);
       expect(find.byKey(const ValueKey('mass-3')), findsOneWidget);
       expect(s.zustand.unveraendert, isNot(contains(PlanerSchritt.grundriss)));
       s.planung.rueckgaengig();
       await tester.pumpAndSettle();
-      expect(find.text('Fläche: 14,83 m²'), findsOneWidget);
+      expect(find.text('Fläche: 14,832 m²'), findsOneWidget);
       expect(find.byKey(const ValueKey('mass-3')), findsNothing);
     });
 
@@ -457,7 +457,7 @@ void main() {
       });
       await tester.tap(find.byKey(const ValueKey('form-oForm')));
       await tester.pumpAndSettle();
-      expect(find.text('Fläche: 19,44 m²'), findsOneWidget);
+      expect(find.text('Fläche: 19,440 m²'), findsOneWidget);
       expect(s.planung.aktuell.ausschnitte, [Ausschnitt.oForm]);
       final maler = tester
           .widgetList<CustomPaint>(find.byType(CustomPaint))
@@ -501,7 +501,7 @@ void main() {
       });
       await tester.tap(find.byKey(const ValueKey('form-kreis')));
       await tester.pumpAndSettle();
-      expect(find.text('Fläche: 10,18 m²'), findsOneWidget);
+      expect(find.text('Fläche: 10,179 m²'), findsOneWidget);
       expect(find.text('Radius: cm'), findsOneWidget);
       final maler = tester
           .widgetList<CustomPaint>(find.byType(CustomPaint))
@@ -543,7 +543,7 @@ void main() {
         find.text('Berechnung nicht möglich – bitte Verbindung prüfen'),
         findsOneWidget,
       );
-      expect(find.text('Fläche: 14,83 m²'), findsOneWidget);
+      expect(find.text('Fläche: 14,832 m²'), findsOneWidget);
     });
 
     testWidgets('ohne Berechnung: leere Kennzahlen', (tester) async {

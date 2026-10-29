@@ -260,9 +260,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/5
   - Weitere Flächen: Form, Maße/Radius, Koordinaten (A = 0|0, negative Werte möglich), Bezeichnung (max. 10 Zeichen), Funktion „leere Fläche“ oder „anderer Terrassenbelag“; Prüfungen: nicht außerhalb, keine Kollision, keine Teilung des Grundrisses; Einrasten.
   - Abnahme: Alle drei Prüfungen mit Meldung; Teilfläche mit anderem Belag wird in M5 separat belegt
   - Ergebnis: `Ausschnitt` mit Form (Rechteck, Dreieck, Sechseck, Kreis), Funktion (leere Fläche / anderer Terrassenbelag – Belag folgt mit M5), Inhalt (sechs Füllungen, nur Darstellung) und Bezeichnung; `pruefeAusschnitte` meldet außerhalb, Kollision (Berührung erlaubt) und Teilung mit dem Geometrie-Kern. App: Blöcke unter 1.4 mit Form, X/Y/Länge/Breite, Funktion, Inhalt, Bezeichnung, Entfernen; „Weitere Flächen hinzufügen“ (180 × 120 cm mittig); jede Änderung wird geprüft, eine Verletzung abgewiesen und wie im alten Planer gemeldet („Der Ausschnitt darf nicht außerhalb der Terrasse sein!“, SCHLIESSEN). Ausschnitte lassen sich in der Zeichnung verschieben (Einrasten), Füllung und Name werden gezeichnet. Benchmark `domain.Ausschnitte.pruefen6`: 6 ms je Prüfung (L-Form, sechs Ausschnitte). Offen: Freiform als Ausschnittform, Rundungen an Ausschnitten.
-- [ ] **M4-13 Fläche und Volumen** ([#43](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/43)) – `feature/m4-13-flaeche-und-volumen`
+- [x] **M4-13 Fläche und Volumen** ([#43](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/43)) – `feature/m4-13-flaeche-und-volumen`
   - Laufende Anzeige Terrassenfläche (m²) und Holzvolumen (m³).
-  - Abnahme: Werte stimmen mit Referenzfällen (M1-02) überein
+  - Abnahme: Fläche stimmt mit den Referenzfällen (M1-02) überein; das Volumen hängt an Dielen und Unterkonstruktion und wird mit M6-10 abgenommen (Alexander, 28.10.2026)
+  - Ergebnis: Kennzahlen zeigen Fläche und Volumen mit drei Nachkommastellen wie im alten Planer; die Fläche (Außenfläche, Ausschnitte ziehen nichts ab) stimmt bei allen 26 vergleichbaren Referenzfällen (19 Rechtecke, 5 L-, 2 T-Formen) auf drei Stellen. Nicht verglichen: Freiformen und gerundete Grundrisse (Maße unvollständig), L-/T-Formen mit anderer Lage der Aussparung. Volumen zeigt „–“, bis M5-08/M6-10 die Materialmengen liefern.
 - [ ] **M4-14 Mehrere Flächen und Häufigkeit** ([#114](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/114)) – `feature/m4-14-mehrere-flaechen-und-haeufigkeit`
   - Eine Konfiguration enthält mehrere Flächen (Reiter 1, 2, … mit Hinzufügen/Löschen), jede mit eigenen Einstellungen in allen Schritten. „Häufigkeit der Fläche“ vervielfacht die Materialmengen. Gesamtfläche, Materialliste und Zuschnitt summieren über alle Flächen.
   - Abnahme: Flächen anlegen, wechseln, löschen; Häufigkeit wirkt auf alle Mengen dieser Fläche; Summen über alle Flächen stimmen (Tests)
@@ -351,6 +352,7 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/7
 - [ ] **M6-10 Berechnung der UK-Verlegung** ([#63](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/63)) – `feature/m6-10-berechnung-der-uk-verlegung` · Benchmark
   - Lage der UK-Hölzer, Stöße, Randabstand, Längsverbinder, Farbkennzeichnung im Plan, Stückliste.
   - Abnahme: UK-Stückliste je Referenzfall entspricht der Planungsunterlage; Benchmark: große Fläche mit Gefälle
+  - Holzvolumen (m³, Dielen und UK) in den Kennzahlen; Abnahme: Volumen stimmt mit den Referenzfällen (M1-02) überein (aus M4-13 verschoben, Alexander 28.10.2026)
 - [ ] **M6-11 Berechnung Stelzfüße/Pads mit Höhenzuordnung** ([#64](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/64)) – `feature/m6-11-berechnung-stelzfuesse-pads-mit-hoehenzu` · Benchmark
   - Anzahl und Höhe je Stelzfuß aus Höhenpunkten, Tabelle der Höhenzuordnung.
   - Abnahme: Höhen je Stelzfuß nachvollziehbar und getestet
