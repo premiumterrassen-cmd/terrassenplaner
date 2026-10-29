@@ -7,6 +7,7 @@ import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import '../design/planer_design.dart';
 import '../sprache/sprache.dart';
 import 'ansichtsoptionen.dart';
+import 'ausschnitte.dart';
 import 'freiform.dart';
 import 'rundung.dart';
 import 'steuerung.dart';
@@ -23,6 +24,7 @@ class Zeichenflaeche extends StatelessWidget {
     super.key,
     this.freiform,
     this.rundung,
+    this.ausschnitte,
   });
 
   final PlanungsSteuerung planung;
@@ -37,6 +39,9 @@ class Zeichenflaeche extends StatelessWidget {
   /// Rundungsmodus (M4-11): eigene Griffe statt der Eckenbearbeitung.
   final RundungsBedienung? rundung;
 
+  /// Ausschnitte verschieben (M4-12): ein Griff in der Mitte je Ausschnitt.
+  final AusschnittBedienung? ausschnitte;
+
   /// Bildschirmpunkt in mm der Zeichnung (Umkehrung der Ansicht).
   Punkt inMillimeter(Offset lokal) {
     final mm = (lokal - ansicht.verschiebung) / (pixelJeMm * ansicht.zoom);
@@ -49,6 +54,38 @@ class Zeichenflaeche extends StatelessWidget {
   /// Ziehen an einem Griff die Fläche nicht verschiebt.
   List<Widget> _griffe() {
     if (rundung case final r? when r.aktiv) return _rundungsGriffe(r);
+    return [..._eckenGriffe(), ..._ausschnittGriffe()];
+  }
+
+  /// Griff in der Mitte jedes Ausschnitts zum Verschieben (M4-12).
+  List<Widget> _ausschnittGriffe() {
+    final bedienung = ausschnitte;
+    if (bedienung == null || zeichnung.ausschnitte.isEmpty) return const [];
+    return [
+      Positioned.fill(
+        child: ListenableBuilder(
+          listenable: ansicht,
+          builder: (context, _) => Stack(
+            children: [
+              for (final (i, a) in zeichnung.ausschnitte.indexed)
+                Griff(
+                  key: ValueKey('ausschnitt-griff-$i'),
+                  mitte:
+                      ansicht.verschiebung +
+                      ZeichnungsMaler.mitte(a) * (pixelJeMm * ansicht.zoom),
+                  kante: true,
+                  zoom: ansicht.zoom,
+                  onZiehen: (versatz, {required beginn}) =>
+                      bedienung.ziehe(i, versatz, beginn: beginn),
+                ),
+            ],
+          ),
+        ),
+      ),
+    ];
+  }
+
+  List<Widget> _eckenGriffe() {
     final bedienung = freiform;
     final ecken = zeichnung.ecken;
     if (bedienung?.bearbeitbar == null ||
@@ -502,9 +539,9 @@ class Griff extends StatefulWidget {
   const Griff({
     required this.mitte,
     required this.zoom,
-    required this.onTap,
     required this.onZiehen,
     super.key,
+    this.onTap,
     this.kante = false,
     this.ausgewaehlt = false,
   });
@@ -514,7 +551,7 @@ class Griff extends StatefulWidget {
 
   /// Zoom der Ansicht – rechnet Pixel in Millimeter um.
   final double zoom;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final void Function(Punkt versatz, {required bool beginn}) onZiehen;
   final bool kante;
   final bool ausgewaehlt;

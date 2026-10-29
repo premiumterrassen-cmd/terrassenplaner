@@ -17,11 +17,13 @@ final class Zeichnung {
     List<Offset>? ecken,
     this.geschlossen = true,
     List<List<Offset>> ausschnitte = const [],
+    List<({String name, Color farbe})> ausschnittDarstellung = const [],
     List<Bauteil> bauteile = const [],
     List<Offset> ablaeufe = const [],
   }) : umriss = List.unmodifiable(umriss),
        ecken = List.unmodifiable(ecken ?? umriss),
        ausschnitte = List.unmodifiable(ausschnitte),
+       ausschnittDarstellung = List.unmodifiable(ausschnittDarstellung),
        bauteile = List.unmodifiable(bauteile),
        ablaeufe = List.unmodifiable(ablaeufe);
 
@@ -40,6 +42,10 @@ final class Zeichnung {
 
   /// Ausschnitte (M4-06) in mm, je Ausschnitt seine Eckpunkte.
   final List<List<Offset>> ausschnitte;
+
+  /// Bezeichnung und Füllung je Ausschnitt (M4-12, nur Darstellung); fehlt
+  /// ein Eintrag, ist er weiß und ohne Namen.
+  final List<({String name, Color farbe})> ausschnittDarstellung;
   final List<Bauteil> bauteile;
 
   /// Lage der Abläufe (Entwässerung) in mm.
@@ -180,6 +186,9 @@ class ZeichnungsMaler extends CustomPainter {
   /// Richtung „nach oben“ für Beschriftungen der offenen Freiform.
   static const oben = Offset(0, -1);
 
+  /// Mitte des umschließenden Rechtecks.
+  static Offset mitte(List<Offset> punkte) => _umschliessend(punkte).center;
+
   /// Abstand der Beschriftungen von Kante bzw. Ecke in Pixeln.
   static const beschriftungsAbstand = 6.0;
 
@@ -293,11 +302,23 @@ class ZeichnungsMaler extends CustomPainter {
       }
     }
     // Ausschnitte als leere Fläche mit eigenem Rand (Fachkonzept 1.4)
-    for (final a in zeichnung.ausschnitte) {
-      final pfad = Path()..addPolygon([for (final p in a) bildschirm(p)], true);
+    for (final (i, a) in zeichnung.ausschnitte.indexed) {
+      final schirm = [for (final p in a) bildschirm(p)];
+      final pfad = Path()..addPolygon(schirm, true);
+      final darstellung = i < zeichnung.ausschnittDarstellung.length
+          ? zeichnung.ausschnittDarstellung[i]
+          : (name: '', farbe: leerFarbe);
       canvas
-        ..drawPath(pfad, Paint()..color = leerFarbe)
+        ..drawPath(pfad, Paint()..color = darstellung.farbe)
         ..drawPath(pfad, linie);
+      final maler = TextPainter(
+        text: TextSpan(
+          text: darstellung.name,
+          style: TextStyle(fontSize: 12, color: strich),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      maler.paint(canvas, textLage(mitte(schirm), Offset.zero, maler.size));
     }
     if (optionen.beschriftet(Beschriftung.ablaeufe)) {
       for (final a in zeichnung.ablaeufe) {

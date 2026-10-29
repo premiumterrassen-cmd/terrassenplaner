@@ -270,6 +270,62 @@ class PlanerTexteDe extends PlanerTexte {
       'Sie verlassen das Abrunden von Ecken und Seiten.';
 
   @override
+  String get weitereFlaeche => 'Weitere Flächen hinzufügen';
+
+  @override
+  String get ausschnittEntfernen => 'Fläche entfernen';
+
+  @override
+  String get formDreieck => 'Dreieck';
+
+  @override
+  String get formSechseck => 'Sechseck';
+
+  @override
+  String get funktionLeer => 'leere Fläche';
+
+  @override
+  String get funktionBelag => 'anderer Terrassenbelag';
+
+  @override
+  String get inhaltLeer => 'leer/weiß';
+
+  @override
+  String get inhaltKies => 'Kies hell';
+
+  @override
+  String get inhaltStein => 'Stein dunkel';
+
+  @override
+  String get inhaltPool => 'Pool';
+
+  @override
+  String get inhaltRasen => 'Rasen';
+
+  @override
+  String get inhaltErde => 'Erde';
+
+  @override
+  String get feldBezeichnung => 'Flächenbezeichnung';
+
+  @override
+  String get meldungAusserhalb =>
+      'Der Ausschnitt darf nicht außerhalb der Terrasse sein!';
+
+  @override
+  String meldungKollision(String a, String b) {
+    return '$a und $b dürfen sich nicht überschneiden.';
+  }
+
+  @override
+  String meldungTeilung(String a) {
+    return '$a darf die Terrasse nicht teilen.';
+  }
+
+  @override
+  String get schliessen => 'SCHLIESSEN';
+
+  @override
   String get formDrehen => 'Form drehen';
 
   @override

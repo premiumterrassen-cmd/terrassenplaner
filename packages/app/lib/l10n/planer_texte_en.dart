@@ -270,6 +270,62 @@ class PlanerTexteEn extends PlanerTexte {
       'You are leaving the rounding of corners and sides.';
 
   @override
+  String get weitereFlaeche => 'Add further area';
+
+  @override
+  String get ausschnittEntfernen => 'Remove area';
+
+  @override
+  String get formDreieck => 'Triangle';
+
+  @override
+  String get formSechseck => 'Hexagon';
+
+  @override
+  String get funktionLeer => 'empty area';
+
+  @override
+  String get funktionBelag => 'other decking';
+
+  @override
+  String get inhaltLeer => 'empty/white';
+
+  @override
+  String get inhaltKies => 'Light gravel';
+
+  @override
+  String get inhaltStein => 'Dark stone';
+
+  @override
+  String get inhaltPool => 'Pool';
+
+  @override
+  String get inhaltRasen => 'Lawn';
+
+  @override
+  String get inhaltErde => 'Soil';
+
+  @override
+  String get feldBezeichnung => 'Area name';
+
+  @override
+  String get meldungAusserhalb =>
+      'The cut-out must not lie outside the terrace!';
+
+  @override
+  String meldungKollision(String a, String b) {
+    return '$a and $b must not overlap.';
+  }
+
+  @override
+  String meldungTeilung(String a) {
+    return '$a must not split the terrace.';
+  }
+
+  @override
+  String get schliessen => 'CLOSE';
+
+  @override
   String get formDrehen => 'Rotate shape';
 
   @override

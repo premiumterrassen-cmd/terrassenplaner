@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:terrassenplaner_app/src/design/planer_design.dart';
+import 'package:terrassenplaner_app/src/rahmen/ausschnitte.dart';
 import 'package:terrassenplaner_app/src/rahmen/berechnung_steuerung.dart';
+import 'package:terrassenplaner_app/src/rahmen/freiform.dart';
 import 'package:terrassenplaner_app/src/rahmen/grundriss_eingabe.dart';
 import 'package:terrassenplaner_app/src/rahmen/planer_rahmen.dart';
 import 'package:terrassenplaner_app/src/rahmen/planer_schritt.dart';
@@ -295,7 +297,13 @@ void main() {
             body: ListenableBuilder(
               listenable: planung,
               builder: (context, _) => SingleChildScrollView(
-                child: AusschnittMasse(planung: planung, onGeaendert: () {}),
+                child: AusschnittMasse(
+                  bedienung: AusschnittBedienung(
+                    planung: planung,
+                    modus: ZeichenModus(),
+                    onGeaendert: () {},
+                  ),
+                ),
               ),
             ),
           ),
@@ -314,14 +322,26 @@ void main() {
       }
       await tester.enterText(
         find.byKey(const ValueKey('ausschnitt-0-0')),
-        '-20',
+        '20',
       );
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pump();
       expect(
         planung.aktuell.ausschnitte.single,
-        Ausschnitt.oForm.mitMass(0, const Millimeter(-200)),
+        Ausschnitt.oForm.mitMass(0, const Millimeter(200)),
       );
+      // teilweise außerhalb der Terrasse: abgewiesen (M4-12)
+      await tester.enterText(
+        find.byKey(const ValueKey('ausschnitt-0-0')),
+        '-20',
+      );
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+      expect(
+        find.text('Der Ausschnitt darf nicht außerhalb der Terrasse sein!'),
+        findsOneWidget,
+      );
+      expect(planung.aktuell.ausschnitte.single.x, const Millimeter(200));
       await tester.enterText(find.byKey(const ValueKey('ausschnitt-0-3')), '9');
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pump();
@@ -335,7 +355,13 @@ void main() {
       await tester.pumpWidget(
         testApp(
           home: Scaffold(
-            body: AusschnittMasse(planung: planung, onGeaendert: () {}),
+            body: AusschnittMasse(
+              bedienung: AusschnittBedienung(
+                planung: planung,
+                modus: ZeichenModus(),
+                onGeaendert: () {},
+              ),
+            ),
           ),
         ),
       );

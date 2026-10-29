@@ -7,6 +7,7 @@ import '../design/planer_design.dart';
 import '../sprache/sprache.dart';
 import 'aktionen.dart';
 import 'ansichtsoptionen.dart';
+import 'ausschnitte.dart';
 import 'berechnung_steuerung.dart';
 import 'freiform.dart';
 import 'grundriss_eingabe.dart';
@@ -72,6 +73,11 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
   final _modus = ZeichenModus();
   late final _rundung = RundungsBedienung(
     planung: _planung,
+    onGeaendert: () => _zustand.markiereGeaendert(PlanerSchritt.grundriss),
+  );
+  late final _ausschnitte = AusschnittBedienung(
+    planung: _planung,
+    modus: _modus,
     onGeaendert: () => _zustand.markiereGeaendert(PlanerSchritt.grundriss),
   );
   late final _freiform = FreiformBedienung(
@@ -178,6 +184,7 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
             planung: _planung,
             freiform: _freiform,
             rundung: _rundung,
+            ausschnitte: _ausschnitte,
           );
           return Column(
             children: [
@@ -211,6 +218,7 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
                               optionen: _optionen,
                               freiform: _freiform,
                               rundung: _rundung,
+                              ausschnitte: _ausschnitte,
                               zeichnung:
                                   widget.zeichnung ??
                                   _berechnung?.zeichnung ??
@@ -481,6 +489,7 @@ class Bearbeitungsmenue extends StatelessWidget {
     required this.planung,
     required this.freiform,
     required this.rundung,
+    required this.ausschnitte,
     super.key,
   });
 
@@ -488,6 +497,7 @@ class Bearbeitungsmenue extends StatelessWidget {
   final PlanungsSteuerung planung;
   final FreiformBedienung freiform;
   final RundungsBedienung rundung;
+  final AusschnittBedienung ausschnitte;
 
   /// Eingaben unter einem Unterpunkt (Schritt, Index ab 0).
   Widget? _eingabe(PlanerSchritt schritt, int unterpunkt) =>
@@ -506,11 +516,7 @@ class Bearbeitungsmenue extends StatelessWidget {
           onGeaendert: () => zustand.markiereGeaendert(schritt),
         ),
         (PlanerSchritt.grundriss, 2) => RundungsEingabe(bedienung: rundung),
-        (PlanerSchritt.grundriss, 3) => AusschnittMasse(
-          key: ValueKey(planung.aktuell.grundriss.form),
-          planung: planung,
-          onGeaendert: () => zustand.markiereGeaendert(schritt),
-        ),
+        (PlanerSchritt.grundriss, 3) => AusschnittMasse(bedienung: ausschnitte),
         _ => null,
       };
 

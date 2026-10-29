@@ -96,6 +96,38 @@ final class Planungsstand {
   Planungsstand gedreht(double grad) =>
       Planungsstand(grundriss: grundriss.gedreht(grad));
 
+  /// Mit einer weiteren Fläche (180 × 120 cm, Bezeichnung A1, A2 …) mitten
+  /// im Grundriss („Weitere Flächen hinzufügen“, Fachkonzept 1.4).
+  Planungsstand mitNeuemAusschnitt() {
+    final namen = {for (final a in ausschnitte) a.bezeichnung};
+    var nummer = 1;
+    while (namen.contains('A$nummer')) {
+      nummer++;
+    }
+    final mitte = kontur.huellrechteck.mitte;
+    return Planungsstand(
+      grundriss: grundriss,
+      ausschnitte: [
+        ...ausschnitte,
+        Ausschnitt(
+          bezeichnung: 'A$nummer',
+          x: Millimeter((mitte.x - Ausschnitt.vorgabeLaenge.mm / 2).round()),
+          y: Millimeter((mitte.y - Ausschnitt.vorgabeBreite.mm / 2).round()),
+          laenge: Ausschnitt.vorgabeLaenge,
+          breite: Ausschnitt.vorgabeBreite,
+        ),
+      ],
+      rundungen: rundungen,
+    );
+  }
+
+  /// Ohne den Ausschnitt [index].
+  Planungsstand ohneAusschnitt(int index) => Planungsstand(
+    grundriss: grundriss,
+    ausschnitte: [...ausschnitte]..removeAt(index),
+    rundungen: rundungen,
+  );
+
   /// Kopie, in der der Ausschnitt [index] durch [ausschnitt] ersetzt ist.
   Planungsstand mitAusschnitt(int index, Ausschnitt ausschnitt) =>
       Planungsstand(
@@ -137,9 +169,12 @@ final class Planungsstand {
     final bezeichnungOrt = fbb.writeString(a.bezeichnung);
     final masseOrt = fbb.writeListInt32([for (final m in a.masse) m.mm]);
     fbb
-      ..startTable(2)
+      ..startTable(5)
       ..addOffset(0, bezeichnungOrt)
-      ..addOffset(1, masseOrt);
+      ..addOffset(1, masseOrt)
+      ..addUint8(2, a.form.nummer)
+      ..addUint8(3, a.funktion.nummer)
+      ..addUint8(4, a.inhalt.nummer);
     return fbb.endTable();
   }
 
@@ -219,6 +254,30 @@ final class _AusschnittLeser extends fb.TableReader<Ausschnitt> {
       y: masse[1],
       laenge: masse[2],
       breite: masse[3],
+      form: _wert(Ausschnittform.values, (f) => f.nummer, puffer, ort, 2),
+      funktion: _wert(
+        Ausschnittfunktion.values,
+        (f) => f.nummer,
+        puffer,
+        ort,
+        3,
+      ),
+      inhalt: _wert(Ausschnittinhalt.values, (i) => i.nummer, puffer, ort, 4),
+    );
+  }
+
+  /// Eintrag aus [werte] zur Nummer im Feldplatz [platz] (fehlt er: 0).
+  static T _wert<T>(
+    List<T> werte,
+    int Function(T) nummer,
+    fb.BufferContext puffer,
+    int ort,
+    int platz,
+  ) {
+    final n = const fb.Uint8Reader().vTableGet(puffer, ort, _versatz(platz), 0);
+    return werte.firstWhere(
+      (w) => nummer(w) == n,
+      orElse: () => throw FormatException('unbekannte Nummer $n'),
     );
   }
 }
