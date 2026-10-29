@@ -58,9 +58,8 @@ final class Planung {
     final wurzel = puffer.derefObject(0);
     return Planung(
       [
-        ...const fb.ListReader<Terrassenflaeche>(
-          _FlaechenLeser(),
-        ).vTableGet(puffer, wurzel, _versatz(_flaechenPlatz), const []),
+        ...const fb.ListReader<Terrassenflaeche>(_FlaechenLeser())
+            .vTableGet(puffer, wurzel, _versatz(_flaechenPlatz), const []),
       ],
       aktiv: const fb.Uint16Reader().vTableGet(
         puffer,
