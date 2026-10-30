@@ -15,6 +15,12 @@ Messwerte in diesem Kapitel: Rechteck 480 × 309 cm, Diele 60 × 22 genutet, son
   - genutet und glattkant: Querschnitte 50/60/80/100 × 22, 23, 26 mm, teils „bombiert“, alle 6000 mm lang.
   - Holzfliese: Terrassenfliese Robinie 606 × 606 mm (natur / vorgeölt).
 
+Neuer Planer (Alexander, 29.10.2026, M5-01):
+
+- Vorgabe ist der erste Belag der Upload-Datei; die Reihenfolge steuert die Master-Artikelliste.
+- Preis je m² = Preis je lfm ÷ (Breite + Fuge 5 mm).
+- Filter: Material (Serie), Oberseite, Breite, Stärke, Länge, dazu Suche in Titel und Artikelnummer. Einen Filter Farbe gibt es erst mit Kastanie oder vorgeölten Varianten.
+
 ## 2.2 Soll die Dielenlänge automatisch ermittelt werden?
 
 - **Ja** (Vorgabe): der Planer sucht die passende Lieferlänge automatisch aus (Materialliste z. B. 5000 mm).
