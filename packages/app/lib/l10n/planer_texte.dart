@@ -1366,6 +1366,36 @@ abstract class PlanerTexte {
   /// **'Artikelinfo'**
   String get artikelinfo;
 
+  /// No description provided for @ja.
+  ///
+  /// In de, this message translates to:
+  /// **'Ja'**
+  String get ja;
+
+  /// No description provided for @nein.
+  ///
+  /// In de, this message translates to:
+  /// **'Nein'**
+  String get nein;
+
+  /// No description provided for @dielenlaengeOriginal.
+  ///
+  /// In de, this message translates to:
+  /// **'Mögliche Originallängen (in cm):'**
+  String get dielenlaengeOriginal;
+
+  /// No description provided for @dielenlaengeCm.
+  ///
+  /// In de, this message translates to:
+  /// **'{cm} cm'**
+  String dielenlaengeCm(int cm);
+
+  /// No description provided for @dielenlaengeNichtWaehlbar.
+  ///
+  /// In de, this message translates to:
+  /// **'Für diesen Belag gibt es keine Längenauswahl.'**
+  String get dielenlaengeNichtWaehlbar;
+
   /// No description provided for @belagKeinTreffer.
   ///
   /// In de, this message translates to:

@@ -704,6 +704,24 @@ class PlanerTexteDe extends PlanerTexte {
   String get artikelinfo => 'Artikelinfo';
 
   @override
+  String get ja => 'Ja';
+
+  @override
+  String get nein => 'Nein';
+
+  @override
+  String get dielenlaengeOriginal => 'Mögliche Originallängen (in cm):';
+
+  @override
+  String dielenlaengeCm(int cm) {
+    return '$cm cm';
+  }
+
+  @override
+  String get dielenlaengeNichtWaehlbar =>
+      'Für diesen Belag gibt es keine Längenauswahl.';
+
+  @override
   String get belagKeinTreffer => 'Kein Belag passt zu den Filtern.';
 
   @override

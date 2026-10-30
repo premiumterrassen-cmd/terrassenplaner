@@ -253,6 +253,12 @@
   "oberseiteAngabe": "Oberseite: {oberseite}",
   "@oberseiteAngabe": {"placeholders": {"oberseite": {"type": "String"}}},
   "artikelinfo": "Artikelinfo",
+  "ja": "Ja",
+  "nein": "Nein",
+  "dielenlaengeOriginal": "Mögliche Originallängen (in cm):",
+  "dielenlaengeCm": "{cm} cm",
+  "@dielenlaengeCm": { "placeholders": { "cm": { "type": "int" } } },
+  "dielenlaengeNichtWaehlbar": "Für diesen Belag gibt es keine Längenauswahl.",
   "belagKeinTreffer": "Kein Belag passt zu den Filtern.",
   "zurueckZurKonfiguration": "Zurück zur Konfiguration",
   "gewaehlt": "Gewählt"

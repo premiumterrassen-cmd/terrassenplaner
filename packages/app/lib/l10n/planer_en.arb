@@ -225,6 +225,12 @@
   "profilAngabe": "Profile: {profil}",
   "oberseiteAngabe": "Top side: {oberseite}",
   "artikelinfo": "Article info",
+  "ja": "Yes",
+  "nein": "No",
+  "dielenlaengeOriginal": "Available original lengths (in cm):",
+  "dielenlaengeCm": "{cm} cm",
+  "@dielenlaengeCm": { "placeholders": { "cm": { "type": "int" } } },
+  "dielenlaengeNichtWaehlbar": "This decking has no choice of lengths.",
   "belagKeinTreffer": "No decking matches the filters.",
   "zurueckZurKonfiguration": "Back to configuration",
   "gewaehlt": "Selected"

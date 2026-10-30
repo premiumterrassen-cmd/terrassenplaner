@@ -38,7 +38,7 @@ Die mit ⚙ markierten Regeln sind im domain-Paket ausführbar und mit Tests bel
 | R-B07 | Längsstoß (Stirnseiten) 0–2 mm, Stirnkanten fasen und paraffinieren. | Merkblatt M-06, Antwort 6 | gilt (Hinweis) |
 | R-B08 | Keine Dielenüberstände – UK bis an den Rand. | B-096 | gilt |
 | R-B09 ⚙ | Freidielen im Planer und ERP: **ab 25 Hauptdielen eine, ab 50 zwei, ab 100 je weitere 50 eine** (100 → 3, 150 → 4 …); gezählt und geliefert wird die Hauptdiele des Deckbelags (im alten Planer in der längsten Lieferlänge). | B-079, Antwort 1 | gilt · Abweichung alt: Grenzfälle und große Mengen |
-| R-B10 | Dielenlänge: der Planer wählt die passende Lieferlänge automatisch; man kann eine Länge erzwingen (z. B. Lagerbestand). | Alexander (Frage 4) | gilt |
+| R-B10 ⚙ | Dielenlänge: der Planer wählt die passende Lieferlänge automatisch (kürzeste, die die Reihe abdeckt); man kann eine Länge erzwingen (z. B. Lagerbestand). | Alexander (Frage 4) | gilt |
 | R-B11 | Verschnitt = geliefert minus geplant (Diele für 480 cm in 500 cm geliefert → 20 cm), für Belag und UK. | Alexander (Frage 3) | gilt |
 | R-B12 | „Kurze Stücke verbinden“: ein Stoß muss nicht durchgehend sein, wenn bei nicht rechtwinkligen Terrassen ein kurzes Stück durch eine ganze Diele ersetzt werden kann. | Alexander (Frage 16) | gilt |
 | R-B13 | Die letzte Dielenreihe wird längs auf Restbreite aufgeschnitten und markiert (rote Kante). | Alexander (Frage 1) | gilt |

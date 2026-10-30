@@ -418,6 +418,121 @@ void main() {
     });
   });
 
+  group('Dielenlänge automatisch ermitteln', () {
+    late PlanungsSteuerung planung;
+    late BelagQuelle quelle;
+    late int aenderungen;
+
+    Future<void> zeige(WidgetTester tester, Belagauswahl auswahl) async {
+      planung = PlanungsSteuerung();
+      addTearDown(planung.dispose);
+      quelle = BelagQuelle(() async => auswahl);
+      addTearDown(quelle.dispose);
+      aenderungen = 0;
+      await tester.pumpWidget(
+        testApp(
+          home: Scaffold(
+            body: DielenlaengeWahl(
+              quelle: quelle,
+              planung: planung,
+              onGeaendert: () => aenderungen++,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    bool gewaehlt(WidgetTester tester, String key) =>
+        tester.widget<ChoiceChip>(find.byKey(ValueKey(key))).selected;
+
+    testWidgets('Vorgabe Ja ohne Längen', (tester) async {
+      await zeige(tester, _auswahl);
+      expect(find.text('Ja'), findsOneWidget);
+      expect(find.text('Nein'), findsOneWidget);
+      expect(gewaehlt(tester, 'dielenlaenge-automatisch'), isTrue);
+      expect(gewaehlt(tester, 'dielenlaenge-fest'), isFalse);
+      expect(find.text('Mögliche Originallängen (in cm):'), findsNothing);
+      expect(planung.aktuell.dielenlaenge, isNull);
+      expect(aenderungen, 0);
+    });
+
+    testWidgets('Nein beginnt mit der längsten Länge, Wahl und zurück', (
+      tester,
+    ) async {
+      await zeige(tester, _auswahl);
+      await tester.tap(find.byKey(const ValueKey('dielenlaenge-fest')));
+      await tester.pumpAndSettle();
+      expect(planung.aktuell.dielenlaenge, const Millimeter(4000));
+      expect(aenderungen, 1);
+      expect(find.text('Mögliche Originallängen (in cm):'), findsOneWidget);
+      expect(find.text('300 cm'), findsOneWidget);
+      expect(find.text('400 cm'), findsOneWidget);
+      expect(gewaehlt(tester, 'dielenlaenge-fest'), isTrue);
+      expect(gewaehlt(tester, 'dielenlaenge-automatisch'), isFalse);
+      expect(gewaehlt(tester, 'dielenlaenge-4000'), isTrue);
+
+      await tester.tap(find.byKey(const ValueKey('dielenlaenge-3000')));
+      await tester.pumpAndSettle();
+      expect(planung.aktuell.dielenlaenge, const Millimeter(3000));
+      expect(aenderungen, 2);
+      expect(gewaehlt(tester, 'dielenlaenge-3000'), isTrue);
+      expect(gewaehlt(tester, 'dielenlaenge-4000'), isFalse);
+
+      await tester.tap(find.byKey(const ValueKey('dielenlaenge-automatisch')));
+      await tester.pumpAndSettle();
+      expect(planung.aktuell.dielenlaenge, isNull);
+      expect(aenderungen, 3);
+      expect(find.text('300 cm'), findsNothing);
+    });
+
+    testWidgets('erneuter Klick auf die Wahl ändert nichts', (tester) async {
+      await zeige(tester, _auswahl);
+      await tester.tap(find.byKey(const ValueKey('dielenlaenge-automatisch')));
+      await tester.pumpAndSettle();
+      expect(aenderungen, 0);
+      await tester.tap(find.byKey(const ValueKey('dielenlaenge-fest')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('dielenlaenge-fest')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('dielenlaenge-4000')));
+      await tester.pumpAndSettle();
+      expect(aenderungen, 1);
+    });
+
+    testWidgets('Länge, die der neue Belag nicht liefert, gilt nicht', (
+      tester,
+    ) async {
+      final zweite = Belagangebot(
+        _diele('10-20-060', 'Diele zwei', laengen: [5000, 6000]),
+      );
+      await zeige(tester, Belagauswahl('v1', [_vorgabe, zweite]));
+      planung.setze(
+        planung.aktuell
+            .mitDielenlaenge(const Millimeter(3000))
+            .mitBelag(const Artikelnummer('10-20-060')),
+      );
+      await tester.pumpAndSettle();
+      expect(gewaehlt(tester, 'dielenlaenge-automatisch'), isTrue);
+      expect(find.text('Mögliche Originallängen (in cm):'), findsNothing);
+    });
+
+    testWidgets('nicht wählbar: Holzfliese, eine Länge, ohne Belag', (
+      tester,
+    ) async {
+      const hinweis = 'Für diesen Belag gibt es keine Längenauswahl.';
+      for (final auswahl in [
+        Belagauswahl('v1', [_fliese]),
+        Belagauswahl('v1', [_glattkant]),
+        Belagauswahl('v1', const []),
+      ]) {
+        await zeige(tester, auswahl);
+        expect(find.text(hinweis), findsOneWidget);
+        expect(find.byKey(const ValueKey('dielenlaenge-wahl')), findsNothing);
+      }
+    });
+  });
+
   testWidgets('im Rahmen: Unterpunkt „Terrassenbelag auswählen“', (
     tester,
   ) async {
@@ -441,6 +556,12 @@ void main() {
     zustand.waehle(PlanerSchritt.terrassenbelag);
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('belag-anzeige')), findsOneWidget);
+    expect(find.byKey(const ValueKey('dielenlaenge-wahl')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('dielenlaenge-fest')));
+    await tester.pumpAndSettle();
+    expect(zustand.unveraendert, isNot(contains(PlanerSchritt.terrassenbelag)));
+    await tester.tap(find.byKey(const ValueKey('dielenlaenge-automatisch')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('produktauswahl')));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.byKey(const ValueKey('belag-70-10-001')));
@@ -449,6 +570,11 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Terrassenfliese'), findsOneWidget);
     expect(zustand.unveraendert, isNot(contains(PlanerSchritt.terrassenbelag)));
+    // Unterpunkt 2.2 hört auf den gewählten Belag.
+    expect(
+      find.text('Für diesen Belag gibt es keine Längenauswahl.'),
+      findsOneWidget,
+    );
     // Ohne Belagquelle zeigt der Schritt nur seine Unterpunkte.
     await tester.pumpWidget(
       testApp(

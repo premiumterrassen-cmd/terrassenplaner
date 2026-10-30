@@ -28,6 +28,13 @@ Neuer Planer (Alexander, 29.10.2026, M5-01):
 - **Nein**: „Mögliche Originallängen (in cm):“ Einzelauswahl 300, 400, 450, 500, 550, 600.
   - Beispiel 400: Stoßfuge bei 400 cm, Reststück 80 cm → Verschnitt 0,99 %, Volumen 0,434 m³ (automatisch: 4 %, 0,435 m³).
 
+Neuer Planer (M5-02):
+
+- **Automatik** je Dielenreihe: die kürzeste Lieferlänge des Belags, die die Reihe abdeckt (480 cm → 5000 mm, 309 cm → 4000 mm). Reihen über der längsten Lieferlänge beginnen mit dieser, der Rest bekommt wieder die kürzeste passende (800 cm → 6000 + 4000 mm). Das entspricht den Referenzfällen; wo der alte Planer 3,0/4,5/5,5 m nahm, gilt die nächstgrößere Lieferlänge (R-A06, 440 cm → 5000 statt 4500 mm).
+- **Nein:** Einzelauswahl aus den Längen des gewählten Belags (nicht mehr die feste Liste 300–600 cm); vorbelegt ist die längste. Liefert ein neu gewählter Belag die Länge nicht, gilt wieder die Automatik.
+- Die Frage gibt es nur bei Dielen mit mehreren Lieferlängen, nicht bei Holzfliesen und dem Längenmix der Systemdielen.
+- Reststücke auf mehrere Reihen verteilen (z. B. eine 4000-mm-Diele für zwei Reihen mit je 200 cm Rest) gehört zur Verlegung (M5-08).
+
 ## 2.3 Verlegearten
 
 | Verlegeart (Tooltip) | Volumen |
