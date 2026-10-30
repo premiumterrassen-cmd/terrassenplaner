@@ -276,9 +276,10 @@ Belagauswahl, Längen, Verlegearten und -richtungen, Ausgangspunkt, Befestigungs
 
 GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/6
 
-- [ ] **M5-01 Belagauswahl** ([#44](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/44)) – `feature/m5-01-belagauswahl`
+- [x] **M5-01 Belagauswahl** ([#44](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/44)) – `feature/m5-01-belagauswahl`
   - Dialog „Produktauswahl“: Holzdielen mit Filtern (Material, Farbe, Oberseite) und Suche; Infobox (Artikelinfo, Ober-/Unterseite, Abmessungen, Preis je lfm und je m², Artikelnummer); Anzeige Maße und Fuge.
   - Abnahme: Nur Artikel aus M2 mit Typ Belag; Infobox zeigt alle Felder
+  - Ergebnis: Dialog mit Kategorien, Filtern (Material = Serie, Oberseite, Breite, Stärke, Länge) und Suche, Infobox, Preise vom Server. Vorgabe = erster Belag der Upload-Datei; Preis je m² = Preis je lfm ÷ (Breite + 5 mm Fuge) (Alexander, 29.10.2026). Filter Farbe erst mit Kastanie oder vorgeölten Varianten; Unterseite ohne eigenes Datenfeld, die Infobox zeigt Oberseite und alle Abbildungen.
 - [ ] **M5-02 Dielenlängen** ([#45](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/45)) – `feature/m5-02-dielenlaengen` · Benchmark
   - „Dielenlänge automatisch ermitteln?“ ja/nein; bei nein bevorzugte Längen auswählen (feste Längen je Artikel).
   - Abnahme: Automatik wählt Längen wie der alte Planer (Referenzfälle)

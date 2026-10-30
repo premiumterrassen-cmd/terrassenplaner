@@ -23,6 +23,15 @@ void main() {
         reason: schritt.name,
       );
     }
+    // M5-01: Belagauswahl vom Artikeldienst; der Smoke-Server läuft ohne
+    // Artikeldatei, also ohne Beläge.
+    await tester.tap(find.byKey(const ValueKey('station-terrassenbelag')));
+    final keine = find.text(de.belagKeine);
+    for (var i = 0; i < 100 && keine.evaluate().isEmpty; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    }
+    expect(keine, findsOneWidget);
     final fortschritt = tester.widget<LinearProgressIndicator>(
       find.byType(LinearProgressIndicator),
     );

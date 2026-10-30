@@ -8,6 +8,7 @@ import '../sprache/sprache.dart';
 import 'aktionen.dart';
 import 'ansichtsoptionen.dart';
 import 'ausschnitte.dart';
+import 'belag.dart';
 import 'berechnung_steuerung.dart';
 import 'flaechen.dart';
 import 'freiform.dart';
@@ -32,6 +33,7 @@ class PlanerRahmen extends StatefulWidget {
     this.optionen,
     this.zeichnung,
     this.berechne,
+    this.belaege,
     this.aktionen = const RahmenAktionen(),
     this.sprache,
     this.darstellung,
@@ -51,6 +53,9 @@ class PlanerRahmen extends StatefulWidget {
 
   /// Berechnung auf dem Server (M4-02); ohne sie bleibt die Zeichnung leer.
   final PlanungBerechnen? berechne;
+
+  /// Beläge vom Server (M5-01); ohne sie bleibt die Belagauswahl leer.
+  final BelaegeLaden? belaege;
 
   /// Links und Ergebnis-Knöpfe (M3-06).
   final RahmenAktionen aktionen;
@@ -93,6 +98,10 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
     ),
     null => null,
   };
+  late final BelagQuelle? _belaege = switch (widget.belaege) {
+    final lade? => BelagQuelle(lade),
+    null => null,
+  };
 
   @override
   void initState() {
@@ -128,6 +137,7 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
   @override
   void dispose() {
     _berechnung?.dispose();
+    _belaege?.dispose();
     _modus.dispose();
     _zustand.removeListener(_verlaesstRundung);
     _rundung.dispose();
@@ -186,6 +196,7 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
             freiform: _freiform,
             rundung: _rundung,
             ausschnitte: _ausschnitte,
+            belaege: _belaege,
           );
           return Column(
             children: [
@@ -495,6 +506,7 @@ class Bearbeitungsmenue extends StatelessWidget {
     required this.rundung,
     required this.ausschnitte,
     super.key,
+    this.belaege,
   });
 
   final RahmenZustand zustand;
@@ -502,6 +514,7 @@ class Bearbeitungsmenue extends StatelessWidget {
   final FreiformBedienung freiform;
   final RundungsBedienung rundung;
   final AusschnittBedienung ausschnitte;
+  final BelagQuelle? belaege;
 
   /// Eingaben unter einem Unterpunkt (Schritt, Index ab 0).
   Widget? _eingabe(PlanerSchritt schritt, int unterpunkt) =>
@@ -521,6 +534,11 @@ class Bearbeitungsmenue extends StatelessWidget {
         ),
         (PlanerSchritt.grundriss, 2) => RundungsEingabe(bedienung: rundung),
         (PlanerSchritt.grundriss, 3) => AusschnittMasse(bedienung: ausschnitte),
+        (PlanerSchritt.terrassenbelag, 0) when belaege != null => BelagAnzeige(
+          quelle: belaege!,
+          planung: planung,
+          onGeaendert: () => zustand.markiereGeaendert(schritt),
+        ),
         _ => null,
       };
 

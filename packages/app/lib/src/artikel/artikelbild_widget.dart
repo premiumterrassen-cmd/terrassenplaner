@@ -3,18 +3,27 @@ import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 import '../sprache/sprache.dart';
 
-/// Erstes Bild eines Artikels (M2-07) – oder der Platzhalter, wenn der
-/// Artikel kein Bild hat oder es nicht geladen werden kann.
+/// Bild [nummer] eines Artikels (M2-07, vorgegeben das erste) – oder der
+/// Platzhalter, wenn der Artikel das Bild nicht hat oder es nicht geladen
+/// werden kann.
 class Artikelbild extends StatelessWidget {
-  const Artikelbild(this.artikel, {super.key, this.groesse = 96});
+  const Artikelbild(
+    this.artikel, {
+    super.key,
+    this.groesse = 96,
+    this.nummer = 0,
+  });
 
   final Artikel artikel;
   final double groesse;
 
+  /// Index in [Artikel.bilder] (Profilansicht, Stirnseite, Profilzeichnung).
+  final int nummer;
+
   @override
   Widget build(BuildContext context) {
     final platzhalter = ArtikelbildPlatzhalter(groesse: groesse);
-    final bild = artikel.bilder.firstOrNull;
+    final bild = artikel.bilder.elementAtOrNull(nummer);
     if (bild == null) return platzhalter;
     Widget beiFehler(BuildContext _, Object _, StackTrace? _) => platzhalter;
     return Image.network(

@@ -594,4 +594,121 @@ class PlanerTexteDe extends PlanerTexte {
 
   @override
   String get verschnittoptimierung1 => 'Verschnittvariante auswählen';
+
+  @override
+  String get produktauswahl => 'Produktauswahl';
+
+  @override
+  String belagMasse(String masse) {
+    return 'Maße: $masse';
+  }
+
+  @override
+  String belagFuge(int mm) {
+    return 'Fuge: $mm mm';
+  }
+
+  @override
+  String get belagLaedt => 'Beläge werden geladen …';
+
+  @override
+  String get belagFehler => 'Die Beläge konnten nicht geladen werden.';
+
+  @override
+  String get belagKeine => 'Keine Beläge in den Artikeldaten.';
+
+  @override
+  String get erneutVersuchen => 'Erneut versuchen';
+
+  @override
+  String get belagDialogTitel => 'Terrassenbelag auswählen';
+
+  @override
+  String get belagUnsichtbar => 'Unsichtbar befestigt';
+
+  @override
+  String get belagSichtbar => 'Sichtbar befestigt';
+
+  @override
+  String get belagHolzfliese => 'Holzfliese';
+
+  @override
+  String get belagSuche => 'Suche nach Titel oder Artikelnummer';
+
+  @override
+  String get filterMaterial => 'Material';
+
+  @override
+  String get filterOberseite => 'Oberseite';
+
+  @override
+  String get filterBreite => 'Breite';
+
+  @override
+  String get filterStaerke => 'Stärke';
+
+  @override
+  String get filterLaenge => 'Länge';
+
+  @override
+  String get filterZuruecksetzen => 'Filter zurücksetzen';
+
+  @override
+  String get oberseiteGlatt => 'glatt';
+
+  @override
+  String get oberseiteBombiert => 'bombiert';
+
+  @override
+  String get profilGenutet => 'genutet';
+
+  @override
+  String get profilGlattkant => 'glattkant';
+
+  @override
+  String abmessungen(String masse) {
+    return 'Abmessungen: $masse';
+  }
+
+  @override
+  String preisJeLfm(String preis) {
+    return 'Preis je lfm: $preis inkl. MwSt.';
+  }
+
+  @override
+  String preisJeM2(String preis) {
+    return 'Preis je m²: $preis inkl. MwSt.';
+  }
+
+  @override
+  String artikelnummer(String nummer) {
+    return 'Artikelnummer: $nummer';
+  }
+
+  @override
+  String materialAngabe(String material) {
+    return 'Material: $material';
+  }
+
+  @override
+  String profilAngabe(String profil) {
+    return 'Profil: $profil';
+  }
+
+  @override
+  String oberseiteAngabe(String oberseite) {
+    return 'Oberseite: $oberseite';
+  }
+
+  @override
+  String get artikelinfo => 'Artikelinfo';
+
+  @override
+  String get belagKeinTreffer => 'Kein Belag passt zu den Filtern.';
+
+  @override
+  String get zurueckZurKonfiguration => 'Zurück zur Konfiguration';
+
+  @override
+  String get gewaehlt => 'Gewählt';
 }
