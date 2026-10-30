@@ -64,6 +64,7 @@ void main() {
     test('ohne Längen oder ohne Reihe keine Lieferlängen', () {
       expect(lieferlaengenFuer(const Millimeter(4000), const []), isEmpty);
       expect(lieferlaengenFuer(const Millimeter(0), _standard), isEmpty);
+      expect(lieferlaengenFuer(const Millimeter(-1), _standard), isEmpty);
     });
   });
 
