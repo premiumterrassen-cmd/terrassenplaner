@@ -74,6 +74,6 @@ Der Ausschluss `[\s]for[\s]*\(.*?\)[\s]*{` in `tool/mutation/*.xml` greift nur b
 |---|---|---|---|---|
 | domain | 1121 | 9 | 99,20 % | 1 h 05 min |
 | server | 513 | 4 | 99,22 % | 1 h 42 min |
-| app (8 Teile) | 600 | 8 | 98,67 % | je 18–60 min, zusammen 5 h 10 min |
+| app (8 Teile) | 600 | 8 | 98,67 % | je 18–60 min, zusammen 4 h 54 min |
 
 Gesamtdauer 1 h 42 min statt über 12 Stunden.
