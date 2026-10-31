@@ -704,6 +704,24 @@ class PlanerTexteEn extends PlanerTexte {
   String get artikelinfo => 'Article info';
 
   @override
+  String get ja => 'Yes';
+
+  @override
+  String get nein => 'No';
+
+  @override
+  String get dielenlaengeOriginal => 'Available original lengths (in cm):';
+
+  @override
+  String dielenlaengeCm(int cm) {
+    return '$cm cm';
+  }
+
+  @override
+  String get dielenlaengeNichtWaehlbar =>
+      'This decking has no choice of lengths.';
+
+  @override
   String get belagKeinTreffer => 'No decking matches the filters.';
 
   @override

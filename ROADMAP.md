@@ -280,9 +280,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/6
   - Dialog „Produktauswahl“: Holzdielen mit Filtern (Material, Farbe, Oberseite) und Suche; Infobox (Artikelinfo, Ober-/Unterseite, Abmessungen, Preis je lfm und je m², Artikelnummer); Anzeige Maße und Fuge.
   - Abnahme: Nur Artikel aus M2 mit Typ Belag; Infobox zeigt alle Felder
   - Ergebnis: Dialog mit Kategorien, Filtern (Material = Serie, Oberseite, Breite, Stärke, Länge) und Suche, Infobox, Preise vom Server. Vorgabe = erster Belag der Upload-Datei; Preis je m² = Preis je lfm ÷ (Breite + 5 mm Fuge) (Alexander, 29.10.2026). Filter Farbe erst mit Kastanie oder vorgeölten Varianten; Unterseite ohne eigenes Datenfeld, die Infobox zeigt Oberseite und alle Abbildungen.
-- [ ] **M5-02 Dielenlängen** ([#45](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/45)) – `feature/m5-02-dielenlaengen` · Benchmark
+- [x] **M5-02 Dielenlängen** ([#45](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/45)) – `feature/m5-02-dielenlaengen` · Benchmark
   - „Dielenlänge automatisch ermitteln?“ ja/nein; bei nein bevorzugte Längen auswählen (feste Längen je Artikel).
   - Abnahme: Automatik wählt Längen wie der alte Planer (Referenzfälle)
+  - Ergebnis: Unterpunkt 2.2 mit Ja/Nein und Einzelauswahl aus den Längen des Belags (vorbelegt: die längste); Planungsstand-Feld `dielenlaenge`. `lieferlaengenFuer` nimmt je Reihe die kürzeste passende Länge, Reihen über der längsten werden gestückelt (800 cm → 6000 + 4000 mm). Stimmt mit 12 Referenzfällen und den Konfigurationen F01, F02, F09, F13, F14 und F20 überein, Zwischenlängen auf die nächste Lieferlänge aufgerundet (R-A06). Reststücke über mehrere Reihen verteilen folgt mit M5-08. Benchmark `domain.Dielenlaenge.lieferlaengenFuer`.
 - [ ] **M5-03 Kurze Dielenstücke verbinden** ([#46](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/46)) – `feature/m5-03-kurze-dielenstuecke-verbinden`
   - Option „Sollen kurze Dielenstücke miteinander verbunden werden?“ ja/nein mit Auswirkung auf Stöße und Verschnitt.
   - Abnahme: Beide Varianten ergeben die Ergebnisse der Referenzfälle

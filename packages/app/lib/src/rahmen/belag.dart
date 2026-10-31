@@ -135,6 +135,91 @@ class BelagAnzeige extends StatelessWidget {
   );
 }
 
+/// Unterpunkt „Dielenlänge automatisch ermitteln“ (Fachkonzept 2.2, R-B10):
+/// Ja (Vorgabe) oder Nein mit einer der Längen des Belags. Nein beginnt mit
+/// der längsten Lieferlänge.
+class DielenlaengeWahl extends StatelessWidget {
+  const DielenlaengeWahl({
+    required this.quelle,
+    required this.planung,
+    required this.onGeaendert,
+    super.key,
+  });
+
+  final BelagQuelle quelle;
+  final PlanungsSteuerung planung;
+
+  /// Meldet eine Änderung der Länge (Standardwert-Hinweis, M3-05).
+  final VoidCallback onGeaendert;
+
+  void _setze(Millimeter? laenge) {
+    planung.setze(planung.aktuell.mitDielenlaenge(laenge));
+    onGeaendert();
+  }
+
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: Listenable.merge([quelle, planung]),
+    builder: (context, _) {
+      final t = context.texte;
+      final stand = planung.aktuell;
+      final belag = quelle.auswahl?.gewaehlt(stand.belag)?.artikel;
+      if (belag == null || !dielenlaengeWaehlbar(belag)) {
+        return Text(t.dielenlaengeNichtWaehlbar);
+      }
+      final laengen = belag.abmessungen.laengen;
+      final fest = laengen.contains(stand.dielenlaenge)
+          ? stand.dielenlaenge
+          : null;
+      return Column(
+        key: const ValueKey('dielenlaenge-wahl'),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: PlanerAbstand.klein,
+            children: [
+              ChoiceChip(
+                key: const ValueKey('dielenlaenge-automatisch'),
+                label: Text(t.ja),
+                selected: fest == null,
+                onSelected: (an) {
+                  if (an) _setze(null);
+                },
+              ),
+              ChoiceChip(
+                key: const ValueKey('dielenlaenge-fest'),
+                label: Text(t.nein),
+                selected: fest != null,
+                onSelected: (an) {
+                  if (an) _setze(laengen.last);
+                },
+              ),
+            ],
+          ),
+          if (fest != null) ...[
+            const SizedBox(height: PlanerAbstand.klein),
+            Text(t.dielenlaengeOriginal),
+            Wrap(
+              spacing: PlanerAbstand.klein,
+              children: [
+                for (final l in laengen)
+                  ChoiceChip(
+                    key: ValueKey('dielenlaenge-${l.mm}'),
+                    label: Text(t.dielenlaengeCm(l.mm ~/ 10)),
+                    selected: l == fest,
+                    onSelected: (an) {
+                      if (an) _setze(l);
+                    },
+                  ),
+              ],
+            ),
+          ],
+        ],
+      );
+    },
+  );
+}
+
 /// Dialog „Terrassenbelag auswählen“ (Fachkonzept 2.1): Kategorien, Filter
 /// mit Mehrfachauswahl, Suche und Produktkarten. Ein Klick auf eine Karte
 /// wählt den Belag.

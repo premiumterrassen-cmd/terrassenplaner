@@ -15,6 +15,7 @@
     "app.Ladebild.ErstesBildOhneZaehlen": 138665.0,
     "app.Ladebild.Skriptzeit": 13174.0,
     "domain.Geometrie.uFormMitAusschnitten": 66852.8,
-    "domain.Ausschnitte.pruefen6": 60900.0
+    "domain.Ausschnitte.pruefen6": 60900.0,
+    "domain.Dielenlaenge.lieferlaengenFuer(RunTime)": 1833.584
   }
 }

@@ -11,15 +11,16 @@ import 'rundungen.dart';
 
 /// Eingaben einer Planung zu einem Zeitpunkt (M3-03) – unveränderlich, damit
 /// Rückgängig exakt auf einen früheren Stand springen kann. Seit M4-02 mit
-/// Grundriss, seit M4-06 mit Ausschnitten, seit M5-01 mit Belag;
-/// Unterkonstruktion usw. folgen als weitere Felder. Berechnet wird daraus
-/// auf dem Server.
+/// Grundriss, seit M4-06 mit Ausschnitten, seit M5-01 mit Belag, seit M5-02
+/// mit Dielenlänge; Unterkonstruktion usw. folgen als weitere Felder.
+/// Berechnet wird daraus auf dem Server.
 final class Planungsstand {
   const Planungsstand({
     this.grundriss = RechteckGrundriss.start,
     this.ausschnitte = const [],
     this.rundungen = Rundungen.keine,
     this.belag,
+    this.dielenlaenge,
   });
 
   /// Liest einen Planungsstand aus dem Transportformat ([zuBytes]).
@@ -52,6 +53,14 @@ final class Planungsstand {
         final nummer? => Artikelnummer(nummer),
         null => null,
       },
+      dielenlaenge: switch (const fb.Int32Reader().vTableGetNullable(
+        puffer,
+        wurzel,
+        _versatz(_dielenlaengePlatz),
+      )) {
+        final mm? => Millimeter(mm),
+        null => null,
+      },
     );
   }
 
@@ -70,6 +79,10 @@ final class Planungsstand {
   /// Artikeldaten.
   final Artikelnummer? belag;
 
+  /// Erzwungene Lieferlänge (M5-02, R-B10); `null` = automatisch. Gilt nur,
+  /// solange der Belag sie liefert (`lieferlaengenFuer`).
+  final Millimeter? dielenlaenge;
+
   /// Kontur des Grundrisses samt Rundungen.
   Kontur get kontur => rundungen.kontur(grundriss);
 
@@ -80,6 +93,7 @@ final class Planungsstand {
     ausschnitte: ausschnitte,
     rundungen: _passend(grundriss) ? rundungen : Rundungen.keine,
     belag: belag,
+    dielenlaenge: dielenlaenge,
   );
 
   bool _passend(Grundriss neu) {
@@ -99,6 +113,7 @@ final class Planungsstand {
     ausschnitte: ausschnitte,
     rundungen: rundungen,
     belag: belag,
+    dielenlaenge: dielenlaenge,
   );
 
   /// Neue Form mit ihren Vorgabemaßen; die O-Form bringt ihren Ausschnitt
@@ -107,12 +122,16 @@ final class Planungsstand {
     grundriss: form.vorgabe,
     ausschnitte: [if (form == Terrassenform.oForm) Ausschnitt.oForm],
     belag: belag,
+    dielenlaenge: dielenlaenge,
   );
 
   /// Grundriss um [grad] gedreht (M4-10); die Ausschnitte werden dabei
   /// zurückgesetzt – die App fragt vorher nach.
-  Planungsstand gedreht(double grad) =>
-      Planungsstand(grundriss: grundriss.gedreht(grad), belag: belag);
+  Planungsstand gedreht(double grad) => Planungsstand(
+    grundriss: grundriss.gedreht(grad),
+    belag: belag,
+    dielenlaenge: dielenlaenge,
+  );
 
   /// Mit einer weiteren Fläche (180 × 120 cm, Bezeichnung A1, A2 …) mitten
   /// im Grundriss („Weitere Flächen hinzufügen“, Fachkonzept 1.4).
@@ -137,6 +156,7 @@ final class Planungsstand {
       ],
       rundungen: rundungen,
       belag: belag,
+      dielenlaenge: dielenlaenge,
     );
   }
 
@@ -146,6 +166,7 @@ final class Planungsstand {
     ausschnitte: [...ausschnitte]..removeAt(index),
     rundungen: rundungen,
     belag: belag,
+    dielenlaenge: dielenlaenge,
   );
 
   /// Kopie, in der der Ausschnitt [index] durch [ausschnitt] ersetzt ist.
@@ -155,6 +176,7 @@ final class Planungsstand {
         ausschnitte: [...ausschnitte]..[index] = ausschnitt,
         rundungen: rundungen,
         belag: belag,
+        dielenlaenge: dielenlaenge,
       );
 
   /// Kopie mit anderem Belag; die übrigen Eingaben bleiben.
@@ -163,12 +185,23 @@ final class Planungsstand {
     ausschnitte: ausschnitte,
     rundungen: rundungen,
     belag: belag,
+    dielenlaenge: dielenlaenge,
+  );
+
+  /// Kopie mit erzwungener Lieferlänge; `null` = automatisch.
+  Planungsstand mitDielenlaenge(Millimeter? dielenlaenge) => Planungsstand(
+    grundriss: grundriss,
+    ausschnitte: ausschnitte,
+    rundungen: rundungen,
+    belag: belag,
+    dielenlaenge: dielenlaenge,
   );
 
   /// FlatBuffer für den Weg zum Server (#110):
   /// `{ 0: schema (uint16), 1: grundriss { 0: form (uint8), 1: masse ([int32] mm) },
   /// 2: ausschnitte ([{ 0: bezeichnung (string), 1: masse ([int32] mm) }]),
-  /// 3: rundungen ([int32] je Art, Nummer, mm), 4: belag (string) }`.
+  /// 3: rundungen ([int32] je Art, Nummer, mm), 4: belag (string),
+  /// 5: dielenlaenge (int32 mm) }`.
   /// Neue Felder nur anhängen (docs/architektur/datenmodell.md).
   Uint8List zuBytes() {
     final fbb = fb.Builder();
@@ -189,12 +222,13 @@ final class Planungsstand {
       null => null,
     };
     fbb
-      ..startTable(5)
+      ..startTable(6)
       ..addUint16(_schemaPlatz, schema)
       ..addOffset(_grundrissPlatz, grundrissOrt)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
       ..addOffset(_rundungenPlatz, rundungenOrt)
-      ..addOffset(_belagPlatz, belagOrt);
+      ..addOffset(_belagPlatz, belagOrt)
+      ..addInt32(_dielenlaengePlatz, dielenlaenge?.mm);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
   }
@@ -220,6 +254,7 @@ final class Planungsstand {
   static const _ausschnittePlatz = 2;
   static const _rundungenPlatz = 3;
   static const _belagPlatz = 4;
+  static const _dielenlaengePlatz = 5;
 
   @override
   bool operator ==(Object other) {
@@ -227,6 +262,7 @@ final class Planungsstand {
         other.grundriss != grundriss ||
         other.rundungen != rundungen ||
         other.belag != belag ||
+        other.dielenlaenge != dielenlaenge ||
         other.ausschnitte.length != ausschnitte.length) {
       return false;
     }
@@ -237,8 +273,13 @@ final class Planungsstand {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(grundriss, Object.hashAll(ausschnitte), rundungen, belag);
+  int get hashCode => Object.hash(
+    grundriss,
+    Object.hashAll(ausschnitte),
+    rundungen,
+    belag,
+    dielenlaenge,
+  );
 }
 
 /// vtable-Versatz eines Feldplatzes.

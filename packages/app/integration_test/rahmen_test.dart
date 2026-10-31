@@ -32,6 +32,7 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 100));
     }
     expect(keine, findsOneWidget);
+    expect(find.text(de.dielenlaengeNichtWaehlbar), findsOneWidget);
     final fortschritt = tester.widget<LinearProgressIndicator>(
       find.byType(LinearProgressIndicator),
     );

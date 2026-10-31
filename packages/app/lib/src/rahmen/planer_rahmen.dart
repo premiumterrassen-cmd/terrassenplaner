@@ -517,30 +517,37 @@ class Bearbeitungsmenue extends StatelessWidget {
   final BelagQuelle? belaege;
 
   /// Eingaben unter einem Unterpunkt (Schritt, Index ab 0).
-  Widget? _eingabe(PlanerSchritt schritt, int unterpunkt) =>
-      switch ((schritt, unterpunkt)) {
-        (PlanerSchritt.grundriss, 0) => FormWahl(
-          planung: planung,
-          onGeaendert: () => zustand.markiereGeaendert(schritt),
-        ),
-        (PlanerSchritt.grundriss, 1)
-            when planung.aktuell.grundriss.form == Terrassenform.freiform =>
-          FreiformEingabe(bedienung: freiform),
-        // je Form eigene Felder: neue Form, neuer Zustand
-        (PlanerSchritt.grundriss, 1) => GrundrissMasse(
-          key: ValueKey(planung.aktuell.grundriss.form),
-          planung: planung,
-          onGeaendert: () => zustand.markiereGeaendert(schritt),
-        ),
-        (PlanerSchritt.grundriss, 2) => RundungsEingabe(bedienung: rundung),
-        (PlanerSchritt.grundriss, 3) => AusschnittMasse(bedienung: ausschnitte),
-        (PlanerSchritt.terrassenbelag, 0) when belaege != null => BelagAnzeige(
-          quelle: belaege!,
-          planung: planung,
-          onGeaendert: () => zustand.markiereGeaendert(schritt),
-        ),
-        _ => null,
-      };
+  Widget? _eingabe(PlanerSchritt schritt, int unterpunkt) => switch ((
+    schritt,
+    unterpunkt,
+  )) {
+    (PlanerSchritt.grundriss, 0) => FormWahl(
+      planung: planung,
+      onGeaendert: () => zustand.markiereGeaendert(schritt),
+    ),
+    (PlanerSchritt.grundriss, 1)
+        when planung.aktuell.grundriss.form == Terrassenform.freiform =>
+      FreiformEingabe(bedienung: freiform),
+    // je Form eigene Felder: neue Form, neuer Zustand
+    (PlanerSchritt.grundriss, 1) => GrundrissMasse(
+      key: ValueKey(planung.aktuell.grundriss.form),
+      planung: planung,
+      onGeaendert: () => zustand.markiereGeaendert(schritt),
+    ),
+    (PlanerSchritt.grundriss, 2) => RundungsEingabe(bedienung: rundung),
+    (PlanerSchritt.grundriss, 3) => AusschnittMasse(bedienung: ausschnitte),
+    (PlanerSchritt.terrassenbelag, 0) when belaege != null => BelagAnzeige(
+      quelle: belaege!,
+      planung: planung,
+      onGeaendert: () => zustand.markiereGeaendert(schritt),
+    ),
+    (PlanerSchritt.terrassenbelag, 1) when belaege != null => DielenlaengeWahl(
+      quelle: belaege!,
+      planung: planung,
+      onGeaendert: () => zustand.markiereGeaendert(schritt),
+    ),
+    _ => null,
+  };
 
   @override
   Widget build(BuildContext context) {

@@ -935,6 +935,7 @@ void main() {
           Object.hashAll(const []),
           Rundungen.keine,
           null,
+          null,
         ),
       );
       final neu = start.mitGrundriss(_rechteck(5400, 3600));
@@ -974,6 +975,44 @@ void main() {
       expect(geaendert.grundriss, _rechteck(5000, 3000));
       expect(geaendert.ausschnitte, hasLength(1));
       expect(geaendert.rundungen, Rundungen.aus(const [0, 0, 500]));
+    });
+
+    test('Dielenlänge (M5-02): bleibt bei allen Änderungen', () {
+      const laenge = Millimeter(4000);
+      const nummer = Artikelnummer('10-10-060-R');
+      final stand = Planungsstand.start.mitDielenlaenge(laenge);
+      expect(Planungsstand.start.dielenlaenge, isNull);
+      expect(stand.dielenlaenge, laenge);
+      expect(stand == Planungsstand.start, isFalse);
+      expect(stand.hashCode == Planungsstand.start.hashCode, isFalse);
+      expect(stand.mitDielenlaenge(null), Planungsstand.start);
+      expect(Planungsstand.ausBytes(stand.zuBytes()), stand);
+      expect(Planungsstand.ausBytes(stand.zuBytes()).dielenlaenge, laenge);
+      expect(
+        Planungsstand.ausBytes(Planungsstand.start.zuBytes()).dielenlaenge,
+        isNull,
+      );
+      final mitA = stand.mitNeuemAusschnitt();
+      for (final s in [
+        stand.mitGrundriss(_rechteck(5000, 3000)),
+        stand.mitRundungen(Rundungen.keine),
+        stand.mitForm(Terrassenform.oForm),
+        stand.gedreht(90),
+        stand.mitBelag(nummer),
+        mitA,
+        mitA.mitAusschnitt(0, mitA.ausschnitte.single),
+        mitA.ohneAusschnitt(0),
+      ]) {
+        expect(s.dielenlaenge, laenge);
+      }
+      final geaendert = Planungsstand(
+        grundriss: _rechteck(5000, 3000),
+        rundungen: Rundungen.aus(const [0, 0, 500]),
+      ).mitNeuemAusschnitt().mitBelag(nummer).mitDielenlaenge(laenge);
+      expect(geaendert.grundriss, _rechteck(5000, 3000));
+      expect(geaendert.ausschnitte, hasLength(1));
+      expect(geaendert.rundungen, Rundungen.aus(const [0, 0, 500]));
+      expect(geaendert.belag, nummer);
     });
 
     test('Transportformat hin und zurück', () {
