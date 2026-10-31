@@ -4,7 +4,10 @@
 # Aufruf: tool/mutation.sh [paket ...]   (ohne Angabe: domain server app)
 #
 # MUTATION_BASIS=<ref> (z. B. origin/main): nur die seit dem gemeinsamen Vorfahren
-#   mit <ref> geänderten Dateien mutieren (Feature-Branches). Leer: alles (main).
+#   mit <ref> geänderten Dateien mutieren (jeder Push). Leer: alles.
+# MUTATION_TEIL=<nummer>/<anzahl>: nur diesen Teil der Dateien eines Pakets
+#   mutieren, ohne Schwelle – sie prüft tool/mutation_summe.sh über alle Teile
+#   (nächtlicher Vollauf, Workflow mutation-vollauf.yml).
 # MUTATION_NUR_KONFIGURATION=1: nur die Konfigurationen erzeugen, nichts ausführen.
 # Begründung: docs/erkenntnisse/mutation-tests.md
 set -euo pipefail
@@ -14,6 +17,7 @@ cd "$ROOT"
 packages=("$@")
 [ ${#packages[@]} -eq 0 ] && packages=(domain server app)
 BASIS="${MUTATION_BASIS:-}"
+TEIL="${MUTATION_TEIL:-}"
 AUSGABE="mutation-test-report/konfiguration"
 
 # Geänderte Dateien seit dem gemeinsamen Vorfahren mit $BASIS – committet,
@@ -75,20 +79,36 @@ konfiguration_fuer_dateien() {
   ' "$vorlage"
 }
 
+# Teil $TEIL der Dateien von stdin: nach Größe sortiert reihum verteilt, damit
+# die Teile ähnlich viele Mutanten bekommen und große Dateien sich nicht häufen.
+nur_teil() {
+  local datei
+  while IFS= read -r datei; do
+    echo "$(($(wc -c <"$datei"))) $datei"
+  done | sort -k1,1rn -k2 | awk -v nummer="${TEIL%/*}" -v anzahl="${TEIL#*/}" \
+    '(NR - nummer) % anzahl == 0 { print $2 }'
+}
+
 # Gibt den Pfad der zu verwendenden Konfiguration aus, leer = nichts zu tun.
 konfiguration() {
-  local pkg="$1" vorlage="tool/mutation/$1.xml"
-  # Geänderte Paketkonfiguration (Regeln, Ausschlüsse, Timeouts) betrifft alle Dateien.
-  if [ -z "$BASIS" ] || grep -qxF "$vorlage" <<<"$GEAENDERT"; then
+  local pkg="$1" vorlage="tool/mutation/$1.xml" dateien
+  if [ -n "$TEIL" ]; then
+    GEAENDERT="$(git ls-files "packages/$pkg/lib")"
+    dateien="$(quelldateien "$pkg" | nur_teil)"
+  elif [ -n "$BASIS" ]; then
+    dateien="$(quelldateien "$pkg")"
+  else
     echo "$vorlage"
     return
   fi
-  local dateien
-  dateien="$(quelldateien "$pkg")"
   [ -z "$dateien" ] && return
   mkdir -p "$AUSGABE"
   # shellcheck disable=SC2086 # Pfade enthalten keine Leerzeichen
   konfiguration_fuer_dateien "$vorlage" $dateien >"$AUSGABE/$pkg.xml"
+  if [ -n "$TEIL" ]; then
+    sed -i.alt 's/<threshold failure="[^"]*"/<threshold failure="0"/' "$AUSGABE/$pkg.xml"
+    rm "$AUSGABE/$pkg.xml.alt"
+  fi
   echo "$AUSGABE/$pkg.xml"
 }
 
@@ -107,7 +127,7 @@ for pkg in "${packages[@]}"; do
   fi
   echo "== Mutation-Tests: $pkg ($config)"
   [ -n "${MUTATION_NUR_KONFIGURATION:-}" ] && continue
-  if ! dart run mutation_test --output="mutation-test-report/$pkg" "$config"; then
+  if ! dart run mutation_test --format=all --output="mutation-test-report/$pkg" "$config"; then
     failed+=("$pkg")
   fi
 done
@@ -116,4 +136,8 @@ if [ ${#failed[@]} -gt 0 ]; then
   echo "FEHLER: Mutation-Score unter der Schwelle in: ${failed[*]}"
   exit 1
 fi
-echo "OK: alle Pakete erreichen die Mutations-Schwelle"
+if [ -n "$TEIL" ]; then
+  echo "OK: Teil $TEIL gelaufen, die Schwelle prüft tool/mutation_summe.sh"
+else
+  echo "OK: alle Pakete erreichen die Mutations-Schwelle"
+fi

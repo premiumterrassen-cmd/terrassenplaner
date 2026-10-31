@@ -8,7 +8,7 @@
     </directory>
   </directories>
   <commands>
-    <command group="test" expected-return="0" working-directory="packages/app" timeout="300">flutter test</command>
+    <command group="test" expected-return="0" working-directory="packages/app" timeout="300">flutter test --fail-fast</command>
   </commands>
   <exclude>
     <token begin="//" end="\n"/>
