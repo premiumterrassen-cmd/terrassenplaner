@@ -550,3 +550,62 @@ String profilText(PlanerTexte t, Profil p) => switch (p) {
   Profil.genutet => t.profilGenutet,
   Profil.glattkant => t.profilGlattkant,
 };
+
+/// Frage unter „Verlegearten“ (Fachkonzept 2.3, M5-03): „Sollen kurze
+/// Dielenstücke miteinander verbunden werden?“ Ja oder Nein (Vorgabe). Die
+/// Wirkung auf Stöße und Verschnitt rechnet der Server (`reihenstuecke`,
+/// R-B12).
+class KurzeStueckeWahl extends StatelessWidget {
+  const KurzeStueckeWahl({
+    required this.planung,
+    required this.onGeaendert,
+    super.key,
+  });
+
+  final PlanungsSteuerung planung;
+
+  /// Meldet eine Änderung der Antwort (Standardwert-Hinweis, M3-05).
+  final VoidCallback onGeaendert;
+
+  void _setze(bool verbinden) {
+    planung.setze(planung.aktuell.mitKurzeStueckeVerbinden(verbinden));
+    onGeaendert();
+  }
+
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: planung,
+    builder: (context, _) {
+      final t = context.texte;
+      final verbinden = planung.aktuell.kurzeStueckeVerbinden;
+      return Column(
+        key: const ValueKey('kurze-stuecke'),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(t.kurzeStueckeVerbinden),
+          Wrap(
+            spacing: PlanerAbstand.klein,
+            children: [
+              ChoiceChip(
+                key: const ValueKey('kurze-stuecke-ja'),
+                label: Text(t.ja),
+                selected: verbinden,
+                onSelected: (an) {
+                  if (an) _setze(true);
+                },
+              ),
+              ChoiceChip(
+                key: const ValueKey('kurze-stuecke-nein'),
+                label: Text(t.nein),
+                selected: !verbinden,
+                onSelected: (an) {
+                  if (an) _setze(false);
+                },
+              ),
+            ],
+          ),
+        ],
+      );
+    },
+  );
+}

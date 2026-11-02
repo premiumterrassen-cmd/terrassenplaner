@@ -284,7 +284,8 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/6
   - „Dielenlänge automatisch ermitteln?“ ja/nein; bei nein bevorzugte Längen auswählen (feste Längen je Artikel).
   - Abnahme: Automatik wählt Längen wie der alte Planer (Referenzfälle)
   - Ergebnis: Unterpunkt 2.2 mit Ja/Nein und Einzelauswahl aus den Längen des Belags (vorbelegt: die längste); Planungsstand-Feld `dielenlaenge`. `lieferlaengenFuer` nimmt je Reihe die kürzeste passende Länge, Reihen über der längsten werden gestückelt (800 cm → 6000 + 4000 mm). Stimmt mit 12 Referenzfällen und den Konfigurationen F01, F02, F09, F13, F14 und F20 überein, Zwischenlängen auf die nächste Lieferlänge aufgerundet (R-A06). Reststücke über mehrere Reihen verteilen folgt mit M5-08. Benchmark `domain.Dielenlaenge.lieferlaengenFuer`.
-- [ ] **M5-03 Kurze Dielenstücke verbinden** ([#46](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/46)) – `feature/m5-03-kurze-dielenstuecke-verbinden`
+- [x] **M5-03 Kurze Dielenstücke verbinden** ([#46](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/46)) – `feature/m5-03-kurze-dielenstuecke-verbinden`
+  - Ergebnis: Frage unter 2.3 mit Ja/Nein (Vorgabe Nein), Planungsstand-Feld `kurzeStueckeVerbinden`. `reihenstuecke` schneidet eine Reihe an den Stoßlinien; mit Ja ersetzt eine ganze Diele Endstück und Nachbarstück, wenn beide in die längste erlaubte Länge passen (R-B12). Beim Rechteck ohne Wirkung wie in F13. Die Stoßlinien liefert M5-04, Verlegung und Verschnitt rechnet M5-08.
   - Option „Sollen kurze Dielenstücke miteinander verbunden werden?“ ja/nein mit Auswirkung auf Stöße und Verschnitt.
   - Abnahme: Beide Varianten ergeben die Ergebnisse der Referenzfälle
 - [ ] **M5-04 Verlegearten** ([#47](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/47)) – `feature/m5-04-verlegearten` · Benchmark

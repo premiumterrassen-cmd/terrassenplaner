@@ -718,6 +718,10 @@ class PlanerTexteEn extends PlanerTexte {
   }
 
   @override
+  String get kurzeStueckeVerbinden =>
+      'Should short board pieces be joined together?';
+
+  @override
   String get dielenlaengeNichtWaehlbar =>
       'This decking has no choice of lengths.';
 

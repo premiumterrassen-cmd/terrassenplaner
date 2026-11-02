@@ -37,5 +37,12 @@ void main() {
       find.byType(LinearProgressIndicator),
     );
     expect(fortschritt.value, 1);
+    // M5-03: „kurze Stücke verbinden“ braucht keine Beläge.
+    final ja = find.byKey(const ValueKey('kurze-stuecke-ja'));
+    await tester.ensureVisible(ja);
+    await tester.pumpAndSettle();
+    await tester.tap(ja);
+    await tester.pumpAndSettle();
+    expect(tester.widget<ChoiceChip>(ja).selected, isTrue);
   });
 }

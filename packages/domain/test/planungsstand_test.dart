@@ -936,6 +936,7 @@ void main() {
           Rundungen.keine,
           null,
           null,
+          false,
         ),
       );
       final neu = start.mitGrundriss(_rechteck(5400, 3600));
@@ -1013,6 +1014,50 @@ void main() {
       expect(geaendert.ausschnitte, hasLength(1));
       expect(geaendert.rundungen, Rundungen.aus(const [0, 0, 500]));
       expect(geaendert.belag, nummer);
+    });
+
+    test('kurze Stücke verbinden (M5-03): bleibt bei allen Änderungen', () {
+      const nummer = Artikelnummer('10-10-060-R');
+      final stand = Planungsstand.start.mitKurzeStueckeVerbinden(true);
+      expect(Planungsstand.start.kurzeStueckeVerbinden, isFalse);
+      expect(stand.kurzeStueckeVerbinden, isTrue);
+      expect(stand == Planungsstand.start, isFalse);
+      expect(stand.hashCode == Planungsstand.start.hashCode, isFalse);
+      expect(stand.mitKurzeStueckeVerbinden(false), Planungsstand.start);
+      expect(Planungsstand.ausBytes(stand.zuBytes()), stand);
+      expect(
+        Planungsstand.ausBytes(Planungsstand.start.zuBytes())
+            .kurzeStueckeVerbinden,
+        isFalse,
+      );
+      final mitA = stand.mitNeuemAusschnitt();
+      for (final s in [
+        stand.mitGrundriss(_rechteck(5000, 3000)),
+        stand.mitRundungen(Rundungen.keine),
+        stand.mitForm(Terrassenform.oForm),
+        stand.gedreht(90),
+        stand.mitBelag(nummer),
+        stand.mitDielenlaenge(const Millimeter(4000)),
+        mitA,
+        mitA.mitAusschnitt(0, mitA.ausschnitte.single),
+        mitA.ohneAusschnitt(0),
+      ]) {
+        expect(s.kurzeStueckeVerbinden, isTrue);
+      }
+      final geaendert =
+          Planungsstand(
+                grundriss: _rechteck(5000, 3000),
+                rundungen: Rundungen.aus(const [0, 0, 500]),
+              )
+              .mitNeuemAusschnitt()
+              .mitBelag(nummer)
+              .mitDielenlaenge(const Millimeter(4000))
+              .mitKurzeStueckeVerbinden(true);
+      expect(geaendert.grundriss, _rechteck(5000, 3000));
+      expect(geaendert.ausschnitte, hasLength(1));
+      expect(geaendert.rundungen, Rundungen.aus(const [0, 0, 500]));
+      expect(geaendert.belag, nummer);
+      expect(geaendert.dielenlaenge, const Millimeter(4000));
     });
 
     test('Transportformat hin und zurück', () {

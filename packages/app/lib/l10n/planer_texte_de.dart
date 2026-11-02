@@ -718,6 +718,10 @@ class PlanerTexteDe extends PlanerTexte {
   }
 
   @override
+  String get kurzeStueckeVerbinden =>
+      'Sollen kurze Dielenstücke miteinander verbunden werden?';
+
+  @override
   String get dielenlaengeNichtWaehlbar =>
       'Für diesen Belag gibt es keine Längenauswahl.';
 

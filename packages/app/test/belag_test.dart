@@ -533,6 +533,59 @@ void main() {
     });
   });
 
+  group('kurze Stücke verbinden', () {
+    testWidgets('Vorgabe Nein, Ja und zurück', (tester) async {
+      final planung = PlanungsSteuerung();
+      addTearDown(planung.dispose);
+      var aenderungen = 0;
+      await tester.pumpWidget(
+        testApp(
+          home: Scaffold(
+            body: KurzeStueckeWahl(
+              planung: planung,
+              onGeaendert: () => aenderungen++,
+            ),
+          ),
+        ),
+      );
+      bool gewaehlt(String key) =>
+          tester.widget<ChoiceChip>(find.byKey(ValueKey(key))).selected;
+      expect(
+        find.text('Sollen kurze Dielenstücke miteinander verbunden werden?'),
+        findsOneWidget,
+      );
+      expect(gewaehlt('kurze-stuecke-nein'), isTrue);
+      expect(gewaehlt('kurze-stuecke-ja'), isFalse);
+
+      await tester.tap(find.byKey(const ValueKey('kurze-stuecke-nein')));
+      await tester.pumpAndSettle();
+      expect(aenderungen, 0);
+
+      await tester.tap(find.byKey(const ValueKey('kurze-stuecke-ja')));
+      await tester.pumpAndSettle();
+      expect(planung.aktuell.kurzeStueckeVerbinden, isTrue);
+      expect(aenderungen, 1);
+      expect(gewaehlt('kurze-stuecke-ja'), isTrue);
+      expect(gewaehlt('kurze-stuecke-nein'), isFalse);
+
+      await tester.tap(find.byKey(const ValueKey('kurze-stuecke-ja')));
+      await tester.pumpAndSettle();
+      expect(aenderungen, 1);
+
+      await tester.tap(find.byKey(const ValueKey('kurze-stuecke-nein')));
+      await tester.pumpAndSettle();
+      expect(planung.aktuell.kurzeStueckeVerbinden, isFalse);
+      expect(aenderungen, 2);
+    });
+
+    testWidgets('Text auf Englisch', (tester) async {
+      expect(
+        en.kurzeStueckeVerbinden,
+        'Should short board pieces be joined together?',
+      );
+    });
+  });
+
   testWidgets('im Rahmen: Unterpunkt „Terrassenbelag auswählen“', (
     tester,
   ) async {
@@ -561,6 +614,18 @@ void main() {
     await tester.pumpAndSettle();
     expect(zustand.unveraendert, isNot(contains(PlanerSchritt.terrassenbelag)));
     await tester.tap(find.byKey(const ValueKey('dielenlaenge-automatisch')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const ValueKey('kurze-stuecke-ja')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('kurze-stuecke-ja')));
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<ChoiceChip>(find.byKey(const ValueKey('kurze-stuecke-ja')))
+          .selected,
+      isTrue,
+    );
+    await tester.ensureVisible(find.byKey(const ValueKey('produktauswahl')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('produktauswahl')));
     await tester.pumpAndSettle();
