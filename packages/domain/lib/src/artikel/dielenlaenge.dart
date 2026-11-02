@@ -31,3 +31,41 @@ List<Millimeter> lieferlaengenFuer(
     moeglich.firstWhere((l) => l.mm >= rest),
   ];
 }
+
+/// Dielenstücke einer Reihe von [von] bis [bis], geschnitten an den
+/// Stoßlinien [stoesse] der Verlegeart (M5-03, Fachkonzept 2.3).
+///
+/// Mit [verbinden] („Sollen kurze Dielenstücke miteinander verbunden
+/// werden?“ = Ja) ersetzt eine ganze Diele ein Endstück samt Nachbarstück,
+/// wenn beide zusammen in die längste erlaubte Länge [laengste] passen; der
+/// Stoß ist dann nicht mehr durchgehend (R-B12). Beim Rechteck liegen die
+/// Stöße eine ganze Lieferlänge auseinander, dort wirkt das nie (F13).
+List<Millimeter> reihenstuecke(
+  Millimeter von,
+  Millimeter bis,
+  Iterable<Millimeter> stoesse, {
+  required Millimeter laengste,
+  bool verbinden = false,
+}) {
+  if (bis <= von) return const [];
+  final schnitte = [
+    von,
+    ...[
+      for (final s in stoesse)
+        if (s > von && s < bis) s,
+    ]..sort((a, b) => a.mm.compareTo(b.mm)),
+    bis,
+  ];
+  final stuecke = [
+    for (var i = 1; i < schnitte.length; i++) schnitte[i] - schnitte[i - 1],
+  ];
+  if (!verbinden || stuecke.length < 2) return stuecke;
+  if (stuecke[0] + stuecke[1] <= laengste) {
+    stuecke.replaceRange(0, 2, [stuecke[0] + stuecke[1]]);
+  }
+  final n = stuecke.length;
+  if (n > 1 && stuecke[n - 2] + stuecke[n - 1] <= laengste) {
+    stuecke.replaceRange(n - 2, n, [stuecke[n - 2] + stuecke[n - 1]]);
+  }
+  return stuecke;
+}

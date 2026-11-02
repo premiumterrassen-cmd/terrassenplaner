@@ -137,6 +137,77 @@ void main() {
     });
   });
 
+  group('kurze Stücke verbinden (M5-03, R-B12)', () {
+    Millimeter mm(int wert) => Millimeter(wert);
+    List<Millimeter> stuecke(
+      int von,
+      int bis,
+      List<int> stoesse, {
+      int laengste = 6000,
+      bool verbinden = false,
+    }) => reihenstuecke(
+      mm(von),
+      mm(bis),
+      [for (final s in stoesse) mm(s)],
+      laengste: mm(laengste),
+      verbinden: verbinden,
+    );
+
+    test('Nein: Schnitt an jeder Stoßlinie innerhalb der Reihe', () {
+      expect(stuecke(3800, 8000, [4000, 0, 3800, 8000, 9000]), [
+        mm(200),
+        mm(4000),
+      ]);
+      expect(stuecke(0, 4800, []), [mm(4800)]);
+      expect(stuecke(0, 4800, [6000, 4000, 2000]), [
+        mm(2000),
+        mm(2000),
+        mm(800),
+      ]);
+    });
+
+    test('Ja: eine ganze Diele statt Endstück und Nachbar', () {
+      expect(stuecke(3800, 8000, [4000], verbinden: true), [mm(4200)]);
+      expect(stuecke(0, 4200, [4000], verbinden: true), [mm(4200)]);
+      expect(stuecke(3800, 12200, [4000, 8000, 12000], verbinden: true), [
+        mm(4200),
+        mm(4200),
+      ]);
+    });
+
+    test('Ja: nur, wenn beide in die längste Länge passen', () {
+      expect(stuecke(3800, 8000, [4000], laengste: 4199, verbinden: true), [
+        mm(200),
+        mm(4000),
+      ]);
+      expect(stuecke(3800, 8000, [4000], laengste: 4200, verbinden: true), [
+        mm(4200),
+      ]);
+      expect(stuecke(0, 8200, [4000, 8000], laengste: 4200, verbinden: true), [
+        mm(4000),
+        mm(4200),
+      ]);
+    });
+
+    test('Rechteck F13: ohne Wirkung', () {
+      for (final verbinden in [false, true]) {
+        expect(stuecke(0, 8000, [4000], laengste: 4000, verbinden: verbinden), [
+          mm(4000),
+          mm(4000),
+        ]);
+        expect(stuecke(0, 8000, [6000], verbinden: verbinden), [
+          mm(6000),
+          mm(2000),
+        ]);
+      }
+    });
+
+    test('leere Reihe ohne Stücke', () {
+      expect(stuecke(4000, 4000, [], verbinden: true), isEmpty);
+      expect(stuecke(4000, 3999, []), isEmpty);
+    });
+  });
+
   test('wählbar nur bei Dielen mit mehreren Längen', () {
     expect(dielenlaengeWaehlbar(_belag(Artikelart.diele, [_m4, _m5])), isTrue);
     expect(dielenlaengeWaehlbar(_belag(Artikelart.diele, [_m4])), isFalse);

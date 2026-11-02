@@ -46,6 +46,14 @@ Neuer Planer (M5-02):
 
 „Sollen kurze Dielenstücke miteinander verbunden werden?“ Ja | Nein (Vorgabe Nein).
 
+Neuer Planer (M5-03):
+
+- Die Frage steht unter 2.3 „Verlegearten“; Planungsstand-Feld `kurzeStueckeVerbinden`, Vorgabe Nein.
+- **Nein:** Jede Reihe wird an allen Stoßlinien der Verlegeart geschnitten.
+- **Ja** (R-B12): Ein Endstück der Reihe wird mit seinem Nachbarstück zu einer ganzen Diele verbunden, wenn beide zusammen in die längste erlaubte Länge passen (bei erzwungener Länge diese). Der Stoß ist dort nicht mehr durchgehend, das kurze Reststück entfällt (z. B. Reihe 380–800 cm, Stoßlinie 400 cm: 420 cm statt 20 + 400 cm).
+- Beim Rechteck liegen die Stöße eine ganze Lieferlänge auseinander; dort wirkt die Option nie (F13).
+- Die Stoßlinien liefert die Verlegeart (M5-04), die Stücke je Reihe gehen in die Verlegung und den Verschnitt (M5-08) ein.
+
 ## 2.4 Verlegerichtungen
 
 | Richtung | Verschnitt | Volumen |

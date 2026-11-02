@@ -1390,6 +1390,12 @@ abstract class PlanerTexte {
   /// **'{cm} cm'**
   String dielenlaengeCm(int cm);
 
+  /// No description provided for @kurzeStueckeVerbinden.
+  ///
+  /// In de, this message translates to:
+  /// **'Sollen kurze Dielenstücke miteinander verbunden werden?'**
+  String get kurzeStueckeVerbinden;
+
   /// No description provided for @dielenlaengeNichtWaehlbar.
   ///
   /// In de, this message translates to:

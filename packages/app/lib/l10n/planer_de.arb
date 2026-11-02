@@ -258,6 +258,7 @@
   "dielenlaengeOriginal": "Mögliche Originallängen (in cm):",
   "dielenlaengeCm": "{cm} cm",
   "@dielenlaengeCm": { "placeholders": { "cm": { "type": "int" } } },
+  "kurzeStueckeVerbinden": "Sollen kurze Dielenstücke miteinander verbunden werden?",
   "dielenlaengeNichtWaehlbar": "Für diesen Belag gibt es keine Längenauswahl.",
   "belagKeinTreffer": "Kein Belag passt zu den Filtern.",
   "zurueckZurKonfiguration": "Zurück zur Konfiguration",
