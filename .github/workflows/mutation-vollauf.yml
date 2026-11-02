@@ -1,0 +1,89 @@
+# Nächtlicher Mutations-Vollauf aller Dateien. Er passt nicht mehr in einen Job
+# (6-Stunden-Limit) und deshalb auch nicht vor jedes Deployment; die Build-Chain
+# mutiert nur geänderte Dateien. Begründung: docs/erkenntnisse/mutation-tests.md
+name: Mutation-Vollauf
+
+on:
+  schedule:
+    - cron: "0 23 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: mutation-vollauf
+  cancel-in-progress: false
+
+env:
+  FLUTTER_VERSION: "3.47.6"
+
+jobs:
+  teil:
+    name: Mutation ${{ matrix.paket }} (${{ matrix.teil }}/${{ matrix.von }})
+    runs-on: ubuntu-latest
+    # Unter dem GitHub-Limit, damit die Auswertung den Teil sicher als fehlend meldet.
+    timeout-minutes: 345
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { paket: domain, teil: 1, von: 1 }
+          - { paket: server, teil: 1, von: 1 }
+          - { paket: app, teil: 1, von: 8 }
+          - { paket: app, teil: 2, von: 8 }
+          - { paket: app, teil: 3, von: 8 }
+          - { paket: app, teil: 4, von: 8 }
+          - { paket: app, teil: 5, von: 8 }
+          - { paket: app, teil: 6, von: 8 }
+          - { paket: app, teil: 7, von: 8 }
+          - { paket: app, teil: 8, von: 8 }
+    steps:
+      - uses: actions/checkout@v7
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: tool/objectbox_bibliothek.sh
+      - run: tool/mutation.sh ${{ matrix.paket }}
+        env:
+          MUTATION_TEIL: ${{ matrix.teil }}/${{ matrix.von }}
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: mutation-teil-${{ matrix.paket }}-${{ matrix.teil }}-von-${{ matrix.von }}
+          path: mutation-test-report/
+          if-no-files-found: ignore
+
+  auswertung:
+    name: Schwelle je Paket (≥ 95 %)
+    needs: teil
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: mutation-teil-*
+          path: berichte
+      - run: tool/mutation_summe.sh berichte
+      - name: Alle Teile vollständig gelaufen
+        run: test "${{ needs.teil.result }}" = success
+      - name: Issue bei rotem Vollauf
+        if: failure() && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LAUF: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh label create mutation-vollauf --color B60205 --force \
+            --description "Nächtlicher Mutations-Vollauf rot"
+          nummer="$(gh issue list --label mutation-vollauf --state open --json number --jq '.[0].number')"
+          if [ -n "$nummer" ]; then
+            gh issue comment "$nummer" --body "Weiterhin rot: $LAUF"
+          else
+            gh issue create --label mutation-vollauf --title "Mutation-Vollauf rot" \
+              --body "Der nächtliche Vollauf hat die Schwelle verfehlt oder ist nicht durchgelaufen: $LAUF"
+          fi

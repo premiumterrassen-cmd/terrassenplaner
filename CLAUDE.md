@@ -72,6 +72,7 @@ Verbindliche Projektregeln für die Arbeit an diesem Repository. Sie gelten für
 
 - Automatische Build-Chain für jeden Push (und nach dem Go-Live für jeden Pull Request): Analyse/Lint, Unit-Tests mit Abdeckung, Mutation-Tests, Frontend-Smoke-Tests (headless Chrome), Benchmarks, Build der Artefakte.
 - Ein roter Build blockiert den Merge nach `main`.
+- Mutation-Tests im Push prüfen nur die geänderten Dateien; der Vollauf aller Dateien läuft nachts in Teilen (`.github/workflows/mutation-vollauf.yml`) und prüft 95 % je Paket. Ist er rot, steht ein offenes Issue mit Label `mutation-vollauf` – zu Beginn jeder Arbeitssitzung prüfen und zuerst erledigen. Details: `docs/erkenntnisse/mutation-tests.md`.
 
 ## Deployment-Chain
 
