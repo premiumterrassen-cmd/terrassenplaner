@@ -8,11 +8,13 @@ import '../geometrie/kontur.dart';
 import 'ausschnitt.dart';
 import 'grundriss.dart';
 import 'rundungen.dart';
+import 'verlegeart.dart';
 
 /// Eingaben einer Planung zu einem Zeitpunkt (M3-03) – unveränderlich, damit
 /// Rückgängig exakt auf einen früheren Stand springen kann. Seit M4-02 mit
 /// Grundriss, seit M4-06 mit Ausschnitten, seit M5-01 mit Belag, seit M5-02
-/// mit Dielenlänge, seit M5-03 mit „kurze Stücke verbinden“;
+/// mit Dielenlänge, seit M5-03 mit „kurze Stücke verbinden“, seit M5-04 mit
+/// Verlegeart;
 /// Unterkonstruktion usw. folgen als weitere Felder. Berechnet wird daraus
 /// auf dem Server.
 final class Planungsstand {
@@ -23,6 +25,7 @@ final class Planungsstand {
     this.belag,
     this.dielenlaenge,
     this.kurzeStueckeVerbinden = false,
+    this.verlegeart = Verlegeart.fugenschnitt,
   });
 
   /// Liest einen Planungsstand aus dem Transportformat ([zuBytes]).
@@ -69,6 +72,13 @@ final class Planungsstand {
         _versatz(_kurzeStueckeVerbindenPlatz),
         false,
       ),
+      verlegeart: _wert(
+        Verlegeart.values,
+        (v) => v.nummer,
+        puffer,
+        wurzel,
+        _verlegeartPlatz,
+      ),
     );
   }
 
@@ -95,6 +105,10 @@ final class Planungsstand {
   /// R-B12); Vorgabe Nein. Wirkung: `reihenstuecke`.
   final bool kurzeStueckeVerbinden;
 
+  /// Verlegeart (M5-04, Fachkonzept 2.3); Vorgabe Fugenschnitt. Wirkung:
+  /// `Verlegeart.stoesse`.
+  final Verlegeart verlegeart;
+
   /// Kontur des Grundrisses samt Rundungen.
   Kontur get kontur => rundungen.kontur(grundriss);
 
@@ -107,6 +121,7 @@ final class Planungsstand {
     belag: belag,
     dielenlaenge: dielenlaenge,
     kurzeStueckeVerbinden: kurzeStueckeVerbinden,
+    verlegeart: verlegeart,
   );
 
   bool _passend(Grundriss neu) {
@@ -128,6 +143,7 @@ final class Planungsstand {
     belag: belag,
     dielenlaenge: dielenlaenge,
     kurzeStueckeVerbinden: kurzeStueckeVerbinden,
+    verlegeart: verlegeart,
   );
 
   /// Neue Form mit ihren Vorgabemaßen; die O-Form bringt ihren Ausschnitt
@@ -138,6 +154,7 @@ final class Planungsstand {
     belag: belag,
     dielenlaenge: dielenlaenge,
     kurzeStueckeVerbinden: kurzeStueckeVerbinden,
+    verlegeart: verlegeart,
   );
 
   /// Grundriss um [grad] gedreht (M4-10); die Ausschnitte werden dabei
@@ -147,6 +164,7 @@ final class Planungsstand {
     belag: belag,
     dielenlaenge: dielenlaenge,
     kurzeStueckeVerbinden: kurzeStueckeVerbinden,
+    verlegeart: verlegeart,
   );
 
   /// Mit einer weiteren Fläche (180 × 120 cm, Bezeichnung A1, A2 …) mitten
@@ -174,6 +192,7 @@ final class Planungsstand {
       belag: belag,
       dielenlaenge: dielenlaenge,
       kurzeStueckeVerbinden: kurzeStueckeVerbinden,
+      verlegeart: verlegeart,
     );
   }
 
@@ -185,6 +204,7 @@ final class Planungsstand {
     belag: belag,
     dielenlaenge: dielenlaenge,
     kurzeStueckeVerbinden: kurzeStueckeVerbinden,
+    verlegeart: verlegeart,
   );
 
   /// Kopie, in der der Ausschnitt [index] durch [ausschnitt] ersetzt ist.
@@ -196,6 +216,7 @@ final class Planungsstand {
         belag: belag,
         dielenlaenge: dielenlaenge,
         kurzeStueckeVerbinden: kurzeStueckeVerbinden,
+        verlegeart: verlegeart,
       );
 
   /// Kopie mit anderem Belag; die übrigen Eingaben bleiben.
@@ -206,6 +227,7 @@ final class Planungsstand {
     belag: belag,
     dielenlaenge: dielenlaenge,
     kurzeStueckeVerbinden: kurzeStueckeVerbinden,
+    verlegeart: verlegeart,
   );
 
   /// Kopie mit erzwungener Lieferlänge; `null` = automatisch.
@@ -216,6 +238,7 @@ final class Planungsstand {
     belag: belag,
     dielenlaenge: dielenlaenge,
     kurzeStueckeVerbinden: kurzeStueckeVerbinden,
+    verlegeart: verlegeart,
   );
 
   /// Kopie mit der Antwort auf „kurze Stücke verbinden“.
@@ -226,13 +249,26 @@ final class Planungsstand {
     belag: belag,
     dielenlaenge: dielenlaenge,
     kurzeStueckeVerbinden: verbinden,
+    verlegeart: verlegeart,
+  );
+
+  /// Kopie mit anderer Verlegeart.
+  Planungsstand mitVerlegeart(Verlegeart verlegeart) => Planungsstand(
+    grundriss: grundriss,
+    ausschnitte: ausschnitte,
+    rundungen: rundungen,
+    belag: belag,
+    dielenlaenge: dielenlaenge,
+    kurzeStueckeVerbinden: kurzeStueckeVerbinden,
+    verlegeart: verlegeart,
   );
 
   /// FlatBuffer für den Weg zum Server (#110):
   /// `{ 0: schema (uint16), 1: grundriss { 0: form (uint8), 1: masse ([int32] mm) },
   /// 2: ausschnitte ([{ 0: bezeichnung (string), 1: masse ([int32] mm) }]),
   /// 3: rundungen ([int32] je Art, Nummer, mm), 4: belag (string),
-  /// 5: dielenlaenge (int32 mm), 6: kurze Stücke verbinden (bool) }`.
+  /// 5: dielenlaenge (int32 mm), 6: kurze Stücke verbinden (bool),
+  /// 7: verlegeart (uint8) }`.
   /// Neue Felder nur anhängen (docs/architektur/datenmodell.md).
   Uint8List zuBytes() {
     final fbb = fb.Builder();
@@ -253,14 +289,15 @@ final class Planungsstand {
       null => null,
     };
     fbb
-      ..startTable(7)
+      ..startTable(8)
       ..addUint16(_schemaPlatz, schema)
       ..addOffset(_grundrissPlatz, grundrissOrt)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
       ..addOffset(_rundungenPlatz, rundungenOrt)
       ..addOffset(_belagPlatz, belagOrt)
       ..addInt32(_dielenlaengePlatz, dielenlaenge?.mm)
-      ..addBool(_kurzeStueckeVerbindenPlatz, kurzeStueckeVerbinden);
+      ..addBool(_kurzeStueckeVerbindenPlatz, kurzeStueckeVerbinden)
+      ..addUint8(_verlegeartPlatz, verlegeart.nummer);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
   }
@@ -288,6 +325,7 @@ final class Planungsstand {
   static const _belagPlatz = 4;
   static const _dielenlaengePlatz = 5;
   static const _kurzeStueckeVerbindenPlatz = 6;
+  static const _verlegeartPlatz = 7;
 
   @override
   bool operator ==(Object other) {
@@ -297,6 +335,7 @@ final class Planungsstand {
         other.belag != belag ||
         other.dielenlaenge != dielenlaenge ||
         other.kurzeStueckeVerbinden != kurzeStueckeVerbinden ||
+        other.verlegeart != verlegeart ||
         other.ausschnitte.length != ausschnitte.length) {
       return false;
     }
@@ -314,6 +353,7 @@ final class Planungsstand {
     belag,
     dielenlaenge,
     kurzeStueckeVerbinden,
+    verlegeart,
   );
 }
 
@@ -377,19 +417,19 @@ final class _AusschnittLeser extends fb.TableReader<Ausschnitt> {
       inhalt: _wert(Ausschnittinhalt.values, (i) => i.nummer, puffer, ort, 4),
     );
   }
+}
 
-  /// Eintrag aus [werte] zur Nummer im Feldplatz [platz] (fehlt er: 0).
-  static T _wert<T>(
-    List<T> werte,
-    int Function(T) nummer,
-    fb.BufferContext puffer,
-    int ort,
-    int platz,
-  ) {
-    final n = const fb.Uint8Reader().vTableGet(puffer, ort, _versatz(platz), 0);
-    return werte.firstWhere(
-      (w) => nummer(w) == n,
-      orElse: () => throw FormatException('unbekannte Nummer $n'),
-    );
-  }
+/// Eintrag aus [werte] zur Nummer im Feldplatz [platz] (fehlt er: 0).
+T _wert<T>(
+  List<T> werte,
+  int Function(T) nummer,
+  fb.BufferContext puffer,
+  int ort,
+  int platz,
+) {
+  final n = const fb.Uint8Reader().vTableGet(puffer, ort, _versatz(platz), 0);
+  return werte.firstWhere(
+    (w) => nummer(w) == n,
+    orElse: () => throw FormatException('unbekannte Nummer $n'),
+  );
 }

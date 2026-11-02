@@ -1390,6 +1390,54 @@ abstract class PlanerTexte {
   /// **'{cm} cm'**
   String dielenlaengeCm(int cm);
 
+  /// No description provided for @verlegeartFugenschnitt.
+  ///
+  /// In de, this message translates to:
+  /// **'Fugenschnitt'**
+  String get verlegeartFugenschnitt;
+
+  /// No description provided for @verlegeartFugenschnittHinweis.
+  ///
+  /// In de, this message translates to:
+  /// **'Auf Fuge geschnitten: alle Stöße in einer Linie'**
+  String get verlegeartFugenschnittHinweis;
+
+  /// No description provided for @verlegeartHalbverband.
+  ///
+  /// In de, this message translates to:
+  /// **'Halbverband'**
+  String get verlegeartHalbverband;
+
+  /// No description provided for @verlegeartHalbverbandHinweis.
+  ///
+  /// In de, this message translates to:
+  /// **'Jede zweite Reihe um eine halbe Diele versetzt'**
+  String get verlegeartHalbverbandHinweis;
+
+  /// No description provided for @verlegeartDrittelverband.
+  ///
+  /// In de, this message translates to:
+  /// **'Drittelverband'**
+  String get verlegeartDrittelverband;
+
+  /// No description provided for @verlegeartDrittelverbandHinweis.
+  ///
+  /// In de, this message translates to:
+  /// **'Jede Reihe um ein Drittel der Diele versetzt'**
+  String get verlegeartDrittelverbandHinweis;
+
+  /// No description provided for @verlegeartWechselverband.
+  ///
+  /// In de, this message translates to:
+  /// **'Wechselverband'**
+  String get verlegeartWechselverband;
+
+  /// No description provided for @verlegeartWechselverbandHinweis.
+  ///
+  /// In de, this message translates to:
+  /// **'Jede zweite Reihe beginnt an der Gegenseite'**
+  String get verlegeartWechselverbandHinweis;
+
   /// No description provided for @kurzeStueckeVerbinden.
   ///
   /// In de, this message translates to:

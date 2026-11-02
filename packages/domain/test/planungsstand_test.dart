@@ -937,6 +937,7 @@ void main() {
           null,
           null,
           false,
+          Verlegeart.fugenschnitt,
         ),
       );
       final neu = start.mitGrundriss(_rechteck(5400, 3600));
@@ -1060,6 +1061,51 @@ void main() {
       expect(geaendert.dielenlaenge, const Millimeter(4000));
     });
 
+    test('Verlegeart (M5-04): bleibt bei allen Änderungen', () {
+      const nummer = Artikelnummer('10-10-060-R');
+      expect(Planungsstand.start.verlegeart, Verlegeart.fugenschnitt);
+      for (final art in Verlegeart.values) {
+        final stand = Planungsstand.start.mitVerlegeart(art);
+        expect(stand.verlegeart, art);
+        expect(Planungsstand.ausBytes(stand.zuBytes()), stand);
+      }
+      final stand = Planungsstand.start.mitVerlegeart(Verlegeart.halbverband);
+      expect(stand == Planungsstand.start, isFalse);
+      expect(stand.hashCode == Planungsstand.start.hashCode, isFalse);
+      expect(stand.mitVerlegeart(Verlegeart.fugenschnitt), Planungsstand.start);
+      final mitA = stand.mitNeuemAusschnitt();
+      for (final s in [
+        stand.mitGrundriss(_rechteck(5000, 3000)),
+        stand.mitRundungen(Rundungen.keine),
+        stand.mitForm(Terrassenform.oForm),
+        stand.gedreht(90),
+        stand.mitBelag(nummer),
+        stand.mitDielenlaenge(const Millimeter(4000)),
+        stand.mitKurzeStueckeVerbinden(true),
+        mitA,
+        mitA.mitAusschnitt(0, mitA.ausschnitte.single),
+        mitA.ohneAusschnitt(0),
+      ]) {
+        expect(s.verlegeart, Verlegeart.halbverband);
+      }
+      final geaendert =
+          Planungsstand(
+                grundriss: _rechteck(5000, 3000),
+                rundungen: Rundungen.aus(const [0, 0, 500]),
+              )
+              .mitNeuemAusschnitt()
+              .mitBelag(nummer)
+              .mitDielenlaenge(const Millimeter(4000))
+              .mitKurzeStueckeVerbinden(true)
+              .mitVerlegeart(Verlegeart.drittelverband);
+      expect(geaendert.grundriss, _rechteck(5000, 3000));
+      expect(geaendert.ausschnitte, hasLength(1));
+      expect(geaendert.rundungen, Rundungen.aus(const [0, 0, 500]));
+      expect(geaendert.belag, nummer);
+      expect(geaendert.dielenlaenge, const Millimeter(4000));
+      expect(geaendert.kurzeStueckeVerbinden, isTrue);
+    });
+
     test('Transportformat hin und zurück', () {
       final stand = Planungsstand(grundriss: _rechteck(5400, 3600));
       final bytes = stand.zuBytes();
@@ -1120,6 +1166,28 @@ void main() {
       expect(
         Planungsstand.ausBytes(mitGrundriss(0, [4000, 3000])).grundriss,
         _rechteck(4000, 3000),
+      );
+      expect(
+        () => Planungsstand.ausBytes(
+          tabelle((fbb) {
+            final masseOrt = fbb.writeListInt32([4000, 3000]);
+            fbb
+              ..startTable(2)
+              ..addOffset(1, masseOrt);
+            final ort = fbb.endTable();
+            fbb
+              ..startTable(8)
+              ..addOffset(1, ort)
+              ..addUint8(7, 9);
+          }),
+        ),
+        throwsA(
+          isA<FormatException>().having(
+            (e) => e.message,
+            'message',
+            'unbekannte Nummer 9',
+          ),
+        ),
       );
     });
   });

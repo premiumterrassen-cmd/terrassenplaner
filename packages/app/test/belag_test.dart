@@ -586,6 +586,72 @@ void main() {
     });
   });
 
+  group('Verlegearten', () {
+    testWidgets('Vorgabe Fugenschnitt, Wahl und Hinweise', (tester) async {
+      final planung = PlanungsSteuerung();
+      addTearDown(planung.dispose);
+      var aenderungen = 0;
+      await tester.pumpWidget(
+        testApp(
+          home: Scaffold(
+            body: VerlegeartWahl(
+              planung: planung,
+              onGeaendert: () => aenderungen++,
+            ),
+          ),
+        ),
+      );
+      bool gewaehlt(Verlegeart v) => tester
+          .widget<ChoiceChip>(find.byKey(ValueKey('verlegeart-${v.name}')))
+          .selected;
+      expect(gewaehlt(Verlegeart.fugenschnitt), isTrue);
+      for (final (text, hinweis) in [
+        ('Fugenschnitt', 'Auf Fuge geschnitten: alle Stöße in einer Linie'),
+        ('Halbverband', 'Jede zweite Reihe um eine halbe Diele versetzt'),
+        ('Drittelverband', 'Jede Reihe um ein Drittel der Diele versetzt'),
+        ('Wechselverband', 'Jede zweite Reihe beginnt an der Gegenseite'),
+      ]) {
+        expect(find.text(text), findsOneWidget);
+        expect(find.byTooltip(hinweis), findsOneWidget);
+      }
+
+      await tester.tap(find.byKey(const ValueKey('verlegeart-fugenschnitt')));
+      await tester.pumpAndSettle();
+      expect(aenderungen, 0);
+
+      for (final (i, art) in [
+        Verlegeart.halbverband,
+        Verlegeart.drittelverband,
+        Verlegeart.wechselverband,
+        Verlegeart.fugenschnitt,
+      ].indexed) {
+        await tester.tap(find.byKey(ValueKey('verlegeart-${art.name}')));
+        await tester.pumpAndSettle();
+        expect(planung.aktuell.verlegeart, art);
+        expect(aenderungen, i + 1);
+        for (final v in Verlegeart.values) {
+          expect(gewaehlt(v), v == art, reason: v.name);
+        }
+      }
+    });
+
+    testWidgets('Texte auf Englisch', (tester) async {
+      expect(
+        [for (final v in Verlegeart.values) verlegeartText(en, v)],
+        ['Aligned joints', 'Half bond', 'Third bond', 'Alternating bond'],
+      );
+      expect(
+        [for (final v in Verlegeart.values) verlegeartHinweis(en, v)],
+        [
+          'Cut on the joint: all butt joints in one line',
+          'Every second row offset by half a board',
+          'Each row offset by a third of a board',
+          'Every second row starts at the opposite side',
+        ],
+      );
+    });
+  });
+
   testWidgets('im Rahmen: Unterpunkt „Terrassenbelag auswählen“', (
     tester,
   ) async {
@@ -615,6 +681,20 @@ void main() {
     expect(zustand.unveraendert, isNot(contains(PlanerSchritt.terrassenbelag)));
     await tester.tap(find.byKey(const ValueKey('dielenlaenge-automatisch')));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('verlegeart-halbverband')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('verlegeart-halbverband')));
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<ChoiceChip>(
+            find.byKey(const ValueKey('verlegeart-halbverband')),
+          )
+          .selected,
+      isTrue,
+    );
     await tester.ensureVisible(find.byKey(const ValueKey('kurze-stuecke-ja')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('kurze-stuecke-ja')));
@@ -625,7 +705,16 @@ void main() {
           .selected,
       isTrue,
     );
-    await tester.ensureVisible(find.byKey(const ValueKey('produktauswahl')));
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('produktauswahl')),
+      -200,
+      scrollable: find
+          .descendant(
+            of: find.byKey(const ValueKey('bearbeitungsmenue')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('produktauswahl')));
     await tester.pumpAndSettle();

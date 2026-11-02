@@ -29,6 +29,7 @@ export 'src/konfiguration/planung.dart';
 export 'src/konfiguration/planungsstand.dart';
 export 'src/konfiguration/rundungen.dart';
 export 'src/konfiguration/verlauf.dart';
+export 'src/konfiguration/verlegeart.dart';
 export 'src/konfiguration/zeichenhilfe.dart';
 export 'src/projekt_info.dart';
 export 'src/referenz/referenzfall.dart';

@@ -718,6 +718,34 @@ class PlanerTexteEn extends PlanerTexte {
   }
 
   @override
+  String get verlegeartFugenschnitt => 'Aligned joints';
+
+  @override
+  String get verlegeartFugenschnittHinweis =>
+      'Cut on the joint: all butt joints in one line';
+
+  @override
+  String get verlegeartHalbverband => 'Half bond';
+
+  @override
+  String get verlegeartHalbverbandHinweis =>
+      'Every second row offset by half a board';
+
+  @override
+  String get verlegeartDrittelverband => 'Third bond';
+
+  @override
+  String get verlegeartDrittelverbandHinweis =>
+      'Each row offset by a third of a board';
+
+  @override
+  String get verlegeartWechselverband => 'Alternating bond';
+
+  @override
+  String get verlegeartWechselverbandHinweis =>
+      'Every second row starts at the opposite side';
+
+  @override
   String get kurzeStueckeVerbinden =>
       'Should short board pieces be joined together?';
 

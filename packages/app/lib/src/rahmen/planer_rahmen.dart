@@ -546,9 +546,19 @@ class Bearbeitungsmenue extends StatelessWidget {
       planung: planung,
       onGeaendert: () => zustand.markiereGeaendert(schritt),
     ),
-    (PlanerSchritt.terrassenbelag, 2) => KurzeStueckeWahl(
-      planung: planung,
-      onGeaendert: () => zustand.markiereGeaendert(schritt),
+    (PlanerSchritt.terrassenbelag, 2) => Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        VerlegeartWahl(
+          planung: planung,
+          onGeaendert: () => zustand.markiereGeaendert(schritt),
+        ),
+        const SizedBox(height: PlanerAbstand.mittel),
+        KurzeStueckeWahl(
+          planung: planung,
+          onGeaendert: () => zustand.markiereGeaendert(schritt),
+        ),
+      ],
     ),
     _ => null,
   };
