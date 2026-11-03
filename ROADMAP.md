@@ -288,9 +288,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/6
   - Ergebnis: Frage unter 2.3 mit Ja/Nein (Vorgabe Nein), Planungsstand-Feld `kurzeStueckeVerbinden`. `reihenstuecke` schneidet eine Reihe an den Stoßlinien; mit Ja ersetzt eine ganze Diele Endstück und Nachbarstück, wenn beide in die längste erlaubte Länge passen (R-B12). Beim Rechteck ohne Wirkung wie in F13. Die Stoßlinien liefert M5-04, Verlegung und Verschnitt rechnet M5-08.
   - Option „Sollen kurze Dielenstücke miteinander verbunden werden?“ ja/nein mit Auswirkung auf Stöße und Verschnitt.
   - Abnahme: Beide Varianten ergeben die Ergebnisse der Referenzfälle
-- [ ] **M5-04 Verlegearten** ([#47](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/47)) – `feature/m5-04-verlegearten` · Benchmark
+- [x] **M5-04 Verlegearten** ([#47](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/47)) – `feature/m5-04-verlegearten` · Benchmark
   - Fugenschnitt (Standard), Halbverband, Drittelverband, Wechselverband; „Auf Fuge geschnitten“.
   - Abnahme: Stoßmuster je Verlegeart wie im alten Planer
+  - Ergebnis: Unterpunkt 2.3 mit vier Chips (Vorgabe Fugenschnitt, Hinweis „Auf Fuge geschnitten“ als Tooltip) über der Frage nach kurzen Stücken; Planungsstand-Feld `verlegeart`. `Verlegeart.stoesse` liefert die Stoßlinien je Reihe im Raster `stossraster` (längste erlaubte Länge, höchstens die Ausdehnung der Fläche): Fugenschnitt alle in einer Linie, Halbverband jede zweite Reihe um ½, Drittelverband je Reihe um ⅓ versetzt, Wechselverband jede zweite Reihe von der Gegenseite. Die Stücke stimmen mit den Zuschnittlisten von F01 und F06–F13 überein. Benchmark `domain.Verlegeart.reihenstuecke`.
 - [ ] **M5-05 Verlegerichtungen** ([#48](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/48)) – `feature/m5-05-verlegerichtungen` · Benchmark
   - Waagerecht (Standard), senkrecht, 45°, 135°, individueller Winkel.
   - Abnahme: Jede Richtung in Zeichnung und Mengen korrekt

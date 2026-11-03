@@ -718,6 +718,34 @@ class PlanerTexteDe extends PlanerTexte {
   }
 
   @override
+  String get verlegeartFugenschnitt => 'Fugenschnitt';
+
+  @override
+  String get verlegeartFugenschnittHinweis =>
+      'Auf Fuge geschnitten: alle Stöße in einer Linie';
+
+  @override
+  String get verlegeartHalbverband => 'Halbverband';
+
+  @override
+  String get verlegeartHalbverbandHinweis =>
+      'Jede zweite Reihe um eine halbe Diele versetzt';
+
+  @override
+  String get verlegeartDrittelverband => 'Drittelverband';
+
+  @override
+  String get verlegeartDrittelverbandHinweis =>
+      'Jede Reihe um ein Drittel der Diele versetzt';
+
+  @override
+  String get verlegeartWechselverband => 'Wechselverband';
+
+  @override
+  String get verlegeartWechselverbandHinweis =>
+      'Jede zweite Reihe beginnt an der Gegenseite';
+
+  @override
   String get kurzeStueckeVerbinden =>
       'Sollen kurze Dielenstücke miteinander verbunden werden?';
 

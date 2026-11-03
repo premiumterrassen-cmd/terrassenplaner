@@ -37,7 +37,14 @@ void main() {
       find.byType(LinearProgressIndicator),
     );
     expect(fortschritt.value, 1);
-    // M5-03: „kurze Stücke verbinden“ braucht keine Beläge.
+    // M5-04: Verlegeart und M5-03 „kurze Stücke verbinden“ brauchen keine
+    // Beläge.
+    final halb = find.byKey(const ValueKey('verlegeart-halbverband'));
+    await tester.ensureVisible(halb);
+    await tester.pumpAndSettle();
+    await tester.tap(halb);
+    await tester.pumpAndSettle();
+    expect(tester.widget<ChoiceChip>(halb).selected, isTrue);
     final ja = find.byKey(const ValueKey('kurze-stuecke-ja'));
     await tester.ensureVisible(ja);
     await tester.pumpAndSettle();

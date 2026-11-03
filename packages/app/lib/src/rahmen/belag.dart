@@ -609,3 +609,63 @@ class KurzeStueckeWahl extends StatelessWidget {
     },
   );
 }
+
+/// Unterpunkt „Verlegearten“ (Fachkonzept 2.3, M5-04): Fugenschnitt
+/// (Vorgabe), Halb-, Drittel- und Wechselverband mit Hinweis als Tooltip.
+/// Die Stoßlinien rechnet der Server (`Verlegeart.stoesse`).
+class VerlegeartWahl extends StatelessWidget {
+  const VerlegeartWahl({
+    required this.planung,
+    required this.onGeaendert,
+    super.key,
+  });
+
+  final PlanungsSteuerung planung;
+
+  /// Meldet eine Änderung der Verlegeart (Standardwert-Hinweis, M3-05).
+  final VoidCallback onGeaendert;
+
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: planung,
+    builder: (context, _) {
+      final t = context.texte;
+      final gewaehlt = planung.aktuell.verlegeart;
+      return Wrap(
+        key: const ValueKey('verlegeart'),
+        spacing: PlanerAbstand.klein,
+        children: [
+          for (final art in Verlegeart.values)
+            Tooltip(
+              message: verlegeartHinweis(t, art),
+              child: ChoiceChip(
+                key: ValueKey('verlegeart-${art.name}'),
+                label: Text(verlegeartText(t, art)),
+                selected: art == gewaehlt,
+                onSelected: (an) {
+                  if (an) {
+                    planung.setze(planung.aktuell.mitVerlegeart(art));
+                    onGeaendert();
+                  }
+                },
+              ),
+            ),
+        ],
+      );
+    },
+  );
+}
+
+String verlegeartText(PlanerTexte t, Verlegeart v) => switch (v) {
+  Verlegeart.fugenschnitt => t.verlegeartFugenschnitt,
+  Verlegeart.halbverband => t.verlegeartHalbverband,
+  Verlegeart.drittelverband => t.verlegeartDrittelverband,
+  Verlegeart.wechselverband => t.verlegeartWechselverband,
+};
+
+String verlegeartHinweis(PlanerTexte t, Verlegeart v) => switch (v) {
+  Verlegeart.fugenschnitt => t.verlegeartFugenschnittHinweis,
+  Verlegeart.halbverband => t.verlegeartHalbverbandHinweis,
+  Verlegeart.drittelverband => t.verlegeartDrittelverbandHinweis,
+  Verlegeart.wechselverband => t.verlegeartWechselverbandHinweis,
+};

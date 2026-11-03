@@ -54,6 +54,17 @@ Neuer Planer (M5-03):
 - Beim Rechteck liegen die Stöße eine ganze Lieferlänge auseinander; dort wirkt die Option nie (F13).
 - Die Stoßlinien liefert die Verlegeart (M5-04), die Stücke je Reihe gehen in die Verlegung und den Verschnitt (M5-08) ein.
 
+Neuer Planer (M5-04):
+
+- Auswahl unter 2.3 vor der Frage nach kurzen Stücken; Planungsstand-Feld `verlegeart`, Vorgabe Fugenschnitt. Der Hinweis zur Verlegeart steht im Tooltip („Auf Fuge geschnitten: alle Stöße in einer Linie“).
+- Die Stoßlinien laufen quer zur Verlegerichtung über die ganze Fläche. Ihr **Raster** ist die längste erlaubte Lieferlänge (bei erzwungener Länge diese), höchstens aber die Ausdehnung der Fläche in Verlegerichtung.
+- **Fugenschnitt:** in jeder Reihe dieselben Stöße im Raster vom Ausgangspunkt aus.
+- **Halbverband:** jede zweite Reihe um ein halbes Raster versetzt.
+- **Drittelverband:** Reihe für Reihe um ein Drittel versetzt (0, ⅓, ⅔).
+- **Wechselverband:** jede zweite Reihe im Raster von der Gegenseite aus.
+- Abgleich mit den Zuschnittlisten des alten Planers (48 Reihen, Diele 60 mm): 480 cm Halbverband 24 × 240 + 240 und 24 × 480 cm (F06), Drittelverband 32 × 160 + 320 und 16 × 480 cm (F07), Wechselverband = Fugenschnitt (F08); 800 cm mit 6-m-Dielen Fugenschnitt 600 + 200 cm (F09), Halbverband im Wechsel 600 + 200 und 300 + 500 cm (F10), Drittelverband 600 + 200, 200 + 600 und 400 + 400 cm (F11), Wechselverband 600 + 200 und 200 + 600 cm (F12); fest 400 cm: 400 + 400 cm (F13).
+- Der Ausgangspunkt (M5-07) verschiebt den Anfang des Rasters; Richtungen folgen mit M5-05.
+
 ## 2.4 Verlegerichtungen
 
 | Richtung | Verschnitt | Volumen |
