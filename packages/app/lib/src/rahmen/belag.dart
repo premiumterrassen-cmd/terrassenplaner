@@ -669,3 +669,112 @@ String verlegeartHinweis(PlanerTexte t, Verlegeart v) => switch (v) {
   Verlegeart.drittelverband => t.verlegeartDrittelverbandHinweis,
   Verlegeart.wechselverband => t.verlegeartWechselverbandHinweis,
 };
+
+/// Unterpunkt „Verlegerichtungen“ (Fachkonzept 2.4, M5-05): waagrecht
+/// (Vorgabe), senkrecht, 45 und 135 Grad oder ein eigener Winkel im Feld
+/// „Winkel“ (Enter übernimmt). Die Dielen verlegt der Server
+/// (`verlegeDielen`).
+class VerlegerichtungWahl extends StatefulWidget {
+  const VerlegerichtungWahl({
+    required this.planung,
+    required this.onGeaendert,
+    super.key,
+  });
+
+  final PlanungsSteuerung planung;
+
+  /// Meldet eine Änderung der Richtung (Standardwert-Hinweis, M3-05).
+  final VoidCallback onGeaendert;
+
+  @override
+  State<VerlegerichtungWahl> createState() => _VerlegerichtungWahlState();
+}
+
+class _VerlegerichtungWahlState extends State<VerlegerichtungWahl> {
+  late final _winkel = TextEditingController(
+    text: '${widget.planung.aktuell.verlegewinkel}',
+  );
+  String? _fehler;
+
+  @override
+  void dispose() {
+    _winkel.dispose();
+    super.dispose();
+  }
+
+  void _waehle(Verlegerichtung richtung) {
+    final planung = widget.planung;
+    planung.setze(planung.aktuell.mitVerlegerichtung(richtung));
+    widget.onGeaendert();
+  }
+
+  void _uebernimm(String text) {
+    final grad = int.tryParse(text.trim());
+    if (grad == null || !Verlegerichtung.winkelGueltig(grad)) {
+      setState(() => _fehler = context.texte.verlegewinkelUngueltig);
+      return;
+    }
+    final planung = widget.planung;
+    planung.setze(
+      planung.aktuell.mitVerlegerichtung(
+        Verlegerichtung.individuell,
+        winkel: grad,
+      ),
+    );
+    setState(() => _fehler = null);
+    widget.onGeaendert();
+  }
+
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: widget.planung,
+    builder: (context, _) {
+      final t = context.texte;
+      final gewaehlt = widget.planung.aktuell.verlegerichtung;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            key: const ValueKey('verlegerichtung'),
+            spacing: PlanerAbstand.klein,
+            children: [
+              for (final richtung in Verlegerichtung.values)
+                ChoiceChip(
+                  key: ValueKey('verlegerichtung-${richtung.name}'),
+                  label: Text(verlegerichtungText(t, richtung)),
+                  selected: richtung == gewaehlt,
+                  onSelected: (an) {
+                    if (an) _waehle(richtung);
+                  },
+                ),
+            ],
+          ),
+          if (gewaehlt == Verlegerichtung.individuell)
+            Padding(
+              padding: const EdgeInsets.only(top: PlanerAbstand.klein),
+              child: TextField(
+                key: const ValueKey('verlegewinkel'),
+                controller: _winkel,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  isDense: true,
+                  border: const OutlineInputBorder(),
+                  labelText: t.verlegewinkel,
+                  errorText: _fehler,
+                ),
+                onSubmitted: _uebernimm,
+              ),
+            ),
+        ],
+      );
+    },
+  );
+}
+
+String verlegerichtungText(PlanerTexte t, Verlegerichtung r) => switch (r) {
+  Verlegerichtung.waagrecht => t.verlegerichtungWaagrecht,
+  Verlegerichtung.senkrecht => t.verlegerichtungSenkrecht,
+  Verlegerichtung.diagonal45 => t.verlegerichtungDiagonal45,
+  Verlegerichtung.diagonal135 => t.verlegerichtungDiagonal135,
+  Verlegerichtung.individuell => t.verlegerichtungIndividuell,
+};

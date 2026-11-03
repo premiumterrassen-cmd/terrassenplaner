@@ -37,8 +37,8 @@ void main() {
       find.byType(LinearProgressIndicator),
     );
     expect(fortschritt.value, 1);
-    // M5-04: Verlegeart und M5-03 „kurze Stücke verbinden“ brauchen keine
-    // Beläge.
+    // M5-04: Verlegeart, M5-03 „kurze Stücke verbinden“ und M5-05
+    // Verlegerichtung brauchen keine Beläge.
     final halb = find.byKey(const ValueKey('verlegeart-halbverband'));
     await tester.ensureVisible(halb);
     await tester.pumpAndSettle();
@@ -51,5 +51,15 @@ void main() {
     await tester.tap(ja);
     await tester.pumpAndSettle();
     expect(tester.widget<ChoiceChip>(ja).selected, isTrue);
+    // M5-05: Verlegerichtung samt Feld „Winkel“
+    final individuell = find.byKey(
+      const ValueKey('verlegerichtung-individuell'),
+    );
+    await tester.ensureVisible(individuell);
+    await tester.pumpAndSettle();
+    await tester.tap(individuell);
+    await tester.pumpAndSettle();
+    expect(tester.widget<ChoiceChip>(individuell).selected, isTrue);
+    expect(find.byKey(const ValueKey('verlegewinkel')), findsOneWidget);
   });
 }

@@ -20,7 +20,9 @@ final class Zeichnung {
     List<({String name, Color farbe})> ausschnittDarstellung = const [],
     List<Bauteil> bauteile = const [],
     List<Offset> ablaeufe = const [],
+    List<List<Offset>> dielen = const [],
   }) : umriss = List.unmodifiable(umriss),
+       dielen = List.unmodifiable(dielen),
        ecken = List.unmodifiable(ecken ?? umriss),
        ausschnitte = List.unmodifiable(ausschnitte),
        ausschnittDarstellung = List.unmodifiable(ausschnittDarstellung),
@@ -50,6 +52,9 @@ final class Zeichnung {
 
   /// Lage der Abläufe (Entwässerung) in mm.
   final List<Offset> ablaeufe;
+
+  /// Umrisse der Dielenstücke in mm (M5-05), vom Server verlegt.
+  final List<List<Offset>> dielen;
 }
 
 /// Ein Text der Zeichnung: [ort] ist der Ankerpunkt auf dem Bildschirm,
@@ -108,6 +113,13 @@ class ZeichnungsMaler extends CustomPainter {
       if (optionen.zeigt(ebene))
         for (final teil in zeichnung.bauteile)
           if (teil.art == art) (_draufsicht(teil.quader), farbe),
+  ];
+
+  /// Dielenstücke auf dem Bildschirm, wenn die Ebene Belag sichtbar ist.
+  List<Path> dielenpfade() => [
+    if (optionen.zeigt(Ebene.belag))
+      for (final d in zeichnung.dielen)
+        Path()..addPolygon([for (final p in d) bildschirm(p)], true),
   ];
 
   /// Alle Texte der eingeschalteten Beschriftungen und Maße: Seitenlängen
@@ -287,6 +299,14 @@ class ZeichnungsMaler extends CustomPainter {
             ..color = strich.withValues(alpha: 0.3)
             ..style = PaintingStyle.stroke,
         );
+    }
+    final fuge = Paint()
+      ..color = strich.withValues(alpha: 0.3)
+      ..style = PaintingStyle.stroke;
+    for (final pfad in dielenpfade()) {
+      canvas
+        ..drawPath(pfad, Paint()..color = belagFarbe)
+        ..drawPath(pfad, fuge);
     }
     final umriss = [for (final p in zeichnung.umriss) bildschirm(p)];
     final linie = Paint()

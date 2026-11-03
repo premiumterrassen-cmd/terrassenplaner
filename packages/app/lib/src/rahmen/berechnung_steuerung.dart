@@ -42,6 +42,7 @@ class BerechnungsSteuerung extends ChangeNotifier {
         for (final a in planung.aktuell.ausschnitte)
           (name: a.bezeichnung, farbe: farbe(a)),
       ],
+      dielen: [for (final d in b.dielen) _offsets(d)],
     ),
     null => Zeichnung.leer,
   };

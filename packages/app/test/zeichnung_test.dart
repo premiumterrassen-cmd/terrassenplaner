@@ -274,6 +274,35 @@ void main() {
       expect(de.ablauf, 'Ablauf');
     });
 
+    test('Dielenstücke (M5-05): auf der Ebene Belag, im Zoom', () {
+      final z = Zeichnung(
+        dielen: const [
+          [Offset(0, 0), Offset(1000, 0), Offset(1000, 65), Offset(0, 65)],
+          [Offset(1000, 0), Offset(2000, 0), Offset(2000, 65)],
+        ],
+      );
+      final o = AnsichtsOptionen();
+      final a = AnsichtSteuerung();
+      final m = _maler(z, o, a);
+      expect(z.dielen, hasLength(2));
+      expect(() => z.dielen.add(const []), throwsUnsupportedError);
+      final [erste, zweite] = m.dielenpfade();
+      expect(erste.getBounds(), const Rect.fromLTRB(0, 0, 100, 6.5));
+      expect(zweite.getBounds(), const Rect.fromLTRB(100, 0, 200, 6.5));
+      o.setzeEbenen({Ebene.unterkonstruktion});
+      expect(m.dielenpfade(), isEmpty);
+      o.setzeEbenen({Ebene.belag});
+      final aufnahme = PictureRecorder();
+      final leinwand = _ZaehlendeLeinwand(Canvas(aufnahme));
+      m.paint(leinwand, const Size(800, 600));
+      aufnahme.endRecording();
+      expect(leinwand.aufrufe, {'drawPath': 4});
+      final [fuellung, fuge, ...] = leinwand.pfadStifte;
+      expect(fuellung.color.toARGB32(), ZeichnungsMaler.belagFarbe.toARGB32());
+      expect(fuge.style, PaintingStyle.stroke);
+      expect(fuge.color.a, closeTo(0.3, 0.01));
+    });
+
     test('leere Zeichnung: nichts zu zeichnen, keine Maße', () {
       final m = _maler(Zeichnung.leer, AnsichtsOptionen());
       expect([m.rechtecke(), m.texte()], [isEmpty, isEmpty]);
@@ -488,6 +517,7 @@ class _ZaehlendeLeinwand implements Canvas {
   final Canvas _ziel;
   final aufrufe = <String, int>{};
   final stifte = <Paint>[];
+  final pfadStifte = <Paint>[];
   final textOrte = <Offset>[];
 
   void _zaehle(String name) => aufrufe[name] = (aufrufe[name] ?? 0) + 1;
@@ -502,6 +532,7 @@ class _ZaehlendeLeinwand implements Canvas {
   @override
   void drawPath(Path path, Paint paint) {
     _zaehle('drawPath');
+    pfadStifte.add(paint);
     _ziel.drawPath(path, paint);
   }
 

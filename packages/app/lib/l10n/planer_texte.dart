@@ -1438,6 +1438,48 @@ abstract class PlanerTexte {
   /// **'Jede zweite Reihe beginnt an der Gegenseite'**
   String get verlegeartWechselverbandHinweis;
 
+  /// No description provided for @verlegerichtungWaagrecht.
+  ///
+  /// In de, this message translates to:
+  /// **'waagrecht'**
+  String get verlegerichtungWaagrecht;
+
+  /// No description provided for @verlegerichtungSenkrecht.
+  ///
+  /// In de, this message translates to:
+  /// **'senkrecht'**
+  String get verlegerichtungSenkrecht;
+
+  /// No description provided for @verlegerichtungDiagonal45.
+  ///
+  /// In de, this message translates to:
+  /// **'45 Grad'**
+  String get verlegerichtungDiagonal45;
+
+  /// No description provided for @verlegerichtungDiagonal135.
+  ///
+  /// In de, this message translates to:
+  /// **'135 Grad'**
+  String get verlegerichtungDiagonal135;
+
+  /// No description provided for @verlegerichtungIndividuell.
+  ///
+  /// In de, this message translates to:
+  /// **'Individueller Verlegewinkel'**
+  String get verlegerichtungIndividuell;
+
+  /// No description provided for @verlegewinkel.
+  ///
+  /// In de, this message translates to:
+  /// **'Winkel in Grad'**
+  String get verlegewinkel;
+
+  /// No description provided for @verlegewinkelUngueltig.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte ganze Grad von 0 bis 179 eingeben'**
+  String get verlegewinkelUngueltig;
+
   /// No description provided for @kurzeStueckeVerbinden.
   ///
   /// In de, this message translates to:

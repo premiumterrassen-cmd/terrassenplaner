@@ -938,6 +938,8 @@ void main() {
           null,
           false,
           Verlegeart.fugenschnitt,
+          Verlegerichtung.waagrecht,
+          30,
         ),
       );
       final neu = start.mitGrundriss(_rechteck(5400, 3600));
@@ -1106,6 +1108,101 @@ void main() {
       expect(geaendert.kurzeStueckeVerbinden, isTrue);
     });
 
+    test('Verlegerichtung (M5-05): bleibt bei allen Änderungen', () {
+      const nummer = Artikelnummer('10-10-060-R');
+      const start = Planungsstand.start;
+      expect(start.verlegerichtung, Verlegerichtung.waagrecht);
+      expect(start.verlegewinkel, 30);
+      expect(start.dielenwinkel, 0);
+      for (final richtung in Verlegerichtung.values) {
+        final stand = start.mitVerlegerichtung(richtung, winkel: 17);
+        expect(stand.verlegerichtung, richtung);
+        expect(stand.verlegewinkel, 17);
+        expect(Planungsstand.ausBytes(stand.zuBytes()), stand);
+      }
+      expect(
+        [
+          for (final r in Verlegerichtung.values)
+            start.mitVerlegerichtung(r).dielenwinkel,
+        ],
+        [0, 90, 45, 135, 30],
+      );
+      final stand = start.mitVerlegerichtung(
+        Verlegerichtung.individuell,
+        winkel: 179,
+      );
+      expect(stand.dielenwinkel, 179);
+      expect(
+        stand.mitVerlegerichtung(Verlegerichtung.individuell).verlegewinkel,
+        179,
+      );
+      expect(stand == start, isFalse);
+      expect(stand.hashCode == start.hashCode, isFalse);
+      expect(
+        start.mitVerlegerichtung(Verlegerichtung.waagrecht, winkel: 0) == start,
+        isFalse,
+      );
+      expect(
+        stand.mitVerlegerichtung(Verlegerichtung.waagrecht, winkel: 30),
+        start,
+      );
+      expect(
+        start
+            .mitVerlegerichtung(Verlegerichtung.individuell, winkel: 0)
+            .dielenwinkel,
+        0,
+      );
+      for (final falsch in [-1, 180]) {
+        expect(
+          () => start.mitVerlegerichtung(
+            Verlegerichtung.individuell,
+            winkel: falsch,
+          ),
+          throwsA(
+            isA<ArgumentError>()
+                .having((e) => e.name, 'name', 'winkel')
+                .having((e) => e.message, 'message', 'muss 0 bis 179 Grad sein')
+                .having((e) => e.invalidValue, 'invalidValue', falsch),
+          ),
+        );
+      }
+      final mitA = stand.mitNeuemAusschnitt();
+      for (final s in [
+        stand.mitGrundriss(_rechteck(5000, 3000)),
+        stand.mitRundungen(Rundungen.keine),
+        stand.mitForm(Terrassenform.oForm),
+        stand.gedreht(90),
+        stand.mitBelag(nummer),
+        stand.mitDielenlaenge(const Millimeter(4000)),
+        stand.mitKurzeStueckeVerbinden(true),
+        stand.mitVerlegeart(Verlegeart.halbverband),
+        mitA,
+        mitA.mitAusschnitt(0, mitA.ausschnitte.single),
+        mitA.ohneAusschnitt(0),
+      ]) {
+        expect(s.verlegerichtung, Verlegerichtung.individuell);
+        expect(s.verlegewinkel, 179);
+      }
+      final geaendert =
+          Planungsstand(
+                grundriss: _rechteck(5000, 3000),
+                rundungen: Rundungen.aus(const [0, 0, 500]),
+              )
+              .mitNeuemAusschnitt()
+              .mitBelag(nummer)
+              .mitDielenlaenge(const Millimeter(4000))
+              .mitKurzeStueckeVerbinden(true)
+              .mitVerlegeart(Verlegeart.drittelverband)
+              .mitVerlegerichtung(Verlegerichtung.senkrecht);
+      expect(geaendert.grundriss, _rechteck(5000, 3000));
+      expect(geaendert.ausschnitte, hasLength(1));
+      expect(geaendert.rundungen, Rundungen.aus(const [0, 0, 500]));
+      expect(geaendert.belag, nummer);
+      expect(geaendert.dielenlaenge, const Millimeter(4000));
+      expect(geaendert.kurzeStueckeVerbinden, isTrue);
+      expect(geaendert.verlegeart, Verlegeart.drittelverband);
+    });
+
     test('Transportformat hin und zurück', () {
       final stand = Planungsstand(grundriss: _rechteck(5400, 3600));
       final bytes = stand.zuBytes();
@@ -1163,10 +1260,10 @@ void main() {
         () => Planungsstand.ausBytes(mitGrundriss(0, [4000, 100])),
         throwsArgumentError,
       );
-      expect(
-        Planungsstand.ausBytes(mitGrundriss(0, [4000, 3000])).grundriss,
-        _rechteck(4000, 3000),
-      );
+      final ohneFelder = Planungsstand.ausBytes(mitGrundriss(0, [4000, 3000]));
+      expect(ohneFelder.grundriss, _rechteck(4000, 3000));
+      expect(ohneFelder.verlegerichtung, Verlegerichtung.waagrecht);
+      expect(ohneFelder.verlegewinkel, 30);
       expect(
         () => Planungsstand.ausBytes(
           tabelle((fbb) {
@@ -1189,6 +1286,28 @@ void main() {
           ),
         ),
       );
+      expect(
+        () => Planungsstand.ausBytes(
+          tabelle((fbb) {
+            final masseOrt = fbb.writeListInt32([4000, 3000]);
+            fbb
+              ..startTable(2)
+              ..addOffset(1, masseOrt);
+            final ort = fbb.endTable();
+            fbb
+              ..startTable(10)
+              ..addOffset(1, ort)
+              ..addUint8(8, 5);
+          }),
+        ),
+        throwsA(
+          isA<FormatException>().having(
+            (e) => e.message,
+            'message',
+            'unbekannte Nummer 5',
+          ),
+        ),
+      );
     });
   });
 
@@ -1203,6 +1322,27 @@ void main() {
       expect(zurueck.flaeche, 14832000);
       expect(zurueck.flaecheQuadratmeter, 14.832);
       expect(() => b.umriss.add(Punkt.ursprung), throwsUnsupportedError);
+      expect(zurueck.dielen, isEmpty);
+    });
+
+    test('Dielenstücke (M5-05) hin und zurück, unveränderlich', () {
+      final dielen = [
+        [const Punkt(0, 0), const Punkt(4800, 0), const Punkt(4800, 65)],
+        [const Punkt(0, 65), const Punkt(2400.5, 65), const Punkt(0, 130)],
+      ];
+      final b = Berechnung(
+        umriss: const [Punkt(0, 0), Punkt(4800, 0), Punkt(4800, 3090)],
+        flaeche: 1,
+        ausschnitte: [
+          [const Punkt(1, 1), const Punkt(2, 1), const Punkt(2, 2)],
+        ],
+        dielen: dielen,
+      );
+      final zurueck = Berechnung.ausBytes(b.zuBytes());
+      expect(zurueck.dielen, dielen);
+      expect(zurueck.ausschnitte, b.ausschnitte);
+      expect(() => b.dielen.add(const []), throwsUnsupportedError);
+      expect(() => b.dielen.first.add(Punkt.ursprung), throwsUnsupportedError);
     });
 
     test('leere Nachricht: kein Umriss, Fläche 0', () {

@@ -746,6 +746,28 @@ class PlanerTexteDe extends PlanerTexte {
       'Jede zweite Reihe beginnt an der Gegenseite';
 
   @override
+  String get verlegerichtungWaagrecht => 'waagrecht';
+
+  @override
+  String get verlegerichtungSenkrecht => 'senkrecht';
+
+  @override
+  String get verlegerichtungDiagonal45 => '45 Grad';
+
+  @override
+  String get verlegerichtungDiagonal135 => '135 Grad';
+
+  @override
+  String get verlegerichtungIndividuell => 'Individueller Verlegewinkel';
+
+  @override
+  String get verlegewinkel => 'Winkel in Grad';
+
+  @override
+  String get verlegewinkelUngueltig =>
+      'Bitte ganze Grad von 0 bis 179 eingeben';
+
+  @override
   String get kurzeStueckeVerbinden =>
       'Sollen kurze Dielenstücke miteinander verbunden werden?';
 

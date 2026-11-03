@@ -292,9 +292,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/6
   - Fugenschnitt (Standard), Halbverband, Drittelverband, Wechselverband; „Auf Fuge geschnitten“.
   - Abnahme: Stoßmuster je Verlegeart wie im alten Planer
   - Ergebnis: Unterpunkt 2.3 mit vier Chips (Vorgabe Fugenschnitt, Hinweis „Auf Fuge geschnitten“ als Tooltip) über der Frage nach kurzen Stücken; Planungsstand-Feld `verlegeart`. `Verlegeart.stoesse` liefert die Stoßlinien je Reihe im Raster `stossraster` (längste erlaubte Länge, höchstens die Ausdehnung der Fläche): Fugenschnitt alle in einer Linie, Halbverband jede zweite Reihe um ½, Drittelverband je Reihe um ⅓ versetzt, Wechselverband jede zweite Reihe von der Gegenseite. Die Stücke stimmen mit den Zuschnittlisten von F01 und F06–F13 überein. Benchmark `domain.Verlegeart.reihenstuecke`.
-- [ ] **M5-05 Verlegerichtungen** ([#48](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/48)) – `feature/m5-05-verlegerichtungen` · Benchmark
+- [x] **M5-05 Verlegerichtungen** ([#48](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/48)) – `feature/m5-05-verlegerichtungen` · Benchmark
   - Waagerecht (Standard), senkrecht, 45°, 135°, individueller Winkel.
   - Abnahme: Jede Richtung in Zeichnung und Mengen korrekt
+  - Ergebnis: Unterpunkt 2.4 mit fünf Richtungen und Feld „Winkel in Grad“ (0–179, Vorgabe 30); Planungsstand-Felder `verlegerichtung` und `verlegewinkel`. `verlegeDielen` legt Reihen aus Dielenbreite plus Fuge ab dem Ausgangspunkt in jedem Winkel über die Fläche, schneidet sie an den Stoßlinien der Verlegeart (Raster ab dem Ausgangspunkt, bei 135° durch A) und lässt Restreihen unter 15 mm weg. Stücklängen stimmen mit F01–F13 auf 1 mm überein. Der Server verlegt mit dem gewählten Belag, die Zeichnung zeigt die Dielenstücke. Benchmark `domain.Dielenverlegung.verlegeDielen`.
 - [ ] **M5-06 Stoßdielen im Gehrungsschnitt** ([#49](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/49)) – `feature/m5-06-stossdielen-im-gehrungsschnitt`
   - Option „Möchten Sie Stoßdielen im Gehrungsschnitt verwenden?“ (im alten Planer aktiv).
   - Abnahme: Option wirkt auf Zeichnung und Zuschnitt

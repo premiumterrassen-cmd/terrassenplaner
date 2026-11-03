@@ -81,6 +81,47 @@ void main() {
       expect(_mm(Verlegeart.wechselverband.stoesse(1, von, bis, _m6)), [3000]);
     });
 
+    test('Ausgangspunkt mitten in der Fläche (M5-05): Linie durch ihn', () {
+      const von = Millimeter(-3394);
+      const bis = Millimeter(2185);
+      const raster = Millimeter(5579);
+      const a = Millimeter(0);
+      List<int> linien(Verlegeart art, int reihe) =>
+          _mm(art.stoesse(reihe, von, bis, raster, ausgang: a));
+      expect(linien(Verlegeart.fugenschnitt, 0), [0]);
+      expect(linien(Verlegeart.fugenschnitt, -7), [0]);
+      expect(linien(Verlegeart.wechselverband, -1), isEmpty);
+      expect(linien(Verlegeart.wechselverband, -2), [0]);
+      expect(linien(Verlegeart.halbverband, -1), [-2790]);
+      expect(linien(Verlegeart.drittelverband, -1), [-1860]);
+      expect(linien(Verlegeart.drittelverband, -2), [1859]);
+      // Linie genau auf dem Rand der Fläche zählt nicht
+      expect(
+        _mm(
+          Verlegeart.fugenschnitt.stoesse(
+            0,
+            _null,
+            const Millimeter(8000),
+            _m6,
+            ausgang: const Millimeter(2000),
+          ),
+        ),
+        [2000],
+      );
+      expect(
+        _mm(
+          Verlegeart.fugenschnitt.stoesse(
+            0,
+            _null,
+            const Millimeter(13000),
+            _m6,
+            ausgang: const Millimeter(-6000),
+          ),
+        ),
+        [6000, 12000],
+      );
+    });
+
     test('ohne Raster oder Fläche keine Linien', () {
       for (final art in Verlegeart.values) {
         for (final reihe in [0, 1, 2]) {

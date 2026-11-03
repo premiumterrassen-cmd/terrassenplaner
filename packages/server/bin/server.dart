@@ -10,8 +10,8 @@ Future<void> main() async {
   final router = PlanerRouter.starte(einstellungen);
   final hallo = await HalloDienst.starte(router);
   final modell3d = await Modell3dDienst.starte(router);
-  final planung = await PlanungsDienst.starte(router);
   final artikel = await ArtikelDienst.starte(router, ArtikeldateiQuelle.leer);
+  final planung = await PlanungsDienst.starte(router, belag: artikel.belag);
   final quelle = ArtikeldateiQuelle(
     Platform.environment[ArtikeldateiQuelle.umgebungsvariable] ??
         ArtikeldateiQuelle.standardPfad,

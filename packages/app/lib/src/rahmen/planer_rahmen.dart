@@ -560,6 +560,10 @@ class Bearbeitungsmenue extends StatelessWidget {
         ),
       ],
     ),
+    (PlanerSchritt.terrassenbelag, 3) => VerlegerichtungWahl(
+      planung: planung,
+      onGeaendert: () => zustand.markiereGeaendert(schritt),
+    ),
     _ => null,
   };
 

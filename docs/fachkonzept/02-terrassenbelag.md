@@ -63,7 +63,7 @@ Neuer Planer (M5-04):
 - **Drittelverband:** Reihe für Reihe um ein Drittel versetzt (0, ⅓, ⅔).
 - **Wechselverband:** jede zweite Reihe im Raster von der Gegenseite aus.
 - Abgleich mit den Zuschnittlisten des alten Planers (48 Reihen, Diele 60 mm): 480 cm Halbverband 24 × 240 + 240 und 24 × 480 cm (F06), Drittelverband 32 × 160 + 320 und 16 × 480 cm (F07), Wechselverband = Fugenschnitt (F08); 800 cm mit 6-m-Dielen Fugenschnitt 600 + 200 cm (F09), Halbverband im Wechsel 600 + 200 und 300 + 500 cm (F10), Drittelverband 600 + 200, 200 + 600 und 400 + 400 cm (F11), Wechselverband 600 + 200 und 200 + 600 cm (F12); fest 400 cm: 400 + 400 cm (F13).
-- Der Ausgangspunkt (M5-07) verschiebt den Anfang des Rasters; Richtungen folgen mit M5-05.
+- Der Ausgangspunkt (M5-07) verschiebt den Anfang des Rasters; Richtungen siehe 2.4 (M5-05).
 
 ## 2.4 Verlegerichtungen
 
@@ -76,6 +76,16 @@ Neuer Planer (M5-04):
 | Individueller Verlegewinkel (Feld „Winkel“) | – | – |
 
 Bei diagonaler Verlegung zeigt die Zeichnung eine durchgehende Stoßlinie über die Fläche.
+
+Neuer Planer (M5-05):
+
+- Auswahl unter 2.4 mit fünf Richtungen; beim individuellen Winkel erscheint das Feld „Winkel in Grad“ (ganze Grad 0–179, Vorgabe 30 wie F05, Enter übernimmt). Planungsstand-Felder `verlegerichtung` und `verlegewinkel`; der Winkel bleibt beim Wechsel auf eine feste Richtung erhalten.
+- Winkel gegen den Uhrzeigersinn zur Kante A–B: waagrecht 0°, senkrecht 90°, 45°, 135°, individuell. 45° und 30° laufen von A über B hinaus nach oben, 135° von A nach links oben.
+- **Reihen:** Streifen aus Dielenbreite plus Fuge, ab dem Ausgangspunkt nach beiden Seiten. Was von der Fläche in einem Streifen liegt, ist eine Dielenreihe vom ersten bis zum letzten Punkt in Verlegerichtung – die Diele muss die längere Kante abdecken (45°: 309 cm ÷ sin 45° + 6,5 cm = 443,5 cm). Zerfällt die Fläche in einem Streifen in mehrere Teile (U-Form, Ausschnitte), ist jeder Teil eine eigene Reihe.
+- **Stoßlinien** im Raster der Verlegeart ab dem Ausgangspunkt, auch zur anderen Seite hin: Bei 135° liegt A mitten in der Ausdehnung, eine Stoßlinie läuft durch A und teilt die Reihen (F04, 154 statt 86 Stücke). Der Wechselverband setzt jede zweite Reihe an der Gegenseite an.
+- **Schmale Restreihen** unter 15 mm Breite entfallen: Der alte Planer lässt eine 14 mm breite Ecke bei 45° (F03) und 11 mm bei 30° (F05) weg, verlegt aber eine 18 mm breite Reihe (Referenzfall 2026-05-29-3162). Die genaue Grenze ist aus den Daten nicht bestimmbar.
+- Abgleich: Die Stücklängen stimmen mit den Zuschnittlisten von F01–F13 auf 1 mm überein (senkrecht 74 × 309 cm, 45° 86 Stücke, 135° 154, 30° 78). Wie die Stücke auf Lieferlängen verteilt werden, gehört zur Verlegung (M5-08).
+- Der Server verlegt mit dem gewählten Belag (Breite, längste oder erzwungene Länge) und liefert die Umrisse der Dielenstücke mit der Berechnung; die Zeichnung zeigt sie auf der Ebene „Belag“. Holzfliesen folgen mit M5-08.
 
 ## 2.5 Ausgangspunkt des Belags
 
