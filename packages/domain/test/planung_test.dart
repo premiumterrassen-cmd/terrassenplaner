@@ -211,6 +211,99 @@ void main() {
     });
   });
 
+  group('Geänderte Mengen der Materialliste (M9-03)', () {
+    const diele = (
+      nummer: Artikelnummer('10-10-073-R'),
+      laenge: Millimeter(5000),
+      zusatz: null,
+    );
+    const frei = (
+      nummer: Artikelnummer('10-10-073-R'),
+      laenge: Millimeter(5000),
+      zusatz: Materialzusatz.freidiele,
+    );
+    const clip = (
+      nummer: Artikelnummer('80-10-001-50'),
+      laenge: null,
+      zusatz: null,
+    );
+
+    test('setzen, ersetzen, entfernen; Start ohne Mengen', () {
+      expect(Planung.start.mengen, isEmpty);
+      final p = Planung.start.mitMenge(diele, 50).mitMenge(clip, 0);
+      expect(p.mengen, {diele: 50, clip: 0});
+      expect(p.mitMenge(diele, 51).mengen, {diele: 51, clip: 0});
+      expect(p.mitMenge(diele, null).mengen, {clip: 0});
+      expect(p.mitMenge(frei, null).mengen, p.mengen);
+      expect(() => p.mengen[frei] = 1, throwsUnsupportedError);
+      expect(
+        () => Planung(Planung.start.flaechen, mengen: {diele: -1}),
+        wirftArgumentFehler('mengen', -1, 'nicht negativ'),
+      );
+    });
+
+    test('bleiben bei allen Änderungen der Flächen erhalten', () {
+      final p = Planung.start.mitMenge(diele, 50);
+      final zwei = p.mitNeuerFlaeche();
+      for (final q in [
+        zwei,
+        zwei.gewaehlt(0),
+        zwei.ohneFlaeche(1),
+        p.mitHaeufigkeit(3),
+        p.mitStand(Planungsstand.start.mitVerlegeart(Verlegeart.halbverband)),
+      ]) {
+        expect(q.mengen, {diele: 50});
+      }
+    });
+
+    test('Gleichheit über die Mengen', () {
+      final p = Planung.start.mitMenge(diele, 50);
+      expect(p, Planung.start.mitMenge(diele, 50));
+      expect(p.hashCode, Planung.start.mitMenge(diele, 50).hashCode);
+      expect(p, isNot(Planung.start));
+      expect(p, isNot(Planung.start.mitMenge(diele, 49)));
+      expect(p, isNot(Planung.start.mitMenge(clip, 50)));
+      expect(
+        Planung.start.mitMenge(diele, 1).mitMenge(clip, 2).hashCode,
+        Planung.start.mitMenge(clip, 2).mitMenge(diele, 1).hashCode,
+      );
+    });
+
+    test('Transport auf Platz 70, ohne Mengen kein Feld', () {
+      final p = Planung.start
+          .mitMenge(diele, 50)
+          .mitMenge(frei, 2)
+          .mitMenge(clip, 0);
+      final zurueck = Planung.ausBytes(p.zuBytes());
+      expect(zurueck, p);
+      expect(zurueck.mengen, {diele: 50, frei: 2, clip: 0});
+      expect(Planung.ausBytes(Planung.start.zuBytes()).mengen, isEmpty);
+      expect(
+        Planung.start.zuBytes().length,
+        lessThan(Planung.start.mitMenge(clip, 0).zuBytes().length),
+      );
+      // fehlende Felder einer Menge: leere Nummer, Anzahl 0
+      final fbb = fb.Builder();
+      final stand = fbb.writeListUint8(Planungsstand.start.zuBytes());
+      fbb
+        ..startTable(2)
+        ..addOffset(0, stand);
+      final flaeche = fbb.endTable();
+      final flaechen = fbb.writeList([flaeche]);
+      fbb.startTable(0);
+      final menge = fbb.endTable();
+      final mengen = fbb.writeList([menge]);
+      fbb
+        ..startTable(71)
+        ..addOffset(1, flaechen)
+        ..addOffset(70, mengen);
+      fbb.finish(fbb.endTable());
+      expect(Planung.ausBytes(fbb.buffer).mengen, {
+        (nummer: const Artikelnummer(''), laenge: null, zusatz: null): 0,
+      });
+    });
+  });
+
   group('Berechnung mit Gesamtfläche (M4-14)', () {
     const umriss = [Punkt(0, 0), Punkt(1000, 0), Punkt(0, 1000)];
 

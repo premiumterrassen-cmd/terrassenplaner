@@ -14,6 +14,8 @@ export 'src/artikel/zubehoergruppe.dart';
 export 'src/begruessung.dart';
 export 'src/datenmodell/hlc.dart';
 export 'src/datenmodell/uuid_v7.dart';
+export 'src/ergebnisse/materialliste.dart';
+export 'src/ergebnisse/stueckliste.dart';
 export 'src/geometrie/flaeche.dart';
 export 'src/geometrie/kontur.dart';
 export 'src/geometrie/mengen.dart';

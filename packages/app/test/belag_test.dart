@@ -367,8 +367,8 @@ void main() {
           .widgetList<Artikelbild>(
             find.descendant(of: info, matching: find.byType(Artikelbild)),
           )
-          .map((b) => (b.nummer, b.groesse));
-      expect(bilder, [(0, 160), (1, 160)]);
+          .map((b) => (b.bild, b.groesse));
+      expect(bilder, [('a.jpg', 160), ('b.jpg', 160)]);
       await tester.tap(
         find.descendant(of: info, matching: find.byType(TextButton)),
       );

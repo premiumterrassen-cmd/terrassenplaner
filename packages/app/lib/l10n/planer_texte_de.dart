@@ -961,4 +961,131 @@ class PlanerTexteDe extends PlanerTexte {
   String zubehoerPflichtMindestens(int anzahl) {
     return 'Pflichtzubehör: mindestens $anzahl';
   }
+
+  @override
+  String get materialliste => 'Materialliste';
+
+  @override
+  String get materiallisteLeer =>
+      'Die Materialliste entsteht, sobald ein Belag verlegt ist.';
+
+  @override
+  String get materialSpaltePosition => 'Pos.';
+
+  @override
+  String get materialSpalteBild => 'Bild';
+
+  @override
+  String get materialSpalteArtikel => 'Artikel';
+
+  @override
+  String get materialSpalteMenge => 'Menge';
+
+  @override
+  String get materialSpalteEinzelpreis => 'Einzelpreis';
+
+  @override
+  String get materialSpaltePreisJeLfm => 'Preis je lfm';
+
+  @override
+  String get materialSpalteGesamtLfm => 'Gesamt-lfm';
+
+  @override
+  String get materialSpaltePositionspreis => 'Positionspreis';
+
+  @override
+  String materialLaenge(int laenge) {
+    return 'Länge: $laenge mm';
+  }
+
+  @override
+  String get materialFreidiele => 'Freidiele';
+
+  @override
+  String materialBerechnet(int anzahl) {
+    return 'berechnet: $anzahl';
+  }
+
+  @override
+  String materialSumme(String betrag) {
+    return 'Summe gesamt: $betrag';
+  }
+
+  @override
+  String materialMehrwertsteuer(int satz, String betrag) {
+    return 'enthaltene $satz % MwSt.: $betrag';
+  }
+
+  @override
+  String get materialPreishinweis =>
+      'Alle Preise inkl. MwSt. und nur zur Information – verbindlich ist unser Angebot.';
+
+  @override
+  String get materialOhnePreis =>
+      'Für einzelne Artikel liegt kein Preis vor; sie fehlen in der Summe.';
+
+  @override
+  String get materialMengeUebernehmen => 'Menge übernehmen';
+
+  @override
+  String get materialMengeBerechnet => 'Berechnete Menge verwenden';
+
+  @override
+  String get materialMitarbeiter => 'Mitarbeiter-Ansicht: Mengen änderbar';
+
+  @override
+  String get einheitStueck => 'Stück';
+
+  @override
+  String get einheitLaufmeter => 'lfm';
+
+  @override
+  String get einheitQuadratmeter => 'm²';
+
+  @override
+  String get einheitVerpackungseinheit => 'VPE';
+
+  @override
+  String get einheitKarton => 'Karton';
+
+  @override
+  String get einheitSet => 'Set';
+
+  @override
+  String get einheitKiste => 'Kiste';
+
+  @override
+  String get einheitLiter => 'l';
+
+  @override
+  String get stueckliste => 'Stückliste';
+
+  @override
+  String get stuecklisteLeer =>
+      'Die Stückliste entsteht, sobald ein Belag verlegt ist.';
+
+  @override
+  String get stueckSpalteArtikel => 'Artikel';
+
+  @override
+  String get stueckSpalteLaenge => 'Länge (cm)';
+
+  @override
+  String get stueckSpalteStueck => 'Stück';
+
+  @override
+  String get stueckSpalteFarbe => 'Farbe im Plan';
+
+  @override
+  String get stueckfarbeRot => 'rot – ganze Länge';
+
+  @override
+  String get stueckfarbeBlau => 'blau – zugeschnitten';
+
+  @override
+  String get stueckfarbeGruen => 'grün – Querstück';
+
+  @override
+  String get stuecklisteHinweis =>
+      'Stücke der bearbeiteten Fläche; die Farbe zeigt das Stück in der Zeichnung.';
 }

@@ -251,7 +251,7 @@ void main() {
       expect(gedreht.linien, hasLength(4));
       expect(
         uebergangsUk(const [], winkel: 0, ukAbstand: const Millimeter(400)),
-        (lagen: const <Stuecklage>[], linien: const <double>[]),
+        (lagen: const <Uklage>[], linien: const <double>[]),
       );
     });
 
@@ -395,6 +395,10 @@ void main() {
           '80-10-001-250': 2,
         });
         expect(b.mittel.last.titel, 'CLIP-FIXX® "BLACK EDITION" - VPE 250');
+        // Bedarf in Stück für die Materialliste (M9-03): alle VPE eines Clips
+        expect(b.bedarf.single.stueck, 637);
+        expect(b.bedarf.single.einheiten, _clips);
+        expect(b.bedarf.single.jePlanung, isFalse);
         // eine andere Wahl gilt bei genuteten Dielen nicht
         expect(
           befestigungsbedarf(
@@ -461,6 +465,16 @@ void main() {
       expect(mit.art, Befestigungsart.verschraubtMitAbstandshaltern);
       // eine Packung Montagehilfe für die Fuge von 5 mm (Alexander 04.11.2026)
       expect(_mittel(mit), {'50-50-102': 4, '50-80-009': 1});
+      // Schrauben je Fläche, Montagehilfe einmal je Planung (M9-03)
+      expect(
+        [for (final x in mit.bedarf) (x.stueck, x.jePlanung)],
+        [(780, false), (1, true)],
+      );
+      expect(mit.bedarf.last.einheiten, [_montagehilfe]);
+      expect(
+        b.bedarf.single.einheiten,
+        _schrauben.where((s) => s.abmessungen.laengste == const Millimeter(50)),
+      );
     });
 
     test('glattkant 60 mm: eine Schraube je Punkt; UK höchstens 40 cm', () {

@@ -7,6 +7,7 @@ import 'dart:math' as math;
 
 import '../artikel/artikel.dart';
 import '../artikel/einheiten.dart';
+import '../ergebnisse/materialliste.dart';
 import '../holzart/holzart.dart';
 import '../konfiguration/befestigungsart.dart';
 import '../konfiguration/dielenverlegung.dart';
@@ -45,7 +46,7 @@ typedef Befestigungspunkte = ({int punkte, int randpunkte});
 
 /// Lage eines Dielenstücks quer gedreht: von [anfang] bis [ende] in
 /// Verlegerichtung, von [unten] bis [oben] quer dazu (mm).
-typedef Stuecklage = ({double anfang, double ende, double unten, double oben});
+typedef Uklage = ({double anfang, double ende, double unten, double oben});
 
 /// Übergangs-Unterkonstruktion, solange die Unterkonstruktion fehlt (M6):
 /// Die UK-Linien liegen quer zur Verlegerichtung gleichmäßig über die
@@ -53,7 +54,7 @@ typedef Stuecklage = ({double anfang, double ende, double unten, double oben});
 /// am Rand (keine Überstände, B-096) – 480 cm mit 40 cm: 13 Linien wie in
 /// F01. [lagen] parallel zu den [stuecke]n, [linien] als Lage in
 /// Verlegerichtung. Grundlage für Befestigung (M5-09) und Zubehör (M8-02).
-({List<Stuecklage> lagen, List<double> linien}) uebergangsUk(
+({List<Uklage> lagen, List<double> linien}) uebergangsUk(
   List<Dielenstueck> stuecke, {
   required double winkel,
   required Millimeter ukAbstand,
@@ -166,7 +167,9 @@ final class Befestigungsbedarf {
     this.art,
     this.punkte = 0,
     List<Befestigungsposition> mittel = const [],
-  }) : mittel = List.unmodifiable(mittel);
+    List<Materialbedarf> bedarf = const [],
+  }) : mittel = List.unmodifiable(mittel),
+       bedarf = List.unmodifiable(bedarf);
 
   /// Ohne Befestigung (Holzfliese, kein Holzbelag).
   static final keiner = Befestigungsbedarf();
@@ -182,6 +185,10 @@ final class Befestigungsbedarf {
 
   /// Befestigungsartikel mit Anzahl Verkaufseinheiten.
   final List<Befestigungsposition> mittel;
+
+  /// Bedarf in Stück für die Materialliste (M9-03): Über mehrere Flächen
+  /// wird erst die Summe verpackt, nicht jede Fläche für sich.
+  final List<Materialbedarf> bedarf;
 }
 
 /// Befestigung des [belag] für die verlegten [stuecke] mit der gewählten
@@ -228,28 +235,38 @@ Befestigungsbedarf befestigungsbedarf(
     ukAbstand: ukAbstandFuer(regelwerk, belag, holzart),
   );
   final moeglich = regelwerk.moeglich(belag.nummer, Beziehung.befestigung);
-  final mittel = switch (art) {
-    Befestigungsart.clips => verpackt(
-      punkte + randpunkte,
-      _clips(moeglich, holzart.serie(serie).befestigung(profil, breite)),
-    ),
-    _ => [
-      ...verpackt(
-        punkte * holzart.schraubenJePunkt(serie, profil, breite),
-        _schrauben(moeglich, belag.abmessungen.staerke),
-      ),
-      if (art == Befestigungsart.verschraubtMitAbstandshaltern)
-        ...verpackt(1, [?_montagehilfe(regelwerk)]),
-    ],
-  };
+  final bedarf = [
+    for (final (einheiten, stueck, jePlanung) in switch (art) {
+      Befestigungsart.clips => [
+        (
+          _clips(moeglich, holzart.serie(serie).befestigung(profil, breite)),
+          punkte + randpunkte,
+          false,
+        ),
+      ],
+      _ => [
+        (
+          _schrauben(moeglich, belag.abmessungen.staerke),
+          punkte * holzart.schraubenJePunkt(serie, profil, breite),
+          false,
+        ),
+        if (art == Befestigungsart.verschraubtMitAbstandshaltern)
+          ([?_montagehilfe(regelwerk)], 1, true),
+      ],
+    })
+      if (einheiten.isNotEmpty)
+        Materialbedarf(einheiten, stueck, jePlanung: jePlanung),
+  ];
   return Befestigungsbedarf(
     arten: Befestigungsart.fuer(profil),
     art: art,
     punkte: punkte,
     mittel: [
-      for (final (a, anzahl) in mittel)
-        Befestigungsposition(a.nummer, a.titel, anzahl),
+      for (final b in bedarf)
+        for (final (a, anzahl) in verpackt(b.stueck, b.einheiten))
+          Befestigungsposition(a.nummer, a.titel, anzahl),
     ],
+    bedarf: bedarf,
   );
 }
 

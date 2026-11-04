@@ -4,6 +4,8 @@ import 'package:flat_buffers/flat_buffers.dart' as fb;
 
 import '../artikel/artikel.dart';
 import '../artikel/einheiten.dart';
+import '../ergebnisse/materialliste.dart';
+import '../ergebnisse/stueckliste.dart';
 import '../geometrie/punkt.dart';
 import '../regeln/befestigungsbedarf.dart';
 import '../regeln/belagmeldungen.dart';
@@ -15,8 +17,9 @@ import 'befestigungsart.dart';
 /// Zeichnung und Kennzahlen, seit M5-07 Ausgangspunkt, Verschiebungsgrenzen
 /// und Warnung vor kurzen Zuschnitten, seit M5-09 die Befestigung, seit
 /// M5-08 Dielennummern, Dielenliste und Verschnitt der ganzen Planung,
-/// seit M5-10 die Meldungen zum Belag, seit M8-02 die Mengen im Zubehör.
-/// Volumen und Materialliste folgen mit M6 und M9.
+/// seit M5-10 die Meldungen zum Belag, seit M9-03 die Materialliste der
+/// ganzen Planung, seit M9-04 Stückliste und Farbe je Dielenstück, seit
+/// M8-02 die Mengen im Zubehör. Das Volumen folgt mit M6.
 final class Berechnung {
   Berechnung({
     required List<Punkt> umriss,
@@ -36,7 +39,13 @@ final class Berechnung {
     Befestigungsbedarf? befestigung,
     List<Belagmeldung> belagmeldungen = const [],
     List<Zubehoerposition> zubehoer = const [],
+    Materialliste? materialliste,
+    Stueckliste? stueckliste,
+    List<Stueckfarbe> stueckfarben = const [],
   }) : zubehoer = List.unmodifiable(zubehoer),
+       materialliste = materialliste ?? Materialliste.leer,
+       stueckliste = stueckliste ?? Stueckliste.leer,
+       stueckfarben = List.unmodifiable(stueckfarben),
        belagmeldungen = List.unmodifiable(belagmeldungen),
        befestigung = befestigung ?? Befestigungsbedarf.keiner,
        nummern = List.unmodifiable(nummern),
@@ -147,6 +156,28 @@ final class Berechnung {
               0,
             ),
           ),
+      ],
+      materialliste: switch (const _Tabellenort().vTableGetNullable(
+        puffer,
+        wurzel,
+        _versatz(_materiallistePlatz),
+      )) {
+        final ort? => Materialliste.lies(puffer, ort),
+        null => null,
+      },
+      stueckliste: switch (const _Tabellenort().vTableGetNullable(
+        puffer,
+        wurzel,
+        _versatz(_stuecklistePlatz),
+      )) {
+        final ort? => Stueckliste.lies(puffer, ort),
+        null => null,
+      },
+      stueckfarben: [
+        for (final n in const fb.ListReader<int>(
+          fb.Uint8Reader(),
+        ).vTableGet(puffer, wurzel, _versatz(_stueckfarbenPlatz), const []))
+          Stueckfarbe.ausNummer(n),
       ],
     );
   }
@@ -270,11 +301,24 @@ final class Berechnung {
   /// Menge und „Tatsächlich“ je Artikel (`zubehoerpositionen`).
   final List<Zubehoerposition> zubehoer;
 
+  /// Materialliste der ganzen Planung (M9-03): Belag und Befestigung aller
+  /// Flächen mal ihrer Häufigkeit; Preise nur Anzeige (B-055).
+  final Materialliste materialliste;
+
+  /// Stückliste der bearbeiteten Fläche (M9-04): Artikel, Länge, Stück und
+  /// Farbe wie im Plan; ohne Häufigkeit, weil sie die Zeichnung erklärt.
+  final Stueckliste stueckliste;
+
+  /// Farbe je Dielenstück (parallel zu [dielen], M9-04) – dieselbe wie in
+  /// der Stückliste; leer ohne Dielen.
+  final List<Stueckfarbe> stueckfarben;
+
   /// Kopie mit den Werten der ganzen Planung (M4-14, M5-08).
   Berechnung mitPlanung(
     double gesamtflaeche, {
     double? verschnitt,
     List<Lieferposition> dielenliste = const [],
+    Materialliste? materialliste,
   }) => Berechnung(
     umriss: umriss,
     ecken: ecken,
@@ -293,6 +337,9 @@ final class Berechnung {
     dielenliste: dielenliste,
     belagmeldungen: belagmeldungen,
     zubehoer: zubehoer,
+    materialliste: materialliste,
+    stueckliste: stueckliste,
+    stueckfarben: stueckfarben,
   );
 
   /// FlatBuffer für den Weg zur App (#110):
@@ -310,9 +357,11 @@ final class Berechnung {
   /// ([{ 0: belag (string), 1: laenge (int32 mm), 2: anzahl (int32) }])
   /// (M5-08), 35: belagmeldungen ([uint8], M5-10), 50: zubehoer ([{ 0:
   /// nummer (string), 1: berechnet (uint32), 2: menge (uint32), 3: pflicht
-  /// (uint32, M8-03) }], M8-02)
-  /// }`. Die Plätze 18–34 sind für die Unterkonstruktion (M6) frei
-  /// gehalten, 50–59 für das Zubehör (M8).
+  /// (uint32, M8-03) }], M8-02), 60: materialliste (Tabelle,
+  /// `Materialliste.schreibe`, M9-03), 61: stueckliste (Tabelle,
+  /// `Stueckliste.schreibe`), 62: stueckfarben ([uint8] je Dielenstück)
+  /// (M9-04) }`. Die Plätze 18–34 sind für die Unterkonstruktion (M6) frei
+  /// gehalten, 50–59 für das Zubehör (M8), 60–69 für die Ergebnisse (M9).
   Uint8List zuBytes() {
     final fbb = fb.Builder();
     final umrissOrt = _schreibe(fbb, umriss);
@@ -343,8 +392,13 @@ final class Berechnung {
     final zubehoerOrt = fbb.writeList([
       for (final z in zubehoer) _zubehoerposition(fbb, z),
     ]);
+    final materialOrt = materialliste.schreibe(fbb);
+    final stueckOrt = stueckliste.schreibe(fbb);
+    final farbenOrt = fbb.writeListUint8([
+      for (final f in stueckfarben) f.nummer,
+    ]);
     fbb
-      ..startTable(_zubehoerPlatz + 1)
+      ..startTable(_stueckfarbenPlatz + 1)
       ..addOffset(_umrissPlatz, umrissOrt)
       ..addFloat64(_flaechePlatz, flaeche)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
@@ -363,7 +417,10 @@ final class Berechnung {
       ..addOffset(_nummernPlatz, nummernOrt)
       ..addOffset(_dielenlistePlatz, listeOrt)
       ..addOffset(_belagmeldungenPlatz, meldungenOrt)
-      ..addOffset(_zubehoerPlatz, zubehoerOrt);
+      ..addOffset(_zubehoerPlatz, zubehoerOrt)
+      ..addOffset(_materiallistePlatz, materialOrt)
+      ..addOffset(_stuecklistePlatz, stueckOrt)
+      ..addOffset(_stueckfarbenPlatz, farbenOrt);
     if (verschnitt case final v?) fbb.addFloat64(_verschnittPlatz, v);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
@@ -456,6 +513,9 @@ final class Berechnung {
   static const _dielenlistePlatz = 17;
   static const _belagmeldungenPlatz = 35;
   static const _zubehoerPlatz = 50;
+  static const _materiallistePlatz = 60;
+  static const _stuecklistePlatz = 61;
+  static const _stueckfarbenPlatz = 62;
 
   static int _versatz(int platz) => 4 + 2 * platz;
 }
