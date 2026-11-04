@@ -10,6 +10,13 @@ Messwerte: Grundfall aus [00 Rahmen](00-rahmen.md) (2.066,57 €), jeweils nur e
 | Hochterrasse | 54,2 cm | doppelte UK (Lattenkreuz); UK-Holz 3000/4000/5000 mm, Bodenanker L zur Aufständerung 0–23 mm, mehr KOPPLEX-1, kein KOPPLEX-3 → 3.120,27 € |
 | Vorhandene UK | 14,2 cm (Minimum) | neue UK wird **auf** die vorhandene gebaut (daher weiter UK-Holz und Bodenanker); Feld „Spannweite der Unterkonstruktion – Spannweite: cm“; 3.6 Nutzungsart entfällt; Meldung „Der Höhenreferenz Punkt unterschreitet die minimale Höhe. Er wurde korrigiert“ |
 
+Neuer Planer (M6-01):
+
+- Unterpunkt 3.1 „Art der Terrasse“ mit den drei Arten als Chips (Vorgabe normale Terrasse) und der Vorgabehöhe darunter; Planungsstand-Felder `terrassenart` und `spannweite` (Plätze 20 und 21, fehlend = Vorgabe). Jede Wahl ist ein Schritt für Rückgängig/Wiederherstellen.
+- **Vorgabehöhen** wie im alten Planer: normal 8,6 cm, Hochterrasse 54,2 cm, vorhandene UK 14,2 cm (gemessen von Oberkante Belag bis Boden). Die Höhenpunkte (3.2, M6-02) beginnen mit der Vorgabehöhe der gewählten Art.
+- **Folgeschritte:** Bei Hochterrasse und vorhandener UK entfällt 3.6 „Art der Terrassennutzung“ (F28, F29); die übrigen Unterpunkte werden lückenlos weiter nummeriert (3.6 Querstreben, 3.7 Nutzung privat oder gewerblich). Bei vorhandener UK erscheint das Feld „Spannweite der Unterkonstruktion“ in cm (Vorgabe 80 cm, 10–300 cm, Enter übernimmt); es bleibt beim Wechsel der Art erhalten.
+- Die neue UK wird bei vorhandener UK auf die vorhandene gebaut – UK-Holz und Bodenanker bleiben (R-C06). Doppelte UK, Stützen und Bodenanker der Hochterrasse rechnen M6-05, M6-08 und M6-10.
+
 ## 3.2 Höhenpunkte (mit Hilfe-Symbol)
 
 - **ohne Gefälle**: ein Feld „Alle: … cm“ (Vorgabe siehe 3.1).

@@ -93,5 +93,36 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('2.6 ${de.terrassenbelag6}'), findsOneWidget);
     expect(find.text(de.befestigungOhneDielen), findsOneWidget);
+    // M6-01: Art der Terrasse unter 3.1; die Hochterrasse lässt 3.6 „Art
+    // der Terrassennutzung“ entfallen, vorhandene UK fragt die Spannweite
+    await tester.tap(find.byKey(const ValueKey('station-unterkonstruktion')));
+    await tester.pumpAndSettle();
+    expect(find.text('3.6 ${de.unterkonstruktion6}'), findsOneWidget);
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('terrassenart-hochterrasse')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('terrassenart-hochterrasse')));
+    await tester.pumpAndSettle();
+    expect(find.text('Vorgabehöhe: 54,2 cm'), findsOneWidget);
+    expect(find.text('3.6 ${de.unterkonstruktion7}'), findsOneWidget);
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('terrassenart-vorhandeneUk')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('terrassenart-vorhandeneUk')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('spannweite')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('rueckgaengig')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('rueckgaengig')));
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<ChoiceChip>(find.byKey(const ValueKey('terrassenart-normal')))
+          .selected,
+      isTrue,
+    );
+    expect(find.text('3.6 ${de.unterkonstruktion6}'), findsOneWidget);
   });
 }

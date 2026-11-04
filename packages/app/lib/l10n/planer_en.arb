@@ -266,5 +266,12 @@
   "dielenlaengeNichtWaehlbar": "This decking has no choice of lengths.",
   "belagKeinTreffer": "No decking matches the filters.",
   "zurueckZurKonfiguration": "Back to configuration",
-  "gewaehlt": "Selected"
+  "gewaehlt": "Selected",
+  "terrassenartNormal": "Normal terrace",
+  "terrassenartHochterrasse": "Raised terrace",
+  "terrassenartVorhandeneUk": "Existing substructure",
+  "vorgabehoehe": "Default height: {cm} cm",
+  "spannweiteFrage": "Span of the substructure (spacing of the existing joists)",
+  "spannweite": "Span",
+  "spannweiteUngueltig": "Please enter a number from 10 to 300 cm"
 }

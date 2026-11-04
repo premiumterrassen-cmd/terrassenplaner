@@ -20,6 +20,7 @@ import 'rahmen_zustand.dart';
 import 'rundung.dart';
 import 'standardwert_hinweis.dart';
 import 'steuerung.dart';
+import 'unterkonstruktion.dart';
 import 'zeichenflaeche.dart';
 import 'zeichnung.dart';
 
@@ -592,6 +593,10 @@ class Bearbeitungsmenue extends StatelessWidget {
       berechnung: berechnung,
       onGeaendert: () => zustand.markiereGeaendert(schritt),
     ),
+    (PlanerSchritt.unterkonstruktion, 0) => TerrassenartWahl(
+      planung: planung,
+      onGeaendert: () => zustand.markiereGeaendert(schritt),
+    ),
     _ => null,
   };
 
@@ -627,8 +632,10 @@ class Bearbeitungsmenue extends StatelessWidget {
                 onTap: () => zustand.waehle(schritt),
               ),
               if (schritt == zustand.aktiv)
-                for (final (i, punkt)
-                    in schritt.nummerierteUnterpunkte(t).indexed)
+                for (final punkt in schritt.sichtbareUnterpunkte(
+                  t,
+                  planung.aktuell,
+                ))
                   Padding(
                     padding: const EdgeInsets.only(
                       left: PlanerAbstand.gross,
@@ -637,7 +644,10 @@ class Bearbeitungsmenue extends StatelessWidget {
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [Text(punkt), ?_eingabe(schritt, i)],
+                      children: [
+                        Text(punkt.text),
+                        ?_eingabe(schritt, punkt.index),
+                      ],
                     ),
                   ),
               const Divider(height: 1),

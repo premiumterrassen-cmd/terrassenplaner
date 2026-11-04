@@ -1611,6 +1611,48 @@ abstract class PlanerTexte {
   /// In de, this message translates to:
   /// **'Gewählt'**
   String get gewaehlt;
+
+  /// No description provided for @terrassenartNormal.
+  ///
+  /// In de, this message translates to:
+  /// **'Normale Terrasse'**
+  String get terrassenartNormal;
+
+  /// No description provided for @terrassenartHochterrasse.
+  ///
+  /// In de, this message translates to:
+  /// **'Hochterrasse'**
+  String get terrassenartHochterrasse;
+
+  /// No description provided for @terrassenartVorhandeneUk.
+  ///
+  /// In de, this message translates to:
+  /// **'Vorhandene UK'**
+  String get terrassenartVorhandeneUk;
+
+  /// No description provided for @vorgabehoehe.
+  ///
+  /// In de, this message translates to:
+  /// **'Vorgabehöhe: {cm} cm'**
+  String vorgabehoehe(String cm);
+
+  /// No description provided for @spannweiteFrage.
+  ///
+  /// In de, this message translates to:
+  /// **'Spannweite der Unterkonstruktion (Abstand der vorhandenen Träger)'**
+  String get spannweiteFrage;
+
+  /// No description provided for @spannweite.
+  ///
+  /// In de, this message translates to:
+  /// **'Spannweite'**
+  String get spannweite;
+
+  /// No description provided for @spannweiteUngueltig.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte eine Zahl von 10 bis 300 cm eingeben'**
+  String get spannweiteUngueltig;
 }
 
 class _PlanerTexteDelegate extends LocalizationsDelegate<PlanerTexte> {

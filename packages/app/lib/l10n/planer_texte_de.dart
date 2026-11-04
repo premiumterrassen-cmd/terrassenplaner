@@ -847,4 +847,29 @@ class PlanerTexteDe extends PlanerTexte {
 
   @override
   String get gewaehlt => 'Gewählt';
+
+  @override
+  String get terrassenartNormal => 'Normale Terrasse';
+
+  @override
+  String get terrassenartHochterrasse => 'Hochterrasse';
+
+  @override
+  String get terrassenartVorhandeneUk => 'Vorhandene UK';
+
+  @override
+  String vorgabehoehe(String cm) {
+    return 'Vorgabehöhe: $cm cm';
+  }
+
+  @override
+  String get spannweiteFrage =>
+      'Spannweite der Unterkonstruktion (Abstand der vorhandenen Träger)';
+
+  @override
+  String get spannweite => 'Spannweite';
+
+  @override
+  String get spannweiteUngueltig =>
+      'Bitte eine Zahl von 10 bis 300 cm eingeben';
 }

@@ -330,9 +330,10 @@ Terrassenart, Höhenpunkte/Gefälle, UK-Auswahl, Untergrund, Nutzungsart, Querst
 
 GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/7
 
-- [ ] **M6-01 Art der Terrasse** ([#54](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/54)) – `feature/m6-01-art-der-terrasse`
+- [x] **M6-01 Art der Terrasse** ([#54](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/54)) – `feature/m6-01-art-der-terrasse`
   - Normale Terrasse / Hochterrasse / vorhandene UK – mit Auswirkungen auf die folgenden Schritte.
   - Abnahme: Folgeschritte passen sich an
+  - Ergebnis: Unterpunkt 3.1 mit normaler Terrasse (Vorgabe, 8,6 cm), Hochterrasse (54,2 cm) und vorhandener UK (14,2 cm) samt Feld „Spannweite“ (Vorgabe 80 cm, 10–300 cm); Planungsstand-Felder `terrassenart` und `spannweite` (Plätze 20/21, fehlend = Vorgabe). Bei Hochterrasse und vorhandener UK entfällt 3.6 „Art der Terrassennutzung“, die Unterpunkte werden lückenlos nummeriert (F28, F29). Die Vorgabehöhe der Art nutzen die Höhenpunkte (M6-02).
 - [ ] **M6-02 Höhenpunkte und Gefälle** ([#55](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/55)) – `feature/m6-02-hoehenpunkte-und-gefaelle`
   - Ohne Gefälle (eine Höhe für alle) / mit Gefälle (je Eckpunkt); gemessen von Oberkante Belag bis Boden; Aufbauhöhe; Hinweis, wenn die UK zur Einhaltung der Aufbauhöhe gedreht wird.
   - Abnahme: Höhen an den Eckpunkten wie in den Planungsunterlagen

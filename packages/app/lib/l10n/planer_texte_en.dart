@@ -847,4 +847,28 @@ class PlanerTexteEn extends PlanerTexte {
 
   @override
   String get gewaehlt => 'Selected';
+
+  @override
+  String get terrassenartNormal => 'Normal terrace';
+
+  @override
+  String get terrassenartHochterrasse => 'Raised terrace';
+
+  @override
+  String get terrassenartVorhandeneUk => 'Existing substructure';
+
+  @override
+  String vorgabehoehe(String cm) {
+    return 'Default height: $cm cm';
+  }
+
+  @override
+  String get spannweiteFrage =>
+      'Span of the substructure (spacing of the existing joists)';
+
+  @override
+  String get spannweite => 'Span';
+
+  @override
+  String get spannweiteUngueltig => 'Please enter a number from 10 to 300 cm';
 }

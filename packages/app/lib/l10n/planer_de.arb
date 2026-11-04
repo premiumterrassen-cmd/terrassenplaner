@@ -298,5 +298,13 @@
   "dielenlaengeNichtWaehlbar": "Für diesen Belag gibt es keine Längenauswahl.",
   "belagKeinTreffer": "Kein Belag passt zu den Filtern.",
   "zurueckZurKonfiguration": "Zurück zur Konfiguration",
-  "gewaehlt": "Gewählt"
+  "gewaehlt": "Gewählt",
+  "terrassenartNormal": "Normale Terrasse",
+  "terrassenartHochterrasse": "Hochterrasse",
+  "terrassenartVorhandeneUk": "Vorhandene UK",
+  "vorgabehoehe": "Vorgabehöhe: {cm} cm",
+  "@vorgabehoehe": { "placeholders": { "cm": { "type": "String" } } },
+  "spannweiteFrage": "Spannweite der Unterkonstruktion (Abstand der vorhandenen Träger)",
+  "spannweite": "Spannweite",
+  "spannweiteUngueltig": "Bitte eine Zahl von 10 bis 300 cm eingeben"
 }
