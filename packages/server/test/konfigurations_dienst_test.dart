@@ -163,6 +163,22 @@ void main() {
     expect(db.letzteSequenz, 0);
   });
 
+  test('Fehlertexte nennen Argument und Grund', () async {
+    final zuGross = KonfigurationsDienst.groessterInhalt + 1;
+    await expectLater(
+      rufe(WampNamen.konfigurationSpeichern, [Uint8List(zuGross)]),
+      fehler(WampNamen.konfigurationUngueltig, [
+        'Invalid argument (inhalt): zu groß: $zuGross',
+      ]),
+    );
+    await expectLater(
+      rufe(WampNamen.entwurfLaden, ['kurz']),
+      fehler(WampNamen.konfigurationUngueltig, [
+        'Invalid argument (schluessel): kein Sitzungsschlüssel: "kurz"',
+      ]),
+    );
+  });
+
   test('Entwurf: merken, laden, mit und ohne Bezug', () async {
     await expectLater(
       rufe(WampNamen.entwurfLaden, [_schluessel]),

@@ -224,6 +224,8 @@ void main() {
       expect(ablage.entwurf(schluessel), isNotNull);
       jetzt = jetzt.add(const Duration(milliseconds: 1));
       expect(ablage.entwurf(schluessel), isNull);
+      jetzt = jetzt.add(const Duration(days: 1));
+      expect(ablage.entwurf(schluessel), isNull);
       expect(ablage.entwurf('ffffffffffffffffffffffffffffffff'), isNull);
     });
 

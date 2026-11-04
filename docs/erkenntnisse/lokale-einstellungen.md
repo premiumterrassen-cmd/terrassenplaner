@@ -9,9 +9,10 @@ Vorgabe Alexander 02.10.2026: Das Frontend bleibt „doof“. Im Browser liegen 
 | `terrassenplaner.sprache` | `de`, `en` | `de` (wie M3-07) | App, Ladebildschirm |
 | `terrassenplaner.darstellung` | `light`, `dark`, `system` | `system` | App, Ladebildschirm |
 | `terrassenplaner.weiterplanen` | `JJJJ-MM-TT-NNNN/Version` | – | App (Eingangsdialog „Weiterplanen“) |
+| `terrassenplaner.sitzung` | 32 Hexadezimalzeichen (128 Bit Zufall) | beim ersten Bedarf erzeugt | App (Entwurf auf dem Server, M9-05) |
 
 - Unbekannte oder beschädigte Werte zählen als nicht gespeichert, es gilt der Standard.
-- „Weiterplanen“ merkt sich eine Konfiguration erst, wenn sie erfolgreich geladen wurde (`LokaleEinstellungen.merkend`). Das Laden über den Server folgt mit M9-05, bis dahin bleibt der Eintrag leer.
+- „Weiterplanen“ merkt sich eine Konfiguration erst, wenn sie erfolgreich gespeichert oder geladen wurde (seit M9-05 in `KonfigurationsSteuerung`, siehe `speichern-und-laden.md`).
 
 ## Aufbau
 
