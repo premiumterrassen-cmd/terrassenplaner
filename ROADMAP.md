@@ -409,7 +409,7 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/9
 - [x] **M8-02 Automatische Mengen** ([#71](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/71)) – `feature/m8-02-automatische-mengen` · Benchmark
   - Mengen für Clips/Schrauben, Pads/EPDM, Öl (nach Deckfläche) usw. aus Belag, UK und Fläche; manuelle Anpassung möglich.
   - Abnahme: Mengen entsprechen den Referenzfällen
-- [ ] **M8-03 Pflichtzubehör** ([#72](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/72)) – `feature/m8-03-pflichtzubehoer`
+- [x] **M8-03 Pflichtzubehör** ([#72](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/72)) – `feature/m8-03-pflichtzubehoer`
   - Benötigtes Zubehör mit fester Anzahl je Artikel automatisch ergänzen.
   - Abnahme: Pflichtartikel nicht abwählbar
 - [ ] **M8-04 Freidielen** ([#73](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/73)) – `feature/m8-04-freidielen`

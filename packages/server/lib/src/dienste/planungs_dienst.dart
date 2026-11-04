@@ -102,7 +102,7 @@ class PlanungsDienst {
         flaeche: flaeche.flaeche,
         ausschnitte: flaeche.ausschnitte,
         belagmeldungen: meldungen,
-        zubehoer: zubehoerpositionen(const {}, stand.zubehoer),
+        zubehoer: _zubehoer(regelwerk, const {}, stand.zubehoer),
       );
     }
     // verlegt wird nur mit Belag
@@ -134,7 +134,8 @@ class PlanungsDienst {
       grenzeObenUnten: v.grenzen.y,
       kurzeZuschnitte: v.kurzeZuschnitte,
       befestigung: befestigung,
-      zubehoer: zubehoerpositionen(
+      zubehoer: _zubehoer(
+        regelwerk,
         befestigung == null
             ? const {}
             : berechnetesZubehoer(
@@ -145,7 +146,34 @@ class PlanungsDienst {
                 winkel: winkel,
               ),
         stand.zubehoer,
+        belag: (
+          artikel.nummer,
+          v.dielenliste.anzahl.values.fold(0, (a, b) => a + b),
+        ),
       ),
+    );
+  }
+
+  /// Zeilen im Zubehör (M8-02) samt Pflichtzubehör (M8-03): was der Belag
+  /// (je Diele), die Befestigung, das berechnete und das eingegebene
+  /// Zubehör laut Artikeldaten benötigen.
+  static List<Zubehoerposition> _zubehoer(
+    Regelwerk? regelwerk,
+    Map<Artikelnummer, int> berechnet,
+    Map<Artikelnummer, int> eingaben, {
+    (Artikelnummer, int)? belag,
+  }) {
+    final verwendet = <Artikelnummer, int>{
+      if (belag case (final nummer, final dielen)) nummer: dielen,
+      ...berechnet,
+      ...eingaben,
+    };
+    return zubehoerpositionen(
+      berechnet,
+      eingaben,
+      pflicht: regelwerk == null
+          ? const {}
+          : pflichtzubehoer(regelwerk, verwendet),
     );
   }
 

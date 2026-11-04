@@ -332,5 +332,10 @@
   "@zubehoerMengeUngueltig": {"placeholders": {"max": {"type": "int"}}},
 
   "zubehoerBerechnet": "berechnet: {anzahl}",
-  "@zubehoerBerechnet": {"placeholders": {"anzahl": {"type": "int"}}}
+  "@zubehoerBerechnet": {"placeholders": {"anzahl": {"type": "int"}}},
+
+  "zubehoerPflicht": "Pflichtzubehör, mindestens {anzahl}",
+  "@zubehoerPflicht": {"placeholders": {"anzahl": {"type": "int"}}},
+  "zubehoerPflichtMindestens": "Pflichtzubehör: mindestens {anzahl}",
+  "@zubehoerPflichtMindestens": {"placeholders": {"anzahl": {"type": "int"}}}
 }

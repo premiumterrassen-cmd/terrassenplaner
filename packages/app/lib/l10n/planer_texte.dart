@@ -1773,6 +1773,18 @@ abstract class PlanerTexte {
   /// In de, this message translates to:
   /// **'berechnet: {anzahl}'**
   String zubehoerBerechnet(int anzahl);
+
+  /// No description provided for @zubehoerPflicht.
+  ///
+  /// In de, this message translates to:
+  /// **'Pflichtzubehör, mindestens {anzahl}'**
+  String zubehoerPflicht(int anzahl);
+
+  /// No description provided for @zubehoerPflichtMindestens.
+  ///
+  /// In de, this message translates to:
+  /// **'Pflichtzubehör: mindestens {anzahl}'**
+  String zubehoerPflichtMindestens(int anzahl);
 }
 
 class _PlanerTexteDelegate extends LocalizationsDelegate<PlanerTexte> {

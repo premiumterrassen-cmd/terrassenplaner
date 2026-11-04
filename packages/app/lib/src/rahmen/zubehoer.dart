@@ -130,10 +130,10 @@ class ZubehoerTabelle extends StatelessWidget {
       final artikel = auswahl?.gruppen[gruppe] ?? const <Artikel>[];
       if (artikel.isEmpty) return Text(t.zubehoerKeine);
       final stil = Theme.of(context).textTheme.labelMedium;
-      final berechnet = {
+      final zeilen = {
         for (final z
             in berechnung?.ergebnis?.zubehoer ?? const <Zubehoerposition>[])
-          z.nummer: z.berechnet,
+          z.nummer: z,
       };
       return Column(
         key: ValueKey('zubehoertabelle-${gruppe.name}'),
@@ -151,11 +151,12 @@ class ZubehoerTabelle extends StatelessWidget {
           for (final a in artikel)
             ZubehoerZeile(
               artikel: a,
-              berechnet: berechnet[a.nummer] ?? 0,
+              berechnet: zeilen[a.nummer]?.berechnet ?? 0,
+              pflicht: zeilen[a.nummer]?.pflicht ?? 0,
               // die Eingabe sofort, nicht erst nach der Antwort des Servers
               menge:
                   planung.aktuell.zubehoer[a.nummer] ??
-                  berechnet[a.nummer] ??
+                  zeilen[a.nummer]?.menge ??
                   0,
               onMenge: (anzahl) {
                 planung.setze(
@@ -173,7 +174,8 @@ class ZubehoerTabelle extends StatelessWidget {
 /// Eine Zeile „Bild, Bezeichnung | Tatsächlich“ (M8-01). Wie die Maßfelder
 /// zeigt das Feld die aktuelle Menge als Platzhalter; Enter übernimmt die
 /// Eingabe, ein leeres Feld nimmt sie zurück (wieder die berechnete Menge,
-/// M8-02).
+/// M8-02). Pflichtzubehör (M8-03) trägt ein Schloss und lässt sich nicht
+/// unter seine Pflichtmenge setzen.
 class ZubehoerZeile extends StatefulWidget {
   const ZubehoerZeile({
     required this.artikel,
@@ -181,6 +183,7 @@ class ZubehoerZeile extends StatefulWidget {
     required this.onMenge,
     super.key,
     this.berechnet = 0,
+    this.pflicht = 0,
   });
 
   /// Breite der Spalte „Tatsächlich“.
@@ -194,6 +197,9 @@ class ZubehoerZeile extends StatefulWidget {
   /// Vom Planer berechnete Menge (M8-02); weicht die Eingabe ab, steht sie
   /// unter dem Namen.
   final int berechnet;
+
+  /// Pflichtzubehör (M8-03): mindestens so viel, nicht abwählbar.
+  final int pflicht;
 
   /// Neue Eingabe; `null` = zurück auf den berechneten Wert.
   final ValueChanged<int?> onMenge;
@@ -226,6 +232,12 @@ class _ZubehoerZeileState extends State<ZubehoerZeile> {
       );
       return;
     }
+    if (anzahl != null && anzahl < widget.pflicht) {
+      setState(
+        () => _fehler = context.texte.zubehoerPflichtMindestens(widget.pflicht),
+      );
+      return;
+    }
     _feld.clear();
     setState(() => _fehler = null);
     widget.onMenge(anzahl);
@@ -247,6 +259,20 @@ class _ZubehoerZeileState extends State<ZubehoerZeile> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(a.titel),
+                if (widget.pflicht > 0)
+                  Row(
+                    key: ValueKey('zubehoerpflicht-${a.nummer.wert}'),
+                    children: [
+                      const Icon(Icons.lock_outline, size: 14),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          context.texte.zubehoerPflicht(widget.pflicht),
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                    ],
+                  ),
                 if (widget.menge != widget.berechnet)
                   Text(
                     context.texte.zubehoerBerechnet(widget.berechnet),

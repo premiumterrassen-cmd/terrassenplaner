@@ -37,3 +37,10 @@ Der Planungsdienst rechnet je Fläche die Menge jedes Zubehörs (`berechnetesZub
 - **Übergangs-UK:** Solange die Unterkonstruktion fehlt (M6), liegt sie wie bei der Befestigung gleichmäßig quer zur Verlegerichtung im Abstand `Abstand_UK` des Belags, höchstens 40 cm (R-C01, `uebergangsUk`). Mit M6 rechnen Gummiband, Unterlegpads, Stellfüße, Justierkeile und Bodenanker aus der echten UK.
 - **Noch nicht automatisch** (Menge 0, nur Eingabe): Unterlegpads und Höhenausgleich (hängen an UK und Aufbau, M6), Anlieferung (Wahl des Kunden), Schutz-Vlies, Handschuhe, Montagehilfe-Set, Verbinder für Holzfliesen (F25 ist Fehlerverdacht).
 - **Benchmark** `domain.Zubehoer.berechnetesZubehoer` (12 × 8 m, waagrecht und 45°, Halbverband): lokal 14,4 ms je Durchlauf (Vorwert in `benchmarks/baseline-lokal.json`).
+
+## Neuer Planer (M8-03): Pflichtzubehör
+
+- **Quelle:** Spalten `benoetigtesZubehoer` und `benoetigtesZubehoer_anzahl` der Upload-Datei (B-122) – feste Anzahl je Artikel (`pflichtzubehoer`). Gezählt wird je verwendetem Artikel: der Belag je Diele, Befestigung und Zubehör je Verkaufseinheit „Tatsächlich“. Was ein Pflichtartikel selbst benötigt, kommt dazu (höchstens fünf Stufen, ein Kreis in den Daten rechnet nicht endlos).
+- **Menge:** Das Pflichtzubehör zählt zur berechneten Menge (Zubehör, das schon automatisch gerechnet wird, plus Pflicht). „Tatsächlich“ kann nicht unter die Pflichtmenge sinken: die App lehnt eine kleinere Eingabe mit „Pflichtzubehör: mindestens X“ ab, der Server rechnet ohnehin mit mindestens der Pflichtmenge. Die Zeile trägt ein Schloss und „Pflichtzubehör, mindestens X“.
+- **Pflichtartikel ohne Zubehörgruppe** (z. B. Halter einer Entwässerungsrinne) stehen nicht im Schritt Zubehör, bleiben aber in der Berechnung (`Berechnung.zubehoer`) für die Materialliste.
+- **Stand der Daten:** In der Upload-Datei haben bisher nur die Entwässerungsrinnen benötigtes Zubehör; die Rinnen kommen mit M7. Belag, Befestigung und Zubehör werden schon jetzt berücksichtigt, sobald die Daten es angeben.

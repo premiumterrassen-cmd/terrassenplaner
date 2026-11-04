@@ -295,4 +295,73 @@ void main() {
     expect(planung.aktuell.zubehoer, isEmpty);
     expect(tester.widget<TextField>(feld).decoration!.hintText, '4');
   });
+
+  testWidgets('Pflichtzubehör (M8-03): Schloss, nicht unter die Pflichtmenge', (
+    tester,
+  ) async {
+    final planung = PlanungsSteuerung();
+    final quelle = ZubehoerQuelle(() async => _auswahl);
+    final berechnung = BerechnungsSteuerung(
+      planung: planung,
+      berechne: (p) async => Berechnung(
+        umriss: const [],
+        flaeche: 1,
+        zubehoer: zubehoerpositionen(
+          const {},
+          p.aktuell.zubehoer,
+          pflicht: {const Artikelnummer('50-80-002'): 2},
+        ),
+      ),
+    );
+    addTearDown(() {
+      berechnung.dispose();
+      quelle.dispose();
+      planung.dispose();
+    });
+    await tester.pumpWidget(
+      testApp(
+        home: Scaffold(
+          body: ZubehoerBereich(
+            quelle: quelle,
+            berechnung: berechnung,
+            planung: planung,
+            onGeaendert: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final feld = find.byKey(const ValueKey('zubehoermenge-50-80-002'));
+    expect(tester.widget<TextField>(feld).decoration!.hintText, '2');
+    expect(find.text(de.zubehoerPflicht(2)), findsOneWidget);
+    expect(find.byIcon(Icons.lock_outline), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('zubehoerpflicht-50-80-006')),
+      findsNothing,
+    );
+    // weniger als die Pflicht: abgelehnt
+    for (final wenig in ['0', '1']) {
+      await tester.enterText(feld, wenig);
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      expect(find.text(de.zubehoerPflichtMindestens(2)), findsOneWidget);
+      expect(planung.aktuell.zubehoer, isEmpty);
+    }
+    // genau die Pflicht und mehr: übernommen
+    await tester.enterText(feld, '2');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(find.text(de.zubehoerPflichtMindestens(2)), findsNothing);
+    expect(planung.aktuell.zubehoer.values, [2]);
+    await tester.enterText(feld, '5');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(tester.widget<TextField>(feld).decoration!.hintText, '5');
+    expect(find.text(de.zubehoerBerechnet(2)), findsOneWidget);
+    // leer: zurück auf die Pflichtmenge
+    await tester.enterText(feld, '');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(tester.widget<TextField>(feld).decoration!.hintText, '2');
+  });
 }

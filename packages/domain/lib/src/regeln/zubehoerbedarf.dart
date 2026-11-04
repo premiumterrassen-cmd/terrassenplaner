@@ -17,10 +17,15 @@ import 'regelwerk.dart';
 
 /// Eine Zeile im Schritt „Zubehör“: vom Planer berechnete Menge und die
 /// Menge „Tatsächlich“ – eingegeben oder, ohne Eingabe, die berechnete
-/// (R-D04). Mengen in Verkaufseinheiten.
+/// (R-D04) –, dazu die Menge an Pflichtzubehör (M8-03), unter die
+/// „Tatsächlich“ nicht sinken kann. Mengen in Verkaufseinheiten.
 final class Zubehoerposition {
-  const Zubehoerposition(this.nummer, {this.berechnet = 0, int? menge})
-    : menge = menge ?? berechnet;
+  const Zubehoerposition(
+    this.nummer, {
+    this.berechnet = 0,
+    int? menge,
+    this.pflicht = 0,
+  }) : menge = menge ?? berechnet;
 
   final Artikelnummer nummer;
 
@@ -29,6 +34,9 @@ final class Zubehoerposition {
 
   /// Menge „Tatsächlich“.
   final int menge;
+
+  /// Pflichtzubehör (M8-03): so viel ist mindestens nötig – nicht abwählbar.
+  final int pflicht;
 
   /// Ob die Menge von der berechneten abweicht – dann erscheint im Angebot
   /// beides (Fachkonzept 06).
@@ -39,13 +47,15 @@ final class Zubehoerposition {
       other is Zubehoerposition &&
       other.nummer == nummer &&
       other.berechnet == berechnet &&
-      other.menge == menge;
+      other.menge == menge &&
+      other.pflicht == pflicht;
 
   @override
-  int get hashCode => Object.hash(nummer, berechnet, menge);
+  int get hashCode => Object.hash(nummer, berechnet, menge, pflicht);
 
   @override
-  String toString() => '$nummer: $menge (berechnet $berechnet)';
+  String toString() =>
+      '$nummer: $menge (berechnet $berechnet, Pflicht $pflicht)';
 }
 
 /// Berechnete Mengen des Zubehörs (M8-02) je Artikel in Verkaufseinheiten,
@@ -101,22 +111,72 @@ Map<Artikelnummer, int> berechnetesZubehoer(
   };
 }
 
-/// Zeilen „Tatsächlich“ aus den [berechnet]en Mengen und den [eingaben]
-/// des Kunden (M8-01): zuerst die berechneten Artikel, dann die nur
-/// eingegebenen. Artikel ohne Menge und ohne Berechnung fehlen.
+/// Zeilen „Tatsächlich“ aus den [berechnet]en Mengen, den [eingaben] des
+/// Kunden (M8-01) und dem [pflicht]-Zubehör (M8-03): zuerst die
+/// berechneten Artikel, dann das Pflichtzubehör, dann die nur eingegebenen.
+/// Das Pflichtzubehör zählt zur berechneten Menge und ist nicht abwählbar –
+/// eine kleinere Eingabe gilt als Pflichtmenge. Artikel ohne Menge und ohne
+/// Berechnung fehlen.
 List<Zubehoerposition> zubehoerpositionen(
   Map<Artikelnummer, int> berechnet,
-  Map<Artikelnummer, int> eingaben,
-) => [
-  for (final nummer in {...berechnet.keys, ...eingaben.keys})
-    if (Zubehoerposition(
-          nummer,
-          berechnet: berechnet[nummer] ?? 0,
-          menge: eingaben[nummer],
-        )
+  Map<Artikelnummer, int> eingaben, {
+  Map<Artikelnummer, int> pflicht = const {},
+}) => [
+  for (final nummer in {...berechnet.keys, ...pflicht.keys, ...eingaben.keys})
+    if (_position(nummer, berechnet, eingaben, pflicht[nummer] ?? 0)
         case final p when p.berechnet > 0 || p.menge > 0)
       p,
 ];
+
+Zubehoerposition _position(
+  Artikelnummer nummer,
+  Map<Artikelnummer, int> berechnet,
+  Map<Artikelnummer, int> eingaben,
+  int pflicht,
+) {
+  final summe = (berechnet[nummer] ?? 0) + pflicht;
+  return Zubehoerposition(
+    nummer,
+    berechnet: summe,
+    menge: math.max(eingaben[nummer] ?? summe, pflicht),
+    pflicht: pflicht,
+  );
+}
+
+/// Pflichtzubehör (M8-03): benötigtes Zubehör mit fester Anzahl je Artikel
+/// aus der Upload-Datei (`benoetigtesZubehoer`, B-122) für die [verwendet]en
+/// Artikel (Anzahl je Artikel). Was ein Pflichtartikel selbst braucht,
+/// kommt dazu – höchstens [_stufen] Stufen tief, damit ein Kreis in den
+/// Daten nicht endlos rechnet. Unbekannte Artikel haben keins.
+Map<Artikelnummer, int> pflichtzubehoer(
+  Regelwerk regelwerk,
+  Map<Artikelnummer, int> verwendet,
+) {
+  final summe = <Artikelnummer, int>{};
+  var stufe = verwendet;
+  for (var i = 0; i < _stufen; i++) {
+    final neu = <Artikelnummer, int>{};
+    for (final MapEntry(key: nummer, value: anzahl) in stufe.entries) {
+      if (regelwerk.datei[nummer] == null) continue;
+      for (final MapEntry(key: z, value: je)
+          in regelwerk.pflichtzubehoer(nummer).entries) {
+        neu.update(
+          z.nummer,
+          (n) => n + je * anzahl,
+          ifAbsent: () => je * anzahl,
+        );
+      }
+    }
+    for (final MapEntry(:key, :value) in neu.entries) {
+      summe.update(key, (n) => n + value, ifAbsent: () => value);
+    }
+    stufe = neu;
+  }
+  return summe;
+}
+
+/// Stufen des Pflichtzubehörs (Pflichtartikel eines Pflichtartikels …).
+const _stufen = 5;
 
 /// Fläche des Belags in m²: je Stück Länge mal Breite samt Fuge – die
 /// Terrassenfläche, auf die sich der Ölverbrauch bezieht (R-D05).

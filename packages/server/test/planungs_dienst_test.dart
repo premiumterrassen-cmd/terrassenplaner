@@ -596,6 +596,66 @@ void main() {
       );
     });
 
+    test('Pflichtzubehör (M8-03): je Diele, je Befestigung, je Eingabe, '
+        'nicht abwählbar', () {
+      Artikel teil(String nummer) => Artikel(
+        nummer: Artikelnummer(nummer),
+        titel: 'Teil $nummer',
+        art: Artikelart.sonstiges,
+        einheit: Verkaufseinheit(Mengeneinheit.stueck),
+      );
+      final pflichtig = Regelwerk(
+        Artikeldatei(
+          quelle: 'test',
+          version: '2',
+          eintraege: [
+            Artikeleintrag(
+              artikel: diele,
+              verweise: {
+                Beziehung.befestigung.spalte: [for (final c in clips) c.nummer],
+              },
+              angaben: const {'Abstand_UK': 400},
+              benoetigt: const {Artikelnummer('p-diele'): 1},
+            ),
+            for (final c in clips)
+              Artikeleintrag(
+                artikel: c,
+                benoetigt: const {Artikelnummer('p-clip'): 2},
+              ),
+            Artikeleintrag(
+              artikel: teil('vlies'),
+              benoetigt: const {Artikelnummer('p-vlies'): 3},
+            ),
+            for (final n in ['p-diele', 'p-clip', 'p-vlies'])
+              Artikeleintrag(artikel: teil(n)),
+          ],
+        ),
+      );
+      Map<String, (int, int, int)> zeilen(Berechnung b) => {
+        for (final z in b.zubehoer)
+          z.nummer.wert: (z.berechnet, z.menge, z.pflicht),
+      };
+      final stand = Planungsstand.start
+          .mitZubehoermenge(const Artikelnummer('vlies'), 2)
+          .mitZubehoermenge(const Artikelnummer('p-clip'), 1);
+      // F01: 48 Dielen; 4 Clip-Packungen à 2; 2 × Vlies à 3
+      expect(zeilen(PlanungsDienst.berechne(stand, diele, pflichtig)), {
+        '80-10-001-50': (1, 1, 0),
+        '80-10-001-100': (1, 1, 0),
+        '80-10-001-250': (2, 2, 0),
+        'p-diele': (48, 48, 48),
+        'p-clip': (8, 8, 8),
+        'p-vlies': (6, 6, 6),
+        'vlies': (0, 2, 0),
+      });
+      // ohne Verlegung: nur das Pflichtzubehör der Eingaben
+      expect(zeilen(PlanungsDienst.berechne(stand, null, pflichtig)), {
+        'p-vlies': (6, 6, 6),
+        'p-clip': (0, 1, 0),
+        'vlies': (0, 2, 0),
+      });
+    });
+
     test('über den Router mit dem Regelwerk', () async {
       await dienst.stoppe();
       dienst = await PlanungsDienst.starte(

@@ -951,4 +951,14 @@ class PlanerTexteEn extends PlanerTexte {
   String zubehoerBerechnet(int anzahl) {
     return 'calculated: $anzahl';
   }
+
+  @override
+  String zubehoerPflicht(int anzahl) {
+    return 'Required accessory, at least $anzahl';
+  }
+
+  @override
+  String zubehoerPflichtMindestens(int anzahl) {
+    return 'Required accessory: at least $anzahl';
+  }
 }

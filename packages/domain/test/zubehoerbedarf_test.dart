@@ -448,8 +448,12 @@ void main() {
       expect(p == const Zubehoerposition(a, berechnet: 4, menge: 5), isFalse);
       expect(p == const Zubehoerposition(a, berechnet: 3, menge: 6), isFalse);
       expect(p == Object(), isFalse);
-      expect('$p', 'a: 5 (berechnet 3)');
-      expect(p.hashCode, Object.hash(a, 3, 5));
+      expect('$p', 'a: 5 (berechnet 3, Pflicht 0)');
+      expect(p.hashCode, Object.hash(a, 3, 5, 0));
+      expect(
+        p == const Zubehoerposition(a, berechnet: 3, menge: 5, pflicht: 1),
+        isFalse,
+      );
       expect(const Zubehoerposition(a).menge, 0);
     });
   });
@@ -462,6 +466,7 @@ void main() {
         Zubehoerposition(Artikelnummer('568-075'), berechnet: 4, menge: 2),
         Zubehoerposition(Artikelnummer('50-80-006'), menge: 7),
         Zubehoerposition(Artikelnummer('50-60-120'), berechnet: 1),
+        Zubehoerposition(Artikelnummer('42-02'), berechnet: 6, pflicht: 6),
       ],
     );
     for (final k in [Berechnung.ausBytes(b.zuBytes()), b.mitPlanung(2)]) {
@@ -477,6 +482,72 @@ void main() {
       () => b.zubehoer.add(const Zubehoerposition(Artikelnummer('x'))),
       throwsUnsupportedError,
     );
+  });
+
+  group('Pflichtzubehör (M8-03)', () {
+    Artikel teil(String n) => _artikel(n, 'Teil $n', Artikelart.rinnenzubehoer);
+    final rinne = _artikel('42-01', 'Rinne', Artikelart.rinne);
+    final halter = teil('42-02');
+    final schraube = teil('42-03');
+    final kreis = teil('42-04');
+    final regelwerk = Regelwerk(
+      Artikeldatei(
+        quelle: 'test',
+        version: '4',
+        eintraege: [
+          Artikeleintrag(
+            artikel: rinne,
+            benoetigt: {halter.nummer: 2, schraube.nummer: 1},
+          ),
+          Artikeleintrag(artikel: halter, benoetigt: {schraube.nummer: 3}),
+          Artikeleintrag(artikel: schraube),
+          // Kreis in den Daten: endet nach fünf Stufen
+          Artikeleintrag(artikel: kreis, benoetigt: {kreis.nummer: 1}),
+        ],
+      ),
+    );
+
+    test('feste Anzahl je Artikel, auch was ein Pflichtartikel braucht', () {
+      // 3 Rinnen: 6 Halter, 3 + 18 Schrauben
+      expect(_mengen(pflichtzubehoer(regelwerk, {rinne.nummer: 3})), {
+        '42-02': 6,
+        '42-03': 21,
+      });
+      expect(pflichtzubehoer(regelwerk, {schraube.nummer: 5}), isEmpty);
+      expect(
+        pflichtzubehoer(regelwerk, {const Artikelnummer('unbekannt'): 1}),
+        isEmpty,
+      );
+      expect(pflichtzubehoer(regelwerk, const {}), isEmpty);
+      expect(_mengen(pflichtzubehoer(regelwerk, {kreis.nummer: 1})), {
+        '42-04': 5,
+      });
+      // mehrere Quellen addieren sich
+      expect(
+        _mengen(
+          pflichtzubehoer(regelwerk, {rinne.nummer: 1, halter.nummer: 1}),
+        ),
+        {'42-02': 2, '42-03': 1 + 6 + 3},
+      );
+    });
+
+    test('Zeilen: Pflicht zur Berechnung, nicht abwählbar', () {
+      const a = Artikelnummer('a');
+      const b = Artikelnummer('b');
+      const c = Artikelnummer('c');
+      final p = zubehoerpositionen(
+        {a: 2},
+        {a: 0, b: 1, c: 9},
+        pflicht: {a: 3, b: 4, c: 1},
+      );
+      expect(p, [
+        const Zubehoerposition(a, berechnet: 5, menge: 3, pflicht: 3),
+        const Zubehoerposition(b, berechnet: 4, pflicht: 4),
+        const Zubehoerposition(c, berechnet: 1, menge: 9, pflicht: 1),
+      ]);
+      expect(p.first.geaendert, isTrue);
+      expect(p[1].geaendert, isFalse);
+    });
   });
 
   group('Abgleich mit den Referenzkonfigurationen (M1-03)', () {

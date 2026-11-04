@@ -140,6 +140,12 @@ final class Berechnung {
               _versatz(2),
               0,
             ),
+            pflicht: const fb.Uint32Reader().vTableGet(
+              puffer,
+              ort,
+              _versatz(3),
+              0,
+            ),
           ),
       ],
     );
@@ -303,7 +309,8 @@ final class Berechnung {
   /// 16: verschnitt (float64, fehlt ohne Dielen), 17: dielenliste
   /// ([{ 0: belag (string), 1: laenge (int32 mm), 2: anzahl (int32) }])
   /// (M5-08), 35: belagmeldungen ([uint8], M5-10), 50: zubehoer ([{ 0:
-  /// nummer (string), 1: berechnet (uint32), 2: menge (uint32) }], M8-02)
+  /// nummer (string), 1: berechnet (uint32), 2: menge (uint32), 3: pflicht
+  /// (uint32, M8-03) }], M8-02)
   /// }`. Die Plätze 18–34 sind für die Unterkonstruktion (M6) frei
   /// gehalten, 50–59 für das Zubehör (M8).
   Uint8List zuBytes() {
@@ -400,10 +407,11 @@ final class Berechnung {
   static int _zubehoerposition(fb.Builder fbb, Zubehoerposition z) {
     final nummerOrt = fbb.writeString(z.nummer.wert);
     fbb
-      ..startTable(3)
+      ..startTable(4)
       ..addOffset(0, nummerOrt)
       ..addUint32(1, z.berechnet)
-      ..addUint32(2, z.menge);
+      ..addUint32(2, z.menge)
+      ..addUint32(3, z.pflicht);
     return fbb.endTable();
   }
 

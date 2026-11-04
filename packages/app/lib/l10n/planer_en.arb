@@ -295,5 +295,8 @@
   "zubehoerTatsaechlich": "Actual",
   "zubehoerMengeUngueltig": "Please enter 0 to {max}",
 
-  "zubehoerBerechnet": "calculated: {anzahl}"
+  "zubehoerBerechnet": "calculated: {anzahl}",
+
+  "zubehoerPflicht": "Required accessory, at least {anzahl}",
+  "zubehoerPflichtMindestens": "Required accessory: at least {anzahl}"
 }
