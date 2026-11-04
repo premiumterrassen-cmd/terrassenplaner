@@ -11,6 +11,7 @@ import 'ausschnitt.dart';
 import 'befestigungsart.dart';
 import 'grundriss.dart';
 import 'rundungen.dart';
+import 'terrassenart.dart';
 import 'verlegeart.dart';
 import 'verlegerichtung.dart';
 
@@ -19,7 +20,8 @@ import 'verlegerichtung.dart';
 /// Grundriss, seit M4-06 mit Ausschnitten, seit M5-01 mit Belag, seit M5-02
 /// mit Dielenlänge, seit M5-03 mit „kurze Stücke verbinden“, seit M5-04 mit
 /// Verlegeart, seit M5-05 mit Verlegerichtung, seit M5-07 mit
-/// Ausgangspunkt, seit M5-09 mit Befestigungsart;
+/// Ausgangspunkt, seit M5-09 mit Befestigungsart, seit M6-01 mit Art der
+/// Terrasse und Spannweite;
 /// Unterkonstruktion usw. folgen als weitere Felder. Berechnet wird daraus
 /// auf dem Server.
 final class Planungsstand {
@@ -37,6 +39,8 @@ final class Planungsstand {
     this.verschiebungX = const Millimeter(0),
     this.verschiebungY = const Millimeter(0),
     this.befestigungsart = Befestigungsart.clips,
+    this.terrassenart = Terrassenart.normal,
+    this.spannweite = Terrassenart.vorgabeSpannweite,
   });
 
   /// Liest einen Planungsstand aus dem Transportformat ([zuBytes]).
@@ -123,6 +127,22 @@ final class Planungsstand {
           0,
         ),
       ),
+      terrassenart: Terrassenart.ausNummer(
+        const fb.Uint8Reader().vTableGet(
+          puffer,
+          wurzel,
+          _versatz(_terrassenartPlatz),
+          0,
+        ),
+      ),
+      spannweite: Millimeter(
+        const fb.Int32Reader().vTableGet(
+          puffer,
+          wurzel,
+          _versatz(_spannweitePlatz),
+          Terrassenart.vorgabeSpannweite.mm,
+        ),
+      ),
     );
   }
 
@@ -185,6 +205,14 @@ final class Planungsstand {
   /// Wahl bleibt bei einem Belagwechsel erhalten.
   final Befestigungsart befestigungsart;
 
+  /// Art der Terrasse (M6-01, Fachkonzept 3.1); Vorgabe normale Terrasse.
+  final Terrassenart terrassenart;
+
+  /// „Spannweite der Unterkonstruktion“ (M6-01): Abstand der vorhandenen
+  /// Träger, gefragt nur bei [Terrassenart.vorhandeneUk]; bleibt beim
+  /// Wechsel der Art erhalten.
+  final Millimeter spannweite;
+
   /// Wie viele Ecken als Ausgangspunkt wählbar sind (A, B …).
   int get ausgangsecken => _eckenzahl(grundriss);
 
@@ -221,6 +249,8 @@ final class Planungsstand {
     Millimeter? verschiebungX,
     Millimeter? verschiebungY,
     Befestigungsart? befestigungsart,
+    Terrassenart? terrassenart,
+    Millimeter? spannweite,
   }) {
     final neu = grundriss ?? this.grundriss;
     final ecke = ausgangsecke ?? this.ausgangsecke;
@@ -242,6 +272,8 @@ final class Planungsstand {
       verschiebungX: verschiebungX ?? this.verschiebungX,
       verschiebungY: verschiebungY ?? this.verschiebungY,
       befestigungsart: befestigungsart ?? this.befestigungsart,
+      terrassenart: terrassenart ?? this.terrassenart,
+      spannweite: spannweite ?? this.spannweite,
     );
   }
 
@@ -351,6 +383,22 @@ final class Planungsstand {
   Planungsstand mitBefestigungsart(Befestigungsart art) =>
       _mit(befestigungsart: art);
 
+  /// Kopie mit anderer Art der Terrasse (M6-01).
+  Planungsstand mitTerrassenart(Terrassenart art) => _mit(terrassenart: art);
+
+  /// Kopie mit anderer Spannweite (M6-01); nur 10 bis 300 cm
+  /// (`Terrassenart.spannweiteGueltig`).
+  Planungsstand mitSpannweite(Millimeter spannweite) {
+    if (!Terrassenart.spannweiteGueltig(spannweite)) {
+      throw ArgumentError.value(
+        spannweite.mm,
+        'spannweite',
+        'muss 100 bis 3000 mm sein',
+      );
+    }
+    return _mit(spannweite: spannweite);
+  }
+
   /// FlatBuffer für den Weg zum Server (#110):
   /// `{ 0: schema (uint16), 1: grundriss { 0: form (uint8), 1: masse ([int32] mm) },
   /// 2: ausschnitte ([{ 0: bezeichnung (string), 1: masse ([int32] mm) }]),
@@ -359,7 +407,9 @@ final class Planungsstand {
   /// 7: verlegeart (uint8), 8: verlegerichtung (uint8),
   /// 9: verlegewinkel (uint8 Grad), 10: ausgangsecke (uint16),
   /// 11: verschiebungX (int32 mm), 12: verschiebungY (int32 mm),
-  /// 13: befestigungsart (uint8, M5-09) }`.
+  /// 13: befestigungsart (uint8, M5-09), 20: terrassenart (uint8),
+  /// 21: spannweite (int32 mm) (M6-01) }`. Plätze 14–19 gehören der
+  /// Dielenverlegung (M5-08).
   /// Neue Felder nur anhängen (docs/architektur/datenmodell.md).
   Uint8List zuBytes() {
     final fbb = fb.Builder();
@@ -380,7 +430,7 @@ final class Planungsstand {
       null => null,
     };
     fbb
-      ..startTable(14)
+      ..startTable(22)
       ..addUint16(_schemaPlatz, schema)
       ..addOffset(_grundrissPlatz, grundrissOrt)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
@@ -394,7 +444,9 @@ final class Planungsstand {
       ..addUint16(_ausgangseckePlatz, ausgangsecke)
       ..addInt32(_verschiebungXPlatz, verschiebungX.mm)
       ..addInt32(_verschiebungYPlatz, verschiebungY.mm)
-      ..addUint8(_befestigungsartPlatz, befestigungsart.nummer);
+      ..addUint8(_befestigungsartPlatz, befestigungsart.nummer)
+      ..addUint8(_terrassenartPlatz, terrassenart.nummer)
+      ..addInt32(_spannweitePlatz, spannweite.mm);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
   }
@@ -429,6 +481,8 @@ final class Planungsstand {
   static const _verschiebungXPlatz = 11;
   static const _verschiebungYPlatz = 12;
   static const _befestigungsartPlatz = 13;
+  static const _terrassenartPlatz = 20;
+  static const _spannweitePlatz = 21;
 
   @override
   bool operator ==(Object other) {
@@ -445,6 +499,8 @@ final class Planungsstand {
         other.verschiebungX != verschiebungX ||
         other.verschiebungY != verschiebungY ||
         other.befestigungsart != befestigungsart ||
+        other.terrassenart != terrassenart ||
+        other.spannweite != spannweite ||
         other.ausschnitte.length != ausschnitte.length) {
       return false;
     }
@@ -469,6 +525,7 @@ final class Planungsstand {
     verschiebungX,
     verschiebungY,
     befestigungsart,
+    Object.hash(terrassenart, spannweite),
   );
 }
 

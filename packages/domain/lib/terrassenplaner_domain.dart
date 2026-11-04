@@ -30,6 +30,7 @@ export 'src/konfiguration/konfigurationsnummer.dart';
 export 'src/konfiguration/planung.dart';
 export 'src/konfiguration/planungsstand.dart';
 export 'src/konfiguration/rundungen.dart';
+export 'src/konfiguration/terrassenart.dart';
 export 'src/konfiguration/verlauf.dart';
 export 'src/konfiguration/verlegeart.dart';
 export 'src/konfiguration/verlegerichtung.dart';
