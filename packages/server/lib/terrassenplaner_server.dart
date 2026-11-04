@@ -2,14 +2,15 @@
 library;
 
 export 'src/datenhaltung/datenbank.dart';
-export 'src/datenhaltung/datenbank_mitarbeiter.dart';
 export 'src/datenhaltung/entitaeten.dart';
 export 'src/datenhaltung/konfigurationen.dart';
+export 'src/datenhaltung/mitarbeiterkonten.dart';
 export 'src/datenhaltung/roh_speicher.dart';
 export 'src/dienste/artikel_dienst.dart';
 export 'src/dienste/artikeldatei_quelle.dart';
 export 'src/dienste/hallo_dienst.dart';
 export 'src/dienste/konfigurations_dienst.dart';
+export 'src/dienste/mitarbeiter_verwaltung.dart';
 export 'src/dienste/modell3d_dienst.dart';
 export 'src/dienste/planungs_dienst.dart';
 export 'src/import/artikel_import.dart';
@@ -27,7 +28,7 @@ export 'src/schema/schema_generator.dart';
 export 'src/schema/transport_schema.dart';
 export 'src/start_meldung.dart';
 export 'src/ueberwachung/datenbank_metriken.dart';
-export 'src/zugriff/mitarbeiter_verzeichnis.dart';
+export 'src/werkzeuge/mitarbeiter_werkzeug.dart';
 export 'src/zugriff/mitarbeiter_zugang.dart';
 export 'src/zugriff/planer_zugangsdaten.dart';
 export 'src/zugriff/rollen.dart';
