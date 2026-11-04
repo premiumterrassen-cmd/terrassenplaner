@@ -19,6 +19,10 @@ abstract final class WampNamen {
   /// lfm und je m²; der erste ist die Vorgabe.
   static const belagAuswahl = '${kunde}belag.auswahl';
 
+  /// Zubehörauswahl (M8-01): die acht Gruppen des Schritts „Zubehör“ mit
+  /// ihren Artikeln in Datenreihenfolge.
+  static const zubehoerAuswahl = '${kunde}zubehoer.auswahl';
+
   /// 3D-Modell (M3-10): GLB einer Rechteck-Terrasse (Prototyp).
   static const modell3dRechteck = '${kunde}modell3d.rechteck';
 

@@ -25,6 +25,10 @@ class ArtikelDienst {
       (aufruf) =>
           aufruf.respondWith(arguments: [dienst.belagauswahl.alsJson()]),
     );
+    (await sitzung.register(WampNamen.zubehoerAuswahl)).onInvoke(
+      (aufruf) =>
+          aufruf.respondWith(arguments: [dienst.zubehoerauswahl.alsJson()]),
+    );
     return dienst;
   }
 
@@ -47,6 +51,11 @@ class ArtikelDienst {
       const Artikelfilter(bereich: Bereich.belag),
     ))
       Belagangebot.aus(a),
+  ]);
+
+  /// Zubehör der acht Gruppen (M8-01), in Datenreihenfolge.
+  Zubehoerauswahl get zubehoerauswahl => Zubehoerauswahl.aus(datei.version, [
+    for (final e in datei.eintraege) e.artikel,
   ]);
 
   /// Belag zur [nummer] aus den aktuellen Artikeldaten (M5-05); ohne

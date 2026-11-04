@@ -9,6 +9,8 @@ export 'src/artikel/artikelfilter.dart';
 export 'src/artikel/belagauswahl.dart';
 export 'src/artikel/dielenlaenge.dart';
 export 'src/artikel/einheiten.dart';
+export 'src/artikel/zubehoerauswahl.dart';
+export 'src/artikel/zubehoergruppe.dart';
 export 'src/begruessung.dart';
 export 'src/datenmodell/hlc.dart';
 export 'src/datenmodell/uuid_v7.dart';

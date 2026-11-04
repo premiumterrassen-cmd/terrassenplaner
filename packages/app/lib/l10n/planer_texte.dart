@@ -1731,6 +1731,42 @@ abstract class PlanerTexte {
   /// In de, this message translates to:
   /// **'Keine hinterlegte Schraube ist mindestens doppelt so lang, wie die Diele stark ist. Gerechnet wird mit der längsten – bitte prüfen Sie die Schraubenlänge.'**
   String get belagmeldungSchraubeZuKurz;
+
+  /// No description provided for @zubehoerLaedt.
+  ///
+  /// In de, this message translates to:
+  /// **'Zubehör wird geladen …'**
+  String get zubehoerLaedt;
+
+  /// No description provided for @zubehoerFehler.
+  ///
+  /// In de, this message translates to:
+  /// **'Das Zubehör konnte nicht geladen werden.'**
+  String get zubehoerFehler;
+
+  /// No description provided for @zubehoerKeine.
+  ///
+  /// In de, this message translates to:
+  /// **'In dieser Gruppe gibt es keine Artikel.'**
+  String get zubehoerKeine;
+
+  /// No description provided for @zubehoerBezeichnung.
+  ///
+  /// In de, this message translates to:
+  /// **'Bezeichnung'**
+  String get zubehoerBezeichnung;
+
+  /// No description provided for @zubehoerTatsaechlich.
+  ///
+  /// In de, this message translates to:
+  /// **'Tatsächlich'**
+  String get zubehoerTatsaechlich;
+
+  /// No description provided for @zubehoerMengeUngueltig.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte 0 bis {max} eingeben'**
+  String zubehoerMengeUngueltig(int max);
 }
 
 class _PlanerTexteDelegate extends LocalizationsDelegate<PlanerTexte> {

@@ -926,4 +926,24 @@ class PlanerTexteDe extends PlanerTexte {
   @override
   String get belagmeldungSchraubeZuKurz =>
       'Keine hinterlegte Schraube ist mindestens doppelt so lang, wie die Diele stark ist. Gerechnet wird mit der längsten – bitte prüfen Sie die Schraubenlänge.';
+
+  @override
+  String get zubehoerLaedt => 'Zubehör wird geladen …';
+
+  @override
+  String get zubehoerFehler => 'Das Zubehör konnte nicht geladen werden.';
+
+  @override
+  String get zubehoerKeine => 'In dieser Gruppe gibt es keine Artikel.';
+
+  @override
+  String get zubehoerBezeichnung => 'Bezeichnung';
+
+  @override
+  String get zubehoerTatsaechlich => 'Tatsächlich';
+
+  @override
+  String zubehoerMengeUngueltig(int max) {
+    return 'Bitte 0 bis $max eingeben';
+  }
 }

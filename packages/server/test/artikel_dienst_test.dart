@@ -38,6 +38,7 @@ final _clip = Artikeleintrag(
     titel: 'CLIP-FIXX',
     art: Artikelart.clip,
     einheit: Verkaufseinheit(Mengeneinheit.stueck),
+    zubehoergruppe: Zubehoergruppe.clipsSchrauben,
   ),
 );
 
@@ -152,6 +153,25 @@ void main() {
     expect(auswahl.belaege.first.preisJeLfm, const Cent(1250));
     expect(auswahl.belaege.first.preisJeM2, const Cent(19231));
     expect(dienst.belagauswahl.belaege, hasLength(2));
+  });
+
+  test('Zubehörauswahl (M8-01): acht Gruppen, nur Zubehör', () async {
+    final antwort = await _rufe(kunde, WampNamen.zubehoerAuswahl);
+    final auswahl = Zubehoerauswahl.ausJson(
+      alsJsonObjekt(antwort.arguments!.single),
+      {robinie.id: robinie},
+    );
+    expect(auswahl.version, 'v1');
+    expect(auswahl.gruppen.keys, Zubehoergruppe.values);
+    expect(
+      auswahl.gruppen[Zubehoergruppe.clipsSchrauben]!.map((a) => a.nummer.wert),
+      ['80-10-001'],
+    );
+    expect([for (final l in auswahl.gruppen.values) ...l], hasLength(1));
+    expect(
+      dienst.zubehoerauswahl.gruppen[Zubehoergruppe.clipsSchrauben],
+      hasLength(1),
+    );
   });
 
   test('Belag für die Planung (M5-05): gewählt oder Vorgabe', () async {

@@ -26,6 +26,7 @@ import 'standardwert_hinweis.dart';
 import 'steuerung.dart';
 import 'zeichenflaeche.dart';
 import 'zeichnung.dart';
+import 'zubehoer.dart';
 
 /// Rahmen der Planer-Oberfläche (M3-01): Kopfzeile, Schrittleiste,
 /// Bearbeitungsmenü, Zeichenfläche mit Kennzahlen und Statuszeile.
@@ -41,6 +42,7 @@ class PlanerRahmen extends StatefulWidget {
     this.konfiguration,
     this.berechne,
     this.belaege,
+    this.zubehoer,
     this.aktionen = const RahmenAktionen(),
     this.sprache,
     this.darstellung,
@@ -67,6 +69,9 @@ class PlanerRahmen extends StatefulWidget {
 
   /// Beläge vom Server (M5-01); ohne sie bleibt die Belagauswahl leer.
   final BelaegeLaden? belaege;
+
+  /// Zubehör vom Server (M8-01); ohne es bleiben die Gruppen leer.
+  final ZubehoerLaden? zubehoer;
 
   /// Links und Ergebnis-Knöpfe (M3-06).
   final RahmenAktionen aktionen;
@@ -119,6 +124,10 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
     final lade? => BelagQuelle(lade),
     null => null,
   };
+  late final ZubehoerQuelle? _zubehoer = switch (widget.zubehoer) {
+    final lade? => ZubehoerQuelle(lade),
+    null => null,
+  };
 
   @override
   void initState() {
@@ -155,6 +164,7 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
   void dispose() {
     _berechnung?.dispose();
     _belaege?.dispose();
+    _zubehoer?.dispose();
     _modus.dispose();
     _zustand.removeListener(_verlaesstRundung);
     _rundung.dispose();
@@ -254,6 +264,7 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
             ausgangspunkt: _ausgangspunkt,
             berechnung: _berechnung,
             belaege: _belaege,
+            zubehoer: _zubehoer,
           );
           return Column(
             children: [
@@ -602,6 +613,7 @@ class Bearbeitungsmenue extends StatelessWidget {
     this.ausgangspunkt,
     this.berechnung,
     this.belaege,
+    this.zubehoer,
   });
 
   final RahmenZustand zustand;
@@ -610,6 +622,9 @@ class Bearbeitungsmenue extends StatelessWidget {
   final RundungsBedienung rundung;
   final AusschnittBedienung ausschnitte;
   final BelagQuelle? belaege;
+
+  /// Zubehör der acht Gruppen (M8-01).
+  final ZubehoerQuelle? zubehoer;
 
   /// Ausgangspunkt des Belags (M5-07); ohne Bedienung keine Eingabe.
   final AusgangspunktBedienung? ausgangspunkt;
@@ -709,7 +724,20 @@ class Bearbeitungsmenue extends StatelessWidget {
                 ),
                 onTap: () => zustand.waehle(schritt),
               ),
-              if (schritt == zustand.aktiv)
+              if (schritt == zustand.aktiv && schritt == PlanerSchritt.zubehoer)
+                Padding(
+                  padding: const EdgeInsets.only(
+                    left: PlanerAbstand.gross,
+                    right: PlanerAbstand.mittel,
+                    bottom: PlanerAbstand.klein,
+                  ),
+                  child: ZubehoerBereich(
+                    quelle: zubehoer,
+                    planung: planung,
+                    onGeaendert: () => zustand.markiereGeaendert(schritt),
+                  ),
+                )
+              else if (schritt == zustand.aktiv)
                 for (final (i, punkt)
                     in schritt.nummerierteUnterpunkte(t).indexed)
                   Padding(

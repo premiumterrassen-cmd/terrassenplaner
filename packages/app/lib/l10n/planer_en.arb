@@ -286,5 +286,12 @@
   "belagmeldungLaengeNichtLieferbar": "The selected length of {cm} cm is not available for this decking. The board length is determined automatically.",
   "belagmeldungBefestigungsart": "Grooved boards are fixed invisibly with clips. The selected screw fixing only applies to smooth-edged boards.",
   "belagmeldungOhneBefestigung": "No matching clips or screws are stored for this decking – the fixing is missing from the material list. Please contact us.",
-  "belagmeldungSchraubeZuKurz": "No stored screw is at least twice as long as the board is thick. The longest one is used – please check the screw length."
+  "belagmeldungSchraubeZuKurz": "No stored screw is at least twice as long as the board is thick. The longest one is used – please check the screw length.",
+
+  "zubehoerLaedt": "Loading accessories …",
+  "zubehoerFehler": "The accessories could not be loaded.",
+  "zubehoerKeine": "There are no articles in this group.",
+  "zubehoerBezeichnung": "Description",
+  "zubehoerTatsaechlich": "Actual",
+  "zubehoerMengeUngueltig": "Please enter 0 to {max}"
 }
