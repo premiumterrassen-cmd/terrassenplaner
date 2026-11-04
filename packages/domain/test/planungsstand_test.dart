@@ -635,6 +635,128 @@ void main() {
       expect(q.laenge, closeTo(1000, 1e-9));
     });
 
+    group('Fangen (#128)', () {
+      const t = 25.0;
+
+      test('weit weg von Strahl und Raster: genau am Klickort', () {
+        // Gemeldeter Fall: 3 m rechts, 45 cm tiefer (8,5°) landete auf 15°.
+        const klick = Punkt(3055, 455);
+        expect(Zeichenhilfe.fange(Punkt.ursprung, klick, toleranz: t), klick);
+        expect(
+          Zeichenhilfe.fange(null, const Punkt(55, 47), toleranz: t),
+          const Punkt(55, 47),
+        );
+      });
+
+      test('nahe am Strahl: Winkel rastet, Länge auf 10 cm', () {
+        final p = Zeichenhilfe.fange(
+          const Punkt(100, 100),
+          const Punkt(3080, 115),
+          toleranz: t,
+        );
+        expect(p.x, closeTo(3100, 1e-6));
+        expect(p.y, closeTo(100, 1e-6));
+        // 45°: Länge 1414 → 1400, Winkel bleibt.
+        final q = Zeichenhilfe.fange(
+          Punkt.ursprung,
+          Zeichenhilfe.streckenpunkt(Punkt.ursprung, 1414, 45.5),
+          toleranz: t,
+        );
+        expect(Zeichenhilfe.winkelVon(Punkt.ursprung, q), closeTo(45, 1e-9));
+        expect(q.laenge, closeTo(1400, 1e-9));
+      });
+
+      test('nahe am Strahl, Länge weit vom Raster: Länge bleibt', () {
+        final p = Zeichenhilfe.fange(
+          Punkt.ursprung,
+          const Punkt(1250, 10),
+          toleranz: t,
+        );
+        expect(p.x, closeTo(const Punkt(1250, 10).laenge, 1e-6));
+        expect(p.y, closeTo(0, 1e-6));
+      });
+
+      test('genau an der Grenze fängt es noch, knapp darüber nicht', () {
+        expect(
+          Zeichenhilfe.fange(null, const Punkt(125, 275), toleranz: t),
+          const Punkt(100, 300),
+        );
+        expect(
+          Zeichenhilfe.fange(null, const Punkt(126, 274), toleranz: t),
+          const Punkt(126, 274),
+        );
+        final strahl = Zeichenhilfe.fange(
+          Punkt.ursprung,
+          const Punkt(2000, 24),
+          toleranz: t,
+          mitRaster: false,
+        );
+        expect(strahl.y, closeTo(0, 1e-9));
+        expect(
+          Zeichenhilfe.fange(
+            Punkt.ursprung,
+            const Punkt(2000, 26),
+            toleranz: t,
+            mitRaster: false,
+          ),
+          const Punkt(2000, 26),
+        );
+      });
+
+      test('Raster höchstens ein Viertel der Rasterweite', () {
+        expect(
+          Zeichenhilfe.fange(null, const Punkt(1230, 1555), toleranz: 80),
+          const Punkt(1230, 1555),
+        );
+        expect(
+          Zeichenhilfe.fange(null, const Punkt(1210, 1555), toleranz: 80),
+          const Punkt(1200, 1555),
+        );
+      });
+
+      test('Hilfen einzeln abschaltbar', () {
+        const klick = Punkt(1980, 15);
+        expect(
+          Zeichenhilfe.fange(
+            Punkt.ursprung,
+            klick,
+            toleranz: t,
+            mitWinkel: false,
+            mitRaster: false,
+          ),
+          klick,
+        );
+        expect(
+          Zeichenhilfe.fange(
+            Punkt.ursprung,
+            klick,
+            toleranz: t,
+            mitWinkel: false,
+          ),
+          const Punkt(2000, 0),
+        );
+        final nurWinkel = Zeichenhilfe.fange(
+          Punkt.ursprung,
+          klick,
+          toleranz: t,
+          mitRaster: false,
+        );
+        expect(nurWinkel.x, closeTo(klick.laenge, 1e-9));
+        expect(nurWinkel.y, closeTo(0, 1e-9));
+      });
+
+      test('derselbe Punkt wie der letzte: kein Winkel, nur Raster', () {
+        expect(
+          Zeichenhilfe.fange(
+            const Punkt(110, 90),
+            const Punkt(110, 90),
+            toleranz: t,
+          ),
+          const Punkt(100, 100),
+        );
+      });
+    });
+
     test('Strecke aus Länge und Winkel (Abnahme M4-08)', () {
       final p = Zeichenhilfe.streckenpunkt(const Punkt(100, 200), 2000, 90);
       expect(p.x, closeTo(100, 1e-9));

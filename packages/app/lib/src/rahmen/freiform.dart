@@ -30,6 +30,17 @@ class ZeichenModus extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Mausposition über der Zeichenfläche in mm für die Vorschau (#128),
+  /// `null` = Maus außerhalb. Eigener Melder, damit nicht jede Bewegung die
+  /// Eingaben neu aufbaut.
+  final zeiger = ValueNotifier<Punkt?>(null);
+
+  @override
+  void dispose() {
+    zeiger.dispose();
+    super.dispose();
+  }
+
   bool get einrasten => _einrasten;
   bool get zeichnungshilfe => _zeichnungshilfe;
   Masseingabe get eingabe => _eingabe;
@@ -71,16 +82,21 @@ class FreiformBedienung {
     _ => null,
   };
 
-  /// Setzt einen Punkt an [ort] (mm); Einrastfunktion und Zeichnungshilfe
-  /// wirken, wenn eingeschaltet.
-  FreiformFehler? setzePunkt(Punkt ort) {
+  /// Wohin ein Punkt bei [ort] (mm) fiele – Vorschau und Setzen nutzen
+  /// dieselbe Regel (#128). Zeichnungshilfe und Einrastfunktion fangen nur
+  /// innerhalb von [toleranz] mm, sonst bleibt der Punkt genau am Klickort.
+  Punkt ziel(Punkt ort, {required double toleranz}) => Zeichenhilfe.fange(
+    offen?.punkte.lastOrNull,
+    ort,
+    toleranz: toleranz,
+    mitWinkel: modus.zeichnungshilfe,
+    mitRaster: modus.einrasten,
+  );
+
+  /// Setzt einen Punkt an [ort] (mm), gefangen wie bei [ziel].
+  FreiformFehler? setzePunkt(Punkt ort, {required double toleranz}) {
     final f = offen!;
-    var p = ort;
-    if (modus.zeichnungshilfe && f.punkte.isNotEmpty) {
-      p = Zeichenhilfe.ausrichten(f.punkte.last, p);
-    }
-    if (modus.einrasten) p = Zeichenhilfe.einrasten(p);
-    return _setze(() => f.mitPunkt(p));
+    return _setze(() => f.mitPunkt(ziel(ort, toleranz: toleranz)));
   }
 
   /// Schließt die Form (Taste x, Knopf „Form schließen“).
