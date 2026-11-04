@@ -9,6 +9,7 @@ import 'aktionen.dart';
 import 'ansichtsoptionen.dart';
 import 'ausgangspunkt.dart';
 import 'ausschnitte.dart';
+import 'befestigung.dart';
 import 'belag.dart';
 import 'berechnung_steuerung.dart';
 import 'dielenliste.dart';
@@ -204,8 +205,8 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
             rundung: _rundung,
             ausschnitte: _ausschnitte,
             ausgangspunkt: _ausgangspunkt,
-            belaege: _belaege,
             berechnung: _berechnung,
+            belaege: _belaege,
           );
           return Column(
             children: [
@@ -521,8 +522,8 @@ class Bearbeitungsmenue extends StatelessWidget {
     required this.ausschnitte,
     super.key,
     this.ausgangspunkt,
-    this.belaege,
     this.berechnung,
+    this.belaege,
   });
 
   final RahmenZustand zustand;
@@ -535,7 +536,8 @@ class Bearbeitungsmenue extends StatelessWidget {
   /// Ausgangspunkt des Belags (M5-07); ohne Bedienung keine Eingabe.
   final AusgangspunktBedienung? ausgangspunkt;
 
-  /// Berechnung des Servers für die Dielenliste unter 7.1 (M5-08).
+  /// Berechnung des Servers für die Befestigung (M5-09) und die
+  /// Dielenliste unter 7.1 (M5-08).
   final BerechnungsSteuerung? berechnung;
 
   /// Eingaben unter einem Unterpunkt (Schritt, Index ab 0).
@@ -588,6 +590,11 @@ class Bearbeitungsmenue extends StatelessWidget {
     ),
     (PlanerSchritt.terrassenbelag, 4) when ausgangspunkt != null =>
       AusgangspunktWahl(bedienung: ausgangspunkt!),
+    (PlanerSchritt.terrassenbelag, 5) => BefestigungsartWahl(
+      planung: planung,
+      berechnung: berechnung,
+      onGeaendert: () => zustand.markiereGeaendert(schritt),
+    ),
     (PlanerSchritt.verschnittoptimierung, 0) when berechnung != null =>
       DielenlisteAnzeige(berechnung: berechnung!),
     _ => null,

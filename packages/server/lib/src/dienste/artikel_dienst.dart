@@ -37,6 +37,10 @@ class ArtikelDienst {
   /// Aktuelle Artikeldatei.
   Artikeldatei get datei => _regelwerk.datei;
 
+  /// Regelwerk der aktuellen Artikeldaten, z. B. für die Befestigung
+  /// (M5-09).
+  Regelwerk get regelwerk => _regelwerk;
+
   /// Alle Beläge mit ihren Preisen (M5-01), in Datenreihenfolge.
   Belagauswahl get belagauswahl => Belagauswahl(datei.version, [
     for (final a in _regelwerk.finde(

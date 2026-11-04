@@ -1078,6 +1078,12 @@ abstract class PlanerTexte {
   /// **'Ausgangspunkt des Belags'**
   String get terrassenbelag5;
 
+  /// No description provided for @terrassenbelag6.
+  ///
+  /// In de, this message translates to:
+  /// **'Befestigungsart'**
+  String get terrassenbelag6;
+
   /// No description provided for @unterkonstruktion1.
   ///
   /// In de, this message translates to:
@@ -1557,6 +1563,42 @@ abstract class PlanerTexte {
   /// In de, this message translates to:
   /// **'Achtung: Es entstehen Zuschnitte unter 5 cm. Verschieben Sie die erste ganze Diele, damit keine so schmalen oder kurzen Stücke entstehen.'**
   String get zuschnittWarnung;
+
+  /// No description provided for @befestigungsartClips.
+  ///
+  /// In de, this message translates to:
+  /// **'Mit Clips'**
+  String get befestigungsartClips;
+
+  /// No description provided for @befestigungsartVerschraubt.
+  ///
+  /// In de, this message translates to:
+  /// **'Direkt verschraubt'**
+  String get befestigungsartVerschraubt;
+
+  /// No description provided for @befestigungsartAbstandshalter.
+  ///
+  /// In de, this message translates to:
+  /// **'Verschraubt mit Abstandshaltern'**
+  String get befestigungsartAbstandshalter;
+
+  /// No description provided for @befestigungOhneDielen.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Befestigung ergibt sich, sobald ein Belag aus Dielen verlegt ist.'**
+  String get befestigungOhneDielen;
+
+  /// No description provided for @befestigungspunkte.
+  ///
+  /// In de, this message translates to:
+  /// **'Befestigungspunkte: {anzahl}'**
+  String befestigungspunkte(int anzahl);
+
+  /// No description provided for @befestigungsmittel.
+  ///
+  /// In de, this message translates to:
+  /// **'{anzahl} × {titel}'**
+  String befestigungsmittel(int anzahl, String titel);
 
   /// No description provided for @kurzeStueckeVerbinden.
   ///

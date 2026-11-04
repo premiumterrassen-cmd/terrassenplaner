@@ -544,6 +544,9 @@ class PlanerTexteDe extends PlanerTexte {
   String get terrassenbelag5 => 'Ausgangspunkt des Belags';
 
   @override
+  String get terrassenbelag6 => 'Befestigungsart';
+
+  @override
   String get unterkonstruktion1 => 'Art der Terrasse';
 
   @override
@@ -815,6 +818,29 @@ class PlanerTexteDe extends PlanerTexte {
   @override
   String get zuschnittWarnung =>
       'Achtung: Es entstehen Zuschnitte unter 5 cm. Verschieben Sie die erste ganze Diele, damit keine so schmalen oder kurzen Stücke entstehen.';
+
+  @override
+  String get befestigungsartClips => 'Mit Clips';
+
+  @override
+  String get befestigungsartVerschraubt => 'Direkt verschraubt';
+
+  @override
+  String get befestigungsartAbstandshalter => 'Verschraubt mit Abstandshaltern';
+
+  @override
+  String get befestigungOhneDielen =>
+      'Die Befestigung ergibt sich, sobald ein Belag aus Dielen verlegt ist.';
+
+  @override
+  String befestigungspunkte(int anzahl) {
+    return 'Befestigungspunkte: $anzahl';
+  }
+
+  @override
+  String befestigungsmittel(int anzahl, String titel) {
+    return '$anzahl × $titel';
+  }
 
   @override
   String get kurzeStueckeVerbinden =>

@@ -8,27 +8,34 @@ import '../router/planer_router.dart';
 /// Belag zur Artikelnummer des Planungsstands; `null` = Vorgabe (M5-05).
 typedef Belagsuche = Artikel? Function(Artikelnummer? nummer);
 
+/// Regelwerk der aktuellen Artikeldaten (M5-09); `null` = keins.
+typedef Regelwerksuche = Regelwerk? Function();
+
 /// Planungsdienst (M4-02): berechnet aus der Planung der App Umriss und
 /// Kennzahlen der bearbeiteten Fläche, die Gesamtfläche (M4-14), die
-/// Dielenstücke (M5-05) mit Nummern, Dielenliste und Verschnitt (M5-08) und
-/// den Ausgangspunkt der Verlegung (M5-07) – die App rechnet nichts selbst
-/// (Frontend bleibt „doof“). Hin- und Rückweg als typisierte FlatBuffers (Packed PPT, #110).
+/// Dielenstücke (M5-05) mit Nummern, Dielenliste und Verschnitt (M5-08),
+/// den Ausgangspunkt der Verlegung (M5-07) und die Befestigung (M5-09) – die
+/// App rechnet nichts selbst (Frontend bleibt „doof“). Hin- und Rückweg als typisierte FlatBuffers (Packed PPT, #110).
 class PlanungsDienst {
   PlanungsDienst._(this._sitzung);
 
   /// [belag] liefert den Belag aus den aktuellen Artikeldaten; ohne ihn
-  /// (oder ohne Artikeldatei) rechnet der Dienst ohne Dielen.
+  /// (oder ohne Artikeldatei) rechnet der Dienst ohne Dielen. [regelwerk]
+  /// liefert die Befestigungsartikel; ohne es keine Befestigung.
   static Future<PlanungsDienst> starte(
     PlanerRouter router, {
     Belagsuche belag = _ohneBelag,
+    Regelwerksuche regelwerk = _ohneRegelwerk,
   }) async {
     final sitzung = await router.dienstSitzung(sitzungId);
     (await sitzung.register(WampNamen.planungBerechnen))
-        .onLazyInvokePayload((aufruf) => _berechne(aufruf, belag));
+        .onLazyInvokePayload((aufruf) => _berechne(aufruf, belag, regelwerk));
     return PlanungsDienst._(sitzung);
   }
 
   static Artikel? _ohneBelag(Artikelnummer? nummer) => null;
+
+  static Regelwerk? _ohneRegelwerk() => null;
 
   /// authid der internen Dienst-Sitzung.
   static const sitzungId = 'planungs-dienst';
@@ -44,9 +51,18 @@ class PlanungsDienst {
   /// aus Dielen oder Holzfliesen auch die nummerierten Stücke aller
   /// Teilflächen (`verlegeBelag`, M5-05, M5-08) ab dem verschobenen
   /// Ausgangspunkt, die Grenzen der Verschiebung und ob kurze Zuschnitte
-  /// entstehen (M5-07).
-  static Berechnung berechne(Planungsstand stand, [Artikel? belag]) =>
-      _mitVerlegung(_grundflaeche(stand), verlegeBelag(stand, belag));
+  /// entstehen (M5-07). Mit dem [regelwerk] auch die Befestigung (M5-09).
+  static Berechnung berechne(
+    Planungsstand stand, [
+    Artikel? belag,
+    Regelwerk? regelwerk,
+  ]) => _mitVerlegung(
+    _grundflaeche(stand),
+    stand,
+    belag,
+    regelwerk,
+    verlegeBelag(stand, belag),
+  );
 
   static Berechnung _grundflaeche(Planungsstand stand) {
     // offene Freiform (M4-08): nur der gezeichnete Linienzug
@@ -66,22 +82,41 @@ class PlanungsDienst {
     );
   }
 
-  static Berechnung _mitVerlegung(Berechnung flaeche, Belagverlegung? v) {
+  /// [flaeche] mit den Stücken der Verlegung [v]; die Befestigung zählt die
+  /// Punkte über alle Teilflächen.
+  static Berechnung _mitVerlegung(
+    Berechnung flaeche,
+    Planungsstand stand,
+    Artikel? belag,
+    Regelwerk? regelwerk,
+    Belagverlegung? v,
+  ) {
     if (v == null) return flaeche;
+    // verlegt wird nur mit Belag
+    final artikel = belag!;
+    final stuecke = [for (final t in v.teile) ...t.stuecke];
     return Berechnung(
       umriss: flaeche.umriss,
       ecken: flaeche.ecken,
       flaeche: flaeche.flaeche,
       ausschnitte: flaeche.ausschnitte,
-      dielen: [
-        for (final t in v.teile)
-          for (final s in t.stuecke) s.umriss,
-      ],
+      dielen: [for (final s in stuecke) s.umriss],
       nummern: [for (final t in v.teile) ...t.nummern],
       ausgangspunkt: v.ausgangspunkt,
       grenzeLinksRechts: v.grenzen.x,
       grenzeObenUnten: v.grenzen.y,
       kurzeZuschnitte: v.kurzeZuschnitte,
+      // ohne Regelwerk oder mit einem, das den Belag (nach einem Wechsel der
+      // Artikeldaten) nicht mehr kennt: keine Befestigung
+      befestigung: regelwerk?.datei[artikel.nummer] == null
+          ? null
+          : befestigungsbedarf(
+              regelwerk!,
+              artikel,
+              stand.befestigungsart,
+              stuecke,
+              winkel: stand.dielenwinkel.toDouble(),
+            ),
     );
   }
 
@@ -92,6 +127,7 @@ class PlanungsDienst {
   static Berechnung berechnePlanung(
     Planung planung, [
     Belagsuche belag = _ohneBelag,
+    Regelwerk? regelwerk,
   ]) {
     var gesamt = 0.0;
     final listen = <Artikelnummer, Dielenliste>{};
@@ -99,13 +135,15 @@ class PlanungsDienst {
     for (final (i, f) in planung.flaechen.indexed) {
       final artikel = belag(f.stand.belag);
       final verlegung = verlegeBelag(f.stand, artikel);
-      final berechnung = _mitVerlegung(_grundflaeche(f.stand), verlegung);
-      gesamt += berechnung.flaeche * f.haeufigkeit;
+      final grund = _grundflaeche(f.stand);
+      gesamt += grund.flaeche * f.haeufigkeit;
       if (verlegung != null) {
         final liste = verlegung.dielenliste * f.haeufigkeit;
         listen.update(artikel!.nummer, (l) => l + liste, ifAbsent: () => liste);
       }
-      if (i == planung.aktiv) aktuell = berechnung;
+      if (i == planung.aktiv) {
+        aktuell = _mitVerlegung(grund, f.stand, artikel, regelwerk, verlegung);
+      }
     }
     final summe = listen.values.fold(Dielenliste.leer, (a, b) => a + b);
     return aktuell.mitPlanung(
@@ -120,11 +158,17 @@ class PlanungsDienst {
     );
   }
 
-  static void _berechne(LazyInvocationPayload aufruf, Belagsuche belag) {
+  static void _berechne(
+    LazyInvocationPayload aufruf,
+    Belagsuche belag,
+    Regelwerksuche regelwerk,
+  ) {
     try {
       final planung = Planung.ausBytes(_bytes(aufruf));
       aufruf.respondWith(
-        lazyPayload: verpacke(berechnePlanung(planung, belag).zuBytes()),
+        lazyPayload: verpacke(
+          berechnePlanung(planung, belag, regelwerk()).zuBytes(),
+        ),
         options: ppt,
       );
     } on Object catch (fehler) {

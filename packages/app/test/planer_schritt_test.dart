@@ -20,7 +20,7 @@ void main() {
     );
     expect(
       [for (final s in PlanerSchritt.values) s.unterpunkte(de).length],
-      [4, 5, 8, 3, 1, 8, 1],
+      [4, 6, 8, 3, 1, 8, 1],
     );
   });
 
@@ -55,6 +55,7 @@ void main() {
           'Verlegearten',
           'Verlegerichtungen',
           'Ausgangspunkt des Belags',
+          'Befestigungsart',
         ],
         'unterkonstruktion': [
           'Art der Terrasse',
