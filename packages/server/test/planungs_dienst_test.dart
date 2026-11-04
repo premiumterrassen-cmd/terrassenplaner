@@ -579,6 +579,103 @@ void main() {
     });
   });
 
+  group('Meldungen zum Belag (M5-10)', () {
+    final diele = Artikel(
+      nummer: const Artikelnummer('10-10-073-R'),
+      titel: 'Diele',
+      art: Artikelart.diele,
+      einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+      abmessungen: Abmessungen(
+        breite: const Millimeter(60),
+        staerke: const Millimeter(23),
+        laengen: const [Millimeter(4000), Millimeter(5000), Millimeter(6000)],
+      ),
+      holzart: robinie,
+      serie: premiumSelect,
+      profil: Profil.genutet,
+    );
+    final systemdiele = Artikel(
+      nummer: const Artikelnummer('10-15-001'),
+      titel: 'Systemdiele',
+      art: Artikelart.systemdiele,
+      einheit: Verkaufseinheit(Mengeneinheit.quadratmeter),
+      abmessungen: Abmessungen(
+        breite: const Millimeter(60),
+        laengen: const [Millimeter(800)],
+      ),
+      holzart: robinie,
+      serie: massiv,
+    );
+    final regelwerk = Regelwerk(
+      Artikeldatei(
+        quelle: 'test',
+        version: '1',
+        eintraege: [Artikeleintrag(artikel: diele)],
+      ),
+    );
+
+    test('mit Verlegung: Länge und Befestigung (B-035, B-094)', () {
+      final stand = Planungsstand.start
+          .mitDielenlaenge(const Millimeter(7000))
+          .mitBefestigungsart(Befestigungsart.verschraubt);
+      expect(PlanungsDienst.berechne(stand, diele, regelwerk).belagmeldungen, [
+        Belagmeldung.laengeNichtLieferbar,
+        Belagmeldung.befestigungsartNichtMoeglich,
+        Belagmeldung.befestigungOhneArtikel,
+      ]);
+      expect(
+        PlanungsDienst.berechne(Planungsstand.start, diele).belagmeldungen,
+        isEmpty,
+      );
+    });
+
+    test('ohne Verlegung: Systemdiele, Umriss und Fläche bleiben', () {
+      final b = PlanungsDienst.berechne(Planungsstand.start, systemdiele);
+      expect(b.belagmeldungen, [Belagmeldung.systemdieleOhneVerlegung]);
+      expect(b.dielen, isEmpty);
+      expect(b.flaeche, closeTo(4800 * 3090, 1e-6));
+      expect(b.umriss, hasLength(4));
+      expect(b.ecken, hasLength(4));
+      expect(b.geschlossen, isTrue);
+      final o = PlanungsDienst.berechne(
+        Planungsstand.start.mitForm(Terrassenform.oForm),
+        systemdiele,
+      );
+      expect(o.ausschnitte, hasLength(1));
+      final offen = PlanungsDienst.berechne(
+        Planungsstand(
+          grundriss: FreiformGrundriss(const [Punkt(0, 0), Punkt(1000, 0)]),
+        ),
+        systemdiele,
+      );
+      expect(offen.geschlossen, isFalse);
+      expect(
+        PlanungsDienst.berechne(Planungsstand.start).belagmeldungen,
+        isEmpty,
+      );
+    });
+
+    test('Belag nicht mehr in den Artikeldaten über die Planung', () {
+      final planung = Planung.start.mitStand(
+        Planungsstand.start.mitBelag(const Artikelnummer('10-10-999')),
+      );
+      expect(
+        PlanungsDienst.berechnePlanung(planung, (_) => diele).belagmeldungen,
+        [Belagmeldung.belagErsetzt],
+      );
+    });
+
+    test('über den Router', () async {
+      await dienst.stoppe();
+      dienst = await PlanungsDienst.starte(router, belag: (_) => systemdiele);
+      final antwort = await rufe(Planung.start.zuBytes());
+      expect(
+        Berechnung.ausBytes(antwort.payload.packedPayloadBytes!).belagmeldungen,
+        [Belagmeldung.systemdieleOhneVerlegung],
+      );
+    });
+  });
+
   test('ungültige Maße sind ein Fehler', () async {
     final fbb = fb.Builder();
     final masse = fbb.writeListInt32([4800, 100]);
