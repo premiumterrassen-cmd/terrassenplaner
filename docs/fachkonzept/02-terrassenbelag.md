@@ -91,3 +91,11 @@ Neuer Planer (M5-05):
 
 - „Welcher Punkt soll der Ausgangspunkt des Terrassenbelages sein?“ – Auswahl eines Eckpunkts (Vorgabe A).
 - „Verschieben Sie die erste ganze Diele mit dem Mauszeiger oder dem Eingabefeld nach:“ – „links/rechts um“ und „oben/unten um“ (cm), je mit Schieberegler.
+
+Neuer Planer (M5-07):
+
+- Auswahl der Ecke als Chips A, B, C … in derselben Zählung wie die Beschriftung der Zeichnung (`Grundriss.ecken`: Rechteck A–D, L/T/U/O und Freiform alle Eckpunkte). Der Kreis hat keine benannten Ecken und bietet nur A, den Anfang seiner Kontur. Bei einer gerundeten Ecke gilt der Schnittpunkt ihrer Kanten. Planungsstand-Felder `ausgangsecke` (Vorgabe 0 = A), `verschiebungX` und `verschiebungY` (mm); gibt es die Ecke nach einem Formwechsel nicht mehr, gilt wieder A.
+- Verschoben wird in Bildschirmkoordinaten: „links/rechts um“ positiv nach rechts, „oben/unten um“ positiv nach unten, je Eingabefeld in cm (Enter übernimmt) und Schieberegler in ganzen cm. Mit der Maus zieht man den grünen Griff an der Ecke der ersten ganzen Diele (Ausgangspunkt plus Verschiebung), solange der Schritt Terrassenbelag offen ist. Jede Eingabe und jeder Zug ist ein Schritt für Rückgängig/Wiederherstellen.
+- **Grenzen:** höchstens eine Belaglänge bzw. Belagbreite. Die Achse, die eher in Verlegerichtung liegt (Winkel bis 45° oder ab 135°), bekommt das Raster der Stöße (längste bzw. erzwungene Lieferlänge, höchstens die Ausdehnung der Fläche, siehe 2.3), die andere Dielenbreite plus Fuge. Der Server rechnet die Grenzen und begrenzt auch eine gespeicherte Verschiebung, die nach einem Belagwechsel zu groß ist.
+- **Warnung:** Entsteht ein Dielenstück kürzer als 5 cm oder eine Randreihe schmaler als 5 cm (Reihen unter 15 mm entfallen weiter, siehe 2.4), meldet der Server das mit der Berechnung (`kurzeZuschnitte`), und unter 2.5 erscheint „Achtung: Es entstehen Zuschnitte unter 5 cm …“. Beispiel: 480 × 309 cm mit 6-cm-Dielen hat ab A eine 3,5 cm breite letzte Reihe; 5 cm nach unten verschoben bleiben oben und unten je 5 cm.
+- Ohne verlegte Dielen (kein Belag, Holzfliesen bis M5-08) gibt es keine Verschiebung, nur die Wahl der Ecke.

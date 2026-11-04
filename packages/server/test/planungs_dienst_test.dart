@@ -294,6 +294,77 @@ void main() {
       );
     });
 
+    test('Ausgangspunkt: Ecke plus Verschiebung, Grenzen und kurze '
+        'Zuschnitte (M5-07)', () {
+      final start = PlanungsDienst.berechne(Planungsstand.start, diele);
+      expect(start.ausgangspunkt, Punkt.ursprung);
+      expect(start.grenzeLinksRechts, const Millimeter(4800));
+      expect(start.grenzeObenUnten, const Millimeter(65));
+      // 3090 = 47 × 65 + 35: die letzte Reihe ist schmaler als 5 cm
+      expect(start.kurzeZuschnitte, isTrue);
+      Berechnung verschoben({int ecke = 0, int x = 0, int y = 0}) =>
+          PlanungsDienst.berechne(
+            Planungsstand.start.mitAusgangspunkt(
+              ecke: ecke,
+              x: Millimeter(x),
+              y: Millimeter(y),
+            ),
+            diele,
+          );
+      // 50 mm nach unten: Randreihen oben und unten je 50 mm
+      final unten = verschoben(y: 50);
+      expect(unten.ausgangspunkt, const Punkt(0, 50));
+      expect(unten.kurzeZuschnitte, isFalse);
+      expect(unten.dielen, hasLength(48));
+      // 30 mm nach rechts: Stoß bei 30 mm, Stück zu kurz
+      final rechts = verschoben(y: 50, x: 30);
+      expect(rechts.kurzeZuschnitte, isTrue);
+      expect(rechts.dielen, hasLength(96));
+      expect(verschoben(y: 50, x: 1000).kurzeZuschnitte, isFalse);
+      // Ecke C: Reihen ab C, der schmale Rest liegt jetzt bei A–B
+      final c = verschoben(ecke: 2);
+      expect(c.ausgangspunkt, const Punkt(4800, 3090));
+      expect(c.dielen.last.map((p) => p.y).reduce(math.min), 3025);
+      expect(c.dielen.last.map((p) => p.y).reduce(math.max), 3090);
+      expect(c.dielen.first.map((p) => p.y).reduce(math.max), 35);
+      expect(c.kurzeZuschnitte, isTrue);
+      // über die Grenze hinaus: auf die Grenze begrenzt
+      final weit = verschoben(x: -9000, y: 500);
+      expect(weit.ausgangspunkt, const Punkt(-4800, 65));
+      expect(
+        verschoben(x: 9000, y: -500).ausgangspunkt,
+        const Punkt(4800, -65),
+      );
+      // senkrecht: links/rechts um Breite plus Fuge, oben/unten um die Länge
+      final senkrecht = PlanungsDienst.berechne(
+        Planungsstand.start.mitVerlegerichtung(Verlegerichtung.senkrecht),
+        diele,
+      );
+      expect(senkrecht.grenzeLinksRechts, const Millimeter(65));
+      expect(senkrecht.grenzeObenUnten, const Millimeter(3090));
+      // Kreis: nur A, der Anfang der Kontur
+      final kreis = Planungsstand.start.mitForm(Terrassenform.kreis);
+      expect(
+        PlanungsDienst.berechne(kreis, diele).ausgangspunkt,
+        kreis.kontur.punkte.first,
+      );
+      // ohne Dielen kein Ausgangspunkt und keine Grenzen
+      final ohne = PlanungsDienst.berechne(Planungsstand.start);
+      expect(ohne.ausgangspunkt, isNull);
+      expect(ohne.grenzeLinksRechts, const Millimeter(0));
+      expect(ohne.kurzeZuschnitte, isFalse);
+      // Gesamtfläche behält die Werte der bearbeiteten Fläche
+      final planung = PlanungsDienst.berechnePlanung(
+        Planung.start.mitStand(
+          Planungsstand.start.mitAusgangspunkt(y: const Millimeter(50)),
+        ),
+        (_) => diele,
+      );
+      expect(planung.ausgangspunkt, const Punkt(0, 50));
+      expect(planung.grenzeObenUnten, const Millimeter(65));
+      expect(planung.kurzeZuschnitte, isFalse);
+    });
+
     test('über den Router mit der Belagsuche', () async {
       await dienst.stoppe();
       final gefragt = <Artikelnummer?>[];

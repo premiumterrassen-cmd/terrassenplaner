@@ -1522,6 +1522,66 @@ abstract class PlanerTexte {
   /// **'Bitte ganze Grad von 0 bis 179 eingeben'**
   String get verlegewinkelUngueltig;
 
+  /// No description provided for @ausgangspunktFrage.
+  ///
+  /// In de, this message translates to:
+  /// **'Welcher Punkt soll der Ausgangspunkt des Terrassenbelages sein?'**
+  String get ausgangspunktFrage;
+
+  /// No description provided for @ausgangspunktVerschieben.
+  ///
+  /// In de, this message translates to:
+  /// **'Verschieben Sie die erste ganze Diele mit dem Mauszeiger oder dem Eingabefeld nach:'**
+  String get ausgangspunktVerschieben;
+
+  /// No description provided for @verschiebungLinksRechts.
+  ///
+  /// In de, this message translates to:
+  /// **'links/rechts um'**
+  String get verschiebungLinksRechts;
+
+  /// No description provided for @verschiebungObenUnten.
+  ///
+  /// In de, this message translates to:
+  /// **'oben/unten um'**
+  String get verschiebungObenUnten;
+
+  /// No description provided for @verschiebungHilfeLinksRechts.
+  ///
+  /// In de, this message translates to:
+  /// **'in cm, negativ = links'**
+  String get verschiebungHilfeLinksRechts;
+
+  /// No description provided for @verschiebungHilfeObenUnten.
+  ///
+  /// In de, this message translates to:
+  /// **'in cm, negativ = oben'**
+  String get verschiebungHilfeObenUnten;
+
+  /// No description provided for @verschiebungCm.
+  ///
+  /// In de, this message translates to:
+  /// **'{cm} cm'**
+  String verschiebungCm(String cm);
+
+  /// No description provided for @verschiebungUngueltig.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte eine Zahl von −{grenze} bis {grenze} cm eingeben'**
+  String verschiebungUngueltig(String grenze);
+
+  /// No description provided for @verschiebungOhneDielen.
+  ///
+  /// In de, this message translates to:
+  /// **'Verschieben lässt sich die erste Diele, sobald ein Belag aus Dielen verlegt ist.'**
+  String get verschiebungOhneDielen;
+
+  /// No description provided for @zuschnittWarnung.
+  ///
+  /// In de, this message translates to:
+  /// **'Achtung: Es entstehen Zuschnitte unter 5 cm. Verschieben Sie die erste ganze Diele, damit keine so schmalen oder kurzen Stücke entstehen.'**
+  String get zuschnittWarnung;
+
   /// No description provided for @kurzeStueckeVerbinden.
   ///
   /// In de, this message translates to:
