@@ -1,6 +1,8 @@
 @Timeout(Duration(minutes: 2))
 library;
 
+import 'dart:convert';
+import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
@@ -465,6 +467,68 @@ void main() {
       );
     });
 
+    test('Stückliste und Farben im Plan (M9-04)', () {
+      // F01: 48 Stücke à 4800 mm aus 5000 mm, längste Lieferlänge 6000 mm
+      final f01 = PlanungsDienst.berechne(Planungsstand.start, diele);
+      expect(f01.stueckliste.zeilen, [
+        const Stuecklistenzeile(
+          nummer: Artikelnummer('10-10-073-R'),
+          titel: 'Diele',
+          laenge: Millimeter(4800),
+          stueck: 48,
+          farbe: Stueckfarbe.blau,
+        ),
+      ]);
+      expect(f01.stueckfarben, List.filled(48, Stueckfarbe.blau));
+      // F09 (800 cm): 600 rot in ganzer Länge, 200 blau; jede Farbe gehört
+      // zu genau dem Stück der Zeichnung
+      final f09 = PlanungsDienst.berechne(
+        Planungsstand.start.mitGrundriss(
+          RechteckGrundriss(const Millimeter(8000), const Millimeter(3090)),
+        ),
+        diele,
+      );
+      expect(
+        [
+          for (final z in f09.stueckliste.zeilen)
+            (z.laenge.mm, z.stueck, z.farbe),
+        ],
+        [(6000, 48, Stueckfarbe.rot), (2000, 48, Stueckfarbe.blau)],
+      );
+      expect(f09.stueckfarben, hasLength(f09.dielen.length));
+      for (final (i, d) in f09.dielen.indexed) {
+        final xs = [for (final p in d) p.x];
+        final laenge = xs.reduce(math.max) - xs.reduce(math.min);
+        expect(
+          f09.stueckfarben[i],
+          laenge > 5999 ? Stueckfarbe.rot : Stueckfarbe.blau,
+        );
+      }
+      // erzwungene Länge 4000: zwei ganze Dielen je Reihe, rot (F13)
+      final f13 = PlanungsDienst.berechne(
+        Planungsstand.start
+            .mitGrundriss(
+              RechteckGrundriss(const Millimeter(8000), const Millimeter(3090)),
+            )
+            .mitDielenlaenge(const Millimeter(4000)),
+        diele,
+      );
+      expect(f13.stueckliste.zeilen.single.farbe, Stueckfarbe.rot);
+      expect(f13.stueckliste.zeilen.single.stueck, 96);
+      // ohne Dielen keine Stückliste; über die Planung die bearbeitete Fläche
+      expect(
+        PlanungsDienst.berechne(Planungsstand.start).stueckliste.istLeer,
+        isTrue,
+      );
+      expect(
+        PlanungsDienst.berechnePlanung(
+          Planung.start.mitHaeufigkeit(3),
+          (_) => diele,
+        ).stueckliste.zeilen.single.stueck,
+        48,
+      );
+    });
+
     test('über den Router mit der Belagsuche', () async {
       await dienst.stoppe();
       final gefragt = <Artikelnummer?>[];
@@ -576,6 +640,120 @@ void main() {
       final b = Berechnung.ausBytes(antwort.payload.packedPayloadBytes!);
       expect(b.befestigung.punkte, 624);
       expect(b.befestigung.mittel, hasLength(3));
+    });
+
+    group('Materialliste (M9-03)', () {
+      Map<(String, int?), int> zeilen(Materialliste m) => {
+        for (final p in m.positionen) (p.nummer.wert, p.laenge?.mm): p.anzahl,
+      };
+
+      test('F01 gegen die Materialliste des alten Planers', () {
+        final m = PlanungsDienst.berechnePlanung(
+          Planung.start,
+          (_) => diele,
+          regelwerk,
+        ).materialliste;
+        final alt = Referenzkonfiguration.ausJson(
+          jsonDecode(
+            File('../domain/test/referenzkonfigurationen/F01.json')
+                .readAsStringSync(),
+          ) as Map<String, Object?>,
+        );
+        int altAnzahl(bool Function(String typ, String text) passt) => alt
+            .materialliste
+            .where((p) => passt(p.typ, p.bezeichnung))
+            .fold(0, (n, p) => n + p.anzahl);
+        // Deckbelag samt Anfangsdielen ohne Freidiele: 48 × 5000 mm (die
+        // einseitig genuteten Anfangsdielen gibt es nicht mehr, B-033)
+        expect(
+          altAnzahl(
+            (typ, text) =>
+                (typ == 'Deckbelag' || typ == 'Anfangsdiele') &&
+                !text.contains('Freidiele'),
+          ),
+          48,
+        );
+        // Clips wie im alten Planer; keine Terrassenschrauben für Randdielen
+        // (B-033), UK und Auflager folgen mit M6, Zubehör und Freidiele mit M8
+        expect(zeilen(m), {
+          ('10-10-073-R', 5000): 48,
+          ('80-10-001-250', null): 2,
+          ('80-10-001-100', null): 1,
+          ('80-10-001-50', null): 1,
+        });
+        for (final vpe in ['50', '100', '250']) {
+          expect(
+            altAnzahl((_, text) => text.endsWith('VPE $vpe')),
+            zeilen(m)[('80-10-001-$vpe', null)],
+          );
+        }
+        expect([for (final p in m.positionen) p.position], [1, 2, 3, 4]);
+        // die Testartikel haben keine Preise
+        expect(m.vollstaendig, isFalse);
+        expect(m.summe, const Cent(0));
+      });
+
+      test('alle Flächen mal Häufigkeit, Clips erst in der Summe verpackt', () {
+        final planung = Planung.start.mitHaeufigkeit(2).mitNeuerFlaeche();
+        final m = PlanungsDienst.berechnePlanung(
+          planung,
+          (_) => diele,
+          regelwerk,
+        ).materialliste;
+        // 3 × 637 = 1911 Clips → 7 × 250 + 2 × 100: 9 Packungen statt
+        // 3 × (2 × 250 + 100 + 50) = 12, wenn jede Fläche verpackt würde
+        expect(zeilen(m), {
+          ('10-10-073-R', 5000): 144,
+          ('80-10-001-250', null): 7,
+          ('80-10-001-100', null): 2,
+        });
+        // ohne Belag oder Regelwerk: keine bzw. nur Dielen
+        expect(
+          PlanungsDienst.berechnePlanung(planung).materialliste.istLeer,
+          isTrue,
+        );
+        expect(
+          zeilen(
+            PlanungsDienst.berechnePlanung(planung, (_) => diele).materialliste,
+          ),
+          {('10-10-073-R', 5000): 144},
+        );
+      });
+
+      test('geänderte Mengen nur mit Freigabe (Mitarbeiter, M9-10)', () async {
+        const schluessel = (
+          nummer: Artikelnummer('10-10-073-R'),
+          laenge: Millimeter(5000),
+          zusatz: null,
+        );
+        final planung = Planung.start.mitMenge(schluessel, 50);
+        final mit = PlanungsDienst.berechnePlanung(
+          planung,
+          (_) => diele,
+          regelwerk,
+          true,
+        ).materialliste.positionen.first;
+        expect((mit.anzahl, mit.berechnet), (50, 48));
+        expect(
+          PlanungsDienst.berechnePlanung(
+            planung,
+            (_) => diele,
+            regelwerk,
+          ).materialliste.positionen.first.anzahl,
+          48,
+        );
+        // über den Router: bis zur Anmeldung für niemanden
+        await dienst.stoppe();
+        dienst = await PlanungsDienst.starte(
+          router,
+          belag: (_) => diele,
+          regelwerk: () => regelwerk,
+        );
+        final antwort = await rufe(planung.zuBytes());
+        final b = Berechnung.ausBytes(antwort.payload.packedPayloadBytes!);
+        expect(zeilen(b.materialliste)[('10-10-073-R', 5000)], 48);
+        expect(b.materialliste.positionen.first.berechnet, isNull);
+      });
     });
   });
 

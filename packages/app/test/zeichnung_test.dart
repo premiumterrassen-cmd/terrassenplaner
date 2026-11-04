@@ -304,6 +304,30 @@ void main() {
       expect(fuge.color.a, closeTo(0.3, 0.01));
     });
 
+    test('Dielenstücke mit Rand in der Farbe der Stückliste (M9-04)', () {
+      const rot = Color(0xFFD32F2F);
+      final z = Zeichnung(
+        dielen: const [
+          [Offset(0, 0), Offset(1000, 0), Offset(1000, 65)],
+          [Offset(1000, 0), Offset(2000, 0), Offset(2000, 65)],
+        ],
+        dielenfarben: const [rot],
+      );
+      expect(() => z.dielenfarben.add(rot), throwsUnsupportedError);
+      final m = _maler(z, AnsichtsOptionen());
+      expect(m.dielenrand(0), rot);
+      expect(m.dielenrand(1), isNull);
+      final aufnahme = PictureRecorder();
+      final leinwand = _ZaehlendeLeinwand(Canvas(aufnahme));
+      m.paint(leinwand, const Size(800, 600));
+      aufnahme.endRecording();
+      final [_, rand, _, fuge, ...] = leinwand.pfadStifte;
+      expect(rand.color.toARGB32(), rot.toARGB32());
+      expect(rand.style, PaintingStyle.stroke);
+      expect(rand.strokeWidth, 1.5);
+      expect(fuge.color.a, closeTo(0.3, 0.01));
+    });
+
     test('Dielennummern (M5-08): nur wo sie ins Stück passen, längs '
         'gedreht, nie auf dem Kopf', () {
       final z = Zeichnung(

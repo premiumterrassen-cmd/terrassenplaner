@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,8 +8,10 @@ import 'package:terrassenplaner_app/src/rahmen/freiform.dart';
 import 'package:terrassenplaner_app/src/rahmen/planer_rahmen.dart';
 import 'package:terrassenplaner_app/src/rahmen/rahmen_zustand.dart';
 import 'package:terrassenplaner_app/src/rahmen/steuerung.dart';
+import 'package:terrassenplaner_app/src/rahmen/vorschau.dart';
 import 'package:terrassenplaner_app/src/rahmen/zeichenflaeche.dart';
 import 'package:terrassenplaner_app/src/rahmen/zeichnung.dart';
+import 'package:terrassenplaner_app/src/sprache/sprache.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 import 'hilfe.dart';
@@ -40,6 +43,9 @@ _bedienung() {
   );
 }
 
+/// Fangweite wie auf der Zeichenfläche bei 100 % Zoom (8 Bildpunkte).
+const _t = 80.0;
+
 void main() {
   group('ZeichenModus', () {
     test('Vorgaben und Meldungen', () {
@@ -61,12 +67,26 @@ void main() {
   group('FreiformBedienung', () {
     test('Punkte mit Einrasten und Zeichnungshilfe', () {
       final s = _bedienung();
-      expect(s.b.setzePunkt(const Punkt(149, 151)), isNull);
+      expect(s.b.setzePunkt(const Punkt(110, 190), toleranz: _t), isNull);
       expect(_f(s.planung).punkte, [const Punkt(100, 200)]);
-      // 3 cm „schief“: Zeichnungshilfe richtet waagrecht aus, dann Raster
-      expect(s.b.setzePunkt(const Punkt(2130, 230)), isNull);
-      expect(_f(s.planung).punkte.last, const Punkt(2100, 200));
+      // 3 cm „schief“: Zeichnungshilfe richtet waagrecht aus, Länge auf 10 cm
+      expect(s.b.setzePunkt(const Punkt(2110, 230), toleranz: _t), isNull);
+      expect(_f(s.planung).punkte.last.x, closeTo(2100, 1e-9));
+      expect(_f(s.planung).punkte.last.y, closeTo(200, 1e-9));
       expect(s.geaendert, [0, 1]);
+    });
+
+    test('weit weg von den Hilfen: genau am Klickort (#128)', () {
+      // Gemeldeter Fall: 3 m rechts, 45 cm tiefer landete auf 15°.
+      final s = _bedienung();
+      s.b
+        ..setzePunkt(const Punkt(100, 200), toleranz: _t)
+        ..setzePunkt(const Punkt(3150, 655), toleranz: _t);
+      expect(_f(s.planung).punkte.last, const Punkt(3150, 655));
+      expect(
+        s.b.ziel(const Punkt(4150, 755), toleranz: _t),
+        const Punkt(4150, 755),
+      );
     });
 
     test('ohne Hilfen bleibt der Punkt, wo er ist', () {
@@ -75,36 +95,65 @@ void main() {
         ..einrasten = false
         ..zeichnungshilfe = false;
       s.b
-        ..setzePunkt(const Punkt(149, 151))
-        ..setzePunkt(const Punkt(2130, 230));
-      expect(_f(s.planung).punkte, const [Punkt(149, 151), Punkt(2130, 230)]);
+        ..setzePunkt(const Punkt(110, 190), toleranz: _t)
+        ..setzePunkt(const Punkt(2110, 230), toleranz: _t);
+      expect(_f(s.planung).punkte, const [Punkt(110, 190), Punkt(2110, 230)]);
     });
 
     test('nur Einrasten, nur Zeichnungshilfe', () {
       final s = _bedienung();
       s.modus.zeichnungshilfe = false;
       s.b
-        ..setzePunkt(Punkt.ursprung)
-        ..setzePunkt(const Punkt(2130, 230));
+        ..setzePunkt(Punkt.ursprung, toleranz: _t)
+        ..setzePunkt(const Punkt(2110, 210), toleranz: _t);
       expect(_f(s.planung).punkte.last, const Punkt(2100, 200));
       final t = _bedienung();
       t.modus.einrasten = false;
       t.b
-        ..setzePunkt(Punkt.ursprung)
-        ..setzePunkt(const Punkt(2000, 30));
+        ..setzePunkt(Punkt.ursprung, toleranz: _t)
+        ..setzePunkt(const Punkt(2000, 30), toleranz: _t);
       expect(_f(t.planung).punkte.last.y, closeTo(0, 1e-9));
+    });
+
+    test('Vorschau: Ziel wie beim Setzen, ohne Punkt nur Raster', () {
+      final s = _bedienung();
+      expect(
+        s.b.ziel(const Punkt(110, 190), toleranz: _t),
+        const Punkt(100, 200),
+      );
+      s.b.setzePunkt(Punkt.ursprung, toleranz: _t);
+      final z = s.b.ziel(const Punkt(2000, 30), toleranz: _t);
+      s.b.setzePunkt(const Punkt(2000, 30), toleranz: _t);
+      expect(_f(s.planung).punkte.last, z);
+      expect(z.y, closeTo(0, 1e-9));
+    });
+
+    test('Zeiger für die Vorschau meldet sich eigen', () {
+      final m = ZeichenModus();
+      var modus = 0;
+      var zeiger = 0;
+      m
+        ..addListener(() => modus++)
+        ..zeiger.addListener(() => zeiger++);
+      m.zeiger.value = const Punkt(1, 2);
+      expect([modus, zeiger], [0, 1]);
+      m.dispose();
+      expect(() => m.zeiger.addListener(() {}), throwsFlutterError);
     });
 
     test('Rückmeldungen: 3 Punkte, kreuzen, Kantenlänge', () {
       final s = _bedienung();
-      s.b.setzePunkt(Punkt.ursprung);
-      expect(s.b.setzePunkt(const Punkt(40, 0)), FreiformFehler.kante);
-      s.b.setzePunkt(const Punkt(3000, 0));
+      s.b.setzePunkt(Punkt.ursprung, toleranz: _t);
+      expect(
+        s.b.setzePunkt(const Punkt(40, 0), toleranz: _t),
+        FreiformFehler.kante,
+      );
+      s.b.setzePunkt(const Punkt(3000, 0), toleranz: _t);
       expect(s.b.schliesse(), FreiformFehler.mindestens3);
       s.modus.zeichnungshilfe = false;
       s.b
-        ..setzePunkt(const Punkt(0, 2000))
-        ..setzePunkt(const Punkt(3000, 2000));
+        ..setzePunkt(const Punkt(0, 2000), toleranz: _t)
+        ..setzePunkt(const Punkt(3000, 2000), toleranz: _t);
       expect(s.b.schliesse(), FreiformFehler.kreuzt);
       s.b.entferneLetzten();
       expect(s.b.schliesse(), isNull);
@@ -116,17 +165,17 @@ void main() {
       // drei Punkte auf einer Linie umschließen nichts
       final t = _bedienung();
       t.b
-        ..setzePunkt(Punkt.ursprung)
-        ..setzePunkt(const Punkt(1000, 0))
-        ..setzePunkt(const Punkt(2000, 0));
+        ..setzePunkt(Punkt.ursprung, toleranz: _t)
+        ..setzePunkt(const Punkt(1000, 0), toleranz: _t)
+        ..setzePunkt(const Punkt(2000, 0), toleranz: _t);
       expect(t.b.schliesse(), FreiformFehler.kreuzt);
     });
 
     test('Zeichnungshilfe per Maß: letzter Punkt', () {
       final s = _bedienung();
       s.b
-        ..setzePunkt(Punkt.ursprung)
-        ..setzePunkt(const Punkt(1000, 0));
+        ..setzePunkt(Punkt.ursprung, toleranz: _t)
+        ..setzePunkt(const Punkt(1000, 0), toleranz: _t);
       expect(s.b.korrigiere(const Punkt(2500, 0)), isNull);
       expect(_f(s.planung).punkte.last, const Punkt(2500, 0));
       expect(s.b.korrigiere(const Punkt(50, 0)), FreiformFehler.kante);
@@ -311,6 +360,96 @@ void main() {
       return (zustand: zustand, planung: planung, ansicht: ansicht);
     }
 
+    Future<Offset> freiform(WidgetTester tester) async {
+      await tester.tap(find.byKey(const ValueKey('form-freiform')));
+      await tester.pumpAndSettle();
+      return tester.getTopLeft(find.byKey(const ValueKey('freiform-zeichnen')));
+    }
+
+    VorschauMaler vorschau(WidgetTester tester) =>
+        tester
+                .widget<CustomPaint>(
+                  find.byKey(const ValueKey('freiform-vorschau')),
+                )
+                .painter!
+            as VorschauMaler;
+
+    testWidgets('Punkt landet genau am Klickort (#128)', (tester) async {
+      final s = await zeige(tester);
+      final ursprung = await freiform(tester);
+      // 100 px = 1 m: gemeldeter Fall 3 m rechts, 45 cm tiefer.
+      await tester.tapAt(ursprung + const Offset(100, 100));
+      await tester.pumpAndSettle();
+      await tester.tapAt(ursprung + const Offset(405.5, 145.5));
+      await tester.pumpAndSettle();
+      expect(_f(s.planung).punkte, const [
+        Punkt(1000, 1000),
+        Punkt(4055, 1455),
+      ]);
+    });
+
+    testWidgets('Fangen: 8 Bildpunkte, gleich bei jedem Zoom', (tester) async {
+      expect(Zeichenflaeche.fangPixel, 8);
+      final s = await zeige(tester);
+      final ursprung = await freiform(tester);
+      // Nur die Zeichnungshilfe, damit das Raster nicht mitfängt.
+      await tester.tap(find.byKey(const ValueKey('einrastfunktion')));
+      await tester.pumpAndSettle();
+      await tester.tapAt(ursprung + const Offset(100, 100));
+      await tester.pumpAndSettle();
+      // 7 px neben der Waagrechten: fängt.
+      await tester.tapAt(ursprung + const Offset(305.5, 107));
+      await tester.pumpAndSettle();
+      expect(_f(s.planung).punkte.last.y, closeTo(1000, 1e-9));
+      // 9 px neben der Waagrechten: bleibt.
+      await tester.tapAt(ursprung + const Offset(505.5, 109));
+      await tester.pumpAndSettle();
+      expect(_f(s.planung).punkte.last, const Punkt(5055, 1090));
+      // Doppelter Zoom: 9 px sind 45 mm, die Fangweite 40 mm.
+      s.ansicht.value = Matrix4.identity()..scaleByDouble(2, 2, 2, 1);
+      await tester.pumpAndSettle();
+      final p = _f(s.planung).punkte.last;
+      final schirm = ursprung + Offset(p.x, p.y) * 0.2;
+      await tester.tapAt(schirm + const Offset(9, 309));
+      await tester.pumpAndSettle();
+      final q = _f(s.planung).punkte.last;
+      expect(q.x, closeTo(p.x + 45, 1e-6));
+      expect(q.y, closeTo(p.y + 1545, 1e-6));
+    });
+
+    testWidgets('Vorschau folgt der Maus und zeigt das Ziel', (tester) async {
+      await zeige(tester);
+      final ursprung = await freiform(tester);
+      expect(vorschau(tester).letzter, isNull);
+      final maus = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      addTearDown(maus.removePointer);
+      await maus.addPointer(location: ursprung + const Offset(111, 99));
+      await maus.moveTo(ursprung + const Offset(111, 99));
+      await tester.pump();
+      final m = vorschau(tester);
+      expect(m.zeiger.value, const Punkt(1110, 990));
+      expect(m.ziel(m.zeiger.value!), const Punkt(1100, 1000));
+      expect(
+        find.byKey(const ValueKey('freiform-vorschau')),
+        paints..circle(x: 110, y: 100, radius: VorschauMaler.kreis),
+      );
+      await tester.tapAt(ursprung + const Offset(110, 100));
+      await tester.pumpAndSettle();
+      await maus.moveTo(ursprung + const Offset(410, 103));
+      await tester.pump();
+      expect(vorschau(tester).letzter, const Punkt(1100, 1000));
+      expect(
+        find.byKey(const ValueKey('freiform-vorschau')),
+        paints
+          ..circle(radius: VorschauMaler.kreis)
+          ..line()
+          ..paragraph(),
+      );
+      await maus.moveTo(const Offset(5, 5));
+      await tester.pump();
+      expect(vorschau(tester).zeiger.value, isNull);
+    });
+
     testWidgets('Freiform: tippen setzt Punkte, x schließt', (tester) async {
       final s = await zeige(tester);
       await tester.tap(find.byKey(const ValueKey('form-freiform')));
@@ -408,4 +547,47 @@ void main() {
       expect(p.y, closeTo(500, 1e-9));
     });
   });
+
+  group('VorschauMaler (#128)', () {
+    VorschauMaler maler({
+      Punkt? letzter,
+      Color farbe = Colors.black,
+      PlanerTexte? sprache,
+      Punkt Function(Punkt)? ziel,
+    }) => VorschauMaler(
+      ansicht: AnsichtSteuerung(),
+      zeiger: ValueNotifier(null),
+      letzter: letzter,
+      ziel: ziel ?? _gleich,
+      sprache: sprache ?? de,
+      farbe: farbe,
+    );
+
+    test('Live-Maß: Länge in cm und Winkel, je Sprache', () {
+      expect(maler().mass(Punkt.ursprung, const Punkt(3000, 0)), '300 cm · 0°');
+      expect(
+        maler().mass(Punkt.ursprung, const Punkt(1000, 1000)),
+        '141,4 cm · 45°',
+      );
+      expect(
+        maler(sprache: en).mass(Punkt.ursprung, const Punkt(1000, 1000)),
+        '141.4 cm · 45°',
+      );
+      expect(
+        maler().mass(Punkt.ursprung, const Punkt(1000, 268)),
+        '103,5 cm · 15°',
+      );
+    });
+
+    test('neu zeichnen nur bei geänderten Angaben', () {
+      final a = maler();
+      expect(a.shouldRepaint(maler()), isFalse);
+      expect(a.shouldRepaint(maler(letzter: Punkt.ursprung)), isTrue);
+      expect(a.shouldRepaint(maler(farbe: Colors.red)), isTrue);
+      expect(a.shouldRepaint(maler(sprache: en)), isTrue);
+      expect(a.shouldRepaint(maler(ziel: (p) => p)), isTrue);
+    });
+  });
 }
+
+Punkt _gleich(Punkt p) => p;

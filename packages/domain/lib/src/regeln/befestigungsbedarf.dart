@@ -7,6 +7,7 @@ import 'dart:math' as math;
 
 import '../artikel/artikel.dart';
 import '../artikel/einheiten.dart';
+import '../ergebnisse/materialliste.dart';
 import '../holzart/holzart.dart';
 import '../konfiguration/befestigungsart.dart';
 import '../konfiguration/dielenverlegung.dart';
@@ -126,7 +127,9 @@ final class Befestigungsbedarf {
     this.art,
     this.punkte = 0,
     List<Befestigungsposition> mittel = const [],
-  }) : mittel = List.unmodifiable(mittel);
+    List<Materialbedarf> bedarf = const [],
+  }) : mittel = List.unmodifiable(mittel),
+       bedarf = List.unmodifiable(bedarf);
 
   /// Ohne Befestigung (Holzfliese, kein Holzbelag).
   static final keiner = Befestigungsbedarf();
@@ -142,6 +145,10 @@ final class Befestigungsbedarf {
 
   /// Befestigungsartikel mit Anzahl Verkaufseinheiten.
   final List<Befestigungsposition> mittel;
+
+  /// Bedarf in Stück für die Materialliste (M9-03): Über mehrere Flächen
+  /// wird erst die Summe verpackt, nicht jede Fläche für sich.
+  final List<Materialbedarf> bedarf;
 }
 
 /// Befestigung des [belag] für die verlegten [stuecke] mit der gewählten
@@ -192,28 +199,38 @@ Befestigungsbedarf befestigungsbedarf(
     ukAbstand: ukAbstand,
   );
   final moeglich = regelwerk.moeglich(belag.nummer, Beziehung.befestigung);
-  final mittel = switch (art) {
-    Befestigungsart.clips => verpackt(
-      punkte + randpunkte,
-      _clips(moeglich, holzart.serie(serie).befestigung(profil, breite)),
-    ),
-    _ => [
-      ...verpackt(
-        punkte * holzart.schraubenJePunkt(serie, profil, breite),
-        _schrauben(moeglich, belag.abmessungen.staerke),
-      ),
-      if (art == Befestigungsart.verschraubtMitAbstandshaltern)
-        ...verpackt(1, [?_montagehilfe(regelwerk)]),
-    ],
-  };
+  final bedarf = [
+    for (final (einheiten, stueck, jePlanung) in switch (art) {
+      Befestigungsart.clips => [
+        (
+          _clips(moeglich, holzart.serie(serie).befestigung(profil, breite)),
+          punkte + randpunkte,
+          false,
+        ),
+      ],
+      _ => [
+        (
+          _schrauben(moeglich, belag.abmessungen.staerke),
+          punkte * holzart.schraubenJePunkt(serie, profil, breite),
+          false,
+        ),
+        if (art == Befestigungsart.verschraubtMitAbstandshaltern)
+          ([?_montagehilfe(regelwerk)], 1, true),
+      ],
+    })
+      if (einheiten.isNotEmpty)
+        Materialbedarf(einheiten, stueck, jePlanung: jePlanung),
+  ];
   return Befestigungsbedarf(
     arten: Befestigungsart.fuer(profil),
     art: art,
     punkte: punkte,
     mittel: [
-      for (final (a, anzahl) in mittel)
-        Befestigungsposition(a.nummer, a.titel, anzahl),
+      for (final b in bedarf)
+        for (final (a, anzahl) in verpackt(b.stueck, b.einheiten))
+          Befestigungsposition(a.nummer, a.titel, anzahl),
     ],
+    bedarf: bedarf,
   );
 }
 
