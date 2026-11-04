@@ -1709,10 +1709,7 @@ void main() {
           ],
         ),
       );
-      for (final k in [
-        Berechnung.ausBytes(b.zuBytes()),
-        b.mitPlanung(2),
-      ]) {
+      for (final k in [Berechnung.ausBytes(b.zuBytes()), b.mitPlanung(2)]) {
         expect(k.befestigung.arten, b.befestigung.arten);
         expect(
           k.befestigung.art,
