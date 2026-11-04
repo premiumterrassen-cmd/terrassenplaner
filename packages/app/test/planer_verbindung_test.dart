@@ -111,35 +111,52 @@ void main() {
       final v1 = await verbindung.speichere(planung);
       expect(
         v1,
-        KonfigurationsStand(const Konfigurationsnummer('2026-11-04-0001'), 1),
+        KonfigurationsStand(
+          Konfigurationskennung.lies('2026-11-04-0001-K7QXM'),
+          1,
+        ),
       );
-      final v2 = await verbindung.speichere(Planung.start, nummer: v1.nummer);
+      final v2 = await verbindung.speichere(Planung.start, kennung: v1.kennung);
       expect(v2.version, 2);
       // Abnahme: geladen identisch zum gespeicherten Stand, alte Version bleibt
       expect(await verbindung.lade(v1), planung);
       expect(await verbindung.lade(v2), Planung.start);
-      final unbekannt = KonfigurationsStand(v1.nummer, 3);
-      await expectLater(
-        verbindung.lade(unbekannt),
-        throwsA(
-          isA<KonfigurationNichtGefunden>().having(
-            (e) => e.stand,
-            'stand',
-            unbekannt,
-          ),
+      for (final unbekannt in [
+        KonfigurationsStand(v1.kennung, 3),
+        // falscher Prüfcode (M9-05b)
+        KonfigurationsStand(
+          Konfigurationskennung(v1.nummer, const Pruefcode('K7QXN')),
+          1,
         ),
-      );
+      ]) {
+        await expectLater(
+          verbindung.lade(unbekannt),
+          throwsA(
+            isA<KonfigurationNichtGefunden>().having(
+              (e) => e.stand,
+              'stand',
+              unbekannt,
+            ),
+          ),
+        );
+      }
       // andere Fehler des Dienstes werden durchgereicht
       await expectLater(
         verbindung.lade(
-          KonfigurationsStand(const Konfigurationsnummer('2026-02-30-0001'), 1),
+          KonfigurationsStand(
+            const Konfigurationskennung(
+              Konfigurationsnummer('2026-02-30-0001'),
+              Pruefcode('K7QXM'),
+            ),
+            1,
+          ),
         ),
         throwsA(isNot(isA<KonfigurationNichtGefunden>())),
       );
       await expectLater(
         verbindung.speichere(
           Planung.start,
-          nummer: const Konfigurationsnummer('2026-11-04-0099'),
+          kennung: Konfigurationskennung.lies('2026-11-04-0099-K7QXM'),
         ),
         throwsA(anything),
       );
@@ -180,29 +197,34 @@ final class _Speicher implements KonfigurationsSpeicher {
   final _versionen = <String, List<Uint8List>>{};
   final _entwuerfe = <String, Entwurf>{};
 
+  /// Jede Nummer bekommt hier denselben Prüfcode; ein anderer gilt als
+  /// unbekannt.
   @override
   KonfigurationsStand speichere(
     Uint8List inhalt, {
-    Konfigurationsnummer? nummer,
+    Konfigurationskennung? kennung,
   }) {
-    final n =
-        nummer ??
-        Konfigurationsnummer.vergib(
-          DateTime(2026, 11, 4),
-          _versionen.length + 1,
+    final k =
+        kennung ??
+        Konfigurationskennung(
+          Konfigurationsnummer.vergib(
+            DateTime(2026, 11, 4),
+            _versionen.length + 1,
+          ),
+          const Pruefcode('K7QXM'),
         );
     final liste =
-        _versionen[n.wert] ??
-        (nummer == null
-            ? (_versionen[n.wert] = [])
-            : throw KonfigurationUnbekannt(n));
+        _versionen[k.wert] ??
+        (kennung == null
+            ? (_versionen[k.wert] = [])
+            : throw KonfigurationUnbekannt(k.nummer));
     liste.add(inhalt);
-    return KonfigurationsStand(n, liste.length);
+    return KonfigurationsStand(k, liste.length);
   }
 
   @override
-  Uint8List lies(KonfigurationsStand stand) {
-    final liste = _versionen[stand.nummer.wert] ?? const [];
+  Uint8List lies(KonfigurationsStand stand, {bool ohnePruefcode = false}) {
+    final liste = _versionen[stand.kennung.wert] ?? const [];
     if (stand.version > liste.length) {
       throw KonfigurationUnbekannt(stand.nummer, stand.version);
     }

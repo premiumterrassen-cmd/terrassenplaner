@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
@@ -6,7 +7,9 @@ import '../../objectbox.g.dart';
 import 'datenbank.dart';
 import 'entitaeten.dart';
 
-/// Konfigurationsnummer oder Version gibt es nicht.
+/// Konfigurationsnummer oder Version gibt es nicht – oder der Prüfcode
+/// passt nicht (M9-05b): beides sieht von außen gleich aus, damit niemand
+/// erfährt, ob eine Nummer vergeben ist.
 final class KonfigurationUnbekannt implements Exception {
   const KonfigurationUnbekannt(this.nummer, [this.version]);
 
@@ -28,16 +31,20 @@ typedef Entwurf = ({Uint8List inhalt, KonfigurationsStand? bezug});
 /// Gespeicherte Konfigurationen und Entwürfe (M9-05), wie sie der
 /// Konfigurationsdienst braucht.
 abstract interface class KonfigurationsSpeicher {
-  /// Speichert [inhalt] als neue Version (ohne [nummer]: neue Nummer).
+  /// Speichert [inhalt] als neue Version (ohne [kennung]: neue Nummer mit
+  /// neuem Prüfcode).
   KonfigurationsStand speichere(
     Uint8List inhalt, {
-    Konfigurationsnummer? nummer,
+    Konfigurationskennung? kennung,
   });
 
-  /// Inhalt der Version [stand]; unbekannt: [KonfigurationUnbekannt].
-  Uint8List lies(KonfigurationsStand stand);
+  /// Inhalt der Version [stand]; unbekannt oder Prüfcode falsch:
+  /// [KonfigurationUnbekannt]. Nur mit [ohnePruefcode] zählt allein die
+  /// Nummer (später für angemeldete Mitarbeiter, M9-10).
+  Uint8List lies(KonfigurationsStand stand, {bool ohnePruefcode = false});
 
-  /// Merkt [inhalt] als Entwurf der Sitzung [schluessel].
+  /// Merkt [inhalt] als Entwurf der Sitzung [schluessel]; ein [bezug] mit
+  /// falschem Prüfcode: [KonfigurationUnbekannt].
   void merkeEntwurf(
     String schluessel,
     Uint8List inhalt, {
@@ -56,9 +63,13 @@ final class Konfigurationsablage implements KonfigurationsSpeicher {
     this._db, {
     this.uhr = DateTime.now,
     this.entwurfFrist = standardFrist,
-  });
+    Random? zufall,
+  }) : _zufall = zufall ?? Random.secure();
 
   final Datenbank _db;
+
+  /// Quelle der Prüfcodes – kryptografisch sicher (M9-05b).
+  final Random _zufall;
 
   /// Liefert „jetzt“ – Ortszeit des Servers bestimmt den Tag der Nummer.
   final DateTime Function() uhr;
@@ -68,22 +79,23 @@ final class Konfigurationsablage implements KonfigurationsSpeicher {
 
   static const standardFrist = Duration(days: 30);
 
-  /// Speichert [inhalt] als neue Version: ohne [nummer] als Version 1 einer
-  /// neuen Konfigurationsnummer des heutigen Tages, sonst als nächste
-  /// Version von [nummer]. Gleicht [inhalt] der letzten Version, entsteht
-  /// keine neue – es bleibt bei deren Stand.
+  /// Speichert [inhalt] als neue Version: ohne [kennung] als Version 1
+  /// einer neuen Konfigurationsnummer des heutigen Tages mit neuem
+  /// Prüfcode, sonst als nächste Version von [kennung] (Prüfcode muss
+  /// passen). Gleicht [inhalt] der letzten Version, entsteht keine neue –
+  /// es bleibt bei deren Stand.
   @override
   KonfigurationsStand speichere(
     Uint8List inhalt, {
-    Konfigurationsnummer? nummer,
+    Konfigurationskennung? kennung,
   }) => _db.transaktion(() {
-    final kopf = switch (nummer) {
+    final kopf = switch (kennung) {
       null => _neuerKopf(),
-      final n => _kopf(n) ?? (throw KonfigurationUnbekannt(n)),
+      final k => _kopfMit(k) ?? (throw KonfigurationUnbekannt(k.nummer)),
     };
     final letzte = kopf.aktuelleVersion;
     if (letzte > 0 && _gleich(_version(kopf.nummer, letzte)!.inhalt, inhalt)) {
-      return _stand(kopf.nummer, letzte);
+      return _stand(kopf, letzte);
     }
     final version = _db.speichere(
       KonfigurationsVersion(
@@ -94,14 +106,17 @@ final class Konfigurationsablage implements KonfigurationsSpeicher {
     );
     if (kopf.erstelltAm.isEmpty) kopf.erstelltAm = version.hlc;
     _db.speichere(kopf..aktuelleVersion = version.version);
-    return _stand(kopf.nummer, version.version);
+    return _stand(kopf, version.version);
   });
 
   /// Inhalt der Version [stand] – unverändert, wie gespeichert.
   @override
-  Uint8List lies(KonfigurationsStand stand) =>
-      _version(stand.nummer.wert, stand.version)?.inhalt ??
-      (throw KonfigurationUnbekannt(stand.nummer, stand.version));
+  Uint8List lies(KonfigurationsStand stand, {bool ohnePruefcode = false}) {
+    final kopf = _kopfMit(stand.kennung, ohnePruefcode: ohnePruefcode);
+    return (kopf == null ? null : _version(kopf.nummer, stand.version))
+            ?.inhalt ??
+        (throw KonfigurationUnbekannt(stand.nummer, stand.version));
+  }
 
   /// Merkt [inhalt] als Entwurf von [schluessel] und verlängert die Frist.
   /// Unverändert (gleicher Inhalt und Bezug) wird nichts geschrieben.
@@ -111,6 +126,9 @@ final class Konfigurationsablage implements KonfigurationsSpeicher {
     Uint8List inhalt, {
     KonfigurationsStand? bezug,
   }) => _db.transaktion(() {
+    if (bezug != null && _kopfMit(bezug.kennung) == null) {
+      throw KonfigurationUnbekannt(bezug.nummer, bezug.version);
+    }
     final nummer = bezug?.nummer.wert ?? '';
     final version = bezug?.version ?? 0;
     final alt = _zwischenstand(schluessel);
@@ -130,14 +148,19 @@ final class Konfigurationsablage implements KonfigurationsSpeicher {
   });
 
   /// Entwurf von [schluessel]; `null`, wenn es keinen gibt oder seine Frist
-  /// abgelaufen ist.
+  /// abgelaufen ist. Der Bezug kommt mit Prüfcode zurück – der
+  /// Sitzungsschlüssel ist selbst geheim, und gemerkt wird ein Bezug nur
+  /// mit passendem Code.
   @override
   Entwurf? entwurf(String schluessel) {
     final z = _zwischenstand(schluessel);
     if (z == null || z.ablaufAm <= uhr().millisecondsSinceEpoch) return null;
     return (
       inhalt: z.inhalt,
-      bezug: z.nummer.isEmpty ? null : _stand(z.nummer, z.version),
+      bezug: switch (_kopf(Konfigurationsnummer(z.nummer))) {
+        final kopf? => _stand(kopf, z.version),
+        null => null,
+      },
     );
   }
 
@@ -159,7 +182,21 @@ final class Konfigurationsablage implements KonfigurationsSpeicher {
       abfrage.close();
     }
     final nummer = Konfigurationsnummer.vergib(jetzt, laufend);
-    return Konfiguration(nummer: nummer.wert, tag: tag, laufend: laufend);
+    return Konfiguration(nummer: nummer.wert, tag: tag, laufend: laufend)
+      ..pruefcode = Pruefcode.zufaellig(_zufall).wert;
+  }
+
+  /// Kopf zu [kennung], wenn der Prüfcode passt (Vergleich in konstanter
+  /// Zeit); [ohnePruefcode] lässt die Prüfung aus.
+  Konfiguration? _kopfMit(
+    Konfigurationskennung kennung, {
+    bool ohnePruefcode = false,
+  }) {
+    final kopf = _kopf(kennung.nummer);
+    if (kopf == null) return null;
+    return ohnePruefcode || Pruefcode(kopf.pruefcode).gleicht(kennung.pruefcode)
+        ? kopf
+        : null;
   }
 
   Konfiguration? _kopf(Konfigurationsnummer nummer) => _erster(
@@ -195,8 +232,14 @@ final class Konfigurationsablage implements KonfigurationsSpeicher {
     }
   }
 
-  static KonfigurationsStand _stand(String nummer, int version) =>
-      KonfigurationsStand(Konfigurationsnummer(nummer), version);
+  static KonfigurationsStand _stand(Konfiguration kopf, int version) =>
+      KonfigurationsStand(
+        Konfigurationskennung(
+          Konfigurationsnummer(kopf.nummer),
+          Pruefcode(kopf.pruefcode),
+        ),
+        version,
+      );
 
   static bool _gleich(Uint8List a, Uint8List b) {
     if (a.length != b.length) return false;

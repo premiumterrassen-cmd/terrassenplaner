@@ -5,6 +5,9 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:connectanum_client/connectanum.dart';
+import 'package:connectanum_router/connectanum_router.dart'
+    as router
+    show Invocation;
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import 'package:terrassenplaner_server/terrassenplaner_server.dart';
 import 'package:test/test.dart';
@@ -21,6 +24,9 @@ Uint8List _planung(int laenge) => Planung([
 
 const _schluessel = '0123456789abcdef0123456789abcdef';
 
+/// Kennung der ersten gespeicherten Konfiguration (`ZaehlZufall`).
+const _erste = '2026-11-04-0001-ABCDE';
+
 void main() {
   late Directory ordner;
   late Datenbank db;
@@ -34,7 +40,11 @@ void main() {
     router = PlanerRouter.starte(await testEinstellungen());
     dienst = await KonfigurationsDienst.starte(
       router,
-      Konfigurationsablage(db, uhr: () => DateTime(2026, 11, 4, 12)),
+      Konfigurationsablage(
+        db,
+        uhr: () => DateTime(2026, 11, 4, 12),
+        zufall: ZaehlZufall(),
+      ),
     );
     kunde = await Client(
       realm: WampNamen.realm,
@@ -76,29 +86,27 @@ void main() {
   });
 
   test(
-    'speichern vergibt Nummer und Versionen, laden liefert identisch',
+    'speichern vergibt Kennung und Versionen, laden liefert identisch',
     () async {
       expect(await rufe(WampNamen.konfigurationSpeichern, [_planung(4000)]), [
-        '2026-11-04-0001',
+        _erste,
         1,
       ]);
       expect(
         await rufe(WampNamen.konfigurationSpeichern, [
           _planung(5000),
-          '2026-11-04-0001',
+          // tolerant eingelesen
+          '2026 11 04 0001 abcde',
         ]),
-        ['2026-11-04-0001', 2],
+        [_erste, 2],
       );
-      final v1 = await rufe(WampNamen.konfigurationLaden, [
-        '2026-11-04-0001',
-        1,
-      ]);
+      final v1 = await rufe(WampNamen.konfigurationLaden, [_erste, 1]);
       expect(v1, [_planung(4000)]);
       expect(
         Planung.ausBytes(v1.single! as Uint8List),
         Planung.ausBytes(_planung(4000)),
       );
-      expect(await rufe(WampNamen.konfigurationLaden, ['2026-11-04-0001', 2]), [
+      expect(await rufe(WampNamen.konfigurationLaden, [_erste, 2]), [
         _planung(5000),
       ]);
     },
@@ -107,16 +115,60 @@ void main() {
   test('unbekannte Nummer oder Version', () async {
     await rufe(WampNamen.konfigurationSpeichern, [_planung(4000)]);
     await expectLater(
-      rufe(WampNamen.konfigurationLaden, ['2026-11-04-0001', 2]),
+      rufe(WampNamen.konfigurationLaden, [_erste, 2]),
       fehler(WampNamen.konfigurationUnbekannt, ['2026-11-04-0001', 2]),
     );
     await expectLater(
       rufe(WampNamen.konfigurationSpeichern, [
         _planung(4000),
-        '2026-11-04-0002',
+        '2026-11-04-0002-ABCDE',
       ]),
       fehler(WampNamen.konfigurationUnbekannt, ['2026-11-04-0002']),
     );
+  });
+
+  test('falscher oder fehlender Prüfcode: wie unbekannt (M9-05b)', () async {
+    await rufe(WampNamen.konfigurationSpeichern, [_planung(4000)]);
+    for (final kennung in [
+      '2026-11-04-0001-ABCDF',
+      '2026-11-04-0001-FGHJK',
+      '2026-11-04-0001',
+      '2026-11-04-0001-ABCD',
+      '2026-11-04-0001-ABC0E',
+    ]) {
+      await expectLater(
+        rufe(WampNamen.konfigurationLaden, [kennung, 1]),
+        fehler(WampNamen.konfigurationUnbekannt, ['2026-11-04-0001', 1]),
+        reason: kennung,
+      );
+    }
+    // gleiche Antwort wie für eine Nummer, die es nicht gibt
+    await expectLater(
+      rufe(WampNamen.konfigurationLaden, ['2026-11-04-0002-ABCDE', 1]),
+      fehler(WampNamen.konfigurationUnbekannt, ['2026-11-04-0002', 1]),
+    );
+    await expectLater(
+      rufe(WampNamen.konfigurationSpeichern, [
+        _planung(5000),
+        '2026-11-04-0001-FGHJK',
+      ]),
+      fehler(WampNamen.konfigurationUnbekannt, ['2026-11-04-0001']),
+    );
+    await expectLater(
+      rufe(WampNamen.entwurfSpeichern, [
+        _schluessel,
+        _planung(5000),
+        '2026-11-04-0001-FGHJK',
+        1,
+      ]),
+      fehler(WampNamen.konfigurationUnbekannt, ['2026-11-04-0001', 1]),
+    );
+    expect(db.store.box<KonfigurationsVersion>().count(), 1);
+    expect(db.store.box<Zwischenstand>().count(), 0);
+  });
+
+  test('Mitarbeiter ohne Prüfcode: noch nicht freigeschaltet (M9-10)', () {
+    expect(KonfigurationsDienst.darfOhnePruefcodeLaden(_KeinAufruf()), isFalse);
   });
 
   test('ungültige Aufrufe', () async {
@@ -133,21 +185,24 @@ void main() {
         WampNamen.konfigurationSpeichern,
         [Uint8List(KonfigurationsDienst.groessterInhalt + 1)],
       ),
-      (WampNamen.konfigurationSpeichern, [_planung(4000), '2026-13-01-0001']),
       (
         WampNamen.konfigurationSpeichern,
-        [_planung(4000), '2026-11-04-0001', 1],
+        [_planung(4000), '2026-13-01-0001-ABCDE'],
       ),
-      (WampNamen.konfigurationLaden, ['2026-11-04-0001']),
-      (WampNamen.konfigurationLaden, ['2026-11-04-0001', 0]),
+      (WampNamen.konfigurationSpeichern, [_planung(4000), '2026-11-04-0001']),
+      (WampNamen.konfigurationSpeichern, [_planung(4000), _erste, 1]),
+      (WampNamen.konfigurationLaden, [_erste]),
+      (WampNamen.konfigurationLaden, [_erste, 0]),
+      (WampNamen.konfigurationLaden, ['2026-13-01-0001-ABCDE', 1]),
       (WampNamen.konfigurationLaden, ['falsch', 1]),
       (WampNamen.entwurfSpeichern, [_schluessel]),
       (WampNamen.entwurfSpeichern, ['kurz', _planung(4000)]),
       (WampNamen.entwurfSpeichern, [_schluessel.toUpperCase(), _planung(4000)]),
       (WampNamen.entwurfSpeichern, [_schluessel, Uint8List(3)]),
+      (WampNamen.entwurfSpeichern, [_schluessel, _planung(4000), _erste]),
       (
         WampNamen.entwurfSpeichern,
-        [_schluessel, _planung(4000), '2026-11-04-0001'],
+        [_schluessel, _planung(4000), '2026-11-04-0001', 1],
       ),
       (WampNamen.entwurfSpeichern, [_schluessel, _planung(4000), 'x', 1]),
       (WampNamen.entwurfLaden, []),
@@ -189,17 +244,26 @@ void main() {
       isEmpty,
     );
     expect(await rufe(WampNamen.entwurfLaden, [_schluessel]), [_planung(4000)]);
+    await rufe(WampNamen.konfigurationSpeichern, [_planung(4000)]);
     await rufe(WampNamen.entwurfSpeichern, [
       _schluessel,
       _planung(4500),
-      '2026-11-04-0001',
+      _erste.toLowerCase(),
       3,
     ]);
+    // Bezug mit Prüfcode: der Sitzungsschlüssel ist selbst geheim
     expect(await rufe(WampNamen.entwurfLaden, [_schluessel]), [
       _planung(4500),
-      '2026-11-04-0001',
+      _erste,
       3,
     ]);
     expect(db.store.box<Zwischenstand>().count(), 1);
   });
+}
+
+/// Für die Stelle ohne Prüfcode genügt irgendein Aufruf – sie fragt ihn
+/// (noch) nicht.
+final class _KeinAufruf implements router.Invocation {
+  @override
+  dynamic noSuchMethod(_) => throw UnimplementedError();
 }

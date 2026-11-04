@@ -12,7 +12,7 @@ Planungsstand _stand(int laenge) => Planungsstand(
 
 Planung _planung(int laenge) => Planung([Terrassenflaeche(_stand(laenge))]);
 
-final _nummer = Konfigurationsnummer.vergib(DateTime(2026, 11, 4), 1);
+final _nummer = kennung('2026-11-04-0001-K7QXM');
 
 void main() {
   late TestAblage ablage;
@@ -37,7 +37,7 @@ void main() {
     expect(k.planung.planung, Planung.start);
     expect(
       '${KonfigurationNichtGefunden(KonfigurationsStand(_nummer, 2))}',
-      'Konfiguration 2026-11-04-0001 v2 nicht gefunden',
+      'Konfiguration 2026-11-04-0001-K7QXM v2 nicht gefunden',
     );
     expect(const Fund().entwurf, isFalse);
     expect(const Fund().stand, isNull);

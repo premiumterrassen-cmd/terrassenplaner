@@ -19,7 +19,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.enterText(
         find.byKey(const ValueKey('nummer')),
-        '2026-10-08-1511',
+        '2026-10-08-1511-K7QXM',
       );
       await tester.tap(find.byKey(const ValueKey('laden-bestaetigen')));
       // Der Konfigurationsdienst kennt die Nummer nicht (M9-05).

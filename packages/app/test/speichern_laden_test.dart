@@ -18,10 +18,7 @@ Planung _planung(int laenge) => Planung([
   ),
 ]);
 
-final _v1 = KonfigurationsStand(
-  Konfigurationsnummer.vergib(DateTime(2026, 11, 4), 1),
-  1,
-);
+final _v1 = stand('2026-11-04-0001-K7QXM', 1);
 
 /// Rahmen mit SPEICHERN/LADEN (M9-05) bei 1920 px (Knöpfe mit Text).
 Future<
@@ -117,8 +114,9 @@ void main() {
     expect(find.byType(AlertDialog), findsNothing);
     expect(
       find.text(
-        'Gespeichert: Konfigurationsnummer 2026-11-04-0001, Version 1. '
-        'Bitte notieren Sie die Nummer.',
+        'Gespeichert: Konfigurationsnummer 2026-11-04-0001-K7QXM, Version 1. '
+        'Bitte notieren Sie die Nummer samt Prüfcode (die letzten fünf '
+        'Zeichen) – nur damit lässt sich die Konfiguration wieder laden.',
       ),
       findsOneWidget,
     );
@@ -156,7 +154,7 @@ void main() {
           .widget<TextField>(find.byKey(const ValueKey('nummer')))
           .controller!
           .text,
-      '2026-11-04-0001',
+      '2026-11-04-0001-K7QXM',
     );
     expect(
       tester.widget<Text>(find.byKey(const ValueKey('version'))).data,
@@ -201,11 +199,11 @@ void main() {
           .widget<TextField>(find.byKey(const ValueKey('nummer')))
           .controller!
           .text,
-      '2026-11-04-0001',
+      '2026-11-04-0001-K7QXM',
     );
     expect(
       tester.widget<Text>(_meldung).data,
-      de.gespeichertMeldung('2026-11-04-0001', 1),
+      de.gespeichertMeldung('2026-11-04-0001-K7QXM', 1),
     );
     expect(tester.widget<Text>(_meldung).style, isNull);
     // zweites Speichern: Version 2
@@ -255,9 +253,10 @@ void main() {
       'Planung bleibt erhalten, bitte später erneut speichern.',
     );
     expect(
-      en.gespeichertMeldung('2026-11-04-0001', 2),
-      'Saved: configuration number 2026-11-04-0001, version 2. Please note '
-      'the number.',
+      en.gespeichertMeldung('2026-11-04-0001-K7QXM', 2),
+      'Saved: configuration number 2026-11-04-0001-K7QXM, version 2. Please '
+      'note the number including the check code (the last five characters) '
+      '– only with it can the configuration be loaded again.',
     );
     expect(Kopfzeile.textAb, 1680);
   });

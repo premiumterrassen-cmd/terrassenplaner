@@ -29,13 +29,17 @@ abstract final class WampNamen {
   /// Konfigurationsdienst (M9-05): SPEICHERN vergibt beim ersten Mal eine
   /// Konfigurationsnummer und legt danach je Speichern eine neue Version an;
   /// LADEN liefert eine Version unverändert zurück. Der Entwurf ist der
-  /// automatisch zwischengespeicherte Stand je Sitzungsschlüssel.
+  /// automatisch zwischengespeicherte Stand je Sitzungsschlüssel. Nach außen
+  /// heißt eine Konfiguration mit ihrer Kennung `JJJJ-MM-TT-NNNN-XXXXX`
+  /// (Nummer und Prüfcode, M9-05b).
   static const konfigurationSpeichern = '${kunde}konfiguration.speichern';
   static const konfigurationLaden = '${kunde}konfiguration.laden';
   static const entwurfSpeichern = '${kunde}konfiguration.entwurf_speichern';
   static const entwurfLaden = '${kunde}konfiguration.entwurf_laden';
 
-  /// Fehler-URI für eine unbekannte Konfigurationsnummer oder Version.
+  /// Fehler-URI für eine unbekannte Konfigurationsnummer oder Version – auch
+  /// bei falschem oder fehlendem Prüfcode (keine Auskunft, ob es die Nummer
+  /// gibt).
   static const konfigurationUnbekannt =
       '${kunde}fehler.konfiguration_unbekannt';
 

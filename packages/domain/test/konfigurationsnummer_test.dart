@@ -55,24 +55,28 @@ void main() {
     }
   });
 
-  test('Stand: Version ab 1, Gleichheit, Text', () {
+  test('Stand: Kennung, Version ab 1, Gleichheit, Text', () {
     const nummer = Konfigurationsnummer('2026-10-08-1511');
-    final stand = KonfigurationsStand(nummer, 2);
-    expect([stand.nummer, stand.version], [nummer, 2]);
-    expect(stand, KonfigurationsStand(nummer, 2));
-    expect(stand.hashCode, KonfigurationsStand(nummer, 2).hashCode);
-    expect(stand.hashCode, Object.hash(nummer, 2));
-    expect(stand == KonfigurationsStand(nummer, 3), isFalse);
+    const kennung = Konfigurationskennung(nummer, Pruefcode('K7QXM'));
+    final stand = KonfigurationsStand(kennung, 2);
+    expect([stand.kennung, stand.nummer, stand.version], [kennung, nummer, 2]);
+    expect(stand, KonfigurationsStand(kennung, 2));
+    expect(stand.hashCode, KonfigurationsStand(kennung, 2).hashCode);
+    expect(stand.hashCode, Object.hash(kennung, 2));
+    expect(stand == KonfigurationsStand(kennung, 3), isFalse);
     expect(
       stand ==
-          KonfigurationsStand(const Konfigurationsnummer('2026-10-08-1512'), 2),
+          KonfigurationsStand(
+            const Konfigurationskennung(nummer, Pruefcode('K7QXN')),
+            2,
+          ),
       isFalse,
     );
     expect(stand == Object(), isFalse);
-    expect('$stand', '2026-10-08-1511 v2');
-    expect(KonfigurationsStand(nummer, 1).version, 1);
+    expect('$stand', '2026-10-08-1511-K7QXM v2');
+    expect(KonfigurationsStand(kennung, 1).version, 1);
     expect(
-      () => KonfigurationsStand(nummer, 0),
+      () => KonfigurationsStand(kennung, 0),
       wirftArgumentFehler('version', 0, 'ab 1'),
     );
   });
