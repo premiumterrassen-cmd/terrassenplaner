@@ -1,10 +1,13 @@
 import 'dart:typed_data';
 
 import 'package:connectanum_client/connectanum.dart';
+import 'package:connectanum_client/connectanum.dart' as wamp show Error;
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
+import '../konfiguration/konfigurations_steuerung.dart';
+
 /// Verbindung der Web-App zum Planer-Router (anonym, Rolle Kunde).
-class PlanerVerbindung {
+class PlanerVerbindung implements KonfigurationsAblage {
   PlanerVerbindung(this.adresse);
 
   final Uri adresse;
@@ -47,6 +50,83 @@ class PlanerVerbindung {
       robinie.id: robinie,
     });
   });
+
+  /// SPEICHERN über den Konfigurationsdienst (M9-05); die Planung reist im
+  /// Transportformat als Binärargument.
+  @override
+  Future<KonfigurationsStand> speichere(
+    Planung planung, {
+    Konfigurationsnummer? nummer,
+  }) => _mitSitzung((sitzung) async {
+    final antwort = await sitzung.callSingle(
+      WampNamen.konfigurationSpeichern,
+      arguments: [planung.zuBytes(), ?nummer?.wert],
+    );
+    final [neu as String, version as int] = antwort.arguments!;
+    return KonfigurationsStand(Konfigurationsnummer(neu), version);
+  });
+
+  /// LADEN einer Version (M9-05); unbekannt: [KonfigurationNichtGefunden].
+  @override
+  Future<Planung> lade(KonfigurationsStand stand) =>
+      _mitSitzung((sitzung) async {
+        try {
+          final antwort = await sitzung.callSingle(
+            WampNamen.konfigurationLaden,
+            arguments: [stand.nummer.wert, stand.version],
+          );
+          return Planung.ausBytes(antwort.arguments!.single! as Uint8List);
+        } on wamp.Error catch (fehler) {
+          if (fehler.error == WampNamen.konfigurationUnbekannt) {
+            throw KonfigurationNichtGefunden(stand);
+          }
+          rethrow;
+        }
+      });
+
+  /// Entwurf der Sitzung [schluessel] merken (automatisches
+  /// Zwischenspeichern, M9-05).
+  @override
+  Future<void> merkeEntwurf(
+    String schluessel,
+    Planung planung, {
+    KonfigurationsStand? bezug,
+  }) => _mitSitzung(
+    (sitzung) => sitzung.callSingle(
+      WampNamen.entwurfSpeichern,
+      arguments: [
+        schluessel,
+        planung.zuBytes(),
+        if (bezug != null) ...[bezug.nummer.wert, bezug.version],
+      ],
+    ),
+  );
+
+  /// Entwurf der Sitzung [schluessel]; `null`, wenn der Server keinen hat.
+  @override
+  Future<PlanungsEntwurf?> entwurf(String schluessel) =>
+      _mitSitzung((sitzung) async {
+        final List<Object?> argumente;
+        try {
+          argumente = (await sitzung.callSingle(
+            WampNamen.entwurfLaden,
+            arguments: [schluessel],
+          )).arguments!;
+        } on wamp.Error catch (fehler) {
+          if (fehler.error == WampNamen.entwurfUnbekannt) return null;
+          rethrow;
+        }
+        return (
+          planung: Planung.ausBytes(argumente.first! as Uint8List),
+          bezug: switch (argumente) {
+            [_, final String nummer, final int version] => KonfigurationsStand(
+              Konfigurationsnummer(nummer),
+              version,
+            ),
+            _ => null,
+          },
+        );
+      });
 
   /// FlatBuffer als Packed-PPT-Nutzlast; materialisiert ist es ein
   /// Binärargument.

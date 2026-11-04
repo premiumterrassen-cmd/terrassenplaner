@@ -29,7 +29,7 @@ class _Plattform extends UrlLauncherPlatform with MockPlatformInterfaceMixin {
 Future<({List<Uri> links, List<String> aufgerufen, RahmenZustand zustand})>
 _zeige(
   WidgetTester tester, {
-  Size groesse = const Size(1440, 900),
+  Size groesse = const Size(1920, 900),
   bool mitAktionen = true,
   bool alleGeaendert = true,
 }) async {
