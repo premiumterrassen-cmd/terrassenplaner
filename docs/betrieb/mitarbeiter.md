@@ -15,7 +15,7 @@ Stand M9-10 (04.11.2026). Mitarbeiter melden sich im Planer mit E-Mail-Adresse u
 - Die E-Mail-Adresse ist der Anmeldename; sie wird klein geschrieben gespeichert (`Anna@…` = `anna@…`).
 - Das Passwort wird **nie als Argument** übergeben (es stünde sonst in der Prozessliste und im Shell-Verlauf): am Terminal verdeckt und zur Kontrolle zweimal, sonst eine Zeile über stdin. Mindestens 12 Zeichen.
 - Das Werkzeug leitet aus dem Passwort die SCRAM-Schlüssel ab (Argon2id, 19 MiB, 2 Durchläufe, zufälliges Salt) und schickt nur sie an den Auth-Server. Gespeichert werden weder Passwort noch etwas, aus dem es sich ohne Durchprobieren zurückrechnen ließe.
-- Exit-Code: 0 gut, 1 vom Auth-Server abgelehnt (z. B. Konto gibt es schon / nicht), 64 falscher Aufruf.
+- Exit-Code: 0 gut, 1 vom Auth-Server abgelehnt (z. B. Konto gibt es schon / nicht), 64 falscher Aufruf, 69 Auth-Server nicht erreichbar oder Ticket falsch, 78 Umgebungsvariable fehlt.
 
 ## Erstes Konto anlegen
 

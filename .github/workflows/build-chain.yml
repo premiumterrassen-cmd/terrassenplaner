@@ -171,7 +171,7 @@ jobs:
           cp -r packages/server/build/auth_server/bundle artefakte/auth_server
           # Werkzeug für Mitarbeiter-Konten (M9-10) ins Bündel des Auth-Servers
           cp packages/server/build/mitarbeiter/bundle/bin/mitarbeiter artefakte/auth_server/bin/
-          cp -rn packages/server/build/mitarbeiter/bundle/lib/. artefakte/auth_server/lib/
+          if [ -d packages/server/build/mitarbeiter/bundle/lib ]; then cp -rn packages/server/build/mitarbeiter/bundle/lib/. artefakte/auth_server/lib/; fi
           cp -r packages/app/build/web artefakte/web
           # native ObjectBox-Bibliothek in beide Bündel (LD_LIBRARY_PATH zeigt auf lib/)
           tool/objectbox_bibliothek.sh artefakte/auth_server/lib

@@ -7,7 +7,23 @@ import 'package:terrassenplaner_server/terrassenplaner_server.dart';
 /// `mitarbeiter liste`. Das Passwort kommt über stdin – am Terminal
 /// verdeckt und zweimal –, nie als Argument.
 Future<void> main(List<String> argumente) async {
-  final verbindung = await MitarbeiterWerkzeug.verbinde(Platform.environment);
+  if (argumente.isEmpty) {
+    stderr.writeln(MitarbeiterWerkzeug.aufruf);
+    exitCode = 64;
+    return;
+  }
+  final Verwaltungsverbindung verbindung;
+  try {
+    verbindung = await MitarbeiterWerkzeug.verbinde(Platform.environment);
+  } on FormatException catch (fehler) {
+    stderr.writeln('${fehler.message}: ${fehler.source}');
+    exitCode = 78;
+    return;
+  } on Object {
+    stderr.writeln('Auth-Server nicht erreichbar oder Ticket falsch');
+    exitCode = 69;
+    return;
+  }
   final interaktiv = stdin.hasTerminal;
   exitCode = await MitarbeiterWerkzeug(
     rufe: verbindung.rufe,
