@@ -30,9 +30,9 @@ Future<Berechnung> _glattkant(Planung planung) async {
         ),
         if (art == Befestigungsart.verschraubtMitAbstandshaltern)
           const Befestigungsposition(
-            Artikelnummer('50-90-004'),
-            'Abstandshalter 4 mm 100 Stück',
-            4,
+            Artikelnummer('50-80-009'),
+            'ALTO Montagehilfe Abstandshalter, VPE zu 4 Stück',
+            1,
           ),
       ],
     ),
@@ -92,7 +92,7 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.byKey(const ValueKey('befestigungsmittel-50-90-004')),
+      find.byKey(const ValueKey('befestigungsmittel-50-80-009')),
       findsNothing,
     );
     await tester.tap(abstand);
@@ -103,7 +103,7 @@ void main() {
     );
     expect(s.aenderungen, [0]);
     expect(tester.widget<ChoiceChip>(abstand).selected, isTrue);
-    expect(find.text('4 × Abstandshalter 4 mm 100 Stück'), findsOneWidget);
+    expect(find.text('1 × ALTO Montagehilfe Abstandshalter, VPE zu 4 Stück'), findsOneWidget);
     // erneutes Tippen auf die gewählte Art ändert nichts
     await tester.tap(abstand);
     await tester.pumpAndSettle();
