@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:objectbox/objectbox.dart';
 
 /// Gemeinsame Basisfelder aller gespeicherten Datensätze
@@ -110,4 +112,148 @@ class Benutzer implements Basisdatensatz {
   String storedKey;
   String serverKey;
   String rolle;
+}
+
+/// Kopf einer gespeicherten Konfiguration (M9-05, Bewegungsdaten): fachlicher
+/// Schlüssel ist die Konfigurationsnummer, sie ist zugleich die Partition.
+@Entity()
+class Konfiguration implements Basisdatensatz {
+  Konfiguration({
+    required this.nummer,
+    required this.tag,
+    required this.laufend,
+  }) : partition = nummer;
+
+  @override
+  @Id()
+  int id = 0;
+
+  @override
+  @Unique()
+  String uid = '';
+
+  @override
+  String partition;
+
+  @override
+  String hlc = '';
+
+  @override
+  String knoten = '';
+
+  @override
+  int? geloeschtAm;
+
+  @override
+  int schema = 1;
+
+  /// Konfigurationsnummer `JJJJ-MM-TT-NNNN`.
+  @Unique()
+  String nummer;
+
+  /// Kalendertag `JJJJ-MM-TT` – für die laufende Nummer je Tag.
+  @Index()
+  String tag;
+
+  /// Laufende Nummer des Tages (`NNNN`).
+  int laufend;
+
+  /// HLC von Version 1 (Anlegen); [hlc] ist die letzte Änderung.
+  String erstelltAm = '';
+
+  /// Höchste gespeicherte Version (0 = noch keine).
+  int aktuelleVersion = 0;
+}
+
+/// Eine Version einer Konfiguration (M9-05): wird einmal angelegt und nie
+/// geändert (append-only). [inhalt] ist die Planung im Transportformat
+/// (`Planung.zuBytes`), das seine eigene Schema-Version trägt.
+@Entity()
+class KonfigurationsVersion implements Basisdatensatz {
+  KonfigurationsVersion({
+    required this.nummer,
+    required this.version,
+    required this.inhalt,
+  }) : partition = nummer,
+       schluessel = '$nummer/$version';
+
+  @override
+  @Id()
+  int id = 0;
+
+  @override
+  @Unique()
+  String uid = '';
+
+  @override
+  String partition;
+
+  @override
+  String hlc = '';
+
+  @override
+  String knoten = '';
+
+  @override
+  int? geloeschtAm;
+
+  @override
+  int schema = 1;
+
+  /// `JJJJ-MM-TT-NNNN/version` – fachlicher Schlüssel.
+  @Unique()
+  String schluessel;
+
+  @Index()
+  String nummer;
+
+  int version;
+
+  @Property(type: PropertyType.byteVector)
+  Uint8List inhalt;
+}
+
+/// Automatisch zwischengespeicherter Stand (M9-05) je Sitzungsschlüssel des
+/// Browsers: genau ein Datensatz, der überschrieben wird – keine Versionen.
+/// [nummer]/[version] nennen die gespeicherte Konfiguration, auf der er
+/// beruht (leer = noch nie gespeichert). Nach [ablaufAm] gilt er als weg.
+@Entity()
+class Zwischenstand implements Basisdatensatz {
+  Zwischenstand({required this.schluessel, required this.inhalt})
+    : partition = schluessel;
+
+  @override
+  @Id()
+  int id = 0;
+
+  @override
+  @Unique()
+  String uid = '';
+
+  @override
+  String partition;
+
+  @override
+  String hlc = '';
+
+  @override
+  String knoten = '';
+
+  @override
+  int? geloeschtAm;
+
+  @override
+  int schema = 1;
+
+  @Unique()
+  String schluessel;
+
+  @Property(type: PropertyType.byteVector)
+  Uint8List inhalt;
+
+  String nummer = '';
+  int version = 0;
+
+  /// Ablauf (ms seit 1970).
+  int ablaufAm = 0;
 }

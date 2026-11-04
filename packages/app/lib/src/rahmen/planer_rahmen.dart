@@ -4,7 +4,9 @@ import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 import '../design/darstellung.dart';
 import '../design/planer_design.dart';
+import '../konfiguration/konfigurations_steuerung.dart';
 import '../sprache/sprache.dart';
+import '../start/eingangsdialog.dart';
 import 'aktionen.dart';
 import 'ansichtsoptionen.dart';
 import 'ausgangspunkt.dart';
@@ -36,6 +38,7 @@ class PlanerRahmen extends StatefulWidget {
     this.ansicht,
     this.optionen,
     this.zeichnung,
+    this.konfiguration,
     this.berechne,
     this.belaege,
     this.aktionen = const RahmenAktionen(),
@@ -54,6 +57,10 @@ class PlanerRahmen extends StatefulWidget {
 
   /// Was gezeichnet wird, fest vorgegeben (Tests); sonst die Berechnung.
   final Zeichnung? zeichnung;
+
+  /// SPEICHERN und LADEN (M9-05); bringt die Planung mit. Ohne sie gibt es
+  /// die beiden Knöpfe nicht.
+  final KonfigurationsSteuerung? konfiguration;
 
   /// Berechnung auf dem Server (M4-02); ohne sie bleibt die Zeichnung leer.
   final PlanungBerechnen? berechne;
@@ -77,7 +84,8 @@ class PlanerRahmen extends StatefulWidget {
 
 class _PlanerRahmenState extends State<PlanerRahmen> {
   late final RahmenZustand _zustand = widget.zustand ?? RahmenZustand();
-  late final PlanungsSteuerung _planung = widget.planung ?? PlanungsSteuerung();
+  late final PlanungsSteuerung _planung =
+      widget.planung ?? widget.konfiguration?.planung ?? PlanungsSteuerung();
   late final AnsichtSteuerung _ansicht = widget.ansicht ?? AnsichtSteuerung();
   late final AnsichtsOptionen _optionen = widget.optionen ?? AnsichtsOptionen();
   final _modus = ZeichenModus();
@@ -150,7 +158,9 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
     _modus.dispose();
     _zustand.removeListener(_verlaesstRundung);
     _rundung.dispose();
-    if (widget.planung == null) _planung.dispose();
+    if (widget.planung == null && widget.konfiguration == null) {
+      _planung.dispose();
+    }
     if (widget.ansicht == null) _ansicht.dispose();
     if (widget.optionen == null) _optionen.dispose();
     super.dispose();
@@ -175,7 +185,43 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
       builder: (_) => const ZuruecksetzenDialog(),
     );
     if (bestaetigt ?? false) {
-      _planung.zuruecksetzen();
+      if (widget.konfiguration case final k?) {
+        k.neu();
+      } else {
+        _planung.zuruecksetzen();
+      }
+      _zustand.vergissAenderungen();
+      _ansicht.zentriere();
+    }
+  }
+
+  /// SPEICHERN ohne Rückfrage (Fachkonzept 08); Ergebnis oder Fehler als
+  /// Hinweis – die Planung bleibt in jedem Fall erhalten.
+  Future<void> _speichere(KonfigurationsSteuerung konfiguration) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final t = context.texte;
+    final String meldung;
+    try {
+      final stand = await konfiguration.speichere();
+      meldung = t.gespeichertMeldung(stand.nummer.wert, stand.version);
+    } on Object {
+      messenger.showSnackBar(SnackBar(content: Text(t.speichernFehler)));
+      return;
+    }
+    messenger.showSnackBar(SnackBar(content: Text(meldung)));
+  }
+
+  /// LADEN: „Konfiguration laden“ mit der geöffneten Konfiguration vorbelegt.
+  Future<void> _lade(KonfigurationsSteuerung konfiguration) async {
+    final geladen = await showDialog<bool>(
+      context: context,
+      builder: (_) => LadenDialog(
+        laden: konfiguration.lade,
+        speichern: konfiguration.speichere,
+        vorgabe: konfiguration.stand,
+      ),
+    );
+    if (geladen ?? false) {
       _zustand.vergissAenderungen();
       _ansicht.zentriere();
     }
@@ -216,6 +262,14 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
                 sprache: widget.sprache,
                 darstellung: widget.darstellung,
                 onZuruecksetzen: _zuruecksetzen,
+                onSpeichern: switch (widget.konfiguration) {
+                  final k? => () => _speichere(k),
+                  null => null,
+                },
+                onLaden: switch (widget.konfiguration) {
+                  final k? => () => _lade(k),
+                  null => null,
+                },
                 onVideoberatung: () =>
                     widget.aktionen.oeffne(PlanerLinks.videoberatung),
                 onPdf: () => _zumErgebnis(widget.aktionen.pdf),
@@ -296,6 +350,8 @@ class Kopfzeile extends StatelessWidget {
     super.key,
     this.sprache,
     this.darstellung,
+    this.onSpeichern,
+    this.onLaden,
   });
 
   final bool breit;
@@ -306,12 +362,17 @@ class Kopfzeile extends StatelessWidget {
   final VoidCallback onPdf;
   final VoidCallback onAnfordern;
 
+  /// SPEICHERN und LADEN (M9-05); ohne Rückruf kein Knopf.
+  final VoidCallback? onSpeichern;
+  final VoidCallback? onLaden;
+
   static const logo = 'assets/bilder/robinienwelt_logo.png';
 
   /// Ab dieser Breite (px) tragen die Knöpfe ihre Beschriftung; darunter
   /// nur Symbole mit Tooltip – auch für längere Übersetzungen (M3-07) und
-  /// mit Sprach- und Darstellungsauswahl (M3-09, Englisch braucht 1322 px).
-  static const textAb = 1366.0;
+  /// mit Sprach- und Darstellungsauswahl (M3-09) sowie SPEICHERN und LADEN
+  /// (M9-05; Englisch braucht 1627 px).
+  static const textAb = 1680.0;
 
   Widget _knopf(
     String schluessel,
@@ -379,6 +440,22 @@ class Kopfzeile extends StatelessWidget {
             onVideoberatung,
             mitText: mitText,
           ),
+          if (onSpeichern case final speichern?)
+            _knopf(
+              'speichern',
+              Icons.save_outlined,
+              t.speichern,
+              speichern,
+              mitText: mitText,
+            ),
+          if (onLaden case final laden?)
+            _knopf(
+              'konfiguration-laden',
+              Icons.folder_open_outlined,
+              t.laden,
+              laden,
+              mitText: mitText,
+            ),
           _knopf(
             'zuruecksetzen',
             Icons.restart_alt,

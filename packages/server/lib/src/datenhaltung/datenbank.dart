@@ -54,6 +54,12 @@ class Datenbank {
     () => _schreibe(objekt, objekt.uid.isEmpty ? 'anlegen' : 'aendern'),
   );
 
+  /// Führt [arbeit] in einer Schreibtransaktion aus: mehrere [speichere]-
+  /// Aufrufe darin werden gemeinsam festgeschrieben oder – bei einem Fehler –
+  /// gemeinsam verworfen (samt Protokolleinträgen).
+  R transaktion<R>(R Function() arbeit) =>
+      store.runInTransaction(TxMode.write, arbeit);
+
   /// Löscht [objekt] als Grabstein (bleibt gespeichert, `geloeschtAm` gesetzt).
   T loesche<T extends Basisdatensatz>(T objekt) =>
       store.runInTransaction(TxMode.write, () {
