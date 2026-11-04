@@ -177,7 +177,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(3, 3700112060093919120),
     name: 'Konfiguration',
-    lastPropertyId: const obx_int.IdUid(12, 7027489902092778456),
+    lastPropertyId: const obx_int.IdUid(13, 6137436940986819355),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -253,6 +253,12 @@ final _entities = <obx_int.ModelEntity>[
         id: const obx_int.IdUid(12, 7027489902092778456),
         name: 'aktuelleVersion',
         type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(13, 6137436940986819355),
+        name: 'pruefcode',
+        type: 9,
         flags: 0,
       ),
     ],
@@ -650,7 +656,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final nummerOffset = fbb.writeString(object.nummer);
         final tagOffset = fbb.writeString(object.tag);
         final erstelltAmOffset = fbb.writeString(object.erstelltAm);
-        fbb.startTable(13);
+        final pruefcodeOffset = fbb.writeString(object.pruefcode);
+        fbb.startTable(14);
         fbb.addInt64(0, object.id);
         fbb.addOffset(1, uidOffset);
         fbb.addOffset(2, partitionOffset);
@@ -663,6 +670,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addInt64(9, object.laufend);
         fbb.addOffset(10, erstelltAmOffset);
         fbb.addInt64(11, object.aktuelleVersion);
+        fbb.addOffset(12, pruefcodeOffset);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -712,7 +720,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
                 rootOffset,
                 26,
                 0,
-              );
+              )
+              ..pruefcode = const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 28, '');
 
         return object;
       },
@@ -1055,6 +1065,11 @@ class Konfiguration_ {
   /// See [Konfiguration.aktuelleVersion].
   static final aktuelleVersion = obx.QueryIntegerProperty<Konfiguration>(
     _entities[2].properties[11],
+  );
+
+  /// See [Konfiguration.pruefcode].
+  static final pruefcode = obx.QueryStringProperty<Konfiguration>(
+    _entities[2].properties[12],
   );
 }
 

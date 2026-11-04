@@ -7,6 +7,15 @@
 - **ZURÜCKSETZEN** fragt nach: „Sind sie sicher, dass Sie die Planung zurücksetzen möchten? Dadurch geht ihr Fortschritt verloren. Stellen Sie sicher, dass Sie die Konfiguration gespeichert und die Konfigurationsnummer notiert haben.“ – „Zurück zur Konfiguration“ / „Konfiguration Zurücksetzen“.
 - Der Browser merkt sich die letzte Planung (Startdialog „Wir haben eine Konfiguration gefunden …“).
 
+Neuer Planer: Prüfcode für gespeicherte Konfigurationen (Alexander, 04.11.2026, M9-05b – „mit einem kurzen Prüfcode absichern“):
+
+- Die fortlaufenden Nummern sind erratbar. Beim ersten SPEICHERN vergibt der Server deshalb zusätzlich einen **Prüfcode** aus 5 zufälligen Zeichen (Großbuchstaben und Ziffern ohne die verwechselbaren 0, O, 1, I, L). Er gilt für alle Versionen derselben Nummer.
+- Angezeigt und eingegeben wird beides als ein Text `JJJJ-MM-TT-NNNN-XXXXX` (Beispiel `2026-10-08-1511-K7QXM`). Kleinbuchstaben, Leerzeichen und fehlende oder zusätzliche Trenner sind beim Eingeben erlaubt.
+- Nach SPEICHERN zeigt der Hinweis die vollständige Kennung und bittet, die Nummer samt Prüfcode zu notieren. „Konfiguration laden“ nimmt sie in einem Feld, dazu Version −/+.
+- Laden mit falschem oder fehlendem Prüfcode gibt dieselbe Meldung wie eine unbekannte Nummer: „Diese Konfiguration gibt es nicht. Bitte prüfen Sie Konfigurationsnummer, Prüfcode und Version.“ So erfährt niemand, ob eine Nummer vergeben ist.
+- Der Browser merkt sich für „Weiterplanen“ die Kennung mit Prüfcode.
+- Mitarbeiter sollen später (M9-10, Mitarbeiter-Anmeldung) auch ohne Prüfcode laden dürfen.
+
 ## Angebot anfordern
 
 Knopf „Jetzt Angebot anfordern“ (Materialliste) öffnet „Angebot anfordern“:

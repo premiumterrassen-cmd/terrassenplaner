@@ -460,13 +460,13 @@ class PlanerTexteEn extends PlanerTexte {
   String get ladenTitel => 'Load configuration';
 
   @override
-  String get nummerFeld => 'Configuration number';
+  String get nummerFeld => 'Configuration number with check code';
 
   @override
-  String get nummerHinweis => 'e.g. 2026-10-08-1511';
+  String get nummerHinweis => 'e.g. 2026-10-08-1511-K7QXM';
 
   @override
-  String get nummerFehler => 'Please enter in the format YYYY-MM-DD-NNNN';
+  String get nummerFehler => 'Please enter in the format YYYY-MM-DD-NNNN-XXXXX';
 
   @override
   String get version => 'Version';
@@ -477,7 +477,7 @@ class PlanerTexteEn extends PlanerTexte {
 
   @override
   String get konfigurationUnbekannt =>
-      'This configuration number or version does not exist.';
+      'This configuration does not exist. Please check the configuration number, check code and version.';
 
   @override
   String get konfigurationSpeichernKnopf => 'Save configuration';
@@ -488,7 +488,7 @@ class PlanerTexteEn extends PlanerTexte {
 
   @override
   String gespeichertMeldung(String nummer, int version) {
-    return 'Saved: configuration number $nummer, version $version. Please note the number.';
+    return 'Saved: configuration number $nummer, version $version. Please note the number including the check code (the last five characters) – only with it can the configuration be loaded again.';
   }
 
   @override

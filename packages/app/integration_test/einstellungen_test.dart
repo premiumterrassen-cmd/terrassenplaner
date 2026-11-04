@@ -39,7 +39,7 @@ void main() {
     sprache.value = const Locale('en');
     darstellung.value = ThemeMode.dark;
     final stand = KonfigurationsStand(
-      Konfigurationsnummer.pruefe('2026-10-08-1511'),
+      Konfigurationskennung.lies('2026-10-08-1511-K7QXM'),
       2,
     );
     erste.merke(stand);
@@ -51,7 +51,7 @@ void main() {
     expect(storage.getItem(LokaleEinstellungen.darstellungSchluessel), 'dark');
     expect(
       storage.getItem(LokaleEinstellungen.konfigurationSchluessel),
-      '2026-10-08-1511/2',
+      '2026-10-08-1511-K7QXM/2',
     );
 
     // Wie nach dem Neuladen: neue Einstellungen aus demselben Speicher.
