@@ -152,7 +152,10 @@ final class Befestigungsbedarf {
 ///   Lieferumfang (B-074, B-150) und keine eigene Position.
 /// - **Verschraubt** (glattkant, B-090/R-B02): je Punkt eine Schraube, ab
 ///   100 mm zwei; Schraubenlänge mindestens doppelte Dielenstärke.
-/// - **Mit Abstandshaltern:** zusätzlich ein Abstandshalter je Punkt.
+/// - **Mit Abstandshaltern:** zusätzlich eine Packung Montagehilfe
+///   (wiederverwendbare Abstandshalter für die Fuge von 5 mm – die Clips
+///   geben sie sonst selbst vor; Alexander 04.11.2026). Einweg-Abstandshalter
+///   (4/7 mm) passen nicht zur Fuge und werden nicht gewählt.
 ///
 /// Die Artikel kommen aus den Befestigungsverweisen des Belags; Preise und
 /// Verkaufseinheiten unverändert aus den Artikeldaten (B-153). Abstand der
@@ -202,7 +205,7 @@ Befestigungsbedarf befestigungsbedarf(
         _schrauben(moeglich, belag.abmessungen.staerke),
       ),
       if (art == Befestigungsart.verschraubtMitAbstandshaltern)
-        ...verpackt(punkte, [?_abstandshalter(regelwerk)]),
+        ...verpackt(1, [?_montagehilfe(regelwerk)]),
     ],
   };
   return Befestigungsbedarf(
@@ -242,10 +245,10 @@ List<Artikel> _schrauben(List<Artikel> moeglich, Millimeter? staerke) {
   ];
 }
 
-/// Abstandshalter aus den Artikeldaten: Die Upload-Datei kennt noch keine
-/// Beziehung Belag → Abstandshalter; bis dahin gilt der erste Artikel, dessen
-/// Titel mit „Abstandshalter“ beginnt (offen, Fachkonzept 2.6).
-Artikel? _abstandshalter(Regelwerk regelwerk) => regelwerk.datei.eintraege
+/// Montagehilfe aus den Artikeldaten: der erste Artikel, dessen Titel
+/// „Montagehilfe Abstandshalter“ enthält – die Upload-Datei kennt keine
+/// Beziehung Belag → Abstandshalter (Fachkonzept 2.6).
+Artikel? _montagehilfe(Regelwerk regelwerk) => regelwerk.datei.eintraege
     .map((e) => e.artikel)
-    .where((a) => a.titel.startsWith('Abstandshalter'))
+    .where((a) => a.titel.contains('Montagehilfe Abstandshalter'))
     .firstOrNull;
