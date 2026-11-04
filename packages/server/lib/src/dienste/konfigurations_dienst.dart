@@ -11,11 +11,17 @@ import '../router/planer_router.dart';
 /// Konfigurationen zu (Sternstruktur); die Planung reist unverändert im
 /// Transportformat (`Planung.zuBytes`) als Binärargument.
 ///
-/// - speichern `[inhalt]` oder `[inhalt, nummer]` → `[nummer, version]`
-/// - laden `[nummer, version]` → `[inhalt]`
+/// Eine gespeicherte Konfiguration heißt nach außen immer mit ihrer
+/// **Kennung** `JJJJ-MM-TT-NNNN-XXXXX` (Nummer und Prüfcode, M9-05b): wer
+/// nur die fortlaufende Nummer kennt, kann sie weder laden noch fortführen.
+///
+/// - speichern `[inhalt]` oder `[inhalt, kennung]` → `[kennung, version]`
+/// - laden `[kennung, version]` → `[inhalt]`
 /// - Entwurf speichern `[schluessel, inhalt]` oder
-///   `[schluessel, inhalt, nummer, version]` → `[]`
-/// - Entwurf laden `[schluessel]` → `[inhalt]` oder `[inhalt, nummer, version]`
+///   `[schluessel, inhalt, kennung, version]` → `[]`
+/// - Entwurf laden `[schluessel]` → `[inhalt]` oder `[inhalt, kennung, version]`
+///
+/// Falscher Prüfcode und unbekannte Nummer geben denselben Fehler.
 class KonfigurationsDienst {
   KonfigurationsDienst._(this._sitzung, this._ablage);
 
@@ -50,42 +56,61 @@ class KonfigurationsDienst {
   final RouterSession _sitzung;
   final KonfigurationsSpeicher _ablage;
 
-  List<Object?> _speichern(List<Object?> argumente) {
+  List<Object?> _speichern(List<Object?> argumente, Invocation _) {
     final stand = switch (argumente) {
       [final Uint8List inhalt] => _ablage.speichere(_planung(inhalt)),
-      [final Uint8List inhalt, final String nummer] => _ablage.speichere(
+      [final Uint8List inhalt, final String kennung] => _ablage.speichere(
         _planung(inhalt),
-        nummer: Konfigurationsnummer.pruefe(nummer),
+        kennung: Konfigurationskennung.lies(kennung),
       ),
       _ => throw _ungueltig(argumente),
     };
-    return [stand.nummer.wert, stand.version];
+    return [stand.kennung.wert, stand.version];
   }
 
-  List<Object?> _laden(List<Object?> argumente) => switch (argumente) {
-    [final String nummer, final int version] => [
-      _ablage.lies(
-        KonfigurationsStand(Konfigurationsnummer.pruefe(nummer), version),
-      ),
-    ],
-    _ => throw _ungueltig(argumente),
-  };
+  List<Object?> _laden(List<Object?> argumente, Invocation aufruf) =>
+      switch (argumente) {
+        [final String kennung, final int version] => [
+          _ablage.lies(
+            KonfigurationsStand(_kennungZumLaden(kennung, version), version),
+            ohnePruefcode: darfOhnePruefcodeLaden(aufruf),
+          ),
+        ],
+        _ => throw _ungueltig(argumente),
+      };
 
-  List<Object?> _entwurfSpeichern(List<Object?> argumente) {
+  /// Fehlender oder falsch geschriebener Prüfcode beim Laden: wie eine
+  /// unbekannte Konfiguration (M9-05b).
+  static Konfigurationskennung _kennungZumLaden(String text, int version) {
+    try {
+      return Konfigurationskennung.lies(text);
+    } on PruefcodeUngueltig catch (fehler) {
+      throw KonfigurationUnbekannt(fehler.nummer, version);
+    }
+  }
+
+  /// **Stelle für die Mitarbeiter-Anmeldung (M9-10):** Hier sollen später
+  /// angemeldete Mitarbeiter (Rolle `mitarbeiter` aus den Aufrufdetails)
+  /// Konfigurationen auch ohne passenden Prüfcode laden dürfen. Bis es die
+  /// Anmeldung gibt, verlangt LADEN von jedem Aufrufer Nummer **und**
+  /// Prüfcode.
+  static bool darfOhnePruefcodeLaden(Invocation aufruf) => false;
+
+  List<Object?> _entwurfSpeichern(List<Object?> argumente, Invocation _) {
     switch (argumente) {
       case [final String schluessel, final Uint8List inhalt]:
         _ablage.merkeEntwurf(_schluessel(schluessel), _planung(inhalt));
       case [
         final String schluessel,
         final Uint8List inhalt,
-        final String nummer,
+        final String kennung,
         final int version,
       ]:
         _ablage.merkeEntwurf(
           _schluessel(schluessel),
           _planung(inhalt),
           bezug: KonfigurationsStand(
-            Konfigurationsnummer.pruefe(nummer),
+            Konfigurationskennung.lies(kennung),
             version,
           ),
         );
@@ -95,7 +120,7 @@ class KonfigurationsDienst {
     return const [];
   }
 
-  List<Object?> _entwurfLaden(List<Object?> argumente) {
+  List<Object?> _entwurfLaden(List<Object?> argumente, Invocation _) {
     final schluessel = switch (argumente) {
       [final String s] => _schluessel(s),
       _ => throw _ungueltig(argumente),
@@ -103,7 +128,7 @@ class KonfigurationsDienst {
     return switch (_ablage.entwurf(schluessel)) {
       null => throw const _EntwurfUnbekannt(),
       (:final inhalt, bezug: null) => [inhalt],
-      (:final inhalt, bezug: final b?) => [inhalt, b.nummer.wert, b.version],
+      (:final inhalt, bezug: final b?) => [inhalt, b.kennung.wert, b.version],
     };
   }
 
@@ -128,11 +153,11 @@ class KonfigurationsDienst {
   /// Version, kein Entwurf, sonst ungültiger Aufruf.
   static void _antworte(
     Invocation aufruf,
-    List<Object?> Function(List<Object?> argumente) arbeit,
+    List<Object?> Function(List<Object?> argumente, Invocation aufruf) arbeit,
   ) {
     final argumente = aufruf.arguments ?? const <Object?>[];
     try {
-      aufruf.respondWith(arguments: arbeit(argumente));
+      aufruf.respondWith(arguments: arbeit(argumente, aufruf));
     } on KonfigurationUnbekannt catch (fehler) {
       aufruf.respondWith(
         isError: true,

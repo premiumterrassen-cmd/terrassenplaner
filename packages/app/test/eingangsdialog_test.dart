@@ -12,10 +12,7 @@ import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 import 'hilfe.dart';
 
-final _gefunden = KonfigurationsStand(
-  const Konfigurationsnummer('2026-10-08-1511'),
-  3,
-);
+final _gefunden = stand('2026-10-08-1511-K7QXM', 3);
 
 /// App mit Eingangsdialog über [ablage] und [gedaechtnis].
 Future<void> _starte(
@@ -59,6 +56,17 @@ class _WartendeAblage extends TestAblage {
 
   @override
   Future<Planung> lade(KonfigurationsStand stand) => antwort.future;
+}
+
+/// Ablage, die ihre Ladeaufrufe zählt.
+class _ZaehlendeAblage extends TestAblage {
+  var ladeAufrufe = 0;
+
+  @override
+  Future<Planung> lade(KonfigurationsStand stand) {
+    ladeAufrufe++;
+    return super.lade(stand);
+  }
 }
 
 /// Ablage, deren Suche nach dem Entwurf erst mit [sucheFertig] endet.
@@ -151,9 +159,10 @@ void main() {
       '3',
     );
 
+    // Kleinbuchstaben und Leerzeichen sind erlaubt (M9-05b)
     await tester.enterText(
       find.byKey(const ValueKey('nummer')),
-      ' 2026-10-08-1511 ',
+      ' 2026 10 08 1511 k7qxm ',
     );
     await tester.tap(find.byKey(const ValueKey('laden-bestaetigen')));
     await tester.pumpAndSettle();
@@ -166,11 +175,7 @@ void main() {
 
   testWidgets('Laden prüft das Format', (tester) async {
     final ablage = TestAblage();
-    final stand = KonfigurationsStand(
-      const Konfigurationsnummer('2026-10-08-1511'),
-      1,
-    );
-    ablage.versionen[stand] = _gespeichert(7000);
+    ablage.versionen[stand('2026-10-08-1511-K7QXM', 1)] = _gespeichert(7000);
     await _starte(tester, ablage: ablage);
     await tester.tap(find.byKey(const ValueKey('laden')));
     await tester.pumpAndSettle();
@@ -183,7 +188,7 @@ void main() {
     // Enter im Feld lädt ebenfalls; der Fehlertext verschwindet.
     await tester.enterText(
       find.byKey(const ValueKey('nummer')),
-      '2026-10-08-1511',
+      '2026-10-08-1511-K7QXM',
     );
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
@@ -197,12 +202,49 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const ValueKey('nummer')),
-      '2026-10-08-1511',
+      '2026-10-08-1511-K7QXM',
     );
     await tester.tap(find.byKey(const ValueKey('laden-bestaetigen')));
     await tester.pumpAndSettle();
     expect(find.text(de.konfigurationUnbekannt), findsOneWidget);
     expect(find.text(de.ladeFehler), findsNothing);
+    expect(_ladenDialog, findsOneWidget);
+  });
+
+  testWidgets('falscher oder fehlender Prüfcode: wie unbekannt (M9-05b)', (
+    tester,
+  ) async {
+    final ablage = _ZaehlendeAblage();
+    ablage.versionen[_gefunden] = _gespeichert(5000);
+    await _starte(tester, ablage: ablage);
+    await tester.tap(find.byKey(const ValueKey('laden')));
+    await tester.pumpAndSettle();
+    final feld = find.byKey(const ValueKey('nummer'));
+    // falscher Code: der Server antwortet „unbekannt“
+    await tester.enterText(feld, '2026-10-08-1511-K7QXN');
+    await tester.tap(find.byKey(const ValueKey('laden-bestaetigen')));
+    await tester.pumpAndSettle();
+    expect(find.text(de.konfigurationUnbekannt), findsOneWidget);
+    expect(ablage.ladeAufrufe, 1);
+    // fehlender oder falsch geschriebener Code: dieselbe Meldung, ohne Server
+    for (final text in ['2026-10-08-1511', '2026-10-08-1511-K7Q0M']) {
+      await tester.enterText(feld, '2026-10-08');
+      await tester.tap(find.byKey(const ValueKey('laden-bestaetigen')));
+      await tester.pump();
+      expect(find.text(de.nummerFehler), findsOneWidget);
+      final aufrufe = ablage.ladeAufrufe;
+      await tester.enterText(feld, text);
+      await tester.tap(find.byKey(const ValueKey('laden-bestaetigen')));
+      await tester.pump();
+      expect(
+        find.text(de.konfigurationUnbekannt),
+        findsOneWidget,
+        reason: text,
+      );
+      expect(find.text(de.nummerFehler), findsNothing, reason: text);
+      expect(ablage.ladeAufrufe, aufrufe, reason: text);
+    }
+    expect(_planung(tester), Planung.start);
     expect(_ladenDialog, findsOneWidget);
   });
 
@@ -213,7 +255,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const ValueKey('nummer')),
-      '2026-10-08-1511',
+      '2026-10-08-1511-K7QXM',
     );
     await tester.tap(find.byKey(const ValueKey('laden-bestaetigen')));
     await tester.pump();
@@ -252,7 +294,7 @@ void main() {
     expect(
       find.text(
         'Wir haben eine Konfiguration gefunden. Möchten Sie mit dieser '
-        'weiterplanen? (2026-10-08-1511, Version 3)',
+        'weiterplanen? (2026-10-08-1511-K7QXM, Version 3)',
       ),
       findsOneWidget,
     );
@@ -324,9 +366,9 @@ void main() {
     expect(de.neuKnopf, 'WUNSCHTERRASSE KONFIGURIEREN');
     expect(de.weiterplanen, 'WEITERPLANEN');
     expect(
-      en.gefunden('2026-10-08-1511', 3),
+      en.gefunden('2026-10-08-1511-K7QXM', 3),
       'We found a configuration. Would you like to continue planning with '
-      'it? (2026-10-08-1511, version 3)',
+      'it? (2026-10-08-1511-K7QXM, version 3)',
     );
     expect(
       de.willkommenText,
@@ -335,7 +377,8 @@ void main() {
       'bestellen Sie direkt oder fordern ein Angebot an. Persönliche Hilfe '
       'bekommen Sie in der Video-Beratung.',
     );
-    expect(de.nummerFehler, 'Bitte im Format JJJJ-MM-TT-NNNN eingeben');
+    expect(de.nummerFehler, 'Bitte im Format JJJJ-MM-TT-NNNN-XXXXX eingeben');
+    expect(en.nummerFehler, 'Please enter in the format YYYY-MM-DD-NNNN-XXXXX');
     expect(
       de.ladeFehler,
       'Die Konfiguration konnte nicht geladen werden – der Server ist nicht '
@@ -343,7 +386,8 @@ void main() {
     );
     expect(
       de.konfigurationUnbekannt,
-      'Diese Konfigurationsnummer oder Version gibt es nicht.',
+      'Diese Konfiguration gibt es nicht. Bitte prüfen Sie '
+      'Konfigurationsnummer, Prüfcode und Version.',
     );
     expect(de.konfigurationSpeichernKnopf, 'Konfiguration Speichern');
     expect(
@@ -353,12 +397,15 @@ void main() {
     );
     expect(
       en.konfigurationUnbekannt,
-      'This configuration number or version does not exist.',
+      'This configuration does not exist. Please check the configuration '
+      'number, check code and version.',
     );
     expect(de.zurueck, 'Zurück');
     expect(de.ladenTitel, 'Konfiguration laden');
-    expect(de.nummerFeld, 'Konfigurationsnummer');
-    expect(de.nummerHinweis, 'z. B. 2026-10-08-1511');
+    expect(de.nummerFeld, 'Konfigurationsnummer mit Prüfcode');
+    expect(de.nummerHinweis, 'z. B. 2026-10-08-1511-K7QXM');
+    expect(en.nummerFeld, 'Configuration number with check code');
+    expect(en.nummerHinweis, 'e.g. 2026-10-08-1511-K7QXM');
     expect(de.version, 'Version');
     expect(de.ladenTitel, 'Konfiguration laden');
     expect(Startweg.values, [

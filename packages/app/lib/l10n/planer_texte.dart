@@ -913,19 +913,19 @@ abstract class PlanerTexte {
   /// No description provided for @nummerFeld.
   ///
   /// In de, this message translates to:
-  /// **'Konfigurationsnummer'**
+  /// **'Konfigurationsnummer mit Prüfcode'**
   String get nummerFeld;
 
   /// No description provided for @nummerHinweis.
   ///
   /// In de, this message translates to:
-  /// **'z. B. 2026-10-08-1511'**
+  /// **'z. B. 2026-10-08-1511-K7QXM'**
   String get nummerHinweis;
 
   /// No description provided for @nummerFehler.
   ///
   /// In de, this message translates to:
-  /// **'Bitte im Format JJJJ-MM-TT-NNNN eingeben'**
+  /// **'Bitte im Format JJJJ-MM-TT-NNNN-XXXXX eingeben'**
   String get nummerFehler;
 
   /// No description provided for @version.
@@ -943,7 +943,7 @@ abstract class PlanerTexte {
   /// No description provided for @konfigurationUnbekannt.
   ///
   /// In de, this message translates to:
-  /// **'Diese Konfigurationsnummer oder Version gibt es nicht.'**
+  /// **'Diese Konfiguration gibt es nicht. Bitte prüfen Sie Konfigurationsnummer, Prüfcode und Version.'**
   String get konfigurationUnbekannt;
 
   /// No description provided for @konfigurationSpeichernKnopf.
@@ -961,7 +961,7 @@ abstract class PlanerTexte {
   /// No description provided for @gespeichertMeldung.
   ///
   /// In de, this message translates to:
-  /// **'Gespeichert: Konfigurationsnummer {nummer}, Version {version}. Bitte notieren Sie die Nummer.'**
+  /// **'Gespeichert: Konfigurationsnummer {nummer}, Version {version}. Bitte notieren Sie die Nummer samt Prüfcode (die letzten fünf Zeichen) – nur damit lässt sich die Konfiguration wieder laden.'**
   String gespeichertMeldung(String nummer, int version);
 
   /// No description provided for @speichernFehler.

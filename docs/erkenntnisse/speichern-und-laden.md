@@ -3,8 +3,8 @@
 ## Umsetzung
 
 - **Konfigurationsdienst** (`packages/server/lib/src/dienste/konfigurations_dienst.dart`) im Router-Prozess mit vier Kunden-Prozeduren:
-  - `konfiguration.speichern` `[inhalt]` bzw. `[inhalt, nummer]` → `[nummer, version]`;
-  - `konfiguration.laden` `[nummer, version]` → `[inhalt]`;
+  - `konfiguration.speichern` `[inhalt]` bzw. `[inhalt, kennung]` → `[kennung, version]`;
+  - `konfiguration.laden` `[kennung, version]` → `[inhalt]` (Kennung = Nummer mit Prüfcode, siehe unten);
   - `konfiguration.entwurf_speichern` / `konfiguration.entwurf_laden` für das automatische Zwischenspeichern je Sitzungsschlüssel.
   - Fehler-URIs `fehler.konfiguration_unbekannt`, `fehler.entwurf_unbekannt`, `fehler.konfiguration_ungueltig`.
 - **Inhalt** ist die Planung im vorhandenen Transportformat (`Planung.zuBytes`, mit eigener Schema-Version) als Binärargument. Der Dienst prüft nur, dass sie lesbar ist (`Planung.ausBytes`) und höchstens 1 MiB groß – was gespeichert ist, lässt sich immer laden. Kein PPT, weil Nummer und Version neben dem Inhalt reisen.
@@ -19,6 +19,27 @@
   - LADEN öffnet „Konfiguration laden“, vorbelegt mit der geöffneten Konfiguration und mit „Konfiguration Speichern“.
   - `KonfigurationsSteuerung` hält die Planung; `PlanerVerbindung` ist die `KonfigurationsAblage`.
   - ZURÜCKSETZEN beginnt eine neue Planung ohne Nummer.
+
+## Prüfcode (M9-05b, Entscheidung Alexander 04.11.2026)
+
+Die fortlaufenden Nummern `JJJJ-MM-TT-NNNN` lassen sich erraten. Laden und Fortführen verlangen deshalb Nummer **und** Prüfcode („mit einem kurzen Prüfcode absichern“).
+
+- **Domain** (`packages/domain/lib/src/konfiguration/konfigurationskennung.dart`):
+  - `Pruefcode`: 5 Zeichen aus `ABCDEFGHJKMNPQRSTUVWXYZ23456789` (ohne 0, O, 1, I, L), also 31⁵ ≈ 28,6 Mio. Möglichkeiten je Nummer. `Pruefcode.zufaellig(Random)` erzeugt ihn, `gleicht` vergleicht in konstanter Zeit (XOR über alle Zeichen, kein frühes Ende).
+  - `Konfigurationskennung` (Nummer + Prüfcode): Text `JJJJ-MM-TT-NNNN-XXXXX`. `Konfigurationskennung.lies` ist tolerant: Großschreibung, Leerraum und Trenner (`-`, `–`, `—`, `_`, `.`, `/`) werden vor dem Prüfen entfernt. Ist die Nummer lesbar, der Code aber falsch geschrieben oder fehlt er, wirft `lies` `PruefcodeUngueltig` (mit der Nummer).
+  - `KonfigurationsStand` trägt jetzt die Kennung (`kennung`, `nummer`, `version`).
+- **Server:**
+  - `Konfiguration.pruefcode` (neue Property 13, nur angehängt). Die Schema-Version bleibt 1: M9-05 ist noch nirgends live, es gibt keine Datensätze ohne Prüfcode. Das Feld ist kein eingebettetes Dokument.
+  - `Konfigurationsablage` erzeugt den Code beim Anlegen des Kopfes mit `Random.secure()` (im Test austauschbar) und prüft ihn beim Laden, beim weiteren Speichern und beim Merken eines Entwurfs mit Bezug.
+  - Falscher Code und unbekannte Nummer werfen dasselbe `KonfigurationUnbekannt`. Der Dienst antwortet für beides mit `fehler.konfiguration_unbekannt` und `[nummer, version]`. Auch eine Kennung ohne oder mit falsch geschriebenem Code beim Laden gilt als unbekannt, nicht als ungültiger Aufruf.
+  - WAMP: Alle Prozeduren nehmen und liefern statt der Nummer die Kennung (`speichern` → `[kennung, version]`, `laden` `[kennung, version]`, Entwurf mit `kennung`). Der Entwurf liefert seinen Bezug mit Code zurück. Das gibt nichts preis, denn der Sitzungsschlüssel ist selbst geheim und ein Bezug wird nur mit passendem Code gemerkt.
+  - **Stelle für Mitarbeiter (M9-10):** `KonfigurationsDienst.darfOhnePruefcodeLaden(aufruf)` liefert vorerst immer `false`. Mit der Mitarbeiter-Anmeldung prüft sie die Rolle aus den Aufrufdetails und lässt `Konfigurationsablage.lies(…, ohnePruefcode: true)` zu. Für Mitarbeiter, die nur die Nummer kennen, muss M9-10 dann auch das Einlesen ohne Code im Dienst zulassen.
+- **App:**
+  - Der Hinweis nach SPEICHERN zeigt die Kennung. Der Ladedialog liest sie aus einem Feld.
+  - Fehlt der Code oder ist er falsch geschrieben, zeigt die App sofort „unbekannt“, ohne den Server zu fragen.
+  - `LokaleEinstellungen` merkt `JJJJ-MM-TT-NNNN-XXXXX/Version`. Ein alter Eintrag ohne Code gilt als keiner.
+- **Smoke-Test** `speichern_laden_test.dart`: Laden mit verändertem letzten Zeichen → „unbekannt“; danach lädt die richtige Kennung (in Kleinschreibung).
+- Offen: Schutz gegen massenhaftes Durchprobieren (Rate-Limit je Verbindung oder IP im Router oder in Traefik). Der Code macht Raten teuer, eine Bremse fehlt aber noch.
 
 ## Entscheidung: Zwischenspeichern als Entwurf, nicht als Version
 

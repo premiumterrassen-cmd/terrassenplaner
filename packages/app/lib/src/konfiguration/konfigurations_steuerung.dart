@@ -5,7 +5,8 @@ import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 import '../rahmen/steuerung.dart';
 
-/// Der Server kennt die Konfigurationsnummer oder Version nicht (M9-05).
+/// Der Server kennt die Konfigurationsnummer oder Version nicht, oder der
+/// Prüfcode passt nicht (M9-05, M9-05b) – beides sieht gleich aus.
 final class KonfigurationNichtGefunden implements Exception {
   const KonfigurationNichtGefunden(this.stand);
 
@@ -22,11 +23,11 @@ typedef PlanungsEntwurf = ({Planung planung, KonfigurationsStand? bezug});
 /// Server-Ablage der Konfigurationen (M9-05, Konfigurationsdienst über
 /// WAMP); in Tests austauschbar.
 abstract interface class KonfigurationsAblage {
-  /// Speichert [planung] als neue Version von [nummer] – ohne Nummer als
-  /// Version 1 einer neuen Konfigurationsnummer.
+  /// Speichert [planung] als neue Version von [kennung] – ohne Kennung als
+  /// Version 1 einer neuen Konfigurationsnummer mit neuem Prüfcode.
   Future<KonfigurationsStand> speichere(
     Planung planung, {
-    Konfigurationsnummer? nummer,
+    Konfigurationskennung? kennung,
   });
 
   /// Lädt die Version [stand]; unbekannt: [KonfigurationNichtGefunden].
@@ -62,7 +63,8 @@ final class Fund {
 
 /// SPEICHERN, LADEN und automatisches Zwischenspeichern der Planung
 /// (M9-05). Die Planung selbst liegt nur auf dem Server; die App merkt sich
-/// nur Nummer, Version und Sitzungsschlüssel.
+/// nur Kennung (Nummer mit Prüfcode, M9-05b), Version und
+/// Sitzungsschlüssel.
 ///
 /// Zwischenspeichern: [verzoegerung] nach der letzten Änderung geht die
 /// Planung als **Entwurf** an den Server – ein Datensatz je Sitzung, der
@@ -100,7 +102,10 @@ class KonfigurationsSteuerung extends ChangeNotifier {
   /// Konfigurationsnummer) und merkt sie für „Weiterplanen“. Schlägt es
   /// fehl, bleibt die Planung unverändert erhalten.
   Future<KonfigurationsStand> speichere() async {
-    final neu = await ablage.speichere(planung.planung, nummer: _stand?.nummer);
+    final neu = await ablage.speichere(
+      planung.planung,
+      kennung: _stand?.kennung,
+    );
     _setzeStand(neu);
     // Der Entwurf bekommt den neuen Bezug.
     _plane();

@@ -56,24 +56,25 @@ class PlanerVerbindung implements KonfigurationsAblage {
   @override
   Future<KonfigurationsStand> speichere(
     Planung planung, {
-    Konfigurationsnummer? nummer,
+    Konfigurationskennung? kennung,
   }) => _mitSitzung((sitzung) async {
     final antwort = await sitzung.callSingle(
       WampNamen.konfigurationSpeichern,
-      arguments: [planung.zuBytes(), ?nummer?.wert],
+      arguments: [planung.zuBytes(), ?kennung?.wert],
     );
     final [neu as String, version as int] = antwort.arguments!;
-    return KonfigurationsStand(Konfigurationsnummer(neu), version);
+    return KonfigurationsStand(Konfigurationskennung.lies(neu), version);
   });
 
-  /// LADEN einer Version (M9-05); unbekannt: [KonfigurationNichtGefunden].
+  /// LADEN einer Version mit Nummer und Prüfcode (M9-05, M9-05b);
+  /// unbekannt oder Prüfcode falsch: [KonfigurationNichtGefunden].
   @override
   Future<Planung> lade(KonfigurationsStand stand) =>
       _mitSitzung((sitzung) async {
         try {
           final antwort = await sitzung.callSingle(
             WampNamen.konfigurationLaden,
-            arguments: [stand.nummer.wert, stand.version],
+            arguments: [stand.kennung.wert, stand.version],
           );
           return Planung.ausBytes(antwort.arguments!.single! as Uint8List);
         } on wamp.Error catch (fehler) {
@@ -97,7 +98,7 @@ class PlanerVerbindung implements KonfigurationsAblage {
       arguments: [
         schluessel,
         planung.zuBytes(),
-        if (bezug != null) ...[bezug.nummer.wert, bezug.version],
+        if (bezug != null) ...[bezug.kennung.wert, bezug.version],
       ],
     ),
   );
@@ -119,8 +120,8 @@ class PlanerVerbindung implements KonfigurationsAblage {
         return (
           planung: Planung.ausBytes(argumente.first! as Uint8List),
           bezug: switch (argumente) {
-            [_, final String nummer, final int version] => KonfigurationsStand(
-              Konfigurationsnummer(nummer),
+            [_, final String kennung, final int version] => KonfigurationsStand(
+              Konfigurationskennung.lies(kennung),
               version,
             ),
             _ => null,

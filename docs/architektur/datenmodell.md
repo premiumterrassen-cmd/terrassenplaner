@@ -37,7 +37,7 @@ Entitäten, die über WAMP laufen, haben **ein** Layout für Leitung und Datenba
 
 | Entität | Meilenstein | Schlüssel | Partition | Inhalt |
 |---|---|---|---|---|
-| `Konfiguration` | M9-05 | `konfigurationsnummer` + `uid` | `konfigurationsnummer` | Kopf: Projektbezeichnung, Status, aktuelle Version, erstellt/geändert, Datenstand |
+| `Konfiguration` | M9-05 | `konfigurationsnummer` + `uid` | `konfigurationsnummer` | Kopf: Projektbezeichnung, Status, aktuelle Version, erstellt/geändert, Datenstand, Prüfcode (M9-05b: 5 Zeichen, Laden nur mit Nummer + Code) |
 | `KonfigurationsVersion` | M9-05 (Inhalte aus M4–M8) | `(konfigurationsnummer, version)` + `uid` | `konfigurationsnummer` | unveränderliches Dokument (schema-versioniert): Grundriss (Form, Eckpunkte, Rundungen, Ausschnitte), Belag (Artikel, Längen, Verlegeart/-richtung, Ausgangspunkt, Befestigung), UK (Art, Höhenpunkte, Untergrund, Nutzung, Querstreben, Auflagen, Feldbreite), Anschluss/Rinnen/Treppen, Zubehör-Auswahl, Verschnittvariante |
 | `Ergebnis` (Cache) | M9-01–M9-04 | `(konfigurationsnummer, version, art)` | `konfigurationsnummer` | berechnete Material-/Stückliste, Zuschnittspläne, Verschnitt – jederzeit aus der Version neu berechenbar, daher verwerfbar |
 | `Zwischenstand` | M9-05 (Autosave), M3-02 „Weiterplanen“ | `sitzungsschluessel` (zufällig, im Browser gespeichert) | `sitzungsschluessel` | letzter ungespeicherter Stand (wird überschrieben, keine Versionen) samt Bezug auf Nummer/Version; Ablauf nach 30 Tagen (TTL) |
