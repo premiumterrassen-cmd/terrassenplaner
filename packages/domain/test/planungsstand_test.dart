@@ -703,6 +703,27 @@ void main() {
         );
       });
 
+      test('Grenzwerte gelten einschließlich', () {
+        // Abstand zum Strahl genau gleich der Toleranz: fängt noch.
+        const klick = Punkt(2000, 100);
+        final abstand =
+            (Zeichenhilfe.ausrichten(Punkt.ursprung, klick) - klick).laenge;
+        final p = Zeichenhilfe.fange(
+          Punkt.ursprung,
+          klick,
+          toleranz: abstand,
+          mitRaster: false,
+        );
+        expect(p.y, closeTo(0, 1e-9));
+        // Länge genau 2,5 cm neben dem Raster: rastet noch auf 10 cm.
+        final q = Zeichenhilfe.fange(
+          Punkt.ursprung,
+          const Punkt(1025, 0),
+          toleranz: t,
+        );
+        expect(q.x, closeTo(1000, 1e-9));
+      });
+
       test('Raster höchstens ein Viertel der Rasterweite', () {
         expect(
           Zeichenhilfe.fange(null, const Punkt(1230, 1555), toleranz: 80),
