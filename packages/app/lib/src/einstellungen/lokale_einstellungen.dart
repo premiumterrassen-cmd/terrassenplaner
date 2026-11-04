@@ -54,15 +54,16 @@ final class LokaleEinstellungen implements KonfigurationsGedaechtnis {
     );
   }
 
-  /// Zuletzt geöffnete Konfiguration (`JJJJ-MM-TT-NNNN/Version`), falls
-  /// gültig gespeichert.
+  /// Zuletzt geöffnete Konfiguration mit Prüfcode
+  /// (`JJJJ-MM-TT-NNNN-XXXXX/Version`, M9-05b), falls gültig gespeichert.
+  /// Ein Eintrag ohne Prüfcode gilt als keiner.
   @override
   KonfigurationsStand? letzteKonfiguration() {
     final teile = _speicher.lies(konfigurationSchluessel)?.split('/');
-    if (teile case [final nummer, final version]) {
+    if (teile case [final kennung, final version]) {
       try {
         return KonfigurationsStand(
-          Konfigurationsnummer.pruefe(nummer),
+          Konfigurationskennung.lies(kennung),
           int.parse(version),
         );
       } on FormatException {
@@ -78,7 +79,7 @@ final class LokaleEinstellungen implements KonfigurationsGedaechtnis {
   @override
   void merke(KonfigurationsStand stand) => _speicher.schreibe(
     konfigurationSchluessel,
-    '${stand.nummer.wert}/${stand.version}',
+    '${stand.kennung.wert}/${stand.version}',
   );
 
   /// Sitzungsschlüssel für den Entwurf auf dem Server (M9-05): 128 Bit

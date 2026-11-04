@@ -41,7 +41,7 @@ class Eingangsdialog extends StatelessWidget {
             if (gefunden case final fund?) ...[
               const SizedBox(height: PlanerAbstand.gross),
               Text(switch (fund.stand) {
-                final stand? => t.gefunden(stand.nummer.wert, stand.version),
+                final stand? => t.gefunden(stand.kennung.wert, stand.version),
                 null => t.gefundenEntwurf,
               }, textAlign: TextAlign.center),
               const SizedBox(height: PlanerAbstand.klein),
@@ -82,9 +82,10 @@ class Eingangsdialog extends StatelessWidget {
   }
 }
 
-/// „Konfiguration laden“ (Fachkonzept 08): Konfigurationsnummer, Version
-/// (−/+), „Konfiguration Speichern“ (nur mit [speichern], aus der Kopfzeile)
-/// und „Konfiguration laden“.
+/// „Konfiguration laden“ (Fachkonzept 08): Konfigurationsnummer mit
+/// Prüfcode in einem Feld (M9-05b), Version (−/+), „Konfiguration
+/// Speichern“ (nur mit [speichern], aus der Kopfzeile) und „Konfiguration
+/// laden“.
 class LadenDialog extends StatefulWidget {
   const LadenDialog({
     required this.laden,
@@ -96,7 +97,7 @@ class LadenDialog extends StatefulWidget {
   final KonfigurationLaden laden;
   final KonfigurationSpeichern? speichern;
 
-  /// Vorbelegung von Nummer und Version (die geöffnete Konfiguration).
+  /// Vorbelegung von Kennung und Version (die geöffnete Konfiguration).
   final KonfigurationsStand? vorgabe;
 
   @override
@@ -107,7 +108,9 @@ class LadenDialog extends StatefulWidget {
 enum _Meldung { keine, unbekannt, ladeFehler, speichernFehler, gespeichert }
 
 class _LadenDialogState extends State<LadenDialog> {
-  late final _nummer = TextEditingController(text: widget.vorgabe?.nummer.wert);
+  late final _nummer = TextEditingController(
+    text: widget.vorgabe?.kennung.wert,
+  );
   late var _version = widget.vorgabe?.version ?? 1;
   var _nummerFalsch = false;
   var _meldung = _Meldung.keine;
@@ -119,10 +122,19 @@ class _LadenDialogState extends State<LadenDialog> {
     super.dispose();
   }
 
+  /// Fehlt der Prüfcode oder ist er falsch geschrieben, lautet die Meldung
+  /// wie bei einer unbekannten Konfiguration (M9-05b) – ohne Rückfrage beim
+  /// Server.
   Future<void> _lade() async {
-    final Konfigurationsnummer nummer;
+    final Konfigurationskennung kennung;
     try {
-      nummer = Konfigurationsnummer.pruefe(_nummer.text);
+      kennung = Konfigurationskennung.lies(_nummer.text);
+    } on PruefcodeUngueltig {
+      setState(() {
+        _nummerFalsch = false;
+        _meldung = _Meldung.unbekannt;
+      });
+      return;
     } on ArgumentError {
       setState(() => _nummerFalsch = true);
       return;
@@ -130,7 +142,7 @@ class _LadenDialogState extends State<LadenDialog> {
     _beginne();
     final navigator = Navigator.of(context);
     try {
-      await widget.laden(KonfigurationsStand(nummer, _version));
+      await widget.laden(KonfigurationsStand(kennung, _version));
       navigator.pop(true);
     } on KonfigurationNichtGefunden {
       _beende(_Meldung.unbekannt);
@@ -143,7 +155,7 @@ class _LadenDialogState extends State<LadenDialog> {
     _beginne();
     try {
       final stand = await speichern();
-      _nummer.text = stand.nummer.wert;
+      _nummer.text = stand.kennung.wert;
       _version = stand.version;
       _beende(_Meldung.gespeichert);
     } on Object {

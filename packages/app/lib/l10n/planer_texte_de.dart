@@ -460,13 +460,13 @@ class PlanerTexteDe extends PlanerTexte {
   String get ladenTitel => 'Konfiguration laden';
 
   @override
-  String get nummerFeld => 'Konfigurationsnummer';
+  String get nummerFeld => 'Konfigurationsnummer mit Prüfcode';
 
   @override
-  String get nummerHinweis => 'z. B. 2026-10-08-1511';
+  String get nummerHinweis => 'z. B. 2026-10-08-1511-K7QXM';
 
   @override
-  String get nummerFehler => 'Bitte im Format JJJJ-MM-TT-NNNN eingeben';
+  String get nummerFehler => 'Bitte im Format JJJJ-MM-TT-NNNN-XXXXX eingeben';
 
   @override
   String get version => 'Version';
@@ -477,7 +477,7 @@ class PlanerTexteDe extends PlanerTexte {
 
   @override
   String get konfigurationUnbekannt =>
-      'Diese Konfigurationsnummer oder Version gibt es nicht.';
+      'Diese Konfiguration gibt es nicht. Bitte prüfen Sie Konfigurationsnummer, Prüfcode und Version.';
 
   @override
   String get konfigurationSpeichernKnopf => 'Konfiguration Speichern';
@@ -488,7 +488,7 @@ class PlanerTexteDe extends PlanerTexte {
 
   @override
   String gespeichertMeldung(String nummer, int version) {
-    return 'Gespeichert: Konfigurationsnummer $nummer, Version $version. Bitte notieren Sie die Nummer.';
+    return 'Gespeichert: Konfigurationsnummer $nummer, Version $version. Bitte notieren Sie die Nummer samt Prüfcode (die letzten fünf Zeichen) – nur damit lässt sich die Konfiguration wieder laden.';
   }
 
   @override

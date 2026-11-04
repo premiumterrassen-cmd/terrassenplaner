@@ -1,3 +1,5 @@
+import 'konfigurationskennung.dart';
+
 /// Konfigurationsnummer `JJJJ-MM-TT-NNNN` (Fachkonzept 08, Datenmodell),
 /// z. B. `2026-10-08-1511`.
 extension type const Konfigurationsnummer(String wert) implements Object {
@@ -45,26 +47,29 @@ extension type const Konfigurationsnummer(String wert) implements Object {
   static final _muster = RegExp(r'^(\d{4})-(\d{2})-(\d{2})-\d{4}$');
 }
 
-/// Eine bestimmte Version einer Konfiguration (ab 1).
+/// Eine bestimmte Version einer gespeicherten Konfiguration (ab 1), mit
+/// der Kennung aus Nummer und Prüfcode (M9-05b).
 final class KonfigurationsStand {
-  KonfigurationsStand(this.nummer, this.version) {
+  KonfigurationsStand(this.kennung, this.version) {
     if (version < 1) {
       throw ArgumentError.value(version, 'version', 'ab 1');
     }
   }
 
-  final Konfigurationsnummer nummer;
+  final Konfigurationskennung kennung;
   final int version;
+
+  Konfigurationsnummer get nummer => kennung.nummer;
 
   @override
   bool operator ==(Object other) =>
       other is KonfigurationsStand &&
-      other.nummer == nummer &&
+      other.kennung == kennung &&
       other.version == version;
 
   @override
-  int get hashCode => Object.hash(nummer, version);
+  int get hashCode => Object.hash(kennung, version);
 
   @override
-  String toString() => '${nummer.wert} v$version';
+  String toString() => '${kennung.wert} v$version';
 }

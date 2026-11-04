@@ -8,7 +8,7 @@ Vorgabe Alexander 02.10.2026: Das Frontend bleibt „doof“. Im Browser liegen 
 |---|---|---|---|
 | `terrassenplaner.sprache` | `de`, `en` | `de` (wie M3-07) | App, Ladebildschirm |
 | `terrassenplaner.darstellung` | `light`, `dark`, `system` | `system` | App, Ladebildschirm |
-| `terrassenplaner.weiterplanen` | `JJJJ-MM-TT-NNNN/Version` | – | App (Eingangsdialog „Weiterplanen“) |
+| `terrassenplaner.weiterplanen` | `JJJJ-MM-TT-NNNN-XXXXX/Version` (Kennung mit Prüfcode, M9-05b) | – | App (Eingangsdialog „Weiterplanen“) |
 | `terrassenplaner.sitzung` | 32 Hexadezimalzeichen (128 Bit Zufall) | beim ersten Bedarf erzeugt | App (Entwurf auf dem Server, M9-05) |
 
 - Unbekannte oder beschädigte Werte zählen als nicht gespeichert, es gilt der Standard.

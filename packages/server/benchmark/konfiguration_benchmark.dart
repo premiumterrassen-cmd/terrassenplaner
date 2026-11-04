@@ -35,7 +35,7 @@ class KonfigurationBenchmark extends AsyncBenchmarkBase {
     typischePlanung(5400).zuBytes(),
     typischePlanung(5500).zuBytes(),
   ];
-  String? _nummer;
+  String? _kennung;
   var _lauf = 0;
 
   @override
@@ -71,13 +71,13 @@ class KonfigurationBenchmark extends AsyncBenchmarkBase {
     final inhalt = _planungen[_lauf++ % 2];
     final gespeichert = await _kunde.callSingle(
       WampNamen.konfigurationSpeichern,
-      arguments: [inhalt, ?_nummer],
+      arguments: [inhalt, ?_kennung],
     );
-    final [nummer as String, version as int] = gespeichert.arguments!;
-    _nummer = nummer;
+    final [kennung as String, version as int] = gespeichert.arguments!;
+    _kennung = kennung;
     final geladen = await _kunde.callSingle(
       WampNamen.konfigurationLaden,
-      arguments: [nummer, version],
+      arguments: [kennung, version],
     );
     if ((geladen.arguments!.single! as Uint8List).length != inhalt.length) {
       throw StateError('geladen ≠ gespeichert');
