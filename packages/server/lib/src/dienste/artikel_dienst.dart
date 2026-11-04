@@ -82,7 +82,7 @@ class ArtikelDienst {
       melde('Artikeldatei ${quelle.pfad} nicht übernommen: $fehler');
       return;
     }
-    if (neu == null || neu.version != datei.version) return;
+    if (neu == null || neu.version == datei.version) return;
     await ersetze(neu);
     melde(
       'Artikeldaten ${neu.version} aus ${neu.quelle}: '

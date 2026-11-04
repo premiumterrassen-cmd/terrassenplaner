@@ -103,7 +103,10 @@ void main() {
     );
     expect(s.aenderungen, [0]);
     expect(tester.widget<ChoiceChip>(abstand).selected, isTrue);
-    expect(find.text('1 × ALTO Montagehilfe Abstandshalter, VPE zu 4 Stück'), findsOneWidget);
+    expect(
+      find.text('1 × ALTO Montagehilfe Abstandshalter, VPE zu 4 Stück'),
+      findsOneWidget,
+    );
     // erneutes Tippen auf die gewählte Art ändert nichts
     await tester.tap(abstand);
     await tester.pumpAndSettle();
