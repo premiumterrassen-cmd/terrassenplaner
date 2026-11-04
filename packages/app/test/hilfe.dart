@@ -28,6 +28,16 @@ Widget testApp({
 LokaleEinstellungen testGedaechtnis([EinstellungsSpeicher? speicher]) =>
     LokaleEinstellungen(speicher ?? FluechtigerSpeicher(), zufall: Random(1));
 
+/// Prüfcode der [TestAblage] (M9-05b).
+const testCode = Pruefcode('K7QXM');
+
+/// Kennung `JJJJ-MM-TT-NNNN-XXXXX` für Tests.
+Konfigurationskennung kennung(String text) => Konfigurationskennung.lies(text);
+
+/// Stand aus Kennungstext und Version für Tests.
+KonfigurationsStand stand(String kennungText, int version) =>
+    KonfigurationsStand(kennung(kennungText), version);
+
 /// Ablage im Arbeitsspeicher wie der Konfigurationsdienst (M9-05); mit
 /// [erreichbar] = false scheitert jeder Aufruf wie ohne Server.
 class TestAblage implements KonfigurationsAblage {
@@ -43,22 +53,26 @@ class TestAblage implements KonfigurationsAblage {
     if (!erreichbar) throw StateError('Server nicht erreichbar');
   }
 
+  /// Jede neue Nummer bekommt den Prüfcode [testCode].
   @override
   Future<KonfigurationsStand> speichere(
     Planung planung, {
-    Konfigurationsnummer? nummer,
+    Konfigurationskennung? kennung,
   }) async {
     _pruefe();
-    final n =
-        nummer ??
-        Konfigurationsnummer.vergib(DateTime(2026, 11, 4), ++_laufend);
+    final k =
+        kennung ??
+        Konfigurationskennung(
+          Konfigurationsnummer.vergib(DateTime(2026, 11, 4), ++_laufend),
+          testCode,
+        );
     final version =
         versionen.keys
-            .where((s) => s.nummer == n)
+            .where((s) => s.kennung == k)
             .map((s) => s.version)
             .fold(0, max) +
         1;
-    final stand = KonfigurationsStand(n, version);
+    final stand = KonfigurationsStand(k, version);
     versionen[stand] = planung;
     return stand;
   }

@@ -25,6 +25,7 @@ export 'src/konfiguration/ausschnitt_pruefung.dart';
 export 'src/konfiguration/berechnung.dart';
 export 'src/konfiguration/dielenverlegung.dart';
 export 'src/konfiguration/grundriss.dart';
+export 'src/konfiguration/konfigurationskennung.dart';
 export 'src/konfiguration/konfigurationsnummer.dart';
 export 'src/konfiguration/planung.dart';
 export 'src/konfiguration/planungsstand.dart';

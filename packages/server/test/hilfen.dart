@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:terrassenplaner_server/terrassenplaner_server.dart';
 
@@ -83,4 +84,23 @@ Future<Process> starteAuthServerProzess({
     rethrow;
   }
   return prozess;
+}
+
+/// Zufall zum Nachrechnen: zählt 0, 1, 2, … und merkt sich die Grenzen –
+/// der erste Prüfcode ist `ABCDE`, der zweite `FGHJK` (M9-05b).
+final class ZaehlZufall implements Random {
+  var _n = 0;
+  final grenzen = <int>{};
+
+  @override
+  int nextInt(int max) {
+    grenzen.add(max);
+    return _n++ % max;
+  }
+
+  @override
+  bool nextBool() => throw UnimplementedError();
+
+  @override
+  double nextDouble() => throw UnimplementedError();
 }

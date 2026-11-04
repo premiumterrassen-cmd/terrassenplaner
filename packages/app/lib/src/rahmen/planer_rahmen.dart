@@ -194,7 +194,7 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
     final String meldung;
     try {
       final stand = await konfiguration.speichere();
-      meldung = t.gespeichertMeldung(stand.nummer.wert, stand.version);
+      meldung = t.gespeichertMeldung(stand.kennung.wert, stand.version);
     } on Object {
       messenger.showSnackBar(SnackBar(content: Text(t.speichernFehler)));
       return;

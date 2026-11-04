@@ -163,6 +163,10 @@ class Konfiguration implements Basisdatensatz {
 
   /// Höchste gespeicherte Version (0 = noch keine).
   int aktuelleVersion = 0;
+
+  /// Prüfcode (M9-05b): beim Anlegen zufällig vergeben, gilt für alle
+  /// Versionen; LADEN verlangt ihn zusammen mit der Nummer.
+  String pruefcode = '';
 }
 
 /// Eine Version einer Konfiguration (M9-05): wird einmal angelegt und nie

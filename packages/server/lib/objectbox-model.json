@@ -141,7 +141,7 @@
     },
     {
       "id": "3:3700112060093919120",
-      "lastPropertyId": "12:7027489902092778456",
+      "lastPropertyId": "13:6137436940986819355",
       "name": "Konfiguration",
       "properties": [
         {
@@ -210,6 +210,11 @@
           "id": "12:7027489902092778456",
           "name": "aktuelleVersion",
           "type": 6
+        },
+        {
+          "id": "13:6137436940986819355",
+          "name": "pruefcode",
+          "type": 9
         }
       ],
       "relations": []

@@ -40,7 +40,7 @@ final class _Zufall implements Random {
 }
 
 final _stand = KonfigurationsStand(
-  Konfigurationsnummer.pruefe('2026-10-08-1511'),
+  Konfigurationskennung.lies('2026-10-08-1511-K7QXM'),
   3,
 );
 
@@ -142,7 +142,7 @@ void main() {
       einstellungen.merke(_stand);
       expect(
         speicher.lies(LokaleEinstellungen.konfigurationSchluessel),
-        '2026-10-08-1511/3',
+        '2026-10-08-1511-K7QXM/3',
       );
       expect(LokaleEinstellungen(speicher).letzteKonfiguration(), _stand);
     });
@@ -150,12 +150,15 @@ void main() {
     test('Weiterplanen: ungültige Einträge werden ignoriert', () {
       for (final falsch in [
         '',
-        '2026-10-08-1511',
-        '2026-10-08-1511/',
-        '2026-10-08-1511/x',
-        '2026-10-08-1511/0',
-        '2026-10-08-1511/3/1',
-        '2026-02-30-1511/3',
+        '2026-10-08-1511-K7QXM',
+        '2026-10-08-1511-K7QXM/',
+        '2026-10-08-1511-K7QXM/x',
+        '2026-10-08-1511-K7QXM/0',
+        '2026-10-08-1511-K7QXM/3/1',
+        '2026-02-30-1511-K7QXM/3',
+        // ohne oder mit falsch geschriebenem Prüfcode (M9-05b)
+        '2026-10-08-1511/3',
+        '2026-10-08-1511-K7Q0M/3',
         'abc/3',
       ]) {
         speicher.schreibe(LokaleEinstellungen.konfigurationSchluessel, falsch);
