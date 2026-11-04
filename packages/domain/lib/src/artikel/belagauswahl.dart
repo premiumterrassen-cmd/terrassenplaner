@@ -56,6 +56,18 @@ final class Belagangebot {
     );
   }
 
+  /// Nur der Preis je lfm – für Artikel, die je lfm verkauft werden, z. B.
+  /// UK-Holz im Dialog „Unterkonstruktion auswählen“ (M6-03).
+  factory Belagangebot.jeLfm(Artikel a) {
+    final preis = a.preisBrutto;
+    return Belagangebot(
+      a,
+      preisJeLfm: preis == null || a.einheit.einheit != Mengeneinheit.laufmeter
+          ? null
+          : Cent((preis.cent / a.einheit.inhalt).round()),
+    );
+  }
+
   factory Belagangebot.ausJson(
     Map<String, Object?> j,
     Map<String, Holzart> holzarten,

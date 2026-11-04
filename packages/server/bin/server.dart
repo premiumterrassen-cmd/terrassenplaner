@@ -15,7 +15,8 @@ Future<void> main() async {
     router,
     belag: artikel.belag,
     regelwerk: () => artikel.regelwerk,
-    unterkonstruktion: (stand) => artikel.unterkonstruktion(stand.belag),
+    unterkonstruktion: (stand) =>
+        artikel.unterkonstruktion(stand.belag, stand.unterkonstruktion),
   );
   // Konfigurationen (M9-05) in einer eigenen ObjectBox-Datenbank – ObjectBox
   // erlaubt einen Prozess je Datenbank, der Auth-Server hat seine eigene.

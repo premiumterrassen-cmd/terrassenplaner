@@ -21,6 +21,7 @@ class ArtikelDienst {
     );
     (await sitzung.register(WampNamen.artikelListe)).onInvoke(dienst._liste);
     (await sitzung.register(WampNamen.artikelRegeln)).onInvoke(dienst._regeln);
+    (await sitzung.register(WampNamen.ukAuswahl)).onInvoke(dienst._ukauswahl);
     (await sitzung.register(WampNamen.belagAuswahl)).onInvoke(
       (aufruf) =>
           aufruf.respondWith(arguments: [dienst.belagauswahl.alsJson()]),
@@ -59,23 +60,19 @@ class ArtikelDienst {
         belaege.firstOrNull;
   }
 
-  /// Unterkonstruktion zum Belag [belag] (M6-02): die erste Robinien-UK
-  /// derselben Holzart und Serie in Datenreihenfolge – die Vorgabe, bis die
-  /// Auswahl folgt (M6-03); ohne Belag oder Serie keine.
-  Artikel? unterkonstruktion(Artikelnummer? belag) {
-    final b = this.belag(belag);
-    final serie = b?.serie;
-    if (serie == null) return null;
-    return _regelwerk
-        .finde(
-          Artikelfilter(
-            art: Artikelart.unterkonstruktion,
-            holzart: b!.holzart!.id,
-            serie: serie,
-          ),
-        )
-        .firstOrNull;
-  }
+  /// Unterkonstruktionen zum Belag [belag] (M6-03; `null` = Vorgabe-Belag):
+  /// nur zum Belag passende Robinien-UK (`ukPasstZuBelag`, B-034, B-122)
+  /// in Datenreihenfolge mit Preis je lfm.
+  Ukauswahl ukauswahl(Artikelnummer? belag) => Ukauswahl.fuer(
+    datei.version,
+    this.belag(belag),
+    _regelwerk.imBereich(Bereich.unterkonstruktion),
+  );
+
+  /// Die UK für die Planung: die gewählte [uk], wenn sie zum Belag passt,
+  /// sonst die Vorgabe (die erste passende); ohne passende keine.
+  Artikel? unterkonstruktion(Artikelnummer? belag, Artikelnummer? uk) =>
+      ukauswahl(belag).gewaehlt(uk)?.artikel;
 
   /// Tauscht die Artikeldaten aus und meldet die neue Version – ohne
   /// Neustart und ohne App-Update.
@@ -138,6 +135,14 @@ class ArtikelDienst {
         errorUri: WampNamen.artikelFilterUngueltig,
         arguments: ['$fehler'],
       );
+
+  void _ukauswahl(Invocation aufruf) {
+    final belag = switch (aufruf.arguments) {
+      [final String nummer, ...] => Artikelnummer(nummer),
+      _ => null,
+    };
+    aufruf.respondWith(arguments: [ukauswahl(belag).alsJson()]);
+  }
 
   void _regeln(Invocation aufruf) {
     final argumente = aufruf.arguments ?? const <Object?>[];
