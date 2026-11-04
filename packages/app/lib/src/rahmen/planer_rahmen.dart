@@ -9,6 +9,7 @@ import '../sprache/sprache.dart';
 import '../start/eingangsdialog.dart';
 import 'aktionen.dart';
 import 'ansichtsoptionen.dart';
+import 'ausgangspunkt.dart';
 import 'ausschnitte.dart';
 import 'belag.dart';
 import 'berechnung_steuerung.dart';
@@ -106,6 +107,11 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
     ),
     null => null,
   };
+  late final _ausgangspunkt = AusgangspunktBedienung(
+    planung: _planung,
+    berechnung: _berechnung,
+    onGeaendert: () => _zustand.markiereGeaendert(PlanerSchritt.terrassenbelag),
+  );
   late final BelagQuelle? _belaege = switch (widget.belaege) {
     final lade? => BelagQuelle(lade),
     null => null,
@@ -242,6 +248,7 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
             freiform: _freiform,
             rundung: _rundung,
             ausschnitte: _ausschnitte,
+            ausgangspunkt: _ausgangspunkt,
             belaege: _belaege,
           );
           return Column(
@@ -285,6 +292,10 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
                               freiform: _freiform,
                               rundung: _rundung,
                               ausschnitte: _ausschnitte,
+                              ausgangspunkt:
+                                  _zustand.aktiv == PlanerSchritt.terrassenbelag
+                                  ? _ausgangspunkt
+                                  : null,
                               zeichnung:
                                   widget.zeichnung ??
                                   _berechnung?.zeichnung ??
@@ -583,6 +594,7 @@ class Bearbeitungsmenue extends StatelessWidget {
     required this.rundung,
     required this.ausschnitte,
     super.key,
+    this.ausgangspunkt,
     this.belaege,
   });
 
@@ -592,6 +604,9 @@ class Bearbeitungsmenue extends StatelessWidget {
   final RundungsBedienung rundung;
   final AusschnittBedienung ausschnitte;
   final BelagQuelle? belaege;
+
+  /// Ausgangspunkt des Belags (M5-07); ohne Bedienung keine Eingabe.
+  final AusgangspunktBedienung? ausgangspunkt;
 
   /// Eingaben unter einem Unterpunkt (Schritt, Index ab 0).
   Widget? _eingabe(PlanerSchritt schritt, int unterpunkt) => switch ((
@@ -641,6 +656,8 @@ class Bearbeitungsmenue extends StatelessWidget {
       planung: planung,
       onGeaendert: () => zustand.markiereGeaendert(schritt),
     ),
+    (PlanerSchritt.terrassenbelag, 4) when ausgangspunkt != null =>
+      AusgangspunktWahl(bedienung: ausgangspunkt!),
     _ => null,
   };
 

@@ -21,6 +21,7 @@ final class Zeichnung {
     List<Bauteil> bauteile = const [],
     List<Offset> ablaeufe = const [],
     List<List<Offset>> dielen = const [],
+    this.ausgangspunkt,
   }) : umriss = List.unmodifiable(umriss),
        dielen = List.unmodifiable(dielen),
        ecken = List.unmodifiable(ecken ?? umriss),
@@ -55,6 +56,10 @@ final class Zeichnung {
 
   /// Umrisse der Dielenstücke in mm (M5-05), vom Server verlegt.
   final List<List<Offset>> dielen;
+
+  /// Ausgangspunkt der Verlegung in mm (M5-07): Ecke plus Verschiebung, dort
+  /// liegt der Griff der ersten ganzen Diele; `null` ohne Dielen.
+  final Offset? ausgangspunkt;
 }
 
 /// Ein Text der Zeichnung: [ort] ist der Ankerpunkt auf dem Bildschirm,

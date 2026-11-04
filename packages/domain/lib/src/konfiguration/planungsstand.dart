@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flat_buffers/flat_buffers.dart' as fb;
@@ -5,6 +6,7 @@ import 'package:flat_buffers/flat_buffers.dart' as fb;
 import '../artikel/artikel.dart';
 import '../artikel/einheiten.dart';
 import '../geometrie/kontur.dart';
+import '../geometrie/punkt.dart';
 import 'ausschnitt.dart';
 import 'grundriss.dart';
 import 'rundungen.dart';
@@ -15,7 +17,8 @@ import 'verlegerichtung.dart';
 /// Rückgängig exakt auf einen früheren Stand springen kann. Seit M4-02 mit
 /// Grundriss, seit M4-06 mit Ausschnitten, seit M5-01 mit Belag, seit M5-02
 /// mit Dielenlänge, seit M5-03 mit „kurze Stücke verbinden“, seit M5-04 mit
-/// Verlegeart, seit M5-05 mit Verlegerichtung;
+/// Verlegeart, seit M5-05 mit Verlegerichtung, seit M5-07 mit
+/// Ausgangspunkt;
 /// Unterkonstruktion usw. folgen als weitere Felder. Berechnet wird daraus
 /// auf dem Server.
 final class Planungsstand {
@@ -29,6 +32,9 @@ final class Planungsstand {
     this.verlegeart = Verlegeart.fugenschnitt,
     this.verlegerichtung = Verlegerichtung.waagrecht,
     this.verlegewinkel = Verlegerichtung.vorgabeWinkel,
+    this.ausgangsecke = 0,
+    this.verschiebungX = const Millimeter(0),
+    this.verschiebungY = const Millimeter(0),
   });
 
   /// Liest einen Planungsstand aus dem Transportformat ([zuBytes]).
@@ -42,6 +48,15 @@ final class Planungsstand {
     );
     if (grundriss == null) {
       throw const FormatException('Planungsstand ohne Grundriss');
+    }
+    final ecke = const fb.Uint16Reader().vTableGet(
+      puffer,
+      wurzel,
+      _versatz(_ausgangseckePlatz),
+      0,
+    );
+    if (ecke >= _eckenzahl(grundriss)) {
+      throw FormatException('unbekannte Ausgangsecke $ecke');
     }
     return Planungsstand(
       grundriss: grundriss,
@@ -95,8 +110,16 @@ final class Planungsstand {
         _versatz(_verlegewinkelPlatz),
         Verlegerichtung.vorgabeWinkel,
       ),
+      ausgangsecke: ecke,
+      verschiebungX: _mm(puffer, wurzel, _verschiebungXPlatz),
+      verschiebungY: _mm(puffer, wurzel, _verschiebungYPlatz),
     );
   }
+
+  static Millimeter _mm(fb.BufferContext puffer, int wurzel, int platz) =>
+      Millimeter(
+        const fb.Int32Reader().vTableGet(puffer, wurzel, _versatz(platz), 0),
+      );
 
   /// Startkonfiguration des alten Planers (F01) – auch nach „Zurücksetzen“.
   static const start = Planungsstand();
@@ -132,24 +155,83 @@ final class Planungsstand {
   /// Wechsel auf eine feste Richtung erhalten.
   final int verlegewinkel;
 
+  /// „Welcher Punkt soll der Ausgangspunkt des Terrassenbelages sein?“
+  /// (M5-07, Fachkonzept 2.5): Nummer der Ecke, 0 = A (Vorgabe). Gezählt
+  /// wird wie in der Beschriftung der Zeichnung (`Grundriss.ecken`); der
+  /// Kreis hat nur A, den Anfang seiner Kontur.
+  final int ausgangsecke;
+
+  /// Verschiebung der ersten ganzen Diele nach rechts (negativ: links) in
+  /// Bildschirmkoordinaten (M5-07); die Grenze rechnet der Server
+  /// (`verschiebungsgrenzen`).
+  final Millimeter verschiebungX;
+
+  /// Verschiebung der ersten ganzen Diele nach unten (negativ: oben).
+  final Millimeter verschiebungY;
+
+  /// Wie viele Ecken als Ausgangspunkt wählbar sind (A, B …).
+  int get ausgangsecken => _eckenzahl(grundriss);
+
+  static int _eckenzahl(Grundriss g) => math.max(1, g.ecken.length);
+
+  /// Gewählte Ecke in mm, ohne Verschiebung: beim Kreis (ohne benannte
+  /// Ecken) der Anfang der Kontur, sonst die Ecke des Grundrisses – bei
+  /// einer gerundeten Ecke der Schnittpunkt ihrer Kanten.
+  Punkt get ausgangspunkt => switch (grundriss.ecken) {
+    [] => kontur.punkte.first,
+    final ecken => ecken[ausgangsecke],
+  };
+
   /// Winkel der Dielen in Grad (`verlegeDielen`).
   int get dielenwinkel => verlegerichtung.winkel ?? verlegewinkel;
 
   /// Kontur des Grundrisses samt Rundungen.
   Kontur get kontur => rundungen.kontur(grundriss);
 
+  /// Kopie, in der nur die angegebenen Felder anders sind – die eine Stelle,
+  /// an der neue Felder ergänzt werden. [dielenlaenge] als Eintrag, weil
+  /// `null` (automatisch) ein gültiger Wert ist.
+  Planungsstand _mit({
+    Grundriss? grundriss,
+    List<Ausschnitt>? ausschnitte,
+    Rundungen? rundungen,
+    Artikelnummer? belag,
+    ({Millimeter? wert})? dielenlaenge,
+    bool? kurzeStueckeVerbinden,
+    Verlegeart? verlegeart,
+    Verlegerichtung? verlegerichtung,
+    int? verlegewinkel,
+    int? ausgangsecke,
+    Millimeter? verschiebungX,
+    Millimeter? verschiebungY,
+  }) {
+    final neu = grundriss ?? this.grundriss;
+    final ecke = ausgangsecke ?? this.ausgangsecke;
+    return Planungsstand(
+      grundriss: neu,
+      ausschnitte: ausschnitte ?? this.ausschnitte,
+      rundungen: rundungen ?? this.rundungen,
+      belag: belag ?? this.belag,
+      dielenlaenge: dielenlaenge == null
+          ? this.dielenlaenge
+          : dielenlaenge.wert,
+      kurzeStueckeVerbinden:
+          kurzeStueckeVerbinden ?? this.kurzeStueckeVerbinden,
+      verlegeart: verlegeart ?? this.verlegeart,
+      verlegerichtung: verlegerichtung ?? this.verlegerichtung,
+      verlegewinkel: verlegewinkel ?? this.verlegewinkel,
+      // weniger Ecken nach einem Formwechsel: zurück auf A
+      ausgangsecke: ecke < _eckenzahl(neu) ? ecke : 0,
+      verschiebungX: verschiebungX ?? this.verschiebungX,
+      verschiebungY: verschiebungY ?? this.verschiebungY,
+    );
+  }
+
   /// Kopie mit geändertem Grundriss; die Rundungen bleiben, solange es
   /// gleich viele Ecken sind und sie weiter passen.
-  Planungsstand mitGrundriss(Grundriss grundriss) => Planungsstand(
+  Planungsstand mitGrundriss(Grundriss grundriss) => _mit(
     grundriss: grundriss,
-    ausschnitte: ausschnitte,
     rundungen: _passend(grundriss) ? rundungen : Rundungen.keine,
-    belag: belag,
-    dielenlaenge: dielenlaenge,
-    kurzeStueckeVerbinden: kurzeStueckeVerbinden,
-    verlegeart: verlegeart,
-    verlegerichtung: verlegerichtung,
-    verlegewinkel: verlegewinkel,
   );
 
   bool _passend(Grundriss neu) {
@@ -164,41 +246,22 @@ final class Planungsstand {
   }
 
   /// Kopie mit anderen Rundungen (die App prüft sie vorher über [kontur]).
-  Planungsstand mitRundungen(Rundungen rundungen) => Planungsstand(
-    grundriss: grundriss,
-    ausschnitte: ausschnitte,
-    rundungen: rundungen,
-    belag: belag,
-    dielenlaenge: dielenlaenge,
-    kurzeStueckeVerbinden: kurzeStueckeVerbinden,
-    verlegeart: verlegeart,
-    verlegerichtung: verlegerichtung,
-    verlegewinkel: verlegewinkel,
-  );
+  Planungsstand mitRundungen(Rundungen rundungen) => _mit(rundungen: rundungen);
 
   /// Neue Form mit ihren Vorgabemaßen; die O-Form bringt ihren Ausschnitt
   /// mit, alle anderen beginnen ohne (Fachkonzept 1.1).
-  Planungsstand mitForm(Terrassenform form) => Planungsstand(
+  Planungsstand mitForm(Terrassenform form) => _mit(
     grundriss: form.vorgabe,
     ausschnitte: [if (form == Terrassenform.oForm) Ausschnitt.oForm],
-    belag: belag,
-    dielenlaenge: dielenlaenge,
-    kurzeStueckeVerbinden: kurzeStueckeVerbinden,
-    verlegeart: verlegeart,
-    verlegerichtung: verlegerichtung,
-    verlegewinkel: verlegewinkel,
+    rundungen: Rundungen.keine,
   );
 
   /// Grundriss um [grad] gedreht (M4-10); die Ausschnitte werden dabei
   /// zurückgesetzt – die App fragt vorher nach.
-  Planungsstand gedreht(double grad) => Planungsstand(
+  Planungsstand gedreht(double grad) => _mit(
     grundriss: grundriss.gedreht(grad),
-    belag: belag,
-    dielenlaenge: dielenlaenge,
-    kurzeStueckeVerbinden: kurzeStueckeVerbinden,
-    verlegeart: verlegeart,
-    verlegerichtung: verlegerichtung,
-    verlegewinkel: verlegewinkel,
+    ausschnitte: const [],
+    rundungen: Rundungen.keine,
   );
 
   /// Mit einer weiteren Fläche (180 × 120 cm, Bezeichnung A1, A2 …) mitten
@@ -210,8 +273,7 @@ final class Planungsstand {
       nummer++;
     }
     final mitte = kontur.huellrechteck.mitte;
-    return Planungsstand(
-      grundriss: grundriss,
+    return _mit(
       ausschnitte: [
         ...ausschnitte,
         Ausschnitt(
@@ -222,94 +284,31 @@ final class Planungsstand {
           breite: Ausschnitt.vorgabeBreite,
         ),
       ],
-      rundungen: rundungen,
-      belag: belag,
-      dielenlaenge: dielenlaenge,
-      kurzeStueckeVerbinden: kurzeStueckeVerbinden,
-      verlegeart: verlegeart,
-      verlegerichtung: verlegerichtung,
-      verlegewinkel: verlegewinkel,
     );
   }
 
   /// Ohne den Ausschnitt [index].
-  Planungsstand ohneAusschnitt(int index) => Planungsstand(
-    grundriss: grundriss,
-    ausschnitte: [...ausschnitte]..removeAt(index),
-    rundungen: rundungen,
-    belag: belag,
-    dielenlaenge: dielenlaenge,
-    kurzeStueckeVerbinden: kurzeStueckeVerbinden,
-    verlegeart: verlegeart,
-    verlegerichtung: verlegerichtung,
-    verlegewinkel: verlegewinkel,
-  );
+  Planungsstand ohneAusschnitt(int index) =>
+      _mit(ausschnitte: [...ausschnitte]..removeAt(index));
 
   /// Kopie, in der der Ausschnitt [index] durch [ausschnitt] ersetzt ist.
   Planungsstand mitAusschnitt(int index, Ausschnitt ausschnitt) =>
-      Planungsstand(
-        grundriss: grundriss,
-        ausschnitte: [...ausschnitte]..[index] = ausschnitt,
-        rundungen: rundungen,
-        belag: belag,
-        dielenlaenge: dielenlaenge,
-        kurzeStueckeVerbinden: kurzeStueckeVerbinden,
-        verlegeart: verlegeart,
-        verlegerichtung: verlegerichtung,
-        verlegewinkel: verlegewinkel,
-      );
+      _mit(ausschnitte: [...ausschnitte]..[index] = ausschnitt);
 
   /// Kopie mit anderem Belag; die übrigen Eingaben bleiben.
-  Planungsstand mitBelag(Artikelnummer belag) => Planungsstand(
-    grundriss: grundriss,
-    ausschnitte: ausschnitte,
-    rundungen: rundungen,
-    belag: belag,
-    dielenlaenge: dielenlaenge,
-    kurzeStueckeVerbinden: kurzeStueckeVerbinden,
-    verlegeart: verlegeart,
-    verlegerichtung: verlegerichtung,
-    verlegewinkel: verlegewinkel,
-  );
+  Planungsstand mitBelag(Artikelnummer belag) => _mit(belag: belag);
 
   /// Kopie mit erzwungener Lieferlänge; `null` = automatisch.
-  Planungsstand mitDielenlaenge(Millimeter? dielenlaenge) => Planungsstand(
-    grundriss: grundriss,
-    ausschnitte: ausschnitte,
-    rundungen: rundungen,
-    belag: belag,
-    dielenlaenge: dielenlaenge,
-    kurzeStueckeVerbinden: kurzeStueckeVerbinden,
-    verlegeart: verlegeart,
-    verlegerichtung: verlegerichtung,
-    verlegewinkel: verlegewinkel,
-  );
+  Planungsstand mitDielenlaenge(Millimeter? dielenlaenge) =>
+      _mit(dielenlaenge: (wert: dielenlaenge));
 
   /// Kopie mit der Antwort auf „kurze Stücke verbinden“.
-  Planungsstand mitKurzeStueckeVerbinden(bool verbinden) => Planungsstand(
-    grundriss: grundriss,
-    ausschnitte: ausschnitte,
-    rundungen: rundungen,
-    belag: belag,
-    dielenlaenge: dielenlaenge,
-    kurzeStueckeVerbinden: verbinden,
-    verlegeart: verlegeart,
-    verlegerichtung: verlegerichtung,
-    verlegewinkel: verlegewinkel,
-  );
+  Planungsstand mitKurzeStueckeVerbinden(bool verbinden) =>
+      _mit(kurzeStueckeVerbinden: verbinden);
 
   /// Kopie mit anderer Verlegeart.
-  Planungsstand mitVerlegeart(Verlegeart verlegeart) => Planungsstand(
-    grundriss: grundriss,
-    ausschnitte: ausschnitte,
-    rundungen: rundungen,
-    belag: belag,
-    dielenlaenge: dielenlaenge,
-    kurzeStueckeVerbinden: kurzeStueckeVerbinden,
-    verlegeart: verlegeart,
-    verlegerichtung: verlegerichtung,
-    verlegewinkel: verlegewinkel,
-  );
+  Planungsstand mitVerlegeart(Verlegeart verlegeart) =>
+      _mit(verlegeart: verlegeart);
 
   /// Kopie mit anderer Verlegerichtung; [winkel] setzt das Feld „Winkel“
   /// (nur ganze Grad von 0 bis 179, `Verlegerichtung.winkelGueltig`).
@@ -317,17 +316,17 @@ final class Planungsstand {
     if (winkel != null && !Verlegerichtung.winkelGueltig(winkel)) {
       throw ArgumentError.value(winkel, 'winkel', 'muss 0 bis 179 Grad sein');
     }
-    return Planungsstand(
-      grundriss: grundriss,
-      ausschnitte: ausschnitte,
-      rundungen: rundungen,
-      belag: belag,
-      dielenlaenge: dielenlaenge,
-      kurzeStueckeVerbinden: kurzeStueckeVerbinden,
-      verlegeart: verlegeart,
-      verlegerichtung: richtung,
-      verlegewinkel: winkel ?? verlegewinkel,
-    );
+    return _mit(verlegerichtung: richtung, verlegewinkel: winkel);
+  }
+
+  /// Kopie mit anderem Ausgangspunkt (M5-07): [ecke] wie [ausgangsecke]
+  /// (0 bis [ausgangsecken] − 1), [x] und [y] wie [verschiebungX] und
+  /// [verschiebungY]; nicht angegebene Werte bleiben.
+  Planungsstand mitAusgangspunkt({int? ecke, Millimeter? x, Millimeter? y}) {
+    if (ecke != null && (ecke < 0 || ecke >= ausgangsecken)) {
+      throw RangeError.range(ecke, 0, ausgangsecken - 1, 'ecke');
+    }
+    return _mit(ausgangsecke: ecke, verschiebungX: x, verschiebungY: y);
   }
 
   /// FlatBuffer für den Weg zum Server (#110):
@@ -336,7 +335,8 @@ final class Planungsstand {
   /// 3: rundungen ([int32] je Art, Nummer, mm), 4: belag (string),
   /// 5: dielenlaenge (int32 mm), 6: kurze Stücke verbinden (bool),
   /// 7: verlegeart (uint8), 8: verlegerichtung (uint8),
-  /// 9: verlegewinkel (uint8 Grad) }`.
+  /// 9: verlegewinkel (uint8 Grad), 10: ausgangsecke (uint16),
+  /// 11: verschiebungX (int32 mm), 12: verschiebungY (int32 mm) }`.
   /// Neue Felder nur anhängen (docs/architektur/datenmodell.md).
   Uint8List zuBytes() {
     final fbb = fb.Builder();
@@ -357,7 +357,7 @@ final class Planungsstand {
       null => null,
     };
     fbb
-      ..startTable(10)
+      ..startTable(13)
       ..addUint16(_schemaPlatz, schema)
       ..addOffset(_grundrissPlatz, grundrissOrt)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
@@ -367,7 +367,10 @@ final class Planungsstand {
       ..addBool(_kurzeStueckeVerbindenPlatz, kurzeStueckeVerbinden)
       ..addUint8(_verlegeartPlatz, verlegeart.nummer)
       ..addUint8(_verlegerichtungPlatz, verlegerichtung.nummer)
-      ..addUint8(_verlegewinkelPlatz, verlegewinkel);
+      ..addUint8(_verlegewinkelPlatz, verlegewinkel)
+      ..addUint16(_ausgangseckePlatz, ausgangsecke)
+      ..addInt32(_verschiebungXPlatz, verschiebungX.mm)
+      ..addInt32(_verschiebungYPlatz, verschiebungY.mm);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
   }
@@ -398,6 +401,9 @@ final class Planungsstand {
   static const _verlegeartPlatz = 7;
   static const _verlegerichtungPlatz = 8;
   static const _verlegewinkelPlatz = 9;
+  static const _ausgangseckePlatz = 10;
+  static const _verschiebungXPlatz = 11;
+  static const _verschiebungYPlatz = 12;
 
   @override
   bool operator ==(Object other) {
@@ -410,6 +416,9 @@ final class Planungsstand {
         other.verlegeart != verlegeart ||
         other.verlegerichtung != verlegerichtung ||
         other.verlegewinkel != verlegewinkel ||
+        other.ausgangsecke != ausgangsecke ||
+        other.verschiebungX != verschiebungX ||
+        other.verschiebungY != verschiebungY ||
         other.ausschnitte.length != ausschnitte.length) {
       return false;
     }
@@ -430,6 +439,9 @@ final class Planungsstand {
     verlegeart,
     verlegerichtung,
     verlegewinkel,
+    ausgangsecke,
+    verschiebungX,
+    verschiebungY,
   );
 }
 
