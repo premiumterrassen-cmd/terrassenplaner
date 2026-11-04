@@ -138,18 +138,36 @@ final class Planungsstand {
   /// Kontur des Grundrisses samt Rundungen.
   Kontur get kontur => rundungen.kontur(grundriss);
 
+  /// Kopie, in der nur die angegebenen Felder anders sind – die eine Stelle,
+  /// an der neue Felder ergänzt werden. [dielenlaenge] als Eintrag, weil
+  /// `null` (automatisch) ein gültiger Wert ist.
+  Planungsstand _mit({
+    Grundriss? grundriss,
+    List<Ausschnitt>? ausschnitte,
+    Rundungen? rundungen,
+    Artikelnummer? belag,
+    ({Millimeter? wert})? dielenlaenge,
+    bool? kurzeStueckeVerbinden,
+    Verlegeart? verlegeart,
+    Verlegerichtung? verlegerichtung,
+    int? verlegewinkel,
+  }) => Planungsstand(
+    grundriss: grundriss ?? this.grundriss,
+    ausschnitte: ausschnitte ?? this.ausschnitte,
+    rundungen: rundungen ?? this.rundungen,
+    belag: belag ?? this.belag,
+    dielenlaenge: dielenlaenge == null ? this.dielenlaenge : dielenlaenge.wert,
+    kurzeStueckeVerbinden: kurzeStueckeVerbinden ?? this.kurzeStueckeVerbinden,
+    verlegeart: verlegeart ?? this.verlegeart,
+    verlegerichtung: verlegerichtung ?? this.verlegerichtung,
+    verlegewinkel: verlegewinkel ?? this.verlegewinkel,
+  );
+
   /// Kopie mit geändertem Grundriss; die Rundungen bleiben, solange es
   /// gleich viele Ecken sind und sie weiter passen.
-  Planungsstand mitGrundriss(Grundriss grundriss) => Planungsstand(
+  Planungsstand mitGrundriss(Grundriss grundriss) => _mit(
     grundriss: grundriss,
-    ausschnitte: ausschnitte,
     rundungen: _passend(grundriss) ? rundungen : Rundungen.keine,
-    belag: belag,
-    dielenlaenge: dielenlaenge,
-    kurzeStueckeVerbinden: kurzeStueckeVerbinden,
-    verlegeart: verlegeart,
-    verlegerichtung: verlegerichtung,
-    verlegewinkel: verlegewinkel,
   );
 
   bool _passend(Grundriss neu) {
@@ -164,41 +182,22 @@ final class Planungsstand {
   }
 
   /// Kopie mit anderen Rundungen (die App prüft sie vorher über [kontur]).
-  Planungsstand mitRundungen(Rundungen rundungen) => Planungsstand(
-    grundriss: grundriss,
-    ausschnitte: ausschnitte,
-    rundungen: rundungen,
-    belag: belag,
-    dielenlaenge: dielenlaenge,
-    kurzeStueckeVerbinden: kurzeStueckeVerbinden,
-    verlegeart: verlegeart,
-    verlegerichtung: verlegerichtung,
-    verlegewinkel: verlegewinkel,
-  );
+  Planungsstand mitRundungen(Rundungen rundungen) => _mit(rundungen: rundungen);
 
   /// Neue Form mit ihren Vorgabemaßen; die O-Form bringt ihren Ausschnitt
   /// mit, alle anderen beginnen ohne (Fachkonzept 1.1).
-  Planungsstand mitForm(Terrassenform form) => Planungsstand(
+  Planungsstand mitForm(Terrassenform form) => _mit(
     grundriss: form.vorgabe,
     ausschnitte: [if (form == Terrassenform.oForm) Ausschnitt.oForm],
-    belag: belag,
-    dielenlaenge: dielenlaenge,
-    kurzeStueckeVerbinden: kurzeStueckeVerbinden,
-    verlegeart: verlegeart,
-    verlegerichtung: verlegerichtung,
-    verlegewinkel: verlegewinkel,
+    rundungen: Rundungen.keine,
   );
 
   /// Grundriss um [grad] gedreht (M4-10); die Ausschnitte werden dabei
   /// zurückgesetzt – die App fragt vorher nach.
-  Planungsstand gedreht(double grad) => Planungsstand(
+  Planungsstand gedreht(double grad) => _mit(
     grundriss: grundriss.gedreht(grad),
-    belag: belag,
-    dielenlaenge: dielenlaenge,
-    kurzeStueckeVerbinden: kurzeStueckeVerbinden,
-    verlegeart: verlegeart,
-    verlegerichtung: verlegerichtung,
-    verlegewinkel: verlegewinkel,
+    ausschnitte: const [],
+    rundungen: Rundungen.keine,
   );
 
   /// Mit einer weiteren Fläche (180 × 120 cm, Bezeichnung A1, A2 …) mitten
@@ -210,8 +209,7 @@ final class Planungsstand {
       nummer++;
     }
     final mitte = kontur.huellrechteck.mitte;
-    return Planungsstand(
-      grundriss: grundriss,
+    return _mit(
       ausschnitte: [
         ...ausschnitte,
         Ausschnitt(
@@ -222,94 +220,31 @@ final class Planungsstand {
           breite: Ausschnitt.vorgabeBreite,
         ),
       ],
-      rundungen: rundungen,
-      belag: belag,
-      dielenlaenge: dielenlaenge,
-      kurzeStueckeVerbinden: kurzeStueckeVerbinden,
-      verlegeart: verlegeart,
-      verlegerichtung: verlegerichtung,
-      verlegewinkel: verlegewinkel,
     );
   }
 
   /// Ohne den Ausschnitt [index].
-  Planungsstand ohneAusschnitt(int index) => Planungsstand(
-    grundriss: grundriss,
-    ausschnitte: [...ausschnitte]..removeAt(index),
-    rundungen: rundungen,
-    belag: belag,
-    dielenlaenge: dielenlaenge,
-    kurzeStueckeVerbinden: kurzeStueckeVerbinden,
-    verlegeart: verlegeart,
-    verlegerichtung: verlegerichtung,
-    verlegewinkel: verlegewinkel,
-  );
+  Planungsstand ohneAusschnitt(int index) =>
+      _mit(ausschnitte: [...ausschnitte]..removeAt(index));
 
   /// Kopie, in der der Ausschnitt [index] durch [ausschnitt] ersetzt ist.
   Planungsstand mitAusschnitt(int index, Ausschnitt ausschnitt) =>
-      Planungsstand(
-        grundriss: grundriss,
-        ausschnitte: [...ausschnitte]..[index] = ausschnitt,
-        rundungen: rundungen,
-        belag: belag,
-        dielenlaenge: dielenlaenge,
-        kurzeStueckeVerbinden: kurzeStueckeVerbinden,
-        verlegeart: verlegeart,
-        verlegerichtung: verlegerichtung,
-        verlegewinkel: verlegewinkel,
-      );
+      _mit(ausschnitte: [...ausschnitte]..[index] = ausschnitt);
 
   /// Kopie mit anderem Belag; die übrigen Eingaben bleiben.
-  Planungsstand mitBelag(Artikelnummer belag) => Planungsstand(
-    grundriss: grundriss,
-    ausschnitte: ausschnitte,
-    rundungen: rundungen,
-    belag: belag,
-    dielenlaenge: dielenlaenge,
-    kurzeStueckeVerbinden: kurzeStueckeVerbinden,
-    verlegeart: verlegeart,
-    verlegerichtung: verlegerichtung,
-    verlegewinkel: verlegewinkel,
-  );
+  Planungsstand mitBelag(Artikelnummer belag) => _mit(belag: belag);
 
   /// Kopie mit erzwungener Lieferlänge; `null` = automatisch.
-  Planungsstand mitDielenlaenge(Millimeter? dielenlaenge) => Planungsstand(
-    grundriss: grundriss,
-    ausschnitte: ausschnitte,
-    rundungen: rundungen,
-    belag: belag,
-    dielenlaenge: dielenlaenge,
-    kurzeStueckeVerbinden: kurzeStueckeVerbinden,
-    verlegeart: verlegeart,
-    verlegerichtung: verlegerichtung,
-    verlegewinkel: verlegewinkel,
-  );
+  Planungsstand mitDielenlaenge(Millimeter? dielenlaenge) =>
+      _mit(dielenlaenge: (wert: dielenlaenge));
 
   /// Kopie mit der Antwort auf „kurze Stücke verbinden“.
-  Planungsstand mitKurzeStueckeVerbinden(bool verbinden) => Planungsstand(
-    grundriss: grundriss,
-    ausschnitte: ausschnitte,
-    rundungen: rundungen,
-    belag: belag,
-    dielenlaenge: dielenlaenge,
-    kurzeStueckeVerbinden: verbinden,
-    verlegeart: verlegeart,
-    verlegerichtung: verlegerichtung,
-    verlegewinkel: verlegewinkel,
-  );
+  Planungsstand mitKurzeStueckeVerbinden(bool verbinden) =>
+      _mit(kurzeStueckeVerbinden: verbinden);
 
   /// Kopie mit anderer Verlegeart.
-  Planungsstand mitVerlegeart(Verlegeart verlegeart) => Planungsstand(
-    grundriss: grundriss,
-    ausschnitte: ausschnitte,
-    rundungen: rundungen,
-    belag: belag,
-    dielenlaenge: dielenlaenge,
-    kurzeStueckeVerbinden: kurzeStueckeVerbinden,
-    verlegeart: verlegeart,
-    verlegerichtung: verlegerichtung,
-    verlegewinkel: verlegewinkel,
-  );
+  Planungsstand mitVerlegeart(Verlegeart verlegeart) =>
+      _mit(verlegeart: verlegeart);
 
   /// Kopie mit anderer Verlegerichtung; [winkel] setzt das Feld „Winkel“
   /// (nur ganze Grad von 0 bis 179, `Verlegerichtung.winkelGueltig`).
@@ -317,17 +252,7 @@ final class Planungsstand {
     if (winkel != null && !Verlegerichtung.winkelGueltig(winkel)) {
       throw ArgumentError.value(winkel, 'winkel', 'muss 0 bis 179 Grad sein');
     }
-    return Planungsstand(
-      grundriss: grundriss,
-      ausschnitte: ausschnitte,
-      rundungen: rundungen,
-      belag: belag,
-      dielenlaenge: dielenlaenge,
-      kurzeStueckeVerbinden: kurzeStueckeVerbinden,
-      verlegeart: verlegeart,
-      verlegerichtung: richtung,
-      verlegewinkel: winkel ?? verlegewinkel,
-    );
+    return _mit(verlegerichtung: richtung, verlegewinkel: winkel);
   }
 
   /// FlatBuffer für den Weg zum Server (#110):
