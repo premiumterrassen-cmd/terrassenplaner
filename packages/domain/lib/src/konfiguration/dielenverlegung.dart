@@ -13,11 +13,19 @@ import 'verlegeart.dart';
 /// 18 mm breite Reihe dagegen nicht (Referenzfall 2026-05-29-3162).
 const mindestreihenbreite = Millimeter(15);
 
-/// Ein Dielenstück der Verlegung (M5-05): Reihe, Länge in Verlegerichtung
-/// und Umriss für die Zeichnung.
+/// Zuschnitte unter 5 cm – ein Dielenstück, das kürzer ist, oder eine
+/// Randreihe, die schmaler ist – meldet die Oberfläche unter 2.5 (M5-07).
+const mindestzuschnitt = Millimeter(50);
+
+/// Ein Dielenstück der Verlegung (M5-05): Reihe, Länge in Verlegerichtung,
+/// Breite und Umriss für die Zeichnung.
 final class Dielenstueck {
-  Dielenstueck(this.reihe, this.laenge, List<Punkt> umriss)
-    : umriss = List.unmodifiable(umriss);
+  Dielenstueck(
+    this.reihe,
+    this.laenge,
+    List<Punkt> umriss, {
+    required this.breite,
+  }) : umriss = List.unmodifiable(umriss);
 
   /// 0 = Reihe am Ausgangspunkt, negative Nummern auf der anderen Seite.
   final int reihe;
@@ -26,9 +34,51 @@ final class Dielenstueck {
   /// Rändern also die längere Kante.
   final Millimeter laenge;
 
+  /// Breite quer zur Verlegerichtung in mm: die Breite des Teils der Reihe,
+  /// in dem das Stück liegt – am Rand weniger als die Dielenbreite plus
+  /// Fuge (M5-07).
+  final double breite;
+
   /// Umriss in Planungskoordinaten (mm) für die Zeichnung.
   final List<Punkt> umriss;
+
+  /// Ob das Stück kürzer oder schmaler als [mindestzuschnitt] ist (M5-07).
+  bool get kurzerZuschnitt =>
+      laenge < mindestzuschnitt || breite < mindestzuschnitt.mm;
 }
+
+/// Wie weit die erste ganze Diele höchstens verschoben werden kann (M5-07,
+/// Fachkonzept 2.5), je Bildschirmachse in mm: Die Achse, die eher in
+/// Verlegerichtung liegt (|cos w| ≥ |sin w|), bekommt das Raster der Stöße
+/// ([stossraster]: längste oder erzwungene Länge, höchstens die Ausdehnung),
+/// die andere Dielenbreite plus Fuge.
+({Millimeter x, Millimeter y}) verschiebungsgrenzen(
+  Kontur kontur, {
+  required double winkel,
+  required Millimeter dielenbreite,
+  required Millimeter laengste,
+}) {
+  final drehung = -winkel * math.pi / 180;
+  final huelle = _lokal(kontur, Punkt.ursprung, drehung).huellrechteck;
+  final laenge = stossraster(
+    Millimeter(huelle.max.x.round()) - Millimeter(huelle.min.x.round()),
+    laengste,
+  );
+  final breite = dielenbreite + fuge;
+  // in Grad verglichen: bei 45° wären cos und sin im Bogenmaß nicht gleich
+  final w = winkel % 180;
+  return w <= 45 || w >= 135 ? (x: laenge, y: breite) : (x: breite, y: laenge);
+}
+
+/// [kontur] in Verlegerichtung gedreht: [ausgangspunkt] bei (0|0), Dielen
+/// längs x; gerundet, damit 90° keine Kanten knapp neben den Reihengrenzen
+/// erzeugt.
+Flaeche _lokal(Kontur kontur, Punkt ausgangspunkt, double drehung) => Flaeche(
+  Kontur([
+    for (final p in kontur.punkte)
+      _gerundet((p - ausgangspunkt).gedreht(drehung)),
+  ], woelbungen: kontur.woelbungen),
+);
 
 /// Verlegt Dielenreihen im Winkel [winkel] (Grad, Fachkonzept 2.4) über die
 /// [kontur] (M5-05).
@@ -48,15 +98,8 @@ List<Dielenstueck> verlegeDielen(
   required Millimeter laengste,
   bool verbinden = false,
 }) {
-  // in Verlegerichtung gedreht: Ausgangspunkt bei (0|0), Dielen längs x;
-  // gerundet, damit 90° keine Kanten knapp neben den Reihengrenzen erzeugt
   final drehung = -winkel * math.pi / 180;
-  final lokal = Flaeche(
-    Kontur([
-      for (final p in kontur.punkte)
-        _gerundet((p - ausgangspunkt).gedreht(drehung)),
-    ], woelbungen: kontur.woelbungen),
-  );
+  final lokal = _lokal(kontur, ausgangspunkt, drehung);
   final huelle = lokal.huellrechteck;
   final von = Millimeter(huelle.min.x.round());
   final bis = Millimeter(huelle.max.x.round());
@@ -104,7 +147,7 @@ List<Dielenstueck> verlegeDielen(
         stuecke.add(
           Dielenstueck(reihe, laenge, [
             for (final p in umriss) p.gedreht(-drehung) + ausgangspunkt,
-          ]),
+          ], breite: h.hoehe),
         );
         anfang = ende;
       }
