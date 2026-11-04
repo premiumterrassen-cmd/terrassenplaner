@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
@@ -19,6 +20,7 @@ import 'dielenliste.dart';
 import 'flaechen.dart';
 import 'freiform.dart';
 import 'grundriss_eingabe.dart';
+import 'materialliste.dart';
 import 'planer_schritt.dart';
 import 'rahmen_zustand.dart';
 import 'rundung.dart';
@@ -44,6 +46,7 @@ class PlanerRahmen extends StatefulWidget {
     this.aktionen = const RahmenAktionen(),
     this.sprache,
     this.darstellung,
+    this.mitarbeiter,
   });
 
   /// Inhalt der Statuszeile (z. B. Verbindung zum Server).
@@ -77,6 +80,11 @@ class PlanerRahmen extends StatefulWidget {
   /// Darstellungsauswahl in der Kopfzeile (M3-09); ohne Steuerung keine
   /// Auswahl.
   final DarstellungSteuerung? darstellung;
+
+  /// Ob ein Mitarbeiter angemeldet ist (Mitarbeiter-Ansicht der
+  /// Materialliste, Fachkonzept 08); `null` = Kunde. Die Anmeldung selbst
+  /// folgt mit M9-10.
+  final ValueListenable<bool>? mitarbeiter;
 
   @override
   State<PlanerRahmen> createState() => _PlanerRahmenState();
@@ -177,6 +185,20 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
       return;
     }
     await aktion();
+  }
+
+  /// Materialliste (M9-03): wie Ergebnis und Angebot erst der Hinweis auf
+  /// Standardwerte (M3-05).
+  Future<void> _zeigeMaterialliste(BerechnungsSteuerung berechnung) async {
+    if (!await pruefeStandardwerte(context, _zustand) || !mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (_) => MateriallisteDialog(
+        berechnung: berechnung,
+        planung: _planung,
+        mitarbeiter: widget.mitarbeiter,
+      ),
+    );
   }
 
   Future<void> _zuruecksetzen() async {
@@ -309,10 +331,24 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
                           Positioned(
                             top: PlanerAbstand.mittel,
                             right: PlanerAbstand.mittel,
-                            child: Kennzahlen(
-                              flaeche: _berechnung?.flaeche,
-                              gesamtflaeche: _berechnung?.gesamtflaeche,
-                              verschnitt: _berechnung?.verschnitt,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Kennzahlen(
+                                  flaeche: _berechnung?.flaeche,
+                                  gesamtflaeche: _berechnung?.gesamtflaeche,
+                                  verschnitt: _berechnung?.verschnitt,
+                                ),
+                                if (_berechnung case final b?) ...[
+                                  const SizedBox(height: PlanerAbstand.klein),
+                                  FilledButton.tonalIcon(
+                                    key: const ValueKey('materialliste-knopf'),
+                                    onPressed: () => _zeigeMaterialliste(b),
+                                    icon: const Icon(Icons.list_alt),
+                                    label: Text(context.texte.materialliste),
+                                  ),
+                                ],
+                              ],
                             ),
                           ),
                           // Tablet: Menü liegt über der Zeichenfläche.

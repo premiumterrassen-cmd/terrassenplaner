@@ -2,6 +2,9 @@ import 'dart:typed_data';
 
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 
+import '../artikel/artikel.dart';
+import '../artikel/einheiten.dart';
+import '../ergebnisse/materialliste.dart';
 import 'planungsstand.dart';
 
 /// Eine Fläche der Planung (M4-14): eigene Einstellungen in allen Schritten
@@ -42,15 +45,24 @@ final class Terrassenflaeche {
 /// Fläche, die gerade bearbeitet wird. Unveränderlich wie [Planungsstand],
 /// damit Rückgängig auch Anlegen, Löschen und Wechseln umfasst.
 final class Planung {
-  Planung(List<Terrassenflaeche> flaechen, {this.aktiv = 0})
-    : flaechen = List.unmodifiable(flaechen) {
+  Planung(
+    List<Terrassenflaeche> flaechen, {
+    this.aktiv = 0,
+    Map<Positionsschluessel, int> mengen = const {},
+  }) : flaechen = List.unmodifiable(flaechen),
+       mengen = Map.unmodifiable(mengen) {
     if (flaechen.isEmpty) {
       throw ArgumentError.value(flaechen, 'flaechen', 'mindestens eine Fläche');
     }
     RangeError.checkValidIndex(aktiv, flaechen, 'aktiv');
+    for (final anzahl in this.mengen.values) {
+      if (anzahl < 0) {
+        throw ArgumentError.value(anzahl, 'mengen', 'nicht negativ');
+      }
+    }
   }
 
-  const Planung._(this.flaechen) : aktiv = 0;
+  const Planung._(this.flaechen) : aktiv = 0, mengen = const {};
 
   /// Liest eine Planung aus dem Transportformat ([zuBytes]).
   factory Planung.ausBytes(Uint8List bytes) {
@@ -67,8 +79,36 @@ final class Planung {
         _versatz(_aktivPlatz),
         0,
       ),
+      mengen: {
+        for (final ort in const fb.ListReader<int>(
+          _Tabellenort(),
+        ).vTableGet(puffer, wurzel, _versatz(_mengenPlatz), const []))
+          _schluessel(puffer, ort): const fb.Uint32Reader().vTableGet(
+            puffer,
+            ort,
+            _versatz(3),
+            0,
+          ),
+      },
     );
   }
+
+  static Positionsschluessel _schluessel(fb.BufferContext puffer, int ort) => (
+    nummer: Artikelnummer(
+      const fb.StringReader().vTableGet(puffer, ort, _versatz(0), ''),
+    ),
+    laenge: switch (const fb.Int32Reader().vTableGetNullable(
+      puffer,
+      ort,
+      _versatz(1),
+    )) {
+      final mm? => Millimeter(mm),
+      null => null,
+    },
+    zusatz: Materialzusatz.ausNummer(
+      const fb.Uint8Reader().vTableGet(puffer, ort, _versatz(2), 0),
+    ),
+  );
 
   /// Startkonfiguration: eine Fläche wie im alten Planer (F01).
   static const start = Planung._([Terrassenflaeche.start]);
@@ -80,6 +120,11 @@ final class Planung {
 
   /// Planungsstand der bearbeiteten Fläche.
   Planungsstand get aktuell => flaechen[aktiv].stand;
+
+  /// Geänderte Mengen der Mitarbeiter-Ansicht (M9-03, R-D04) je Position
+  /// der Materialliste; sie gelten für die ganze Planung. Der Server
+  /// übernimmt sie nur von Mitarbeitern (M9-10).
+  final Map<Positionsschluessel, int> mengen;
 
   /// Häufigkeit der bearbeiteten Fläche.
   int get haeufigkeit => flaechen[aktiv].haeufigkeit;
@@ -93,11 +138,15 @@ final class Planung {
 
   /// „Fläche hinzufügen“: neue Fläche mit der Startkonfiguration, die gleich
   /// bearbeitet wird.
-  Planung mitNeuerFlaeche() =>
-      Planung([...flaechen, Terrassenflaeche.start], aktiv: flaechen.length);
+  Planung mitNeuerFlaeche() => Planung(
+    [...flaechen, Terrassenflaeche.start],
+    aktiv: flaechen.length,
+    mengen: mengen,
+  );
 
   /// Wechselt zu Reiter [index].
-  Planung gewaehlt(int index) => Planung(flaechen, aktiv: index);
+  Planung gewaehlt(int index) =>
+      Planung(flaechen, aktiv: index, mengen: mengen);
 
   /// Löscht Fläche [index]; die letzte Fläche bleibt. Danach wird die Fläche
   /// davor bearbeitet, wenn die gelöschte die bearbeitete oder eine frühere
@@ -110,25 +159,48 @@ final class Planung {
     return Planung(
       [...flaechen]..removeAt(index),
       aktiv: index > aktiv || aktiv == 0 ? aktiv : aktiv - 1,
+      mengen: mengen,
     );
   }
 
+  /// Setzt die Menge der Position [schluessel] (Mitarbeiter-Ansicht); mit
+  /// `null` gilt wieder die berechnete.
+  Planung mitMenge(Positionsschluessel schluessel, int? anzahl) => Planung(
+    flaechen,
+    aktiv: aktiv,
+    mengen: {
+      for (final MapEntry(:key, :value) in mengen.entries)
+        if (key != schluessel) key: value,
+      schluessel: ?anzahl,
+    },
+  );
+
   Planung _mit(Terrassenflaeche flaeche) =>
-      Planung([...flaechen]..[aktiv] = flaeche, aktiv: aktiv);
+      Planung([...flaechen]..[aktiv] = flaeche, aktiv: aktiv, mengen: mengen);
 
   /// `{ 0: schema (uint16), 1: flaechen ([{ 0: stand ([uint8], Planungsstand
-  /// als eigener FlatBuffer), 1: haeufigkeit (uint16) }]), 2: aktiv (uint16) }`.
-  /// Neue Felder nur anhängen (docs/architektur/datenmodell.md).
+  /// als eigener FlatBuffer), 1: haeufigkeit (uint16) }]), 2: aktiv (uint16),
+  /// 70: mengen ([{ 0: nummer (string), 1: laenge (int32 mm, fehlt ohne
+  /// Länge), 2: zusatz (uint8), 3: anzahl (uint32) }], M9-03) }`. Neue Felder
+  /// nur anhängen (docs/architektur/datenmodell.md); die Plätze 70–79 sind
+  /// für die Ergebnisse (M9) vorgesehen.
   Uint8List zuBytes() {
     final fbb = fb.Builder();
     final flaechenOrt = fbb.writeList([
       for (final f in flaechen) _flaeche(fbb, f),
     ]);
+    final mengenOrt = mengen.isEmpty
+        ? null
+        : fbb.writeList([
+            for (final MapEntry(:key, :value) in mengen.entries)
+              _menge(fbb, key, value),
+          ]);
     fbb
-      ..startTable(3)
+      ..startTable(_mengenPlatz + 1)
       ..addUint16(_schemaPlatz, schema)
       ..addOffset(_flaechenPlatz, flaechenOrt)
-      ..addUint16(_aktivPlatz, aktiv);
+      ..addUint16(_aktivPlatz, aktiv)
+      ..addOffset(_mengenPlatz, mengenOrt);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
   }
@@ -142,19 +214,35 @@ final class Planung {
     return fbb.endTable();
   }
 
+  static int _menge(fb.Builder fbb, Positionsschluessel s, int anzahl) {
+    final nummerOrt = fbb.writeString(s.nummer.wert);
+    fbb
+      ..startTable(4)
+      ..addOffset(0, nummerOrt)
+      ..addInt32(1, s.laenge?.mm)
+      ..addUint8(2, s.zusatz?.nummer)
+      ..addUint32(3, anzahl);
+    return fbb.endTable();
+  }
+
   /// Version des Transportformats.
   static const schema = 1;
 
   static const _schemaPlatz = 0;
   static const _flaechenPlatz = 1;
   static const _aktivPlatz = 2;
+  static const _mengenPlatz = 70;
 
   @override
   bool operator ==(Object other) {
     if (other is! Planung ||
         other.aktiv != aktiv ||
-        other.flaechen.length != flaechen.length) {
+        other.flaechen.length != flaechen.length ||
+        other.mengen.length != mengen.length) {
       return false;
+    }
+    for (final MapEntry(:key, :value) in mengen.entries) {
+      if (other.mengen[key] != value) return false;
     }
     for (var i = 0; i < flaechen.length; i++) {
       if (other.flaechen[i] != flaechen[i]) return false;
@@ -163,7 +251,21 @@ final class Planung {
   }
 
   @override
-  int get hashCode => Object.hash(aktiv, Object.hashAll(flaechen));
+  int get hashCode => Object.hash(
+    aktiv,
+    Object.hashAll(flaechen),
+    Object.hashAllUnordered([
+      for (final MapEntry(:key, :value) in mengen.entries) (key, value),
+    ]),
+  );
+}
+
+/// Liest nur den Ort einer Tabelle – die Felder liest der Aufrufer.
+final class _Tabellenort extends fb.TableReader<int> {
+  const _Tabellenort();
+
+  @override
+  int createObject(fb.BufferContext puffer, int ort) => ort;
 }
 
 /// vtable-Versatz eines Feldplatzes.

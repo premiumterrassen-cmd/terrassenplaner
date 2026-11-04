@@ -1731,6 +1731,234 @@ abstract class PlanerTexte {
   /// In de, this message translates to:
   /// **'Keine hinterlegte Schraube ist mindestens doppelt so lang, wie die Diele stark ist. Gerechnet wird mit der längsten – bitte prüfen Sie die Schraubenlänge.'**
   String get belagmeldungSchraubeZuKurz;
+
+  /// No description provided for @materialliste.
+  ///
+  /// In de, this message translates to:
+  /// **'Materialliste'**
+  String get materialliste;
+
+  /// No description provided for @materiallisteLeer.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Materialliste entsteht, sobald ein Belag verlegt ist.'**
+  String get materiallisteLeer;
+
+  /// No description provided for @materialSpaltePosition.
+  ///
+  /// In de, this message translates to:
+  /// **'Pos.'**
+  String get materialSpaltePosition;
+
+  /// No description provided for @materialSpalteBild.
+  ///
+  /// In de, this message translates to:
+  /// **'Bild'**
+  String get materialSpalteBild;
+
+  /// No description provided for @materialSpalteArtikel.
+  ///
+  /// In de, this message translates to:
+  /// **'Artikel'**
+  String get materialSpalteArtikel;
+
+  /// No description provided for @materialSpalteMenge.
+  ///
+  /// In de, this message translates to:
+  /// **'Menge'**
+  String get materialSpalteMenge;
+
+  /// No description provided for @materialSpalteEinzelpreis.
+  ///
+  /// In de, this message translates to:
+  /// **'Einzelpreis'**
+  String get materialSpalteEinzelpreis;
+
+  /// No description provided for @materialSpaltePreisJeLfm.
+  ///
+  /// In de, this message translates to:
+  /// **'Preis je lfm'**
+  String get materialSpaltePreisJeLfm;
+
+  /// No description provided for @materialSpalteGesamtLfm.
+  ///
+  /// In de, this message translates to:
+  /// **'Gesamt-lfm'**
+  String get materialSpalteGesamtLfm;
+
+  /// No description provided for @materialSpaltePositionspreis.
+  ///
+  /// In de, this message translates to:
+  /// **'Positionspreis'**
+  String get materialSpaltePositionspreis;
+
+  /// No description provided for @materialLaenge.
+  ///
+  /// In de, this message translates to:
+  /// **'Länge: {laenge} mm'**
+  String materialLaenge(int laenge);
+
+  /// No description provided for @materialFreidiele.
+  ///
+  /// In de, this message translates to:
+  /// **'Freidiele'**
+  String get materialFreidiele;
+
+  /// No description provided for @materialBerechnet.
+  ///
+  /// In de, this message translates to:
+  /// **'berechnet: {anzahl}'**
+  String materialBerechnet(int anzahl);
+
+  /// No description provided for @materialSumme.
+  ///
+  /// In de, this message translates to:
+  /// **'Summe gesamt: {betrag}'**
+  String materialSumme(String betrag);
+
+  /// No description provided for @materialMehrwertsteuer.
+  ///
+  /// In de, this message translates to:
+  /// **'enthaltene {satz} % MwSt.: {betrag}'**
+  String materialMehrwertsteuer(int satz, String betrag);
+
+  /// No description provided for @materialPreishinweis.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle Preise inkl. MwSt. und nur zur Information – verbindlich ist unser Angebot.'**
+  String get materialPreishinweis;
+
+  /// No description provided for @materialOhnePreis.
+  ///
+  /// In de, this message translates to:
+  /// **'Für einzelne Artikel liegt kein Preis vor; sie fehlen in der Summe.'**
+  String get materialOhnePreis;
+
+  /// No description provided for @materialMengeUebernehmen.
+  ///
+  /// In de, this message translates to:
+  /// **'Menge übernehmen'**
+  String get materialMengeUebernehmen;
+
+  /// No description provided for @materialMengeBerechnet.
+  ///
+  /// In de, this message translates to:
+  /// **'Berechnete Menge verwenden'**
+  String get materialMengeBerechnet;
+
+  /// No description provided for @materialMitarbeiter.
+  ///
+  /// In de, this message translates to:
+  /// **'Mitarbeiter-Ansicht: Mengen änderbar'**
+  String get materialMitarbeiter;
+
+  /// No description provided for @einheitStueck.
+  ///
+  /// In de, this message translates to:
+  /// **'Stück'**
+  String get einheitStueck;
+
+  /// No description provided for @einheitLaufmeter.
+  ///
+  /// In de, this message translates to:
+  /// **'lfm'**
+  String get einheitLaufmeter;
+
+  /// No description provided for @einheitQuadratmeter.
+  ///
+  /// In de, this message translates to:
+  /// **'m²'**
+  String get einheitQuadratmeter;
+
+  /// No description provided for @einheitVerpackungseinheit.
+  ///
+  /// In de, this message translates to:
+  /// **'VPE'**
+  String get einheitVerpackungseinheit;
+
+  /// No description provided for @einheitKarton.
+  ///
+  /// In de, this message translates to:
+  /// **'Karton'**
+  String get einheitKarton;
+
+  /// No description provided for @einheitSet.
+  ///
+  /// In de, this message translates to:
+  /// **'Set'**
+  String get einheitSet;
+
+  /// No description provided for @einheitKiste.
+  ///
+  /// In de, this message translates to:
+  /// **'Kiste'**
+  String get einheitKiste;
+
+  /// No description provided for @einheitLiter.
+  ///
+  /// In de, this message translates to:
+  /// **'l'**
+  String get einheitLiter;
+
+  /// No description provided for @stueckliste.
+  ///
+  /// In de, this message translates to:
+  /// **'Stückliste'**
+  String get stueckliste;
+
+  /// No description provided for @stuecklisteLeer.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Stückliste entsteht, sobald ein Belag verlegt ist.'**
+  String get stuecklisteLeer;
+
+  /// No description provided for @stueckSpalteArtikel.
+  ///
+  /// In de, this message translates to:
+  /// **'Artikel'**
+  String get stueckSpalteArtikel;
+
+  /// No description provided for @stueckSpalteLaenge.
+  ///
+  /// In de, this message translates to:
+  /// **'Länge (cm)'**
+  String get stueckSpalteLaenge;
+
+  /// No description provided for @stueckSpalteStueck.
+  ///
+  /// In de, this message translates to:
+  /// **'Stück'**
+  String get stueckSpalteStueck;
+
+  /// No description provided for @stueckSpalteFarbe.
+  ///
+  /// In de, this message translates to:
+  /// **'Farbe im Plan'**
+  String get stueckSpalteFarbe;
+
+  /// No description provided for @stueckfarbeRot.
+  ///
+  /// In de, this message translates to:
+  /// **'rot – ganze Länge'**
+  String get stueckfarbeRot;
+
+  /// No description provided for @stueckfarbeBlau.
+  ///
+  /// In de, this message translates to:
+  /// **'blau – zugeschnitten'**
+  String get stueckfarbeBlau;
+
+  /// No description provided for @stueckfarbeGruen.
+  ///
+  /// In de, this message translates to:
+  /// **'grün – Querstück'**
+  String get stueckfarbeGruen;
+
+  /// No description provided for @stuecklisteHinweis.
+  ///
+  /// In de, this message translates to:
+  /// **'Stücke der bearbeiteten Fläche; die Farbe zeigt das Stück in der Zeichnung.'**
+  String get stuecklisteHinweis;
 }
 
 class _PlanerTexteDelegate extends LocalizationsDelegate<PlanerTexte> {

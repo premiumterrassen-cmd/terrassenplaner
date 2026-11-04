@@ -926,4 +926,131 @@ class PlanerTexteEn extends PlanerTexte {
   @override
   String get belagmeldungSchraubeZuKurz =>
       'No stored screw is at least twice as long as the board is thick. The longest one is used – please check the screw length.';
+
+  @override
+  String get materialliste => 'Material list';
+
+  @override
+  String get materiallisteLeer =>
+      'The material list appears as soon as decking has been laid.';
+
+  @override
+  String get materialSpaltePosition => 'No.';
+
+  @override
+  String get materialSpalteBild => 'Image';
+
+  @override
+  String get materialSpalteArtikel => 'Item';
+
+  @override
+  String get materialSpalteMenge => 'Quantity';
+
+  @override
+  String get materialSpalteEinzelpreis => 'Unit price';
+
+  @override
+  String get materialSpaltePreisJeLfm => 'Price per lin. m';
+
+  @override
+  String get materialSpalteGesamtLfm => 'Total lin. m';
+
+  @override
+  String get materialSpaltePositionspreis => 'Line total';
+
+  @override
+  String materialLaenge(int laenge) {
+    return 'Length: $laenge mm';
+  }
+
+  @override
+  String get materialFreidiele => 'Free board';
+
+  @override
+  String materialBerechnet(int anzahl) {
+    return 'calculated: $anzahl';
+  }
+
+  @override
+  String materialSumme(String betrag) {
+    return 'Total: $betrag';
+  }
+
+  @override
+  String materialMehrwertsteuer(int satz, String betrag) {
+    return 'incl. $satz % VAT: $betrag';
+  }
+
+  @override
+  String get materialPreishinweis =>
+      'All prices incl. VAT and for information only – our quotation is binding.';
+
+  @override
+  String get materialOhnePreis =>
+      'Some items have no price yet; they are missing from the total.';
+
+  @override
+  String get materialMengeUebernehmen => 'Apply quantity';
+
+  @override
+  String get materialMengeBerechnet => 'Use calculated quantity';
+
+  @override
+  String get materialMitarbeiter => 'Staff view: quantities editable';
+
+  @override
+  String get einheitStueck => 'pcs';
+
+  @override
+  String get einheitLaufmeter => 'lin. m';
+
+  @override
+  String get einheitQuadratmeter => 'm²';
+
+  @override
+  String get einheitVerpackungseinheit => 'pack';
+
+  @override
+  String get einheitKarton => 'carton';
+
+  @override
+  String get einheitSet => 'set';
+
+  @override
+  String get einheitKiste => 'crate';
+
+  @override
+  String get einheitLiter => 'l';
+
+  @override
+  String get stueckliste => 'Parts list';
+
+  @override
+  String get stuecklisteLeer =>
+      'The parts list appears as soon as decking has been laid.';
+
+  @override
+  String get stueckSpalteArtikel => 'Item';
+
+  @override
+  String get stueckSpalteLaenge => 'Length (cm)';
+
+  @override
+  String get stueckSpalteStueck => 'Pieces';
+
+  @override
+  String get stueckSpalteFarbe => 'Colour in the plan';
+
+  @override
+  String get stueckfarbeRot => 'red – full length';
+
+  @override
+  String get stueckfarbeBlau => 'blue – cut to length';
+
+  @override
+  String get stueckfarbeGruen => 'green – cross piece';
+
+  @override
+  String get stuecklisteHinweis =>
+      'Pieces of the area being edited; the colour marks the piece in the drawing.';
 }

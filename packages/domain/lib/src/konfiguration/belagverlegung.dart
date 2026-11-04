@@ -242,14 +242,23 @@ final class Dielenliste {
 /// alle Ausschnitte, dann je Ausschnitt mit anderem Terrassenbelag eine
 /// eigene.
 final class Belagverlegung {
-  Belagverlegung._(this.ausgangspunkt, this.grenzen, List<Teilverlegung> teile)
-    : teile = List.unmodifiable(teile);
+  Belagverlegung._(
+    this.ausgangspunkt,
+    this.grenzen,
+    this.laengste,
+    List<Teilverlegung> teile,
+  ) : teile = List.unmodifiable(teile);
 
   /// Gewählte Ecke plus (begrenzte) Verschiebung.
   final Punkt ausgangspunkt;
 
   /// Größte Verschiebung je Bildschirmachse (`verschiebungsgrenzen`).
   final ({Millimeter x, Millimeter y}) grenzen;
+
+  /// Längste Lieferlänge, in der verlegt wird (erzwungene Länge oder die
+  /// längste des Belags): ein Stück dieser Länge ist ungeschnitten
+  /// (Stückliste, M9-04).
+  final Millimeter laengste;
   final List<Teilverlegung> teile;
 
   /// Dielenliste aller Teilflächen.
@@ -331,7 +340,7 @@ Belagverlegung? verlegeBelag(Planungsstand stand, Artikel? belag) {
     lieferlaengen: lieferlaengen,
     bezeichnung: bezeichnung,
   );
-  return Belagverlegung._(ausgangspunkt, grenzen, [
+  return Belagverlegung._(ausgangspunkt, grenzen, laengste, [
     teil(
       kontur,
       ausgangspunkt,
