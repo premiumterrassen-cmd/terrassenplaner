@@ -1,3 +1,5 @@
+import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
+
 import '../sprache/sprache.dart';
 
 /// Die sieben Schritte des Planers mit ihren nummerierten Unterpunkten
@@ -73,8 +75,33 @@ enum PlanerSchritt {
   /// Nummer ab 1 („1. GRUNDRISS“).
   int get nummer => index + 1;
 
-  /// Nummerierte Unterpunkte, z. B. „1.2 Terrassenmaße“.
+  /// Nummerierte Unterpunkte der Startkonfiguration, z. B.
+  /// „1.2 Terrassenmaße“.
   List<String> nummerierteUnterpunkte(PlanerTexte t) => [
-    for (final (i, text) in unterpunkte(t).indexed) '$nummer.${i + 1} $text',
+    for (final u in sichtbareUnterpunkte(t, Planungsstand.start)) u.text,
   ];
+
+  /// Ob der Unterpunkt [index] für [stand] entfällt: „Art der
+  /// Terrassennutzung“ gibt es bei Hochterrasse und vorhandener UK nicht
+  /// (M6-01, F28, F29).
+  bool entfaellt(int index, Planungsstand stand) =>
+      this == unterkonstruktion &&
+      index == _nutzungsart &&
+      !stand.terrassenart.mitNutzungsart;
+
+  static const _nutzungsart = 5;
+
+  /// Unterpunkte, die es für [stand] gibt, mit ihrem Index in [unterpunkte]
+  /// und lückenlos nummeriert („3.6 Querstreben“ ohne Nutzungsart).
+  List<({int index, String text})> sichtbareUnterpunkte(
+    PlanerTexte t,
+    Planungsstand stand,
+  ) {
+    final sichtbar = <({int index, String text})>[];
+    for (final (i, text) in unterpunkte(t).indexed) {
+      if (entfaellt(i, stand)) continue;
+      sichtbar.add((index: i, text: '$nummer.${sichtbar.length + 1} $text'));
+    }
+    return sichtbar;
+  }
 }

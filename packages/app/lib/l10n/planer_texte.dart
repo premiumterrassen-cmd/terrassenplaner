@@ -1672,6 +1672,96 @@ abstract class PlanerTexte {
   /// **'Gewählt'**
   String get gewaehlt;
 
+  /// No description provided for @terrassenartNormal.
+  ///
+  /// In de, this message translates to:
+  /// **'Normale Terrasse'**
+  String get terrassenartNormal;
+
+  /// No description provided for @terrassenartHochterrasse.
+  ///
+  /// In de, this message translates to:
+  /// **'Hochterrasse'**
+  String get terrassenartHochterrasse;
+
+  /// No description provided for @terrassenartVorhandeneUk.
+  ///
+  /// In de, this message translates to:
+  /// **'Vorhandene UK'**
+  String get terrassenartVorhandeneUk;
+
+  /// No description provided for @vorgabehoehe.
+  ///
+  /// In de, this message translates to:
+  /// **'Vorgabehöhe: {cm} cm'**
+  String vorgabehoehe(String cm);
+
+  /// No description provided for @spannweiteFrage.
+  ///
+  /// In de, this message translates to:
+  /// **'Spannweite der Unterkonstruktion (Abstand der vorhandenen Träger)'**
+  String get spannweiteFrage;
+
+  /// No description provided for @spannweite.
+  ///
+  /// In de, this message translates to:
+  /// **'Spannweite'**
+  String get spannweite;
+
+  /// No description provided for @spannweiteUngueltig.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte eine Zahl von 10 bis 300 cm eingeben'**
+  String get spannweiteUngueltig;
+
+  /// No description provided for @hoehenpunkteHilfe.
+  ///
+  /// In de, this message translates to:
+  /// **'Gemessen von Oberkante Belag bis Boden.'**
+  String get hoehenpunkteHilfe;
+
+  /// No description provided for @ohneGefaelle.
+  ///
+  /// In de, this message translates to:
+  /// **'ohne Gefälle'**
+  String get ohneGefaelle;
+
+  /// No description provided for @mitGefaelle.
+  ///
+  /// In de, this message translates to:
+  /// **'mit Gefälle'**
+  String get mitGefaelle;
+
+  /// No description provided for @hoeheAlle.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle'**
+  String get hoeheAlle;
+
+  /// No description provided for @hoeheUngueltig.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte eine Zahl über 0 bis 300 cm eingeben'**
+  String get hoeheUngueltig;
+
+  /// No description provided for @aufbauhoehe.
+  ///
+  /// In de, this message translates to:
+  /// **'Aufbauhöhe (Belag und Unterkonstruktion): {cm} cm'**
+  String aufbauhoehe(String cm);
+
+  /// No description provided for @ukGedreht.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Unterkonstruktion wird gedreht (Breite und Stärke getauscht), damit die Aufbauhöhe eingehalten wird.'**
+  String get ukGedreht;
+
+  /// No description provided for @hoeheKorrigiert.
+  ///
+  /// In de, this message translates to:
+  /// **'Der Höhenreferenzpunkt unterschreitet die minimale Höhe von {cm} cm. Er wurde korrigiert.'**
+  String hoeheKorrigiert(String cm);
+
   /// No description provided for @belagmeldungBelagErsetzt.
   ///
   /// In de, this message translates to:
@@ -1731,6 +1821,42 @@ abstract class PlanerTexte {
   /// In de, this message translates to:
   /// **'Keine hinterlegte Schraube ist mindestens doppelt so lang, wie die Diele stark ist. Gerechnet wird mit der längsten – bitte prüfen Sie die Schraubenlänge.'**
   String get belagmeldungSchraubeZuKurz;
+
+  /// No description provided for @ukLaedt.
+  ///
+  /// In de, this message translates to:
+  /// **'Unterkonstruktionen werden geladen …'**
+  String get ukLaedt;
+
+  /// No description provided for @ukFehler.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Unterkonstruktionen konnten nicht geladen werden.'**
+  String get ukFehler;
+
+  /// No description provided for @ukKeine.
+  ///
+  /// In de, this message translates to:
+  /// **'Zum gewählten Belag passt keine Unterkonstruktion aus dem Sortiment.'**
+  String get ukKeine;
+
+  /// No description provided for @ukDialogTitel.
+  ///
+  /// In de, this message translates to:
+  /// **'Unterkonstruktion auswählen'**
+  String get ukDialogTitel;
+
+  /// No description provided for @ukLaengeOhneUk.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Länge ergibt sich, sobald eine Unterkonstruktion gewählt ist.'**
+  String get ukLaengeOhneUk;
+
+  /// No description provided for @automatisch.
+  ///
+  /// In de, this message translates to:
+  /// **'Automatisch'**
+  String get automatisch;
 
   /// No description provided for @materialliste.
   ///

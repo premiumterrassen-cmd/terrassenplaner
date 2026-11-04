@@ -40,6 +40,7 @@ void main() {
       hallo: verbindung.hallo,
       berechne: verbindung.berechne,
       belaege: verbindung.belaege,
+      unterkonstruktionen: verbindung.unterkonstruktionen,
       // Speichern, Laden und Entwurf über den Konfigurationsdienst (M9-05);
       // der Browser merkt sich nur Nummer, Version und Sitzungsschlüssel.
       ablage: verbindung,

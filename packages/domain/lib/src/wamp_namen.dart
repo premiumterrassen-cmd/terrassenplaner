@@ -19,6 +19,11 @@ abstract final class WampNamen {
   /// lfm und je m²; der erste ist die Vorgabe.
   static const belagAuswahl = '${kunde}belag.auswahl';
 
+  /// Unterkonstruktionen zum Belag (M6-03): Argument die Artikelnummer des
+  /// Belags (fehlt = Vorgabe-Belag); Antwort `Ukauswahl` als JSON, die
+  /// erste UK ist die Vorgabe.
+  static const ukAuswahl = '${kunde}unterkonstruktion.auswahl';
+
   /// 3D-Modell (M3-10): GLB einer Rechteck-Terrasse (Prototyp).
   static const modell3dRechteck = '${kunde}modell3d.rechteck';
 

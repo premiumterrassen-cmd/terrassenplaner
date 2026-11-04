@@ -26,6 +26,8 @@ import 'rahmen_zustand.dart';
 import 'rundung.dart';
 import 'standardwert_hinweis.dart';
 import 'steuerung.dart';
+import 'uk_auswahl.dart';
+import 'unterkonstruktion.dart';
 import 'zeichenflaeche.dart';
 import 'zeichnung.dart';
 
@@ -43,6 +45,7 @@ class PlanerRahmen extends StatefulWidget {
     this.konfiguration,
     this.berechne,
     this.belaege,
+    this.unterkonstruktionen,
     this.aktionen = const RahmenAktionen(),
     this.sprache,
     this.darstellung,
@@ -70,6 +73,10 @@ class PlanerRahmen extends StatefulWidget {
 
   /// Beläge vom Server (M5-01); ohne sie bleibt die Belagauswahl leer.
   final BelaegeLaden? belaege;
+
+  /// Unterkonstruktionen zum Belag vom Server (M6-03); ohne sie bleibt die
+  /// UK-Auswahl leer.
+  final UnterkonstruktionenLaden? unterkonstruktionen;
 
   /// Links und Ergebnis-Knöpfe (M3-06).
   final RahmenAktionen aktionen;
@@ -127,6 +134,10 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
     final lade? => BelagQuelle(lade),
     null => null,
   };
+  late final UkQuelle? _uk = switch (widget.unterkonstruktionen) {
+    final lade? => UkQuelle(lade: lade, planung: _planung),
+    null => null,
+  };
 
   @override
   void initState() {
@@ -163,6 +174,7 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
   void dispose() {
     _berechnung?.dispose();
     _belaege?.dispose();
+    _uk?.dispose();
     _modus.dispose();
     _zustand.removeListener(_verlaesstRundung);
     _rundung.dispose();
@@ -276,6 +288,7 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
             ausgangspunkt: _ausgangspunkt,
             berechnung: _berechnung,
             belaege: _belaege,
+            unterkonstruktionen: _uk,
           );
           return Column(
             children: [
@@ -638,6 +651,7 @@ class Bearbeitungsmenue extends StatelessWidget {
     this.ausgangspunkt,
     this.berechnung,
     this.belaege,
+    this.unterkonstruktionen,
   });
 
   final RahmenZustand zustand;
@@ -646,6 +660,9 @@ class Bearbeitungsmenue extends StatelessWidget {
   final RundungsBedienung rundung;
   final AusschnittBedienung ausschnitte;
   final BelagQuelle? belaege;
+
+  /// Unterkonstruktionen zum Belag (M6-03); ohne Quelle keine Auswahl.
+  final UkQuelle? unterkonstruktionen;
 
   /// Ausgangspunkt des Belags (M5-07); ohne Bedienung keine Eingabe.
   final AusgangspunktBedienung? ausgangspunkt;
@@ -709,6 +726,27 @@ class Bearbeitungsmenue extends StatelessWidget {
       berechnung: berechnung,
       onGeaendert: () => zustand.markiereGeaendert(schritt),
     ),
+    (PlanerSchritt.unterkonstruktion, 0) => TerrassenartWahl(
+      planung: planung,
+      onGeaendert: () => zustand.markiereGeaendert(schritt),
+    ),
+    (PlanerSchritt.unterkonstruktion, 1) => HoehenpunkteWahl(
+      planung: planung,
+      berechnung: berechnung,
+      onGeaendert: () => zustand.markiereGeaendert(schritt),
+    ),
+    (PlanerSchritt.unterkonstruktion, 2) when unterkonstruktionen != null =>
+      UkAnzeige(
+        quelle: unterkonstruktionen!,
+        planung: planung,
+        onGeaendert: () => zustand.markiereGeaendert(schritt),
+      ),
+    (PlanerSchritt.unterkonstruktion, 3) when unterkonstruktionen != null =>
+      UkLaengeWahl(
+        quelle: unterkonstruktionen!,
+        planung: planung,
+        onGeaendert: () => zustand.markiereGeaendert(schritt),
+      ),
     (PlanerSchritt.verschnittoptimierung, 0) when berechnung != null =>
       DielenlisteAnzeige(berechnung: berechnung!),
     _ => null,
@@ -746,8 +784,10 @@ class Bearbeitungsmenue extends StatelessWidget {
                 onTap: () => zustand.waehle(schritt),
               ),
               if (schritt == zustand.aktiv)
-                for (final (i, punkt)
-                    in schritt.nummerierteUnterpunkte(t).indexed)
+                for (final punkt in schritt.sichtbareUnterpunkte(
+                  t,
+                  planung.aktuell,
+                ))
                   Padding(
                     padding: const EdgeInsets.only(
                       left: PlanerAbstand.gross,
@@ -757,14 +797,14 @@ class Bearbeitungsmenue extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text(punkt),
-                        ?_eingabe(schritt, i),
+                        Text(punkt.text),
+                        ?_eingabe(schritt, punkt.index),
                         if (schritt == PlanerSchritt.terrassenbelag &&
                             berechnung != null)
                           BelagMeldungen(
                             berechnung: berechnung!,
                             planung: planung,
-                            unterpunkt: i,
+                            unterpunkt: punkt.index,
                           ),
                       ],
                     ),

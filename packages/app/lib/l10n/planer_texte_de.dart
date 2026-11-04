@@ -887,6 +887,60 @@ class PlanerTexteDe extends PlanerTexte {
   String get gewaehlt => 'Gewählt';
 
   @override
+  String get terrassenartNormal => 'Normale Terrasse';
+
+  @override
+  String get terrassenartHochterrasse => 'Hochterrasse';
+
+  @override
+  String get terrassenartVorhandeneUk => 'Vorhandene UK';
+
+  @override
+  String vorgabehoehe(String cm) {
+    return 'Vorgabehöhe: $cm cm';
+  }
+
+  @override
+  String get spannweiteFrage =>
+      'Spannweite der Unterkonstruktion (Abstand der vorhandenen Träger)';
+
+  @override
+  String get spannweite => 'Spannweite';
+
+  @override
+  String get spannweiteUngueltig =>
+      'Bitte eine Zahl von 10 bis 300 cm eingeben';
+
+  @override
+  String get hoehenpunkteHilfe => 'Gemessen von Oberkante Belag bis Boden.';
+
+  @override
+  String get ohneGefaelle => 'ohne Gefälle';
+
+  @override
+  String get mitGefaelle => 'mit Gefälle';
+
+  @override
+  String get hoeheAlle => 'Alle';
+
+  @override
+  String get hoeheUngueltig => 'Bitte eine Zahl über 0 bis 300 cm eingeben';
+
+  @override
+  String aufbauhoehe(String cm) {
+    return 'Aufbauhöhe (Belag und Unterkonstruktion): $cm cm';
+  }
+
+  @override
+  String get ukGedreht =>
+      'Die Unterkonstruktion wird gedreht (Breite und Stärke getauscht), damit die Aufbauhöhe eingehalten wird.';
+
+  @override
+  String hoeheKorrigiert(String cm) {
+    return 'Der Höhenreferenzpunkt unterschreitet die minimale Höhe von $cm cm. Er wurde korrigiert.';
+  }
+
+  @override
   String get belagmeldungBelagErsetzt =>
       'Der gewählte Belag ist nicht mehr im Sortiment. Geplant wird mit dem Vorgabebelag – wählen Sie bei Bedarf über „Produktauswahl“ einen anderen.';
 
@@ -926,6 +980,27 @@ class PlanerTexteDe extends PlanerTexte {
   @override
   String get belagmeldungSchraubeZuKurz =>
       'Keine hinterlegte Schraube ist mindestens doppelt so lang, wie die Diele stark ist. Gerechnet wird mit der längsten – bitte prüfen Sie die Schraubenlänge.';
+
+  @override
+  String get ukLaedt => 'Unterkonstruktionen werden geladen …';
+
+  @override
+  String get ukFehler =>
+      'Die Unterkonstruktionen konnten nicht geladen werden.';
+
+  @override
+  String get ukKeine =>
+      'Zum gewählten Belag passt keine Unterkonstruktion aus dem Sortiment.';
+
+  @override
+  String get ukDialogTitel => 'Unterkonstruktion auswählen';
+
+  @override
+  String get ukLaengeOhneUk =>
+      'Die Länge ergibt sich, sobald eine Unterkonstruktion gewählt ist.';
+
+  @override
+  String get automatisch => 'Automatisch';
 
   @override
   String get materialliste => 'Materialliste';

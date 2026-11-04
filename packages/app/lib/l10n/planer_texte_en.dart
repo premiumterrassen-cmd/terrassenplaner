@@ -887,6 +887,60 @@ class PlanerTexteEn extends PlanerTexte {
   String get gewaehlt => 'Selected';
 
   @override
+  String get terrassenartNormal => 'Normal terrace';
+
+  @override
+  String get terrassenartHochterrasse => 'Raised terrace';
+
+  @override
+  String get terrassenartVorhandeneUk => 'Existing substructure';
+
+  @override
+  String vorgabehoehe(String cm) {
+    return 'Default height: $cm cm';
+  }
+
+  @override
+  String get spannweiteFrage =>
+      'Span of the substructure (spacing of the existing joists)';
+
+  @override
+  String get spannweite => 'Span';
+
+  @override
+  String get spannweiteUngueltig => 'Please enter a number from 10 to 300 cm';
+
+  @override
+  String get hoehenpunkteHilfe =>
+      'Measured from the top of the decking to the ground.';
+
+  @override
+  String get ohneGefaelle => 'without slope';
+
+  @override
+  String get mitGefaelle => 'with slope';
+
+  @override
+  String get hoeheAlle => 'All';
+
+  @override
+  String get hoeheUngueltig => 'Please enter a number above 0 up to 300 cm';
+
+  @override
+  String aufbauhoehe(String cm) {
+    return 'Construction height (decking and substructure): $cm cm';
+  }
+
+  @override
+  String get ukGedreht =>
+      'The substructure is turned (width and thickness swapped) to keep to the construction height.';
+
+  @override
+  String hoeheKorrigiert(String cm) {
+    return 'The height reference point is below the minimum height of $cm cm. It has been corrected.';
+  }
+
+  @override
   String get belagmeldungBelagErsetzt =>
       'The selected decking is no longer available. The plan uses the default decking – choose another one via “Product selection” if needed.';
 
@@ -926,6 +980,26 @@ class PlanerTexteEn extends PlanerTexte {
   @override
   String get belagmeldungSchraubeZuKurz =>
       'No stored screw is at least twice as long as the board is thick. The longest one is used – please check the screw length.';
+
+  @override
+  String get ukLaedt => 'Loading substructures …';
+
+  @override
+  String get ukFehler => 'The substructures could not be loaded.';
+
+  @override
+  String get ukKeine =>
+      'No substructure in the range matches the selected decking.';
+
+  @override
+  String get ukDialogTitel => 'Select substructure';
+
+  @override
+  String get ukLaengeOhneUk =>
+      'The length follows as soon as a substructure is selected.';
+
+  @override
+  String get automatisch => 'Automatic';
 
   @override
   String get materialliste => 'Material list';
