@@ -6,13 +6,15 @@ import '../artikel/artikel.dart';
 import '../artikel/einheiten.dart';
 import '../geometrie/punkt.dart';
 import '../regeln/befestigungsbedarf.dart';
+import '../regeln/belagmeldungen.dart';
 import 'befestigungsart.dart';
 
 /// Was der Server aus einem Planungsstand berechnet und die App nur anzeigt
 /// (M4-02): Umriss, Ausschnitte (M4-06) und Dielenstücke (M5-05) für die
 /// Zeichnung und Kennzahlen, seit M5-07 Ausgangspunkt, Verschiebungsgrenzen
 /// und Warnung vor kurzen Zuschnitten, seit M5-09 die Befestigung, seit
-/// M5-08 Dielennummern, Dielenliste und Verschnitt der ganzen Planung.
+/// M5-08 Dielennummern, Dielenliste und Verschnitt der ganzen Planung,
+/// seit M5-10 die Meldungen zum Belag.
 /// Volumen und Materialliste folgen mit M6 und M9.
 final class Berechnung {
   Berechnung({
@@ -31,7 +33,9 @@ final class Berechnung {
     this.verschnitt,
     List<Lieferposition> dielenliste = const [],
     Befestigungsbedarf? befestigung,
-  }) : befestigung = befestigung ?? Befestigungsbedarf.keiner,
+    List<Belagmeldung> belagmeldungen = const [],
+  }) : belagmeldungen = List.unmodifiable(belagmeldungen),
+       befestigung = befestigung ?? Befestigungsbedarf.keiner,
        nummern = List.unmodifiable(nummern),
        dielenliste = List.unmodifiable(dielenliste),
        gesamtflaeche = gesamtflaeche ?? flaeche,
@@ -107,6 +111,12 @@ final class Berechnung {
           ),
       ],
       befestigung: _befestigung(puffer, wurzel),
+      belagmeldungen: [
+        for (final n in const fb.ListReader<int>(
+          fb.Uint8Reader(),
+        ).vTableGet(puffer, wurzel, _versatz(_belagmeldungenPlatz), const []))
+          Belagmeldung.ausNummer(n),
+      ],
     );
   }
 
@@ -221,6 +231,10 @@ final class Berechnung {
   /// Lieferlänge, jede Fläche mal ihrer Häufigkeit (M4-14).
   final List<Lieferposition> dielenliste;
 
+  /// Meldungen zum Belag der bearbeiteten Fläche (M5-10,
+  /// `belagmeldungen`); die App zeigt sie unter dem Unterpunkt der Eingabe.
+  final List<Belagmeldung> belagmeldungen;
+
   /// Kopie mit den Werten der ganzen Planung (M4-14, M5-08).
   Berechnung mitPlanung(
     double gesamtflaeche, {
@@ -242,6 +256,7 @@ final class Berechnung {
     nummern: nummern,
     verschnitt: verschnitt,
     dielenliste: dielenliste,
+    belagmeldungen: belagmeldungen,
   );
 
   /// FlatBuffer für den Weg zur App (#110):
@@ -257,7 +272,8 @@ final class Berechnung {
   /// (string), 2: anzahl (uint32) }]) (M5-09), 15: nummern ([int32]),
   /// 16: verschnitt (float64, fehlt ohne Dielen), 17: dielenliste
   /// ([{ 0: belag (string), 1: laenge (int32 mm), 2: anzahl (int32) }])
-  /// (M5-08) }`.
+  /// (M5-08), 35: belagmeldungen ([uint8], M5-10) }`. Die Plätze 18–34
+  /// sind für die Unterkonstruktion (M6) frei gehalten.
   Uint8List zuBytes() {
     final fbb = fb.Builder();
     final umrissOrt = _schreibe(fbb, umriss);
@@ -282,8 +298,11 @@ final class Berechnung {
     final mittelOrt = fbb.writeList([
       for (final m in befestigung.mittel) _position(fbb, m),
     ]);
+    final meldungenOrt = fbb.writeListUint8([
+      for (final m in belagmeldungen) m.nummer,
+    ]);
     fbb
-      ..startTable(18)
+      ..startTable(_belagmeldungenPlatz + 1)
       ..addOffset(_umrissPlatz, umrissOrt)
       ..addFloat64(_flaechePlatz, flaeche)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
@@ -300,7 +319,8 @@ final class Berechnung {
       ..addUint32(_befestigungspunktePlatz, befestigung.punkte)
       ..addOffset(_befestigungsmittelPlatz, mittelOrt)
       ..addOffset(_nummernPlatz, nummernOrt)
-      ..addOffset(_dielenlistePlatz, listeOrt);
+      ..addOffset(_dielenlistePlatz, listeOrt)
+      ..addOffset(_belagmeldungenPlatz, meldungenOrt);
     if (verschnitt case final v?) fbb.addFloat64(_verschnittPlatz, v);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
@@ -380,6 +400,7 @@ final class Berechnung {
   static const _nummernPlatz = 15;
   static const _verschnittPlatz = 16;
   static const _dielenlistePlatz = 17;
+  static const _belagmeldungenPlatz = 35;
 
   static int _versatz(int platz) => 4 + 2 * platz;
 }

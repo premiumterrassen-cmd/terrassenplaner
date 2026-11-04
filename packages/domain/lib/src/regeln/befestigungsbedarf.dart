@@ -10,6 +10,7 @@ import '../artikel/einheiten.dart';
 import '../holzart/holzart.dart';
 import '../konfiguration/befestigungsart.dart';
 import '../konfiguration/dielenverlegung.dart';
+import 'belagmeldungen.dart';
 import 'regelwerk.dart';
 
 /// Eine Position der Befestigung: Artikel und Anzahl Verkaufseinheiten
@@ -191,14 +192,11 @@ Befestigungsbedarf befestigungsbedarf(
     ukAbstand: ukAbstand,
   );
   final moeglich = regelwerk.moeglich(belag.nummer, Beziehung.befestigung);
-  final regel = holzart.serie(serie).befestigung(profil, breite);
   final mittel = switch (art) {
-    Befestigungsart.clips => verpackt(punkte + randpunkte, [
-      for (final a in moeglich)
-        if (a.art == Artikelart.clip &&
-            _istDuoClip(a) == (regel == Befestigung.duoClipFixx))
-          a,
-    ]),
+    Befestigungsart.clips => verpackt(
+      punkte + randpunkte,
+      _clips(moeglich, holzart.serie(serie).befestigung(profil, breite)),
+    ),
     _ => [
       ...verpackt(
         punkte * holzart.schraubenJePunkt(serie, profil, breite),
@@ -218,6 +216,62 @@ Befestigungsbedarf befestigungsbedarf(
     ],
   );
 }
+
+/// Meldungen zur Befestigung des [belag] mit der gewählten Art [gewaehlt]
+/// (M5-10): eine Verschraubung, die bei genuteten Dielen nicht gilt (dann
+/// Clips, B-094; die Vorgabe Clips bei glattkanten Dielen meldet nichts),
+/// fehlende Clips oder Schrauben in den Befestigungsverweisen (B-122) und
+/// eine Schraube unter der doppelten Dielenstärke. Ohne Holzart, Serie,
+/// Profil oder Breite (Holzfliese) keine Meldung.
+List<Belagmeldung> befestigungsmeldungen(
+  Regelwerk regelwerk,
+  Artikel belag,
+  Befestigungsart gewaehlt,
+) {
+  final (holzart, serie, profil, breite) = (
+    belag.holzart,
+    belag.serie,
+    belag.profil,
+    belag.abmessungen.breite,
+  );
+  if (holzart == null || serie == null || profil == null || breite == null) {
+    return const [];
+  }
+  // mit Profil gibt es immer eine wählbare Art
+  final art = gewaehlt.wirksam(profil)!;
+  final moeglich = regelwerk.moeglich(belag.nummer, Beziehung.befestigung);
+  final schrauben = [
+    for (final a in moeglich)
+      if (a.art == Artikelart.schraube) a.abmessungen.laengste?.mm ?? 0,
+  ];
+  final staerke = belag.abmessungen.staerke;
+  final geschraubt = art != Befestigungsart.clips;
+  return [
+    if (art != gewaehlt && gewaehlt != Befestigungsart.clips)
+      Belagmeldung.befestigungsartNichtMoeglich,
+    if (geschraubt
+        ? schrauben.isEmpty
+        : _clips(
+            moeglich,
+            holzart.serie(serie).befestigung(profil, breite),
+          ).isEmpty)
+      Belagmeldung.befestigungOhneArtikel,
+    if (geschraubt &&
+        schrauben.isNotEmpty &&
+        staerke != null &&
+        schrauben.reduce(math.max) < 2 * staerke.mm)
+      Belagmeldung.schraubeZuKurz,
+  ];
+}
+
+/// Clips aus [moeglich], die zur [regel] passen: DUO-CLIP-FIXX nur für
+/// DUO-CLIP-FIXX (B-094, B-150).
+List<Artikel> _clips(List<Artikel> moeglich, Befestigung regel) => [
+  for (final a in moeglich)
+    if (a.art == Artikelart.clip &&
+        _istDuoClip(a) == (regel == Befestigung.duoClipFixx))
+      a,
+];
 
 /// DUO-CLIP-FIXX und CLIP-FIXX sind beide Clips; unterscheiden lassen sie
 /// sich nur am Titel, der wie im Shop lautet (B-152).

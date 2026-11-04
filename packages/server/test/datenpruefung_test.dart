@@ -172,6 +172,22 @@ void main() {
     ]);
   });
 
+  test('keine einseitig genuteten Dielen (B-033)', () {
+    final einseitig = _eintrag(
+      titel: 'Terrassendiele Robinie BASIC 60 x 21 mm, Einseitig genutet',
+      art: Artikelart.diele,
+      breite: const Millimeter(60),
+      staerke: const Millimeter(21),
+      laengen: const [Millimeter(4000)],
+      serie: basic,
+      profil: Profil.genutet,
+    );
+    expect(_texte([einseitig]), [
+      'F 2 Artikelbezeichnung: einseitig genutete Diele – nicht mehr im '
+          'Sortiment (B-033)',
+    ]);
+  });
+
   test('UK-Format (B-034, B-212)', () {
     expect(_pruefe([_uk(60, 40)]), isEmpty);
     expect(_texte([_uk(60, 80)]), [

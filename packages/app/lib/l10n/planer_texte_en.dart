@@ -909,4 +909,45 @@ class PlanerTexteEn extends PlanerTexte {
 
   @override
   String get spannweiteUngueltig => 'Please enter a number from 10 to 300 cm';
+
+  @override
+  String get belagmeldungBelagErsetzt =>
+      'The selected decking is no longer available. The plan uses the default decking – choose another one via “Product selection” if needed.';
+
+  @override
+  String get belagmeldungOhneMasse =>
+      'Width or delivery lengths are missing for this decking, so it cannot be laid. Please choose another decking.';
+
+  @override
+  String get belagmeldungSystemdiele =>
+      'System boards are laid endlessly in mixed lengths – the planner does not draw this yet.';
+
+  @override
+  String get belagmeldungFlaecheKleiner =>
+      'The area or a partial area is smaller than one board or tile: no full decking width fits, only a cut piece.';
+
+  @override
+  String get belagmeldungFliesenSpitzeWinkel =>
+      'The area has corners below 90°. Wooden tiles must be cut at an angle there – boards are better suited for such shapes.';
+
+  @override
+  String get belagmeldungBombierung =>
+      'From 8 cm width we recommend crowned (slightly curved) boards.';
+
+  @override
+  String belagmeldungLaengeNichtLieferbar(int cm) {
+    return 'The selected length of $cm cm is not available for this decking. The board length is determined automatically.';
+  }
+
+  @override
+  String get belagmeldungBefestigungsart =>
+      'Grooved boards are fixed invisibly with clips. The selected screw fixing only applies to smooth-edged boards.';
+
+  @override
+  String get belagmeldungOhneBefestigung =>
+      'No matching clips or screws are stored for this decking – the fixing is missing from the material list. Please contact us.';
+
+  @override
+  String get belagmeldungSchraubeZuKurz =>
+      'No stored screw is at least twice as long as the board is thick. The longest one is used – please check the screw length.';
 }

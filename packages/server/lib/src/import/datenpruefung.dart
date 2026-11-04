@@ -137,6 +137,14 @@ Iterable<Befund> _holz(int zeile, Artikeleintrag e) sync* {
             'nicht im Sortiment (B-030)',
       );
     }
+    // Anfangs- und Enddiele sind normale Dielen (B-033, M5-10).
+    if (a.titel.toLowerCase().contains('einseitig')) {
+      yield Befund(
+        zeile,
+        'Artikelbezeichnung',
+        'einseitig genutete Diele – nicht mehr im Sortiment (B-033)',
+      );
+    }
   } else if (breite != null && staerke != null) {
     switch (regeln.ukFormat(breite, staerke)) {
       case UkFormat.gueltig:
