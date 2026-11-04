@@ -11,7 +11,11 @@ Future<void> main() async {
   final hallo = await HalloDienst.starte(router);
   final modell3d = await Modell3dDienst.starte(router);
   final artikel = await ArtikelDienst.starte(router, ArtikeldateiQuelle.leer);
-  final planung = await PlanungsDienst.starte(router, belag: artikel.belag);
+  final planung = await PlanungsDienst.starte(
+    router,
+    belag: artikel.belag,
+    regelwerk: () => artikel.regelwerk,
+  );
   // Konfigurationen (M9-05) in einer eigenen ObjectBox-Datenbank – ObjectBox
   // erlaubt einen Prozess je Datenbank, der Auth-Server hat seine eigene.
   // Ohne Verzeichnis (Entwicklung, Smoke-Tests) nur im Arbeitsspeicher.

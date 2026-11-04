@@ -115,6 +115,17 @@ class PlanerTexteEn extends PlanerTexte {
   }
 
   @override
+  String verschnitt(String wert) {
+    return 'Waste: $wert';
+  }
+
+  @override
+  String get benoetigteDielen => 'Boards required:';
+
+  @override
+  String get keineDielen => 'No boards laid yet.';
+
+  @override
   String massPlatzhalter(String kante) {
     return '$kante: cm';
   }
@@ -560,6 +571,9 @@ class PlanerTexteEn extends PlanerTexte {
   String get terrassenbelag5 => 'Starting point of the decking';
 
   @override
+  String get terrassenbelag6 => 'Fastening method';
+
+  @override
   String get unterkonstruktion1 => 'Type of terrace';
 
   @override
@@ -833,6 +847,29 @@ class PlanerTexteEn extends PlanerTexte {
       'Caution: there are cuts under 5 cm. Move the first full board so that no such narrow or short pieces are left.';
 
   @override
+  String get befestigungsartClips => 'With clips';
+
+  @override
+  String get befestigungsartVerschraubt => 'Screwed directly';
+
+  @override
+  String get befestigungsartAbstandshalter => 'Screwed with spacers';
+
+  @override
+  String get befestigungOhneDielen =>
+      'The fastening follows as soon as decking boards are laid.';
+
+  @override
+  String befestigungspunkte(int anzahl) {
+    return 'Fastening points: $anzahl';
+  }
+
+  @override
+  String befestigungsmittel(int anzahl, String titel) {
+    return '$anzahl × $titel';
+  }
+
+  @override
   String get kurzeStueckeVerbinden =>
       'Should short board pieces be joined together?';
 
@@ -848,4 +885,45 @@ class PlanerTexteEn extends PlanerTexte {
 
   @override
   String get gewaehlt => 'Selected';
+
+  @override
+  String get belagmeldungBelagErsetzt =>
+      'The selected decking is no longer available. The plan uses the default decking – choose another one via “Product selection” if needed.';
+
+  @override
+  String get belagmeldungOhneMasse =>
+      'Width or delivery lengths are missing for this decking, so it cannot be laid. Please choose another decking.';
+
+  @override
+  String get belagmeldungSystemdiele =>
+      'System boards are laid endlessly in mixed lengths – the planner does not draw this yet.';
+
+  @override
+  String get belagmeldungFlaecheKleiner =>
+      'The area or a partial area is smaller than one board or tile: no full decking width fits, only a cut piece.';
+
+  @override
+  String get belagmeldungFliesenSpitzeWinkel =>
+      'The area has corners below 90°. Wooden tiles must be cut at an angle there – boards are better suited for such shapes.';
+
+  @override
+  String get belagmeldungBombierung =>
+      'From 8 cm width we recommend crowned (slightly curved) boards.';
+
+  @override
+  String belagmeldungLaengeNichtLieferbar(int cm) {
+    return 'The selected length of $cm cm is not available for this decking. The board length is determined automatically.';
+  }
+
+  @override
+  String get belagmeldungBefestigungsart =>
+      'Grooved boards are fixed invisibly with clips. The selected screw fixing only applies to smooth-edged boards.';
+
+  @override
+  String get belagmeldungOhneBefestigung =>
+      'No matching clips or screws are stored for this decking – the fixing is missing from the material list. Please contact us.';
+
+  @override
+  String get belagmeldungSchraubeZuKurz =>
+      'No stored screw is at least twice as long as the board is thick. The longest one is used – please check the screw length.';
 }

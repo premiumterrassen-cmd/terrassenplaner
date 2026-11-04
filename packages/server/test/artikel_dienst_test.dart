@@ -166,6 +166,7 @@ void main() {
     }
     await dienst.ersetze(_datei('v2', [_clip]));
     expect(dienst.belag(null), isNull);
+    expect(dienst.regelwerk.datei.version, 'v2');
   });
 
   test('ungültiger Filter ist ein Fehler', () async {

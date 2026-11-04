@@ -77,5 +77,20 @@ void main() {
           .selected,
       isTrue,
     );
+    // M5-09: Befestigungsart unter 2.6; ohne verlegte Dielen nur der Hinweis
+    final befestigung = find.byKey(const ValueKey('befestigung'));
+    await tester.scrollUntilVisible(
+      befestigung,
+      200,
+      scrollable: find
+          .descendant(
+            of: find.byKey(const ValueKey('bearbeitungsmenue')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('2.6 ${de.terrassenbelag6}'), findsOneWidget);
+    expect(find.text(de.befestigungOhneDielen), findsOneWidget);
   });
 }

@@ -115,6 +115,17 @@ class PlanerTexteDe extends PlanerTexte {
   }
 
   @override
+  String verschnitt(String wert) {
+    return 'Verschnitt: $wert';
+  }
+
+  @override
+  String get benoetigteDielen => 'Benötigte Dielen:';
+
+  @override
+  String get keineDielen => 'Noch keine Dielen verlegt.';
+
+  @override
   String massPlatzhalter(String kante) {
     return '$kante: cm';
   }
@@ -560,6 +571,9 @@ class PlanerTexteDe extends PlanerTexte {
   String get terrassenbelag5 => 'Ausgangspunkt des Belags';
 
   @override
+  String get terrassenbelag6 => 'Befestigungsart';
+
+  @override
   String get unterkonstruktion1 => 'Art der Terrasse';
 
   @override
@@ -833,6 +847,29 @@ class PlanerTexteDe extends PlanerTexte {
       'Achtung: Es entstehen Zuschnitte unter 5 cm. Verschieben Sie die erste ganze Diele, damit keine so schmalen oder kurzen Stücke entstehen.';
 
   @override
+  String get befestigungsartClips => 'Mit Clips';
+
+  @override
+  String get befestigungsartVerschraubt => 'Direkt verschraubt';
+
+  @override
+  String get befestigungsartAbstandshalter => 'Verschraubt mit Abstandshaltern';
+
+  @override
+  String get befestigungOhneDielen =>
+      'Die Befestigung ergibt sich, sobald ein Belag aus Dielen verlegt ist.';
+
+  @override
+  String befestigungspunkte(int anzahl) {
+    return 'Befestigungspunkte: $anzahl';
+  }
+
+  @override
+  String befestigungsmittel(int anzahl, String titel) {
+    return '$anzahl × $titel';
+  }
+
+  @override
   String get kurzeStueckeVerbinden =>
       'Sollen kurze Dielenstücke miteinander verbunden werden?';
 
@@ -848,4 +885,45 @@ class PlanerTexteDe extends PlanerTexte {
 
   @override
   String get gewaehlt => 'Gewählt';
+
+  @override
+  String get belagmeldungBelagErsetzt =>
+      'Der gewählte Belag ist nicht mehr im Sortiment. Geplant wird mit dem Vorgabebelag – wählen Sie bei Bedarf über „Produktauswahl“ einen anderen.';
+
+  @override
+  String get belagmeldungOhneMasse =>
+      'Für diesen Belag fehlen Breite oder Lieferlängen, er kann nicht verlegt werden. Bitte wählen Sie einen anderen Belag.';
+
+  @override
+  String get belagmeldungSystemdiele =>
+      'Systemdielen werden im Längenmix endlos verlegt – das zeichnet der Planer noch nicht.';
+
+  @override
+  String get belagmeldungFlaecheKleiner =>
+      'Die Fläche oder eine Teilfläche ist kleiner als eine Diele bzw. Fliese: Es passt keine ganze Belagbreite hinein, nur ein Zuschnitt.';
+
+  @override
+  String get belagmeldungFliesenSpitzeWinkel =>
+      'Die Fläche hat Ecken unter 90°. Holzfliesen müssen dort schräg zugeschnitten werden – für solche Formen eignen sich Dielen besser.';
+
+  @override
+  String get belagmeldungBombierung =>
+      'Ab 8 cm Breite empfehlen wir bombierte (leicht gewölbte) Dielen.';
+
+  @override
+  String belagmeldungLaengeNichtLieferbar(int cm) {
+    return 'Die gewählte Länge von $cm cm gibt es für diesen Belag nicht. Die Dielenlänge wird automatisch ermittelt.';
+  }
+
+  @override
+  String get belagmeldungBefestigungsart =>
+      'Genutete Dielen werden verdeckt mit Clips befestigt. Die gewählte Verschraubung gilt nur für glattkante Dielen.';
+
+  @override
+  String get belagmeldungOhneBefestigung =>
+      'Für diesen Belag sind keine passenden Clips oder Schrauben hinterlegt – die Befestigung fehlt in der Materialliste. Bitte sprechen Sie uns an.';
+
+  @override
+  String get belagmeldungSchraubeZuKurz =>
+      'Keine hinterlegte Schraube ist mindestens doppelt so lang, wie die Diele stark ist. Gerechnet wird mit der längsten – bitte prüfen Sie die Schraubenlänge.';
 }
