@@ -11,10 +11,14 @@ typedef Belagsuche = Artikel? Function(Artikelnummer? nummer);
 /// Regelwerk der aktuellen Artikeldaten (M5-09); `null` = keins.
 typedef Regelwerksuche = Regelwerk? Function();
 
+/// Unterkonstruktion zum Planungsstand (M6-02); `null` = keine bekannt.
+typedef Unterkonstruktionssuche = Artikel? Function(Planungsstand stand);
+
 /// Planungsdienst (M4-02): berechnet aus der Planung der App Umriss und
 /// Kennzahlen der bearbeiteten Fläche, die Gesamtfläche (M4-14), die
 /// Dielenstücke (M5-05), den Ausgangspunkt der Verlegung (M5-07) und die
-/// Befestigung (M5-09) – die App rechnet nichts selbst (Frontend bleibt
+/// Befestigung (M5-09) und die geprüften Höhenpunkte (M6-02) – die App
+/// rechnet nichts selbst (Frontend bleibt
 /// „doof“). Hin- und Rückweg als typisierte FlatBuffers (Packed PPT, #110).
 class PlanungsDienst {
   PlanungsDienst._(this._sitzung);
@@ -22,20 +26,26 @@ class PlanungsDienst {
   /// [belag] liefert den Belag aus den aktuellen Artikeldaten; ohne ihn
   /// (oder ohne Artikeldatei) rechnet der Dienst ohne Dielen. [regelwerk]
   /// liefert die Befestigungsartikel; ohne es keine Befestigung.
+  /// [unterkonstruktion] liefert die UK für die Prüfung der Höhenpunkte;
+  /// ohne sie bleiben die Höhen ungeprüft.
   static Future<PlanungsDienst> starte(
     PlanerRouter router, {
     Belagsuche belag = _ohneBelag,
     Regelwerksuche regelwerk = _ohneRegelwerk,
+    Unterkonstruktionssuche unterkonstruktion = _ohneUnterkonstruktion,
   }) async {
     final sitzung = await router.dienstSitzung(sitzungId);
-    (await sitzung.register(WampNamen.planungBerechnen))
-        .onLazyInvokePayload((aufruf) => _berechne(aufruf, belag, regelwerk));
+    (await sitzung.register(WampNamen.planungBerechnen)).onLazyInvokePayload(
+      (aufruf) => _berechne(aufruf, belag, regelwerk, unterkonstruktion),
+    );
     return PlanungsDienst._(sitzung);
   }
 
   static Artikel? _ohneBelag(Artikelnummer? nummer) => null;
 
   static Regelwerk? _ohneRegelwerk() => null;
+
+  static Artikel? _ohneUnterkonstruktion(Planungsstand stand) => null;
 
   /// authid der internen Dienst-Sitzung.
   static const sitzungId = 'planungs-dienst';
@@ -51,11 +61,13 @@ class PlanungsDienst {
   /// aus Dielen auch die Dielenstücke in Verlegerichtung (M5-05) ab dem
   /// verschobenen Ausgangspunkt, die Grenzen der Verschiebung und ob kurze
   /// Zuschnitte entstehen (M5-07). Mit dem [regelwerk] auch die Befestigung
-  /// der Dielen (M5-09).
+  /// der Dielen (M5-09). Die Höhenpunkte prüft der Dienst gegen Belag und
+  /// [unterkonstruktion] (M6-02, `pruefeHoehen`).
   static Berechnung berechne(
     Planungsstand stand, [
     Artikel? belag,
     Regelwerk? regelwerk,
+    Artikel? unterkonstruktion,
   ]) {
     // offene Freiform (M4-08): nur der gezeichnete Linienzug
     if (stand.grundriss case FreiformGrundriss(
@@ -71,6 +83,12 @@ class PlanungsDienst {
       ecken: stand.grundriss.ecken,
       flaeche: kontur.flaeche,
       ausschnitte: [for (final a in stand.ausschnitte) a.kontur.punkte],
+      hoehenpunkte: pruefeHoehen(
+        stand.hoehen,
+        art: stand.terrassenart,
+        dielenstaerke: belag?.abmessungen.staerke,
+        uk: ukMasse(unterkonstruktion),
+      ),
     );
     final masse = belag?.abmessungen;
     if (belag?.art != Artikelart.diele) return flaeche;
@@ -134,6 +152,7 @@ class PlanungsDienst {
       grenzeLinksRechts: grenzen.x,
       grenzeObenUnten: grenzen.y,
       kurzeZuschnitte: stuecke.any((d) => d.kurzerZuschnitt),
+      hoehenpunkte: flaeche.hoehenpunkte,
       // ohne Regelwerk oder mit einem, das den Belag (nach einem Wechsel der
       // Artikeldaten) nicht mehr kennt: keine Befestigung
       befestigung: regelwerk?.datei[belag.nummer] == null
@@ -148,6 +167,14 @@ class PlanungsDienst {
     );
   }
 
+  /// Breite und Stärke einer UK; `null`, wenn eins fehlt (z. B. Alu-UK
+  /// ohne Maße in den Artikeldaten).
+  static UkMasse? ukMasse(Artikel? uk) =>
+      switch ((uk?.abmessungen.breite, uk?.abmessungen.staerke)) {
+        (final a?, final b?) => (a: a, b: b),
+        _ => null,
+      };
+
   static double _begrenzt(Millimeter wert, Millimeter grenze) =>
       wert.mm.clamp(-grenze.mm, grenze.mm).toDouble();
 
@@ -157,6 +184,7 @@ class PlanungsDienst {
     Planung planung, [
     Belagsuche belag = _ohneBelag,
     Regelwerk? regelwerk,
+    Unterkonstruktionssuche unterkonstruktion = _ohneUnterkonstruktion,
   ]) {
     var gesamt = 0.0;
     for (final f in planung.flaechen) {
@@ -167,6 +195,7 @@ class PlanungsDienst {
       aktuell,
       belag(aktuell.belag),
       regelwerk,
+      unterkonstruktion(aktuell),
     ).mitGesamtflaeche(gesamt);
   }
 
@@ -174,12 +203,18 @@ class PlanungsDienst {
     LazyInvocationPayload aufruf,
     Belagsuche belag,
     Regelwerksuche regelwerk,
+    Unterkonstruktionssuche unterkonstruktion,
   ) {
     try {
       final planung = Planung.ausBytes(_bytes(aufruf));
       aufruf.respondWith(
         lazyPayload: verpacke(
-          berechnePlanung(planung, belag, regelwerk()).zuBytes(),
+          berechnePlanung(
+            planung,
+            belag,
+            regelwerk(),
+            unterkonstruktion,
+          ).zuBytes(),
         ),
         options: ppt,
       );

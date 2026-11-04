@@ -6,12 +6,14 @@ import '../artikel/artikel.dart';
 import '../artikel/einheiten.dart';
 import '../geometrie/punkt.dart';
 import '../regeln/befestigungsbedarf.dart';
+import '../regeln/hoehenpunkte.dart';
 import 'befestigungsart.dart';
 
 /// Was der Server aus einem Planungsstand berechnet und die App nur anzeigt
 /// (M4-02): Umriss, Ausschnitte (M4-06) und Dielenstücke (M5-05) für die
 /// Zeichnung und Kennzahlen, seit M5-07 Ausgangspunkt, Verschiebungsgrenzen
-/// und Warnung vor kurzen Zuschnitten, seit M5-09 die Befestigung. Volumen
+/// und Warnung vor kurzen Zuschnitten, seit M5-09 die Befestigung, seit
+/// M6-02 die geprüften Höhenpunkte. Volumen
 /// und Materialliste folgen mit M5 und M6.
 final class Berechnung {
   Berechnung({
@@ -27,7 +29,9 @@ final class Berechnung {
     this.grenzeObenUnten = const Millimeter(0),
     this.kurzeZuschnitte = false,
     Befestigungsbedarf? befestigung,
+    Hoehenpunkte? hoehenpunkte,
   }) : befestigung = befestigung ?? Befestigungsbedarf.keiner,
+       hoehenpunkte = hoehenpunkte ?? Hoehenpunkte.keine,
        gesamtflaeche = gesamtflaeche ?? flaeche,
        dielen = List.unmodifiable([
          for (final d in dielen) List<Punkt>.unmodifiable(d),
@@ -77,6 +81,29 @@ final class Berechnung {
         false,
       ),
       befestigung: _befestigung(puffer, wurzel),
+      hoehenpunkte: _hoehenpunkte(puffer, wurzel),
+    );
+  }
+
+  static Hoehenpunkte _hoehenpunkte(fb.BufferContext puffer, int wurzel) {
+    Millimeter? mm(int platz) => switch (const fb.Int32Reader()
+        .vTableGetNullable(puffer, wurzel, _versatz(platz))) {
+      final wert? => Millimeter(wert),
+      null => null,
+    };
+    bool ja(int platz) =>
+        const fb.BoolReader().vTableGet(puffer, wurzel, _versatz(platz), false);
+    return Hoehenpunkte(
+      hoehen: [
+        for (final h in const fb.ListReader<int>(
+          fb.Int32Reader(),
+        ).vTableGet(puffer, wurzel, _versatz(_hoehenPlatz), const []))
+          Millimeter(h),
+      ],
+      aufbauhoehe: mm(_aufbauhoehePlatz),
+      mindesthoehe: mm(_mindesthoehePlatz),
+      korrigiert: ja(_hoehenKorrigiertPlatz),
+      gedreht: ja(_ukGedrehtPlatz),
     );
   }
 
@@ -179,6 +206,10 @@ final class Berechnung {
   /// Befestigungspunkte und Artikel mit Anzahl; ohne Dielen keine.
   final Befestigungsbedarf befestigung;
 
+  /// Geprüfte Höhenpunkte (M6-02) mit Aufbauhöhe und Hinweisen; bei der
+  /// offenen Freiform keine.
+  final Hoehenpunkte hoehenpunkte;
+
   /// Kopie mit anderer Gesamtfläche (M4-14).
   Berechnung mitGesamtflaeche(double gesamtflaeche) => Berechnung(
     umriss: umriss,
@@ -193,6 +224,7 @@ final class Berechnung {
     grenzeObenUnten: grenzeObenUnten,
     kurzeZuschnitte: kurzeZuschnitte,
     befestigung: befestigung,
+    hoehenpunkte: hoehenpunkte,
   );
 
   /// FlatBuffer für den Weg zur App (#110):
@@ -205,7 +237,11 @@ final class Berechnung {
   /// 10: kurzeZuschnitte (bool) (M5-07), 11: befestigungsarten ([uint8]),
   /// 12: befestigungsart (uint8; fehlt ohne Art), 13: befestigungspunkte
   /// (uint32), 14: befestigungsmittel ([{ 0: nummer (string), 1: titel
-  /// (string), 2: anzahl (uint32) }]) (M5-09) }`.
+  /// (string), 2: anzahl (uint32) }]) (M5-09), 25: hoehen ([int32] mm je
+  /// Eckpunkt), 26: hoehenKorrigiert (bool), 27: ukGedreht (bool),
+  /// 28: aufbauhoehe (int32 mm), 29: mindesthoehe (int32 mm; beide fehlen
+  /// ungeprüft) (M6-02) }`. Plätze 15–24 gehören der Dielenverlegung
+  /// (M5-08).
   Uint8List zuBytes() {
     final fbb = fb.Builder();
     final umrissOrt = _schreibe(fbb, umriss);
@@ -226,8 +262,11 @@ final class Berechnung {
     final mittelOrt = fbb.writeList([
       for (final m in befestigung.mittel) _position(fbb, m),
     ]);
+    final hoehenOrt = fbb.writeListInt32([
+      for (final h in hoehenpunkte.hoehen) h.mm,
+    ]);
     fbb
-      ..startTable(15)
+      ..startTable(30)
       ..addOffset(_umrissPlatz, umrissOrt)
       ..addFloat64(_flaechePlatz, flaeche)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
@@ -242,7 +281,12 @@ final class Berechnung {
       ..addOffset(_befestigungsartenPlatz, artenOrt)
       ..addUint8(_befestigungsartPlatz, befestigung.art?.nummer)
       ..addUint32(_befestigungspunktePlatz, befestigung.punkte)
-      ..addOffset(_befestigungsmittelPlatz, mittelOrt);
+      ..addOffset(_befestigungsmittelPlatz, mittelOrt)
+      ..addOffset(_hoehenPlatz, hoehenOrt)
+      ..addBool(_hoehenKorrigiertPlatz, hoehenpunkte.korrigiert)
+      ..addBool(_ukGedrehtPlatz, hoehenpunkte.gedreht)
+      ..addInt32(_aufbauhoehePlatz, hoehenpunkte.aufbauhoehe?.mm)
+      ..addInt32(_mindesthoehePlatz, hoehenpunkte.mindesthoehe?.mm);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
   }
@@ -308,6 +352,11 @@ final class Berechnung {
   static const _befestigungsartPlatz = 12;
   static const _befestigungspunktePlatz = 13;
   static const _befestigungsmittelPlatz = 14;
+  static const _hoehenPlatz = 25;
+  static const _hoehenKorrigiertPlatz = 26;
+  static const _ukGedrehtPlatz = 27;
+  static const _aufbauhoehePlatz = 28;
+  static const _mindesthoehePlatz = 29;
 
   static int _versatz(int platz) => 4 + 2 * platz;
 }

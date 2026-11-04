@@ -944,7 +944,13 @@ void main() {
           const Millimeter(0),
           const Millimeter(0),
           Befestigungsart.clips,
-          Object.hash(Terrassenart.normal, const Millimeter(800)),
+          Object.hash(
+            Terrassenart.normal,
+            const Millimeter(800),
+            false,
+            null,
+            Object.hashAll(const []),
+          ),
         ),
       );
       final neu = start.mitGrundriss(_rechteck(5400, 3600));

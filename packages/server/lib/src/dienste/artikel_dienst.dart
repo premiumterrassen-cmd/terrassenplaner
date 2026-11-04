@@ -59,6 +59,24 @@ class ArtikelDienst {
         belaege.firstOrNull;
   }
 
+  /// Unterkonstruktion zum Belag [belag] (M6-02): die erste Robinien-UK
+  /// derselben Holzart und Serie in Datenreihenfolge – die Vorgabe, bis die
+  /// Auswahl folgt (M6-03); ohne Belag oder Serie keine.
+  Artikel? unterkonstruktion(Artikelnummer? belag) {
+    final b = this.belag(belag);
+    final serie = b?.serie;
+    if (serie == null) return null;
+    return _regelwerk
+        .finde(
+          Artikelfilter(
+            art: Artikelart.unterkonstruktion,
+            holzart: b!.holzart!.id,
+            serie: serie,
+          ),
+        )
+        .firstOrNull;
+  }
+
   /// Tauscht die Artikeldaten aus und meldet die neue Version – ohne
   /// Neustart und ohne App-Update.
   Future<void> ersetze(Artikeldatei neu) async {

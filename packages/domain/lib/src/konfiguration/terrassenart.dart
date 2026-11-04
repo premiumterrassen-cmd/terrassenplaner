@@ -33,6 +33,11 @@ enum Terrassenart {
   /// Abstand der vorhandenen Träger (F29).
   bool get mitSpannweite => this == vorhandeneUk;
 
+  /// Lagen der gewählten UK übereinander für die Aufbauhöhe (M6-02): bei
+  /// der Hochterrasse zwei (Lattenkreuz), sonst eine – die vorhandene UK
+  /// gehört nicht zur geplanten Konstruktion.
+  int get ukLagen => this == hochterrasse ? 2 : 1;
+
   /// Vorgabe der Spannweite (F29: 80 cm).
   static const vorgabeSpannweite = Millimeter(800);
 

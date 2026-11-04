@@ -15,6 +15,7 @@ Future<void> main() async {
     router,
     belag: artikel.belag,
     regelwerk: () => artikel.regelwerk,
+    unterkonstruktion: (stand) => artikel.unterkonstruktion(stand.belag),
   );
   final quelle = ArtikeldateiQuelle(
     Platform.environment[ArtikeldateiQuelle.umgebungsvariable] ??

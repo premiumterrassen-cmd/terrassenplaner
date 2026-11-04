@@ -39,6 +39,7 @@ export 'src/projekt_info.dart';
 export 'src/referenz/referenzfall.dart';
 export 'src/referenz/referenzkonfiguration.dart';
 export 'src/regeln/befestigungsbedarf.dart';
+export 'src/regeln/hoehenpunkte.dart';
 export 'src/regeln/planungsregeln.dart';
 export 'src/regeln/regelwerk.dart';
 export 'src/schema/ausschnitt_leser.dart';

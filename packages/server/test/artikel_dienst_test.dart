@@ -169,6 +169,62 @@ void main() {
     expect(dienst.regelwerk.datei.version, 'v2');
   });
 
+  test(
+    'Unterkonstruktion zum Belag (M6-02): erste UK derselben Serie',
+    () async {
+      Artikeleintrag uk(String nummer, Serie serie) => Artikeleintrag(
+        artikel: Artikel(
+          nummer: Artikelnummer(nummer),
+          titel: 'UK $nummer',
+          art: Artikelart.unterkonstruktion,
+          einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+          holzart: robinie,
+          serie: serie,
+        ),
+      );
+      final alu = Artikeleintrag(
+        artikel: Artikel(
+          nummer: const Artikelnummer('50-20-007'),
+          titel: 'Alu',
+          art: Artikelart.aluUnterkonstruktion,
+          einheit: Verkaufseinheit(Mengeneinheit.stueck),
+        ),
+      );
+      await dienst.ersetze(
+        _datei('v2', [
+          _diele('10-10-073-R', Profil.genutet),
+          alu,
+          uk('10-10-031-S', ecoSelect),
+          uk('10-10-031-R', premiumSelect),
+          uk('10-10-039-R', premiumSelect),
+          _clip,
+        ]),
+      );
+      expect(dienst.unterkonstruktion(null)!.nummer.wert, '10-10-031-R');
+      expect(
+        dienst.unterkonstruktion(const Artikelnummer('10-10-073-R'))!.nummer,
+        const Artikelnummer('10-10-031-R'),
+      );
+      // Belag ohne Serie (Holzfliese) oder gar kein Belag: keine UK
+      await dienst.ersetze(
+        _datei('v3', [
+          Artikeleintrag(
+            artikel: Artikel(
+              nummer: const Artikelnummer('10-20-001'),
+              titel: 'Fliese',
+              art: Artikelart.holzfliese,
+              einheit: Verkaufseinheit(Mengeneinheit.stueck),
+            ),
+          ),
+          uk('10-10-031-R', premiumSelect),
+        ]),
+      );
+      expect(dienst.unterkonstruktion(null), isNull);
+      await dienst.ersetze(_datei('v4', [uk('10-10-031-R', premiumSelect)]));
+      expect(dienst.unterkonstruktion(null), isNull);
+    },
+  );
+
   test('ungültiger Filter ist ein Fehler', () async {
     await expectLater(
       _rufe(

@@ -479,6 +479,106 @@ void main() {
     });
   });
 
+  group('Höhenpunkte (M6-02)', () {
+    Artikel holz(String nummer, Artikelart art, int breite, int staerke) =>
+        Artikel(
+          nummer: Artikelnummer(nummer),
+          titel: nummer,
+          art: art,
+          einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+          abmessungen: Abmessungen(
+            breite: Millimeter(breite),
+            staerke: Millimeter(staerke),
+            laengen: const [Millimeter(4000)],
+          ),
+          holzart: robinie,
+          serie: premiumSelect,
+          profil: art == Artikelart.diele ? Profil.genutet : null,
+        );
+    final diele = holz('10-10-073-R', Artikelart.diele, 60, 23);
+    final uk = holz('10-10-031-R', Artikelart.unterkonstruktion, 45, 60);
+
+    test('ohne Belag ungeprüft, je Ecke die eingegebene Höhe', () {
+      final b = PlanungsDienst.berechne(Planungsstand.start);
+      expect(b.hoehenpunkte.hoehen, List.filled(4, const Millimeter(86)));
+      expect(b.hoehenpunkte.aufbauhoehe, isNull);
+      // offene Freiform: keine Höhenpunkte
+      final offen = PlanungsDienst.berechne(
+        Planungsstand(
+          grundriss: FreiformGrundriss(const [Punkt(0, 0), Punkt(1000, 0)]),
+        ),
+      );
+      expect(offen.hoehenpunkte.hoehen, isEmpty);
+    });
+
+    test('mit Belag und UK geprüft: gedreht und korrigiert', () {
+      final stand = Planungsstand.start
+          .mitGefaelle(true)
+          .mitEckhoehe(0, const Millimeter(150))
+          .mitEckhoehe(2, const Millimeter(70))
+          .mitEckhoehe(3, const Millimeter(50));
+      final b = PlanungsDienst.berechne(stand, diele, null, uk);
+      final p = b.hoehenpunkte;
+      expect(p.hoehen, [
+        const Millimeter(150),
+        const Millimeter(86),
+        const Millimeter(70),
+        const Millimeter(68),
+      ]);
+      expect(p.aufbauhoehe, const Millimeter(68));
+      expect(p.mindesthoehe, const Millimeter(68));
+      expect(p.gedreht, isTrue);
+      expect(p.korrigiert, isTrue);
+      expect(b.dielen, isNotEmpty);
+      // Holzfliese ohne Dielen: Höhen trotzdem geprüft
+      final fliese = Artikel(
+        nummer: const Artikelnummer('10-20-001'),
+        titel: 'Fliese',
+        art: Artikelart.holzfliese,
+        einheit: Verkaufseinheit(Mengeneinheit.stueck),
+        abmessungen: Abmessungen(staerke: const Millimeter(40)),
+      );
+      final f = PlanungsDienst.berechne(stand, fliese, null, uk);
+      expect(f.dielen, isEmpty);
+      expect(f.hoehenpunkte.mindesthoehe, const Millimeter(85));
+    });
+
+    test('UK-Maße: Breite und Stärke, sonst keine', () {
+      expect(PlanungsDienst.ukMasse(uk), (
+        a: const Millimeter(45),
+        b: const Millimeter(60),
+      ));
+      expect(PlanungsDienst.ukMasse(null), isNull);
+      final alu = Artikel(
+        nummer: const Artikelnummer('50-20-007'),
+        titel: 'Alu-Schiene',
+        art: Artikelart.aluUnterkonstruktion,
+        einheit: Verkaufseinheit(Mengeneinheit.stueck),
+        abmessungen: Abmessungen(breite: const Millimeter(56)),
+      );
+      expect(PlanungsDienst.ukMasse(alu), isNull);
+    });
+
+    test('über den Router mit der UK-Suche', () async {
+      await dienst.stoppe();
+      final gefragt = <Planungsstand>[];
+      dienst = await PlanungsDienst.starte(
+        router,
+        belag: (_) => diele,
+        unterkonstruktion: (stand) {
+          gefragt.add(stand);
+          return uk;
+        },
+      );
+      final stand = Planungsstand.start.mitHoehe(const Millimeter(60));
+      final antwort = await rufe(Planung.start.mitStand(stand).zuBytes());
+      final b = Berechnung.ausBytes(antwort.payload.packedPayloadBytes!);
+      expect(b.hoehenpunkte.hoehen, List.filled(4, const Millimeter(68)));
+      expect(b.hoehenpunkte.korrigiert, isTrue);
+      expect(gefragt, [stand]);
+    });
+  });
+
   test('ungültige Maße sind ein Fehler', () async {
     final fbb = fb.Builder();
     final masse = fbb.writeListInt32([4800, 100]);
