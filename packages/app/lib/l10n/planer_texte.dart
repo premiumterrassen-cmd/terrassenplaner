@@ -1821,6 +1821,42 @@ abstract class PlanerTexte {
   /// In de, this message translates to:
   /// **'Keine hinterlegte Schraube ist mindestens doppelt so lang, wie die Diele stark ist. Gerechnet wird mit der längsten – bitte prüfen Sie die Schraubenlänge.'**
   String get belagmeldungSchraubeZuKurz;
+
+  /// No description provided for @ukLaedt.
+  ///
+  /// In de, this message translates to:
+  /// **'Unterkonstruktionen werden geladen …'**
+  String get ukLaedt;
+
+  /// No description provided for @ukFehler.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Unterkonstruktionen konnten nicht geladen werden.'**
+  String get ukFehler;
+
+  /// No description provided for @ukKeine.
+  ///
+  /// In de, this message translates to:
+  /// **'Zum gewählten Belag passt keine Unterkonstruktion aus dem Sortiment.'**
+  String get ukKeine;
+
+  /// No description provided for @ukDialogTitel.
+  ///
+  /// In de, this message translates to:
+  /// **'Unterkonstruktion auswählen'**
+  String get ukDialogTitel;
+
+  /// No description provided for @ukLaengeOhneUk.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Länge ergibt sich, sobald eine Unterkonstruktion gewählt ist.'**
+  String get ukLaengeOhneUk;
+
+  /// No description provided for @automatisch.
+  ///
+  /// In de, this message translates to:
+  /// **'Automatisch'**
+  String get automatisch;
 }
 
 class _PlanerTexteDelegate extends LocalizationsDelegate<PlanerTexte> {

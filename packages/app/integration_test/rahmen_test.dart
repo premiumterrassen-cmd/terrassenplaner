@@ -153,5 +153,21 @@ void main() {
       '8,6',
     );
     expect(find.textContaining('Aufbauhöhe'), findsNothing);
+    // M6-03: UK-Auswahl und UK-Länge vom Artikeldienst; der Smoke-Server
+    // hat keine Artikeldatei, also keine passende UK
+    final keineUk = find.text(de.ukKeine);
+    await tester.scrollUntilVisible(
+      keineUk,
+      200,
+      scrollable: find
+          .descendant(
+            of: find.byKey(const ValueKey('bearbeitungsmenue')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    await tester.pumpAndSettle();
+    expect(keineUk, findsOneWidget);
+    expect(find.text(de.ukLaengeOhneUk), findsOneWidget);
   });
 }

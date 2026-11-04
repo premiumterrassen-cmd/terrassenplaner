@@ -980,4 +980,24 @@ class PlanerTexteEn extends PlanerTexte {
   @override
   String get belagmeldungSchraubeZuKurz =>
       'No stored screw is at least twice as long as the board is thick. The longest one is used – please check the screw length.';
+
+  @override
+  String get ukLaedt => 'Loading substructures …';
+
+  @override
+  String get ukFehler => 'The substructures could not be loaded.';
+
+  @override
+  String get ukKeine =>
+      'No substructure in the range matches the selected decking.';
+
+  @override
+  String get ukDialogTitel => 'Select substructure';
+
+  @override
+  String get ukLaengeOhneUk =>
+      'The length follows as soon as a substructure is selected.';
+
+  @override
+  String get automatisch => 'Automatic';
 }

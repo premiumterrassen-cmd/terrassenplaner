@@ -980,4 +980,25 @@ class PlanerTexteDe extends PlanerTexte {
   @override
   String get belagmeldungSchraubeZuKurz =>
       'Keine hinterlegte Schraube ist mindestens doppelt so lang, wie die Diele stark ist. Gerechnet wird mit der längsten – bitte prüfen Sie die Schraubenlänge.';
+
+  @override
+  String get ukLaedt => 'Unterkonstruktionen werden geladen …';
+
+  @override
+  String get ukFehler =>
+      'Die Unterkonstruktionen konnten nicht geladen werden.';
+
+  @override
+  String get ukKeine =>
+      'Zum gewählten Belag passt keine Unterkonstruktion aus dem Sortiment.';
+
+  @override
+  String get ukDialogTitel => 'Unterkonstruktion auswählen';
+
+  @override
+  String get ukLaengeOhneUk =>
+      'Die Länge ergibt sich, sobald eine Unterkonstruktion gewählt ist.';
+
+  @override
+  String get automatisch => 'Automatisch';
 }

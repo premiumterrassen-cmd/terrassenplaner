@@ -339,5 +339,11 @@
   "@belagmeldungLaengeNichtLieferbar": {"placeholders": {"cm": {"type": "int"}}},
   "belagmeldungBefestigungsart": "Genutete Dielen werden verdeckt mit Clips befestigt. Die gewählte Verschraubung gilt nur für glattkante Dielen.",
   "belagmeldungOhneBefestigung": "Für diesen Belag sind keine passenden Clips oder Schrauben hinterlegt – die Befestigung fehlt in der Materialliste. Bitte sprechen Sie uns an.",
-  "belagmeldungSchraubeZuKurz": "Keine hinterlegte Schraube ist mindestens doppelt so lang, wie die Diele stark ist. Gerechnet wird mit der längsten – bitte prüfen Sie die Schraubenlänge."
+  "belagmeldungSchraubeZuKurz": "Keine hinterlegte Schraube ist mindestens doppelt so lang, wie die Diele stark ist. Gerechnet wird mit der längsten – bitte prüfen Sie die Schraubenlänge.",
+  "ukLaedt": "Unterkonstruktionen werden geladen …",
+  "ukFehler": "Die Unterkonstruktionen konnten nicht geladen werden.",
+  "ukKeine": "Zum gewählten Belag passt keine Unterkonstruktion aus dem Sortiment.",
+  "ukDialogTitel": "Unterkonstruktion auswählen",
+  "ukLaengeOhneUk": "Die Länge ergibt sich, sobald eine Unterkonstruktion gewählt ist.",
+  "automatisch": "Automatisch"
 }
