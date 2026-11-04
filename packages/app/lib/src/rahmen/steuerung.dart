@@ -50,8 +50,12 @@ class PlanungsSteuerung extends ChangeNotifier {
   }
 
   /// Neue Planung mit der Startkonfiguration – nur nach Bestätigung aufrufen.
-  void zuruecksetzen() {
-    _verlauf.zuruecksetzen(Planung.start);
+  void zuruecksetzen() => beginne(Planung.start);
+
+  /// Beginnt neu mit [anfang] (z. B. einer geladenen Konfiguration, M9-05);
+  /// der Rückgängig-Verlauf startet leer.
+  void beginne(Planung anfang) {
+    _verlauf.zuruecksetzen(anfang);
     notifyListeners();
   }
 }

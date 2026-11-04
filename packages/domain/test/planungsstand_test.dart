@@ -1083,6 +1083,9 @@ void main() {
           Verlegeart.fugenschnitt,
           Verlegerichtung.waagrecht,
           30,
+          0,
+          const Millimeter(0),
+          const Millimeter(0),
         ),
       );
       final neu = start.mitGrundriss(_rechteck(5400, 3600));
@@ -1346,6 +1349,180 @@ void main() {
       expect(geaendert.verlegeart, Verlegeart.drittelverband);
     });
 
+    test('Ausgangspunkt (M5-07): Ecke und Verschiebung', () {
+      const nummer = Artikelnummer('10-10-060-R');
+      const start = Planungsstand.start;
+      expect(start.ausgangsecke, 0);
+      expect(start.verschiebungX, const Millimeter(0));
+      expect(start.verschiebungY, const Millimeter(0));
+      expect(start.ausgangsecken, 4);
+      expect(start.ausgangspunkt, Punkt.ursprung);
+      final stand = start.mitAusgangspunkt(
+        ecke: 2,
+        x: const Millimeter(-120),
+        y: const Millimeter(35),
+      );
+      expect(stand.ausgangsecke, 2);
+      expect(stand.ausgangspunkt, const Punkt(4800, 3090));
+      expect(stand.verschiebungX, const Millimeter(-120));
+      expect(stand.verschiebungY, const Millimeter(35));
+      expect(Planungsstand.ausBytes(stand.zuBytes()), stand);
+      expect(stand == start, isFalse);
+      expect(stand.hashCode == start.hashCode, isFalse);
+      // nur ein Wert ändert sich, die anderen bleiben
+      final nurX = stand.mitAusgangspunkt(x: const Millimeter(5));
+      expect(nurX.ausgangsecke, 2);
+      expect(nurX.verschiebungX, const Millimeter(5));
+      expect(nurX.verschiebungY, const Millimeter(35));
+      final nurY = stand.mitAusgangspunkt(y: const Millimeter(7));
+      expect(nurY.verschiebungX, const Millimeter(-120));
+      expect(nurY.verschiebungY, const Millimeter(7));
+      expect(stand.mitAusgangspunkt(ecke: 3).verschiebungX.mm, -120);
+      for (final s in [
+        start.mitAusgangspunkt(ecke: 1),
+        start.mitAusgangspunkt(x: const Millimeter(1)),
+        start.mitAusgangspunkt(y: const Millimeter(1)),
+      ]) {
+        expect(s == start, isFalse);
+        expect(Planungsstand.ausBytes(s.zuBytes()), s);
+      }
+      expect(
+        stand.mitAusgangspunkt(
+          ecke: 0,
+          x: const Millimeter(0),
+          y: const Millimeter(0),
+        ),
+        start,
+      );
+      for (final falsch in [-1, 4, 5]) {
+        expect(
+          () => start.mitAusgangspunkt(ecke: falsch),
+          throwsA(
+            isA<RangeError>()
+                .having((e) => e.name, 'name', 'ecke')
+                .having((e) => e.start, 'start', 0)
+                .having((e) => e.end, 'end', 3),
+          ),
+        );
+      }
+      expect(start.mitAusgangspunkt(ecke: 3).ausgangsecke, 3);
+      final mitA = stand.mitNeuemAusschnitt();
+      for (final s in [
+        stand.mitGrundriss(_rechteck(5000, 3000)),
+        stand.mitRundungen(Rundungen.keine),
+        stand.mitForm(Terrassenform.oForm),
+        stand.gedreht(90),
+        stand.mitBelag(nummer),
+        stand.mitDielenlaenge(const Millimeter(4000)),
+        stand.mitKurzeStueckeVerbinden(true),
+        stand.mitVerlegeart(Verlegeart.halbverband),
+        stand.mitVerlegerichtung(Verlegerichtung.senkrecht),
+        mitA,
+        mitA.mitAusschnitt(0, mitA.ausschnitte.single),
+        mitA.ohneAusschnitt(0),
+      ]) {
+        expect(s.ausgangsecke, 2);
+        expect(s.verschiebungX, const Millimeter(-120));
+        expect(s.verschiebungY, const Millimeter(35));
+      }
+      final geaendert = Planungsstand(
+        grundriss: _rechteck(5000, 3000),
+        rundungen: Rundungen.aus(const [0, 0, 500]),
+        verlegerichtung: Verlegerichtung.senkrecht,
+      ).mitNeuemAusschnitt().mitAusgangspunkt(ecke: 1);
+      expect(geaendert.grundriss, _rechteck(5000, 3000));
+      expect(geaendert.ausschnitte, hasLength(1));
+      expect(geaendert.rundungen, Rundungen.aus(const [0, 0, 500]));
+      expect(geaendert.verlegerichtung, Verlegerichtung.senkrecht);
+      // gerundete Ecke: Schnittpunkt der Kanten
+      expect(geaendert.mitAusgangspunkt(ecke: 0).ausgangspunkt, Punkt.ursprung);
+    });
+
+    test('Ausgangsecke nach Formwechsel: zurück auf A, wenn es sie nicht '
+        'mehr gibt (M5-07)', () {
+      final l = Planungsstand.start.mitForm(Terrassenform.lForm);
+      expect(l.ausgangsecken, 6);
+      final f = l.mitAusgangspunkt(ecke: 5, x: const Millimeter(10));
+      expect(f.mitForm(Terrassenform.rechteck).ausgangsecke, 0);
+      expect(f.mitForm(Terrassenform.rechteck).verschiebungX.mm, 10);
+      expect(f.mitForm(Terrassenform.uForm).ausgangsecke, 5);
+      final d = Planungsstand.start.mitAusgangspunkt(ecke: 3);
+      expect(d.mitForm(Terrassenform.kreis).ausgangsecke, 0);
+      expect(d.mitForm(Terrassenform.kreis).ausgangsecken, 1);
+      expect(
+        d.mitForm(Terrassenform.kreis).ausgangspunkt,
+        d.mitForm(Terrassenform.kreis).kontur.punkte.first,
+      );
+      expect(d.gedreht(90).ausgangsecke, 3);
+      // Freiform: ein Punkt weniger
+      final frei = Planungsstand(
+        grundriss: FreiformGrundriss(const [
+          Punkt(0, 0),
+          Punkt(2000, 0),
+          Punkt(2000, 2000),
+          Punkt(0, 2000),
+        ], geschlossen: true),
+      ).mitAusgangspunkt(ecke: 3);
+      expect(
+        frei
+            .mitGrundriss(
+              FreiformGrundriss(const [
+                Punkt(0, 0),
+                Punkt(2000, 0),
+                Punkt(0, 2000),
+              ], geschlossen: true),
+            )
+            .ausgangsecke,
+        0,
+      );
+      expect(
+        frei
+            .mitGrundriss(
+              FreiformGrundriss(const [
+                Punkt(0, 0),
+                Punkt(2000, 0),
+                Punkt(2000, 2000),
+                Punkt(0, 2500),
+              ], geschlossen: true),
+            )
+            .ausgangsecke,
+        3,
+      );
+    });
+
+    test('Ausgangspunkt im Transportformat: fehlende Felder sind die Vorgabe, '
+        'unbekannte Ecken werden abgewiesen (M5-07)', () {
+      Uint8List alt({int? ecke}) {
+        final fbb = fb.Builder();
+        final masseOrt = fbb.writeListInt32([4800, 3090]);
+        fbb
+          ..startTable(2)
+          ..addUint8(0, 0)
+          ..addOffset(1, masseOrt);
+        final ort = fbb.endTable();
+        fbb
+          ..startTable(11)
+          ..addOffset(1, ort)
+          ..addUint16(10, ecke);
+        fbb.finish(fbb.endTable());
+        return fbb.buffer;
+      }
+
+      expect(Planungsstand.ausBytes(alt()), Planungsstand.start);
+      expect(Planungsstand.ausBytes(alt(ecke: 3)).ausgangsecke, 3);
+      expect(() => Planungsstand.ausBytes(alt(ecke: 5)), throwsFormatException);
+      expect(
+        () => Planungsstand.ausBytes(alt(ecke: 4)),
+        throwsA(
+          isA<FormatException>().having(
+            (e) => e.message,
+            'message',
+            'unbekannte Ausgangsecke 4',
+          ),
+        ),
+      );
+    });
+
     test('Transportformat hin und zurück', () {
       final stand = Planungsstand(grundriss: _rechteck(5400, 3600));
       final bytes = stand.zuBytes();
@@ -1488,12 +1665,58 @@ void main() {
       expect(() => b.dielen.first.add(Punkt.ursprung), throwsUnsupportedError);
     });
 
+    test('Ausgangspunkt, Grenzen und kurze Zuschnitte (M5-07) hin und '
+        'zurück, auch in der Kopie mit Gesamtfläche', () {
+      final b = Berechnung(
+        umriss: const [Punkt(0, 0), Punkt(4800, 0), Punkt(4800, 3090)],
+        ecken: const [Punkt(0, 0), Punkt(4800, 0)],
+        geschlossen: false,
+        flaeche: 7,
+        ausschnitte: [
+          [const Punkt(1, 1), const Punkt(2, 1), const Punkt(2, 2)],
+        ],
+        dielen: [
+          [const Punkt(0, 0), const Punkt(4800, 0), const Punkt(4800, 65)],
+        ],
+        ausgangspunkt: const Punkt(12.5, -3),
+        grenzeLinksRechts: const Millimeter(4800),
+        grenzeObenUnten: const Millimeter(65),
+        kurzeZuschnitte: true,
+      );
+      for (final k in [
+        Berechnung.ausBytes(b.zuBytes()),
+        b.mitGesamtflaeche(9),
+      ]) {
+        expect(k.ausgangspunkt, const Punkt(12.5, -3));
+        expect(k.grenzeLinksRechts, const Millimeter(4800));
+        expect(k.grenzeObenUnten, const Millimeter(65));
+        expect(k.kurzeZuschnitte, isTrue);
+        expect(k.umriss, b.umriss);
+        expect(k.ecken, b.ecken);
+        expect(k.geschlossen, isFalse);
+        expect(k.flaeche, 7);
+        expect(k.ausschnitte, b.ausschnitte);
+        expect(k.dielen, b.dielen);
+      }
+      expect(b.gesamtflaeche, 7);
+      expect(b.mitGesamtflaeche(9).gesamtflaeche, 9);
+      final ohne = Berechnung.ausBytes(
+        Berechnung(umriss: const [], flaeche: 0).zuBytes(),
+      );
+      expect(ohne.ausgangspunkt, isNull);
+      expect(ohne.grenzeLinksRechts, const Millimeter(0));
+      expect(ohne.grenzeObenUnten, const Millimeter(0));
+      expect(ohne.kurzeZuschnitte, isFalse);
+    });
+
     test('leere Nachricht: kein Umriss, Fläche 0', () {
       final fbb = fb.Builder()..startTable(2);
       fbb.finish(fbb.endTable());
       final leer = Berechnung.ausBytes(fbb.buffer);
       expect(leer.umriss, isEmpty);
       expect(leer.flaeche, 0);
+      expect(leer.ausgangspunkt, isNull);
+      expect(leer.kurzeZuschnitte, isFalse);
     });
   });
 

@@ -12,6 +12,21 @@ Future<void> main() async {
   final modell3d = await Modell3dDienst.starte(router);
   final artikel = await ArtikelDienst.starte(router, ArtikeldateiQuelle.leer);
   final planung = await PlanungsDienst.starte(router, belag: artikel.belag);
+  // Konfigurationen (M9-05) in einer eigenen ObjectBox-Datenbank – ObjectBox
+  // erlaubt einen Prozess je Datenbank, der Auth-Server hat seine eigene.
+  // Ohne Verzeichnis (Entwicklung, Smoke-Tests) nur im Arbeitsspeicher.
+  final verzeichnis = Platform.environment['PLANER_DATENVERZEICHNIS'];
+  if (verzeichnis == null) {
+    stderr.writeln('WARNUNG: Konfigurationen nur im Arbeitsspeicher');
+  }
+  final datenbank = Datenbank.oeffne(
+    verzeichnis ?? 'memory:terrassenplaner',
+    knoten: Platform.environment['PLANER_KNOTEN'] ?? Platform.localHostname,
+  );
+  final konfiguration = await KonfigurationsDienst.starte(
+    router,
+    Konfigurationsablage(datenbank),
+  );
   final quelle = ArtikeldateiQuelle(
     Platform.environment[ArtikeldateiQuelle.umgebungsvariable] ??
         ArtikeldateiQuelle.standardPfad,
@@ -35,6 +50,8 @@ Future<void> main() async {
   nachladen.cancel();
   await artikel.stoppe();
   await planung.stoppe();
+  await konfiguration.stoppe();
+  datenbank.schliesse();
   await modell3d.stoppe();
   await hallo.stoppe();
   await router.stoppe();

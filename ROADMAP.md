@@ -299,9 +299,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/6
 - [ ] **M5-06 Stoßdielen im Gehrungsschnitt** ([#49](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/49)) – `feature/m5-06-stossdielen-im-gehrungsschnitt`
   - Option „Möchten Sie Stoßdielen im Gehrungsschnitt verwenden?“ (im alten Planer aktiv).
   - Abnahme: Option wirkt auf Zeichnung und Zuschnitt
-- [ ] **M5-07 Ausgangspunkt der Verlegung** ([#50](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/50)) – `feature/m5-07-ausgangspunkt-der-verlegung`
+- [x] **M5-07 Ausgangspunkt der Verlegung** ([#50](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/50)) – `feature/m5-07-ausgangspunkt-der-verlegung`
   - Eckpunkt als Ausgangspunkt wählen; erste ganze Diele links/rechts und oben/unten verschieben (Maus oder Eingabe, max. eine Belagbreite/-länge); Warnung bei Zuschnitten < 5 cm.
   - Abnahme: Grenzen und Warnung wie beschrieben
+  - Ergebnis: Unterpunkt 2.5 mit Ecken A, B … (Zählung der Beschriftung, Kreis nur A) und Verschiebung links/rechts und oben/unten in cm mit Eingabefeld, Schieberegler und Griff in der Zeichnung; Planungsstand-Felder `ausgangsecke`, `verschiebungX`, `verschiebungY` (über die Kopierhilfe `_mit`). `verschiebungsgrenzen`: Achse eher in Verlegerichtung bis zum Stoßraster, die andere bis Dielenbreite plus Fuge. Der Server verlegt ab Ecke plus Verschiebung und meldet Zuschnitte unter 5 cm (Stück oder Randreihe); die Oberfläche warnt.
 - [ ] **M5-08 Berechnung der Dielenverlegung** ([#51](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/51)) – `feature/m5-08-berechnung-der-dielenverlegung` · Benchmark
   - Dielen in der Fläche inkl. Ausschnitten, Rundungen und Teilflächen verlegen, nummerieren, Längen und Fugen berücksichtigen.
   - Abnahme: Dielenliste je Referenzfall entspricht der Planungsunterlage; Benchmark: große Freiform mit Ausschnitten
@@ -430,9 +431,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/10
 - [ ] **M9-04 Stückliste** ([#77](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/77)) – `feature/m9-04-stueckliste`
   - Artikel, Länge, Menge, Farbe (Zuordnung zum Plan).
   - Abnahme: Farben stimmen mit der Zeichnung überein
-- [ ] **M9-05 Konfigurationsnummer, Speichern und Laden** ([#78](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/78)) – `feature/m9-05-konfigurationsnummer-speichern-und-laden` · Benchmark
+- [x] **M9-05 Konfigurationsnummer, Speichern und Laden** ([#78](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/78)) – `feature/m9-05-konfigurationsnummer-speichern-und-laden` · Benchmark
   - Nummer im Format JJJJ-MM-TT-NNNN mit Version; Speichern/Laden über WAMP; automatisches Zwischenspeichern.
   - Abnahme: Gespeicherte Konfiguration lädt identisch; Versionen bleiben erhalten
+  - Ergebnis: Konfigurationsdienst im Router (`konfiguration.speichern`/`.laden`/`.entwurf_speichern`/`.entwurf_laden`) mit eigener ObjectBox-Datenbank: `Konfiguration` (Kopf, laufende Nummer je Tag), `KonfigurationsVersion` (append-only, Inhalt = `Planung.zuBytes`), `Zwischenstand` (Entwurf je Sitzungsschlüssel, 30 Tage); Kopf und Version samt Änderungsprotokoll in einer Transaktion, unveränderte Planung ergibt keine neue Version. App: SPEICHERN und LADEN in der Kopfzeile, „Konfiguration laden“ mit „Konfiguration Speichern“, eigene Meldungen für unbekannte Nummer/Version und fehlenden Server. Automatisches Zwischenspeichern 5 s nach der letzten Änderung als Entwurf (keine Versionsflut), „Weiterplanen“ setzt ihn fort. Ansible: Datenverzeichnis des Routers (systemd und Container) mit Molecule-Prüfung. Smoke-Test Speichern → Laden in Chrome. Benchmark `server.Konfiguration.speichernLaden`. Erkenntnis: `docs/erkenntnisse/speichern-und-laden.md`.
 - [ ] **M9-06 Planungsunterlagen-PDF** ([#79](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/79)) – `feature/m9-06-planungsunterlagen-pdf` · Benchmark
   - Deckblatt (Briefpapier), Kundendaten, Konfigurationsnummer, Zusammenfassung, Terrasse, Eckpunkthöhen, UK mit Stückliste, Zuschnitt UK, Belag mit Dielenliste, Zuschnitt Belag, Materialliste mit Preistabelle, Stelzfußhöhen, rechtliche Hinweise, Grußtext.
   - Abnahme: Alle Kapitel wie in den Planungsunterlagen; PDF für Referenzfälle erzeugt

@@ -46,6 +46,12 @@ class PlanerTexteDe extends PlanerTexte {
   String get keineVerbindung => 'Keine Verbindung zum Server';
 
   @override
+  String get speichern => 'SPEICHERN';
+
+  @override
+  String get laden => 'LADEN';
+
+  @override
   String get zuruecksetzen => 'ZURÜCKSETZEN';
 
   @override
@@ -455,7 +461,28 @@ class PlanerTexteDe extends PlanerTexte {
   String get version => 'Version';
 
   @override
-  String get ladeFehler => 'Die Konfiguration konnte nicht geladen werden.';
+  String get ladeFehler =>
+      'Die Konfiguration konnte nicht geladen werden – der Server ist nicht erreichbar.';
+
+  @override
+  String get konfigurationUnbekannt =>
+      'Diese Konfigurationsnummer oder Version gibt es nicht.';
+
+  @override
+  String get konfigurationSpeichernKnopf => 'Konfiguration Speichern';
+
+  @override
+  String get gefundenEntwurf =>
+      'Wir haben eine ungespeicherte Konfiguration gefunden. Möchten Sie mit dieser weiterplanen?';
+
+  @override
+  String gespeichertMeldung(String nummer, int version) {
+    return 'Gespeichert: Konfigurationsnummer $nummer, Version $version. Bitte notieren Sie die Nummer.';
+  }
+
+  @override
+  String get speichernFehler =>
+      'Speichern nicht möglich – der Server ist nicht erreichbar. Ihre Planung bleibt erhalten, bitte später erneut speichern.';
 
   @override
   String get modell3dTitel => '3D-Vorschau (Prototyp): Terrasse 4 x 3 m';
@@ -766,6 +793,44 @@ class PlanerTexteDe extends PlanerTexte {
   @override
   String get verlegewinkelUngueltig =>
       'Bitte ganze Grad von 0 bis 179 eingeben';
+
+  @override
+  String get ausgangspunktFrage =>
+      'Welcher Punkt soll der Ausgangspunkt des Terrassenbelages sein?';
+
+  @override
+  String get ausgangspunktVerschieben =>
+      'Verschieben Sie die erste ganze Diele mit dem Mauszeiger oder dem Eingabefeld nach:';
+
+  @override
+  String get verschiebungLinksRechts => 'links/rechts um';
+
+  @override
+  String get verschiebungObenUnten => 'oben/unten um';
+
+  @override
+  String get verschiebungHilfeLinksRechts => 'in cm, negativ = links';
+
+  @override
+  String get verschiebungHilfeObenUnten => 'in cm, negativ = oben';
+
+  @override
+  String verschiebungCm(String cm) {
+    return '$cm cm';
+  }
+
+  @override
+  String verschiebungUngueltig(String grenze) {
+    return 'Bitte eine Zahl von −$grenze bis $grenze cm eingeben';
+  }
+
+  @override
+  String get verschiebungOhneDielen =>
+      'Verschieben lässt sich die erste Diele, sobald ein Belag aus Dielen verlegt ist.';
+
+  @override
+  String get zuschnittWarnung =>
+      'Achtung: Es entstehen Zuschnitte unter 5 cm. Verschieben Sie die erste ganze Diele, damit keine so schmalen oder kurzen Stücke entstehen.';
 
   @override
   String get kurzeStueckeVerbinden =>

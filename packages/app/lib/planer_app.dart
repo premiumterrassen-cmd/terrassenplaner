@@ -3,6 +3,7 @@ import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 import 'src/design/darstellung.dart';
 import 'src/design/planer_design.dart';
+import 'src/konfiguration/konfigurations_steuerung.dart';
 import 'src/rahmen/belag.dart';
 import 'src/rahmen/berechnung_steuerung.dart';
 import 'src/rahmen/planer_rahmen.dart';
@@ -16,8 +17,8 @@ typedef HalloAbfrage = Future<String> Function();
 class PlanerApp extends StatefulWidget {
   const PlanerApp({
     required this.hallo,
-    required this.laden,
-    required this.gespeichert,
+    required this.ablage,
+    required this.gedaechtnis,
     super.key,
     this.info = terrassenplaner,
     this.berechne,
@@ -28,8 +29,12 @@ class PlanerApp extends StatefulWidget {
 
   final ProjektInfo info;
   final HalloAbfrage hallo;
-  final KonfigurationLaden laden;
-  final GespeicherteKonfiguration gespeichert;
+
+  /// Speichern und Laden auf dem Server (M9-05).
+  final KonfigurationsAblage ablage;
+
+  /// Gemerkte Konfiguration und Sitzungsschlüssel im Browser (M3-09, M9-05).
+  final KonfigurationsGedaechtnis gedaechtnis;
 
   /// Berechnung auf dem Server (M4-02).
   final PlanungBerechnen? berechne;
@@ -53,9 +58,14 @@ class _PlanerAppState extends State<PlanerApp> {
   late final SprachSteuerung _sprache = widget.sprache ?? SprachSteuerung();
   late final DarstellungSteuerung _darstellung =
       widget.darstellung ?? DarstellungSteuerung();
+  late final _konfiguration = KonfigurationsSteuerung(
+    ablage: widget.ablage,
+    gedaechtnis: widget.gedaechtnis,
+  );
 
   @override
   void dispose() {
+    _konfiguration.dispose();
     if (widget.sprache == null) _sprache.dispose();
     if (widget.darstellung == null) _darstellung.dispose();
     super.dispose();
@@ -74,9 +84,9 @@ class _PlanerAppState extends State<PlanerApp> {
       localizationsDelegates: PlanerTexte.localizationsDelegates,
       supportedLocales: SprachSteuerung.sprachen,
       home: PlanerStart(
-        laden: widget.laden,
-        gespeichert: widget.gespeichert,
+        konfiguration: _konfiguration,
         child: PlanerRahmen(
+          konfiguration: _konfiguration,
           status: ServerStatus(hallo: widget.hallo),
           berechne: widget.berechne,
           belaege: widget.belaege,
@@ -91,14 +101,12 @@ class _PlanerAppState extends State<PlanerApp> {
 /// Zeigt beim Start den Eingangsdialog über dem Rahmen (M3-02).
 class PlanerStart extends StatefulWidget {
   const PlanerStart({
-    required this.laden,
-    required this.gespeichert,
+    required this.konfiguration,
     required this.child,
     super.key,
   });
 
-  final KonfigurationLaden laden;
-  final GespeicherteKonfiguration gespeichert;
+  final KonfigurationsSteuerung konfiguration;
   final Widget child;
 
   @override
@@ -113,13 +121,24 @@ class _PlanerStartState extends State<PlanerStart> {
   }
 
   Future<void> _zeigeDialog() async {
-    final gefunden = await widget.gespeichert();
+    final konfiguration = widget.konfiguration;
+    final gefunden = await konfiguration.suche();
     if (!mounted) return;
-    await showDialog<Startweg>(
+    final messenger = ScaffoldMessenger.of(context);
+    final fehler = context.texte.ladeFehler;
+    final weg = await showDialog<Startweg>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => Eingangsdialog(laden: widget.laden, gefunden: gefunden),
+      builder: (_) =>
+          Eingangsdialog(laden: konfiguration.lade, gefunden: gefunden),
     );
+    if (weg != Startweg.weiterplanen) return;
+    try {
+      await konfiguration.weiterplanen();
+    } on Object {
+      // Server nicht erreichbar: weiter mit der leeren Planung.
+      messenger.showSnackBar(SnackBar(content: Text(fehler)));
+    }
   }
 
   @override

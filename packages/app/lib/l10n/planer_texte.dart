@@ -166,6 +166,18 @@ abstract class PlanerTexte {
   /// **'Keine Verbindung zum Server'**
   String get keineVerbindung;
 
+  /// No description provided for @speichern.
+  ///
+  /// In de, this message translates to:
+  /// **'SPEICHERN'**
+  String get speichern;
+
+  /// No description provided for @laden.
+  ///
+  /// In de, this message translates to:
+  /// **'LADEN'**
+  String get laden;
+
   /// No description provided for @zuruecksetzen.
   ///
   /// In de, this message translates to:
@@ -907,8 +919,38 @@ abstract class PlanerTexte {
   /// No description provided for @ladeFehler.
   ///
   /// In de, this message translates to:
-  /// **'Die Konfiguration konnte nicht geladen werden.'**
+  /// **'Die Konfiguration konnte nicht geladen werden – der Server ist nicht erreichbar.'**
   String get ladeFehler;
+
+  /// No description provided for @konfigurationUnbekannt.
+  ///
+  /// In de, this message translates to:
+  /// **'Diese Konfigurationsnummer oder Version gibt es nicht.'**
+  String get konfigurationUnbekannt;
+
+  /// No description provided for @konfigurationSpeichernKnopf.
+  ///
+  /// In de, this message translates to:
+  /// **'Konfiguration Speichern'**
+  String get konfigurationSpeichernKnopf;
+
+  /// No description provided for @gefundenEntwurf.
+  ///
+  /// In de, this message translates to:
+  /// **'Wir haben eine ungespeicherte Konfiguration gefunden. Möchten Sie mit dieser weiterplanen?'**
+  String get gefundenEntwurf;
+
+  /// No description provided for @gespeichertMeldung.
+  ///
+  /// In de, this message translates to:
+  /// **'Gespeichert: Konfigurationsnummer {nummer}, Version {version}. Bitte notieren Sie die Nummer.'**
+  String gespeichertMeldung(String nummer, int version);
+
+  /// No description provided for @speichernFehler.
+  ///
+  /// In de, this message translates to:
+  /// **'Speichern nicht möglich – der Server ist nicht erreichbar. Ihre Planung bleibt erhalten, bitte später erneut speichern.'**
+  String get speichernFehler;
 
   /// No description provided for @modell3dTitel.
   ///
@@ -1479,6 +1521,66 @@ abstract class PlanerTexte {
   /// In de, this message translates to:
   /// **'Bitte ganze Grad von 0 bis 179 eingeben'**
   String get verlegewinkelUngueltig;
+
+  /// No description provided for @ausgangspunktFrage.
+  ///
+  /// In de, this message translates to:
+  /// **'Welcher Punkt soll der Ausgangspunkt des Terrassenbelages sein?'**
+  String get ausgangspunktFrage;
+
+  /// No description provided for @ausgangspunktVerschieben.
+  ///
+  /// In de, this message translates to:
+  /// **'Verschieben Sie die erste ganze Diele mit dem Mauszeiger oder dem Eingabefeld nach:'**
+  String get ausgangspunktVerschieben;
+
+  /// No description provided for @verschiebungLinksRechts.
+  ///
+  /// In de, this message translates to:
+  /// **'links/rechts um'**
+  String get verschiebungLinksRechts;
+
+  /// No description provided for @verschiebungObenUnten.
+  ///
+  /// In de, this message translates to:
+  /// **'oben/unten um'**
+  String get verschiebungObenUnten;
+
+  /// No description provided for @verschiebungHilfeLinksRechts.
+  ///
+  /// In de, this message translates to:
+  /// **'in cm, negativ = links'**
+  String get verschiebungHilfeLinksRechts;
+
+  /// No description provided for @verschiebungHilfeObenUnten.
+  ///
+  /// In de, this message translates to:
+  /// **'in cm, negativ = oben'**
+  String get verschiebungHilfeObenUnten;
+
+  /// No description provided for @verschiebungCm.
+  ///
+  /// In de, this message translates to:
+  /// **'{cm} cm'**
+  String verschiebungCm(String cm);
+
+  /// No description provided for @verschiebungUngueltig.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte eine Zahl von −{grenze} bis {grenze} cm eingeben'**
+  String verschiebungUngueltig(String grenze);
+
+  /// No description provided for @verschiebungOhneDielen.
+  ///
+  /// In de, this message translates to:
+  /// **'Verschieben lässt sich die erste Diele, sobald ein Belag aus Dielen verlegt ist.'**
+  String get verschiebungOhneDielen;
+
+  /// No description provided for @zuschnittWarnung.
+  ///
+  /// In de, this message translates to:
+  /// **'Achtung: Es entstehen Zuschnitte unter 5 cm. Verschieben Sie die erste ganze Diele, damit keine so schmalen oder kurzen Stücke entstehen.'**
+  String get zuschnittWarnung;
 
   /// No description provided for @kurzeStueckeVerbinden.
   ///

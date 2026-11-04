@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:terrassenplaner_app/main.dart' as app;
 import 'package:terrassenplaner_app/src/rahmen/planer_schritt.dart';
 
 import '../test/hilfe.dart';
+import 'start.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('alle sieben Stationen sind erreichbar (M3-01)', (tester) async {
-    app.main();
-    await tester.pumpAndSettle();
+    await starteApp(tester);
     await tester.tap(find.byKey(const ValueKey('neu')));
     await tester.pumpAndSettle();
     for (final schritt in PlanerSchritt.values) {
@@ -61,5 +60,22 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.widget<ChoiceChip>(individuell).selected, isTrue);
     expect(find.byKey(const ValueKey('verlegewinkel')), findsOneWidget);
+    // M5-07: Ausgangspunkt C wählen, Rückgängig zurück auf A; verschieben
+    // lässt sich erst mit verlegten Dielen (der Smoke-Server hat keine)
+    final c = find.byKey(const ValueKey('ausgangsecke-2'));
+    await tester.ensureVisible(c);
+    await tester.pumpAndSettle();
+    await tester.tap(c);
+    await tester.pumpAndSettle();
+    expect(tester.widget<ChoiceChip>(c).selected, isTrue);
+    expect(find.text(de.verschiebungOhneDielen), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('rueckgaengig')));
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<ChoiceChip>(find.byKey(const ValueKey('ausgangsecke-0')))
+          .selected,
+      isTrue,
+    );
   });
 }

@@ -176,6 +176,60 @@ void main() {
     expect([for (final s in wechsel) s.reihe], [0, 0, 0, 1, 1]);
   });
 
+  test('Breite je Stück und Zuschnitte unter 5 cm (M5-07)', () {
+    expect(mindestzuschnitt, const Millimeter(50));
+    // 3090 = 47 × 65 + 35: die letzte Reihe ist 35 mm breit
+    final stuecke = _verlege(Kontur.rechteck(4800, 3090));
+    expect(stuecke.first.breite, closeTo(65, 1e-9));
+    expect(stuecke.first.kurzerZuschnitt, isFalse);
+    expect(stuecke.last.breite, closeTo(35, 1e-9));
+    expect(stuecke.last.kurzerZuschnitt, isTrue);
+    // Grenzen: genau 50 mm ist kein kurzer Zuschnitt, 49 mm schon
+    expect(_verlege(Kontur.rechteck(1000, 115)).last.kurzerZuschnitt, isFalse);
+    expect(_verlege(Kontur.rechteck(1000, 114)).last.kurzerZuschnitt, isTrue);
+    expect(_verlege(Kontur.rechteck(6050, 65)).last.kurzerZuschnitt, isFalse);
+    expect(_verlege(Kontur.rechteck(6049, 65)).last.kurzerZuschnitt, isTrue);
+    expect(_verlege(Kontur.rechteck(6049, 65)).last.laenge.mm, 49);
+  });
+
+  test('Verschiebungsgrenzen: Raster in Verlegerichtung, quer Breite plus '
+      'Fuge (M5-07)', () {
+    ({int x, int y}) grenzen(
+      Kontur kontur,
+      double winkel, [
+      Millimeter laengste = _m6,
+    ]) {
+      final g = verschiebungsgrenzen(
+        kontur,
+        winkel: winkel,
+        dielenbreite: _breite,
+        laengste: laengste,
+      );
+      return (x: g.x.mm, y: g.y.mm);
+    }
+
+    final rechteck = Kontur.rechteck(8000, 3090);
+    expect(grenzen(rechteck, 0), (x: 6000, y: 65));
+    expect(grenzen(rechteck, 0, const Millimeter(4000)), (x: 4000, y: 65));
+    // Fläche kürzer als die Diele: das Raster ist die Ausdehnung
+    expect(grenzen(Kontur.rechteck(4800, 3090), 0), (x: 4800, y: 65));
+    expect(grenzen(rechteck, 90), (x: 65, y: 3090));
+    expect(grenzen(rechteck, 150), (x: 6000, y: 65));
+    // gedreht wie die Verlegung: Dreieck bei 30° 866 mm, nicht 1366 mm
+    final dreieck = Kontur(const [Punkt(0, 0), Punkt(1000, 0), Punkt(0, 1000)]);
+    expect(grenzen(dreieck, 30).x, 866);
+    // 45° gilt noch als waagrecht, 46° schon als senkrecht
+    expect(grenzen(rechteck, 45).x, 6000);
+    expect(grenzen(rechteck, 46).y, 6000);
+    expect(grenzen(rechteck, 135).x, 6000);
+    expect(grenzen(rechteck, 134).y, 6000);
+    // unabhängig von der Lage der Fläche
+    expect(grenzen(Kontur.rechteck(4800, 3090, const Punkt(-700, 900)), 0), (
+      x: 4800,
+      y: 65,
+    ));
+  });
+
   test('kurze Stücke verbinden und erzwungene Länge', () {
     final kurz = Kontur.rechteck(3000, 65);
     const mitte = Punkt(1000, 0);

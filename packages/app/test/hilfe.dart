@@ -1,5 +1,11 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:terrassenplaner_app/src/einstellungen/einstellungs_speicher.dart';
+import 'package:terrassenplaner_app/src/einstellungen/lokale_einstellungen.dart';
+import 'package:terrassenplaner_app/src/konfiguration/konfigurations_steuerung.dart';
 import 'package:terrassenplaner_app/src/sprache/sprache.dart';
+import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 /// Texte der beiden Sprachen für Erwartungen in Tests (M3-07).
 final de = lookupPlanerTexte(const Locale('de'));
@@ -17,3 +23,66 @@ Widget testApp({
   supportedLocales: SprachSteuerung.sprachen,
   home: home,
 );
+
+/// Gedächtnis im flüchtigen Speicher mit festem Zufall.
+LokaleEinstellungen testGedaechtnis([EinstellungsSpeicher? speicher]) =>
+    LokaleEinstellungen(speicher ?? FluechtigerSpeicher(), zufall: Random(1));
+
+/// Ablage im Arbeitsspeicher wie der Konfigurationsdienst (M9-05); mit
+/// [erreichbar] = false scheitert jeder Aufruf wie ohne Server.
+class TestAblage implements KonfigurationsAblage {
+  final versionen = <KonfigurationsStand, Planung>{};
+  final entwuerfe = <String, PlanungsEntwurf>{};
+
+  /// Aufrufe von [merkeEntwurf].
+  var entwurfAufrufe = 0;
+  var erreichbar = true;
+  var _laufend = 0;
+
+  void _pruefe() {
+    if (!erreichbar) throw StateError('Server nicht erreichbar');
+  }
+
+  @override
+  Future<KonfigurationsStand> speichere(
+    Planung planung, {
+    Konfigurationsnummer? nummer,
+  }) async {
+    _pruefe();
+    final n =
+        nummer ??
+        Konfigurationsnummer.vergib(DateTime(2026, 11, 4), ++_laufend);
+    final version =
+        versionen.keys
+            .where((s) => s.nummer == n)
+            .map((s) => s.version)
+            .fold(0, max) +
+        1;
+    final stand = KonfigurationsStand(n, version);
+    versionen[stand] = planung;
+    return stand;
+  }
+
+  @override
+  Future<Planung> lade(KonfigurationsStand stand) async {
+    _pruefe();
+    return versionen[stand] ?? (throw KonfigurationNichtGefunden(stand));
+  }
+
+  @override
+  Future<void> merkeEntwurf(
+    String schluessel,
+    Planung planung, {
+    KonfigurationsStand? bezug,
+  }) async {
+    entwurfAufrufe++;
+    _pruefe();
+    entwuerfe[schluessel] = (planung: planung, bezug: bezug);
+  }
+
+  @override
+  Future<PlanungsEntwurf?> entwurf(String schluessel) async {
+    _pruefe();
+    return entwuerfe[schluessel];
+  }
+}

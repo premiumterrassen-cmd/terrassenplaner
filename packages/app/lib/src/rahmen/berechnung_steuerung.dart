@@ -43,6 +43,10 @@ class BerechnungsSteuerung extends ChangeNotifier {
           (name: a.bezeichnung, farbe: farbe(a)),
       ],
       dielen: [for (final d in b.dielen) _offsets(d)],
+      ausgangspunkt: switch (b.ausgangspunkt) {
+        final p? => Offset(p.x, p.y),
+        null => null,
+      },
     ),
     null => Zeichnung.leer,
   };

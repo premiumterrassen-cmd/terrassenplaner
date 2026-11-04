@@ -39,8 +39,8 @@ Future<SprachSteuerung> _zeigeApp(WidgetTester tester, Size groesse) async {
   await tester.pumpWidget(
     PlanerApp(
       hallo: () async => 'ok',
-      laden: (_) async {},
-      gespeichert: () async => null,
+      ablage: TestAblage(),
+      gedaechtnis: testGedaechtnis(),
       sprache: sprache,
     ),
   );
@@ -181,7 +181,7 @@ void main() {
     testWidgets('wechselt die Oberfläche sofort ins Englische und zurück', (
       tester,
     ) async {
-      final sprache = await _zeigeApp(tester, const Size(1440, 900));
+      final sprache = await _zeigeApp(tester, const Size(1920, 900));
       expect(find.text(de.planerTitel), findsOneWidget);
       expect(find.text('DE'), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('sprachauswahl')));
@@ -210,7 +210,15 @@ void main() {
       expect(find.text(de.planerTitel), findsOneWidget);
     });
 
-    for (final breite in [768.0, 1024.0, 1280.0, 1365.0, 1366.0, 1440.0]) {
+    for (final breite in [
+      768.0,
+      1024.0,
+      1280.0,
+      1440.0,
+      1679.0,
+      1680.0,
+      1920.0,
+    ]) {
       testWidgets('beide Sprachen ohne Überlauf bei $breite px', (
         tester,
       ) async {
@@ -218,7 +226,7 @@ void main() {
         for (final t in [de, en]) {
           sprache.value = Locale(t.localeName);
           await tester.pumpAndSettle();
-          // Unter 1366 px nur Symbole mit Tooltip (Kopfzeile.textAb).
+          // Unter 1680 px nur Symbole mit Tooltip (Kopfzeile.textAb).
           final mitText = breite >= Kopfzeile.textAb;
           expect(
             find.text(t.videoberatung),
@@ -250,8 +258,8 @@ void main() {
       await tester.pumpWidget(
         PlanerApp(
           hallo: () async => 'ok',
-          laden: (_) async {},
-          gespeichert: () async => null,
+          ablage: TestAblage(),
+          gedaechtnis: testGedaechtnis(),
         ),
       );
       await tester.pumpAndSettle();
@@ -269,8 +277,8 @@ void main() {
         await tester.pumpWidget(
           PlanerApp(
             hallo: () async => 'ok',
-            laden: (_) async {},
-            gespeichert: () async => null,
+            ablage: TestAblage(),
+            gedaechtnis: testGedaechtnis(),
             sprache: sprache,
           ),
         );

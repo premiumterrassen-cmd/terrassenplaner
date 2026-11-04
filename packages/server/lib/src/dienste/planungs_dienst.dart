@@ -9,8 +9,8 @@ import '../router/planer_router.dart';
 typedef Belagsuche = Artikel? Function(Artikelnummer? nummer);
 
 /// Planungsdienst (M4-02): berechnet aus der Planung der App Umriss und
-/// Kennzahlen der bearbeiteten Fläche, die Gesamtfläche (M4-14) und die
-/// Dielenstücke (M5-05) – die App rechnet nichts selbst (Frontend bleibt
+/// Kennzahlen der bearbeiteten Fläche, die Gesamtfläche (M4-14), die
+/// Dielenstücke (M5-05) und den Ausgangspunkt der Verlegung (M5-07) – die App rechnet nichts selbst (Frontend bleibt
 /// „doof“). Hin- und Rückweg als typisierte FlatBuffers (Packed PPT, #110).
 class PlanungsDienst {
   PlanungsDienst._(this._sitzung);
@@ -40,7 +40,9 @@ class PlanungsDienst {
 
   /// Umriss, Ausschnitte und Fläche des Grundrisses; wie im alten Planer
   /// ist die Fläche die Außenfläche (Fachkonzept 1.4). Mit einem [belag]
-  /// aus Dielen auch die Dielenstücke in Verlegerichtung (M5-05).
+  /// aus Dielen auch die Dielenstücke in Verlegerichtung (M5-05) ab dem
+  /// verschobenen Ausgangspunkt, die Grenzen der Verschiebung und ob kurze
+  /// Zuschnitte entstehen (M5-07).
   static Berechnung berechne(Planungsstand stand, [Artikel? belag]) {
     // offene Freiform (M4-08): nur der gezeichnete Linienzug
     if (stand.grundriss case FreiformGrundriss(
@@ -50,40 +52,76 @@ class PlanungsDienst {
       return Berechnung(umriss: punkte, flaeche: 0, geschlossen: false);
     }
     final kontur = stand.kontur;
-    return Berechnung(
+    final flaeche = Berechnung(
       // Bögen (Kreis) als Sehnenzug für die Zeichnung, Ecken für die Namen
       umriss: kontur.vieleck(),
       ecken: stand.grundriss.ecken,
       flaeche: kontur.flaeche,
       ausschnitte: [for (final a in stand.ausschnitte) a.kontur.punkte],
-      dielen: [for (final d in _dielen(stand, kontur, belag)) d.umriss],
+    );
+    final masse = belag?.abmessungen;
+    if (belag?.art != Artikelart.diele) return flaeche;
+    final breite = masse!.breite;
+    final laengste = masse.laengste;
+    // Holzfliesen und unvollständige Artikel bleiben ohne (M5-08)
+    if (breite == null || laengste == null) return flaeche;
+    final fest = stand.dielenlaenge;
+    return _verlegt(
+      flaeche,
+      stand,
+      dielenbreite: breite,
+      // erzwungene Länge nur, solange der Belag sie liefert (M5-02)
+      laengste: fest != null && masse.laengen.contains(fest) ? fest : laengste,
     );
   }
 
-  /// Dielenstücke für Dielen mit Breite und Lieferlängen; Holzfliesen und
-  /// unvollständige Artikel bleiben ohne (Verlegung, M5-08).
-  static List<Dielenstueck> _dielen(
-    Planungsstand stand,
-    Kontur kontur,
-    Artikel? belag,
-  ) {
-    final masse = belag?.abmessungen;
-    if (belag?.art != Artikelart.diele) return const [];
-    final breite = masse!.breite;
-    final laengste = masse.laengste;
-    if (breite == null || laengste == null) return const [];
-    final fest = stand.dielenlaenge;
-    return verlegeDielen(
+  /// [flaeche] mit den Dielenstücken ab der gewählten Ecke plus
+  /// Verschiebung; eine Verschiebung über die Grenze hinaus (etwa nach einem
+  /// Wechsel auf einen schmaleren Belag) wird auf die Grenze begrenzt.
+  static Berechnung _verlegt(
+    Berechnung flaeche,
+    Planungsstand stand, {
+    required Millimeter dielenbreite,
+    required Millimeter laengste,
+  }) {
+    final kontur = stand.kontur;
+    final winkel = stand.dielenwinkel.toDouble();
+    final grenzen = verschiebungsgrenzen(
       kontur,
-      winkel: stand.dielenwinkel.toDouble(),
-      ausgangspunkt: kontur.punkte.first,
-      dielenbreite: breite,
+      winkel: winkel,
+      dielenbreite: dielenbreite,
+      laengste: laengste,
+    );
+    final ausgangspunkt =
+        stand.ausgangspunkt +
+        Punkt(
+          _begrenzt(stand.verschiebungX, grenzen.x),
+          _begrenzt(stand.verschiebungY, grenzen.y),
+        );
+    final stuecke = verlegeDielen(
+      kontur,
+      winkel: winkel,
+      ausgangspunkt: ausgangspunkt,
+      dielenbreite: dielenbreite,
       verlegeart: stand.verlegeart,
-      // erzwungene Länge nur, solange der Belag sie liefert (M5-02)
-      laengste: fest != null && masse.laengen.contains(fest) ? fest : laengste,
+      laengste: laengste,
       verbinden: stand.kurzeStueckeVerbinden,
     );
+    return Berechnung(
+      umriss: flaeche.umriss,
+      ecken: flaeche.ecken,
+      flaeche: flaeche.flaeche,
+      ausschnitte: flaeche.ausschnitte,
+      dielen: [for (final d in stuecke) d.umriss],
+      ausgangspunkt: ausgangspunkt,
+      grenzeLinksRechts: grenzen.x,
+      grenzeObenUnten: grenzen.y,
+      kurzeZuschnitte: stuecke.any((d) => d.kurzerZuschnitt),
+    );
   }
+
+  static double _begrenzt(Millimeter wert, Millimeter grenze) =>
+      wert.mm.clamp(-grenze.mm, grenze.mm).toDouble();
 
   /// Berechnung der bearbeiteten Fläche mit der Gesamtfläche aller Flächen,
   /// jede mal ihrer Häufigkeit (M4-14).
@@ -96,16 +134,7 @@ class PlanungsDienst {
       gesamt += berechne(f.stand).flaeche * f.haeufigkeit;
     }
     final aktuell = planung.aktuell;
-    final b = berechne(aktuell, belag(aktuell.belag));
-    return Berechnung(
-      umriss: b.umriss,
-      ecken: b.ecken,
-      geschlossen: b.geschlossen,
-      flaeche: b.flaeche,
-      ausschnitte: b.ausschnitte,
-      gesamtflaeche: gesamt,
-      dielen: b.dielen,
-    );
+    return berechne(aktuell, belag(aktuell.belag)).mitGesamtflaeche(gesamt);
   }
 
   static void _berechne(LazyInvocationPayload aufruf, Belagsuche belag) {

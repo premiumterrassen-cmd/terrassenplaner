@@ -46,6 +46,12 @@ class PlanerTexteEn extends PlanerTexte {
   String get keineVerbindung => 'No connection to the server';
 
   @override
+  String get speichern => 'SAVE';
+
+  @override
+  String get laden => 'LOAD';
+
+  @override
   String get zuruecksetzen => 'RESET';
 
   @override
@@ -455,7 +461,28 @@ class PlanerTexteEn extends PlanerTexte {
   String get version => 'Version';
 
   @override
-  String get ladeFehler => 'The configuration could not be loaded.';
+  String get ladeFehler =>
+      'The configuration could not be loaded – the server cannot be reached.';
+
+  @override
+  String get konfigurationUnbekannt =>
+      'This configuration number or version does not exist.';
+
+  @override
+  String get konfigurationSpeichernKnopf => 'Save configuration';
+
+  @override
+  String get gefundenEntwurf =>
+      'We found an unsaved configuration. Would you like to continue planning with it?';
+
+  @override
+  String gespeichertMeldung(String nummer, int version) {
+    return 'Saved: configuration number $nummer, version $version. Please note the number.';
+  }
+
+  @override
+  String get speichernFehler =>
+      'Saving is not possible – the server cannot be reached. Your planning is kept, please save again later.';
 
   @override
   String get modell3dTitel => '3D preview (prototype): terrace 4 x 3 m';
@@ -766,6 +793,44 @@ class PlanerTexteEn extends PlanerTexte {
   @override
   String get verlegewinkelUngueltig =>
       'Please enter whole degrees from 0 to 179';
+
+  @override
+  String get ausgangspunktFrage =>
+      'Which point should be the starting point of the decking?';
+
+  @override
+  String get ausgangspunktVerschieben =>
+      'Move the first full board with the mouse pointer or the input field:';
+
+  @override
+  String get verschiebungLinksRechts => 'left/right by';
+
+  @override
+  String get verschiebungObenUnten => 'up/down by';
+
+  @override
+  String get verschiebungHilfeLinksRechts => 'in cm, negative = left';
+
+  @override
+  String get verschiebungHilfeObenUnten => 'in cm, negative = up';
+
+  @override
+  String verschiebungCm(String cm) {
+    return '$cm cm';
+  }
+
+  @override
+  String verschiebungUngueltig(String grenze) {
+    return 'Please enter a number from −$grenze to $grenze cm';
+  }
+
+  @override
+  String get verschiebungOhneDielen =>
+      'The first board can be moved as soon as decking boards are laid.';
+
+  @override
+  String get zuschnittWarnung =>
+      'Caution: there are cuts under 5 cm. Move the first full board so that no such narrow or short pieces are left.';
 
   @override
   String get kurzeStueckeVerbinden =>
