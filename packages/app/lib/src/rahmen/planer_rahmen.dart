@@ -733,6 +733,7 @@ class Bearbeitungsmenue extends StatelessWidget {
                   ),
                   child: ZubehoerBereich(
                     quelle: zubehoer,
+                    berechnung: berechnung,
                     planung: planung,
                     onGeaendert: () => zustand.markiereGeaendert(schritt),
                   ),

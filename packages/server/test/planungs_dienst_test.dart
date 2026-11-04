@@ -565,6 +565,37 @@ void main() {
       );
     });
 
+    test('Zubehör (M8-02): Clips aus der Befestigung, Eingaben '
+        '„Tatsächlich“ gehen vor', () {
+      Map<String, (int, int)> zeilen(Berechnung b) => {
+        for (final z in b.zubehoer) z.nummer.wert: (z.berechnet, z.menge),
+      };
+      final stand = Planungsstand.start
+          .mitZubehoermenge(const Artikelnummer('80-10-001-250'), 3)
+          .mitZubehoermenge(const Artikelnummer('50-80-006'), 2);
+      expect(zeilen(PlanungsDienst.berechne(stand, diele, regelwerk)), {
+        '80-10-001-50': (1, 1),
+        '80-10-001-100': (1, 1),
+        '80-10-001-250': (2, 3),
+        '50-80-006': (0, 2),
+      });
+      // ohne Regelwerk und ohne Belag: nur die Eingaben
+      for (final b in [
+        PlanungsDienst.berechne(stand, diele),
+        PlanungsDienst.berechne(stand),
+      ]) {
+        expect(zeilen(b), {'80-10-001-250': (0, 3), '50-80-006': (0, 2)});
+      }
+      expect(
+        PlanungsDienst.berechnePlanung(
+          Planung([Terrassenflaeche(stand)]),
+          (_) => diele,
+          regelwerk,
+        ).zubehoer,
+        hasLength(4),
+      );
+    });
+
     test('über den Router mit dem Regelwerk', () async {
       await dienst.stoppe();
       dienst = await PlanungsDienst.starte(

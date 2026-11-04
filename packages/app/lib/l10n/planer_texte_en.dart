@@ -946,4 +946,9 @@ class PlanerTexteEn extends PlanerTexte {
   String zubehoerMengeUngueltig(int max) {
     return 'Please enter 0 to $max';
   }
+
+  @override
+  String zubehoerBerechnet(int anzahl) {
+    return 'calculated: $anzahl';
+  }
 }

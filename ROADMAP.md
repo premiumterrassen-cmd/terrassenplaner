@@ -406,7 +406,7 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/9
 - [x] **M8-01 Zubehör-Bereich mit acht Gruppen** ([#70](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/70)) – `feature/m8-01-zubehoer-bereich-mit-acht-gruppen`
   - Allgemein, Anlieferung, Clips & Schrauben, Höhenausgleich, Pads & EPDM-Bänder, Rhombusleisten, Terrassenfliesen, Terrassenöl RIBOL.
   - Abnahme: Gruppen aus den Artikeldaten, Reihenfolge wie im alten Planer
-- [ ] **M8-02 Automatische Mengen** ([#71](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/71)) – `feature/m8-02-automatische-mengen` · Benchmark
+- [x] **M8-02 Automatische Mengen** ([#71](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/71)) – `feature/m8-02-automatische-mengen` · Benchmark
   - Mengen für Clips/Schrauben, Pads/EPDM, Öl (nach Deckfläche) usw. aus Belag, UK und Fläche; manuelle Anpassung möglich.
   - Abnahme: Mengen entsprechen den Referenzfällen
 - [ ] **M8-03 Pflichtzubehör** ([#72](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/72)) – `feature/m8-03-pflichtzubehoer`

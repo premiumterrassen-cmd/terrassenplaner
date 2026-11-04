@@ -1767,6 +1767,12 @@ abstract class PlanerTexte {
   /// In de, this message translates to:
   /// **'Bitte 0 bis {max} eingeben'**
   String zubehoerMengeUngueltig(int max);
+
+  /// No description provided for @zubehoerBerechnet.
+  ///
+  /// In de, this message translates to:
+  /// **'berechnet: {anzahl}'**
+  String zubehoerBerechnet(int anzahl);
 }
 
 class _PlanerTexteDelegate extends LocalizationsDelegate<PlanerTexte> {

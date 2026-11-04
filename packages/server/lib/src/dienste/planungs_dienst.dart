@@ -15,7 +15,7 @@ typedef Regelwerksuche = Regelwerk? Function();
 /// Kennzahlen der bearbeiteten Fläche, die Gesamtfläche (M4-14), die
 /// Dielenstücke (M5-05) mit Nummern, Dielenliste und Verschnitt (M5-08),
 /// den Ausgangspunkt der Verlegung (M5-07), die Befestigung (M5-09) und die
-/// Meldungen zum Belag (M5-10) – die
+/// Meldungen zum Belag (M5-10) und die Mengen im Zubehör (M8-02) – die
 /// App rechnet nichts selbst (Frontend bleibt „doof“). Hin- und Rückweg als typisierte FlatBuffers (Packed PPT, #110).
 class PlanungsDienst {
   PlanungsDienst._(this._sitzung);
@@ -102,11 +102,25 @@ class PlanungsDienst {
         flaeche: flaeche.flaeche,
         ausschnitte: flaeche.ausschnitte,
         belagmeldungen: meldungen,
+        zubehoer: zubehoerpositionen(const {}, stand.zubehoer),
       );
     }
     // verlegt wird nur mit Belag
     final artikel = belag!;
     final stuecke = [for (final t in v.teile) ...t.stuecke];
+    final winkel = stand.dielenwinkel.toDouble();
+    // ohne Regelwerk oder mit einem, das den Belag (nach einem Wechsel der
+    // Artikeldaten) nicht mehr kennt: weder Befestigung noch Zubehör
+    final bekannt = regelwerk?.datei[artikel.nummer] != null;
+    final befestigung = bekannt
+        ? befestigungsbedarf(
+            regelwerk!,
+            artikel,
+            stand.befestigungsart,
+            stuecke,
+            winkel: winkel,
+          )
+        : null;
     return Berechnung(
       umriss: flaeche.umriss,
       ecken: flaeche.ecken,
@@ -119,17 +133,19 @@ class PlanungsDienst {
       grenzeLinksRechts: v.grenzen.x,
       grenzeObenUnten: v.grenzen.y,
       kurzeZuschnitte: v.kurzeZuschnitte,
-      // ohne Regelwerk oder mit einem, das den Belag (nach einem Wechsel der
-      // Artikeldaten) nicht mehr kennt: keine Befestigung
-      befestigung: regelwerk?.datei[artikel.nummer] == null
-          ? null
-          : befestigungsbedarf(
-              regelwerk!,
-              artikel,
-              stand.befestigungsart,
-              stuecke,
-              winkel: stand.dielenwinkel.toDouble(),
-            ),
+      befestigung: befestigung,
+      zubehoer: zubehoerpositionen(
+        befestigung == null
+            ? const {}
+            : berechnetesZubehoer(
+                regelwerk!,
+                artikel,
+                befestigung,
+                stuecke,
+                winkel: winkel,
+              ),
+        stand.zubehoer,
+      ),
     );
   }
 

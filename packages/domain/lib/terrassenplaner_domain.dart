@@ -45,6 +45,7 @@ export 'src/regeln/befestigungsbedarf.dart';
 export 'src/regeln/belagmeldungen.dart';
 export 'src/regeln/planungsregeln.dart';
 export 'src/regeln/regelwerk.dart';
+export 'src/regeln/zubehoerbedarf.dart';
 export 'src/schema/ausschnitt_leser.dart';
 export 'src/schema/stapel.dart';
 export 'src/schema/transport.g.dart';

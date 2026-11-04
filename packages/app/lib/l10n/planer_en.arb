@@ -293,5 +293,7 @@
   "zubehoerKeine": "There are no articles in this group.",
   "zubehoerBezeichnung": "Description",
   "zubehoerTatsaechlich": "Actual",
-  "zubehoerMengeUngueltig": "Please enter 0 to {max}"
+  "zubehoerMengeUngueltig": "Please enter 0 to {max}",
+
+  "zubehoerBerechnet": "calculated: {anzahl}"
 }

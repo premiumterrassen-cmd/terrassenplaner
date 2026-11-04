@@ -4,6 +4,7 @@ import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import '../artikel/artikelbild_widget.dart';
 import '../design/planer_design.dart';
 import '../sprache/sprache.dart';
+import 'berechnung_steuerung.dart';
 import 'lade_quelle.dart';
 import 'planer_schritt.dart';
 import 'steuerung.dart';
@@ -26,11 +27,15 @@ class ZubehoerBereich extends StatefulWidget {
     required this.onGeaendert,
     super.key,
     this.quelle,
+    this.berechnung,
   });
 
   /// Zubehör vom Server; ohne Quelle nur die Gruppen.
   final ZubehoerQuelle? quelle;
   final PlanungsSteuerung planung;
+
+  /// Berechnete Mengen des Servers (M8-02); ohne sie 0.
+  final BerechnungsSteuerung? berechnung;
 
   /// Meldet eine geänderte Menge (Standardwert-Hinweis, M3-05).
   final VoidCallback onGeaendert;
@@ -75,6 +80,7 @@ class _ZubehoerBereichState extends State<ZubehoerBereich> {
             ZubehoerTabelle(
               gruppe: gruppe,
               quelle: widget.quelle,
+              berechnung: widget.berechnung,
               planung: widget.planung,
               onGeaendert: widget.onGeaendert,
             ),
@@ -92,16 +98,18 @@ class ZubehoerTabelle extends StatelessWidget {
     required this.onGeaendert,
     super.key,
     this.quelle,
+    this.berechnung,
   });
 
   final Zubehoergruppe gruppe;
   final ZubehoerQuelle? quelle;
+  final BerechnungsSteuerung? berechnung;
   final PlanungsSteuerung planung;
   final VoidCallback onGeaendert;
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
-    listenable: Listenable.merge([quelle, planung]),
+    listenable: Listenable.merge([quelle, planung, berechnung]),
     builder: (context, _) {
       final t = context.texte;
       final q = quelle;
@@ -122,6 +130,11 @@ class ZubehoerTabelle extends StatelessWidget {
       final artikel = auswahl?.gruppen[gruppe] ?? const <Artikel>[];
       if (artikel.isEmpty) return Text(t.zubehoerKeine);
       final stil = Theme.of(context).textTheme.labelMedium;
+      final berechnet = {
+        for (final z
+            in berechnung?.ergebnis?.zubehoer ?? const <Zubehoerposition>[])
+          z.nummer: z.berechnet,
+      };
       return Column(
         key: ValueKey('zubehoertabelle-${gruppe.name}'),
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -138,7 +151,12 @@ class ZubehoerTabelle extends StatelessWidget {
           for (final a in artikel)
             ZubehoerZeile(
               artikel: a,
-              menge: planung.aktuell.zubehoer[a.nummer] ?? 0,
+              berechnet: berechnet[a.nummer] ?? 0,
+              // die Eingabe sofort, nicht erst nach der Antwort des Servers
+              menge:
+                  planung.aktuell.zubehoer[a.nummer] ??
+                  berechnet[a.nummer] ??
+                  0,
               onMenge: (anzahl) {
                 planung.setze(
                   planung.aktuell.mitZubehoermenge(a.nummer, anzahl),
@@ -154,13 +172,15 @@ class ZubehoerTabelle extends StatelessWidget {
 
 /// Eine Zeile „Bild, Bezeichnung | Tatsächlich“ (M8-01). Wie die Maßfelder
 /// zeigt das Feld die aktuelle Menge als Platzhalter; Enter übernimmt die
-/// Eingabe, ein leeres Feld nimmt sie zurück.
+/// Eingabe, ein leeres Feld nimmt sie zurück (wieder die berechnete Menge,
+/// M8-02).
 class ZubehoerZeile extends StatefulWidget {
   const ZubehoerZeile({
     required this.artikel,
     required this.menge,
     required this.onMenge,
     super.key,
+    this.berechnet = 0,
   });
 
   /// Breite der Spalte „Tatsächlich“.
@@ -170,6 +190,10 @@ class ZubehoerZeile extends StatefulWidget {
 
   /// Angezeigte Menge „Tatsächlich“ in Verkaufseinheiten.
   final int menge;
+
+  /// Vom Planer berechnete Menge (M8-02); weicht die Eingabe ab, steht sie
+  /// unter dem Namen.
+  final int berechnet;
 
   /// Neue Eingabe; `null` = zurück auf den berechneten Wert.
   final ValueChanged<int?> onMenge;
@@ -218,7 +242,20 @@ class _ZubehoerZeileState extends State<ZubehoerZeile> {
         children: [
           Artikelbild(a, groesse: 40),
           const SizedBox(width: PlanerAbstand.klein),
-          Expanded(child: Text(a.titel)),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(a.titel),
+                if (widget.menge != widget.berechnet)
+                  Text(
+                    context.texte.zubehoerBerechnet(widget.berechnet),
+                    key: ValueKey('zubehoerberechnet-${a.nummer.wert}'),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+              ],
+            ),
+          ),
           const SizedBox(width: PlanerAbstand.klein),
           SizedBox(
             width: ZubehoerZeile.feldbreite,

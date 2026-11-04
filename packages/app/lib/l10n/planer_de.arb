@@ -329,5 +329,8 @@
   "zubehoerBezeichnung": "Bezeichnung",
   "zubehoerTatsaechlich": "Tatsächlich",
   "zubehoerMengeUngueltig": "Bitte 0 bis {max} eingeben",
-  "@zubehoerMengeUngueltig": {"placeholders": {"max": {"type": "int"}}}
+  "@zubehoerMengeUngueltig": {"placeholders": {"max": {"type": "int"}}},
+
+  "zubehoerBerechnet": "berechnet: {anzahl}",
+  "@zubehoerBerechnet": {"placeholders": {"anzahl": {"type": "int"}}}
 }

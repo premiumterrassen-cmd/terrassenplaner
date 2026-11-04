@@ -7,6 +7,7 @@ import '../artikel/einheiten.dart';
 import '../geometrie/punkt.dart';
 import '../regeln/befestigungsbedarf.dart';
 import '../regeln/belagmeldungen.dart';
+import '../regeln/zubehoerbedarf.dart';
 import 'befestigungsart.dart';
 
 /// Was der Server aus einem Planungsstand berechnet und die App nur anzeigt
@@ -14,7 +15,7 @@ import 'befestigungsart.dart';
 /// Zeichnung und Kennzahlen, seit M5-07 Ausgangspunkt, Verschiebungsgrenzen
 /// und Warnung vor kurzen Zuschnitten, seit M5-09 die Befestigung, seit
 /// M5-08 Dielennummern, Dielenliste und Verschnitt der ganzen Planung,
-/// seit M5-10 die Meldungen zum Belag.
+/// seit M5-10 die Meldungen zum Belag, seit M8-02 die Mengen im Zubehör.
 /// Volumen und Materialliste folgen mit M6 und M9.
 final class Berechnung {
   Berechnung({
@@ -34,7 +35,9 @@ final class Berechnung {
     List<Lieferposition> dielenliste = const [],
     Befestigungsbedarf? befestigung,
     List<Belagmeldung> belagmeldungen = const [],
-  }) : belagmeldungen = List.unmodifiable(belagmeldungen),
+    List<Zubehoerposition> zubehoer = const [],
+  }) : zubehoer = List.unmodifiable(zubehoer),
+       belagmeldungen = List.unmodifiable(belagmeldungen),
        befestigung = befestigung ?? Befestigungsbedarf.keiner,
        nummern = List.unmodifiable(nummern),
        dielenliste = List.unmodifiable(dielenliste),
@@ -116,6 +119,28 @@ final class Berechnung {
           fb.Uint8Reader(),
         ).vTableGet(puffer, wurzel, _versatz(_belagmeldungenPlatz), const []))
           Belagmeldung.ausNummer(n),
+      ],
+      zubehoer: [
+        for (final ort in const fb.ListReader<int>(
+          _Tabellenort(),
+        ).vTableGet(puffer, wurzel, _versatz(_zubehoerPlatz), const []))
+          Zubehoerposition(
+            Artikelnummer(
+              const fb.StringReader().vTableGet(puffer, ort, _versatz(0), ''),
+            ),
+            berechnet: const fb.Uint32Reader().vTableGet(
+              puffer,
+              ort,
+              _versatz(1),
+              0,
+            ),
+            menge: const fb.Uint32Reader().vTableGet(
+              puffer,
+              ort,
+              _versatz(2),
+              0,
+            ),
+          ),
       ],
     );
   }
@@ -235,6 +260,10 @@ final class Berechnung {
   /// `belagmeldungen`); die App zeigt sie unter dem Unterpunkt der Eingabe.
   final List<Belagmeldung> belagmeldungen;
 
+  /// Zeilen im Schritt „Zubehör“ der bearbeiteten Fläche (M8-02): berechnete
+  /// Menge und „Tatsächlich“ je Artikel (`zubehoerpositionen`).
+  final List<Zubehoerposition> zubehoer;
+
   /// Kopie mit den Werten der ganzen Planung (M4-14, M5-08).
   Berechnung mitPlanung(
     double gesamtflaeche, {
@@ -257,6 +286,7 @@ final class Berechnung {
     verschnitt: verschnitt,
     dielenliste: dielenliste,
     belagmeldungen: belagmeldungen,
+    zubehoer: zubehoer,
   );
 
   /// FlatBuffer für den Weg zur App (#110):
@@ -272,8 +302,10 @@ final class Berechnung {
   /// (string), 2: anzahl (uint32) }]) (M5-09), 15: nummern ([int32]),
   /// 16: verschnitt (float64, fehlt ohne Dielen), 17: dielenliste
   /// ([{ 0: belag (string), 1: laenge (int32 mm), 2: anzahl (int32) }])
-  /// (M5-08), 35: belagmeldungen ([uint8], M5-10) }`. Die Plätze 18–34
-  /// sind für die Unterkonstruktion (M6) frei gehalten.
+  /// (M5-08), 35: belagmeldungen ([uint8], M5-10), 50: zubehoer ([{ 0:
+  /// nummer (string), 1: berechnet (uint32), 2: menge (uint32) }], M8-02)
+  /// }`. Die Plätze 18–34 sind für die Unterkonstruktion (M6) frei
+  /// gehalten, 50–59 für das Zubehör (M8).
   Uint8List zuBytes() {
     final fbb = fb.Builder();
     final umrissOrt = _schreibe(fbb, umriss);
@@ -301,8 +333,11 @@ final class Berechnung {
     final meldungenOrt = fbb.writeListUint8([
       for (final m in belagmeldungen) m.nummer,
     ]);
+    final zubehoerOrt = fbb.writeList([
+      for (final z in zubehoer) _zubehoerposition(fbb, z),
+    ]);
     fbb
-      ..startTable(_belagmeldungenPlatz + 1)
+      ..startTable(_zubehoerPlatz + 1)
       ..addOffset(_umrissPlatz, umrissOrt)
       ..addFloat64(_flaechePlatz, flaeche)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
@@ -320,7 +355,8 @@ final class Berechnung {
       ..addOffset(_befestigungsmittelPlatz, mittelOrt)
       ..addOffset(_nummernPlatz, nummernOrt)
       ..addOffset(_dielenlistePlatz, listeOrt)
-      ..addOffset(_belagmeldungenPlatz, meldungenOrt);
+      ..addOffset(_belagmeldungenPlatz, meldungenOrt)
+      ..addOffset(_zubehoerPlatz, zubehoerOrt);
     if (verschnitt case final v?) fbb.addFloat64(_verschnittPlatz, v);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
@@ -358,6 +394,16 @@ final class Berechnung {
       ..addOffset(0, nummerOrt)
       ..addOffset(1, titelOrt)
       ..addUint32(2, m.anzahl);
+    return fbb.endTable();
+  }
+
+  static int _zubehoerposition(fb.Builder fbb, Zubehoerposition z) {
+    final nummerOrt = fbb.writeString(z.nummer.wert);
+    fbb
+      ..startTable(3)
+      ..addOffset(0, nummerOrt)
+      ..addUint32(1, z.berechnet)
+      ..addUint32(2, z.menge);
     return fbb.endTable();
   }
 
@@ -401,6 +447,7 @@ final class Berechnung {
   static const _verschnittPlatz = 16;
   static const _dielenlistePlatz = 17;
   static const _belagmeldungenPlatz = 35;
+  static const _zubehoerPlatz = 50;
 
   static int _versatz(int platz) => 4 + 2 * platz;
 }

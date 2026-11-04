@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:terrassenplaner_app/src/design/planer_design.dart';
+import 'package:terrassenplaner_app/src/rahmen/berechnung_steuerung.dart';
 import 'package:terrassenplaner_app/src/rahmen/planer_rahmen.dart';
 import 'package:terrassenplaner_app/src/rahmen/planer_schritt.dart';
 import 'package:terrassenplaner_app/src/rahmen/rahmen_zustand.dart';
@@ -238,5 +239,60 @@ void main() {
     zustand.waehle(PlanerSchritt.treppen);
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('zubehoer')), findsNothing);
+  });
+
+  testWidgets('berechnete Mengen (M8-02): Start mit dem Wert des Servers, '
+      'eine abweichende Eingabe zeigt ihn darunter', (tester) async {
+    final planung = PlanungsSteuerung();
+    final quelle = ZubehoerQuelle(() async => _auswahl);
+    // wie der Server: berechnet 4 × Öl, „Tatsächlich“ aus den Eingaben
+    final berechnung = BerechnungsSteuerung(
+      planung: planung,
+      berechne: (p) async => Berechnung(
+        umriss: const [],
+        flaeche: 1,
+        zubehoer: zubehoerpositionen({
+          const Artikelnummer('568-250'): 4,
+        }, p.aktuell.zubehoer),
+      ),
+    );
+    addTearDown(() {
+      berechnung.dispose();
+      quelle.dispose();
+      planung.dispose();
+    });
+    await tester.pumpWidget(
+      testApp(
+        home: Scaffold(
+          body: ZubehoerBereich(
+            quelle: quelle,
+            berechnung: berechnung,
+            planung: planung,
+            onGeaendert: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('zubehoergruppe-terrassenoel')));
+    await tester.pumpAndSettle();
+    final feld = find.byKey(const ValueKey('zubehoermenge-568-250'));
+    expect(tester.widget<TextField>(feld).decoration!.hintText, '4');
+    final hinweis = find.byKey(const ValueKey('zubehoerberechnet-568-250'));
+    expect(hinweis, findsNothing);
+    await tester.enterText(feld, '1');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(tester.widget<TextField>(feld).decoration!.hintText, '1');
+    expect(find.text(de.zubehoerBerechnet(4)), findsOneWidget);
+    await tester.enterText(feld, '4');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(hinweis, findsNothing);
+    await tester.enterText(feld, '');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(planung.aktuell.zubehoer, isEmpty);
+    expect(tester.widget<TextField>(feld).decoration!.hintText, '4');
   });
 }
