@@ -123,7 +123,7 @@ final _glatt30 = _diele(
   serie: basic,
 );
 
-Regelwerk _regelwerk({bool mitAbstandshalter = true}) => Regelwerk(
+Regelwerk _regelwerk({bool mitMontagehilfe = true}) => Regelwerk(
   Artikeldatei(
     quelle: 'test',
     version: '1',
@@ -138,8 +138,9 @@ Regelwerk _regelwerk({bool mitAbstandshalter = true}) => Regelwerk(
       _eintrag(_glatt26, befestigung: _schrauben, ukAbstand: 300),
       _eintrag(_glatt30, befestigung: _schrauben, ukAbstand: null),
       for (final a in [..._clips, ..._duos, ..._schrauben]) _eintrag(a),
-      _eintrag(_montagehilfe),
-      if (mitAbstandshalter) _eintrag(_abstandshalter),
+      // Einweg-Abstandshalter vor der Montagehilfe: wird nicht gewählt
+      _eintrag(_abstandshalter),
+      if (mitMontagehilfe) _eintrag(_montagehilfe),
     ],
   ),
 );
@@ -394,8 +395,8 @@ void main() {
         winkel: 0,
       );
       expect(mit.art, Befestigungsart.verschraubtMitAbstandshaltern);
-      // je Punkt ein Abstandshalter: 390 → 4 Kartons à 100
-      expect(_mittel(mit), {'50-50-102': 4, '50-90-004': 4});
+      // eine Packung Montagehilfe für die Fuge von 5 mm (Alexander 04.11.2026)
+      expect(_mittel(mit), {'50-50-102': 4, '50-80-009': 1});
     });
 
     test('glattkant 60 mm: eine Schraube je Punkt; UK höchstens 40 cm', () {
@@ -434,9 +435,9 @@ void main() {
       expect(_mittel(b30), {'50-50-103': 1, '50-50-104': 3});
     });
 
-    test('ohne Abstandshalter in den Daten nur die Schrauben', () {
+    test('ohne Montagehilfe in den Daten nur die Schrauben', () {
       final b = befestigungsbedarf(
-        _regelwerk(mitAbstandshalter: false),
+        _regelwerk(mitMontagehilfe: false),
         _glatt100,
         Befestigungsart.verschraubtMitAbstandshaltern,
         _verlegt(breite: 100),
