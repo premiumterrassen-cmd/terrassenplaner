@@ -40,13 +40,10 @@ void main() {
       hallo: verbindung.hallo,
       berechne: verbindung.berechne,
       belaege: verbindung.belaege,
-      // Laden über den Server folgt mit M9-05; eine geladene Konfiguration
-      // wird für „Weiterplanen“ gemerkt (M3-09).
-      laden: einstellungen.merkend(
-        (stand) =>
-            Future.error(UnsupportedError('Laden folgt mit M9-05: $stand')),
-      ),
-      gespeichert: () async => einstellungen.letzteKonfiguration(),
+      // Speichern, Laden und Entwurf über den Konfigurationsdienst (M9-05);
+      // der Browser merkt sich nur Nummer, Version und Sitzungsschlüssel.
+      ablage: verbindung,
+      gedaechtnis: einstellungen,
       sprache: einstellungen.sprache(),
       darstellung: einstellungen.darstellung(),
     ),

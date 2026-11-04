@@ -26,6 +26,26 @@ abstract final class WampNamen {
   /// Kennzahlen; beides als typisierte FlatBuffers (Packed PPT, #110).
   static const planungBerechnen = '${kunde}planung.berechnen';
 
+  /// Konfigurationsdienst (M9-05): SPEICHERN vergibt beim ersten Mal eine
+  /// Konfigurationsnummer und legt danach je Speichern eine neue Version an;
+  /// LADEN liefert eine Version unverändert zurück. Der Entwurf ist der
+  /// automatisch zwischengespeicherte Stand je Sitzungsschlüssel.
+  static const konfigurationSpeichern = '${kunde}konfiguration.speichern';
+  static const konfigurationLaden = '${kunde}konfiguration.laden';
+  static const entwurfSpeichern = '${kunde}konfiguration.entwurf_speichern';
+  static const entwurfLaden = '${kunde}konfiguration.entwurf_laden';
+
+  /// Fehler-URI für eine unbekannte Konfigurationsnummer oder Version.
+  static const konfigurationUnbekannt =
+      '${kunde}fehler.konfiguration_unbekannt';
+
+  /// Fehler-URI für Aufrufe mit unlesbaren Argumenten oder Inhalten.
+  static const konfigurationUngueltig =
+      '${kunde}fehler.konfiguration_ungueltig';
+
+  /// Fehler-URI, wenn zum Sitzungsschlüssel kein Entwurf vorliegt.
+  static const entwurfUnbekannt = '${kunde}fehler.entwurf_unbekannt';
+
   /// Fehler-URI für ungültige Maße.
   static const masseUngueltig = '${kunde}fehler.masse_ungueltig';
 

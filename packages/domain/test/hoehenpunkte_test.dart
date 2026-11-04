@@ -360,10 +360,7 @@ void main() {
           gedreht: true,
         ),
       );
-      for (final k in [
-        Berechnung.ausBytes(b.zuBytes()),
-        b.mitGesamtflaeche(2),
-      ]) {
+      for (final k in [Berechnung.ausBytes(b.zuBytes()), b.mitPlanung(2)]) {
         final p = k.hoehenpunkte;
         expect(p.hoehen, _mm([150, 63]));
         expect(p.aufbauhoehe, const Millimeter(63));

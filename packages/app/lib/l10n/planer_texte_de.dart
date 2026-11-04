@@ -46,6 +46,12 @@ class PlanerTexteDe extends PlanerTexte {
   String get keineVerbindung => 'Keine Verbindung zum Server';
 
   @override
+  String get speichern => 'SPEICHERN';
+
+  @override
+  String get laden => 'LADEN';
+
+  @override
   String get zuruecksetzen => 'ZURÜCKSETZEN';
 
   @override
@@ -107,6 +113,17 @@ class PlanerTexteDe extends PlanerTexte {
   String volumen(String wert) {
     return 'Volumen: $wert';
   }
+
+  @override
+  String verschnitt(String wert) {
+    return 'Verschnitt: $wert';
+  }
+
+  @override
+  String get benoetigteDielen => 'Benötigte Dielen:';
+
+  @override
+  String get keineDielen => 'Noch keine Dielen verlegt.';
 
   @override
   String massPlatzhalter(String kante) {
@@ -455,7 +472,28 @@ class PlanerTexteDe extends PlanerTexte {
   String get version => 'Version';
 
   @override
-  String get ladeFehler => 'Die Konfiguration konnte nicht geladen werden.';
+  String get ladeFehler =>
+      'Die Konfiguration konnte nicht geladen werden – der Server ist nicht erreichbar.';
+
+  @override
+  String get konfigurationUnbekannt =>
+      'Diese Konfigurationsnummer oder Version gibt es nicht.';
+
+  @override
+  String get konfigurationSpeichernKnopf => 'Konfiguration Speichern';
+
+  @override
+  String get gefundenEntwurf =>
+      'Wir haben eine ungespeicherte Konfiguration gefunden. Möchten Sie mit dieser weiterplanen?';
+
+  @override
+  String gespeichertMeldung(String nummer, int version) {
+    return 'Gespeichert: Konfigurationsnummer $nummer, Version $version. Bitte notieren Sie die Nummer.';
+  }
+
+  @override
+  String get speichernFehler =>
+      'Speichern nicht möglich – der Server ist nicht erreichbar. Ihre Planung bleibt erhalten, bitte später erneut speichern.';
 
   @override
   String get modell3dTitel => '3D-Vorschau (Prototyp): Terrasse 4 x 3 m';

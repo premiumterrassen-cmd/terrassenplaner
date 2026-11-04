@@ -18,6 +18,30 @@ extension type const Konfigurationsnummer(String wert) implements Object {
     return Konfigurationsnummer(wert);
   }
 
+  /// Nummer [laufend] (1 … [hoechsteLaufende]) des Kalendertags von [zeit]
+  /// (M9-05): der Konfigurationsdienst zählt je Tag ab 1.
+  factory Konfigurationsnummer.vergib(DateTime zeit, int laufend) {
+    RangeError.checkValueInInterval(laufend, 1, hoechsteLaufende, 'laufend');
+    return Konfigurationsnummer(
+      '${tagAus(zeit)}-${laufend.toString().padLeft(4, '0')}',
+    );
+  }
+
+  /// Kalendertag `JJJJ-MM-TT` von [zeit] – der Teil vor der laufenden Nummer.
+  static String tagAus(DateTime zeit) =>
+      '${zeit.year.toString().padLeft(4, '0')}-'
+      '${zeit.month.toString().padLeft(2, '0')}-'
+      '${zeit.day.toString().padLeft(2, '0')}';
+
+  /// Mehr als vierstellig geht nicht (Format `NNNN`).
+  static const hoechsteLaufende = 9999;
+
+  /// Kalendertag `JJJJ-MM-TT` der Nummer.
+  String get tag => wert.substring(0, 10);
+
+  /// Laufende Nummer des Tages (`NNNN`).
+  int get laufend => int.parse(wert.substring(11));
+
   static final _muster = RegExp(r'^(\d{4})-(\d{2})-(\d{2})-\d{4}$');
 }
 

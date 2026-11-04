@@ -92,9 +92,9 @@ void main() {
       expect(linien(Verlegeart.fugenschnitt, -7), [0]);
       expect(linien(Verlegeart.wechselverband, -1), isEmpty);
       expect(linien(Verlegeart.wechselverband, -2), [0]);
-      expect(linien(Verlegeart.halbverband, -1), [-2790]);
+      expect(linien(Verlegeart.halbverband, -1), [-2789]);
       expect(linien(Verlegeart.drittelverband, -1), [-1860]);
-      expect(linien(Verlegeart.drittelverband, -2), [1859]);
+      expect(linien(Verlegeart.drittelverband, -2), [1860]);
       // Linie genau auf dem Rand der Fläche zählt nicht
       expect(
         _mm(

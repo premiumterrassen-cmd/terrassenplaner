@@ -16,10 +16,11 @@ typedef Unterkonstruktionssuche = Artikel? Function(Planungsstand stand);
 
 /// Planungsdienst (M4-02): berechnet aus der Planung der App Umriss und
 /// Kennzahlen der bearbeiteten Fläche, die Gesamtfläche (M4-14), die
-/// Dielenstücke (M5-05), den Ausgangspunkt der Verlegung (M5-07) und die
-/// Befestigung (M5-09) und die geprüften Höhenpunkte (M6-02) – die App
-/// rechnet nichts selbst (Frontend bleibt
-/// „doof“). Hin- und Rückweg als typisierte FlatBuffers (Packed PPT, #110).
+/// Dielenstücke (M5-05) mit Nummern, Dielenliste und Verschnitt (M5-08),
+/// den Ausgangspunkt der Verlegung (M5-07), die Befestigung (M5-09) und die
+/// geprüften Höhenpunkte (M6-02) – die App rechnet nichts selbst (Frontend
+/// bleibt „doof“). Hin- und Rückweg als typisierte FlatBuffers (Packed PPT,
+/// #110).
 class PlanungsDienst {
   PlanungsDienst._(this._sitzung);
 
@@ -58,15 +59,28 @@ class PlanungsDienst {
 
   /// Umriss, Ausschnitte und Fläche des Grundrisses; wie im alten Planer
   /// ist die Fläche die Außenfläche (Fachkonzept 1.4). Mit einem [belag]
-  /// aus Dielen auch die Dielenstücke in Verlegerichtung (M5-05) ab dem
-  /// verschobenen Ausgangspunkt, die Grenzen der Verschiebung und ob kurze
-  /// Zuschnitte entstehen (M5-07). Mit dem [regelwerk] auch die Befestigung
-  /// der Dielen (M5-09). Die Höhenpunkte prüft der Dienst gegen Belag und
-  /// [unterkonstruktion] (M6-02, `pruefeHoehen`).
+  /// aus Dielen oder Holzfliesen auch die nummerierten Stücke aller
+  /// Teilflächen (`verlegeBelag`, M5-05, M5-08) ab dem verschobenen
+  /// Ausgangspunkt, die Grenzen der Verschiebung und ob kurze Zuschnitte
+  /// entstehen (M5-07). Mit dem [regelwerk] auch die Befestigung (M5-09).
+  /// Die Höhenpunkte prüft der Dienst gegen Belag und [unterkonstruktion]
+  /// (M6-02, `pruefeHoehen`).
   static Berechnung berechne(
     Planungsstand stand, [
     Artikel? belag,
     Regelwerk? regelwerk,
+    Artikel? unterkonstruktion,
+  ]) => _mitVerlegung(
+    _grundflaeche(stand, belag, unterkonstruktion),
+    stand,
+    belag,
+    regelwerk,
+    verlegeBelag(stand, belag),
+  );
+
+  static Berechnung _grundflaeche(
+    Planungsstand stand, [
+    Artikel? belag,
     Artikel? unterkonstruktion,
   ]) {
     // offene Freiform (M4-08): nur der gezeichnete Linienzug
@@ -77,7 +91,7 @@ class PlanungsDienst {
       return Berechnung(umriss: punkte, flaeche: 0, geschlossen: false);
     }
     final kontur = stand.kontur;
-    final flaeche = Berechnung(
+    return Berechnung(
       // Bögen (Kreis) als Sehnenzug für die Zeichnung, Ecken für die Namen
       umriss: kontur.vieleck(),
       ecken: stand.grundriss.ecken,
@@ -90,81 +104,6 @@ class PlanungsDienst {
         uk: ukMasse(unterkonstruktion),
       ),
     );
-    final masse = belag?.abmessungen;
-    if (belag?.art != Artikelart.diele) return flaeche;
-    final breite = masse!.breite;
-    final laengste = masse.laengste;
-    // Holzfliesen und unvollständige Artikel bleiben ohne (M5-08)
-    if (breite == null || laengste == null) return flaeche;
-    final fest = stand.dielenlaenge;
-    return _verlegt(
-      flaeche,
-      stand,
-      belag!,
-      regelwerk,
-      dielenbreite: breite,
-      // erzwungene Länge nur, solange der Belag sie liefert (M5-02)
-      laengste: fest != null && masse.laengen.contains(fest) ? fest : laengste,
-    );
-  }
-
-  /// [flaeche] mit den Dielenstücken ab der gewählten Ecke plus
-  /// Verschiebung; eine Verschiebung über die Grenze hinaus (etwa nach einem
-  /// Wechsel auf einen schmaleren Belag) wird auf die Grenze begrenzt.
-  static Berechnung _verlegt(
-    Berechnung flaeche,
-    Planungsstand stand,
-    Artikel belag,
-    Regelwerk? regelwerk, {
-    required Millimeter dielenbreite,
-    required Millimeter laengste,
-  }) {
-    final kontur = stand.kontur;
-    final winkel = stand.dielenwinkel.toDouble();
-    final grenzen = verschiebungsgrenzen(
-      kontur,
-      winkel: winkel,
-      dielenbreite: dielenbreite,
-      laengste: laengste,
-    );
-    final ausgangspunkt =
-        stand.ausgangspunkt +
-        Punkt(
-          _begrenzt(stand.verschiebungX, grenzen.x),
-          _begrenzt(stand.verschiebungY, grenzen.y),
-        );
-    final stuecke = verlegeDielen(
-      kontur,
-      winkel: winkel,
-      ausgangspunkt: ausgangspunkt,
-      dielenbreite: dielenbreite,
-      verlegeart: stand.verlegeart,
-      laengste: laengste,
-      verbinden: stand.kurzeStueckeVerbinden,
-    );
-    return Berechnung(
-      umriss: flaeche.umriss,
-      ecken: flaeche.ecken,
-      flaeche: flaeche.flaeche,
-      ausschnitte: flaeche.ausschnitte,
-      dielen: [for (final d in stuecke) d.umriss],
-      ausgangspunkt: ausgangspunkt,
-      grenzeLinksRechts: grenzen.x,
-      grenzeObenUnten: grenzen.y,
-      kurzeZuschnitte: stuecke.any((d) => d.kurzerZuschnitt),
-      hoehenpunkte: flaeche.hoehenpunkte,
-      // ohne Regelwerk oder mit einem, das den Belag (nach einem Wechsel der
-      // Artikeldaten) nicht mehr kennt: keine Befestigung
-      befestigung: regelwerk?.datei[belag.nummer] == null
-          ? null
-          : befestigungsbedarf(
-              regelwerk!,
-              belag,
-              stand.befestigungsart,
-              stuecke,
-              winkel: winkel,
-            ),
-    );
   }
 
   /// Breite und Stärke einer UK; `null`, wenn eins fehlt (z. B. Alu-UK
@@ -175,11 +114,49 @@ class PlanungsDienst {
         _ => null,
       };
 
-  static double _begrenzt(Millimeter wert, Millimeter grenze) =>
-      wert.mm.clamp(-grenze.mm, grenze.mm).toDouble();
+  /// [flaeche] mit den Stücken der Verlegung [v]; die Befestigung zählt die
+  /// Punkte über alle Teilflächen.
+  static Berechnung _mitVerlegung(
+    Berechnung flaeche,
+    Planungsstand stand,
+    Artikel? belag,
+    Regelwerk? regelwerk,
+    Belagverlegung? v,
+  ) {
+    if (v == null) return flaeche;
+    // verlegt wird nur mit Belag
+    final artikel = belag!;
+    final stuecke = [for (final t in v.teile) ...t.stuecke];
+    return Berechnung(
+      umriss: flaeche.umriss,
+      ecken: flaeche.ecken,
+      flaeche: flaeche.flaeche,
+      ausschnitte: flaeche.ausschnitte,
+      dielen: [for (final s in stuecke) s.umriss],
+      nummern: [for (final t in v.teile) ...t.nummern],
+      ausgangspunkt: v.ausgangspunkt,
+      grenzeLinksRechts: v.grenzen.x,
+      grenzeObenUnten: v.grenzen.y,
+      kurzeZuschnitte: v.kurzeZuschnitte,
+      hoehenpunkte: flaeche.hoehenpunkte,
+      // ohne Regelwerk oder mit einem, das den Belag (nach einem Wechsel der
+      // Artikeldaten) nicht mehr kennt: keine Befestigung
+      befestigung: regelwerk?.datei[artikel.nummer] == null
+          ? null
+          : befestigungsbedarf(
+              regelwerk!,
+              artikel,
+              stand.befestigungsart,
+              stuecke,
+              winkel: stand.dielenwinkel.toDouble(),
+            ),
+    );
+  }
 
-  /// Berechnung der bearbeiteten Fläche mit der Gesamtfläche aller Flächen,
-  /// jede mal ihrer Häufigkeit (M4-14).
+  /// Berechnung der bearbeiteten Fläche mit den Werten der ganzen Planung
+  /// (M4-14): Gesamtfläche = Summe Fläche × Häufigkeit; Dielenliste je Belag
+  /// und Verschnitt über alle Flächen (M5-08) – jede Fläche wird für sich
+  /// zugeschnitten und mal ihrer Häufigkeit gezählt.
   static Berechnung berechnePlanung(
     Planung planung, [
     Belagsuche belag = _ohneBelag,
@@ -187,16 +164,36 @@ class PlanungsDienst {
     Unterkonstruktionssuche unterkonstruktion = _ohneUnterkonstruktion,
   ]) {
     var gesamt = 0.0;
-    for (final f in planung.flaechen) {
-      gesamt += berechne(f.stand).flaeche * f.haeufigkeit;
+    final listen = <Artikelnummer, Dielenliste>{};
+    late Berechnung aktuell;
+    for (final (i, f) in planung.flaechen.indexed) {
+      final artikel = belag(f.stand.belag);
+      final verlegung = verlegeBelag(f.stand, artikel);
+      final bearbeitet = i == planung.aktiv;
+      // Höhenpunkte nur für die bearbeitete Fläche (M6-02)
+      final grund = bearbeitet
+          ? _grundflaeche(f.stand, artikel, unterkonstruktion(f.stand))
+          : _grundflaeche(f.stand);
+      gesamt += grund.flaeche * f.haeufigkeit;
+      if (verlegung != null) {
+        final liste = verlegung.dielenliste * f.haeufigkeit;
+        listen.update(artikel!.nummer, (l) => l + liste, ifAbsent: () => liste);
+      }
+      if (bearbeitet) {
+        aktuell = _mitVerlegung(grund, f.stand, artikel, regelwerk, verlegung);
+      }
     }
-    final aktuell = planung.aktuell;
-    return berechne(
-      aktuell,
-      belag(aktuell.belag),
-      regelwerk,
-      unterkonstruktion(aktuell),
-    ).mitGesamtflaeche(gesamt);
+    final summe = listen.values.fold(Dielenliste.leer, (a, b) => a + b);
+    return aktuell.mitPlanung(
+      gesamt,
+      verschnitt: listen.isEmpty ? null : summe.verschnitt,
+      dielenliste: [
+        for (final MapEntry(key: nummer, value: liste) in listen.entries)
+          for (final MapEntry(key: laenge, value: anzahl)
+              in liste.anzahl.entries)
+            (belag: nummer, laenge: laenge, anzahl: anzahl),
+      ],
+    );
   }
 
   static void _berechne(

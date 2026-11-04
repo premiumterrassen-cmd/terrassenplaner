@@ -4,7 +4,9 @@ import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 import '../design/darstellung.dart';
 import '../design/planer_design.dart';
+import '../konfiguration/konfigurations_steuerung.dart';
 import '../sprache/sprache.dart';
+import '../start/eingangsdialog.dart';
 import 'aktionen.dart';
 import 'ansichtsoptionen.dart';
 import 'ausgangspunkt.dart';
@@ -12,6 +14,7 @@ import 'ausschnitte.dart';
 import 'befestigung.dart';
 import 'belag.dart';
 import 'berechnung_steuerung.dart';
+import 'dielenliste.dart';
 import 'flaechen.dart';
 import 'freiform.dart';
 import 'grundriss_eingabe.dart';
@@ -35,6 +38,7 @@ class PlanerRahmen extends StatefulWidget {
     this.ansicht,
     this.optionen,
     this.zeichnung,
+    this.konfiguration,
     this.berechne,
     this.belaege,
     this.aktionen = const RahmenAktionen(),
@@ -53,6 +57,10 @@ class PlanerRahmen extends StatefulWidget {
 
   /// Was gezeichnet wird, fest vorgegeben (Tests); sonst die Berechnung.
   final Zeichnung? zeichnung;
+
+  /// SPEICHERN und LADEN (M9-05); bringt die Planung mit. Ohne sie gibt es
+  /// die beiden Knöpfe nicht.
+  final KonfigurationsSteuerung? konfiguration;
 
   /// Berechnung auf dem Server (M4-02); ohne sie bleibt die Zeichnung leer.
   final PlanungBerechnen? berechne;
@@ -76,7 +84,8 @@ class PlanerRahmen extends StatefulWidget {
 
 class _PlanerRahmenState extends State<PlanerRahmen> {
   late final RahmenZustand _zustand = widget.zustand ?? RahmenZustand();
-  late final PlanungsSteuerung _planung = widget.planung ?? PlanungsSteuerung();
+  late final PlanungsSteuerung _planung =
+      widget.planung ?? widget.konfiguration?.planung ?? PlanungsSteuerung();
   late final AnsichtSteuerung _ansicht = widget.ansicht ?? AnsichtSteuerung();
   late final AnsichtsOptionen _optionen = widget.optionen ?? AnsichtsOptionen();
   final _modus = ZeichenModus();
@@ -149,7 +158,9 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
     _modus.dispose();
     _zustand.removeListener(_verlaesstRundung);
     _rundung.dispose();
-    if (widget.planung == null) _planung.dispose();
+    if (widget.planung == null && widget.konfiguration == null) {
+      _planung.dispose();
+    }
     if (widget.ansicht == null) _ansicht.dispose();
     if (widget.optionen == null) _optionen.dispose();
     super.dispose();
@@ -174,7 +185,43 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
       builder: (_) => const ZuruecksetzenDialog(),
     );
     if (bestaetigt ?? false) {
-      _planung.zuruecksetzen();
+      if (widget.konfiguration case final k?) {
+        k.neu();
+      } else {
+        _planung.zuruecksetzen();
+      }
+      _zustand.vergissAenderungen();
+      _ansicht.zentriere();
+    }
+  }
+
+  /// SPEICHERN ohne Rückfrage (Fachkonzept 08); Ergebnis oder Fehler als
+  /// Hinweis – die Planung bleibt in jedem Fall erhalten.
+  Future<void> _speichere(KonfigurationsSteuerung konfiguration) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final t = context.texte;
+    final String meldung;
+    try {
+      final stand = await konfiguration.speichere();
+      meldung = t.gespeichertMeldung(stand.nummer.wert, stand.version);
+    } on Object {
+      messenger.showSnackBar(SnackBar(content: Text(t.speichernFehler)));
+      return;
+    }
+    messenger.showSnackBar(SnackBar(content: Text(meldung)));
+  }
+
+  /// LADEN: „Konfiguration laden“ mit der geöffneten Konfiguration vorbelegt.
+  Future<void> _lade(KonfigurationsSteuerung konfiguration) async {
+    final geladen = await showDialog<bool>(
+      context: context,
+      builder: (_) => LadenDialog(
+        laden: konfiguration.lade,
+        speichern: konfiguration.speichere,
+        vorgabe: konfiguration.stand,
+      ),
+    );
+    if (geladen ?? false) {
       _zustand.vergissAenderungen();
       _ansicht.zentriere();
     }
@@ -215,6 +262,14 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
                 sprache: widget.sprache,
                 darstellung: widget.darstellung,
                 onZuruecksetzen: _zuruecksetzen,
+                onSpeichern: switch (widget.konfiguration) {
+                  final k? => () => _speichere(k),
+                  null => null,
+                },
+                onLaden: switch (widget.konfiguration) {
+                  final k? => () => _lade(k),
+                  null => null,
+                },
                 onVideoberatung: () =>
                     widget.aktionen.oeffne(PlanerLinks.videoberatung),
                 onPdf: () => _zumErgebnis(widget.aktionen.pdf),
@@ -257,6 +312,7 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
                             child: Kennzahlen(
                               flaeche: _berechnung?.flaeche,
                               gesamtflaeche: _berechnung?.gesamtflaeche,
+                              verschnitt: _berechnung?.verschnitt,
                             ),
                           ),
                           // Tablet: Menü liegt über der Zeichenfläche.
@@ -294,6 +350,8 @@ class Kopfzeile extends StatelessWidget {
     super.key,
     this.sprache,
     this.darstellung,
+    this.onSpeichern,
+    this.onLaden,
   });
 
   final bool breit;
@@ -304,12 +362,17 @@ class Kopfzeile extends StatelessWidget {
   final VoidCallback onPdf;
   final VoidCallback onAnfordern;
 
+  /// SPEICHERN und LADEN (M9-05); ohne Rückruf kein Knopf.
+  final VoidCallback? onSpeichern;
+  final VoidCallback? onLaden;
+
   static const logo = 'assets/bilder/robinienwelt_logo.png';
 
   /// Ab dieser Breite (px) tragen die Knöpfe ihre Beschriftung; darunter
   /// nur Symbole mit Tooltip – auch für längere Übersetzungen (M3-07) und
-  /// mit Sprach- und Darstellungsauswahl (M3-09, Englisch braucht 1322 px).
-  static const textAb = 1366.0;
+  /// mit Sprach- und Darstellungsauswahl (M3-09) sowie SPEICHERN und LADEN
+  /// (M9-05; Englisch braucht 1627 px).
+  static const textAb = 1680.0;
 
   Widget _knopf(
     String schluessel,
@@ -377,6 +440,22 @@ class Kopfzeile extends StatelessWidget {
             onVideoberatung,
             mitText: mitText,
           ),
+          if (onSpeichern case final speichern?)
+            _knopf(
+              'speichern',
+              Icons.save_outlined,
+              t.speichern,
+              speichern,
+              mitText: mitText,
+            ),
+          if (onLaden case final laden?)
+            _knopf(
+              'konfiguration-laden',
+              Icons.folder_open_outlined,
+              t.laden,
+              laden,
+              mitText: mitText,
+            ),
           _knopf(
             'zuruecksetzen',
             Icons.restart_alt,
@@ -535,7 +614,8 @@ class Bearbeitungsmenue extends StatelessWidget {
   /// Ausgangspunkt des Belags (M5-07); ohne Bedienung keine Eingabe.
   final AusgangspunktBedienung? ausgangspunkt;
 
-  /// Berechnung des Servers, z. B. für die Befestigung (M5-09).
+  /// Berechnung des Servers für die Befestigung (M5-09) und die
+  /// Dielenliste unter 7.1 (M5-08).
   final BerechnungsSteuerung? berechnung;
 
   /// Eingaben unter einem Unterpunkt (Schritt, Index ab 0).
@@ -602,6 +682,8 @@ class Bearbeitungsmenue extends StatelessWidget {
       berechnung: berechnung,
       onGeaendert: () => zustand.markiereGeaendert(schritt),
     ),
+    (PlanerSchritt.verschnittoptimierung, 0) when berechnung != null =>
+      DielenlisteAnzeige(berechnung: berechnung!),
     _ => null,
   };
 
@@ -691,10 +773,17 @@ class MenuGriff extends StatelessWidget {
   );
 }
 
-/// Kennzahlen rechts oben (M4-13): Fläche vom Server und Holzvolumen; das
-/// Volumen ergibt sich erst aus Dielen und Unterkonstruktion (M5-08, M6-10).
+/// Kennzahlen rechts oben (M4-13) in der Reihenfolge des alten Planers:
+/// Fläche, Verschnitt des Belags (M5-08) und Holzvolumen – das Volumen
+/// ergibt sich erst aus Dielen und Unterkonstruktion (M6-10).
 class Kennzahlen extends StatelessWidget {
-  const Kennzahlen({super.key, this.flaeche, this.gesamtflaeche, this.volumen});
+  const Kennzahlen({
+    super.key,
+    this.flaeche,
+    this.gesamtflaeche,
+    this.verschnitt,
+    this.volumen,
+  });
 
   /// Fläche der bearbeiteten Fläche in m², `null` = noch nicht berechnet.
   final double? flaeche;
@@ -703,8 +792,16 @@ class Kennzahlen extends StatelessWidget {
   /// Fläche, ohne eigene Zeile.
   final double? gesamtflaeche;
 
+  /// Verschnitt als Anteil (0,04 = 4 %), `null` = ohne verlegte Dielen.
+  final double? verschnitt;
+
   /// Holzvolumen in m³, `null` = noch nicht berechnet.
   final double? volumen;
+
+  /// Verschnitt in Prozent mit höchstens zwei Nachkommastellen wie im
+  /// alten Planer („3,41 %“), im Format der Sprache.
+  static String prozent(PlanerTexte t, double? anteil) =>
+      anteil == null ? '– %' : '${zahlText(t, anteil * 100, '0.##')} %';
 
   /// Wert mit drei Nachkommastellen wie im alten Planer, im Format der
   /// Sprache („14,832 m²“).
@@ -724,6 +821,7 @@ class Kennzahlen extends StatelessWidget {
             Text(t.flaeche(zahl(t, flaeche, 'm²'))),
             if (gesamtflaeche case final g?)
               Text(t.gesamtflaeche(zahl(t, g, 'm²'))),
+            Text(t.verschnitt(prozent(t, verschnitt))),
             Text(t.volumen(zahl(t, volumen, 'm³'))),
           ],
         ),

@@ -64,6 +64,9 @@ services:
       PLANER_HEALTH_LISTEN: 0.0.0.0:8081
       PLANER_AUTH_ADRESSE: auth:8082
       PLANER_ARTIKELDATEI: /daten/artikel.json
+      # Konfigurationen (M9-05): eigene ObjectBox-Datenbank im Volume router-daten
+      PLANER_DATENVERZEICHNIS: /daten/datenbank
+      PLANER_KNOTEN: {{ inventory_hostname }}
     volumes: [router-daten:/daten]
     networks: [intern, proxy, monitoring]
     depends_on:

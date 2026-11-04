@@ -1617,11 +1617,13 @@ void main() {
         grenzeLinksRechts: const Millimeter(4800),
         grenzeObenUnten: const Millimeter(65),
         kurzeZuschnitte: true,
+        nummern: const [1],
+        verschnitt: 0.25,
+        dielenliste: const [
+          (belag: Artikelnummer('x'), laenge: Millimeter(5000), anzahl: 1),
+        ],
       );
-      for (final k in [
-        Berechnung.ausBytes(b.zuBytes()),
-        b.mitGesamtflaeche(9),
-      ]) {
+      for (final k in [Berechnung.ausBytes(b.zuBytes()), b.mitPlanung(9)]) {
         expect(k.ausgangspunkt, const Punkt(12.5, -3));
         expect(k.grenzeLinksRechts, const Millimeter(4800));
         expect(k.grenzeObenUnten, const Millimeter(65));
@@ -1634,7 +1636,7 @@ void main() {
         expect(k.dielen, b.dielen);
       }
       expect(b.gesamtflaeche, 7);
-      expect(b.mitGesamtflaeche(9).gesamtflaeche, 9);
+      expect(b.mitPlanung(9).gesamtflaeche, 9);
       final ohne = Berechnung.ausBytes(
         Berechnung(umriss: const [], flaeche: 0).zuBytes(),
       );
@@ -1642,6 +1644,54 @@ void main() {
       expect(ohne.grenzeLinksRechts, const Millimeter(0));
       expect(ohne.grenzeObenUnten, const Millimeter(0));
       expect(ohne.kurzeZuschnitte, isFalse);
+      expect(ohne.nummern, isEmpty);
+      expect(ohne.verschnitt, isNull);
+      expect(ohne.dielenliste, isEmpty);
+      // die Kopie übernimmt Nummern, die Planungswerte kommen neu
+      expect(b.mitPlanung(9).nummern, [1]);
+      expect(b.mitPlanung(9).verschnitt, isNull);
+      expect(b.mitPlanung(9).dielenliste, isEmpty);
+    });
+
+    test('Nummern, Verschnitt und Dielenliste (M5-08) hin und zurück, '
+        'unveränderlich', () {
+      const liste = [
+        (
+          belag: Artikelnummer('10-10-001'),
+          laenge: Millimeter(4000),
+          anzahl: 2,
+        ),
+        (
+          belag: Artikelnummer('10-10-001'),
+          laenge: Millimeter(5000),
+          anzahl: 48,
+        ),
+        (belag: Artikelnummer('40-10-001'), laenge: Millimeter(606), anzahl: 7),
+      ];
+      final b = Berechnung(
+        umriss: const [Punkt(0, 0), Punkt(4800, 0), Punkt(4800, 3090)],
+        flaeche: 1,
+        dielen: [
+          [const Punkt(0, 0), const Punkt(4800, 0), const Punkt(4800, 65)],
+          [const Punkt(0, 65), const Punkt(4800, 65), const Punkt(4800, 130)],
+        ],
+        nummern: const [1, 2],
+      ).mitPlanung(3, verschnitt: 0.04, dielenliste: liste);
+      for (final k in [b, Berechnung.ausBytes(b.zuBytes())]) {
+        expect(k.nummern, [1, 2]);
+        expect(k.verschnitt, 0.04);
+        expect(k.dielenliste, liste);
+        expect(k.gesamtflaeche, 3);
+      }
+      expect(() => b.nummern.add(3), throwsUnsupportedError);
+      expect(b.dielenliste.clear, throwsUnsupportedError);
+      // Verschnitt 0 bleibt 0, nicht „fehlt“
+      expect(
+        Berechnung.ausBytes(
+          Berechnung(umriss: const [], flaeche: 0, verschnitt: 0).zuBytes(),
+        ).verschnitt,
+        0,
+      );
     });
 
     test('Befestigung (M5-09) hin und zurück, auch in der Kopie mit '
@@ -1666,10 +1716,7 @@ void main() {
           ],
         ),
       );
-      for (final k in [
-        Berechnung.ausBytes(b.zuBytes()),
-        b.mitGesamtflaeche(2),
-      ]) {
+      for (final k in [Berechnung.ausBytes(b.zuBytes()), b.mitPlanung(2)]) {
         expect(k.befestigung.arten, b.befestigung.arten);
         expect(
           k.befestigung.art,

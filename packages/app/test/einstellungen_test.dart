@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:terrassenplaner_app/planer_app.dart';
@@ -18,6 +20,23 @@ final class _GesperrterSpeicher implements EinstellungsSpeicher {
 
   @override
   void schreibe(String schluessel, String wert) => throw StateError('gesperrt');
+}
+
+/// Liefert die Werte der Reihe nach, danach 0.
+final class _Zufall implements Random {
+  _Zufall(this._werte);
+
+  final List<int> _werte;
+  var _i = 0;
+
+  @override
+  int nextInt(int max) => _i < _werte.length ? _werte[_i++] : 0;
+
+  @override
+  bool nextBool() => throw UnimplementedError();
+
+  @override
+  double nextDouble() => throw UnimplementedError();
 }
 
 final _stand = KonfigurationsStand(
@@ -144,18 +163,33 @@ void main() {
       }
     });
 
-    test('merkend: nur erfolgreich geladene Konfigurationen', () async {
-      final geladen = <KonfigurationsStand>[];
-      await einstellungen.merkend((stand) async => geladen.add(stand))(_stand);
-      expect(geladen, [_stand]);
-      expect(einstellungen.letzteKonfiguration(), _stand);
-
-      final anderer = KonfigurationsStand(_stand.nummer, 4);
-      await expectLater(
-        einstellungen.merkend((_) => Future.error(StateError('weg')))(anderer),
-        throwsStateError,
+    test('Sitzungsschlüssel: einmal erzeugt, danach behalten (M9-05)', () {
+      expect(LokaleEinstellungen.sitzungSchluessel, 'terrassenplaner.sitzung');
+      final schluessel = einstellungen.sitzungsschluessel();
+      expect(schluessel, matches(RegExp(r'^[0-9a-f]{32}$')));
+      expect(speicher.lies(LokaleEinstellungen.sitzungSchluessel), schluessel);
+      expect(einstellungen.sitzungsschluessel(), schluessel);
+      // nach dem Neuladen derselbe
+      expect(LokaleEinstellungen(speicher).sitzungsschluessel(), schluessel);
+      // fester Zufall: führende Nullen bleiben erhalten
+      final fest = LokaleEinstellungen(
+        FluechtigerSpeicher(),
+        zufall: _Zufall([0, 15, 255]),
       );
-      expect(einstellungen.letzteKonfiguration(), _stand);
+      expect(fest.sitzungsschluessel(), '000fff${'00' * 13}');
+    });
+
+    test('Sitzungsschlüssel: ungültiger Eintrag wird ersetzt', () {
+      for (final falsch in ['', 'abc', '0123456789ABCDEF0123456789ABCDEF']) {
+        speicher.schreibe(LokaleEinstellungen.sitzungSchluessel, falsch);
+        final neu = LokaleEinstellungen(speicher).sitzungsschluessel();
+        expect(neu, isNot(falsch));
+        expect(neu, hasLength(32));
+        expect(speicher.lies(LokaleEinstellungen.sitzungSchluessel), neu);
+      }
+      final gueltig = 'a' * 32;
+      speicher.schreibe(LokaleEinstellungen.sitzungSchluessel, gueltig);
+      expect(LokaleEinstellungen(speicher).sitzungsschluessel(), gueltig);
     });
 
     test('gesperrter Speicher: Standardwerte, Änderungen ohne Fehler', () {
@@ -172,6 +206,8 @@ void main() {
       expect(() => sprache.value = const Locale('en'), returnsNormally);
       expect(() => darstellung.value = ThemeMode.dark, returnsNormally);
       expect(() => gesperrt.merke(_stand), returnsNormally);
+      // ohne Speicher: je Sitzung derselbe Schlüssel
+      expect(gesperrt.sitzungsschluessel(), gesperrt.sitzungsschluessel());
     });
   });
 
@@ -191,8 +227,8 @@ void main() {
       await tester.pumpWidget(
         PlanerApp(
           hallo: () async => 'ok',
-          laden: (_) async {},
-          gespeichert: () async => null,
+          ablage: TestAblage(),
+          gedaechtnis: testGedaechtnis(),
           sprache: steuerung,
           darstellung: darstellung,
         ),

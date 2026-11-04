@@ -43,6 +43,7 @@ class BerechnungsSteuerung extends ChangeNotifier {
           (name: a.bezeichnung, farbe: farbe(a)),
       ],
       dielen: [for (final d in b.dielen) _offsets(d)],
+      nummern: b.nummern,
       ausgangspunkt: switch (b.ausgangspunkt) {
         final p? => Offset(p.x, p.y),
         null => null,
@@ -82,6 +83,13 @@ class BerechnungsSteuerung extends ChangeNotifier {
       b.gesamtflaecheQuadratmeter,
     _ => null,
   };
+
+  /// Verschnitt der ganzen Planung als Anteil (M5-08); `null` ohne
+  /// verlegte Dielen.
+  double? get verschnitt => _ergebnis?.verschnitt;
+
+  /// Benötigte Dielen der ganzen Planung je Belag und Lieferlänge (M5-08).
+  List<Lieferposition> get dielenliste => _ergebnis?.dielenliste ?? const [];
 
   Future<void> _frage() async {
     final nummer = ++_anfrage;

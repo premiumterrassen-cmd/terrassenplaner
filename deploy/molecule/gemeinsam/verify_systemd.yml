@@ -112,6 +112,12 @@
       register: planer_test_db
       failed_when: not planer_test_db.stat.exists or planer_test_db.stat.pw_name != 'planer-auth'
 
+    - name: ObjectBox-Datenbank der Konfigurationen im Router angelegt (M9-05)
+      ansible.builtin.stat:
+        path: /var/lib/terrassenplaner/planer-router/datenbank/data.mdb
+      register: planer_test_router_db
+      failed_when: not planer_test_router_db.stat.exists or planer_test_router_db.stat.pw_name != 'planer-router'
+
     - name: Prometheus erreicht alle Ziele (WAMP-Dienste, Server, Traefik)
       ansible.builtin.uri:
         url: http://127.0.0.1:9090/api/v1/targets

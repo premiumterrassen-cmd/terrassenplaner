@@ -1,0 +1,711 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
+import 'package:test/test.dart';
+
+const _m4 = Millimeter(4000);
+const _m5 = Millimeter(5000);
+const _m6 = Millimeter(6000);
+const _m7 = Millimeter(7000);
+
+Artikel _diele(
+  int breite, [
+  List<Millimeter> laengen = const [_m4, _m5, _m6],
+  Artikelart art = Artikelart.diele,
+]) => Artikel(
+  nummer: const Artikelnummer('10-10-001'),
+  titel: 'Diele',
+  art: art,
+  einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+  abmessungen: Abmessungen(breite: Millimeter(breite), laengen: laengen),
+  holzart: art.istHolz ? robinie : null,
+  serie: art.istHolz ? basic : null,
+);
+
+/// Holzfliese 606 × 606 mm (ROBI-FIXX, F25).
+final _fliese = Artikel(
+  nummer: const Artikelnummer('40-10-001'),
+  titel: 'Fliese',
+  art: Artikelart.holzfliese,
+  einheit: Verkaufseinheit(Mengeneinheit.stueck),
+  abmessungen: Abmessungen(
+    breite: const Millimeter(606),
+    laengen: const [Millimeter(606)],
+  ),
+);
+
+List<int> _mm(Iterable<Millimeter> werte) => [for (final w in werte) w.mm];
+
+Map<int, int> _anzahl(Dielenliste liste) => {
+  for (final MapEntry(:key, :value) in liste.anzahl.entries) key.mm: value,
+};
+
+Planungsstand _rechteck(int ab, int bc) =>
+    Planungsstand(grundriss: RechteckGrundriss(Millimeter(ab), Millimeter(bc)));
+
+/// Rechteck als geschlossene Freiform – auch schmaler als 50 cm.
+Planungsstand _streifen(double ab, double bc) => Planungsstand(
+  grundriss: FreiformGrundriss([
+    Punkt.ursprung,
+    Punkt(ab, 0),
+    Punkt(ab, bc),
+    Punkt(0, bc),
+  ], geschlossen: true),
+);
+
+Belagverlegung _verlegt(Planungsstand stand, [Artikel? belag]) =>
+    verlegeBelag(stand, belag ?? _diele(60))!;
+
+/// Dielen nach Nummer als sortierbare Texte „Länge × Breite: Stück“ (cm).
+List<String> _sorten(Belagverlegung v) => [
+  for (final t in v.teile)
+    for (final s in t.sorten) '${s.laenge.cm}x${s.breite.cm}:${s.stueck}',
+]..sort();
+
+void main() {
+  group('zuschneiden', () {
+    List<String> zuschnitt(
+      List<int> stuecke, [
+      List<Millimeter> laengen = const [_m4, _m5, _m6],
+    ]) => [
+      for (final d in zuschneiden([
+        for (final s in stuecke) Millimeter(s),
+      ], laengen))
+        '${d.laenge.mm}: ${_mm(d.schnitte)}',
+    ];
+
+    test('je Reihe die kürzeste passende Länge (M5-02)', () {
+      expect(zuschnitt([4800, 3090]), ['5000: [4800]', '4000: [3090]']);
+      expect(zuschnitt([]), isEmpty);
+    });
+
+    test('Reststücke auf weitere Reihen: 4000 mm für zwei Reihen mit je '
+        '200 cm Rest (F09)', () {
+      expect(zuschnitt([6000, 2000, 6000, 2000]), [
+        '6000: [6000]',
+        '6000: [6000]',
+        '4000: [2000, 2000]',
+      ]);
+      // der Rest einer angefangenen Diele nimmt das nächste Stück auf
+      expect(zuschnitt([3600, 1400]), ['5000: [3600, 1400]']);
+    });
+
+    test('kleinster passender Rest einer angefangenen Diele', () {
+      // Reste 1000 (aus 5000) und 500 (aus 6000): 400 kommt in den 500er
+      expect(zuschnitt([5500, 4000, 400]), [
+        '6000: [5500, 400]',
+        '4000: [4000]',
+      ]);
+      // gleich großer Rest zählt als passend: Schnitt ohne Zugabe
+      expect(zuschnitt([2000, 2000]), ['4000: [2000, 2000]']);
+    });
+
+    test('neue Diele: kleinster Rest nach dem Auffüllen, bei Gleichstand die '
+        'kürzere', () {
+      // 2400 + 2400 in 5000 (Rest 200) statt einzeln in 4000 (F06)
+      expect(zuschnitt([2400, 2400]), ['5000: [2400, 2400]']);
+      // 3000 + 3000: 6000 hat Rest 0, 4000 und 5000 nicht
+      expect(zuschnitt([3000, 3000]), ['6000: [3000, 3000]']);
+      // Rest 0 in 4000, 5000 (mit 1000) und 6000: die kürzere gewinnt
+      expect(zuschnitt([3000, 1000, 1000, 1000]), [
+        '4000: [3000, 1000]',
+        '4000: [1000, 1000]',
+      ]);
+      // ohne Folgestücke: kürzeste passende
+      expect(zuschnitt([4100]), ['5000: [4100]']);
+    });
+
+    test('zum Schluss die kürzeste Länge, die die Stücke aufnimmt (F21)', () {
+      // 3600 beginnt in 5000, weil 1400 nachkommen könnte – hier nicht
+      expect(zuschnitt([3600, 3600, 1400]), [
+        '5000: [3600, 1400]',
+        '4000: [3600]',
+      ]);
+    });
+
+    test('Lieferlängen in beliebiger Reihenfolge, Stück zu lang = Fehler', () {
+      expect(zuschnitt([3000], const [_m6, _m4]), ['4000: [3000]']);
+      expect(
+        () => zuschnitt([6001]),
+        throwsA(
+          isA<ArgumentError>().having(
+            (e) => e.message,
+            'message',
+            'länger als jede Lieferlänge',
+          ),
+        ),
+      );
+    });
+
+    test('Lieferdiele: Schnitte unveränderlich, genutzte Länge', () {
+      final d = Lieferdiele(_m5, const [Millimeter(3000), Millimeter(1500)]);
+      expect(d.genutzt, const Millimeter(4500));
+      expect(() => d.schnitte.add(_m4), throwsUnsupportedError);
+      expect(Lieferdiele(_m4, const []).genutzt, const Millimeter(0));
+    });
+  });
+
+  group('Dielenliste', () {
+    test(
+      'Anzahl je Lieferlänge, geplant, geliefert und Verschnitt (R-B11)',
+      () {
+        final liste = Dielenliste.aus([
+          Lieferdiele(_m5, const [Millimeter(4800)]),
+          Lieferdiele(_m4, const [Millimeter(3000), Millimeter(500)]),
+          Lieferdiele(_m5, const [Millimeter(4900)]),
+        ]);
+        expect(_anzahl(liste), {4000: 1, 5000: 2});
+        expect(liste.anzahl.keys.first, _m4);
+        expect(liste.geplant, const Millimeter(13200));
+        expect(liste.geliefert, const Millimeter(14000));
+        expect(liste.verschnitt, closeTo(800 / 14000, 1e-12));
+        expect(() => liste.anzahl[_m6] = 1, throwsUnsupportedError);
+      },
+    );
+
+    test('leer: kein Verschnitt', () {
+      expect(Dielenliste.leer.anzahl, isEmpty);
+      expect(Dielenliste.leer.verschnitt, 0);
+      expect(Dielenliste.aus(const []).verschnitt, 0);
+    });
+
+    test('Summe und Häufigkeit (M4-14)', () {
+      final a = Dielenliste.aus([
+        Lieferdiele(_m5, const [Millimeter(4000)]),
+      ]);
+      final b = Dielenliste.aus([
+        Lieferdiele(_m5, const [Millimeter(5000)]),
+        Lieferdiele(_m6, const [Millimeter(6000)]),
+      ]);
+      final summe = a + b;
+      expect(_anzahl(summe), {5000: 2, 6000: 1});
+      expect(summe.geplant, const Millimeter(15000));
+      expect(summe.geliefert, const Millimeter(16000));
+      final dreimal = b * 3;
+      expect(_anzahl(dreimal), {5000: 3, 6000: 3});
+      expect(dreimal.geplant, const Millimeter(33000));
+      expect(dreimal.geliefert, const Millimeter(33000));
+    });
+  });
+
+  group('Teilverlegung: Nummern wie „Dielen nach Nummer“', () {
+    test('gleiche Länge und zugeschnittene Breite = gleiche Nummer', () {
+      Dielenstueck stueck(int laenge, double breite) =>
+          Dielenstueck(0, Millimeter(laenge), const [], breite: breite);
+      final teil = Teilverlegung(
+        [
+          stueck(4800, 65),
+          stueck(4800, 65),
+          stueck(3000, 65),
+          stueck(4800, 35.4),
+          stueck(3000, 65),
+        ],
+        lieferlaengen: const [_m4, _m5, _m6],
+        bezeichnung: 'A1',
+      );
+      expect(teil.bezeichnung, 'A1');
+      expect(teil.nummern, [1, 1, 2, 3, 2]);
+      expect(
+        [
+          for (final s in teil.sorten)
+            (s.nummer, s.laenge.mm, s.breite.mm, s.stueck),
+        ],
+        [(1, 4800, 60, 2), (2, 3000, 60, 2), (3, 4800, 30, 1)],
+      );
+      expect(teil.zuschnitt, hasLength(4));
+      expect(() => teil.nummern.add(1), throwsUnsupportedError);
+      expect(teil.sorten.clear, throwsUnsupportedError);
+      expect(teil.stuecke.clear, throwsUnsupportedError);
+      expect(teil.zuschnitt.clear, throwsUnsupportedError);
+    });
+  });
+
+  group('verlegeBelag', () {
+    test('F01: 48 Reihen à 480 cm, 48 × 5000 mm, Verschnitt 4 %', () {
+      final v = _verlegt(
+        Planungsstand.start.mitGrundriss(
+          RechteckGrundriss(const Millimeter(4800), const Millimeter(3090)),
+        ),
+      );
+      expect(v.teile, hasLength(1));
+      expect(v.teile.single.bezeichnung, isNull);
+      expect(_sorten(v), ['480.0x3.0:1', '480.0x6.0:47']);
+      expect(_anzahl(v.dielenliste), {5000: 48});
+      expect(v.dielenliste.verschnitt, closeTo(0.04, 1e-12));
+      expect(v.ausgangspunkt, Punkt.ursprung);
+      expect(v.grenzen, (x: const Millimeter(4800), y: const Millimeter(65)));
+      expect(v.kurzeZuschnitte, isTrue);
+      expect(v.teile.clear, throwsUnsupportedError);
+    });
+
+    test('nichts zu verlegen: offene Freiform, kein Belag, Systemdiele, '
+        'unvollständige Abmessungen', () {
+      final offen = Planungsstand(
+        grundriss: FreiformGrundriss(const [Punkt(0, 0), Punkt(1000, 0)]),
+      );
+      expect(verlegeBelag(offen, _diele(60)), isNull);
+      expect(verlegeBelag(Planungsstand.start, null), isNull);
+      expect(
+        verlegeBelag(
+          Planungsstand.start,
+          _diele(60, const [_m4], Artikelart.systemdiele),
+        ),
+        isNull,
+      );
+      expect(verlegeBelag(Planungsstand.start, _diele(60, const [])), isNull);
+      final ohneBreite = Artikel(
+        nummer: const Artikelnummer('1'),
+        titel: 'Diele',
+        art: Artikelart.diele,
+        einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+        abmessungen: Abmessungen(laengen: const [_m4]),
+        holzart: robinie,
+        serie: basic,
+      );
+      expect(verlegeBelag(Planungsstand.start, ohneBreite), isNull);
+      // geschlossene Freiform wird verlegt
+      final zu = Planungsstand(
+        grundriss: FreiformGrundriss(const [
+          Punkt(0, 0),
+          Punkt(1000, 0),
+          Punkt(1000, 130),
+        ], geschlossen: true),
+      );
+      expect(verlegeBelag(zu, _diele(60)), isNotNull);
+    });
+
+    test('erzwungene Länge, solange der Belag sie liefert (M5-02, F13)', () {
+      final stand = _rechteck(8000, 3090);
+      expect(_anzahl(_verlegt(stand.mitDielenlaenge(_m4)).dielenliste), {
+        4000: 96,
+      });
+      // F09: automatisch 600 + 200 cm, die 200er paarweise in 4000 mm
+      expect(_anzahl(_verlegt(stand).dielenliste), {4000: 24, 6000: 48});
+      // Länge, die der Belag nicht liefert: Automatik
+      expect(_anzahl(_verlegt(stand.mitDielenlaenge(_m7)).dielenliste), {
+        4000: 24,
+        6000: 48,
+      });
+    });
+
+    test('kurze Stücke verbinden nur bei Dielen (R-B12)', () {
+      // obere Reihe von 30 bis 90 cm, Stoß bei 60,6 cm: 30,6 + 29,4 cm
+      final form = Planungsstand(
+        grundriss: FreiformGrundriss(const [
+          Punkt.ursprung,
+          Punkt(1300, 0),
+          Punkt(1300, 611),
+          Punkt(900, 611),
+          Punkt(900, 1222),
+          Punkt(300, 1222),
+          Punkt(300, 611),
+          Punkt(0, 611),
+        ], geschlossen: true),
+      ).mitKurzeStueckeVerbinden(true);
+      List<int> laengen(Artikel belag) => _mm([
+        for (final s in _verlegt(form, belag).teile.single.stuecke) s.laenge,
+      ]);
+      expect(laengen(_fliese), [606, 606, 88, 306, 294]);
+      final diele = _diele(606, const [Millimeter(606)]);
+      expect(laengen(diele), [606, 606, 88, 600]);
+      expect(
+        _mm([
+          for (final s in _verlegt(
+            form.mitKurzeStueckeVerbinden(false),
+            diele,
+          ).teile.single.stuecke)
+            s.laenge,
+        ]),
+        [606, 606, 88, 306, 294],
+      );
+    });
+
+    test('Verschiebung über die Grenze wird begrenzt (M5-07)', () {
+      final stand = _rechteck(
+        4800,
+        3090,
+      ).mitAusgangspunkt(x: const Millimeter(9000), y: const Millimeter(-200));
+      final v = _verlegt(stand);
+      expect(v.ausgangspunkt, const Punkt(4800, -65));
+      final innen = _verlegt(
+        _rechteck(
+          4800,
+          3090,
+        ).mitAusgangspunkt(x: const Millimeter(-30), y: const Millimeter(20)),
+      );
+      expect(innen.ausgangspunkt, const Punkt(-30, 20));
+    });
+
+    test('leerer Ausschnitt bleibt frei, anderer Belag ist eine eigene '
+        'Teilfläche (F21, F22)', () {
+      final ausschnitt = Ausschnitt(
+        bezeichnung: 'A1',
+        x: const Millimeter(1000),
+        y: const Millimeter(1000),
+        laenge: const Millimeter(1200),
+        breite: const Millimeter(1330),
+      );
+      final leer = _rechteck(
+        3600,
+        4000,
+      ).mitNeuemAusschnitt().mitAusschnitt(0, ausschnitt);
+      final v = _verlegt(leer);
+      expect(v.teile, hasLength(1));
+      // 19 Reihen ganz durch den Ausschnitt: 100 + 140 cm, die übrigen
+      // (auch die zwei angeschnittenen) ausgeklinkt 360 cm
+      expect(_sorten(v), [
+        '100.0x6.0:19',
+        '140.0x6.0:19',
+        '360.0x3.0:1',
+        '360.0x6.0:42',
+      ]);
+      // wie der alte Planer: 38 × 5000 + 5 × 4000 mm (F21)
+      expect(_anzahl(v.dielenliste), {4000: 5, 5000: 38});
+      final anders = leer.mitAusschnitt(
+        0,
+        ausschnitt.mitFunktion(Ausschnittfunktion.andererBelag),
+      );
+      final w = _verlegt(anders);
+      expect([for (final t in w.teile) t.bezeichnung], [null, 'A1']);
+      expect(
+        _sorten(v),
+        [for (final s in _sorten(w)) s]
+          ..removeWhere((s) => s.startsWith('120.0')),
+      );
+      // Teilfläche 120 × 133 cm ab ihrer Ecke: 20 Reihen + 3 cm
+      expect(
+        [
+          for (final s in w.teile.last.sorten)
+            (s.laenge.mm, s.breite.mm, s.stueck),
+        ],
+        [(1200, 60, 20), (1200, 25, 1)],
+      );
+      expect(w.teile.last.nummern.first, 1);
+      // alter Planer 4 × 6000 + 1 × 3000 mm; 3000 gibt es nicht (R-A06)
+      expect(_anzahl(Dielenliste.aus(w.teile.last.zuschnitt)), {
+        4000: 1,
+        6000: 4,
+      });
+      expect(_anzahl(w.dielenliste), {4000: 6, 5000: 38, 6000: 4});
+    });
+
+    test('Ausschnitt ganz in einer Reihe unterbricht die Diele', () {
+      // 12 cm breite Dielen, Reihe 125 mm, Pfosten 100 × 100 mm darin
+      final stand = _streifen(3000, 125).mitNeuemAusschnitt().mitAusschnitt(
+        0,
+        Ausschnitt(
+          bezeichnung: 'P',
+          x: const Millimeter(1000),
+          y: const Millimeter(10),
+          laenge: const Millimeter(100),
+          breite: const Millimeter(100),
+        ),
+      );
+      final v = _verlegt(stand, _diele(120));
+      expect(_mm([for (final s in v.teile.single.stuecke) s.laenge]), [
+        1000,
+        1900,
+      ]);
+      // zwei Pfosten nebeneinander in derselben Reihe
+      final zwei = stand.mitNeuemAusschnitt().mitAusschnitt(
+        1,
+        Ausschnitt(
+          bezeichnung: 'Q',
+          x: const Millimeter(2000),
+          y: const Millimeter(10),
+          laenge: const Millimeter(100),
+          breite: const Millimeter(100),
+        ),
+      );
+      expect(
+        _mm(
+          [
+            for (final s in _verlegt(zwei, _diele(120)).teile.single.stuecke)
+              s.laenge,
+          ]..sort(),
+        ),
+        [900, 900, 1000],
+      );
+    });
+
+    test('Holzfliesen 606 × 606 mm in Reihen mit Fuge (F25)', () {
+      final v = _verlegt(_rechteck(4800, 3090), _fliese);
+      // 8 Spalten (7 × 60,6 + 55,8 cm), 6 Reihen (5 × 61,1 + 3,5 cm)
+      expect(_sorten(v), [
+        '55.8x3.0:1',
+        '55.8x60.6:5',
+        '60.6x3.0:7',
+        '60.6x60.6:35',
+      ]);
+      expect(_anzahl(v.dielenliste), {606: 48});
+      // F25: 0,99 % – längs gerechnet wie bei Dielen
+      expect((v.dielenliste.verschnitt * 10000).round() / 100, 0.99);
+      expect(v.grenzen, (x: const Millimeter(606), y: const Millimeter(611)));
+    });
+  });
+
+  _referenzkonfigurationen();
+  _referenzfaelle();
+}
+
+/// F01 … F25 (M1-03): Dielenliste und Verschnitt gegen die Materialliste
+/// des alten Planers – Deckbelag und Anfangsdielen ohne Freidielen (die
+/// rechnet die Materialliste, R-B09).
+void _referenzkonfigurationen() {
+  Referenzkonfiguration fall(String id) => Referenzkonfiguration.ausJson(
+    jsonDecode(File('test/referenzkonfigurationen/$id.json').readAsStringSync())
+        as Map<String, Object?>,
+  );
+  const arten = {
+    'Fugenschnitt': Verlegeart.fugenschnitt,
+    'Halbverband': Verlegeart.halbverband,
+    'Drittelverband': Verlegeart.drittelverband,
+    'Wechselverband': Verlegeart.wechselverband,
+  };
+
+  Belagverlegung verlege(Referenzkonfiguration f) {
+    final e = f.eingaben;
+    final kanten = e['kanten_cm']! as Map<String, Object?>;
+    var stand =
+        _rechteck((kanten['A-B']! as int) * 10, (kanten['B-C']! as int) * 10)
+            .mitVerlegeart(arten[e['verlegeart']]!)
+            .mitVerlegerichtung(
+              e['verlegerichtung'] == 'Senkrecht'
+                  ? Verlegerichtung.senkrecht
+                  : Verlegerichtung.waagrecht,
+            );
+    if (e['dielenlaenge'] case final String t when t.startsWith('fest ')) {
+      stand = stand.mitDielenlaenge(Millimeter(int.parse(t.substring(5)) * 10));
+    }
+    for (final a in e['ausschnitte']! as List<Object?>) {
+      final m = a! as Map<String, Object?>;
+      stand = stand.mitNeuemAusschnitt().mitAusschnitt(
+        stand.ausschnitte.length,
+        Ausschnitt(
+          bezeichnung: m['name']! as String,
+          x: Millimeter((m['x_cm']! as int) * 10),
+          y: Millimeter((m['y_cm']! as int) * 10),
+          laenge: Millimeter((m['laenge_cm']! as int) * 10),
+          breite: Millimeter((m['breite_cm']! as int) * 10),
+          funktion: m['funktion'] == 'leere Fläche'
+              ? Ausschnittfunktion.leer
+              : Ausschnittfunktion.andererBelag,
+        ),
+      );
+    }
+    final belag = e['belag']! as String;
+    return _verlegt(
+      stand,
+      belag.contains('fliese')
+          ? _fliese
+          : _diele(int.parse(RegExp(r'(\d+) x').firstMatch(belag)!.group(1)!)),
+    );
+  }
+
+  Map<int, int> alt(Referenzkonfiguration f) {
+    final anzahl = <int, int>{};
+    for (final m in f.materialliste) {
+      if ((m.typ.startsWith('Deckbelag') || m.typ == 'Anfangsdiele') &&
+          !m.bezeichnung.contains('Freidiele')) {
+        anzahl.update(
+          m.laengeMm ?? 606,
+          (n) => n + m.anzahl,
+          ifAbsent: () => m.anzahl,
+        );
+      }
+    }
+    return anzahl;
+  }
+
+  group('Referenzkonfigurationen', () {
+    // gleiche Lieferlängen wie der alte Planer
+    for (final id in [
+      'F01', 'F02', 'F06', 'F07', 'F08', 'F09', 'F10', 'F11', 'F12', 'F13', //
+      'F20', 'F21', 'F23', 'F24', 'F25',
+    ]) {
+      test('$id: Dielenliste wie im alten Planer', () {
+        final f = fall(id);
+        final v = verlege(f);
+        expect(_anzahl(v.dielenliste), alt(f));
+        // Verschnitt, wo angezeigt; F21 siehe unten
+        if (f.verschnittProzent case final p? when id != 'F21') {
+          expect((v.dielenliste.verschnitt * 10000).round() / 100, p);
+        }
+      });
+    }
+
+    test('F21: gleiche Lieferung, Verschnitt 4,57 statt 4,36 % – geplant '
+        'sind 43 × 360 + 19 × (100 + 140) cm, der alte Rechenweg ist aus '
+        'den Daten nicht nachvollziehbar', () {
+      final v = verlege(fall('F21'));
+      expect(v.dielenliste.geplant, const Millimeter(200400));
+      expect(v.dielenliste.geliefert, const Millimeter(210000));
+      expect(fall('F21').verschnittProzent, 4.36);
+    });
+
+    test('F22: Teilfläche A1 in 4 × 6000 + 4000 statt 3000 mm (R-A06)', () {
+      final f = fall('F22');
+      final erwartet = alt(f)
+        ..remove(3000)
+        ..update(4000, (n) => n + 1);
+      expect(_anzahl(verlege(f).dielenliste), erwartet);
+    });
+  });
+}
+
+/// Referenzfälle (M1-02): „Dielen nach Nummer“ der Planungsunterlage gegen
+/// die Verlegung, je Fall mit Richtung und Verlegeart laut Zeichnung.
+void _referenzfaelle() {
+  final faelle = {
+    for (final f in Directory(
+      'test/referenzfaelle',
+    ).listSync().whereType<File>())
+      if (Referenzfall.ausJson(
+            jsonDecode(f.readAsStringSync()) as Map<String, Object?>,
+          )
+          case final fall)
+        fall.id: (
+          fall,
+          (jsonDecode(f.readAsStringSync())
+                  as Map<String, Object?>)['eingaben']!
+              as Map<String, Object?>,
+        ),
+  };
+
+  Belagverlegung verlege(
+    String id, {
+    Verlegerichtung? richtung,
+    Verlegeart art = Verlegeart.fugenschnitt,
+    List<Millimeter> laengen = const [_m4, _m5, _m6],
+  }) {
+    final (fall, eingaben) = faelle[id]!;
+    final r = fall.grundriss;
+    final k = r.kantenCm;
+    Millimeter mm(String kante) => Millimeter((k[kante]! * 10).round());
+    final grundriss = switch (r.form) {
+      'Rechteck' => RechteckGrundriss(mm('A-B'), mm('B-C')),
+      'L-Form' => LGrundriss(mm('A-B'), mm('B-C'), mm('C-D'), mm('D-E')),
+      _ => TGrundriss(
+        mm('B-C'),
+        mm('C-D'),
+        mm('D-E'),
+        mm('E-F'),
+        mm('G-H'),
+        mm('H-A'),
+      ),
+    };
+    final punkt = switch (eingaben['ausgangspunkt']) {
+      {'punkt': final String p} => p.codeUnitAt(0) - 0x41,
+      _ => 0,
+    };
+    final stand = Planungsstand(grundriss: grundriss)
+        .mitVerlegerichtung(
+          richtung ??
+              (fall.verlegerichtung == 'Senkrecht'
+                  ? Verlegerichtung.senkrecht
+                  : Verlegerichtung.waagrecht),
+        )
+        .mitVerlegeart(art)
+        .mitAusgangspunkt(ecke: punkt);
+    final belag = fall.belag ?? fall.dielen.first.artikel;
+    return _verlegt(
+      stand,
+      belag.contains('liese')
+          ? _fliese
+          : _diele(
+              int.parse(RegExp(r'(\d+) x').firstMatch(belag)!.group(1)!),
+              laengen,
+            ),
+    );
+  }
+
+  List<String> alt(String id) => [
+    for (final d in faelle[id]!.$1.dielen)
+      '${d.laengeCm}x${d.breiteCm}:${d.stueck}',
+  ]..sort();
+
+  Map<int, int> altLieferung(String id) {
+    final anzahl = <int, int>{};
+    for (final z in faelle[id]!.$1.zuschnittDeckbelag) {
+      anzahl.update(
+        (z.ausgangslaengeCm * 10).round(),
+        (n) => n + z.menge,
+        ifAbsent: () => z.menge,
+      );
+    }
+    return anzahl;
+  }
+
+  group('Referenzfälle: Dielen nach Nummer', () {
+    // Lieferlängen 4/5/6 m wie im alten Planer: auch die Lieferung stimmt
+    for (final (id, richtung) in [
+      ('2025-08-26-719-v2', null),
+      ('2026-04-29-2412-v5', null),
+      // Seite 1 nennt „Waagrecht“, die Zeichnung zeigt senkrecht (M1-02)
+      ('2026-05-03-347-v4', Verlegerichtung.senkrecht),
+      ('2026-05-12-1823-v4', null),
+      ('2026-05-28-4655-v2', null),
+      ('2026-06-30-2295-v5', Verlegerichtung.senkrecht),
+      ('2026-08-06-2810-v3', null),
+      ('2026-08-17-1838-v2', null),
+    ]) {
+      test('$id: Dielen und Lieferung wie in der Unterlage', () {
+        final v = verlege(id, richtung: richtung);
+        expect(_sorten(v), alt(id));
+        expect(_anzahl(v.dielenliste), altLieferung(id));
+      });
+    }
+
+    // Zwischenlängen 3,0/4,5/5,5 m gibt es nicht mehr (R-A06, B-035): die
+    // Stücke stimmen, geliefert wird in der nächsten Lieferlänge
+    for (final (id, art, lieferung) in [
+      ('2026-04-28-4413-v11', Verlegeart.fugenschnitt, {5000: 44}),
+      ('2026-04-28-859-v5', Verlegeart.fugenschnitt, {5000: 21}),
+      // 404 cm im Drittelverband: 134,7 + 269,3 cm
+      ('2026-05-03-4381-v2', Verlegeart.drittelverband, {6000: 27}),
+      // 97 × 200 cm: alt 31 × 600 + 450 + 400 cm, neu je zwei in 4000 mm
+      ('2026-05-19-3958-v4', Verlegeart.fugenschnitt, {4000: 49}),
+      ('2026-06-07-4340-v4', Verlegeart.fugenschnitt, {4000: 5, 5000: 49}),
+      ('2026-06-11-3389-v3', Verlegeart.fugenschnitt, {6000: 30}),
+      ('2026-06-25-1275-v3', Verlegeart.fugenschnitt, {6000: 5}),
+      ('2026-07-07-2794-v2', Verlegeart.fugenschnitt, {5000: 154, 6000: 154}),
+      ('2026-07-31-3374-v3', Verlegeart.fugenschnitt, {4000: 1, 5000: 60}),
+      ('2026-08-26-1067-v2', Verlegeart.fugenschnitt, {4000: 1, 6000: 55}),
+    ]) {
+      test('$id: Dielen wie in der Unterlage, Lieferung 4/5/6 m', () {
+        final v = verlege(id, art: art);
+        expect(_sorten(v), alt(id));
+        expect(_anzahl(v.dielenliste), lieferung);
+        expect(
+          altLieferung(id).keys
+              .any((l) => !const {4000, 5000, 6000}.contains(l)),
+          isTrue,
+        );
+      });
+    }
+
+    test('Fehler des alten Planers: 7000 mm für Dielen mit 4/5/6 m (F14, '
+        'B-035) – mit 7 m stimmen die Stücke, mit 6 m nicht', () {
+      for (final id in ['2026-04-13-1946-v6', '2026-04-29-164-v4']) {
+        expect(
+          _sorten(verlege(id, laengen: const [_m4, _m5, _m6, _m7])),
+          alt(id),
+          reason: id,
+        );
+        expect(_sorten(verlege(id)), isNot(alt(id)), reason: id);
+      }
+    });
+
+    test('Ausklinkung: neu die volle Breite des Stücks, alt die schmale '
+        '(2026-07-31-3374-v5)', () {
+      final id = '2026-07-31-3374-v5';
+      final neu = _sorten(verlege(id));
+      expect(neu, contains('425.0x6.0:20'));
+      expect(
+        alt(id),
+        containsAll(['425.0x6.0:18', '425.0x4.5:1', '425.0x2.5:1']),
+      );
+    });
+  });
+}
