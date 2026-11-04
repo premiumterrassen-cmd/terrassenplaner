@@ -6,6 +6,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:terrassenplaner_app/src/konfiguration/konfigurations_steuerung.dart';
 import 'package:terrassenplaner_app/src/verbindung/planer_verbindung.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import 'package:terrassenplaner_server/terrassenplaner_server.dart';
@@ -82,8 +83,139 @@ void main() {
     expect(belaege.vorgabe!.preisJeM2, const Cent(20000));
   });
 
+  test(
+    'Speichern, Laden und Entwurf über den Konfigurationsdienst (M9-05)',
+    () async {
+      final health = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
+      final healthPort = health.port;
+      await health.close();
+      final router = PlanerRouter.starte(
+        RouterEinstellungen(
+          authToken: 't',
+          dienstTicket: 'k',
+          port: 0,
+          healthListen: '127.0.0.1:$healthPort',
+        ),
+      );
+      addTearDown(router.stoppe);
+      final dienst = await KonfigurationsDienst.starte(router, _Speicher());
+      addTearDown(dienst.stoppe);
+      final verbindung = PlanerVerbindung(
+        Uri.parse('ws://127.0.0.1:${router.webSocketPort}/ws'),
+      );
+
+      final planung = Planung([
+        Terrassenflaeche(Planungsstand.start.mitForm(Terrassenform.oForm)),
+        Terrassenflaeche(Planungsstand.start, haeufigkeit: 3),
+      ], aktiv: 1);
+      final v1 = await verbindung.speichere(planung);
+      expect(
+        v1,
+        KonfigurationsStand(const Konfigurationsnummer('2026-11-04-0001'), 1),
+      );
+      final v2 = await verbindung.speichere(Planung.start, nummer: v1.nummer);
+      expect(v2.version, 2);
+      // Abnahme: geladen identisch zum gespeicherten Stand, alte Version bleibt
+      expect(await verbindung.lade(v1), planung);
+      expect(await verbindung.lade(v2), Planung.start);
+      final unbekannt = KonfigurationsStand(v1.nummer, 3);
+      await expectLater(
+        verbindung.lade(unbekannt),
+        throwsA(
+          isA<KonfigurationNichtGefunden>().having(
+            (e) => e.stand,
+            'stand',
+            unbekannt,
+          ),
+        ),
+      );
+      // andere Fehler des Dienstes werden durchgereicht
+      await expectLater(
+        verbindung.lade(
+          KonfigurationsStand(const Konfigurationsnummer('2026-02-30-0001'), 1),
+        ),
+        throwsA(isNot(isA<KonfigurationNichtGefunden>())),
+      );
+      await expectLater(
+        verbindung.speichere(
+          Planung.start,
+          nummer: const Konfigurationsnummer('2026-11-04-0099'),
+        ),
+        throwsA(anything),
+      );
+
+      const schluessel = '0123456789abcdef0123456789abcdef';
+      expect(await verbindung.entwurf(schluessel), isNull);
+      await verbindung.merkeEntwurf(schluessel, planung);
+      expect(await verbindung.entwurf(schluessel), (
+        planung: planung,
+        bezug: null,
+      ));
+      await verbindung.merkeEntwurf(schluessel, Planung.start, bezug: v2);
+      expect(await verbindung.entwurf(schluessel), (
+        planung: Planung.start,
+        bezug: v2,
+      ));
+      await expectLater(verbindung.entwurf('kein'), throwsA(anything));
+    },
+  );
+
+  test('ohne Server: Fehler statt Hängen', () async {
+    final frei = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
+    final port = frei.port;
+    await frei.close();
+    final verbindung = PlanerVerbindung(Uri.parse('ws://127.0.0.1:$port/ws'));
+    await expectLater(verbindung.speichere(Planung.start), throwsA(anything));
+  });
+
   test('Packed-Nutzlast materialisiert als ein Binärargument', () {
     final bytes = Uint8List.fromList([1, 2, 3]);
     expect(PlanerVerbindung.verpacke(bytes).arguments, [bytes]);
   });
+}
+
+/// Konfigurationsspeicher im Arbeitsspeicher: Die App-Tests laufen ohne die
+/// native ObjectBox-Bibliothek; ObjectBox selbst prüfen die Server-Tests.
+final class _Speicher implements KonfigurationsSpeicher {
+  final _versionen = <String, List<Uint8List>>{};
+  final _entwuerfe = <String, Entwurf>{};
+
+  @override
+  KonfigurationsStand speichere(
+    Uint8List inhalt, {
+    Konfigurationsnummer? nummer,
+  }) {
+    final n =
+        nummer ??
+        Konfigurationsnummer.vergib(
+          DateTime(2026, 11, 4),
+          _versionen.length + 1,
+        );
+    final liste =
+        _versionen[n.wert] ??
+        (nummer == null
+            ? (_versionen[n.wert] = [])
+            : throw KonfigurationUnbekannt(n));
+    liste.add(inhalt);
+    return KonfigurationsStand(n, liste.length);
+  }
+
+  @override
+  Uint8List lies(KonfigurationsStand stand) {
+    final liste = _versionen[stand.nummer.wert] ?? const [];
+    if (stand.version > liste.length) {
+      throw KonfigurationUnbekannt(stand.nummer, stand.version);
+    }
+    return liste[stand.version - 1];
+  }
+
+  @override
+  void merkeEntwurf(
+    String schluessel,
+    Uint8List inhalt, {
+    KonfigurationsStand? bezug,
+  }) => _entwuerfe[schluessel] = (inhalt: inhalt, bezug: bezug);
+
+  @override
+  Entwurf? entwurf(String schluessel) => _entwuerfe[schluessel];
 }

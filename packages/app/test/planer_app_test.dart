@@ -9,10 +9,6 @@ import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 import 'hilfe.dart';
 
-Future<void> _laden(KonfigurationsStand _) async {}
-
-Future<KonfigurationsStand?> _nichts() async => null;
-
 void main() {
   testWidgets('Projekttitel im Browser-Tab, Rahmen mit Planer-Thema', (
     tester,
@@ -22,7 +18,11 @@ void main() {
       ..devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
-      PlanerApp(laden: _laden, gespeichert: _nichts, hallo: () async => 'x'),
+      PlanerApp(
+        ablage: TestAblage(),
+        gedaechtnis: testGedaechtnis(),
+        hallo: () async => 'x',
+      ),
     );
     final app = tester.widget<MaterialApp>(find.byType(MaterialApp));
     expect(app.title, 'Terrassenplaner – ALTO HOLZ');
@@ -36,8 +36,8 @@ void main() {
     const info = ProjektInfo(name: 'Test', firma: 'X');
     await tester.pumpWidget(
       PlanerApp(
-        laden: _laden,
-        gespeichert: _nichts,
+        ablage: TestAblage(),
+        gedaechtnis: testGedaechtnis(),
         hallo: () async => 'x',
         info: info,
       ),
@@ -54,8 +54,8 @@ void main() {
     final antwort = Completer<String>();
     await tester.pumpWidget(
       PlanerApp(
-        laden: _laden,
-        gespeichert: _nichts,
+        ablage: TestAblage(),
+        gedaechtnis: testGedaechtnis(),
         hallo: () => antwort.future,
       ),
     );
@@ -68,8 +68,8 @@ void main() {
   testWidgets('Status bei Fehler: keine Verbindung', (tester) async {
     await tester.pumpWidget(
       PlanerApp(
-        laden: _laden,
-        gespeichert: _nichts,
+        ablage: TestAblage(),
+        gedaechtnis: testGedaechtnis(),
         hallo: () => Future<String>.error(StateError('weg')),
       ),
     );

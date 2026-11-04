@@ -174,6 +174,254 @@ final _entities = <obx_int.ModelEntity>[
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
   ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(3, 3700112060093919120),
+    name: 'Konfiguration',
+    lastPropertyId: const obx_int.IdUid(12, 7027489902092778456),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 3845496834114332634),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 5274454498043583379),
+        name: 'uid',
+        type: 9,
+        flags: 2080,
+        indexId: const obx_int.IdUid(5, 4498777452504532305),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 3974512934302747248),
+        name: 'partition',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 1440930569746588781),
+        name: 'hlc',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 7955236283737665221),
+        name: 'knoten',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 777858552307189386),
+        name: 'geloeschtAm',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 6251500325311232541),
+        name: 'schema',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 4317714872185742121),
+        name: 'nummer',
+        type: 9,
+        flags: 2080,
+        indexId: const obx_int.IdUid(6, 3105714231189792376),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(9, 8664436508003277797),
+        name: 'tag',
+        type: 9,
+        flags: 2048,
+        indexId: const obx_int.IdUid(7, 8737600762995362149),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(10, 2492266807551470308),
+        name: 'laufend',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(11, 1173906299613192466),
+        name: 'erstelltAm',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(12, 7027489902092778456),
+        name: 'aktuelleVersion',
+        type: 6,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(4, 71929636735903965),
+    name: 'KonfigurationsVersion',
+    lastPropertyId: const obx_int.IdUid(11, 1880456583787455542),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 2834056109991685914),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 8975150289254458608),
+        name: 'uid',
+        type: 9,
+        flags: 2080,
+        indexId: const obx_int.IdUid(8, 7978479856822169938),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 910457929112196278),
+        name: 'partition',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 1674529397679792623),
+        name: 'hlc',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 589825239895553799),
+        name: 'knoten',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 2819403528807458167),
+        name: 'geloeschtAm',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 109488658438337037),
+        name: 'schema',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 218814889409302080),
+        name: 'schluessel',
+        type: 9,
+        flags: 2080,
+        indexId: const obx_int.IdUid(9, 1519811644882741922),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(9, 9210311818488979823),
+        name: 'nummer',
+        type: 9,
+        flags: 2048,
+        indexId: const obx_int.IdUid(10, 7044687199270343346),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(10, 3566651628067227911),
+        name: 'version',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(11, 1880456583787455542),
+        name: 'inhalt',
+        type: 23,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(5, 2302399536022014130),
+    name: 'Zwischenstand',
+    lastPropertyId: const obx_int.IdUid(12, 7870909905877532218),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 7650705061264588719),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 6523981876026415281),
+        name: 'uid',
+        type: 9,
+        flags: 2080,
+        indexId: const obx_int.IdUid(11, 2375398755162553489),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 6450678010472415314),
+        name: 'partition',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 4768786246076269002),
+        name: 'hlc',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 1701736175279627275),
+        name: 'knoten',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 1329009228662486106),
+        name: 'geloeschtAm',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 6653590912378615612),
+        name: 'schema',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 1403488556826167105),
+        name: 'schluessel',
+        type: 9,
+        flags: 2080,
+        indexId: const obx_int.IdUid(12, 7335531189257318906),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(9, 8564421561781287868),
+        name: 'inhalt',
+        type: 23,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(10, 7165827865786288915),
+        name: 'nummer',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(11, 5929372557873260873),
+        name: 'version',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(12, 7870909905877532218),
+        name: 'ablaufAm',
+        type: 6,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -218,8 +466,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
     // Typically, this is done with `dart run build_runner build`.
     generatorVersion: obx_int.GeneratorVersion.v2025_12_16,
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(2, 5391721831752821817),
-    lastIndexId: const obx_int.IdUid(4, 6839961270107171854),
+    lastEntityId: const obx_int.IdUid(5, 2302399536022014130),
+    lastIndexId: const obx_int.IdUid(12, 7335531189257318906),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [],
@@ -386,6 +634,246 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
+    Konfiguration: obx_int.EntityDefinition<Konfiguration>(
+      model: _entities[2],
+      toOneRelations: (Konfiguration object) => [],
+      toManyRelations: (Konfiguration object) => {},
+      getId: (Konfiguration object) => object.id,
+      setId: (Konfiguration object, int id) {
+        object.id = id;
+      },
+      objectToFB: (Konfiguration object, fb.Builder fbb) {
+        final uidOffset = fbb.writeString(object.uid);
+        final partitionOffset = fbb.writeString(object.partition);
+        final hlcOffset = fbb.writeString(object.hlc);
+        final knotenOffset = fbb.writeString(object.knoten);
+        final nummerOffset = fbb.writeString(object.nummer);
+        final tagOffset = fbb.writeString(object.tag);
+        final erstelltAmOffset = fbb.writeString(object.erstelltAm);
+        fbb.startTable(13);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, uidOffset);
+        fbb.addOffset(2, partitionOffset);
+        fbb.addOffset(3, hlcOffset);
+        fbb.addOffset(4, knotenOffset);
+        fbb.addInt64(5, object.geloeschtAm);
+        fbb.addInt64(6, object.schema);
+        fbb.addOffset(7, nummerOffset);
+        fbb.addOffset(8, tagOffset);
+        fbb.addInt64(9, object.laufend);
+        fbb.addOffset(10, erstelltAmOffset);
+        fbb.addInt64(11, object.aktuelleVersion);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final nummerParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 18, '');
+        final tagParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 20, '');
+        final laufendParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          22,
+          0,
+        );
+        final object =
+            Konfiguration(
+                nummer: nummerParam,
+                tag: tagParam,
+                laufend: laufendParam,
+              )
+              ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0)
+              ..uid = const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 6, '')
+              ..partition = const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 8, '')
+              ..hlc = const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 10, '')
+              ..knoten = const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 12, '')
+              ..geloeschtAm = const fb.Int64Reader().vTableGetNullable(
+                buffer,
+                rootOffset,
+                14,
+              )
+              ..schema = const fb.Int64Reader().vTableGet(
+                buffer,
+                rootOffset,
+                16,
+                0,
+              )
+              ..erstelltAm = const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 24, '')
+              ..aktuelleVersion = const fb.Int64Reader().vTableGet(
+                buffer,
+                rootOffset,
+                26,
+                0,
+              );
+
+        return object;
+      },
+    ),
+    KonfigurationsVersion: obx_int.EntityDefinition<KonfigurationsVersion>(
+      model: _entities[3],
+      toOneRelations: (KonfigurationsVersion object) => [],
+      toManyRelations: (KonfigurationsVersion object) => {},
+      getId: (KonfigurationsVersion object) => object.id,
+      setId: (KonfigurationsVersion object, int id) {
+        object.id = id;
+      },
+      objectToFB: (KonfigurationsVersion object, fb.Builder fbb) {
+        final uidOffset = fbb.writeString(object.uid);
+        final partitionOffset = fbb.writeString(object.partition);
+        final hlcOffset = fbb.writeString(object.hlc);
+        final knotenOffset = fbb.writeString(object.knoten);
+        final schluesselOffset = fbb.writeString(object.schluessel);
+        final nummerOffset = fbb.writeString(object.nummer);
+        final inhaltOffset = fbb.writeListInt8(object.inhalt);
+        fbb.startTable(12);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, uidOffset);
+        fbb.addOffset(2, partitionOffset);
+        fbb.addOffset(3, hlcOffset);
+        fbb.addOffset(4, knotenOffset);
+        fbb.addInt64(5, object.geloeschtAm);
+        fbb.addInt64(6, object.schema);
+        fbb.addOffset(7, schluesselOffset);
+        fbb.addOffset(8, nummerOffset);
+        fbb.addInt64(9, object.version);
+        fbb.addOffset(10, inhaltOffset);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final nummerParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 20, '');
+        final versionParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          22,
+          0,
+        );
+        final inhaltParam = const fb.Uint8ListReader(
+          lazy: false,
+        ).vTableGet(buffer, rootOffset, 24, Uint8List(0)) as Uint8List;
+        final object =
+            KonfigurationsVersion(
+                nummer: nummerParam,
+                version: versionParam,
+                inhalt: inhaltParam,
+              )
+              ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0)
+              ..uid = const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 6, '')
+              ..partition = const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 8, '')
+              ..hlc = const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 10, '')
+              ..knoten = const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 12, '')
+              ..geloeschtAm = const fb.Int64Reader().vTableGetNullable(
+                buffer,
+                rootOffset,
+                14,
+              )
+              ..schema = const fb.Int64Reader().vTableGet(
+                buffer,
+                rootOffset,
+                16,
+                0,
+              )
+              ..schluessel = const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 18, '');
+
+        return object;
+      },
+    ),
+    Zwischenstand: obx_int.EntityDefinition<Zwischenstand>(
+      model: _entities[4],
+      toOneRelations: (Zwischenstand object) => [],
+      toManyRelations: (Zwischenstand object) => {},
+      getId: (Zwischenstand object) => object.id,
+      setId: (Zwischenstand object, int id) {
+        object.id = id;
+      },
+      objectToFB: (Zwischenstand object, fb.Builder fbb) {
+        final uidOffset = fbb.writeString(object.uid);
+        final partitionOffset = fbb.writeString(object.partition);
+        final hlcOffset = fbb.writeString(object.hlc);
+        final knotenOffset = fbb.writeString(object.knoten);
+        final schluesselOffset = fbb.writeString(object.schluessel);
+        final inhaltOffset = fbb.writeListInt8(object.inhalt);
+        final nummerOffset = fbb.writeString(object.nummer);
+        fbb.startTable(13);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, uidOffset);
+        fbb.addOffset(2, partitionOffset);
+        fbb.addOffset(3, hlcOffset);
+        fbb.addOffset(4, knotenOffset);
+        fbb.addInt64(5, object.geloeschtAm);
+        fbb.addInt64(6, object.schema);
+        fbb.addOffset(7, schluesselOffset);
+        fbb.addOffset(8, inhaltOffset);
+        fbb.addOffset(9, nummerOffset);
+        fbb.addInt64(10, object.version);
+        fbb.addInt64(11, object.ablaufAm);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final schluesselParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 18, '');
+        final inhaltParam = const fb.Uint8ListReader(
+          lazy: false,
+        ).vTableGet(buffer, rootOffset, 20, Uint8List(0)) as Uint8List;
+        final object =
+            Zwischenstand(schluessel: schluesselParam, inhalt: inhaltParam)
+              ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0)
+              ..uid = const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 6, '')
+              ..partition = const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 8, '')
+              ..hlc = const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 10, '')
+              ..knoten = const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 12, '')
+              ..geloeschtAm = const fb.Int64Reader().vTableGetNullable(
+                buffer,
+                rootOffset,
+                14,
+              )
+              ..schema = const fb.Int64Reader().vTableGet(
+                buffer,
+                rootOffset,
+                16,
+                0,
+              )
+              ..nummer = const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 22, '')
+              ..version = const fb.Int64Reader().vTableGet(
+                buffer,
+                rootOffset,
+                24,
+                0,
+              )
+              ..ablaufAm = const fb.Int64Reader().vTableGet(
+                buffer,
+                rootOffset,
+                26,
+                0,
+              );
+
+        return object;
+      },
+    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
@@ -504,5 +992,189 @@ class Benutzer_ {
   /// See [Benutzer.rolle].
   static final rolle = obx.QueryStringProperty<Benutzer>(
     _entities[1].properties[12],
+  );
+}
+
+/// [Konfiguration] entity fields to define ObjectBox queries.
+class Konfiguration_ {
+  /// See [Konfiguration.id].
+  static final id = obx.QueryIntegerProperty<Konfiguration>(
+    _entities[2].properties[0],
+  );
+
+  /// See [Konfiguration.uid].
+  static final uid = obx.QueryStringProperty<Konfiguration>(
+    _entities[2].properties[1],
+  );
+
+  /// See [Konfiguration.partition].
+  static final partition = obx.QueryStringProperty<Konfiguration>(
+    _entities[2].properties[2],
+  );
+
+  /// See [Konfiguration.hlc].
+  static final hlc = obx.QueryStringProperty<Konfiguration>(
+    _entities[2].properties[3],
+  );
+
+  /// See [Konfiguration.knoten].
+  static final knoten = obx.QueryStringProperty<Konfiguration>(
+    _entities[2].properties[4],
+  );
+
+  /// See [Konfiguration.geloeschtAm].
+  static final geloeschtAm = obx.QueryIntegerProperty<Konfiguration>(
+    _entities[2].properties[5],
+  );
+
+  /// See [Konfiguration.schema].
+  static final schema = obx.QueryIntegerProperty<Konfiguration>(
+    _entities[2].properties[6],
+  );
+
+  /// See [Konfiguration.nummer].
+  static final nummer = obx.QueryStringProperty<Konfiguration>(
+    _entities[2].properties[7],
+  );
+
+  /// See [Konfiguration.tag].
+  static final tag = obx.QueryStringProperty<Konfiguration>(
+    _entities[2].properties[8],
+  );
+
+  /// See [Konfiguration.laufend].
+  static final laufend = obx.QueryIntegerProperty<Konfiguration>(
+    _entities[2].properties[9],
+  );
+
+  /// See [Konfiguration.erstelltAm].
+  static final erstelltAm = obx.QueryStringProperty<Konfiguration>(
+    _entities[2].properties[10],
+  );
+
+  /// See [Konfiguration.aktuelleVersion].
+  static final aktuelleVersion = obx.QueryIntegerProperty<Konfiguration>(
+    _entities[2].properties[11],
+  );
+}
+
+/// [KonfigurationsVersion] entity fields to define ObjectBox queries.
+class KonfigurationsVersion_ {
+  /// See [KonfigurationsVersion.id].
+  static final id = obx.QueryIntegerProperty<KonfigurationsVersion>(
+    _entities[3].properties[0],
+  );
+
+  /// See [KonfigurationsVersion.uid].
+  static final uid = obx.QueryStringProperty<KonfigurationsVersion>(
+    _entities[3].properties[1],
+  );
+
+  /// See [KonfigurationsVersion.partition].
+  static final partition = obx.QueryStringProperty<KonfigurationsVersion>(
+    _entities[3].properties[2],
+  );
+
+  /// See [KonfigurationsVersion.hlc].
+  static final hlc = obx.QueryStringProperty<KonfigurationsVersion>(
+    _entities[3].properties[3],
+  );
+
+  /// See [KonfigurationsVersion.knoten].
+  static final knoten = obx.QueryStringProperty<KonfigurationsVersion>(
+    _entities[3].properties[4],
+  );
+
+  /// See [KonfigurationsVersion.geloeschtAm].
+  static final geloeschtAm = obx.QueryIntegerProperty<KonfigurationsVersion>(
+    _entities[3].properties[5],
+  );
+
+  /// See [KonfigurationsVersion.schema].
+  static final schema = obx.QueryIntegerProperty<KonfigurationsVersion>(
+    _entities[3].properties[6],
+  );
+
+  /// See [KonfigurationsVersion.schluessel].
+  static final schluessel = obx.QueryStringProperty<KonfigurationsVersion>(
+    _entities[3].properties[7],
+  );
+
+  /// See [KonfigurationsVersion.nummer].
+  static final nummer = obx.QueryStringProperty<KonfigurationsVersion>(
+    _entities[3].properties[8],
+  );
+
+  /// See [KonfigurationsVersion.version].
+  static final version = obx.QueryIntegerProperty<KonfigurationsVersion>(
+    _entities[3].properties[9],
+  );
+
+  /// See [KonfigurationsVersion.inhalt].
+  static final inhalt = obx.QueryByteVectorProperty<KonfigurationsVersion>(
+    _entities[3].properties[10],
+  );
+}
+
+/// [Zwischenstand] entity fields to define ObjectBox queries.
+class Zwischenstand_ {
+  /// See [Zwischenstand.id].
+  static final id = obx.QueryIntegerProperty<Zwischenstand>(
+    _entities[4].properties[0],
+  );
+
+  /// See [Zwischenstand.uid].
+  static final uid = obx.QueryStringProperty<Zwischenstand>(
+    _entities[4].properties[1],
+  );
+
+  /// See [Zwischenstand.partition].
+  static final partition = obx.QueryStringProperty<Zwischenstand>(
+    _entities[4].properties[2],
+  );
+
+  /// See [Zwischenstand.hlc].
+  static final hlc = obx.QueryStringProperty<Zwischenstand>(
+    _entities[4].properties[3],
+  );
+
+  /// See [Zwischenstand.knoten].
+  static final knoten = obx.QueryStringProperty<Zwischenstand>(
+    _entities[4].properties[4],
+  );
+
+  /// See [Zwischenstand.geloeschtAm].
+  static final geloeschtAm = obx.QueryIntegerProperty<Zwischenstand>(
+    _entities[4].properties[5],
+  );
+
+  /// See [Zwischenstand.schema].
+  static final schema = obx.QueryIntegerProperty<Zwischenstand>(
+    _entities[4].properties[6],
+  );
+
+  /// See [Zwischenstand.schluessel].
+  static final schluessel = obx.QueryStringProperty<Zwischenstand>(
+    _entities[4].properties[7],
+  );
+
+  /// See [Zwischenstand.inhalt].
+  static final inhalt = obx.QueryByteVectorProperty<Zwischenstand>(
+    _entities[4].properties[8],
+  );
+
+  /// See [Zwischenstand.nummer].
+  static final nummer = obx.QueryStringProperty<Zwischenstand>(
+    _entities[4].properties[9],
+  );
+
+  /// See [Zwischenstand.version].
+  static final version = obx.QueryIntegerProperty<Zwischenstand>(
+    _entities[4].properties[10],
+  );
+
+  /// See [Zwischenstand.ablaufAm].
+  static final ablaufAm = obx.QueryIntegerProperty<Zwischenstand>(
+    _entities[4].properties[11],
   );
 }

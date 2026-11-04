@@ -94,6 +94,27 @@ void main() {
     expect(db.benutzer('bob'), isNull);
   });
 
+  test('Transaktion: alles oder nichts, Ergebnis wird durchgereicht', () {
+    final ergebnis = db.transaktion(() {
+      db.speichere(_anna());
+      db.speichere(_anna()..authId = 'bob');
+      return 7;
+    });
+    expect(ergebnis, 7);
+    expect(db.aenderungenSeit(0).map((a) => a.seq), [1, 2]);
+    expect(
+      () => db.transaktion(() {
+        db.speichere(_anna()..authId = 'carl');
+        // bedingt, sonst lehnt ObjectBox den Rückruf als „immer fehlend“ ab
+        if (zeit > 0) throw StateError('Abbruch');
+        return 0;
+      }),
+      throwsA(isA<StateError>()),
+    );
+    expect(db.benutzer('carl'), isNull);
+    expect(db.letzteSequenz, 2);
+  });
+
   test('leeres Protokoll: Sequenz 0', () {
     expect(db.letzteSequenz, 0);
     expect(db.aenderungenSeit(0), isEmpty);
