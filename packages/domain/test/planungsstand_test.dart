@@ -1251,7 +1251,7 @@ void main() {
         ),
         start,
       );
-      for (final falsch in [-1, 4]) {
+      for (final falsch in [-1, 4, 5]) {
         expect(
           () => start.mitAusgangspunkt(ecke: falsch),
           throwsA(
@@ -1367,6 +1367,7 @@ void main() {
 
       expect(Planungsstand.ausBytes(alt()), Planungsstand.start);
       expect(Planungsstand.ausBytes(alt(ecke: 3)).ausgangsecke, 3);
+      expect(() => Planungsstand.ausBytes(alt(ecke: 5)), throwsFormatException);
       expect(
         () => Planungsstand.ausBytes(alt(ecke: 4)),
         throwsA(

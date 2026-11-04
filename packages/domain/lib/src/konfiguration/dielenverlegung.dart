@@ -65,9 +65,11 @@ final class Dielenstueck {
     laengste,
   );
   final breite = dielenbreite + fuge;
-  // in Grad verglichen: bei 45° wären cos und sin im Bogenmaß nicht gleich
-  final w = winkel % 180;
-  return w <= 45 || w >= 135 ? (x: laenge, y: breite) : (x: breite, y: laenge);
+  // in Grad (0 bis 179) verglichen: bei 45° wären cos und sin im Bogenmaß
+  // nicht gleich
+  return winkel <= 45 || winkel >= 135
+      ? (x: laenge, y: breite)
+      : (x: breite, y: laenge);
 }
 
 /// [kontur] in Verlegerichtung gedreht: [ausgangspunkt] bei (0|0), Dielen

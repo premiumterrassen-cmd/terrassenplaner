@@ -299,9 +299,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/6
 - [ ] **M5-06 Stoßdielen im Gehrungsschnitt** ([#49](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/49)) – `feature/m5-06-stossdielen-im-gehrungsschnitt`
   - Option „Möchten Sie Stoßdielen im Gehrungsschnitt verwenden?“ (im alten Planer aktiv).
   - Abnahme: Option wirkt auf Zeichnung und Zuschnitt
-- [ ] **M5-07 Ausgangspunkt der Verlegung** ([#50](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/50)) – `feature/m5-07-ausgangspunkt-der-verlegung`
+- [x] **M5-07 Ausgangspunkt der Verlegung** ([#50](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/50)) – `feature/m5-07-ausgangspunkt-der-verlegung`
   - Eckpunkt als Ausgangspunkt wählen; erste ganze Diele links/rechts und oben/unten verschieben (Maus oder Eingabe, max. eine Belagbreite/-länge); Warnung bei Zuschnitten < 5 cm.
   - Abnahme: Grenzen und Warnung wie beschrieben
+  - Ergebnis: Unterpunkt 2.5 mit Ecken A, B … (Zählung der Beschriftung, Kreis nur A) und Verschiebung links/rechts und oben/unten in cm mit Eingabefeld, Schieberegler und Griff in der Zeichnung; Planungsstand-Felder `ausgangsecke`, `verschiebungX`, `verschiebungY` (über die Kopierhilfe `_mit`). `verschiebungsgrenzen`: Achse eher in Verlegerichtung bis zum Stoßraster, die andere bis Dielenbreite plus Fuge. Der Server verlegt ab Ecke plus Verschiebung und meldet Zuschnitte unter 5 cm (Stück oder Randreihe); die Oberfläche warnt.
 - [ ] **M5-08 Berechnung der Dielenverlegung** ([#51](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/51)) – `feature/m5-08-berechnung-der-dielenverlegung` · Benchmark
   - Dielen in der Fläche inkl. Ausschnitten, Rundungen und Teilflächen verlegen, nummerieren, Längen und Fugen berücksichtigen.
   - Abnahme: Dielenliste je Referenzfall entspricht der Planungsunterlage; Benchmark: große Freiform mit Ausschnitten

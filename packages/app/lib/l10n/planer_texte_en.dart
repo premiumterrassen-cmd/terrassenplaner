@@ -768,6 +768,44 @@ class PlanerTexteEn extends PlanerTexte {
       'Please enter whole degrees from 0 to 179';
 
   @override
+  String get ausgangspunktFrage =>
+      'Which point should be the starting point of the decking?';
+
+  @override
+  String get ausgangspunktVerschieben =>
+      'Move the first full board with the mouse pointer or the input field:';
+
+  @override
+  String get verschiebungLinksRechts => 'left/right by';
+
+  @override
+  String get verschiebungObenUnten => 'up/down by';
+
+  @override
+  String get verschiebungHilfeLinksRechts => 'in cm, negative = left';
+
+  @override
+  String get verschiebungHilfeObenUnten => 'in cm, negative = up';
+
+  @override
+  String verschiebungCm(String cm) {
+    return '$cm cm';
+  }
+
+  @override
+  String verschiebungUngueltig(String grenze) {
+    return 'Please enter a number from −$grenze to $grenze cm';
+  }
+
+  @override
+  String get verschiebungOhneDielen =>
+      'The first board can be moved as soon as decking boards are laid.';
+
+  @override
+  String get zuschnittWarnung =>
+      'Caution: there are cuts under 5 cm. Move the first full board so that no such narrow or short pieces are left.';
+
+  @override
   String get kurzeStueckeVerbinden =>
       'Should short board pieces be joined together?';
 

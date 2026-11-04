@@ -214,7 +214,10 @@ void main() {
     // Fläche kürzer als die Diele: das Raster ist die Ausdehnung
     expect(grenzen(Kontur.rechteck(4800, 3090), 0), (x: 4800, y: 65));
     expect(grenzen(rechteck, 90), (x: 65, y: 3090));
-    expect(grenzen(rechteck, 180), (x: 6000, y: 65));
+    expect(grenzen(rechteck, 150), (x: 6000, y: 65));
+    // gedreht wie die Verlegung: Dreieck bei 30° 866 mm, nicht 1366 mm
+    final dreieck = Kontur(const [Punkt(0, 0), Punkt(1000, 0), Punkt(0, 1000)]);
+    expect(grenzen(dreieck, 30).x, 866);
     // 45° gilt noch als waagrecht, 46° schon als senkrecht
     expect(grenzen(rechteck, 45).x, 6000);
     expect(grenzen(rechteck, 46).y, 6000);

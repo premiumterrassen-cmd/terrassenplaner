@@ -7,6 +7,7 @@ import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import '../design/planer_design.dart';
 import '../sprache/sprache.dart';
 import 'ansichtsoptionen.dart';
+import 'ausgangspunkt.dart';
 import 'ausschnitte.dart';
 import 'freiform.dart';
 import 'rundung.dart';
@@ -25,6 +26,7 @@ class Zeichenflaeche extends StatelessWidget {
     this.freiform,
     this.rundung,
     this.ausschnitte,
+    this.ausgangspunkt,
   });
 
   final PlanungsSteuerung planung;
@@ -42,6 +44,10 @@ class Zeichenflaeche extends StatelessWidget {
   /// Ausschnitte verschieben (M4-12): ein Griff in der Mitte je Ausschnitt.
   final AusschnittBedienung? ausschnitte;
 
+  /// Erste ganze Diele verschieben (M5-07): ein Griff am Ausgangspunkt der
+  /// Verlegung, solange der Schritt Terrassenbelag offen ist.
+  final AusgangspunktBedienung? ausgangspunkt;
+
   /// Bildschirmpunkt in mm der Zeichnung (Umkehrung der Ansicht).
   Punkt inMillimeter(Offset lokal) {
     final mm = (lokal - ansicht.verschiebung) / (pixelJeMm * ansicht.zoom);
@@ -54,7 +60,37 @@ class Zeichenflaeche extends StatelessWidget {
   /// Ziehen an einem Griff die Fläche nicht verschiebt.
   List<Widget> _griffe() {
     if (rundung case final r? when r.aktiv) return _rundungsGriffe(r);
-    return [..._eckenGriffe(), ..._ausschnittGriffe()];
+    return [
+      ..._eckenGriffe(),
+      ..._ausschnittGriffe(),
+      ..._ausgangspunktGriff(),
+    ];
+  }
+
+  /// Griff an der Ecke der ersten ganzen Diele (M5-07).
+  List<Widget> _ausgangspunktGriff() {
+    final bedienung = ausgangspunkt;
+    final punkt = zeichnung.ausgangspunkt;
+    if (bedienung == null || punkt == null) return const [];
+    return [
+      Positioned.fill(
+        child: ListenableBuilder(
+          listenable: ansicht,
+          builder: (context, _) => Stack(
+            children: [
+              Griff(
+                key: const ValueKey('ausgangspunkt-griff'),
+                mitte:
+                    ansicht.verschiebung + punkt * (pixelJeMm * ansicht.zoom),
+                ausgewaehlt: true,
+                zoom: ansicht.zoom,
+                onZiehen: bedienung.ziehe,
+              ),
+            ],
+          ),
+        ),
+      ),
+    ];
   }
 
   /// Griff in der Mitte jedes Ausschnitts zum Verschieben (M4-12).
