@@ -14,16 +14,34 @@ WAMP_PORT="${SMOKE_WAMP_PORT:-8099}"
 chromedriver --port="$PORT" >/dev/null 2>&1 &
 DRIVER_PID=$!
 
-# Router mit Hallo-Dienst für den Ende-zu-Ende-Test (M0-12); Geheimnisse nur für den Test.
+# Auth-Server (Mitarbeiter-Anmeldung, M9-10) und Router mit Hallo-Dienst für
+# die Ende-zu-Ende-Tests (M0-12); Geheimnisse nur für den Test. Ports:
+# Router WAMP_PORT (+1 Health), Auth-Server WAMP_PORT+2 (+3 Health).
+AUTH_ADRESSE="127.0.0.1:$((WAMP_PORT + 2))"
+(cd "$ROOT/packages/server" && PLANER_AUTH_TOKEN=smoke PLANER_AUTH_DIENST_TICKET=smoke \
+  PLANER_AUTH_LISTEN="$AUTH_ADRESSE" PLANER_AUTH_HEALTH_LISTEN="127.0.0.1:$((WAMP_PORT + 3))" \
+  exec dart run bin/auth_server.dart >/tmp/planer-smoke-auth.log 2>&1) &
+AUTH_PID=$!
 (cd "$ROOT/packages/server" && PLANER_AUTH_TOKEN=smoke PLANER_AUTH_DIENST_TICKET=smoke \
   PLANER_PORT="$WAMP_PORT" PLANER_HEALTH_LISTEN="127.0.0.1:$((WAMP_PORT + 1))" \
+  PLANER_AUTH_ADRESSE="$AUTH_ADRESSE" \
   dart run bin/server.dart >/tmp/planer-smoke-router.log 2>&1) &
 ROUTER_PID=$!
-trap 'kill "$DRIVER_PID" 2>/dev/null || true; pkill -f "bin/server.dart" 2>/dev/null || true; kill "$ROUTER_PID" 2>/dev/null || true' EXIT
-for _ in $(seq 1 120); do
-  curl -sf "http://127.0.0.1:$((WAMP_PORT + 1))/healthz" >/dev/null && break
-  sleep 1
+trap 'kill "$DRIVER_PID" 2>/dev/null || true; pkill -f "bin/server.dart" 2>/dev/null || true; kill "$ROUTER_PID" "$AUTH_PID" 2>/dev/null || true; pkill -P "$AUTH_PID" 2>/dev/null || true' EXIT
+for port in $((WAMP_PORT + 3)) $((WAMP_PORT + 1)); do
+  for _ in $(seq 1 120); do
+    curl -sf "http://127.0.0.1:$port/healthz" >/dev/null && break
+    sleep 1
+  done
 done
+
+# Testkonto nur für diesen Lauf (Konten liegen nur im Arbeitsspeicher des
+# Auth-Servers); das Passwort geht über stdin an das Werkzeug.
+SMOKE_EMAIL="smoke@example.test"
+SMOKE_PASSWORT="$(openssl rand -hex 16)"
+printf '%s\n' "$SMOKE_PASSWORT" | (cd "$ROOT/packages/server" && \
+  PLANER_AUTH_ADRESSE="$AUTH_ADRESSE" PLANER_AUTH_DIENST_TICKET=smoke \
+  dart run bin/mitarbeiter.dart anlegen "$SMOKE_EMAIL")
 
 cd "$ROOT/packages/app"
 status=0
@@ -35,6 +53,8 @@ for test in integration_test/*_test.dart; do
     -d web-server --browser-name=chrome --headless --wasm \
     --driver-port="$PORT" \
     --dart-define=PLANER_WAMP_URL="ws://127.0.0.1:$WAMP_PORT/ws" \
+    --dart-define=SMOKE_MITARBEITER_EMAIL="$SMOKE_EMAIL" \
+    --dart-define=SMOKE_MITARBEITER_PASSWORT="$SMOKE_PASSWORT" \
     ${CHROME_EXECUTABLE:+--chrome-binary="$CHROME_EXECUTABLE"} || status=1
 done
 

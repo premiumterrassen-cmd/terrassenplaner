@@ -14,7 +14,7 @@ Neuer Planer: Prüfcode für gespeicherte Konfigurationen (Alexander, 04.11.2026
 - Nach SPEICHERN zeigt der Hinweis die vollständige Kennung und bittet, die Nummer samt Prüfcode zu notieren. „Konfiguration laden“ nimmt sie in einem Feld, dazu Version −/+.
 - Laden mit falschem oder fehlendem Prüfcode gibt dieselbe Meldung wie eine unbekannte Nummer: „Diese Konfiguration gibt es nicht. Bitte prüfen Sie Konfigurationsnummer, Prüfcode und Version.“ So erfährt niemand, ob eine Nummer vergeben ist.
 - Der Browser merkt sich für „Weiterplanen“ die Kennung mit Prüfcode.
-- Mitarbeiter sollen später (M9-10, Mitarbeiter-Anmeldung) auch ohne Prüfcode laden dürfen.
+- Angemeldete Mitarbeiter (M9-10) laden auch mit der Nummer allein; ein fehlender oder falscher Prüfcode stört dann nicht. Der Planer übernimmt die vollständige Kennung vom Server, SPEICHERN führt dieselbe Nummer weiter. Der Ladedialog weist darauf hin.
 
 ## Angebot anfordern
 
@@ -34,6 +34,12 @@ Knopf „Jetzt Angebot anfordern“ (Materialliste) öffnet „Angebot anfordern
 ## Weitere
 
 - **ANMELDEN**: Dialog „Login“ mit E-Mail-Adresse und Passwort – **nur für Mitarbeiter** (Rollen in M0-08).
+  Neuer Planer (M9-10):
+  - ANMELDEN steht in der Kopfzeile nach ZURÜCKSETZEN (schmal nur als Symbol). Dialog „Login“ mit Hinweis „Nur für Mitarbeiter von ALTO HOLZ.“, Feldern E-Mail-Adresse und Passwort (verdeckt), „Abbrechen“ und „Anmelden“; Enter im Passwortfeld meldet an.
+  - Falsche Angaben: „Anmeldung nicht möglich. Bitte prüfen Sie E-Mail-Adresse und Passwort – nach mehreren Fehlversuchen ist das Konto für 15 Minuten gesperrt.“ Das Passwortfeld wird geleert, die E-Mail-Adresse bleibt. Ohne Server eine eigene Meldung.
+  - Angemeldet: ABMELDEN statt ANMELDEN, „Angemeldet als …“ in der Statuszeile (schmal zusätzlich im Tooltip). ABMELDEN meldet ohne Rückfrage ab („Sie sind abgemeldet.“). Neu laden der Seite oder Verbindungsabbruch melden ebenfalls ab – der Browser speichert keine Anmeldung und kein Passwort.
+  - Mitarbeiter dürfen Konfigurationen ohne Prüfcode laden (siehe oben). Die Mitarbeiter-Ansicht der Materialliste und die ERP-Exporte (unten) folgen mit M9-04/M9-08.
+  - Kunden bleiben anonym; es gibt keine Selbstregistrierung. Konten legt die Verwaltung auf dem Server an (`docs/betrieb/mitarbeiter.md`); E-Mail-Adressen gelten ohne Groß-/Kleinschreibung.
 - **Video Beratung buchen**: externer Terminlink (nicht geöffnet).
 - **Kontakt-Knopf** (rot, rechts): E-Mail-Kontakt.
 

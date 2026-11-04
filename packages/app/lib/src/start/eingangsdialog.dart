@@ -9,6 +9,13 @@ import '../sprache/sprache.dart';
 /// Lädt eine gespeicherte Konfiguration über den Server (M9-05).
 typedef KonfigurationLaden = Future<void> Function(KonfigurationsStand stand);
 
+/// Lädt eine Version allein über die Konfigurationsnummer – nur für
+/// angemeldete Mitarbeiter (M9-10).
+typedef KonfigurationLadenOhnePruefcode = Future<void> Function(
+  Konfigurationsnummer nummer,
+  int version,
+);
+
 /// Speichert die aktuelle Planung und liefert Nummer und Version (M9-05).
 typedef KonfigurationSpeichern = Future<KonfigurationsStand> Function();
 
@@ -92,10 +99,15 @@ class LadenDialog extends StatefulWidget {
     super.key,
     this.speichern,
     this.vorgabe,
+    this.ladenOhnePruefcode,
   });
 
   final KonfigurationLaden laden;
   final KonfigurationSpeichern? speichern;
+
+  /// Nur angemeldet (M9-10): Laden über die Nummer, der Prüfcode darf
+  /// fehlen oder falsch sein – der Server liefert die richtige Kennung.
+  final KonfigurationLadenOhnePruefcode? ladenOhnePruefcode;
 
   /// Vorbelegung von Kennung und Version (die geöffnete Konfiguration).
   final KonfigurationsStand? vorgabe;
@@ -124,30 +136,50 @@ class _LadenDialogState extends State<LadenDialog> {
 
   /// Fehlt der Prüfcode oder ist er falsch geschrieben, lautet die Meldung
   /// wie bei einer unbekannten Konfiguration (M9-05b) – ohne Rückfrage beim
-  /// Server.
+  /// Server. Angemeldete Mitarbeiter laden über die Nummer (M9-10).
   Future<void> _lade() async {
-    final Konfigurationskennung kennung;
+    final ({Konfigurationsnummer nummer, Konfigurationskennung? kennung})
+    eingabe;
     try {
-      kennung = Konfigurationskennung.lies(_nummer.text);
-    } on PruefcodeUngueltig {
+      eingabe = _lies(_nummer.text);
+    } on ArgumentError {
+      setState(() => _nummerFalsch = true);
+      return;
+    }
+    final (:nummer, :kennung) = eingabe;
+    final ohnePruefcode = widget.ladenOhnePruefcode;
+    if (ohnePruefcode == null && kennung == null) {
       setState(() {
         _nummerFalsch = false;
         _meldung = _Meldung.unbekannt;
       });
       return;
-    } on ArgumentError {
-      setState(() => _nummerFalsch = true);
-      return;
     }
+    final version = _version;
     _beginne();
     final navigator = Navigator.of(context);
     try {
-      await widget.laden(KonfigurationsStand(kennung, _version));
+      await (ohnePruefcode == null
+          ? widget.laden(KonfigurationsStand(kennung!, version))
+          : ohnePruefcode(nummer, version));
       navigator.pop(true);
     } on KonfigurationNichtGefunden {
       _beende(_Meldung.unbekannt);
     } on Object {
       _beende(_Meldung.ladeFehler);
+    }
+  }
+
+  /// Nummer und – wenn richtig geschrieben – die Kennung mit Prüfcode;
+  /// eine unlesbare Nummer: [ArgumentError].
+  static ({Konfigurationsnummer nummer, Konfigurationskennung? kennung}) _lies(
+    String text,
+  ) {
+    try {
+      final kennung = Konfigurationskennung.lies(text);
+      return (nummer: kennung.nummer, kennung: kennung);
+    } on PruefcodeUngueltig catch (fehler) {
+      return (nummer: fehler.nummer, kennung: null);
     }
   }
 
@@ -202,6 +234,10 @@ class _LadenDialogState extends State<LadenDialog> {
             decoration: InputDecoration(
               labelText: t.nummerFeld,
               hintText: t.nummerHinweis,
+              helperText: widget.ladenOhnePruefcode == null
+                  ? null
+                  : t.nummerHinweisMitarbeiter,
+              helperMaxLines: 2,
               errorText: _nummerFalsch ? t.nummerFehler : null,
             ),
             onSubmitted: (_) => _lade(),

@@ -112,6 +112,16 @@
       register: planer_test_db
       failed_when: not planer_test_db.stat.exists or planer_test_db.stat.pw_name != 'planer-auth'
 
+    - name: Werkzeug für Mitarbeiter-Konten erreicht den Auth-Server (M9-10)
+      ansible.builtin.command: /usr/local/sbin/planer-mitarbeiter liste
+      changed_when: false
+
+    - name: Mitarbeiter-Werkzeug nur für root
+      ansible.builtin.stat:
+        path: /usr/local/sbin/planer-mitarbeiter
+      register: planer_test_werkzeug
+      failed_when: planer_test_werkzeug.stat.mode != '0700' or planer_test_werkzeug.stat.pw_name != 'root'
+
     - name: ObjectBox-Datenbank der Konfigurationen im Router angelegt (M9-05)
       ansible.builtin.stat:
         path: /var/lib/terrassenplaner/planer-router/datenbank/data.mdb

@@ -46,6 +46,15 @@
   no_log: true
   notify: Planer-Dienste neu starten
 
+- name: Werkzeug für Mitarbeiter-Konten (M9-10, docs/betrieb/mitarbeiter.md)
+  ansible.builtin.template:
+    src: planer-mitarbeiter.j2
+    dest: /usr/local/sbin/planer-mitarbeiter
+    # liest die Geheimnisse des Auth-Servers – nur root
+    owner: root
+    group: root
+    mode: "0700"
+
 - name: Systemd-Units
   ansible.builtin.template:
     src: dienst.service.j2
