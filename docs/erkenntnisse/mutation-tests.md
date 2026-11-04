@@ -77,3 +77,9 @@ Der Ausschluss `[\s]for[\s]*\(.*?\)[\s]*{` in `tool/mutation/*.xml` greift nur b
 | app (8 Teile) | 600 | 8 | 98,67 % | je 18–60 min, zusammen 4 h 54 min |
 
 Gesamtdauer 1 h 42 min statt über 12 Stunden.
+
+## Harte Frist je Mutant: `tool/mutation/frist.sh` (04.11.2026)
+
+Auf `feature/m6-01-art-der-terrasse` brach der Mutationsjob zweimal mit Exit 143 ab („The runner has received a shutdown signal“), jeweils in `dielenverlegung.dart`. Ursache: Einige Mutanten rechnen (fast) endlos – lokal nachgestellt Zeile 162 `anfang - laenge.mm` und Zeile 212 `p - (q - p) * …` (Sutherland-Hodgman). mutation_test beendet einen Testlauf nach dem Timeout nur mit **SIGTERM**; `dart test` wartet darauf erst die laufenden Tests ab und lief lokal noch Minuten neben den folgenden Mutanten weiter. Mehrere solcher Prozesse gleichzeitig sprengen den Speicher des Runners.
+
+Seitdem läuft jeder Testbefehl über `bash ../../tool/mutation/frist.sh <sekunden> …`: Der Befehl wird nach der Frist (10 s vor dem Timeout aus der Paketkonfiguration: 290 s domain/app, 110 s server) mit **SIGKILL** beendet, ebenso sofort, wenn mutation_test selbst SIGTERM schickt. Ein so beendeter Lauf hat einen Exit-Code ungleich 0 und zählt als erkannt – wie ein Timeout. Timeouts und Schwellen bleiben unverändert.
