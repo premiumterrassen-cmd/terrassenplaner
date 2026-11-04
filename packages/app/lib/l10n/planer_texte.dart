@@ -166,6 +166,18 @@ abstract class PlanerTexte {
   /// **'Keine Verbindung zum Server'**
   String get keineVerbindung;
 
+  /// No description provided for @speichern.
+  ///
+  /// In de, this message translates to:
+  /// **'SPEICHERN'**
+  String get speichern;
+
+  /// No description provided for @laden.
+  ///
+  /// In de, this message translates to:
+  /// **'LADEN'**
+  String get laden;
+
   /// No description provided for @zuruecksetzen.
   ///
   /// In de, this message translates to:
@@ -907,8 +919,38 @@ abstract class PlanerTexte {
   /// No description provided for @ladeFehler.
   ///
   /// In de, this message translates to:
-  /// **'Die Konfiguration konnte nicht geladen werden.'**
+  /// **'Die Konfiguration konnte nicht geladen werden – der Server ist nicht erreichbar.'**
   String get ladeFehler;
+
+  /// No description provided for @konfigurationUnbekannt.
+  ///
+  /// In de, this message translates to:
+  /// **'Diese Konfigurationsnummer oder Version gibt es nicht.'**
+  String get konfigurationUnbekannt;
+
+  /// No description provided for @konfigurationSpeichernKnopf.
+  ///
+  /// In de, this message translates to:
+  /// **'Konfiguration Speichern'**
+  String get konfigurationSpeichernKnopf;
+
+  /// No description provided for @gefundenEntwurf.
+  ///
+  /// In de, this message translates to:
+  /// **'Wir haben eine ungespeicherte Konfiguration gefunden. Möchten Sie mit dieser weiterplanen?'**
+  String get gefundenEntwurf;
+
+  /// No description provided for @gespeichertMeldung.
+  ///
+  /// In de, this message translates to:
+  /// **'Gespeichert: Konfigurationsnummer {nummer}, Version {version}. Bitte notieren Sie die Nummer.'**
+  String gespeichertMeldung(String nummer, int version);
+
+  /// No description provided for @speichernFehler.
+  ///
+  /// In de, this message translates to:
+  /// **'Speichern nicht möglich – der Server ist nicht erreichbar. Ihre Planung bleibt erhalten, bitte später erneut speichern.'**
+  String get speichernFehler;
 
   /// No description provided for @modell3dTitel.
   ///

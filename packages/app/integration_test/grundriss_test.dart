@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:terrassenplaner_app/main.dart' as app;
+
+import 'start.dart';
 
 /// Ende-zu-Ende (M4-02): Maße in der App → Planungsstand als FlatBuffer über
 /// den Router → Planungsdienst rechnet → Fläche zurück in der App.
@@ -18,8 +19,7 @@ void main() {
   }
 
   testWidgets('Formen und Freiform: Fläche vom Server', (tester) async {
-    app.main();
-    await tester.pumpAndSettle();
+    await starteApp(tester);
     await tester.tap(find.byKey(const ValueKey('neu')));
     await tester.pumpAndSettle();
     await warteAuf(tester, 'Fläche: 14,832 m²');
