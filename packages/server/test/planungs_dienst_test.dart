@@ -391,6 +391,94 @@ void main() {
     });
   });
 
+  group('Befestigung (M5-09)', () {
+    Artikel clip(String vpe, int inhalt) => Artikel(
+      nummer: Artikelnummer('80-10-001-$vpe'),
+      titel: 'CLIP-FIXX® "BLACK EDITION" - VPE $vpe',
+      art: Artikelart.clip,
+      einheit: Verkaufseinheit(Mengeneinheit.stueck, inhalt: inhalt),
+    );
+    final clips = [clip('50', 50), clip('100', 100), clip('250', 250)];
+    final diele = Artikel(
+      nummer: const Artikelnummer('10-10-073-R'),
+      titel: 'Terrassendiele Robinie PREMIUM SELECT 60 x 23 mm, genutet',
+      art: Artikelart.diele,
+      einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+      abmessungen: Abmessungen(
+        breite: const Millimeter(60),
+        staerke: const Millimeter(23),
+        laengen: const [Millimeter(4000), Millimeter(5000), Millimeter(6000)],
+      ),
+      holzart: robinie,
+      serie: premiumSelect,
+      profil: Profil.genutet,
+    );
+    final regelwerk = Regelwerk(
+      Artikeldatei(
+        quelle: 'test',
+        version: '1',
+        eintraege: [
+          Artikeleintrag(
+            artikel: diele,
+            verweise: {
+              Beziehung.befestigung.spalte: [for (final c in clips) c.nummer],
+            },
+            angaben: const {'Abstand_UK': 400},
+          ),
+          for (final c in clips) Artikeleintrag(artikel: c),
+        ],
+      ),
+    );
+
+    test('F01: 637 CLIP-FIXX als 2 × 250 + 100 + 50 (B-094)', () {
+      final b = PlanungsDienst.berechne(
+        Planungsstand.start,
+        diele,
+        regelwerk,
+      ).befestigung;
+      expect(b.art, Befestigungsart.clips);
+      expect(b.arten, [Befestigungsart.clips]);
+      expect(b.punkte, 624);
+      expect(
+        {for (final m in b.mittel) m.nummer.wert: m.anzahl},
+        {'80-10-001-50': 1, '80-10-001-100': 1, '80-10-001-250': 2},
+      );
+      // ohne Regelwerk oder mit einem, das den Belag nicht kennt: keine
+      expect(
+        PlanungsDienst.berechne(Planungsstand.start, diele).befestigung,
+        same(Befestigungsbedarf.keiner),
+      );
+      final fremd = Regelwerk(
+        Artikeldatei(quelle: 't', version: '2', eintraege: const []),
+      );
+      expect(
+        PlanungsDienst.berechne(Planungsstand.start, diele, fremd).befestigung,
+        same(Befestigungsbedarf.keiner),
+      );
+      expect(
+        PlanungsDienst.berechnePlanung(
+          Planung.start,
+          (_) => diele,
+          regelwerk,
+        ).befestigung.punkte,
+        624,
+      );
+    });
+
+    test('über den Router mit dem Regelwerk', () async {
+      await dienst.stoppe();
+      dienst = await PlanungsDienst.starte(
+        router,
+        belag: (_) => diele,
+        regelwerk: () => regelwerk,
+      );
+      final antwort = await rufe(Planung.start.zuBytes());
+      final b = Berechnung.ausBytes(antwort.payload.packedPayloadBytes!);
+      expect(b.befestigung.punkte, 624);
+      expect(b.befestigung.mittel, hasLength(3));
+    });
+  });
+
   test('ungültige Maße sind ein Fehler', () async {
     final fbb = fb.Builder();
     final masse = fbb.writeListInt32([4800, 100]);

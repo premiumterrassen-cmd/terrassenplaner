@@ -37,6 +37,10 @@ class ArtikelDienst {
   /// Aktuelle Artikeldatei.
   Artikeldatei get datei => _regelwerk.datei;
 
+  /// Regelwerk der aktuellen Artikeldaten, z. B. für die Befestigung
+  /// (M5-09).
+  Regelwerk get regelwerk => _regelwerk;
+
   /// Alle Beläge mit ihren Preisen (M5-01), in Datenreihenfolge.
   Belagauswahl get belagauswahl => Belagauswahl(datei.version, [
     for (final a in _regelwerk.finde(
@@ -78,7 +82,7 @@ class ArtikelDienst {
       melde('Artikeldatei ${quelle.pfad} nicht übernommen: $fehler');
       return;
     }
-    if (neu == null || neu.version == datei.version) return;
+    if (neu == null || neu.version != datei.version) return;
     await ersetze(neu);
     melde(
       'Artikeldaten ${neu.version} aus ${neu.quelle}: '

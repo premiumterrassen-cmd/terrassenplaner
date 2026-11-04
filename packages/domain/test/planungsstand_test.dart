@@ -943,6 +943,7 @@ void main() {
           0,
           const Millimeter(0),
           const Millimeter(0),
+          Befestigungsart.clips,
         ),
       );
       final neu = start.mitGrundriss(_rechteck(5400, 3600));
@@ -1295,6 +1296,76 @@ void main() {
       expect(geaendert.mitAusgangspunkt(ecke: 0).ausgangspunkt, Punkt.ursprung);
     });
 
+    test('Befestigungsart (M5-09): Vorgabe Clips, bleibt bei allen '
+        'Änderungen, fehlt im Transport = Vorgabe', () {
+      const start = Planungsstand.start;
+      expect(start.befestigungsart, Befestigungsart.clips);
+      final stand = start.mitBefestigungsart(
+        Befestigungsart.verschraubtMitAbstandshaltern,
+      );
+      expect(
+        stand.befestigungsart,
+        Befestigungsart.verschraubtMitAbstandshaltern,
+      );
+      for (final art in Befestigungsart.values) {
+        final s = start.mitBefestigungsart(art);
+        expect(Planungsstand.ausBytes(s.zuBytes()), s);
+      }
+      expect(stand == start, isFalse);
+      expect(stand.hashCode == start.hashCode, isFalse);
+      expect(stand.mitBefestigungsart(Befestigungsart.clips), start);
+      final mitA = stand.mitNeuemAusschnitt();
+      for (final s in [
+        stand.mitGrundriss(_rechteck(5000, 3000)),
+        stand.mitRundungen(Rundungen.keine),
+        stand.mitForm(Terrassenform.oForm),
+        stand.gedreht(90),
+        stand.mitBelag(const Artikelnummer('10-10-146')),
+        stand.mitDielenlaenge(const Millimeter(4000)),
+        stand.mitKurzeStueckeVerbinden(true),
+        stand.mitVerlegeart(Verlegeart.halbverband),
+        stand.mitVerlegerichtung(Verlegerichtung.senkrecht),
+        stand.mitAusgangspunkt(ecke: 1),
+        mitA,
+        mitA.mitAusschnitt(0, mitA.ausschnitte.single),
+        mitA.ohneAusschnitt(0),
+      ]) {
+        expect(
+          s.befestigungsart,
+          Befestigungsart.verschraubtMitAbstandshaltern,
+        );
+      }
+      final geaendert = start
+          .mitVerlegeart(Verlegeart.halbverband)
+          .mitAusgangspunkt(ecke: 2, x: const Millimeter(5))
+          .mitBefestigungsart(Befestigungsart.verschraubt);
+      expect(geaendert.verlegeart, Verlegeart.halbverband);
+      expect(geaendert.ausgangsecke, 2);
+      expect(geaendert.verschiebungX, const Millimeter(5));
+      Uint8List alt(int? art) {
+        final fbb = fb.Builder();
+        final masseOrt = fbb.writeListInt32([4800, 3090]);
+        fbb
+          ..startTable(2)
+          ..addUint8(0, 0)
+          ..addOffset(1, masseOrt);
+        final ort = fbb.endTable();
+        fbb
+          ..startTable(14)
+          ..addOffset(1, ort)
+          ..addUint8(13, art);
+        fbb.finish(fbb.endTable());
+        return fbb.buffer;
+      }
+
+      expect(Planungsstand.ausBytes(alt(null)), start);
+      expect(
+        Planungsstand.ausBytes(alt(2)).befestigungsart,
+        Befestigungsart.verschraubtMitAbstandshaltern,
+      );
+      expect(() => Planungsstand.ausBytes(alt(3)), throwsFormatException);
+    });
+
     test('Ausgangsecke nach Formwechsel: zurück auf A, wenn es sie nicht '
         'mehr gibt (M5-07)', () {
       final l = Planungsstand.start.mitForm(Terrassenform.lForm);
@@ -1564,6 +1635,57 @@ void main() {
       expect(ohne.grenzeLinksRechts, const Millimeter(0));
       expect(ohne.grenzeObenUnten, const Millimeter(0));
       expect(ohne.kurzeZuschnitte, isFalse);
+    });
+
+    test('Befestigung (M5-09) hin und zurück, auch in der Kopie mit '
+        'Gesamtfläche', () {
+      final b = Berechnung(
+        umriss: const [],
+        flaeche: 1,
+        befestigung: Befestigungsbedarf(
+          arten: const [
+            Befestigungsart.verschraubt,
+            Befestigungsart.verschraubtMitAbstandshaltern,
+          ],
+          art: Befestigungsart.verschraubtMitAbstandshaltern,
+          punkte: 390,
+          mittel: const [
+            Befestigungsposition(Artikelnummer('50-50-102'), 'Schrauben', 4),
+            Befestigungsposition(
+              Artikelnummer('50-90-004'),
+              'Abstandshalter',
+              3,
+            ),
+          ],
+        ),
+      );
+      for (final k in [
+        Berechnung.ausBytes(b.zuBytes()),
+        b.mitGesamtflaeche(2),
+      ]) {
+        expect(k.befestigung.arten, b.befestigung.arten);
+        expect(
+          k.befestigung.art,
+          Befestigungsart.verschraubtMitAbstandshaltern,
+        );
+        expect(k.befestigung.punkte, 390);
+        expect(k.befestigung.mittel, b.befestigung.mittel);
+      }
+      expect(
+        () => b.befestigung.mittel.add(b.befestigung.mittel.first),
+        throwsUnsupportedError,
+      );
+      final ohne = Berechnung.ausBytes(
+        Berechnung(umriss: const [], flaeche: 0).zuBytes(),
+      );
+      expect(ohne.befestigung.arten, isEmpty);
+      expect(ohne.befestigung.art, isNull);
+      expect(ohne.befestigung.punkte, 0);
+      expect(ohne.befestigung.mittel, isEmpty);
+      expect(
+        Berechnung(umriss: const [], flaeche: 0).befestigung,
+        same(Befestigungsbedarf.keiner),
+      );
     });
 
     test('leere Nachricht: kein Umriss, Fläche 0', () {

@@ -8,6 +8,7 @@ import '../artikel/einheiten.dart';
 import '../geometrie/kontur.dart';
 import '../geometrie/punkt.dart';
 import 'ausschnitt.dart';
+import 'befestigungsart.dart';
 import 'grundriss.dart';
 import 'rundungen.dart';
 import 'verlegeart.dart';
@@ -18,7 +19,7 @@ import 'verlegerichtung.dart';
 /// Grundriss, seit M4-06 mit Ausschnitten, seit M5-01 mit Belag, seit M5-02
 /// mit Dielenlänge, seit M5-03 mit „kurze Stücke verbinden“, seit M5-04 mit
 /// Verlegeart, seit M5-05 mit Verlegerichtung, seit M5-07 mit
-/// Ausgangspunkt;
+/// Ausgangspunkt, seit M5-09 mit Befestigungsart;
 /// Unterkonstruktion usw. folgen als weitere Felder. Berechnet wird daraus
 /// auf dem Server.
 final class Planungsstand {
@@ -35,6 +36,7 @@ final class Planungsstand {
     this.ausgangsecke = 0,
     this.verschiebungX = const Millimeter(0),
     this.verschiebungY = const Millimeter(0),
+    this.befestigungsart = Befestigungsart.clips,
   });
 
   /// Liest einen Planungsstand aus dem Transportformat ([zuBytes]).
@@ -113,6 +115,14 @@ final class Planungsstand {
       ausgangsecke: ecke,
       verschiebungX: _mm(puffer, wurzel, _verschiebungXPlatz),
       verschiebungY: _mm(puffer, wurzel, _verschiebungYPlatz),
+      befestigungsart: Befestigungsart.ausNummer(
+        const fb.Uint8Reader().vTableGet(
+          puffer,
+          wurzel,
+          _versatz(_befestigungsartPlatz),
+          0,
+        ),
+      ),
     );
   }
 
@@ -169,6 +179,12 @@ final class Planungsstand {
   /// Verschiebung der ersten ganzen Diele nach unten (negativ: oben).
   final Millimeter verschiebungY;
 
+  /// Gewählte Befestigungsart (M5-09, Fachkonzept 2.6); Vorgabe Clips wie
+  /// im alten Planer. Was gilt, hängt vom Profil des Belags ab
+  /// (`Befestigungsart.wirksam`: glattkant wird verschraubt, B-090); die
+  /// Wahl bleibt bei einem Belagwechsel erhalten.
+  final Befestigungsart befestigungsart;
+
   /// Wie viele Ecken als Ausgangspunkt wählbar sind (A, B …).
   int get ausgangsecken => _eckenzahl(grundriss);
 
@@ -204,6 +220,7 @@ final class Planungsstand {
     int? ausgangsecke,
     Millimeter? verschiebungX,
     Millimeter? verschiebungY,
+    Befestigungsart? befestigungsart,
   }) {
     final neu = grundriss ?? this.grundriss;
     final ecke = ausgangsecke ?? this.ausgangsecke;
@@ -224,6 +241,7 @@ final class Planungsstand {
       ausgangsecke: ecke < _eckenzahl(neu) ? ecke : 0,
       verschiebungX: verschiebungX ?? this.verschiebungX,
       verschiebungY: verschiebungY ?? this.verschiebungY,
+      befestigungsart: befestigungsart ?? this.befestigungsart,
     );
   }
 
@@ -329,6 +347,10 @@ final class Planungsstand {
     return _mit(ausgangsecke: ecke, verschiebungX: x, verschiebungY: y);
   }
 
+  /// Kopie mit anderer Befestigungsart (M5-09).
+  Planungsstand mitBefestigungsart(Befestigungsart art) =>
+      _mit(befestigungsart: art);
+
   /// FlatBuffer für den Weg zum Server (#110):
   /// `{ 0: schema (uint16), 1: grundriss { 0: form (uint8), 1: masse ([int32] mm) },
   /// 2: ausschnitte ([{ 0: bezeichnung (string), 1: masse ([int32] mm) }]),
@@ -336,7 +358,8 @@ final class Planungsstand {
   /// 5: dielenlaenge (int32 mm), 6: kurze Stücke verbinden (bool),
   /// 7: verlegeart (uint8), 8: verlegerichtung (uint8),
   /// 9: verlegewinkel (uint8 Grad), 10: ausgangsecke (uint16),
-  /// 11: verschiebungX (int32 mm), 12: verschiebungY (int32 mm) }`.
+  /// 11: verschiebungX (int32 mm), 12: verschiebungY (int32 mm),
+  /// 13: befestigungsart (uint8, M5-09) }`.
   /// Neue Felder nur anhängen (docs/architektur/datenmodell.md).
   Uint8List zuBytes() {
     final fbb = fb.Builder();
@@ -357,7 +380,7 @@ final class Planungsstand {
       null => null,
     };
     fbb
-      ..startTable(13)
+      ..startTable(14)
       ..addUint16(_schemaPlatz, schema)
       ..addOffset(_grundrissPlatz, grundrissOrt)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
@@ -370,7 +393,8 @@ final class Planungsstand {
       ..addUint8(_verlegewinkelPlatz, verlegewinkel)
       ..addUint16(_ausgangseckePlatz, ausgangsecke)
       ..addInt32(_verschiebungXPlatz, verschiebungX.mm)
-      ..addInt32(_verschiebungYPlatz, verschiebungY.mm);
+      ..addInt32(_verschiebungYPlatz, verschiebungY.mm)
+      ..addUint8(_befestigungsartPlatz, befestigungsart.nummer);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
   }
@@ -404,6 +428,7 @@ final class Planungsstand {
   static const _ausgangseckePlatz = 10;
   static const _verschiebungXPlatz = 11;
   static const _verschiebungYPlatz = 12;
+  static const _befestigungsartPlatz = 13;
 
   @override
   bool operator ==(Object other) {
@@ -419,6 +444,7 @@ final class Planungsstand {
         other.ausgangsecke != ausgangsecke ||
         other.verschiebungX != verschiebungX ||
         other.verschiebungY != verschiebungY ||
+        other.befestigungsart != befestigungsart ||
         other.ausschnitte.length != ausschnitte.length) {
       return false;
     }
@@ -442,6 +468,7 @@ final class Planungsstand {
     ausgangsecke,
     verschiebungX,
     verschiebungY,
+    befestigungsart,
   );
 }
 

@@ -8,26 +8,34 @@ import '../router/planer_router.dart';
 /// Belag zur Artikelnummer des Planungsstands; `null` = Vorgabe (M5-05).
 typedef Belagsuche = Artikel? Function(Artikelnummer? nummer);
 
+/// Regelwerk der aktuellen Artikeldaten (M5-09); `null` = keins.
+typedef Regelwerksuche = Regelwerk? Function();
+
 /// Planungsdienst (M4-02): berechnet aus der Planung der App Umriss und
 /// Kennzahlen der bearbeiteten Fläche, die Gesamtfläche (M4-14), die
-/// Dielenstücke (M5-05) und den Ausgangspunkt der Verlegung (M5-07) – die App rechnet nichts selbst (Frontend bleibt
+/// Dielenstücke (M5-05), den Ausgangspunkt der Verlegung (M5-07) und die
+/// Befestigung (M5-09) – die App rechnet nichts selbst (Frontend bleibt
 /// „doof“). Hin- und Rückweg als typisierte FlatBuffers (Packed PPT, #110).
 class PlanungsDienst {
   PlanungsDienst._(this._sitzung);
 
   /// [belag] liefert den Belag aus den aktuellen Artikeldaten; ohne ihn
-  /// (oder ohne Artikeldatei) rechnet der Dienst ohne Dielen.
+  /// (oder ohne Artikeldatei) rechnet der Dienst ohne Dielen. [regelwerk]
+  /// liefert die Befestigungsartikel; ohne es keine Befestigung.
   static Future<PlanungsDienst> starte(
     PlanerRouter router, {
     Belagsuche belag = _ohneBelag,
+    Regelwerksuche regelwerk = _ohneRegelwerk,
   }) async {
     final sitzung = await router.dienstSitzung(sitzungId);
     (await sitzung.register(WampNamen.planungBerechnen))
-        .onLazyInvokePayload((aufruf) => _berechne(aufruf, belag));
+        .onLazyInvokePayload((aufruf) => _berechne(aufruf, belag, regelwerk));
     return PlanungsDienst._(sitzung);
   }
 
   static Artikel? _ohneBelag(Artikelnummer? nummer) => null;
+
+  static Regelwerk? _ohneRegelwerk() => null;
 
   /// authid der internen Dienst-Sitzung.
   static const sitzungId = 'planungs-dienst';
@@ -42,8 +50,13 @@ class PlanungsDienst {
   /// ist die Fläche die Außenfläche (Fachkonzept 1.4). Mit einem [belag]
   /// aus Dielen auch die Dielenstücke in Verlegerichtung (M5-05) ab dem
   /// verschobenen Ausgangspunkt, die Grenzen der Verschiebung und ob kurze
-  /// Zuschnitte entstehen (M5-07).
-  static Berechnung berechne(Planungsstand stand, [Artikel? belag]) {
+  /// Zuschnitte entstehen (M5-07). Mit dem [regelwerk] auch die Befestigung
+  /// der Dielen (M5-09).
+  static Berechnung berechne(
+    Planungsstand stand, [
+    Artikel? belag,
+    Regelwerk? regelwerk,
+  ]) {
     // offene Freiform (M4-08): nur der gezeichnete Linienzug
     if (stand.grundriss case FreiformGrundriss(
       :final punkte,
@@ -69,6 +82,8 @@ class PlanungsDienst {
     return _verlegt(
       flaeche,
       stand,
+      belag!,
+      regelwerk,
       dielenbreite: breite,
       // erzwungene Länge nur, solange der Belag sie liefert (M5-02)
       laengste: fest != null && masse.laengen.contains(fest) ? fest : laengste,
@@ -80,7 +95,9 @@ class PlanungsDienst {
   /// Wechsel auf einen schmaleren Belag) wird auf die Grenze begrenzt.
   static Berechnung _verlegt(
     Berechnung flaeche,
-    Planungsstand stand, {
+    Planungsstand stand,
+    Artikel belag,
+    Regelwerk? regelwerk, {
     required Millimeter dielenbreite,
     required Millimeter laengste,
   }) {
@@ -117,6 +134,17 @@ class PlanungsDienst {
       grenzeLinksRechts: grenzen.x,
       grenzeObenUnten: grenzen.y,
       kurzeZuschnitte: stuecke.any((d) => d.kurzerZuschnitt),
+      // ohne Regelwerk oder mit einem, das den Belag (nach einem Wechsel der
+      // Artikeldaten) nicht mehr kennt: keine Befestigung
+      befestigung: regelwerk?.datei[belag.nummer] == null
+          ? null
+          : befestigungsbedarf(
+              regelwerk!,
+              belag,
+              stand.befestigungsart,
+              stuecke,
+              winkel: winkel,
+            ),
     );
   }
 
@@ -128,20 +156,31 @@ class PlanungsDienst {
   static Berechnung berechnePlanung(
     Planung planung, [
     Belagsuche belag = _ohneBelag,
+    Regelwerk? regelwerk,
   ]) {
     var gesamt = 0.0;
     for (final f in planung.flaechen) {
       gesamt += berechne(f.stand).flaeche * f.haeufigkeit;
     }
     final aktuell = planung.aktuell;
-    return berechne(aktuell, belag(aktuell.belag)).mitGesamtflaeche(gesamt);
+    return berechne(
+      aktuell,
+      belag(aktuell.belag),
+      regelwerk,
+    ).mitGesamtflaeche(gesamt);
   }
 
-  static void _berechne(LazyInvocationPayload aufruf, Belagsuche belag) {
+  static void _berechne(
+    LazyInvocationPayload aufruf,
+    Belagsuche belag,
+    Regelwerksuche regelwerk,
+  ) {
     try {
       final planung = Planung.ausBytes(_bytes(aufruf));
       aufruf.respondWith(
-        lazyPayload: verpacke(berechnePlanung(planung, belag).zuBytes()),
+        lazyPayload: verpacke(
+          berechnePlanung(planung, belag, regelwerk()).zuBytes(),
+        ),
         options: ppt,
       );
     } on Object catch (fehler) {

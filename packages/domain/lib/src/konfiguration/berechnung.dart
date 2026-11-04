@@ -2,13 +2,17 @@ import 'dart:typed_data';
 
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 
+import '../artikel/artikel.dart';
 import '../artikel/einheiten.dart';
 import '../geometrie/punkt.dart';
+import '../regeln/befestigungsbedarf.dart';
+import 'befestigungsart.dart';
 
 /// Was der Server aus einem Planungsstand berechnet und die App nur anzeigt
 /// (M4-02): Umriss, Ausschnitte (M4-06) und Dielenstücke (M5-05) für die
 /// Zeichnung und Kennzahlen, seit M5-07 Ausgangspunkt, Verschiebungsgrenzen
-/// und Warnung vor kurzen Zuschnitten. Volumen und Materialliste folgen mit M5 und M6.
+/// und Warnung vor kurzen Zuschnitten, seit M5-09 die Befestigung. Volumen
+/// und Materialliste folgen mit M5 und M6.
 final class Berechnung {
   Berechnung({
     required List<Punkt> umriss,
@@ -22,7 +26,9 @@ final class Berechnung {
     this.grenzeLinksRechts = const Millimeter(0),
     this.grenzeObenUnten = const Millimeter(0),
     this.kurzeZuschnitte = false,
-  }) : gesamtflaeche = gesamtflaeche ?? flaeche,
+    Befestigungsbedarf? befestigung,
+  }) : befestigung = befestigung ?? Befestigungsbedarf.keiner,
+       gesamtflaeche = gesamtflaeche ?? flaeche,
        dielen = List.unmodifiable([
          for (final d in dielen) List<Punkt>.unmodifiable(d),
        ]),
@@ -70,6 +76,48 @@ final class Berechnung {
         _versatz(_kurzeZuschnittePlatz),
         false,
       ),
+      befestigung: _befestigung(puffer, wurzel),
+    );
+  }
+
+  static Befestigungsbedarf _befestigung(fb.BufferContext puffer, int wurzel) {
+    final art = const fb.Uint8Reader().vTableGetNullable(
+      puffer,
+      wurzel,
+      _versatz(_befestigungsartPlatz),
+    );
+    return Befestigungsbedarf(
+      arten: [
+        for (final n in const fb.ListReader<int>(fb.Uint8Reader()).vTableGet(
+          puffer,
+          wurzel,
+          _versatz(_befestigungsartenPlatz),
+          const [],
+        ))
+          Befestigungsart.ausNummer(n),
+      ],
+      art: art == null ? null : Befestigungsart.ausNummer(art),
+      punkte: const fb.Uint32Reader().vTableGet(
+        puffer,
+        wurzel,
+        _versatz(_befestigungspunktePlatz),
+        0,
+      ),
+      mittel: [
+        for (final ort in const fb.ListReader<int>(_Tabellenort()).vTableGet(
+          puffer,
+          wurzel,
+          _versatz(_befestigungsmittelPlatz),
+          const [],
+        ))
+          Befestigungsposition(
+            Artikelnummer(
+              const fb.StringReader().vTableGet(puffer, ort, _versatz(0), ''),
+            ),
+            const fb.StringReader().vTableGet(puffer, ort, _versatz(1), ''),
+            const fb.Uint32Reader().vTableGet(puffer, ort, _versatz(2), 0),
+          ),
+      ],
     );
   }
 
@@ -127,6 +175,10 @@ final class Berechnung {
   /// (`Dielenstueck.kurzerZuschnitt`, M5-07).
   final bool kurzeZuschnitte;
 
+  /// Befestigung des Belags (M5-09): wählbare und wirksame Art,
+  /// Befestigungspunkte und Artikel mit Anzahl; ohne Dielen keine.
+  final Befestigungsbedarf befestigung;
+
   /// Kopie mit anderer Gesamtfläche (M4-14).
   Berechnung mitGesamtflaeche(double gesamtflaeche) => Berechnung(
     umriss: umriss,
@@ -140,6 +192,7 @@ final class Berechnung {
     grenzeLinksRechts: grenzeLinksRechts,
     grenzeObenUnten: grenzeObenUnten,
     kurzeZuschnitte: kurzeZuschnitte,
+    befestigung: befestigung,
   );
 
   /// FlatBuffer für den Weg zur App (#110):
@@ -149,7 +202,10 @@ final class Berechnung {
   /// 6: dielen ([{ 0: punkte ([float64]) }], M5-05),
   /// 7: ausgangspunkt ([float64] x, y; fehlt ohne Dielen),
   /// 8: grenzeLinksRechts (int32 mm), 9: grenzeObenUnten (int32 mm),
-  /// 10: kurzeZuschnitte (bool) }` (M5-07).
+  /// 10: kurzeZuschnitte (bool) (M5-07), 11: befestigungsarten ([uint8]),
+  /// 12: befestigungsart (uint8; fehlt ohne Art), 13: befestigungspunkte
+  /// (uint32), 14: befestigungsmittel ([{ 0: nummer (string), 1: titel
+  /// (string), 2: anzahl (uint32) }]) (M5-09) }`.
   Uint8List zuBytes() {
     final fbb = fb.Builder();
     final umrissOrt = _schreibe(fbb, umriss);
@@ -164,8 +220,14 @@ final class Berechnung {
       final p? => _schreibe(fbb, [p]),
       null => null,
     };
+    final artenOrt = fbb.writeListUint8([
+      for (final a in befestigung.arten) a.nummer,
+    ]);
+    final mittelOrt = fbb.writeList([
+      for (final m in befestigung.mittel) _position(fbb, m),
+    ]);
     fbb
-      ..startTable(11)
+      ..startTable(15)
       ..addOffset(_umrissPlatz, umrissOrt)
       ..addFloat64(_flaechePlatz, flaeche)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
@@ -176,7 +238,11 @@ final class Berechnung {
       ..addOffset(_ausgangspunktPlatz, ausgangOrt)
       ..addInt32(_grenzeLinksRechtsPlatz, grenzeLinksRechts.mm)
       ..addInt32(_grenzeObenUntenPlatz, grenzeObenUnten.mm)
-      ..addBool(_kurzeZuschnittePlatz, kurzeZuschnitte);
+      ..addBool(_kurzeZuschnittePlatz, kurzeZuschnitte)
+      ..addOffset(_befestigungsartenPlatz, artenOrt)
+      ..addUint8(_befestigungsartPlatz, befestigung.art?.nummer)
+      ..addUint32(_befestigungspunktePlatz, befestigung.punkte)
+      ..addOffset(_befestigungsmittelPlatz, mittelOrt);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
   }
@@ -192,6 +258,17 @@ final class Berechnung {
     fbb
       ..startTable(1)
       ..addOffset(0, ort);
+    return fbb.endTable();
+  }
+
+  static int _position(fb.Builder fbb, Befestigungsposition m) {
+    final nummerOrt = fbb.writeString(m.nummer.wert);
+    final titelOrt = fbb.writeString(m.titel);
+    fbb
+      ..startTable(3)
+      ..addOffset(0, nummerOrt)
+      ..addOffset(1, titelOrt)
+      ..addUint32(2, m.anzahl);
     return fbb.endTable();
   }
 
@@ -227,6 +304,10 @@ final class Berechnung {
   static const _grenzeLinksRechtsPlatz = 8;
   static const _grenzeObenUntenPlatz = 9;
   static const _kurzeZuschnittePlatz = 10;
+  static const _befestigungsartenPlatz = 11;
+  static const _befestigungsartPlatz = 12;
+  static const _befestigungspunktePlatz = 13;
+  static const _befestigungsmittelPlatz = 14;
 
   static int _versatz(int platz) => 4 + 2 * platz;
 }
