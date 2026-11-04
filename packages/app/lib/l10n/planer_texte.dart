@@ -1761,6 +1761,66 @@ abstract class PlanerTexte {
   /// In de, this message translates to:
   /// **'Der Höhenreferenzpunkt unterschreitet die minimale Höhe von {cm} cm. Er wurde korrigiert.'**
   String hoeheKorrigiert(String cm);
+
+  /// No description provided for @belagmeldungBelagErsetzt.
+  ///
+  /// In de, this message translates to:
+  /// **'Der gewählte Belag ist nicht mehr im Sortiment. Geplant wird mit dem Vorgabebelag – wählen Sie bei Bedarf über „Produktauswahl“ einen anderen.'**
+  String get belagmeldungBelagErsetzt;
+
+  /// No description provided for @belagmeldungOhneMasse.
+  ///
+  /// In de, this message translates to:
+  /// **'Für diesen Belag fehlen Breite oder Lieferlängen, er kann nicht verlegt werden. Bitte wählen Sie einen anderen Belag.'**
+  String get belagmeldungOhneMasse;
+
+  /// No description provided for @belagmeldungSystemdiele.
+  ///
+  /// In de, this message translates to:
+  /// **'Systemdielen werden im Längenmix endlos verlegt – das zeichnet der Planer noch nicht.'**
+  String get belagmeldungSystemdiele;
+
+  /// No description provided for @belagmeldungFlaecheKleiner.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Fläche oder eine Teilfläche ist kleiner als eine Diele bzw. Fliese: Es passt keine ganze Belagbreite hinein, nur ein Zuschnitt.'**
+  String get belagmeldungFlaecheKleiner;
+
+  /// No description provided for @belagmeldungFliesenSpitzeWinkel.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Fläche hat Ecken unter 90°. Holzfliesen müssen dort schräg zugeschnitten werden – für solche Formen eignen sich Dielen besser.'**
+  String get belagmeldungFliesenSpitzeWinkel;
+
+  /// No description provided for @belagmeldungBombierung.
+  ///
+  /// In de, this message translates to:
+  /// **'Ab 8 cm Breite empfehlen wir bombierte (leicht gewölbte) Dielen.'**
+  String get belagmeldungBombierung;
+
+  /// No description provided for @belagmeldungLaengeNichtLieferbar.
+  ///
+  /// In de, this message translates to:
+  /// **'Die gewählte Länge von {cm} cm gibt es für diesen Belag nicht. Die Dielenlänge wird automatisch ermittelt.'**
+  String belagmeldungLaengeNichtLieferbar(int cm);
+
+  /// No description provided for @belagmeldungBefestigungsart.
+  ///
+  /// In de, this message translates to:
+  /// **'Genutete Dielen werden verdeckt mit Clips befestigt. Die gewählte Verschraubung gilt nur für glattkante Dielen.'**
+  String get belagmeldungBefestigungsart;
+
+  /// No description provided for @belagmeldungOhneBefestigung.
+  ///
+  /// In de, this message translates to:
+  /// **'Für diesen Belag sind keine passenden Clips oder Schrauben hinterlegt – die Befestigung fehlt in der Materialliste. Bitte sprechen Sie uns an.'**
+  String get belagmeldungOhneBefestigung;
+
+  /// No description provided for @belagmeldungSchraubeZuKurz.
+  ///
+  /// In de, this message translates to:
+  /// **'Keine hinterlegte Schraube ist mindestens doppelt so lang, wie die Diele stark ist. Gerechnet wird mit der längsten – bitte prüfen Sie die Schraubenlänge.'**
+  String get belagmeldungSchraubeZuKurz;
 }
 
 class _PlanerTexteDelegate extends LocalizationsDelegate<PlanerTexte> {

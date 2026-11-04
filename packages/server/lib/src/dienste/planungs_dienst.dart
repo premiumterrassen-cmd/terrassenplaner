@@ -18,9 +18,9 @@ typedef Unterkonstruktionssuche = Artikel? Function(Planungsstand stand);
 /// Kennzahlen der bearbeiteten Fläche, die Gesamtfläche (M4-14), die
 /// Dielenstücke (M5-05) mit Nummern, Dielenliste und Verschnitt (M5-08),
 /// den Ausgangspunkt der Verlegung (M5-07), die Befestigung (M5-09) und die
-/// geprüften Höhenpunkte (M6-02) – die App rechnet nichts selbst (Frontend
-/// bleibt „doof“). Hin- und Rückweg als typisierte FlatBuffers (Packed PPT,
-/// #110).
+/// geprüften Höhenpunkte (M6-02) und die Meldungen zum Belag (M5-10) – die
+/// App rechnet nichts selbst (Frontend bleibt „doof“). Hin- und Rückweg als
+/// typisierte FlatBuffers (Packed PPT, #110).
 class PlanungsDienst {
   PlanungsDienst._(this._sitzung);
 
@@ -114,8 +114,9 @@ class PlanungsDienst {
         _ => null,
       };
 
-  /// [flaeche] mit den Stücken der Verlegung [v]; die Befestigung zählt die
-  /// Punkte über alle Teilflächen.
+  /// [flaeche] mit den Stücken der Verlegung [v] und den Meldungen zum
+  /// Belag (M5-10, auch ohne Verlegung); die Befestigung zählt die Punkte
+  /// über alle Teilflächen.
   static Berechnung _mitVerlegung(
     Berechnung flaeche,
     Planungsstand stand,
@@ -123,7 +124,18 @@ class PlanungsDienst {
     Regelwerk? regelwerk,
     Belagverlegung? v,
   ) {
-    if (v == null) return flaeche;
+    final meldungen = belagmeldungen(stand, belag, v, regelwerk: regelwerk);
+    if (v == null) {
+      return Berechnung(
+        umriss: flaeche.umriss,
+        ecken: flaeche.ecken,
+        geschlossen: flaeche.geschlossen,
+        flaeche: flaeche.flaeche,
+        ausschnitte: flaeche.ausschnitte,
+        belagmeldungen: meldungen,
+        hoehenpunkte: flaeche.hoehenpunkte,
+      );
+    }
     // verlegt wird nur mit Belag
     final artikel = belag!;
     final stuecke = [for (final t in v.teile) ...t.stuecke];
@@ -132,6 +144,7 @@ class PlanungsDienst {
       ecken: flaeche.ecken,
       flaeche: flaeche.flaeche,
       ausschnitte: flaeche.ausschnitte,
+      belagmeldungen: meldungen,
       dielen: [for (final s in stuecke) s.umriss],
       nummern: [for (final t in v.teile) ...t.nummern],
       ausgangspunkt: v.ausgangspunkt,

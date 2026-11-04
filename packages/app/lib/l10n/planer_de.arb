@@ -328,5 +328,16 @@
   "@aufbauhoehe": { "placeholders": { "cm": { "type": "String" } } },
   "ukGedreht": "Die Unterkonstruktion wird gedreht (Breite und Stärke getauscht), damit die Aufbauhöhe eingehalten wird.",
   "hoeheKorrigiert": "Der Höhenreferenzpunkt unterschreitet die minimale Höhe von {cm} cm. Er wurde korrigiert.",
-  "@hoeheKorrigiert": { "placeholders": { "cm": { "type": "String" } } }
+  "@hoeheKorrigiert": { "placeholders": { "cm": { "type": "String" } } },
+  "belagmeldungBelagErsetzt": "Der gewählte Belag ist nicht mehr im Sortiment. Geplant wird mit dem Vorgabebelag – wählen Sie bei Bedarf über „Produktauswahl“ einen anderen.",
+  "belagmeldungOhneMasse": "Für diesen Belag fehlen Breite oder Lieferlängen, er kann nicht verlegt werden. Bitte wählen Sie einen anderen Belag.",
+  "belagmeldungSystemdiele": "Systemdielen werden im Längenmix endlos verlegt – das zeichnet der Planer noch nicht.",
+  "belagmeldungFlaecheKleiner": "Die Fläche oder eine Teilfläche ist kleiner als eine Diele bzw. Fliese: Es passt keine ganze Belagbreite hinein, nur ein Zuschnitt.",
+  "belagmeldungFliesenSpitzeWinkel": "Die Fläche hat Ecken unter 90°. Holzfliesen müssen dort schräg zugeschnitten werden – für solche Formen eignen sich Dielen besser.",
+  "belagmeldungBombierung": "Ab 8 cm Breite empfehlen wir bombierte (leicht gewölbte) Dielen.",
+  "belagmeldungLaengeNichtLieferbar": "Die gewählte Länge von {cm} cm gibt es für diesen Belag nicht. Die Dielenlänge wird automatisch ermittelt.",
+  "@belagmeldungLaengeNichtLieferbar": {"placeholders": {"cm": {"type": "int"}}},
+  "belagmeldungBefestigungsart": "Genutete Dielen werden verdeckt mit Clips befestigt. Die gewählte Verschraubung gilt nur für glattkante Dielen.",
+  "belagmeldungOhneBefestigung": "Für diesen Belag sind keine passenden Clips oder Schrauben hinterlegt – die Befestigung fehlt in der Materialliste. Bitte sprechen Sie uns an.",
+  "belagmeldungSchraubeZuKurz": "Keine hinterlegte Schraube ist mindestens doppelt so lang, wie die Diele stark ist. Gerechnet wird mit der längsten – bitte prüfen Sie die Schraubenlänge."
 }

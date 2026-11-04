@@ -6,6 +6,7 @@ import '../artikel/artikel.dart';
 import '../artikel/einheiten.dart';
 import '../geometrie/punkt.dart';
 import '../regeln/befestigungsbedarf.dart';
+import '../regeln/belagmeldungen.dart';
 import '../regeln/hoehenpunkte.dart';
 import 'befestigungsart.dart';
 
@@ -14,8 +15,8 @@ import 'befestigungsart.dart';
 /// Zeichnung und Kennzahlen, seit M5-07 Ausgangspunkt, Verschiebungsgrenzen
 /// und Warnung vor kurzen Zuschnitten, seit M5-09 die Befestigung, seit
 /// M5-08 Dielennummern, Dielenliste und Verschnitt der ganzen Planung,
-/// seit M6-02 die geprüften Höhenpunkte. Volumen und Materialliste folgen
-/// mit M6 und M9.
+/// seit M5-10 die Meldungen zum Belag, seit M6-02 die geprüften
+/// Höhenpunkte. Volumen und Materialliste folgen mit M6 und M9.
 final class Berechnung {
   Berechnung({
     required List<Punkt> umriss,
@@ -33,8 +34,10 @@ final class Berechnung {
     this.verschnitt,
     List<Lieferposition> dielenliste = const [],
     Befestigungsbedarf? befestigung,
+    List<Belagmeldung> belagmeldungen = const [],
     Hoehenpunkte? hoehenpunkte,
-  }) : befestigung = befestigung ?? Befestigungsbedarf.keiner,
+  }) : belagmeldungen = List.unmodifiable(belagmeldungen),
+       befestigung = befestigung ?? Befestigungsbedarf.keiner,
        hoehenpunkte = hoehenpunkte ?? Hoehenpunkte.keine,
        nummern = List.unmodifiable(nummern),
        dielenliste = List.unmodifiable(dielenliste),
@@ -111,6 +114,12 @@ final class Berechnung {
           ),
       ],
       befestigung: _befestigung(puffer, wurzel),
+      belagmeldungen: [
+        for (final n in const fb.ListReader<int>(
+          fb.Uint8Reader(),
+        ).vTableGet(puffer, wurzel, _versatz(_belagmeldungenPlatz), const []))
+          Belagmeldung.ausNummer(n),
+      ],
       hoehenpunkte: _hoehenpunkte(puffer, wurzel),
     );
   }
@@ -252,6 +261,10 @@ final class Berechnung {
   /// Lieferlänge, jede Fläche mal ihrer Häufigkeit (M4-14).
   final List<Lieferposition> dielenliste;
 
+  /// Meldungen zum Belag der bearbeiteten Fläche (M5-10,
+  /// `belagmeldungen`); die App zeigt sie unter dem Unterpunkt der Eingabe.
+  final List<Belagmeldung> belagmeldungen;
+
   /// Kopie mit den Werten der ganzen Planung (M4-14, M5-08).
   Berechnung mitPlanung(
     double gesamtflaeche, {
@@ -274,6 +287,7 @@ final class Berechnung {
     nummern: nummern,
     verschnitt: verschnitt,
     dielenliste: dielenliste,
+    belagmeldungen: belagmeldungen,
   );
 
   /// FlatBuffer für den Weg zur App (#110):
@@ -291,7 +305,8 @@ final class Berechnung {
   /// ([{ 0: belag (string), 1: laenge (int32 mm), 2: anzahl (int32) }])
   /// (M5-08), 25: hoehen ([int32] mm je Eckpunkt), 26: hoehenKorrigiert
   /// (bool), 27: ukGedreht (bool), 28: aufbauhoehe (int32 mm),
-  /// 29: mindesthoehe (int32 mm; beide fehlen ungeprüft) (M6-02) }`.
+  /// 29: mindesthoehe (int32 mm; beide fehlen ungeprüft) (M6-02),
+  /// 35: belagmeldungen ([uint8], M5-10) }`.
   Uint8List zuBytes() {
     final fbb = fb.Builder();
     final umrissOrt = _schreibe(fbb, umriss);
@@ -319,8 +334,11 @@ final class Berechnung {
     final hoehenOrt = fbb.writeListInt32([
       for (final h in hoehenpunkte.hoehen) h.mm,
     ]);
+    final meldungenOrt = fbb.writeListUint8([
+      for (final m in belagmeldungen) m.nummer,
+    ]);
     fbb
-      ..startTable(30)
+      ..startTable(_belagmeldungenPlatz + 1)
       ..addOffset(_umrissPlatz, umrissOrt)
       ..addFloat64(_flaechePlatz, flaeche)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
@@ -342,7 +360,8 @@ final class Berechnung {
       ..addBool(_hoehenKorrigiertPlatz, hoehenpunkte.korrigiert)
       ..addBool(_ukGedrehtPlatz, hoehenpunkte.gedreht)
       ..addInt32(_aufbauhoehePlatz, hoehenpunkte.aufbauhoehe?.mm)
-      ..addInt32(_mindesthoehePlatz, hoehenpunkte.mindesthoehe?.mm);
+      ..addInt32(_mindesthoehePlatz, hoehenpunkte.mindesthoehe?.mm)
+      ..addOffset(_belagmeldungenPlatz, meldungenOrt);
     if (verschnitt case final v?) fbb.addFloat64(_verschnittPlatz, v);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
@@ -427,6 +446,7 @@ final class Berechnung {
   static const _ukGedrehtPlatz = 27;
   static const _aufbauhoehePlatz = 28;
   static const _mindesthoehePlatz = 29;
+  static const _belagmeldungenPlatz = 35;
 
   static int _versatz(int platz) => 4 + 2 * platz;
 }

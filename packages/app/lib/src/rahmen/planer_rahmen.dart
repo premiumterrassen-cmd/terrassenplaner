@@ -13,6 +13,7 @@ import 'ausgangspunkt.dart';
 import 'ausschnitte.dart';
 import 'befestigung.dart';
 import 'belag.dart';
+import 'belagmeldungen.dart';
 import 'berechnung_steuerung.dart';
 import 'dielenliste.dart';
 import 'flaechen.dart';
@@ -734,6 +735,13 @@ class Bearbeitungsmenue extends StatelessWidget {
                       children: [
                         Text(punkt.text),
                         ?_eingabe(schritt, punkt.index),
+                        if (schritt == PlanerSchritt.terrassenbelag &&
+                            berechnung != null)
+                          BelagMeldungen(
+                            berechnung: berechnung!,
+                            planung: planung,
+                            unterpunkt: punkt.index,
+                          ),
                       ],
                     ),
                   ),

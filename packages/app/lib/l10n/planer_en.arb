@@ -291,5 +291,15 @@
   "hoeheUngueltig": "Please enter a number above 0 up to 300 cm",
   "aufbauhoehe": "Construction height (decking and substructure): {cm} cm",
   "ukGedreht": "The substructure is turned (width and thickness swapped) to keep to the construction height.",
-  "hoeheKorrigiert": "The height reference point is below the minimum height of {cm} cm. It has been corrected."
+  "hoeheKorrigiert": "The height reference point is below the minimum height of {cm} cm. It has been corrected.",
+  "belagmeldungBelagErsetzt": "The selected decking is no longer available. The plan uses the default decking – choose another one via “Product selection” if needed.",
+  "belagmeldungOhneMasse": "Width or delivery lengths are missing for this decking, so it cannot be laid. Please choose another decking.",
+  "belagmeldungSystemdiele": "System boards are laid endlessly in mixed lengths – the planner does not draw this yet.",
+  "belagmeldungFlaecheKleiner": "The area or a partial area is smaller than one board or tile: no full decking width fits, only a cut piece.",
+  "belagmeldungFliesenSpitzeWinkel": "The area has corners below 90°. Wooden tiles must be cut at an angle there – boards are better suited for such shapes.",
+  "belagmeldungBombierung": "From 8 cm width we recommend crowned (slightly curved) boards.",
+  "belagmeldungLaengeNichtLieferbar": "The selected length of {cm} cm is not available for this decking. The board length is determined automatically.",
+  "belagmeldungBefestigungsart": "Grooved boards are fixed invisibly with clips. The selected screw fixing only applies to smooth-edged boards.",
+  "belagmeldungOhneBefestigung": "No matching clips or screws are stored for this decking – the fixing is missing from the material list. Please contact us.",
+  "belagmeldungSchraubeZuKurz": "No stored screw is at least twice as long as the board is thick. The longest one is used – please check the screw length."
 }
