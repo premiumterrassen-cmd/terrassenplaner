@@ -13,3 +13,5 @@ Drei Karten mit je „Verschnitt: x %“ und „Benötigte Dielen:“ (Stückzah
 - Die Wahl ändert die Längenaufteilung der Dielen in der Materialliste (4000 bis 6000 mm, die Freidiele dann z. B. 6000 mm). Die Summe bleibt gleich, weil je laufendem Meter abgerechnet wird.
 - Daraus folgt: Dielen werden in Längen von 300 bis 600 cm in 50-cm-Schritten bestellt. Die Verschnittoptimierung schlägt verschiedene Längenmischungen vor.
 - Beim Wechsel erscheint „Die Verschnittauswahl wurde geändert!“ (SCHLIESSEN).
+
+Neuer Planer (M5-08): Ohne Optimierung zeigt 7.1 schon Verschnitt und „Benötigte Dielen“ der Verlegung (Fachkonzept 2.7: Reststücke je Teilfläche auf weitere Reihen verteilt). Die Varianten, der Ausgleich über Flächen hinweg und die Auswahl folgen mit M9-01.

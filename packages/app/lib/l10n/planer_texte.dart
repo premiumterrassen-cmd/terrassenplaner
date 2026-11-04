@@ -274,6 +274,24 @@ abstract class PlanerTexte {
   /// **'Volumen: {wert}'**
   String volumen(String wert);
 
+  /// No description provided for @verschnitt.
+  ///
+  /// In de, this message translates to:
+  /// **'Verschnitt: {wert}'**
+  String verschnitt(String wert);
+
+  /// No description provided for @benoetigteDielen.
+  ///
+  /// In de, this message translates to:
+  /// **'Benötigte Dielen:'**
+  String get benoetigteDielen;
+
+  /// No description provided for @keineDielen.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch keine Dielen verlegt.'**
+  String get keineDielen;
+
   /// No description provided for @massPlatzhalter.
   ///
   /// In de, this message translates to:

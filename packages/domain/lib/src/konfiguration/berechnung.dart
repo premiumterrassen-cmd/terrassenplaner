@@ -11,8 +11,9 @@ import 'befestigungsart.dart';
 /// Was der Server aus einem Planungsstand berechnet und die App nur anzeigt
 /// (M4-02): Umriss, Ausschnitte (M4-06) und Dielenstücke (M5-05) für die
 /// Zeichnung und Kennzahlen, seit M5-07 Ausgangspunkt, Verschiebungsgrenzen
-/// und Warnung vor kurzen Zuschnitten, seit M5-09 die Befestigung. Volumen
-/// und Materialliste folgen mit M5 und M6.
+/// und Warnung vor kurzen Zuschnitten, seit M5-09 die Befestigung, seit
+/// M5-08 Dielennummern, Dielenliste und Verschnitt der ganzen Planung.
+/// Volumen und Materialliste folgen mit M6 und M9.
 final class Berechnung {
   Berechnung({
     required List<Punkt> umriss,
@@ -26,8 +27,13 @@ final class Berechnung {
     this.grenzeLinksRechts = const Millimeter(0),
     this.grenzeObenUnten = const Millimeter(0),
     this.kurzeZuschnitte = false,
+    List<int> nummern = const [],
+    this.verschnitt,
+    List<Lieferposition> dielenliste = const [],
     Befestigungsbedarf? befestigung,
   }) : befestigung = befestigung ?? Befestigungsbedarf.keiner,
+       nummern = List.unmodifiable(nummern),
+       dielenliste = List.unmodifiable(dielenliste),
        gesamtflaeche = gesamtflaeche ?? flaeche,
        dielen = List.unmodifiable([
          for (final d in dielen) List<Punkt>.unmodifiable(d),
@@ -76,6 +82,30 @@ final class Berechnung {
         _versatz(_kurzeZuschnittePlatz),
         false,
       ),
+      nummern: const fb.ListReader<int>(fb.Int32Reader())
+          .vTableGet(puffer, wurzel, _versatz(_nummernPlatz), const []),
+      verschnitt: const fb.Float64Reader().vTableGetNullable(
+        puffer,
+        wurzel,
+        _versatz(_verschnittPlatz),
+      ),
+      dielenliste: [
+        for (final ort in const fb.ListReader<int>(
+          _Tabellenort(),
+        ).vTableGet(puffer, wurzel, _versatz(_dielenlistePlatz), const []))
+          (
+            belag: Artikelnummer(
+              const fb.StringReader().vTableGet(puffer, ort, _versatz(0), ''),
+            ),
+            laenge: _mm(puffer, ort, 1),
+            anzahl: const fb.Int32Reader().vTableGet(
+              puffer,
+              ort,
+              _versatz(2),
+              0,
+            ),
+          ),
+      ],
       befestigung: _befestigung(puffer, wurzel),
     );
   }
@@ -179,8 +209,24 @@ final class Berechnung {
   /// Befestigungspunkte und Artikel mit Anzahl; ohne Dielen keine.
   final Befestigungsbedarf befestigung;
 
-  /// Kopie mit anderer Gesamtfläche (M4-14).
-  Berechnung mitGesamtflaeche(double gesamtflaeche) => Berechnung(
+  /// Nummer je Dielenstück (parallel zu [dielen], M5-08) wie in „Dielen
+  /// nach Nummer“; jede Teilfläche zählt ab 1. Leer ohne Dielen.
+  final List<int> nummern;
+
+  /// Verschnitt der ganzen Planung (M5-08, R-B11) als Anteil
+  /// (0,04 = 4 %); `null`, solange keine Fläche verlegt ist.
+  final double? verschnitt;
+
+  /// Dielenliste der ganzen Planung (M5-08): Anzahl je Belag und
+  /// Lieferlänge, jede Fläche mal ihrer Häufigkeit (M4-14).
+  final List<Lieferposition> dielenliste;
+
+  /// Kopie mit den Werten der ganzen Planung (M4-14, M5-08).
+  Berechnung mitPlanung(
+    double gesamtflaeche, {
+    double? verschnitt,
+    List<Lieferposition> dielenliste = const [],
+  }) => Berechnung(
     umriss: umriss,
     ecken: ecken,
     geschlossen: geschlossen,
@@ -193,6 +239,9 @@ final class Berechnung {
     grenzeObenUnten: grenzeObenUnten,
     kurzeZuschnitte: kurzeZuschnitte,
     befestigung: befestigung,
+    nummern: nummern,
+    verschnitt: verschnitt,
+    dielenliste: dielenliste,
   );
 
   /// FlatBuffer für den Weg zur App (#110):
@@ -205,7 +254,10 @@ final class Berechnung {
   /// 10: kurzeZuschnitte (bool) (M5-07), 11: befestigungsarten ([uint8]),
   /// 12: befestigungsart (uint8; fehlt ohne Art), 13: befestigungspunkte
   /// (uint32), 14: befestigungsmittel ([{ 0: nummer (string), 1: titel
-  /// (string), 2: anzahl (uint32) }]) (M5-09) }`.
+  /// (string), 2: anzahl (uint32) }]) (M5-09), 15: nummern ([int32]),
+  /// 16: verschnitt (float64, fehlt ohne Dielen), 17: dielenliste
+  /// ([{ 0: belag (string), 1: laenge (int32 mm), 2: anzahl (int32) }])
+  /// (M5-08) }`.
   Uint8List zuBytes() {
     final fbb = fb.Builder();
     final umrissOrt = _schreibe(fbb, umriss);
@@ -215,6 +267,10 @@ final class Berechnung {
     final eckenOrt = _schreibe(fbb, ecken);
     final dielenOrt = fbb.writeList([
       for (final d in dielen) _ausschnitt(fbb, d),
+    ]);
+    final nummernOrt = fbb.writeListInt32(nummern);
+    final listeOrt = fbb.writeList([
+      for (final p in dielenliste) _lieferposition(fbb, p),
     ]);
     final ausgangOrt = switch (ausgangspunkt) {
       final p? => _schreibe(fbb, [p]),
@@ -227,7 +283,7 @@ final class Berechnung {
       for (final m in befestigung.mittel) _position(fbb, m),
     ]);
     fbb
-      ..startTable(15)
+      ..startTable(18)
       ..addOffset(_umrissPlatz, umrissOrt)
       ..addFloat64(_flaechePlatz, flaeche)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
@@ -242,7 +298,10 @@ final class Berechnung {
       ..addOffset(_befestigungsartenPlatz, artenOrt)
       ..addUint8(_befestigungsartPlatz, befestigung.art?.nummer)
       ..addUint32(_befestigungspunktePlatz, befestigung.punkte)
-      ..addOffset(_befestigungsmittelPlatz, mittelOrt);
+      ..addOffset(_befestigungsmittelPlatz, mittelOrt)
+      ..addOffset(_nummernPlatz, nummernOrt)
+      ..addOffset(_dielenlistePlatz, listeOrt);
+    if (verschnitt case final v?) fbb.addFloat64(_verschnittPlatz, v);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
   }
@@ -251,6 +310,16 @@ final class Berechnung {
       fbb.writeListFloat64([
         for (final p in punkte) ...[p.x, p.y],
       ]);
+
+  static int _lieferposition(fb.Builder fbb, Lieferposition p) {
+    final belagOrt = fbb.writeString(p.belag.wert);
+    fbb
+      ..startTable(3)
+      ..addOffset(0, belagOrt)
+      ..addInt32(1, p.laenge.mm)
+      ..addInt32(2, p.anzahl);
+    return fbb.endTable();
+  }
 
   /// Linienzug als Tabelle `{ 0: punkte }` (Ausschnitte, Dielen).
   static int _ausschnitt(fb.Builder fbb, List<Punkt> punkte) {
@@ -308,9 +377,16 @@ final class Berechnung {
   static const _befestigungsartPlatz = 12;
   static const _befestigungspunktePlatz = 13;
   static const _befestigungsmittelPlatz = 14;
+  static const _nummernPlatz = 15;
+  static const _verschnittPlatz = 16;
+  static const _dielenlistePlatz = 17;
 
   static int _versatz(int platz) => 4 + 2 * platz;
 }
+
+/// Zeile der Dielenliste (M5-08): so viele Dielen des Belags in dieser
+/// Lieferlänge.
+typedef Lieferposition = ({Artikelnummer belag, Millimeter laenge, int anzahl});
 
 /// Liest nur den Ort einer Tabelle – die Felder liest der Aufrufer.
 final class _Tabellenort extends fb.TableReader<int> {
