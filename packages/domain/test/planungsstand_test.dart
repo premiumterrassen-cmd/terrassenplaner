@@ -1412,7 +1412,13 @@ void main() {
       for (final falsch in [-1, 100000]) {
         expect(
           () => start.mitZubehoermenge(vlies, falsch),
-          throwsA(isA<RangeError>()),
+          throwsA(
+            isA<RangeError>()
+                .having((e) => e.invalidValue, 'invalidValue', falsch)
+                .having((e) => e.start, 'start', 0)
+                .having((e) => e.end, 'end', 99999)
+                .having((e) => e.name, 'name', 'anzahl'),
+          ),
         );
       }
       final mitA = stand.mitNeuemAusschnitt();
