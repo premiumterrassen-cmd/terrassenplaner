@@ -26,6 +26,8 @@ Sieben Formen als Bildknöpfe. Kennzahlen jeweils mit Vorgabebelag (Diele 60 × 
 - Maßeingabe umschaltbar **Strecke | Koordinaten**.
 - Werkzeugleiste: Wiederholen, Rückgängig, Zentrieren, Zoom, Belag/UK/Maße, Hinweis „Punkte setzen“.
 - Schalter „Einrastfunktion deaktivieren“ und „Zeichnungshilfe deaktivieren“, je mit Hilfe-Symbol (?).
+- **Neuer Planer (#128, Alexander 04.11.2026): Punkte landen genau am Klickort.** Beide Hilfen wirken nur magnetisch, innerhalb von 8 Bildpunkten (bei jedem Zoom gleich): Zeichnungshilfe = Strahl in 15°-Schritten vom letzten Punkt, Länge dann auf volle 10 cm; Einrastfunktion = 10-cm-Rasterlinie je Achse, höchstens 2,5 cm. Vorher drehte die Zeichnungshilfe jeden Klick auf 15° (3 m rechts, 45 cm tiefer → rund 40 cm daneben).
+- Vorschau beim Zeichnen: Linie vom letzten Punkt zur Maus, Zielkreis dort, wo der Punkt landen würde, Live-Maß „Länge cm · Winkel°“.
 
 ## 1.2 Terrassenmaße
 
