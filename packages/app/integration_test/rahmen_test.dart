@@ -124,5 +124,35 @@ void main() {
       isTrue,
     );
     expect(find.text('3.6 ${de.unterkonstruktion6}'), findsOneWidget);
+    // M6-02: Höhenpunkte mit Gefälle, Höhe an A eingeben; ohne Artikel
+    // prüft der Smoke-Server nichts, also keine Aufbauhöhe
+    final mit = find.byKey(const ValueKey('gefaelle-mit'));
+    await tester.ensureVisible(mit);
+    await tester.pumpAndSettle();
+    await tester.tap(mit);
+    await tester.pumpAndSettle();
+    final a = find.descendant(
+      of: find.byKey(const ValueKey('hoehe-0')),
+      matching: find.byType(TextField),
+    );
+    await tester.ensureVisible(a);
+    await tester.pumpAndSettle();
+    await tester.enterText(a, '15');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(tester.widget<TextField>(a).decoration!.hintText, '15');
+    expect(
+      tester
+          .widget<TextField>(
+            find.descendant(
+              of: find.byKey(const ValueKey('hoehe-2')),
+              matching: find.byType(TextField),
+            ),
+          )
+          .decoration!
+          .hintText,
+      '8,6',
+    );
+    expect(find.textContaining('Aufbauhöhe'), findsNothing);
   });
 }

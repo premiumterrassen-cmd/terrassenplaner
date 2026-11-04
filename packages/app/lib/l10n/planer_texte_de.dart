@@ -872,4 +872,33 @@ class PlanerTexteDe extends PlanerTexte {
   @override
   String get spannweiteUngueltig =>
       'Bitte eine Zahl von 10 bis 300 cm eingeben';
+
+  @override
+  String get hoehenpunkteHilfe => 'Gemessen von Oberkante Belag bis Boden.';
+
+  @override
+  String get ohneGefaelle => 'ohne Gefälle';
+
+  @override
+  String get mitGefaelle => 'mit Gefälle';
+
+  @override
+  String get hoeheAlle => 'Alle';
+
+  @override
+  String get hoeheUngueltig => 'Bitte eine Zahl über 0 bis 300 cm eingeben';
+
+  @override
+  String aufbauhoehe(String cm) {
+    return 'Aufbauhöhe (Belag und Unterkonstruktion): $cm cm';
+  }
+
+  @override
+  String get ukGedreht =>
+      'Die Unterkonstruktion wird gedreht (Breite und Stärke getauscht), damit die Aufbauhöhe eingehalten wird.';
+
+  @override
+  String hoeheKorrigiert(String cm) {
+    return 'Der Höhenreferenzpunkt unterschreitet die minimale Höhe von $cm cm. Er wurde korrigiert.';
+  }
 }

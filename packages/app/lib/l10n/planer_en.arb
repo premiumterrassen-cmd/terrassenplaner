@@ -273,5 +273,13 @@
   "vorgabehoehe": "Default height: {cm} cm",
   "spannweiteFrage": "Span of the substructure (spacing of the existing joists)",
   "spannweite": "Span",
-  "spannweiteUngueltig": "Please enter a number from 10 to 300 cm"
+  "spannweiteUngueltig": "Please enter a number from 10 to 300 cm",
+  "hoehenpunkteHilfe": "Measured from the top of the decking to the ground.",
+  "ohneGefaelle": "without slope",
+  "mitGefaelle": "with slope",
+  "hoeheAlle": "All",
+  "hoeheUngueltig": "Please enter a number above 0 up to 300 cm",
+  "aufbauhoehe": "Construction height (decking and substructure): {cm} cm",
+  "ukGedreht": "The substructure is turned (width and thickness swapped) to keep to the construction height.",
+  "hoeheKorrigiert": "The height reference point is below the minimum height of {cm} cm. It has been corrected."
 }

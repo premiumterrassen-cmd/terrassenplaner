@@ -597,6 +597,11 @@ class Bearbeitungsmenue extends StatelessWidget {
       planung: planung,
       onGeaendert: () => zustand.markiereGeaendert(schritt),
     ),
+    (PlanerSchritt.unterkonstruktion, 1) => HoehenpunkteWahl(
+      planung: planung,
+      berechnung: berechnung,
+      onGeaendert: () => zustand.markiereGeaendert(schritt),
+    ),
     _ => null,
   };
 

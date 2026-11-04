@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:terrassenplaner_app/src/rahmen/berechnung_steuerung.dart';
 import 'package:terrassenplaner_app/src/rahmen/planer_rahmen.dart';
 import 'package:terrassenplaner_app/src/rahmen/planer_schritt.dart';
 import 'package:terrassenplaner_app/src/rahmen/rahmen_zustand.dart';
@@ -113,6 +114,152 @@ void main() {
     });
   });
 
+  group('Höhenpunkte (M6-02)', () {
+    /// Antwort wie vom Server mit Belag 23 mm und UK 40 x 60 mm.
+    Future<Berechnung> server(Planung planung) async {
+      final stand = planung.aktuell;
+      return Berechnung(
+        umriss: stand.grundriss.ecken,
+        flaeche: 1,
+        hoehenpunkte: pruefeHoehen(
+          stand.hoehen,
+          art: stand.terrassenart,
+          dielenstaerke: const Millimeter(23),
+          uk: (a: const Millimeter(40), b: const Millimeter(60)),
+        ),
+      );
+    }
+
+    Future<({PlanungsSteuerung planung, List<int> aenderungen})> zeige(
+      WidgetTester tester, {
+      PlanungBerechnen? berechne,
+    }) async {
+      final planung = PlanungsSteuerung();
+      final berechnung = berechne == null
+          ? null
+          : BerechnungsSteuerung(planung: planung, berechne: berechne);
+      addTearDown(() {
+        berechnung?.dispose();
+        planung.dispose();
+      });
+      final aenderungen = <int>[];
+      await tester.pumpWidget(
+        testApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: HoehenpunkteWahl(
+                planung: planung,
+                berechnung: berechnung,
+                onGeaendert: () => aenderungen.add(aenderungen.length),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return (planung: planung, aenderungen: aenderungen);
+    }
+
+    Finder feld(String name) => find.descendant(
+      of: find.byKey(ValueKey('hoehe-$name')),
+      matching: find.byType(TextField),
+    );
+
+    Future<void> gib(WidgetTester tester, String name, String text) async {
+      await tester.enterText(feld(name), text);
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('ohne Gefälle eine Höhe für alle, Vorgabe der Art; mit '
+        'Gefälle je Eckpunkt', (tester) async {
+      final s = await zeige(tester, berechne: server);
+      expect(find.text(de.hoehenpunkteHilfe), findsOneWidget);
+      expect(
+        tester
+            .widget<ChoiceChip>(find.byKey(const ValueKey('gefaelle-ohne')))
+            .selected,
+        isTrue,
+      );
+      expect(
+        tester.widget<TextField>(feld('alle')).decoration!.hintText,
+        '8,6',
+      );
+      expect(
+        find.text('Aufbauhöhe (Belag und Unterkonstruktion): 8,3 cm'),
+        findsOneWidget,
+      );
+      expect(find.byKey(const ValueKey('uk-gedreht')), findsNothing);
+      expect(find.byKey(const ValueKey('hoehe-korrigiert')), findsNothing);
+      await gib(tester, 'alle', '12');
+      expect(s.planung.aktuell.hoehen, List.filled(4, const Millimeter(120)));
+      expect(s.aenderungen, [0]);
+      await gib(tester, 'alle', '0');
+      expect(find.text(de.hoeheUngueltig), findsOneWidget);
+      expect(s.aenderungen, [0]);
+      // erneutes Tippen auf „ohne Gefälle“ ändert nichts
+      await tester.tap(find.byKey(const ValueKey('gefaelle-ohne')));
+      await tester.pumpAndSettle();
+      expect(s.aenderungen, [0]);
+      await tester.tap(find.byKey(const ValueKey('gefaelle-mit')));
+      await tester.pumpAndSettle();
+      expect(s.planung.aktuell.gefaelle, isTrue);
+      expect(s.aenderungen, [0, 1]);
+      expect(feld('alle'), findsNothing);
+      for (final (i, name) in ['A', 'B', 'C', 'D'].indexed) {
+        expect(
+          tester.widget<TextField>(feld('$i')).decoration!.labelText,
+          name,
+        );
+        expect(tester.widget<TextField>(feld('$i')).decoration!.hintText, '12');
+      }
+      await gib(tester, '2', '8,6');
+      expect(s.planung.aktuell.hoehen, [
+        const Millimeter(120),
+        const Millimeter(120),
+        const Millimeter(86),
+        const Millimeter(120),
+      ]);
+      expect(s.aenderungen, [0, 1, 2]);
+      s.planung.rueckgaengig();
+      await tester.pumpAndSettle();
+      expect(tester.widget<TextField>(feld('2')).decoration!.hintText, '12');
+      await tester.tap(find.byKey(const ValueKey('gefaelle-ohne')));
+      await tester.pumpAndSettle();
+      expect(s.planung.aktuell.gefaelle, isFalse);
+    });
+
+    testWidgets('Hinweis bei gedrehter UK, Meldung bei Korrektur', (
+      tester,
+    ) async {
+      await zeige(tester, berechne: server);
+      await gib(tester, 'alle', '7');
+      expect(find.text(de.ukGedreht), findsOneWidget);
+      expect(
+        find.text('Aufbauhöhe (Belag und Unterkonstruktion): 6,3 cm'),
+        findsOneWidget,
+      );
+      expect(find.byKey(const ValueKey('hoehe-korrigiert')), findsNothing);
+      await gib(tester, 'alle', '5');
+      expect(
+        find.text(
+          'Der Höhenreferenzpunkt unterschreitet die minimale Höhe von '
+          '6,3 cm. Er wurde korrigiert.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.byIcon(Icons.warning_amber), findsOneWidget);
+      expect(find.byIcon(Icons.info_outline), findsOneWidget);
+    });
+
+    testWidgets('ohne Berechnung nur die Eingaben', (tester) async {
+      await zeige(tester);
+      expect(feld('alle'), findsOneWidget);
+      expect(find.textContaining('Aufbauhöhe'), findsNothing);
+      expect(find.byKey(const ValueKey('uk-gedreht')), findsNothing);
+    });
+  });
+
   testWidgets('Menü: 3.1 Art der Terrasse; bei Hochterrasse entfällt '
       '„Art der Terrassennutzung“ (F28)', (tester) async {
     tester.view.physicalSize = const Size(1440, 2400);
@@ -131,6 +278,22 @@ void main() {
       ),
     );
     expect(find.byKey(const ValueKey('terrassenart')), findsOneWidget);
+    expect(find.byKey(const ValueKey('hoehenpunkte')), findsOneWidget);
+    await tester.enterText(
+      find.descendant(
+        of: find.byKey(const ValueKey('hoehe-alle')),
+        matching: find.byType(TextField),
+      ),
+      '20',
+    );
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
+    expect(planung.aktuell.alleHoehe, const Millimeter(200));
+    expect(
+      zustand.unveraendert,
+      isNot(contains(PlanerSchritt.unterkonstruktion)),
+    );
+    zustand.vergissAenderungen();
     expect(find.text('3.6 ${de.unterkonstruktion6}'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('terrassenart-hochterrasse')));
     await tester.pump();

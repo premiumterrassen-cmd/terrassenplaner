@@ -306,5 +306,15 @@
   "@vorgabehoehe": { "placeholders": { "cm": { "type": "String" } } },
   "spannweiteFrage": "Spannweite der Unterkonstruktion (Abstand der vorhandenen Träger)",
   "spannweite": "Spannweite",
-  "spannweiteUngueltig": "Bitte eine Zahl von 10 bis 300 cm eingeben"
+  "spannweiteUngueltig": "Bitte eine Zahl von 10 bis 300 cm eingeben",
+  "hoehenpunkteHilfe": "Gemessen von Oberkante Belag bis Boden.",
+  "ohneGefaelle": "ohne Gefälle",
+  "mitGefaelle": "mit Gefälle",
+  "hoeheAlle": "Alle",
+  "hoeheUngueltig": "Bitte eine Zahl über 0 bis 300 cm eingeben",
+  "aufbauhoehe": "Aufbauhöhe (Belag und Unterkonstruktion): {cm} cm",
+  "@aufbauhoehe": { "placeholders": { "cm": { "type": "String" } } },
+  "ukGedreht": "Die Unterkonstruktion wird gedreht (Breite und Stärke getauscht), damit die Aufbauhöhe eingehalten wird.",
+  "hoeheKorrigiert": "Der Höhenreferenzpunkt unterschreitet die minimale Höhe von {cm} cm. Er wurde korrigiert.",
+  "@hoeheKorrigiert": { "placeholders": { "cm": { "type": "String" } } }
 }

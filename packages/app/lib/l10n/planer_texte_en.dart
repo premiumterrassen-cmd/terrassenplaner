@@ -871,4 +871,34 @@ class PlanerTexteEn extends PlanerTexte {
 
   @override
   String get spannweiteUngueltig => 'Please enter a number from 10 to 300 cm';
+
+  @override
+  String get hoehenpunkteHilfe =>
+      'Measured from the top of the decking to the ground.';
+
+  @override
+  String get ohneGefaelle => 'without slope';
+
+  @override
+  String get mitGefaelle => 'with slope';
+
+  @override
+  String get hoeheAlle => 'All';
+
+  @override
+  String get hoeheUngueltig => 'Please enter a number above 0 up to 300 cm';
+
+  @override
+  String aufbauhoehe(String cm) {
+    return 'Construction height (decking and substructure): $cm cm';
+  }
+
+  @override
+  String get ukGedreht =>
+      'The substructure is turned (width and thickness swapped) to keep to the construction height.';
+
+  @override
+  String hoeheKorrigiert(String cm) {
+    return 'The height reference point is below the minimum height of $cm cm. It has been corrected.';
+  }
 }

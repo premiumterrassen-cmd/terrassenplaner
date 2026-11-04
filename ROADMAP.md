@@ -334,9 +334,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/7
   - Normale Terrasse / Hochterrasse / vorhandene UK – mit Auswirkungen auf die folgenden Schritte.
   - Abnahme: Folgeschritte passen sich an
   - Ergebnis: Unterpunkt 3.1 mit normaler Terrasse (Vorgabe, 8,6 cm), Hochterrasse (54,2 cm) und vorhandener UK (14,2 cm) samt Feld „Spannweite“ (Vorgabe 80 cm, 10–300 cm); Planungsstand-Felder `terrassenart` und `spannweite` (Plätze 20/21, fehlend = Vorgabe). Bei Hochterrasse und vorhandener UK entfällt 3.6 „Art der Terrassennutzung“, die Unterpunkte werden lückenlos nummeriert (F28, F29). Die Vorgabehöhe der Art nutzen die Höhenpunkte (M6-02).
-- [ ] **M6-02 Höhenpunkte und Gefälle** ([#55](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/55)) – `feature/m6-02-hoehenpunkte-und-gefaelle`
+- [x] **M6-02 Höhenpunkte und Gefälle** ([#55](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/55)) – `feature/m6-02-hoehenpunkte-und-gefaelle`
   - Ohne Gefälle (eine Höhe für alle) / mit Gefälle (je Eckpunkt); gemessen von Oberkante Belag bis Boden; Aufbauhöhe; Hinweis, wenn die UK zur Einhaltung der Aufbauhöhe gedreht wird.
   - Abnahme: Höhen an den Eckpunkten wie in den Planungsunterlagen
+  - Ergebnis: Unterpunkt 3.2 ohne Gefälle (Feld „Alle“) oder mit Gefälle (je Eckpunkt A, B …), in cm von Oberkante Belag bis Boden, Vorgabe die Höhe der Terrassenart; Planungsstand-Felder `gefaelle`, `hoehe`, `eckhoehen` (Plätze 22–24). `pruefeHoehen` auf dem Server: Aufbauhöhe = Dielenstärke + UK hochkant (Hochterrasse zwei Lagen); darunter wird die UK gedreht (B-034, Hinweis), unter Belag + UK flach wird der Punkt korrigiert (Meldung). Berechnung trägt Höhen je Eckpunkt, Aufbau- und Mindesthöhe, gedreht/korrigiert (Plätze 25–29). Abnahme: 18 Referenzfälle mit Höhen unverändert, F30. Annahme: vorhandene UK ohne eigene Mindesthöhe; Auflager folgen mit M6-08/M6-11.
 - [ ] **M6-03 UK-Auswahl und UK-Länge** ([#56](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/56)) – `feature/m6-03-uk-auswahl-und-uk-laenge`
   - Produktauswahl Unterkonstruktion mit Maßen/Material; Länge der UK (feste Längen).
   - Abnahme: Nur zum Belag passende UK

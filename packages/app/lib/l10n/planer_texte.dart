@@ -1653,6 +1653,54 @@ abstract class PlanerTexte {
   /// In de, this message translates to:
   /// **'Bitte eine Zahl von 10 bis 300 cm eingeben'**
   String get spannweiteUngueltig;
+
+  /// No description provided for @hoehenpunkteHilfe.
+  ///
+  /// In de, this message translates to:
+  /// **'Gemessen von Oberkante Belag bis Boden.'**
+  String get hoehenpunkteHilfe;
+
+  /// No description provided for @ohneGefaelle.
+  ///
+  /// In de, this message translates to:
+  /// **'ohne Gefälle'**
+  String get ohneGefaelle;
+
+  /// No description provided for @mitGefaelle.
+  ///
+  /// In de, this message translates to:
+  /// **'mit Gefälle'**
+  String get mitGefaelle;
+
+  /// No description provided for @hoeheAlle.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle'**
+  String get hoeheAlle;
+
+  /// No description provided for @hoeheUngueltig.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte eine Zahl über 0 bis 300 cm eingeben'**
+  String get hoeheUngueltig;
+
+  /// No description provided for @aufbauhoehe.
+  ///
+  /// In de, this message translates to:
+  /// **'Aufbauhöhe (Belag und Unterkonstruktion): {cm} cm'**
+  String aufbauhoehe(String cm);
+
+  /// No description provided for @ukGedreht.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Unterkonstruktion wird gedreht (Breite und Stärke getauscht), damit die Aufbauhöhe eingehalten wird.'**
+  String get ukGedreht;
+
+  /// No description provided for @hoeheKorrigiert.
+  ///
+  /// In de, this message translates to:
+  /// **'Der Höhenreferenzpunkt unterschreitet die minimale Höhe von {cm} cm. Er wurde korrigiert.'**
+  String hoeheKorrigiert(String cm);
 }
 
 class _PlanerTexteDelegate extends LocalizationsDelegate<PlanerTexte> {
