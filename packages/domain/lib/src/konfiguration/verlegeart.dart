@@ -29,32 +29,33 @@ enum Verlegeart {
   /// Nummer im Transportformat (FlatBuffer des Planungsstands).
   final int nummer;
 
-  /// Stoßlinien der Reihe [reihe] (0 = erste Reihe am Ausgangspunkt) in einer
-  /// Fläche, die in Verlegerichtung von [von] bis [bis] reicht, aufsteigend
-  /// und nur im Inneren der Fläche.
+  /// Stoßlinien der Reihe [reihe] (0 = erste Reihe am Ausgangspunkt,
+  /// negative Nummern auf der anderen Seite) in einer Fläche, die in
+  /// Verlegerichtung von [von] bis [bis] reicht, aufsteigend und nur im
+  /// Inneren der Fläche.
+  ///
+  /// Das Raster beginnt am [ausgang] (Vorgabe: [von]); liegt er mitten in
+  /// der Fläche, läuft eine Stoßlinie durch ihn (135°, F04, M5-05). Der
+  /// Wechselverband setzt jede zweite Reihe an [bis] an.
   List<Millimeter> stoesse(
     int reihe,
     Millimeter von,
     Millimeter bis,
-    Millimeter raster,
-  ) {
+    Millimeter raster, {
+    Millimeter? ausgang,
+  }) {
     final r = raster.mm;
-    // Leere Flächen und negative Raster ergeben über die Anzahl keine Linien.
-    if (r == 0) return const [];
-    final int erste;
-    final int anzahl;
-    if (this == wechselverband && reihe.isOdd) {
-      anzahl = (bis.mm - von.mm - 1) ~/ r;
-      erste = bis.mm - anzahl * r;
-    } else {
-      final versatz = switch (this) {
-        halbverband => reihe.isOdd ? r ~/ 2 : 0,
-        drittelverband => r * (reihe % 3) ~/ 3,
-        _ => 0,
-      };
-      erste = von.mm + (versatz == 0 ? r : versatz);
-      anzahl = erste < bis.mm ? (bis.mm - erste - 1) ~/ r + 1 : 0;
-    }
+    if (r <= 0) return const [];
+    final basis = switch (this) {
+      wechselverband when reihe.isOdd => bis.mm,
+      halbverband when reihe.isOdd => (ausgang ?? von).mm + r ~/ 2,
+      drittelverband => (ausgang ?? von).mm + r * (reihe % 3) ~/ 3,
+      _ => (ausgang ?? von).mm,
+    };
+    // erste Linie hinter [von]; Dart rechnet % auch bei negativer Basis ≥ 0
+    var erste = von.mm + (basis - von.mm) % r;
+    if (erste == von.mm) erste += r;
+    final anzahl = erste < bis.mm ? (bis.mm - erste - 1) ~/ r + 1 : 0;
     return [for (var k = 0; k < anzahl; k++) Millimeter(erste + k * r)];
   }
 }

@@ -746,6 +746,28 @@ class PlanerTexteEn extends PlanerTexte {
       'Every second row starts at the opposite side';
 
   @override
+  String get verlegerichtungWaagrecht => 'Horizontal';
+
+  @override
+  String get verlegerichtungSenkrecht => 'Vertical';
+
+  @override
+  String get verlegerichtungDiagonal45 => '45 degrees';
+
+  @override
+  String get verlegerichtungDiagonal135 => '135 degrees';
+
+  @override
+  String get verlegerichtungIndividuell => 'Custom laying angle';
+
+  @override
+  String get verlegewinkel => 'Angle in degrees';
+
+  @override
+  String get verlegewinkelUngueltig =>
+      'Please enter whole degrees from 0 to 179';
+
+  @override
   String get kurzeStueckeVerbinden =>
       'Should short board pieces be joined together?';
 

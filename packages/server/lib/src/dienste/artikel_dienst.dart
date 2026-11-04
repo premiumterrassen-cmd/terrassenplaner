@@ -45,6 +45,16 @@ class ArtikelDienst {
       Belagangebot.aus(a),
   ]);
 
+  /// Belag zur [nummer] aus den aktuellen Artikeldaten (M5-05); ohne
+  /// Nummer oder bei unbekannter Nummer die Vorgabe, der erste Belag.
+  Artikel? belag(Artikelnummer? nummer) {
+    final belaege = _regelwerk.finde(
+      const Artikelfilter(bereich: Bereich.belag),
+    );
+    return belaege.where((a) => a.nummer == nummer).firstOrNull ??
+        belaege.firstOrNull;
+  }
+
   /// Tauscht die Artikeldaten aus und meldet die neue Version – ohne
   /// Neustart und ohne App-Update.
   Future<void> ersetze(Artikeldatei neu) async {

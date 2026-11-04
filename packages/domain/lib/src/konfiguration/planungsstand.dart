@@ -9,12 +9,13 @@ import 'ausschnitt.dart';
 import 'grundriss.dart';
 import 'rundungen.dart';
 import 'verlegeart.dart';
+import 'verlegerichtung.dart';
 
 /// Eingaben einer Planung zu einem Zeitpunkt (M3-03) – unveränderlich, damit
 /// Rückgängig exakt auf einen früheren Stand springen kann. Seit M4-02 mit
 /// Grundriss, seit M4-06 mit Ausschnitten, seit M5-01 mit Belag, seit M5-02
 /// mit Dielenlänge, seit M5-03 mit „kurze Stücke verbinden“, seit M5-04 mit
-/// Verlegeart;
+/// Verlegeart, seit M5-05 mit Verlegerichtung;
 /// Unterkonstruktion usw. folgen als weitere Felder. Berechnet wird daraus
 /// auf dem Server.
 final class Planungsstand {
@@ -26,6 +27,8 @@ final class Planungsstand {
     this.dielenlaenge,
     this.kurzeStueckeVerbinden = false,
     this.verlegeart = Verlegeart.fugenschnitt,
+    this.verlegerichtung = Verlegerichtung.waagrecht,
+    this.verlegewinkel = Verlegerichtung.vorgabeWinkel,
   });
 
   /// Liest einen Planungsstand aus dem Transportformat ([zuBytes]).
@@ -79,6 +82,19 @@ final class Planungsstand {
         wurzel,
         _verlegeartPlatz,
       ),
+      verlegerichtung: _wert(
+        Verlegerichtung.values,
+        (r) => r.nummer,
+        puffer,
+        wurzel,
+        _verlegerichtungPlatz,
+      ),
+      verlegewinkel: const fb.Uint8Reader().vTableGet(
+        puffer,
+        wurzel,
+        _versatz(_verlegewinkelPlatz),
+        Verlegerichtung.vorgabeWinkel,
+      ),
     );
   }
 
@@ -109,6 +125,16 @@ final class Planungsstand {
   /// `Verlegeart.stoesse`.
   final Verlegeart verlegeart;
 
+  /// Verlegerichtung (M5-05, Fachkonzept 2.4); Vorgabe waagrecht.
+  final Verlegerichtung verlegerichtung;
+
+  /// Feld „Winkel“ in Grad für [Verlegerichtung.individuell]; bleibt beim
+  /// Wechsel auf eine feste Richtung erhalten.
+  final int verlegewinkel;
+
+  /// Winkel der Dielen in Grad (`verlegeDielen`).
+  int get dielenwinkel => verlegerichtung.winkel ?? verlegewinkel;
+
   /// Kontur des Grundrisses samt Rundungen.
   Kontur get kontur => rundungen.kontur(grundriss);
 
@@ -122,6 +148,8 @@ final class Planungsstand {
     dielenlaenge: dielenlaenge,
     kurzeStueckeVerbinden: kurzeStueckeVerbinden,
     verlegeart: verlegeart,
+    verlegerichtung: verlegerichtung,
+    verlegewinkel: verlegewinkel,
   );
 
   bool _passend(Grundriss neu) {
@@ -144,6 +172,8 @@ final class Planungsstand {
     dielenlaenge: dielenlaenge,
     kurzeStueckeVerbinden: kurzeStueckeVerbinden,
     verlegeart: verlegeart,
+    verlegerichtung: verlegerichtung,
+    verlegewinkel: verlegewinkel,
   );
 
   /// Neue Form mit ihren Vorgabemaßen; die O-Form bringt ihren Ausschnitt
@@ -155,6 +185,8 @@ final class Planungsstand {
     dielenlaenge: dielenlaenge,
     kurzeStueckeVerbinden: kurzeStueckeVerbinden,
     verlegeart: verlegeart,
+    verlegerichtung: verlegerichtung,
+    verlegewinkel: verlegewinkel,
   );
 
   /// Grundriss um [grad] gedreht (M4-10); die Ausschnitte werden dabei
@@ -165,6 +197,8 @@ final class Planungsstand {
     dielenlaenge: dielenlaenge,
     kurzeStueckeVerbinden: kurzeStueckeVerbinden,
     verlegeart: verlegeart,
+    verlegerichtung: verlegerichtung,
+    verlegewinkel: verlegewinkel,
   );
 
   /// Mit einer weiteren Fläche (180 × 120 cm, Bezeichnung A1, A2 …) mitten
@@ -193,6 +227,8 @@ final class Planungsstand {
       dielenlaenge: dielenlaenge,
       kurzeStueckeVerbinden: kurzeStueckeVerbinden,
       verlegeart: verlegeart,
+      verlegerichtung: verlegerichtung,
+      verlegewinkel: verlegewinkel,
     );
   }
 
@@ -205,6 +241,8 @@ final class Planungsstand {
     dielenlaenge: dielenlaenge,
     kurzeStueckeVerbinden: kurzeStueckeVerbinden,
     verlegeart: verlegeart,
+    verlegerichtung: verlegerichtung,
+    verlegewinkel: verlegewinkel,
   );
 
   /// Kopie, in der der Ausschnitt [index] durch [ausschnitt] ersetzt ist.
@@ -217,6 +255,8 @@ final class Planungsstand {
         dielenlaenge: dielenlaenge,
         kurzeStueckeVerbinden: kurzeStueckeVerbinden,
         verlegeart: verlegeart,
+        verlegerichtung: verlegerichtung,
+        verlegewinkel: verlegewinkel,
       );
 
   /// Kopie mit anderem Belag; die übrigen Eingaben bleiben.
@@ -228,6 +268,8 @@ final class Planungsstand {
     dielenlaenge: dielenlaenge,
     kurzeStueckeVerbinden: kurzeStueckeVerbinden,
     verlegeart: verlegeart,
+    verlegerichtung: verlegerichtung,
+    verlegewinkel: verlegewinkel,
   );
 
   /// Kopie mit erzwungener Lieferlänge; `null` = automatisch.
@@ -239,6 +281,8 @@ final class Planungsstand {
     dielenlaenge: dielenlaenge,
     kurzeStueckeVerbinden: kurzeStueckeVerbinden,
     verlegeart: verlegeart,
+    verlegerichtung: verlegerichtung,
+    verlegewinkel: verlegewinkel,
   );
 
   /// Kopie mit der Antwort auf „kurze Stücke verbinden“.
@@ -250,6 +294,8 @@ final class Planungsstand {
     dielenlaenge: dielenlaenge,
     kurzeStueckeVerbinden: verbinden,
     verlegeart: verlegeart,
+    verlegerichtung: verlegerichtung,
+    verlegewinkel: verlegewinkel,
   );
 
   /// Kopie mit anderer Verlegeart.
@@ -261,14 +307,36 @@ final class Planungsstand {
     dielenlaenge: dielenlaenge,
     kurzeStueckeVerbinden: kurzeStueckeVerbinden,
     verlegeart: verlegeart,
+    verlegerichtung: verlegerichtung,
+    verlegewinkel: verlegewinkel,
   );
+
+  /// Kopie mit anderer Verlegerichtung; [winkel] setzt das Feld „Winkel“
+  /// (nur ganze Grad von 0 bis 179, `Verlegerichtung.winkelGueltig`).
+  Planungsstand mitVerlegerichtung(Verlegerichtung richtung, {int? winkel}) {
+    if (winkel != null && !Verlegerichtung.winkelGueltig(winkel)) {
+      throw ArgumentError.value(winkel, 'winkel', 'muss 0 bis 179 Grad sein');
+    }
+    return Planungsstand(
+      grundriss: grundriss,
+      ausschnitte: ausschnitte,
+      rundungen: rundungen,
+      belag: belag,
+      dielenlaenge: dielenlaenge,
+      kurzeStueckeVerbinden: kurzeStueckeVerbinden,
+      verlegeart: verlegeart,
+      verlegerichtung: richtung,
+      verlegewinkel: winkel ?? verlegewinkel,
+    );
+  }
 
   /// FlatBuffer für den Weg zum Server (#110):
   /// `{ 0: schema (uint16), 1: grundriss { 0: form (uint8), 1: masse ([int32] mm) },
   /// 2: ausschnitte ([{ 0: bezeichnung (string), 1: masse ([int32] mm) }]),
   /// 3: rundungen ([int32] je Art, Nummer, mm), 4: belag (string),
   /// 5: dielenlaenge (int32 mm), 6: kurze Stücke verbinden (bool),
-  /// 7: verlegeart (uint8) }`.
+  /// 7: verlegeart (uint8), 8: verlegerichtung (uint8),
+  /// 9: verlegewinkel (uint8 Grad) }`.
   /// Neue Felder nur anhängen (docs/architektur/datenmodell.md).
   Uint8List zuBytes() {
     final fbb = fb.Builder();
@@ -289,7 +357,7 @@ final class Planungsstand {
       null => null,
     };
     fbb
-      ..startTable(8)
+      ..startTable(10)
       ..addUint16(_schemaPlatz, schema)
       ..addOffset(_grundrissPlatz, grundrissOrt)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
@@ -297,7 +365,9 @@ final class Planungsstand {
       ..addOffset(_belagPlatz, belagOrt)
       ..addInt32(_dielenlaengePlatz, dielenlaenge?.mm)
       ..addBool(_kurzeStueckeVerbindenPlatz, kurzeStueckeVerbinden)
-      ..addUint8(_verlegeartPlatz, verlegeart.nummer);
+      ..addUint8(_verlegeartPlatz, verlegeart.nummer)
+      ..addUint8(_verlegerichtungPlatz, verlegerichtung.nummer)
+      ..addUint8(_verlegewinkelPlatz, verlegewinkel);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
   }
@@ -326,6 +396,8 @@ final class Planungsstand {
   static const _dielenlaengePlatz = 5;
   static const _kurzeStueckeVerbindenPlatz = 6;
   static const _verlegeartPlatz = 7;
+  static const _verlegerichtungPlatz = 8;
+  static const _verlegewinkelPlatz = 9;
 
   @override
   bool operator ==(Object other) {
@@ -336,6 +408,8 @@ final class Planungsstand {
         other.dielenlaenge != dielenlaenge ||
         other.kurzeStueckeVerbinden != kurzeStueckeVerbinden ||
         other.verlegeart != verlegeart ||
+        other.verlegerichtung != verlegerichtung ||
+        other.verlegewinkel != verlegewinkel ||
         other.ausschnitte.length != ausschnitte.length) {
       return false;
     }
@@ -354,6 +428,8 @@ final class Planungsstand {
     dielenlaenge,
     kurzeStueckeVerbinden,
     verlegeart,
+    verlegerichtung,
+    verlegewinkel,
   );
 }
 

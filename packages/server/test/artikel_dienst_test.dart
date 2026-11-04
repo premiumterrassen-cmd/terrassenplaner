@@ -154,6 +154,20 @@ void main() {
     expect(dienst.belagauswahl.belaege, hasLength(2));
   });
 
+  test('Belag für die Planung (M5-05): gewählt oder Vorgabe', () async {
+    expect(dienst.belag(null)!.nummer.wert, '10-10-073-R');
+    expect(
+      dienst.belag(const Artikelnummer('10-10-080-R'))!.nummer.wert,
+      '10-10-080-R',
+    );
+    // unbekannt oder kein Belag (Clip): die Vorgabe
+    for (final nummer in ['10-10-999-R', '80-10-001']) {
+      expect(dienst.belag(Artikelnummer(nummer))!.nummer.wert, '10-10-073-R');
+    }
+    await dienst.ersetze(_datei('v2', [_clip]));
+    expect(dienst.belag(null), isNull);
+  });
+
   test('ungültiger Filter ist ein Fehler', () async {
     await expectLater(
       _rufe(

@@ -1,6 +1,7 @@
 @Timeout(Duration(minutes: 2))
 library;
 
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:connectanum_client/connectanum.dart';
@@ -203,6 +204,120 @@ void main() {
       Berechnung.ausBytes(antwort.payload.packedPayloadBytes!).gesamtflaeche,
       b.gesamtflaeche,
     );
+  });
+
+  group('Dielenstücke (M5-05)', () {
+    Artikel belag(Artikelart art, {Millimeter? breite, List<int>? laengen}) =>
+        Artikel(
+          nummer: const Artikelnummer('10-10-073-R'),
+          titel: 'Diele',
+          art: art,
+          einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+          abmessungen: Abmessungen(
+            breite: breite,
+            laengen: [for (final l in laengen ?? const <int>[]) Millimeter(l)],
+          ),
+          holzart: art == Artikelart.diele ? robinie : null,
+          serie: art == Artikelart.diele ? premiumSelect : null,
+        );
+    final diele = belag(
+      Artikelart.diele,
+      breite: const Millimeter(60),
+      laengen: const [4000, 5000, 6000],
+    );
+
+    test('je Richtung, Verlegeart und Länge aus Belag und Planung', () {
+      expect(PlanungsDienst.berechne(Planungsstand.start).dielen, isEmpty);
+      final f01 = PlanungsDienst.berechne(Planungsstand.start, diele);
+      expect(f01.dielen, hasLength(48));
+      expect(f01.dielen.first, hasLength(4));
+      final f02 = PlanungsDienst.berechne(
+        Planungsstand.start.mitVerlegerichtung(Verlegerichtung.senkrecht),
+        diele,
+      );
+      expect(f02.dielen, hasLength(74));
+      final f04 = PlanungsDienst.berechne(
+        Planungsstand.start.mitVerlegerichtung(Verlegerichtung.diagonal135),
+        diele,
+      );
+      expect(f04.dielen, hasLength(154));
+      final f05 = PlanungsDienst.berechne(
+        Planungsstand.start.mitVerlegerichtung(Verlegerichtung.individuell),
+        diele,
+      );
+      expect(f05.dielen, hasLength(78));
+      // 800 cm: Stoß bei 600 cm, fest 400 cm: bei 400 cm (F09, F13)
+      final lang = Planungsstand.start.mitGrundriss(
+        RechteckGrundriss(const Millimeter(8000), const Millimeter(3090)),
+      );
+      expect(PlanungsDienst.berechne(lang, diele).dielen, hasLength(96));
+      final fest = lang.mitDielenlaenge(const Millimeter(4000));
+      final f13 = PlanungsDienst.berechne(fest, diele).dielen;
+      expect(f13, hasLength(96));
+      expect(f13.first.map((p) => p.x).reduce(math.max), closeTo(4000, 1e-6));
+      // Länge, die der Belag nicht liefert: wieder automatisch
+      final fremd = lang.mitDielenlaenge(const Millimeter(4500));
+      final auto = PlanungsDienst.berechne(fremd, diele).dielen;
+      expect(auto.first.map((p) => p.x).reduce(math.max), closeTo(6000, 1e-6));
+      // Halbverband: zweite Reihe bei 300 cm gestoßen (F10)
+      final halb = PlanungsDienst.berechne(
+        lang.mitVerlegeart(Verlegeart.halbverband),
+        diele,
+      ).dielen;
+      expect(halb[2].map((p) => p.x).reduce(math.max), closeTo(3000, 1e-6));
+      // kurze Stücke verbinden bei Ausgangspunkt A ohne Wirkung (F13)
+      expect(
+        PlanungsDienst.berechne(
+          fest.mitKurzeStueckeVerbinden(true),
+          diele,
+        ).dielen,
+        hasLength(96),
+      );
+    });
+
+    test('ohne Dielen keine Stücke', () {
+      for (final b in [
+        belag(
+          Artikelart.holzfliese,
+          breite: const Millimeter(606),
+          laengen: const [606],
+        ),
+        belag(Artikelart.diele, laengen: const [6000]),
+        belag(Artikelart.diele, breite: const Millimeter(60)),
+      ]) {
+        expect(PlanungsDienst.berechne(Planungsstand.start, b).dielen, isEmpty);
+      }
+      final offen = FreiformGrundriss(const [Punkt(0, 0), Punkt(1000, 0)]);
+      expect(
+        PlanungsDienst.berechne(Planungsstand(grundriss: offen), diele).dielen,
+        isEmpty,
+      );
+    });
+
+    test('über den Router mit der Belagsuche', () async {
+      await dienst.stoppe();
+      final gefragt = <Artikelnummer?>[];
+      dienst = await PlanungsDienst.starte(
+        router,
+        belag: (nummer) {
+          gefragt.add(nummer);
+          return diele;
+        },
+      );
+      final planung = Planung.start.mitStand(
+        Planungsstand.start
+            .mitBelag(const Artikelnummer('10-10-073-R'))
+            .mitVerlegerichtung(Verlegerichtung.diagonal45),
+      );
+      final antwort = await rufe(planung.zuBytes());
+      final b = Berechnung.ausBytes(antwort.payload.packedPayloadBytes!);
+      expect(b.dielen, hasLength(86));
+      expect(gefragt, [const Artikelnummer('10-10-073-R')]);
+      expect(
+        PlanungsDienst.berechnePlanung(planung, (_) => diele).dielen,
+        b.dielen,
+      );
+    });
   });
 
   test('ungültige Maße sind ein Fehler', () async {

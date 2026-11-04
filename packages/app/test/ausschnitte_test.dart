@@ -293,10 +293,19 @@ void main() {
           umriss: p.aktuell.grundriss.ecken,
           flaeche: 1,
           ausschnitte: [for (final a in p.aktuell.ausschnitte) a.kontur.punkte],
+          dielen: const [
+            [Punkt(0, 0), Punkt(10, 0), Punkt(10, 65)],
+          ],
         ),
       );
       await pumpEventQueue();
       expect(b.zeichnung.ausschnittDarstellung.single.name, 'A1');
+      // Dielenstücke vom Server (M5-05)
+      expect(b.zeichnung.dielen.single, const [
+        Offset(0, 0),
+        Offset(10, 0),
+        Offset(10, 65),
+      ]);
       b.dispose();
       planung.dispose();
     });

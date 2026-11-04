@@ -5,8 +5,8 @@ import 'package:flat_buffers/flat_buffers.dart' as fb;
 import '../geometrie/punkt.dart';
 
 /// Was der Server aus einem Planungsstand berechnet und die App nur anzeigt
-/// (M4-02): Umriss und Ausschnitte (M4-06) für die Zeichnung und Kennzahlen.
-/// Bauteile, Volumen und Materialliste folgen mit M5 und M6.
+/// (M4-02): Umriss, Ausschnitte (M4-06) und Dielenstücke (M5-05) für die
+/// Zeichnung und Kennzahlen. Volumen und Materialliste folgen mit M5 und M6.
 final class Berechnung {
   Berechnung({
     required List<Punkt> umriss,
@@ -15,7 +15,11 @@ final class Berechnung {
     List<Punkt>? ecken,
     this.geschlossen = true,
     double? gesamtflaeche,
+    List<List<Punkt>> dielen = const [],
   }) : gesamtflaeche = gesamtflaeche ?? flaeche,
+       dielen = List.unmodifiable([
+         for (final d in dielen) List<Punkt>.unmodifiable(d),
+       ]),
        umriss = List.unmodifiable(umriss),
        ecken = List.unmodifiable(ecken ?? umriss),
        ausschnitte = List.unmodifiable([
@@ -35,12 +39,7 @@ final class Berechnung {
         _versatz(_geschlossenPlatz),
         true,
       ),
-      ausschnitte: [
-        for (final ort in const fb.ListReader<int>(
-          _Tabellenort(),
-        ).vTableGet(puffer, wurzel, _versatz(_ausschnittePlatz), const []))
-          _punkte(puffer, ort, 0),
-      ],
+      ausschnitte: _umrisse(puffer, wurzel, _ausschnittePlatz),
       flaeche: const fb.Float64Reader().vTableGet(
         puffer,
         wurzel,
@@ -52,6 +51,7 @@ final class Berechnung {
         wurzel,
         _versatz(_gesamtflaechePlatz),
       ),
+      dielen: _umrisse(puffer, wurzel, _dielenPlatz),
     );
   }
 
@@ -84,10 +84,15 @@ final class Berechnung {
   /// Gesamtfläche in m² für die Anzeige.
   double get gesamtflaecheQuadratmeter => gesamtflaeche / 1e6;
 
+  /// Umrisse der Dielenstücke (M5-05) in mm für die Zeichnung; leer, solange
+  /// kein Belag bekannt ist.
+  final List<List<Punkt>> dielen;
+
   /// FlatBuffer für den Weg zur App (#110):
   /// `{ 0: umriss ([float64] x, y je Punkt), 1: flaeche (float64 mm²),
   /// 2: ausschnitte ([{ 0: punkte ([float64]) }]), 3: ecken ([float64]),
-  /// 4: geschlossen (bool), 5: gesamtflaeche (float64 mm², M4-14) }`.
+  /// 4: geschlossen (bool), 5: gesamtflaeche (float64 mm², M4-14),
+  /// 6: dielen ([{ 0: punkte ([float64]) }], M5-05) }`.
   Uint8List zuBytes() {
     final fbb = fb.Builder();
     final umrissOrt = _schreibe(fbb, umriss);
@@ -95,14 +100,18 @@ final class Berechnung {
       for (final a in ausschnitte) _ausschnitt(fbb, a),
     ]);
     final eckenOrt = _schreibe(fbb, ecken);
+    final dielenOrt = fbb.writeList([
+      for (final d in dielen) _ausschnitt(fbb, d),
+    ]);
     fbb
-      ..startTable(6)
+      ..startTable(7)
       ..addOffset(_umrissPlatz, umrissOrt)
       ..addFloat64(_flaechePlatz, flaeche)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
       ..addOffset(_eckenPlatz, eckenOrt)
       ..addBool(_geschlossenPlatz, geschlossen)
-      ..addFloat64(_gesamtflaechePlatz, gesamtflaeche);
+      ..addFloat64(_gesamtflaechePlatz, gesamtflaeche)
+      ..addOffset(_dielenPlatz, dielenOrt);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
   }
@@ -112,6 +121,7 @@ final class Berechnung {
         for (final p in punkte) ...[p.x, p.y],
       ]);
 
+  /// Linienzug als Tabelle `{ 0: punkte }` (Ausschnitte, Dielen).
   static int _ausschnitt(fb.Builder fbb, List<Punkt> punkte) {
     final ort = _schreibe(fbb, punkte);
     fbb
@@ -119,6 +129,17 @@ final class Berechnung {
       ..addOffset(0, ort);
     return fbb.endTable();
   }
+
+  static List<List<Punkt>> _umrisse(
+    fb.BufferContext puffer,
+    int wurzel,
+    int platz,
+  ) => [
+    for (final ort in const fb.ListReader<int>(
+      _Tabellenort(),
+    ).vTableGet(puffer, wurzel, _versatz(platz), const []))
+      _punkte(puffer, ort, 0),
+  ];
 
   static List<Punkt> _punkte(fb.BufferContext puffer, int ort, int platz) {
     final k = const fb.ListReader<double>(fb.Float64Reader())
@@ -136,6 +157,7 @@ final class Berechnung {
   static const _eckenPlatz = 3;
   static const _geschlossenPlatz = 4;
   static const _gesamtflaechePlatz = 5;
+  static const _dielenPlatz = 6;
 
   static int _versatz(int platz) => 4 + 2 * platz;
 }

@@ -550,6 +550,7 @@ void main() {
       );
       bool gewaehlt(String key) =>
           tester.widget<ChoiceChip>(find.byKey(ValueKey(key))).selected;
+      expect(find.byKey(const ValueKey('kurze-stuecke')), findsOneWidget);
       expect(
         find.text('Sollen kurze Dielenstücke miteinander verbunden werden?'),
         findsOneWidget,
@@ -652,6 +653,107 @@ void main() {
     });
   });
 
+  group('Verlegerichtungen', () {
+    testWidgets('Vorgabe waagrecht, Wahl und Feld „Winkel“', (tester) async {
+      final planung = PlanungsSteuerung();
+      addTearDown(planung.dispose);
+      var aenderungen = 0;
+      await tester.pumpWidget(
+        testApp(
+          home: Scaffold(
+            body: VerlegerichtungWahl(
+              planung: planung,
+              onGeaendert: () => aenderungen++,
+            ),
+          ),
+        ),
+      );
+      bool gewaehlt(Verlegerichtung r) => tester
+          .widget<ChoiceChip>(find.byKey(ValueKey('verlegerichtung-${r.name}')))
+          .selected;
+      expect(gewaehlt(Verlegerichtung.waagrecht), isTrue);
+      for (final text in [
+        'waagrecht',
+        'senkrecht',
+        '45 Grad',
+        '135 Grad',
+        'Individueller Verlegewinkel',
+      ]) {
+        expect(find.text(text), findsOneWidget);
+      }
+      final winkel = find.byKey(const ValueKey('verlegewinkel'));
+      expect(winkel, findsNothing);
+      await tester.tap(find.byKey(const ValueKey('verlegerichtung-waagrecht')));
+      await tester.pumpAndSettle();
+      expect(aenderungen, 0);
+
+      for (final (i, richtung) in [
+        Verlegerichtung.senkrecht,
+        Verlegerichtung.diagonal45,
+        Verlegerichtung.diagonal135,
+        Verlegerichtung.individuell,
+      ].indexed) {
+        await tester.tap(
+          find.byKey(ValueKey('verlegerichtung-${richtung.name}')),
+        );
+        await tester.pumpAndSettle();
+        expect(planung.aktuell.verlegerichtung, richtung);
+        expect(aenderungen, i + 1);
+        for (final r in Verlegerichtung.values) {
+          expect(gewaehlt(r), r == richtung, reason: r.name);
+        }
+      }
+
+      // individuell: Feld mit dem Winkel, Enter übernimmt
+      expect(find.text('Winkel in Grad'), findsOneWidget);
+      expect(tester.widget<TextField>(winkel).controller!.text, '30');
+      for (final falsch in ['180', '-1', 'x', '12.5']) {
+        await tester.enterText(winkel, falsch);
+        await tester.testTextInput.receiveAction(TextInputAction.done);
+        await tester.pumpAndSettle();
+        expect(
+          find.text('Bitte ganze Grad von 0 bis 179 eingeben'),
+          findsOneWidget,
+          reason: falsch,
+        );
+        expect(planung.aktuell.verlegewinkel, 30);
+        expect(aenderungen, 4);
+      }
+      await tester.enterText(winkel, ' 60 ');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      expect(planung.aktuell.verlegewinkel, 60);
+      expect(planung.aktuell.dielenwinkel, 60);
+      expect(aenderungen, 5);
+      expect(
+        find.text('Bitte ganze Grad von 0 bis 179 eingeben'),
+        findsNothing,
+      );
+      await tester.tap(find.byKey(const ValueKey('verlegerichtung-waagrecht')));
+      await tester.pumpAndSettle();
+      expect(winkel, findsNothing);
+      expect(planung.aktuell.verlegewinkel, 60);
+    });
+
+    test('Texte auf Englisch', () {
+      expect(
+        [for (final r in Verlegerichtung.values) verlegerichtungText(en, r)],
+        [
+          'Horizontal',
+          'Vertical',
+          '45 degrees',
+          '135 degrees',
+          'Custom laying angle',
+        ],
+      );
+      expect(en.verlegewinkel, 'Angle in degrees');
+      expect(
+        en.verlegewinkelUngueltig,
+        'Please enter whole degrees from 0 to 179',
+      );
+    });
+  });
+
   testWidgets('im Rahmen: Unterpunkt „Terrassenbelag auswählen“', (
     tester,
   ) async {
@@ -705,6 +807,13 @@ void main() {
           .selected,
       isTrue,
     );
+    // 2.4 Verlegerichtungen (M5-05)
+    final senkrecht = find.byKey(const ValueKey('verlegerichtung-senkrecht'));
+    await tester.ensureVisible(senkrecht);
+    await tester.pumpAndSettle();
+    await tester.tap(senkrecht);
+    await tester.pumpAndSettle();
+    expect(tester.widget<ChoiceChip>(senkrecht).selected, isTrue);
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('produktauswahl')),
       -200,
