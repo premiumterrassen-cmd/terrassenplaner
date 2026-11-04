@@ -4,6 +4,7 @@ import '../artikel/dielenlaenge.dart';
 import '../artikel/einheiten.dart';
 import '../geometrie/flaeche.dart';
 import '../geometrie/kontur.dart';
+import '../geometrie/mengen.dart';
 import '../geometrie/punkt.dart';
 import '../regeln/planungsregeln.dart';
 import 'verlegeart.dart';
@@ -34,9 +35,9 @@ final class Dielenstueck {
   /// Rändern also die längere Kante.
   final Millimeter laenge;
 
-  /// Breite quer zur Verlegerichtung in mm: die Breite des Teils der Reihe,
-  /// in dem das Stück liegt – am Rand weniger als die Dielenbreite plus
-  /// Fuge (M5-07).
+  /// Breite quer zur Verlegerichtung in mm, Fuge eingeschlossen: die
+  /// Ausdehnung des Umrisses – am Rand und an Ausklinkungen weniger als die
+  /// Dielenbreite plus Fuge (M5-07, M5-08).
   final double breite;
 
   /// Umriss in Planungskoordinaten (mm) für die Zeichnung.
@@ -91,6 +92,12 @@ Flaeche _lokal(Kontur kontur, Punkt ausgangspunkt, double drehung) => Flaeche(
 /// seinem letzten Punkt in Verlegerichtung (F03: 437 + 6,5 cm bei 45°).
 /// Geschnitten wird an den Stoßlinien der [verlegeart] im Raster ab dem
 /// Ausgangspunkt; [laengste] und [verbinden] wie bei [reihenstuecke].
+///
+/// [aussparungen] (leere Ausschnitte und Teilflächen mit anderem Belag,
+/// M5-08) bleiben frei; Raster und Reihen richten sich weiter nach der
+/// ganzen [kontur]. Ragt eine Aussparung nur in einen Teil einer Reihe,
+/// wird die Diele ausgeklinkt und bleibt ein Stück; liegt sie ganz in einer
+/// Reihe, endet die Diele an ihr.
 List<Dielenstueck> verlegeDielen(
   Kontur kontur, {
   required double winkel,
@@ -99,10 +106,14 @@ List<Dielenstueck> verlegeDielen(
   required Verlegeart verlegeart,
   required Millimeter laengste,
   bool verbinden = false,
+  List<Kontur> aussparungen = const [],
 }) {
   final drehung = -winkel * math.pi / 180;
   final lokal = _lokal(kontur, ausgangspunkt, drehung);
   final huelle = lokal.huellrechteck;
+  final frei = [
+    for (final a in aussparungen) _lokal(a, ausgangspunkt, drehung),
+  ];
   final von = Millimeter(huelle.min.x.round());
   final bis = Millimeter(huelle.max.x.round());
   final raster = stossraster(bis - von, laengste);
@@ -113,12 +124,9 @@ List<Dielenstueck> verlegeDielen(
     reihe * breite < huelle.max.y;
     reihe++
   ) {
-    final streifen = _rechteck(
-      huelle.min.x - 1,
-      huelle.max.x + 1,
-      (reihe * breite).toDouble(),
-      ((reihe + 1) * breite).toDouble(),
-    );
+    final y0 = (reihe * breite).toDouble();
+    final y1 = ((reihe + 1) * breite).toDouble();
+    final streifen = _rechteck(huelle.min.x - 1, huelle.max.x + 1, y0, y1);
     final stoesse = verlegeart.stoesse(
       reihe,
       von,
@@ -126,7 +134,19 @@ List<Dielenstueck> verlegeDielen(
       raster,
       ausgang: const Millimeter(0),
     );
-    for (final teil in lokal.geschnitten(streifen)) {
+    // nur die Aussparungen, die in die Reihe reichen – meist keine
+    final imStreifen = [
+      for (final f in frei)
+        if (f.huellrechteck.max.y > y0 && f.huellrechteck.min.y < y1) f,
+    ];
+    final teile = lokal.geschnitten(streifen);
+    for (final teil in [
+      for (final t
+          in imStreifen.isEmpty
+              ? teile
+              : verknuepfe(teile, imStreifen, Verknuepfung.differenz))
+        ..._ohneLoecher(t, y0, y1),
+    ]) {
       final h = teil.huellrechteck;
       if (h.hoehe < mindestreihenbreite.mm) continue;
       final laengen = reihenstuecke(
@@ -149,13 +169,28 @@ List<Dielenstueck> verlegeDielen(
         stuecke.add(
           Dielenstueck(reihe, laenge, [
             for (final p in umriss) p.gedreht(-drehung) + ausgangspunkt,
-          ], breite: h.hoehe),
+          ], breite: Huellrechteck.um(umriss).hoehe),
         );
         anfang = ende;
       }
     }
   }
   return stuecke;
+}
+
+/// Teil [teil] eines Reihenstreifens von [y0] bis [y1] ohne Löcher: Liegt
+/// eine Aussparung ganz in der Reihe, wird die Reihe über ihre Länge
+/// unterbrochen – eine Diele mit Loch gibt es nicht.
+List<Flaeche> _ohneLoecher(Flaeche teil, double y0, double y1) {
+  if (teil.loecher.isEmpty) return [teil];
+  return verknuepfe(
+    [teil],
+    [
+      for (final h in [for (final l in teil.loecher) l.huellrechteck])
+        _rechteck(h.min.x, h.max.x, y0 - 1, y1 + 1),
+    ],
+    Verknuepfung.differenz,
+  );
 }
 
 /// Teil des geschlossenen Linienzugs [zug] mit [a] ≤ x ≤ [b]

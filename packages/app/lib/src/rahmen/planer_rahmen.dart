@@ -11,6 +11,7 @@ import 'ausgangspunkt.dart';
 import 'ausschnitte.dart';
 import 'belag.dart';
 import 'berechnung_steuerung.dart';
+import 'dielenliste.dart';
 import 'flaechen.dart';
 import 'freiform.dart';
 import 'grundriss_eingabe.dart';
@@ -204,6 +205,7 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
             ausschnitte: _ausschnitte,
             ausgangspunkt: _ausgangspunkt,
             belaege: _belaege,
+            berechnung: _berechnung,
           );
           return Column(
             children: [
@@ -254,6 +256,7 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
                             child: Kennzahlen(
                               flaeche: _berechnung?.flaeche,
                               gesamtflaeche: _berechnung?.gesamtflaeche,
+                              verschnitt: _berechnung?.verschnitt,
                             ),
                           ),
                           // Tablet: Menü liegt über der Zeichenfläche.
@@ -519,6 +522,7 @@ class Bearbeitungsmenue extends StatelessWidget {
     super.key,
     this.ausgangspunkt,
     this.belaege,
+    this.berechnung,
   });
 
   final RahmenZustand zustand;
@@ -530,6 +534,9 @@ class Bearbeitungsmenue extends StatelessWidget {
 
   /// Ausgangspunkt des Belags (M5-07); ohne Bedienung keine Eingabe.
   final AusgangspunktBedienung? ausgangspunkt;
+
+  /// Berechnung des Servers für die Dielenliste unter 7.1 (M5-08).
+  final BerechnungsSteuerung? berechnung;
 
   /// Eingaben unter einem Unterpunkt (Schritt, Index ab 0).
   Widget? _eingabe(PlanerSchritt schritt, int unterpunkt) => switch ((
@@ -581,6 +588,8 @@ class Bearbeitungsmenue extends StatelessWidget {
     ),
     (PlanerSchritt.terrassenbelag, 4) when ausgangspunkt != null =>
       AusgangspunktWahl(bedienung: ausgangspunkt!),
+    (PlanerSchritt.verschnittoptimierung, 0) when berechnung != null =>
+      DielenlisteAnzeige(berechnung: berechnung!),
     _ => null,
   };
 
@@ -665,10 +674,17 @@ class MenuGriff extends StatelessWidget {
   );
 }
 
-/// Kennzahlen rechts oben (M4-13): Fläche vom Server und Holzvolumen; das
-/// Volumen ergibt sich erst aus Dielen und Unterkonstruktion (M5-08, M6-10).
+/// Kennzahlen rechts oben (M4-13) in der Reihenfolge des alten Planers:
+/// Fläche, Verschnitt des Belags (M5-08) und Holzvolumen – das Volumen
+/// ergibt sich erst aus Dielen und Unterkonstruktion (M6-10).
 class Kennzahlen extends StatelessWidget {
-  const Kennzahlen({super.key, this.flaeche, this.gesamtflaeche, this.volumen});
+  const Kennzahlen({
+    super.key,
+    this.flaeche,
+    this.gesamtflaeche,
+    this.verschnitt,
+    this.volumen,
+  });
 
   /// Fläche der bearbeiteten Fläche in m², `null` = noch nicht berechnet.
   final double? flaeche;
@@ -677,8 +693,16 @@ class Kennzahlen extends StatelessWidget {
   /// Fläche, ohne eigene Zeile.
   final double? gesamtflaeche;
 
+  /// Verschnitt als Anteil (0,04 = 4 %), `null` = ohne verlegte Dielen.
+  final double? verschnitt;
+
   /// Holzvolumen in m³, `null` = noch nicht berechnet.
   final double? volumen;
+
+  /// Verschnitt in Prozent mit höchstens zwei Nachkommastellen wie im
+  /// alten Planer („3,41 %“), im Format der Sprache.
+  static String prozent(PlanerTexte t, double? anteil) =>
+      anteil == null ? '– %' : '${zahlText(t, anteil * 100, '0.##')} %';
 
   /// Wert mit drei Nachkommastellen wie im alten Planer, im Format der
   /// Sprache („14,832 m²“).
@@ -698,6 +722,7 @@ class Kennzahlen extends StatelessWidget {
             Text(t.flaeche(zahl(t, flaeche, 'm²'))),
             if (gesamtflaeche case final g?)
               Text(t.gesamtflaeche(zahl(t, g, 'm²'))),
+            Text(t.verschnitt(prozent(t, verschnitt))),
             Text(t.volumen(zahl(t, volumen, 'm³'))),
           ],
         ),

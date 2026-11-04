@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -303,6 +304,97 @@ void main() {
       expect(fuge.color.a, closeTo(0.3, 0.01));
     });
 
+    test('Dielennummern (M5-08): nur wo sie ins Stück passen, längs '
+        'gedreht, nie auf dem Kopf', () {
+      final z = Zeichnung(
+        dielen: const [
+          // 100 × 65 px, längste Kante nach rechts
+          [Offset(0, 0), Offset(1000, 0), Offset(1000, 650), Offset(0, 650)],
+          // längste Kante nach links: wird umgedreht
+          [
+            Offset(2000, 650),
+            Offset(1000, 650),
+            Offset(1000, 0),
+            Offset(2000, 0),
+          ],
+          // senkrecht, längste Kante nach oben
+          [
+            Offset(3000, 1000),
+            Offset(3000, 0),
+            Offset(3650, 0),
+            Offset(3650, 1000),
+          ],
+          // 6,5 px schmal
+          [
+            Offset(0, 700),
+            Offset(1000, 700),
+            Offset(1000, 765),
+            Offset(0, 765),
+          ],
+          // zu kurz für zwölf Ziffern
+          [
+            Offset(0, 800),
+            Offset(300, 800),
+            Offset(300, 1450),
+            Offset(0, 1450),
+          ],
+          // ohne Fläche
+          [Offset(5000, 0), Offset(5000, 0)],
+          // ohne Nummer
+          [Offset(0, 2000), Offset(1000, 2000), Offset(1000, 2650)],
+        ],
+        nummern: const [1, 2, 3, 4, 123456789012, 6],
+      );
+      expect(() => z.nummern.add(1), throwsUnsupportedError);
+      final o = AnsichtsOptionen();
+      final m = _maler(z, o);
+      final nummern = m.dielennummern();
+      expect([for (final n in nummern) n.text], ['1', '2', '3']);
+      expect(nummern[0].ort, const Offset(50, 32.5));
+      expect(nummern[0].winkel, 0);
+      expect(nummern[1].winkel, closeTo(0, 1e-12));
+      expect(nummern[2].winkel, closeTo(math.pi / 2, 1e-12));
+      // zehn Ziffern passen gerade noch
+      expect(
+        _maler(
+          Zeichnung(dielen: [z.dielen[4]], nummern: const [1234567890]),
+          o,
+        ).dielennummern(),
+        hasLength(1),
+      );
+      final aufnahme = PictureRecorder();
+      final leinwand = _ZaehlendeLeinwand(Canvas(aufnahme));
+      m.paint(leinwand, const Size(800, 600));
+      aufnahme.endRecording();
+      expect(leinwand.aufrufe['drawParagraph'], 3);
+      expect(leinwand.aufrufe['rotate'], 3);
+      expect(leinwand.aufrufe['save'], leinwand.aufrufe['restore']);
+      o.setzeEbenen({Ebene.unterkonstruktion});
+      expect(m.dielennummern(), isEmpty);
+    });
+
+    test('Ausschnitte: Füllung unter dem Belag, Rand und Name darüber', () {
+      final z = Zeichnung(
+        ausschnitte: const [
+          [Offset(0, 0), Offset(100, 0), Offset(100, 100)],
+        ],
+        ausschnittDarstellung: const [(name: 'A1', farbe: Color(0xFF123456))],
+        dielen: const [
+          [Offset(0, 0), Offset(100, 0), Offset(100, 65)],
+        ],
+      );
+      final aufnahme = PictureRecorder();
+      final leinwand = _ZaehlendeLeinwand(Canvas(aufnahme));
+      _maler(z, AnsichtsOptionen()).paint(leinwand, const Size(800, 600));
+      aufnahme.endRecording();
+      final [fuellung, diele, fuge, rand] = leinwand.pfadStifte;
+      expect(fuellung.color.toARGB32(), 0xFF123456);
+      expect(diele.color.toARGB32(), ZeichnungsMaler.belagFarbe.toARGB32());
+      expect(fuge.style, PaintingStyle.stroke);
+      expect(rand.strokeWidth, 2);
+      expect(leinwand.aufrufe['drawParagraph'], 1);
+    });
+
     test('leere Zeichnung: nichts zu zeichnen, keine Maße', () {
       final m = _maler(Zeichnung.leer, AnsichtsOptionen());
       expect([m.rechtecke(), m.texte()], [isEmpty, isEmpty]);
@@ -547,6 +639,27 @@ class _ZaehlendeLeinwand implements Canvas {
     _zaehle('drawParagraph');
     textOrte.add(offset);
     _ziel.drawParagraph(paragraph, offset);
+  }
+
+  @override
+  void save() {
+    _zaehle('save');
+    _ziel.save();
+  }
+
+  @override
+  void restore() {
+    _zaehle('restore');
+    _ziel.restore();
+  }
+
+  @override
+  void translate(double dx, double dy) => _ziel.translate(dx, dy);
+
+  @override
+  void rotate(double radians) {
+    _zaehle('rotate');
+    _ziel.rotate(radians);
   }
 
   @override

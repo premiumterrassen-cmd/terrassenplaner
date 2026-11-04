@@ -109,6 +109,17 @@ class PlanerTexteDe extends PlanerTexte {
   }
 
   @override
+  String verschnitt(String wert) {
+    return 'Verschnitt: $wert';
+  }
+
+  @override
+  String get benoetigteDielen => 'Benötigte Dielen:';
+
+  @override
+  String get keineDielen => 'Noch keine Dielen verlegt.';
+
+  @override
   String massPlatzhalter(String kante) {
     return '$kante: cm';
   }

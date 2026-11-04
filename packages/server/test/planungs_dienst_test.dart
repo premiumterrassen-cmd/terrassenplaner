@@ -207,19 +207,23 @@ void main() {
   });
 
   group('Dielenstücke (M5-05)', () {
-    Artikel belag(Artikelart art, {Millimeter? breite, List<int>? laengen}) =>
-        Artikel(
-          nummer: const Artikelnummer('10-10-073-R'),
-          titel: 'Diele',
-          art: art,
-          einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
-          abmessungen: Abmessungen(
-            breite: breite,
-            laengen: [for (final l in laengen ?? const <int>[]) Millimeter(l)],
-          ),
-          holzart: art == Artikelart.diele ? robinie : null,
-          serie: art == Artikelart.diele ? premiumSelect : null,
-        );
+    Artikel belag(
+      Artikelart art, {
+      Millimeter? breite,
+      List<int>? laengen,
+      String nummer = '10-10-073-R',
+    }) => Artikel(
+      nummer: Artikelnummer(nummer),
+      titel: 'Diele',
+      art: art,
+      einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+      abmessungen: Abmessungen(
+        breite: breite,
+        laengen: [for (final l in laengen ?? const <int>[]) Millimeter(l)],
+      ),
+      holzart: art.istHolz ? robinie : null,
+      serie: art.istHolz ? premiumSelect : null,
+    );
     final diele = belag(
       Artikelart.diele,
       breite: const Millimeter(60),
@@ -278,9 +282,9 @@ void main() {
     test('ohne Dielen keine Stücke', () {
       for (final b in [
         belag(
-          Artikelart.holzfliese,
-          breite: const Millimeter(606),
-          laengen: const [606],
+          Artikelart.systemdiele,
+          breite: const Millimeter(60),
+          laengen: const [800],
         ),
         belag(Artikelart.diele, laengen: const [6000]),
         belag(Artikelart.diele, breite: const Millimeter(60)),
@@ -363,6 +367,102 @@ void main() {
       expect(planung.ausgangspunkt, const Punkt(0, 50));
       expect(planung.grenzeObenUnten, const Millimeter(65));
       expect(planung.kurzeZuschnitte, isFalse);
+    });
+
+    test('Nummern, Teilflächen und Holzfliesen (M5-08)', () {
+      final f01 = PlanungsDienst.berechne(Planungsstand.start, diele);
+      expect(f01.nummern, [...List.filled(47, 1), 2]);
+      final fliese = belag(
+        Artikelart.holzfliese,
+        breite: const Millimeter(606),
+        laengen: const [606],
+      );
+      // F25: 8 × 6 Fliesen
+      final f25 = PlanungsDienst.berechne(Planungsstand.start, fliese);
+      expect(f25.dielen, hasLength(48));
+      expect(f25.grenzeLinksRechts, const Millimeter(606));
+      // Ausschnitt mit anderem Belag: eigene Stücke, eigene Nummern ab 1
+      final anders = Planungsstand.start.mitNeuemAusschnitt();
+      final mitTeil = anders.mitAusschnitt(
+        0,
+        anders.ausschnitte.single.mitFunktion(Ausschnittfunktion.andererBelag),
+      );
+      final ohneTeil = PlanungsDienst.berechne(anders, diele);
+      final teil = PlanungsDienst.berechne(mitTeil, diele);
+      final zusatz = teil.dielen.length - ohneTeil.dielen.length;
+      // 180 × 120 cm: 18 Reihen + 3 cm
+      expect(zusatz, 19);
+      expect(teil.nummern, hasLength(teil.dielen.length));
+      expect(teil.nummern.skip(ohneTeil.dielen.length), [
+        ...List.filled(18, 1),
+        2,
+      ]);
+    });
+
+    test('Dielenliste und Verschnitt der ganzen Planung (M5-08)', () {
+      final f01 = Planungsstand.start.mitBelag(const Artikelnummer('d'));
+      final planung = Planung([
+        Terrassenflaeche(f01, haeufigkeit: 2),
+        Terrassenflaeche(f01.mitBelag(const Artikelnummer('f'))),
+        // ohne Belag und offen: zählen nicht
+        Terrassenflaeche(f01.mitBelag(const Artikelnummer('x'))),
+        Terrassenflaeche(
+          Planungsstand(
+            grundriss: FreiformGrundriss(const [Punkt(0, 0), Punkt(1000, 0)]),
+          ).mitBelag(const Artikelnummer('d')),
+        ),
+        Terrassenflaeche(f01.mitVerlegerichtung(Verlegerichtung.senkrecht)),
+      ], aktiv: 1);
+      final d = belag(
+        Artikelart.diele,
+        breite: const Millimeter(60),
+        laengen: const [4000, 5000, 6000],
+        nummer: 'd',
+      );
+      final f = belag(
+        Artikelart.holzfliese,
+        breite: const Millimeter(606),
+        laengen: const [606],
+        nummer: 'f',
+      );
+      Artikel? suche(Artikelnummer? n) => switch (n?.wert) {
+        'd' => d,
+        'f' => f,
+        _ => null,
+      };
+      final b = PlanungsDienst.berechnePlanung(planung, suche);
+      // bearbeitet ist die Fliesenfläche
+      expect(b.dielen, hasLength(48));
+      expect(b.dielenliste, [
+        (
+          belag: const Artikelnummer('d'),
+          laenge: const Millimeter(4000),
+          anzahl: 74,
+        ),
+        (
+          belag: const Artikelnummer('d'),
+          laenge: const Millimeter(5000),
+          anzahl: 96,
+        ),
+        (
+          belag: const Artikelnummer('f'),
+          laenge: const Millimeter(606),
+          anzahl: 48,
+        ),
+      ]);
+      // geliefert: 2 × 48 × 5000 + 74 × 4000 + 48 × 606 mm
+      const geliefert = 2 * 48 * 5000 + 74 * 4000 + 48 * 606;
+      const geplant = 2 * 48 * 4800 + 74 * 3090 + 6 * 4800;
+      expect(b.verschnitt, closeTo((geliefert - geplant) / geliefert, 1e-12));
+      // ohne verlegte Fläche kein Verschnitt
+      final ohne = PlanungsDienst.berechnePlanung(Planung.start);
+      expect(ohne.verschnitt, isNull);
+      expect(ohne.dielenliste, isEmpty);
+      // eine Fläche: wie der alte Planer F01 4 %
+      expect(
+        PlanungsDienst.berechnePlanung(Planung.start, (_) => diele).verschnitt,
+        closeTo(0.04, 1e-12),
+      );
     });
 
     test('über den Router mit der Belagsuche', () async {

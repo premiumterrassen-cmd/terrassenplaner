@@ -22,6 +22,7 @@ export 'src/holzart/robinie.dart';
 export 'src/json_werte.dart';
 export 'src/konfiguration/ausschnitt.dart';
 export 'src/konfiguration/ausschnitt_pruefung.dart';
+export 'src/konfiguration/belagverlegung.dart';
 export 'src/konfiguration/berechnung.dart';
 export 'src/konfiguration/dielenverlegung.dart';
 export 'src/konfiguration/grundriss.dart';
