@@ -91,6 +91,11 @@ class BerechnungsSteuerung extends ChangeNotifier {
   /// Benötigte Dielen der ganzen Planung je Belag und Lieferlänge (M5-08).
   List<Lieferposition> get dielenliste => _ergebnis?.dielenliste ?? const [];
 
+  /// Materialliste der ganzen Planung (M9-03); leer, solange keine
+  /// Berechnung vorliegt.
+  Materialliste get materialliste =>
+      _ergebnis?.materialliste ?? Materialliste.leer;
+
   Future<void> _frage() async {
     final nummer = ++_anfrage;
     try {

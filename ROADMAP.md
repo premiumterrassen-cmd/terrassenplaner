@@ -428,9 +428,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/10
 - [ ] **M9-02 Zuschnittspläne Belag und UK** ([#75](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/75)) – `feature/m9-02-zuschnittsplaene-belag-und-uk`
   - Je Artikel: Ausgangslänge, Menge, Schnittmaße.
   - Abnahme: Zuschnittspläne wie in den Planungsunterlagen
-- [ ] **M9-03 Materialliste** ([#76](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/76)) – `feature/m9-03-materialliste`
+- [x] **M9-03 Materialliste** ([#76](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/76)) – `feature/m9-03-materialliste`
   - Bild, Artikel, Menge, Einzelpreis, Positionspreis, Preis je lfm, Gesamt-lfm, Position, Preise inkl. MwSt.
   - Abnahme: Summen korrekt gerundet; Preise nur Anzeige (B-055)
+  - Ergebnis: Knopf „Materialliste“ unter den Kennzahlen (nach dem Standardwert-Hinweis) öffnet die Liste mit Pos., Bild, Artikel (Länge, Freidiele), Menge, Einzelpreis, Preis je lfm, Gesamt-lfm, Positionspreis, „Summe gesamt“ und „enthaltene 19 % MwSt.“ – nur Anzeige (B-055). Der Server rechnet sie über alle Flächen mal Häufigkeit (`Materialliste.aus`, Berechnung Platz 60) aus einer Liste `Materialbedarf` je Quelle: Belag (M5-08) und Befestigung (M5-09) heute, UK (M6) und Zubehör/Freidielen (M8) über dieselbe Schnittstelle. Gleiche Bedarfe werden addiert und erst dann verpackt; Preise aus den Verkaufspreisen, je Wert einmal auf Cent gerundet, Ware je lfm über die Gesamt-lfm, MwSt. = Summe − gerundetes Netto. F01: 48 × 5000 mm und Clips 2 × 250 + 100 + 50 wie der alte Planer (ohne einseitig genutete Anfangsdielen, B-033). Mitarbeiter-Ansicht (Menge mit Häkchen, „berechnet“, zurück; `Planung.mengen` Platz 70) vorbereitet, freigeschaltet erst mit der Rolle aus M9-10 (`PlanerRahmen.mitarbeiter`, `PlanungsDienst.darfMengenAendern`). Smoke-Test in Chrome. Fachkonzept 08 „Materialliste“.
 - [ ] **M9-04 Stückliste** ([#77](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/77)) – `feature/m9-04-stueckliste`
   - Artikel, Länge, Menge, Farbe (Zuordnung zum Plan).
   - Abnahme: Farben stimmen mit der Zeichnung überein

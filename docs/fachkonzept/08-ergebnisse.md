@@ -16,6 +16,21 @@ Neuer Planer: Prüfcode für gespeicherte Konfigurationen (Alexander, 04.11.2026
 - Der Browser merkt sich für „Weiterplanen“ die Kennung mit Prüfcode.
 - Mitarbeiter sollen später (M9-10, Mitarbeiter-Anmeldung) auch ohne Prüfcode laden dürfen.
 
+## Materialliste
+
+Im alten Planer: rechter Reiter „Materialliste“ mit Bild | Artikel | € Gesamt, „Summe gesamt“ und „enthaltene 19% MwSt.“ ([00](00-rahmen.md#materialliste)); Mengen zeigt nur die Mitarbeiter-Ansicht (Fehler, [09](09-nicht-teil-der-kopie.md)).
+
+Neuer Planer (M9-03):
+
+- **Knopf „Materialliste“** unter den Kennzahlen rechts oben, immer sichtbar (wie in der neuen Planer-Version). Vorher kommt wie bei PDF und Angebot der Hinweis auf unveränderte Standardwerte (M3-05).
+- **Spalten:** Pos. | Bild | Artikel (Titel wie im Shop, B-152; darunter „Länge: 5000 mm“ und ggf. „Freidiele“) | Menge mit Einheit (Dielen und UK in Stück, sonst die Verkaufseinheit: VPE, Karton …) | Einzelpreis | Preis je lfm | Gesamt-lfm | Positionspreis. Darunter „Summe gesamt“, „enthaltene 19 % MwSt.“ und der Hinweis „Alle Preise inkl. MwSt. und nur zur Information – verbindlich ist unser Angebot.“ (B-055). Mengen sieht jeder – das Fehlen im alten Planer wird nicht übernommen.
+- **Rechnet der Server** (`Materialliste.aus`, Berechnung Platz 60) über die ganze Planung, jede Fläche mal ihrer Häufigkeit. Jede Quelle liefert eine Liste `Materialbedarf` (Verkaufseinheiten eines Artikels, Stück, optional Lieferlänge, Zusatz, „einmal je Planung“): heute Belag (Dielenliste M5-08) und Befestigung (M5-09), später Unterkonstruktion (M6) und Zubehör samt Freidielen (M8) – ohne Sonderfälle in der Liste.
+- **Zusammenfassen und Verpacken:** Gleiche Bedarfe (Einheiten, Länge, Zusatz) werden über Flächen addiert; erst die Summe wird verpackt (wenig Überhang, dann wenig Packungen wie 2.6) – drei Flächen F01 ergeben 1911 Clips → 7 × VPE 250 + 2 × VPE 100 statt dreimal 2 × 250 + 100 + 50. Ein Bedarf „einmal je Planung“ (Montagehilfe) zählt einmal. Stücke mit Länge werden gezählt, nicht verpackt.
+- **Reihenfolge:** Bereich (Belag, Unterkonstruktion, Befestigung, Auflager, Anschluss, Zubehör), dann Artikelnummer, Länge, Zusatz; Positionen ab 1.
+- **Preise** nur Verkaufspreise aus den Artikeldaten (B-123, B-152), brutto, in ganzen Cent, je Wert einmal gerundet. Ware je lfm (Dielen): Preis je lfm = Preis der Verkaufseinheit ÷ Inhalt, Einzelpreis = je lfm × Länge, Positionspreis = je lfm × Gesamt-lfm – die Summe hängt so nicht von der Längenmischung ab (7.1). Sonst Einzelpreis = Preis der Verkaufseinheit, Positionspreis = Einzelpreis × Anzahl, mit Länge auch Preis je lfm. Holzfliesen je Stück (Fehler F25 nicht übernommen). Freidielen kosten 0 €. Summe = Summe der Positionspreise; enthaltene MwSt. = Summe − gerundetes Netto (Summe × 100 ÷ 119), damit Netto + Steuer genau die Summe ergeben (2.066,57 € → 329,96 €). Fehlt einem Artikel der Preis, steht „–“ und unter der Summe ein Hinweis.
+- **Mitarbeiter-Ansicht (vorbereitet):** Menge je Position als Eingabe mit Häkchen „Menge übernehmen“ (auch Enter); nach einer Änderung „berechnet: 48“ mit Knopf zurück zur berechneten Menge (R-D04); 0 wählt die Position ab. Die Planung merkt sich die Mengen (`Planung.mengen`, Platz 70, mit Speichern/Laden und Rückgängig), Schlüssel Artikelnummer + Länge + Zusatz. Freigeschaltet nur mit der Rolle Mitarbeiter: In der App schaltet `PlanerRahmen.mitarbeiter` die Eingaben frei, der Server übernimmt die Mengen nur, wenn `PlanungsDienst.darfMengenAendern` den Aufrufer als Mitarbeiter erkennt. Bis zur Anmeldung (M9-10) ist beides aus – Kunden sehen und senden keine geänderten Mengen, die der Server übernimmt.
+- **Noch nicht enthalten:** Unterkonstruktion, Auflager, Gummiband (M6), Zubehör und Freidielen (M8), Systemdielen je m² (noch nicht verlegt, 2.7). Im Vergleich mit F01 stimmen Dielen (48 × 5000 mm ohne die einseitig genuteten Anfangsdielen, B-033) und Clips (2 × VPE 250 + 100 + 50); die Terrassenschrauben der Randdielen entfallen (2.6).
+
 ## Angebot anfordern
 
 Knopf „Jetzt Angebot anfordern“ (Materialliste) öffnet „Angebot anfordern“:
