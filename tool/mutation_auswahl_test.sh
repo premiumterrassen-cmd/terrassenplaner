@@ -73,10 +73,10 @@ pruefe "domain: unveränderte Datei fehlt" bash -c "! grep -qF 'lib/b.dart' '$do
 pruefe "domain: gelöschte Datei fehlt" bash -c "! grep -qF 'lib/c.dart' '$domain'"
 pruefe "domain: generierter Code fehlt" bash -c "! grep -qF '.g.dart</file>' <(sed -n '/<files>/,/<\/files>/p' '$domain')"
 pruefe "domain: kein <directories>" bash -c "! grep -qF '<directories>' '$domain'"
-pruefe "domain: Testbefehl samt Timeout erhalten" grep -qF 'timeout="300">bash ../../tool/mutation/frist.sh 290 dart test --fail-fast</command>' "$domain"
+pruefe "domain: Testbefehl samt Timeout erhalten" grep -qF 'timeout="300">bash ../../tool/mutation/frist.sh 290 dart --old_gen_heap_size=1024 test --fail-fast</command>' "$domain"
 pruefe "domain: Schwelle erhalten" grep -qF '<threshold failure="95">' "$domain"
 pruefe "server: Gegenstück eines geänderten Tests" grep -qF "<file>packages/server/lib/x/y.dart</file>" "$server"
-pruefe "server: Timeout erhalten" grep -qF 'timeout="120">bash ../../tool/mutation/frist.sh 110 dart test --fail-fast</command>' "$server"
+pruefe "server: Timeout erhalten" grep -qF 'timeout="120">bash ../../tool/mutation/frist.sh 110 dart --old_gen_heap_size=1024 test --fail-fast</command>' "$server"
 pruefe "app: nur ausgeschlossene Dateien (auch per Muster) → übersprungen" grep -qF "app – keine geänderten Quelldateien" <<<"$ausgabe"
 
 # Geänderte Paketkonfiguration: kein Vollauf im Push, den übernimmt mutation-vollauf.yml
