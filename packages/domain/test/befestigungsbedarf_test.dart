@@ -433,6 +433,37 @@ void main() {
       );
       expect(b30.punkte, 624);
       expect(_mittel(b30), {'50-50-103': 1, '50-50-104': 3});
+      // genau doppelt (25 mm → 50 mm) reicht (M5-10: keine Meldung)
+      final glatt25 = _diele(
+        '10-15-011',
+        profil: Profil.glattkant,
+        staerke: 25,
+        serie: massiv,
+      );
+      final mit25 = Regelwerk(
+        Artikeldatei(
+          quelle: 'test',
+          version: '1',
+          eintraege: [
+            _eintrag(glatt25, befestigung: _schrauben),
+            for (final a in _schrauben) _eintrag(a),
+          ],
+        ),
+      );
+      final b25 = befestigungsbedarf(
+        mit25,
+        glatt25,
+        Befestigungsart.verschraubt,
+        _verlegt(),
+        winkel: 0,
+      );
+      expect(_mittel(b25).keys, everyElement(startsWith('50-50-10')));
+      expect(_mittel(b25).keys, isNot(contains('50-50-103')));
+      expect(_mittel(b25).keys, isNot(contains('50-50-104')));
+      expect(
+        befestigungsmeldungen(mit25, glatt25, Befestigungsart.verschraubt),
+        isEmpty,
+      );
     });
 
     test('ohne Montagehilfe in den Daten nur die Schrauben', () {
