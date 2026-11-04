@@ -533,6 +533,9 @@ class PlanerTexteEn extends PlanerTexte {
   String get terrassenbelag5 => 'Starting point of the decking';
 
   @override
+  String get terrassenbelag6 => 'Fastening method';
+
+  @override
   String get unterkonstruktion1 => 'Type of terrace';
 
   @override
@@ -804,6 +807,29 @@ class PlanerTexteEn extends PlanerTexte {
   @override
   String get zuschnittWarnung =>
       'Caution: there are cuts under 5 cm. Move the first full board so that no such narrow or short pieces are left.';
+
+  @override
+  String get befestigungsartClips => 'With clips';
+
+  @override
+  String get befestigungsartVerschraubt => 'Screwed directly';
+
+  @override
+  String get befestigungsartAbstandshalter => 'Screwed with spacers';
+
+  @override
+  String get befestigungOhneDielen =>
+      'The fastening follows as soon as decking boards are laid.';
+
+  @override
+  String befestigungspunkte(int anzahl) {
+    return 'Fastening points: $anzahl';
+  }
+
+  @override
+  String befestigungsmittel(int anzahl, String titel) {
+    return '$anzahl × $titel';
+  }
 
   @override
   String get kurzeStueckeVerbinden =>

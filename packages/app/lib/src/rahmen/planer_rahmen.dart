@@ -9,6 +9,7 @@ import 'aktionen.dart';
 import 'ansichtsoptionen.dart';
 import 'ausgangspunkt.dart';
 import 'ausschnitte.dart';
+import 'befestigung.dart';
 import 'belag.dart';
 import 'berechnung_steuerung.dart';
 import 'flaechen.dart';
@@ -203,6 +204,7 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
             rundung: _rundung,
             ausschnitte: _ausschnitte,
             ausgangspunkt: _ausgangspunkt,
+            berechnung: _berechnung,
             belaege: _belaege,
           );
           return Column(
@@ -518,6 +520,7 @@ class Bearbeitungsmenue extends StatelessWidget {
     required this.ausschnitte,
     super.key,
     this.ausgangspunkt,
+    this.berechnung,
     this.belaege,
   });
 
@@ -530,6 +533,9 @@ class Bearbeitungsmenue extends StatelessWidget {
 
   /// Ausgangspunkt des Belags (M5-07); ohne Bedienung keine Eingabe.
   final AusgangspunktBedienung? ausgangspunkt;
+
+  /// Berechnung des Servers, z. B. für die Befestigung (M5-09).
+  final BerechnungsSteuerung? berechnung;
 
   /// Eingaben unter einem Unterpunkt (Schritt, Index ab 0).
   Widget? _eingabe(PlanerSchritt schritt, int unterpunkt) => switch ((
@@ -581,6 +587,11 @@ class Bearbeitungsmenue extends StatelessWidget {
     ),
     (PlanerSchritt.terrassenbelag, 4) when ausgangspunkt != null =>
       AusgangspunktWahl(bedienung: ausgangspunkt!),
+    (PlanerSchritt.terrassenbelag, 5) => BefestigungsartWahl(
+      planung: planung,
+      berechnung: berechnung,
+      onGeaendert: () => zustand.markiereGeaendert(schritt),
+    ),
     _ => null,
   };
 

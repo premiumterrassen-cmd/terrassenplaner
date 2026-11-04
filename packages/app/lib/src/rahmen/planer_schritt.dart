@@ -39,6 +39,7 @@ enum PlanerSchritt {
       t.terrassenbelag3,
       t.terrassenbelag4,
       t.terrassenbelag5,
+      t.terrassenbelag6,
     ],
     unterkonstruktion => [
       t.unterkonstruktion1,

@@ -306,9 +306,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/6
 - [ ] **M5-08 Berechnung der Dielenverlegung** ([#51](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/51)) – `feature/m5-08-berechnung-der-dielenverlegung` · Benchmark
   - Dielen in der Fläche inkl. Ausschnitten, Rundungen und Teilflächen verlegen, nummerieren, Längen und Fugen berücksichtigen.
   - Abnahme: Dielenliste je Referenzfall entspricht der Planungsunterlage; Benchmark: große Freiform mit Ausschnitten
-- [ ] **M5-09 Befestigungsart** ([#52](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/52)) – `feature/m5-09-befestigungsart`
+- [x] **M5-09 Befestigungsart** ([#52](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/52)) – `feature/m5-09-befestigungsart`
   - Mit Clips / direkt verschraubt / verschraubt mit Abstandshaltern; Befestigungsartikel und Mengen nach Regelwerk (inkl. B-094).
   - Abnahme: PREMIUM SELECT genutet ab 100 mm → DUO-CLIP-FIXX, sonst CLIP-FIXX
+  - Ergebnis: Unterpunkt 2.6 mit den zum Profil passenden Arten (genutet nur Clips, glattkant direkt oder mit Abstandshaltern verschraubt, B-094/B-090), Planungsstand-Feld `befestigungsart` (Vorgabe Clips). `befestigungsbedarf` wählt die Artikel aus den Befestigungsverweisen des Belags (DUO-CLIP-FIXX nur für genutete PREMIUM SELECT ab 100 mm, Clipschrauben im Lieferumfang, B-074/B-150) und rechnet die Mengen aus den Befestigungspunkten (Kreuzungen Diele–UK; bis M6 UK-Linien im UK-Abstand des Belags, höchstens 40 cm, am Stoß doppelt): Clips je Punkt plus äußere Reihe (F01: 637 → 2 × VPE 250 + 100 + 50), Schrauben je Punkt, ab 100 mm zwei (R-B02), Abstandshalter je Punkt. Verkaufseinheiten mit wenig Überhang und wenig Packungen. Server liefert Arten, Punkte und Artikel mit der Berechnung. Offen: Beziehung Belag → Abstandshalter in der Upload-Datei, UK-Linien aus M6.
 - [ ] **M5-10 Grenzwerte und Meldungen Belag** ([#53](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/53)) – `feature/m5-10-grenzwerte-und-meldungen-belag`
   - Grenzen für Belagbreite, -länge, -stärke und Profile mit verständlichen Meldungen.
   - Abnahme: Jede Grenze getestet
