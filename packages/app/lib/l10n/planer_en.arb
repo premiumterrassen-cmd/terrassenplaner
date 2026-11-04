@@ -314,5 +314,15 @@
   "einheitKarton": "carton",
   "einheitSet": "set",
   "einheitKiste": "crate",
-  "einheitLiter": "l"
+  "einheitLiter": "l",
+  "stueckliste": "Parts list",
+  "stuecklisteLeer": "The parts list appears as soon as decking has been laid.",
+  "stueckSpalteArtikel": "Item",
+  "stueckSpalteLaenge": "Length (cm)",
+  "stueckSpalteStueck": "Pieces",
+  "stueckSpalteFarbe": "Colour in the plan",
+  "stueckfarbeRot": "red – full length",
+  "stueckfarbeBlau": "blue – cut to length",
+  "stueckfarbeGruen": "green – cross piece",
+  "stuecklisteHinweis": "Pieces of the area being edited; the colour marks the piece in the drawing."
 }

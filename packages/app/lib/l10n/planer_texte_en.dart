@@ -1021,4 +1021,36 @@ class PlanerTexteEn extends PlanerTexte {
 
   @override
   String get einheitLiter => 'l';
+
+  @override
+  String get stueckliste => 'Parts list';
+
+  @override
+  String get stuecklisteLeer =>
+      'The parts list appears as soon as decking has been laid.';
+
+  @override
+  String get stueckSpalteArtikel => 'Item';
+
+  @override
+  String get stueckSpalteLaenge => 'Length (cm)';
+
+  @override
+  String get stueckSpalteStueck => 'Pieces';
+
+  @override
+  String get stueckSpalteFarbe => 'Colour in the plan';
+
+  @override
+  String get stueckfarbeRot => 'red – full length';
+
+  @override
+  String get stueckfarbeBlau => 'blue – cut to length';
+
+  @override
+  String get stueckfarbeGruen => 'green – cross piece';
+
+  @override
+  String get stuecklisteHinweis =>
+      'Pieces of the area being edited; the colour marks the piece in the drawing.';
 }

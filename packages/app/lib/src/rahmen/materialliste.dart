@@ -8,6 +8,7 @@ import '../design/planer_design.dart';
 import '../sprache/sprache.dart';
 import 'berechnung_steuerung.dart';
 import 'steuerung.dart';
+import 'stueckliste.dart';
 
 /// Materialliste der ganzen Planung (M9-03, Fachkonzept 08), wie der
 /// Server sie rechnet: Position, Bild, Artikel, Menge, Einzelpreis, Preis
@@ -287,9 +288,10 @@ class _MengenfeldState extends State<Mengenfeld> {
   }
 }
 
-/// Dialog mit der Materialliste (M9-03); [mitarbeiter] schaltet die
-/// Mitarbeiter-Ansicht frei (Rollenprüfung, angeschlossen mit M9-10).
-class MateriallisteDialog extends StatelessWidget {
+/// Dialog mit Materialliste (M9-03) und Stückliste (M9-04), umschaltbar;
+/// [mitarbeiter] schaltet die Mitarbeiter-Ansicht der Materialliste frei
+/// (Rollenprüfung, angeschlossen mit M9-10).
+class MateriallisteDialog extends StatefulWidget {
   const MateriallisteDialog({
     required this.berechnung,
     required this.planung,
@@ -303,25 +305,55 @@ class MateriallisteDialog extends StatelessWidget {
   /// Rolle der Sitzung; `null` = Kunde (keine Anmeldung).
   final ValueListenable<bool>? mitarbeiter;
 
+  @override
+  State<MateriallisteDialog> createState() => _MateriallisteDialogState();
+}
+
+/// Welche Liste der Dialog zeigt.
+enum Ergebnisliste { material, stueck }
+
+class _MateriallisteDialogState extends State<MateriallisteDialog> {
   static final _keinMitarbeiter = ValueNotifier(false);
+
+  var _liste = Ergebnisliste.material;
 
   @override
   Widget build(BuildContext context) {
     final t = context.texte;
     return AlertDialog(
       key: const ValueKey('materialliste-dialog'),
-      title: Text(t.materialliste),
+      title: SegmentedButton<Ergebnisliste>(
+        key: const ValueKey('ergebnisliste-wahl'),
+        showSelectedIcon: false,
+        segments: [
+          ButtonSegment(
+            value: Ergebnisliste.material,
+            label: Text(t.materialliste),
+          ),
+          ButtonSegment(
+            value: Ergebnisliste.stueck,
+            label: Text(key: const ValueKey('zur-stueckliste'), t.stueckliste),
+          ),
+        ],
+        selected: {_liste},
+        onSelectionChanged: (wahl) => setState(() => _liste = wahl.single),
+      ),
       content: SizedBox(
         width: 1100,
         child: SingleChildScrollView(
-          child: ValueListenableBuilder(
-            valueListenable: mitarbeiter ?? _keinMitarbeiter,
-            builder: (context, istMitarbeiter, _) => MateriallisteAnsicht(
-              berechnung: berechnung,
-              planung: planung,
-              mitarbeiter: istMitarbeiter,
+          child: switch (_liste) {
+            Ergebnisliste.material => ValueListenableBuilder(
+              valueListenable: widget.mitarbeiter ?? _keinMitarbeiter,
+              builder: (context, istMitarbeiter, _) => MateriallisteAnsicht(
+                berechnung: widget.berechnung,
+                planung: widget.planung,
+                mitarbeiter: istMitarbeiter,
+              ),
             ),
-          ),
+            Ergebnisliste.stueck => StuecklisteAnsicht(
+              berechnung: widget.berechnung,
+            ),
+          },
         ),
       ),
       actions: [

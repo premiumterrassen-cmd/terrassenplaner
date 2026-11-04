@@ -1899,6 +1899,66 @@ abstract class PlanerTexte {
   /// In de, this message translates to:
   /// **'l'**
   String get einheitLiter;
+
+  /// No description provided for @stueckliste.
+  ///
+  /// In de, this message translates to:
+  /// **'Stückliste'**
+  String get stueckliste;
+
+  /// No description provided for @stuecklisteLeer.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Stückliste entsteht, sobald ein Belag verlegt ist.'**
+  String get stuecklisteLeer;
+
+  /// No description provided for @stueckSpalteArtikel.
+  ///
+  /// In de, this message translates to:
+  /// **'Artikel'**
+  String get stueckSpalteArtikel;
+
+  /// No description provided for @stueckSpalteLaenge.
+  ///
+  /// In de, this message translates to:
+  /// **'Länge (cm)'**
+  String get stueckSpalteLaenge;
+
+  /// No description provided for @stueckSpalteStueck.
+  ///
+  /// In de, this message translates to:
+  /// **'Stück'**
+  String get stueckSpalteStueck;
+
+  /// No description provided for @stueckSpalteFarbe.
+  ///
+  /// In de, this message translates to:
+  /// **'Farbe im Plan'**
+  String get stueckSpalteFarbe;
+
+  /// No description provided for @stueckfarbeRot.
+  ///
+  /// In de, this message translates to:
+  /// **'rot – ganze Länge'**
+  String get stueckfarbeRot;
+
+  /// No description provided for @stueckfarbeBlau.
+  ///
+  /// In de, this message translates to:
+  /// **'blau – zugeschnitten'**
+  String get stueckfarbeBlau;
+
+  /// No description provided for @stueckfarbeGruen.
+  ///
+  /// In de, this message translates to:
+  /// **'grün – Querstück'**
+  String get stueckfarbeGruen;
+
+  /// No description provided for @stuecklisteHinweis.
+  ///
+  /// In de, this message translates to:
+  /// **'Stücke der bearbeiteten Fläche; die Farbe zeigt das Stück in der Zeichnung.'**
+  String get stuecklisteHinweis;
 }
 
 class _PlanerTexteDelegate extends LocalizationsDelegate<PlanerTexte> {

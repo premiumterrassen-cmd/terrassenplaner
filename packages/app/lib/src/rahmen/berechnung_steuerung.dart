@@ -44,6 +44,7 @@ class BerechnungsSteuerung extends ChangeNotifier {
       ],
       dielen: [for (final d in b.dielen) _offsets(d)],
       nummern: b.nummern,
+      dielenfarben: [for (final f in b.stueckfarben) Color(f.argb)],
       ausgangspunkt: switch (b.ausgangspunkt) {
         final p? => Offset(p.x, p.y),
         null => null,
@@ -95,6 +96,10 @@ class BerechnungsSteuerung extends ChangeNotifier {
   /// Berechnung vorliegt.
   Materialliste get materialliste =>
       _ergebnis?.materialliste ?? Materialliste.leer;
+
+  /// Stückliste der bearbeiteten Fläche (M9-04); leer, solange keine
+  /// Berechnung vorliegt.
+  Stueckliste get stueckliste => _ergebnis?.stueckliste ?? Stueckliste.leer;
 
   Future<void> _frage() async {
     final nummer = ++_anfrage;

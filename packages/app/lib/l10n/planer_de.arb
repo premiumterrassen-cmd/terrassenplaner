@@ -353,5 +353,15 @@
   "einheitKarton": "Karton",
   "einheitSet": "Set",
   "einheitKiste": "Kiste",
-  "einheitLiter": "l"
+  "einheitLiter": "l",
+  "stueckliste": "Stückliste",
+  "stuecklisteLeer": "Die Stückliste entsteht, sobald ein Belag verlegt ist.",
+  "stueckSpalteArtikel": "Artikel",
+  "stueckSpalteLaenge": "Länge (cm)",
+  "stueckSpalteStueck": "Stück",
+  "stueckSpalteFarbe": "Farbe im Plan",
+  "stueckfarbeRot": "rot – ganze Länge",
+  "stueckfarbeBlau": "blau – zugeschnitten",
+  "stueckfarbeGruen": "grün – Querstück",
+  "stuecklisteHinweis": "Stücke der bearbeiteten Fläche; die Farbe zeigt das Stück in der Zeichnung."
 }

@@ -1021,4 +1021,36 @@ class PlanerTexteDe extends PlanerTexte {
 
   @override
   String get einheitLiter => 'l';
+
+  @override
+  String get stueckliste => 'Stückliste';
+
+  @override
+  String get stuecklisteLeer =>
+      'Die Stückliste entsteht, sobald ein Belag verlegt ist.';
+
+  @override
+  String get stueckSpalteArtikel => 'Artikel';
+
+  @override
+  String get stueckSpalteLaenge => 'Länge (cm)';
+
+  @override
+  String get stueckSpalteStueck => 'Stück';
+
+  @override
+  String get stueckSpalteFarbe => 'Farbe im Plan';
+
+  @override
+  String get stueckfarbeRot => 'rot – ganze Länge';
+
+  @override
+  String get stueckfarbeBlau => 'blau – zugeschnitten';
+
+  @override
+  String get stueckfarbeGruen => 'grün – Querstück';
+
+  @override
+  String get stuecklisteHinweis =>
+      'Stücke der bearbeiteten Fläche; die Farbe zeigt das Stück in der Zeichnung.';
 }

@@ -22,8 +22,10 @@ final class Zeichnung {
     List<Offset> ablaeufe = const [],
     List<List<Offset>> dielen = const [],
     List<int> nummern = const [],
+    List<Color> dielenfarben = const [],
     this.ausgangspunkt,
   }) : umriss = List.unmodifiable(umriss),
+       dielenfarben = List.unmodifiable(dielenfarben),
        dielen = List.unmodifiable(dielen),
        nummern = List.unmodifiable(nummern),
        ecken = List.unmodifiable(ecken ?? umriss),
@@ -62,6 +64,10 @@ final class Zeichnung {
   /// Nummer je Dielenstück wie in „Dielen nach Nummer“ (M5-08), parallel
   /// zu [dielen]; fehlt eine, bleibt das Stück ohne Nummer.
   final List<int> nummern;
+
+  /// Farbe je Dielenstück wie in der Stückliste (M9-04), parallel zu
+  /// [dielen]; fehlt eine, bekommt das Stück die normale Fuge.
+  final List<Color> dielenfarben;
 
   /// Ausgangspunkt der Verlegung in mm (M5-07): Ecke plus Verschiebung, dort
   /// liegt der Griff der ersten ganzen Diele; `null` ohne Dielen.
@@ -132,6 +138,10 @@ class ZeichnungsMaler extends CustomPainter {
       for (final d in zeichnung.dielen)
         Path()..addPolygon([for (final p in d) bildschirm(p)], true),
   ];
+
+  /// Rand des Dielenstücks [index] in der Farbe der Stückliste (M9-04);
+  /// `null` = normale Fuge.
+  Color? dielenrand(int index) => zeichnung.dielenfarben.elementAtOrNull(index);
 
   /// Schriftgröße der Dielennummern in Pixeln.
   static const nummerGroesse = 10.0;
@@ -372,10 +382,17 @@ class ZeichnungsMaler extends CustomPainter {
     final fuge = Paint()
       ..color = strich.withValues(alpha: 0.3)
       ..style = PaintingStyle.stroke;
-    for (final pfad in dielenpfade()) {
+    for (final (i, pfad) in dielenpfade().indexed) {
       canvas
         ..drawPath(pfad, Paint()..color = belagFarbe)
-        ..drawPath(pfad, fuge);
+        ..drawPath(pfad, switch (dielenrand(i)) {
+          final farbe? =>
+            Paint()
+              ..color = farbe
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 1.5,
+          null => fuge,
+        });
     }
     for (final (:text, :ort, :winkel) in dielennummern()) {
       final maler = TextPainter(

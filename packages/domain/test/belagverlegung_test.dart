@@ -287,6 +287,10 @@ void main() {
         4000: 24,
         6000: 48,
       });
+      // ganze Länge für die Stückliste (M9-04): erzwungene oder längste
+      expect(_verlegt(stand.mitDielenlaenge(_m4)).laengste, _m4);
+      expect(_verlegt(stand).laengste, _m6);
+      expect(_verlegt(stand.mitDielenlaenge(_m7)).laengste, _m6);
     });
 
     test('kurze Stücke verbinden nur bei Dielen (R-B12)', () {

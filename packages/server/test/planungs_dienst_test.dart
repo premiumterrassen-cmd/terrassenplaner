@@ -467,6 +467,68 @@ void main() {
       );
     });
 
+    test('Stückliste und Farben im Plan (M9-04)', () {
+      // F01: 48 Stücke à 4800 mm aus 5000 mm, längste Lieferlänge 6000 mm
+      final f01 = PlanungsDienst.berechne(Planungsstand.start, diele);
+      expect(f01.stueckliste.zeilen, [
+        const Stuecklistenzeile(
+          nummer: Artikelnummer('10-10-073-R'),
+          titel: 'Diele',
+          laenge: Millimeter(4800),
+          stueck: 48,
+          farbe: Stueckfarbe.blau,
+        ),
+      ]);
+      expect(f01.stueckfarben, List.filled(48, Stueckfarbe.blau));
+      // F09 (800 cm): 600 rot in ganzer Länge, 200 blau; jede Farbe gehört
+      // zu genau dem Stück der Zeichnung
+      final f09 = PlanungsDienst.berechne(
+        Planungsstand.start.mitGrundriss(
+          RechteckGrundriss(const Millimeter(8000), const Millimeter(3090)),
+        ),
+        diele,
+      );
+      expect(
+        [
+          for (final z in f09.stueckliste.zeilen)
+            (z.laenge.mm, z.stueck, z.farbe),
+        ],
+        [(6000, 48, Stueckfarbe.rot), (2000, 48, Stueckfarbe.blau)],
+      );
+      expect(f09.stueckfarben, hasLength(f09.dielen.length));
+      for (final (i, d) in f09.dielen.indexed) {
+        final xs = [for (final p in d) p.x];
+        final laenge = xs.reduce(math.max) - xs.reduce(math.min);
+        expect(
+          f09.stueckfarben[i],
+          laenge > 5999 ? Stueckfarbe.rot : Stueckfarbe.blau,
+        );
+      }
+      // erzwungene Länge 4000: zwei ganze Dielen je Reihe, rot (F13)
+      final f13 = PlanungsDienst.berechne(
+        Planungsstand.start
+            .mitGrundriss(
+              RechteckGrundriss(const Millimeter(8000), const Millimeter(3090)),
+            )
+            .mitDielenlaenge(const Millimeter(4000)),
+        diele,
+      );
+      expect(f13.stueckliste.zeilen.single.farbe, Stueckfarbe.rot);
+      expect(f13.stueckliste.zeilen.single.stueck, 96);
+      // ohne Dielen keine Stückliste; über die Planung die bearbeitete Fläche
+      expect(
+        PlanungsDienst.berechne(Planungsstand.start).stueckliste.istLeer,
+        isTrue,
+      );
+      expect(
+        PlanungsDienst.berechnePlanung(
+          Planung.start.mitHaeufigkeit(3),
+          (_) => diele,
+        ).stueckliste.zeilen.single.stueck,
+        48,
+      );
+    });
+
     test('über den Router mit der Belagsuche', () async {
       await dienst.stoppe();
       final gefragt = <Artikelnummer?>[];

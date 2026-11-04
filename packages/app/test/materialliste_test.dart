@@ -403,7 +403,7 @@ void main() {
       ),
     );
     await tester.pump();
-    expect(find.text('Materialliste'), findsOneWidget);
+    expect(find.text('Materialliste'), findsWidgets);
     expect(find.byType(TextField), findsNothing);
   });
 }

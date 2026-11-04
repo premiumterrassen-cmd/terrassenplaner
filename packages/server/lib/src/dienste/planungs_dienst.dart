@@ -15,7 +15,8 @@ typedef Regelwerksuche = Regelwerk? Function();
 /// Kennzahlen der bearbeiteten Fläche, die Gesamtfläche (M4-14), die
 /// Dielenstücke (M5-05) mit Nummern, Dielenliste und Verschnitt (M5-08),
 /// den Ausgangspunkt der Verlegung (M5-07), die Befestigung (M5-09), die
-/// Meldungen zum Belag (M5-10) und die Materialliste (M9-03) – die App
+/// Meldungen zum Belag (M5-10), die Materialliste (M9-03) und die
+/// Stückliste mit den Farben im Plan (M9-04) – die App
 /// rechnet nichts selbst (Frontend bleibt „doof“). Hin- und Rückweg als
 /// typisierte FlatBuffers (Packed PPT, #110).
 class PlanungsDienst {
@@ -129,6 +130,17 @@ class PlanungsDienst {
       );
     }
     final stuecke = [for (final t in v.teile) ...t.stuecke];
+    // verlegt wird nur mit Belag; Stückliste und Farben im Plan (M9-04)
+    final artikel = belag!;
+    final planstuecke = [
+      for (final s in stuecke)
+        Planstueck(
+          artikel.nummer,
+          artikel.titel,
+          s.laenge,
+          ganzeLaenge: v.laengste,
+        ),
+    ];
     return Berechnung(
       umriss: flaeche.umriss,
       ecken: flaeche.ecken,
@@ -142,6 +154,8 @@ class PlanungsDienst {
       grenzeObenUnten: v.grenzen.y,
       kurzeZuschnitte: v.kurzeZuschnitte,
       befestigung: befestigung,
+      stueckliste: Stueckliste.aus(planstuecke),
+      stueckfarben: [for (final p in planstuecke) p.farbe],
     );
   }
 

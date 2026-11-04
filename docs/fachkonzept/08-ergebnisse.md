@@ -31,6 +31,18 @@ Neuer Planer (M9-03):
 - **Mitarbeiter-Ansicht (vorbereitet):** Menge je Position als Eingabe mit Häkchen „Menge übernehmen“ (auch Enter); nach einer Änderung „berechnet: 48“ mit Knopf zurück zur berechneten Menge (R-D04); 0 wählt die Position ab. Die Planung merkt sich die Mengen (`Planung.mengen`, Platz 70, mit Speichern/Laden und Rückgängig), Schlüssel Artikelnummer + Länge + Zusatz. Freigeschaltet nur mit der Rolle Mitarbeiter: In der App schaltet `PlanerRahmen.mitarbeiter` die Eingaben frei, der Server übernimmt die Mengen nur, wenn `PlanungsDienst.darfMengenAendern` den Aufrufer als Mitarbeiter erkennt. Bis zur Anmeldung (M9-10) ist beides aus – Kunden sehen und senden keine geänderten Mengen, die der Server übernimmt.
 - **Noch nicht enthalten:** Unterkonstruktion, Auflager, Gummiband (M6), Zubehör und Freidielen (M8), Systemdielen je m² (noch nicht verlegt, 2.7). Im Vergleich mit F01 stimmen Dielen (48 × 5000 mm ohne die einseitig genuteten Anfangsdielen, B-033) und Clips (2 × VPE 250 + 100 + 50); die Terrassenschrauben der Randdielen entfallen (2.6).
 
+## Stückliste
+
+In den Planungsunterlagen des alten Planers steht die Stückliste beim UK-Plan: Artikel, Länge, Stück und eine Farbe, in der das Stück im Plan gezeichnet ist (Referenzfälle M1-02, z. B. RELO C 200 cm rot, 87 cm blau, 36/35/33 cm grün).
+
+Neuer Planer (M9-04):
+
+- **Farben** (eine Quelle für Zeichnung, Liste und später PDF, `Stueckfarbe.argb`): **rot** ein Längsstück in ganzer Länge (ungeschnitten), **blau** ein zugeschnittenes Längsstück, **grün** ein Querstück. Ganze Länge = längste Lieferlänge des Artikels bzw. die erzwungene Dielenlänge (wie die UK-Länge im alten Planer). Geprüft gegen alle UK-Stücklisten der Referenzfälle: jede rote und blaue Zeile passt, wenn UK-Holz 6000 mm lang ist (die 6500 mm des alten Planers sind der Fehler aus B-035, F14); grüne Zeilen sind Querstücke.
+- **Schnittstelle:** Jede Quelle liefert ihre Stücke als `Planstueck` (Artikel, Länge, ganze Länge, Lage längs/quer); `Stueckliste.aus` zählt gleiche Artikel, Länge und Farbe zu einer Zeile – Artikel in der Reihenfolge ihres ersten Stücks, darin rot, blau, grün und die längsten zuerst. Heute liefert der Belag seine Dielenstücke (Teilflächen eingeschlossen), mit M6 kommt die Unterkonstruktion mit Längs- und Querstücken dazu.
+- **Zuordnung zum Plan:** Der Server liefert je Dielenstück dieselbe Farbe (`stueckfarben`, Berechnung Platz 62, Stückliste Platz 61); die Zeichnung umrandet jedes Stück in dieser Farbe. Die Stückliste gilt für die bearbeitete Fläche ohne Häufigkeit, weil sie die Zeichnung erklärt; Mengen für die Bestellung stehen in der Materialliste.
+- **Anzeige:** im Dialog „Materialliste“ umschaltbar auf „Stückliste“: Artikel | Länge (cm) | Stück | Farbe im Plan (Farbfeld und Name).
+- Beispiele: F01 48 × 480 cm blau (aus 5000 mm geschnitten); 800 × 309 cm 48 × 600 cm rot und 48 × 200 cm blau; mit Dielenlänge fest 400 cm 96 × 400 cm rot.
+
 ## Angebot anfordern
 
 Knopf „Jetzt Angebot anfordern“ (Materialliste) öffnet „Angebot anfordern“:
