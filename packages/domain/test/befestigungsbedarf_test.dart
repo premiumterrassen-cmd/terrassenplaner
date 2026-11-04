@@ -207,6 +207,54 @@ void main() {
   });
 
   group('Befestigungspunkte (M5-09)', () {
+    test('Übergangs-UK (M8-02): Linien über die Ausdehnung, auch versetzt '
+        'und gedreht', () {
+      Dielenstueck stueck(List<Punkt> umriss) =>
+          Dielenstueck(0, const Millimeter(1000), umriss, breite: 1000);
+      // versetzt: 1000 bis 2000 mm, 3 Felder
+      final versetzt = uebergangsUk(
+        [
+          stueck(const [
+            Punkt(1000, 0),
+            Punkt(2000, 0),
+            Punkt(2000, 60),
+            Punkt(1000, 60),
+          ]),
+        ],
+        winkel: 0,
+        ukAbstand: const Millimeter(400),
+      );
+      expect(versetzt.linien, [
+        1000,
+        closeTo(1333.33, 0.01),
+        closeTo(1666.67, 0.01),
+        2000,
+      ]);
+      expect(versetzt.lagen.single, (
+        anfang: 1000.0,
+        ende: 2000.0,
+        unten: 0.0,
+        oben: 60.0,
+      ));
+      // Dreieck unter 30°: die Lage hängt von der Drehrichtung ab
+      final gedreht = uebergangsUk(
+        [
+          stueck(const [Punkt(1000, 0), Punkt(2000, 0), Punkt(1000, 1000)]),
+        ],
+        winkel: 30,
+        ukAbstand: const Millimeter(400),
+      );
+      expect(gedreht.lagen.single.anfang, closeTo(866.03, 0.01));
+      expect(gedreht.lagen.single.ende, closeTo(1732.05, 0.01));
+      expect(gedreht.lagen.single.unten, closeTo(-1000, 0.01));
+      expect(gedreht.lagen.single.oben, closeTo(366.03, 0.01));
+      expect(gedreht.linien, hasLength(4));
+      expect(
+        uebergangsUk(const [], winkel: 0, ukAbstand: const Millimeter(400)),
+        (lagen: const <Stuecklage>[], linien: const <double>[]),
+      );
+    });
+
     test('F01: 48 Reihen × 13 UK-Linien, äußere Reihe 13', () {
       final p = befestigungspunkte(
         _verlegt(),
@@ -299,6 +347,22 @@ void main() {
       expect(v(0), isEmpty);
       expect(v(-3), isEmpty);
       expect(verpackt(10, const []), isEmpty);
+    });
+
+    test('gleich viele Packungen: die zuerst gefundene (Datenreihenfolge)', () {
+      Artikel einheit(String n, int inhalt) =>
+          _artikel(n, n, Artikelart.clip, inhalt: inhalt);
+      final e = [einheit('a', 100), einheit('b', 150), einheit('c', 200)];
+      String text(int n) =>
+          [for (final (a, anzahl) in verpackt(n, e)) '$anzahl × ${a.nummer}']
+              .join(', ');
+      // 300 auch als 2 × 150, 450 auch als 3 × 150
+      expect(text(300), '1 × a, 1 × c');
+      expect(text(350), '1 × b, 1 × c');
+      expect(text(450), '1 × a, 1 × b, 1 × c');
+      expect(text(500), '1 × a, 2 × c');
+      // ohne Bedarf immer dieselbe leere Liste
+      expect(identical(verpackt(0, e), verpackt(-1, e)), isTrue);
     });
 
     test('nur eine Einheit: aufgerundet', () {
@@ -577,6 +641,7 @@ void main() {
 
     test('Position: Gleichheit und Text', () {
       const a = Befestigungsposition(Artikelnummer('1'), 'Clip', 2);
+      expect(a.hashCode, Object.hash(const Artikelnummer('1'), 'Clip', 2));
       expect(a, const Befestigungsposition(Artikelnummer('1'), 'Clip', 2));
       expect(
         a.hashCode,

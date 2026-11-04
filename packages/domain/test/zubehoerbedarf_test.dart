@@ -200,6 +200,22 @@ void main() {
       );
     });
 
+    test('Fugen bis 10 mm überbrückt, größere Lücken nicht', () {
+      Dielenstueck reihe(int reihe, double unten) =>
+          Dielenstueck(reihe, const Millimeter(400), [
+            Punkt(0, unten),
+            Punkt(400, unten),
+            Punkt(400, unten + 60),
+            Punkt(0, unten + 60),
+          ], breite: 60);
+      double laenge(List<Dielenstueck> s) =>
+          ukLaenge(s, winkel: 0, ukAbstand: const Millimeter(400));
+      // 400 mm: 2 Linien; Lücke 6 mm wird überbrückt, 10 mm auch, 11 nicht
+      expect(laenge([reihe(0, 0), reihe(1, 66)]), closeTo(2 * 126, 1e-6));
+      expect(laenge([reihe(0, 0), reihe(1, 70)]), closeTo(2 * 130, 1e-6));
+      expect(laenge([reihe(0, 0), reihe(1, 71)]), closeTo(2 * 120, 1e-6));
+    });
+
     test('ohne Dielen keine UK; getrennte Flächen nicht überbrückt', () {
       expect(
         ukLaenge(const [], winkel: 0, ukAbstand: const Millimeter(400)),
@@ -374,6 +390,34 @@ void main() {
     });
   });
 
+  test('Ölsorte: Titel vor der Literangabe, ohne Komma am Ende', () {
+    final ohneKomma = _artikel(
+      '568-500',
+      'Holzschutz-Öl ROBINIE 5 Liter',
+      Artikelart.pflege,
+    );
+    final regelwerk = Regelwerk(
+      Artikeldatei(
+        quelle: 'test',
+        version: '3',
+        eintraege: [
+          _eintrag(_genutet, zubehoer: [_robinie25, ohneKomma]),
+          _eintrag(_robinie25),
+          _eintrag(ohneKomma),
+        ],
+      ),
+    );
+    // 48 m² × 0,2 l = 9,6 l: 2 × 5 l = 10 l, beide Gebinde einer Sorte
+    final m = berechnetesZubehoer(
+      regelwerk,
+      _genutet,
+      Befestigungsbedarf.keiner,
+      _verlegt(laenge: 8000, breite: 6000),
+      winkel: 0,
+    );
+    expect(_mengen(m), {'568-500': 2});
+  });
+
   group('Zeilen Tatsächlich (M8-02, R-D04)', () {
     const a = Artikelnummer('a');
     const b = Artikelnummer('b');
@@ -405,6 +449,7 @@ void main() {
       expect(p == const Zubehoerposition(a, berechnet: 3, menge: 6), isFalse);
       expect(p == Object(), isFalse);
       expect('$p', 'a: 5 (berechnet 3)');
+      expect(p.hashCode, Object.hash(a, 3, 5));
       expect(const Zubehoerposition(a).menge, 0);
     });
   });
