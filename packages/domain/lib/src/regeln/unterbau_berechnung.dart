@@ -8,6 +8,7 @@ import '../konfiguration/planungsstand.dart';
 import '../konfiguration/terrassenart.dart';
 import '../konfiguration/unterbau.dart';
 import 'auflager.dart';
+import 'auflagerbedarf.dart';
 import 'feldbreite.dart';
 import 'hoehenpunkte.dart';
 import 'regelwerk.dart';
@@ -25,6 +26,8 @@ import 'uk_verlegung.dart';
 ///   vorhandene UK stehen auf Stützen bzw. der vorhandenen UK (M6-11). Ohne
 ///   UK keine; kennt das Regelwerk die UK nicht, nur der Abstand.
 /// - **UK-Hölzer** (M6-10) der [verlegung] für die Zeichnung.
+/// - **Auflager** (M6-11) aus dem [auflager]bedarf: Orte mit Spalt und die
+///   Tabelle der Höhenzuordnung.
 Unterbau unterbauFuer(
   Planungsstand stand, {
   required Hoehenpunkte hoehen,
@@ -32,6 +35,7 @@ Unterbau unterbauFuer(
   Artikel? belag,
   Artikel? uk,
   UkVerlegung? verlegung,
+  Auflagerbedarf? auflager,
 }) {
   final hoechste = belagFeldbreite(belag, regelwerk);
   final gewaehlt = stand.feldbreite;
@@ -78,6 +82,8 @@ Unterbau unterbauFuer(
     holzbreite: verlegung == null || verlegung.hoelzer.isEmpty
         ? null
         : verlegung.breite,
+    auflagerpunkte: auflager?.punkte ?? const [],
+    zuordnung: auflager?.zeilen ?? const [],
   );
 }
 

@@ -509,7 +509,10 @@ class GewerblichWahl extends StatelessWidget {
 /// und ihre Höhenbereiche aus dem Regelwerk der UK, die mögliche Höhe und
 /// die Meldungen zu den Höhengrenzen – alles vom Server (`Unterbau`). Bei
 /// Hochterrasse und vorhandener UK ein Hinweis auf Stützen bzw.
-/// Bodenanker. Jede Wahl ist ein Schritt für Rückgängig/Wiederherstellen.
+/// Bodenanker. Darunter die Tabelle der Höhenzuordnung (M6-11): je
+/// Auflager-Art die Anzahl und der Spalt unter der UK, dazu die Auflager
+/// ohne passende Höhe. Jede Wahl ist ein Schritt für
+/// Rückgängig/Wiederherstellen.
 class AuflagenWahl extends StatelessWidget {
   const AuflagenWahl({
     required this.planung,
@@ -571,10 +574,32 @@ class AuflagenWahl extends StatelessWidget {
             ],
             Terrassenart.normal => _bereiche(t, unterbau),
           },
+          ..._zuordnung(t, unterbau),
         ],
       );
     },
   );
+
+  /// Tabelle der Höhenzuordnung (M6-11) und Auflager ohne passende Höhe.
+  List<Widget> _zuordnung(PlanerTexte t, Unterbau unterbau) {
+    final ohne = unterbau.auflagerpunkte.where((p) => p.zeile == null).length;
+    return [
+      if (unterbau.zuordnung.isNotEmpty) ...[
+        const SizedBox(height: PlanerAbstand.klein),
+        Text(t.hoehenzuordnung, key: const ValueKey('hoehenzuordnung')),
+        for (final z in unterbau.zuordnung)
+          Text(
+            '• ${t.hoehenzuordnungZeile(z.titel, z.anzahl, z.von.mm, z.bis.mm)}',
+          ),
+      ],
+      if (ohne > 0)
+        _Hinweis(
+          key: const ValueKey('auflager-ohne-hoehe'),
+          warnung: true,
+          text: t.auflagerOhneHoehe(ohne),
+        ),
+    ];
+  }
 
   /// Höhenbereiche, mögliche Höhe und Meldungen der normalen Terrasse.
   List<Widget> _bereiche(PlanerTexte t, Unterbau unterbau) => [

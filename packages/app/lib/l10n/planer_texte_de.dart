@@ -1121,6 +1121,20 @@ class PlanerTexteDe extends PlanerTexte {
       'Bei vorhandener Unterkonstruktion wird die neue UK mit Bodenankern auf den vorhandenen Trägern befestigt; der Abstand ist die Spannweite.';
 
   @override
+  String get hoehenzuordnung =>
+      'Höhenzuordnung der Auflager (Spalt unter der UK):';
+
+  @override
+  String hoehenzuordnungZeile(String titel, int anzahl, int von, int bis) {
+    return '$titel: $anzahl Stück für $von bis $bis mm';
+  }
+
+  @override
+  String auflagerOhneHoehe(int anzahl) {
+    return '$anzahl Auflager ohne passendes Höhenmaß';
+  }
+
+  @override
   String get feldbreiteHinweis =>
       'Höchster Abstand der UK-Hölzer (Achsabstand). Firmenregel: höchstens 40 cm, sicherer unter 35 cm.';
 

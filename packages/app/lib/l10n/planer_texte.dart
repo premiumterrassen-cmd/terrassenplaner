@@ -2050,6 +2050,24 @@ abstract class PlanerTexte {
   /// **'Bei vorhandener Unterkonstruktion wird die neue UK mit Bodenankern auf den vorhandenen Trägern befestigt; der Abstand ist die Spannweite.'**
   String get auflagerVorhandeneUk;
 
+  /// No description provided for @hoehenzuordnung.
+  ///
+  /// In de, this message translates to:
+  /// **'Höhenzuordnung der Auflager (Spalt unter der UK):'**
+  String get hoehenzuordnung;
+
+  /// No description provided for @hoehenzuordnungZeile.
+  ///
+  /// In de, this message translates to:
+  /// **'{titel}: {anzahl} Stück für {von} bis {bis} mm'**
+  String hoehenzuordnungZeile(String titel, int anzahl, int von, int bis);
+
+  /// No description provided for @auflagerOhneHoehe.
+  ///
+  /// In de, this message translates to:
+  /// **'{anzahl} Auflager ohne passendes Höhenmaß'**
+  String auflagerOhneHoehe(int anzahl);
+
   /// No description provided for @feldbreiteHinweis.
   ///
   /// In de, this message translates to:

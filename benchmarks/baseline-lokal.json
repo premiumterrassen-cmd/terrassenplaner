@@ -22,6 +22,7 @@
     "domain.Belagverlegung.verlegeBelag(RunTime)": 243530.8,
     "server.Konfiguration.speichernLaden": 10670.218085106382,
     "domain.Ukzusatz.ukZusatz(RunTime)": 1795.832,
-    "domain.UkVerlegung.ukVerlegung(RunTime)": 5863.31043956044
+    "domain.UkVerlegung.ukVerlegung(RunTime)": 5863.31043956044,
+    "domain.Auflager.auflagerbedarf(RunTime)": 1961.2383808095951
   }
 }

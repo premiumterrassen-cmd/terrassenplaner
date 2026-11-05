@@ -218,6 +218,10 @@ void main() {
     // M6-10: das Holzvolumen steht in den Kennzahlen; ohne Belag und UK
     // gibt es noch keins
     expect(find.text(de.volumen('– m³')), findsOneWidget);
+    // M6-11: ohne UK keine Auflager, also keine Höhenzuordnung unter 3.9
+    await _imMenue(tester, find.byKey(const ValueKey('auflagen')));
+    expect(find.byKey(const ValueKey('hoehenzuordnung')), findsNothing);
+    expect(find.byKey(const ValueKey('auflager-ohne-hoehe')), findsNothing);
   });
 }
 

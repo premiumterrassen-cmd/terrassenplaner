@@ -26,8 +26,10 @@ final class Zeichnung {
     List<(Offset, Offset)> querstreben = const [],
     List<(Offset, Offset, Color)> ukHoelzer = const [],
     this.ukBreite = 0,
+    List<(Offset, Millimeter, bool)> auflager = const [],
     this.ausgangspunkt,
   }) : umriss = List.unmodifiable(umriss),
+       auflager = List.unmodifiable(auflager),
        ukHoelzer = List.unmodifiable(ukHoelzer),
        querstreben = List.unmodifiable(querstreben),
        dielenfarben = List.unmodifiable(dielenfarben),
@@ -83,6 +85,10 @@ final class Zeichnung {
 
   /// Breite der UK-Hölzer in der Draufsicht in mm.
   final double ukBreite;
+
+  /// Auflager in mm (M6-11) mit dem Spalt unter der UK und ob ein passendes
+  /// Auflager gefunden wurde.
+  final List<(Offset, Millimeter, bool)> auflager;
 
   /// Ausgangspunkt der Verlegung in mm (M5-07): Ecke plus Verschiebung, dort
   /// liegt der Griff der ersten ganzen Diele; `null` ohne Dielen.
@@ -175,6 +181,31 @@ class ZeichnungsMaler extends CustomPainter {
           math.max(1, zeichnung.ukBreite * pixelJeMm * ansicht.zoom),
         ),
   ];
+
+  /// Auflager auf dem Bildschirm (M6-11), wenn die Ebene UK sichtbar ist:
+  /// Mitte, Farbe (rot ohne passendes Auflager) und – ab [hoeheAbZoom] –
+  /// der Spalt in cm als Beschriftung.
+  List<(Offset, Color, String?)> auflagerpunkte() => [
+    if (optionen.zeigt(Ebene.unterkonstruktion))
+      for (final (ort, spalt, passt) in zeichnung.auflager)
+        (
+          bildschirm(ort),
+          passt ? auflagerFarbe : ohneFarbe,
+          ansicht.zoom >= hoeheAbZoom
+              ? zahlText(sprache, spalt.cm, '0.#')
+              : null,
+        ),
+  ];
+
+  /// Farbe der Auflager; ohne passendes Auflager rot wie ganze Stücke.
+  static const auflagerFarbe = Color(0xFF424242);
+  static final ohneFarbe = Color(Stueckfarbe.rot.argb);
+
+  /// Ab diesem Zoom steht der Spalt an jedem Auflager.
+  static const hoeheAbZoom = 1.5;
+
+  /// Kantenlänge eines Auflagers in Pixeln.
+  static const auflagerGroesse = 6.0;
 
   /// Deckkraft der UK-Hölzer über dem Belag.
   static const holzDeckkraft = 0.6;
@@ -460,6 +491,26 @@ class ZeichnungsMaler extends CustomPainter {
           ..color = farbe
           ..strokeWidth = breite,
       );
+    }
+    for (final (ort, farbe, text) in auflagerpunkte()) {
+      canvas.drawRect(
+        Rect.fromCenter(
+          center: ort,
+          width: auflagerGroesse,
+          height: auflagerGroesse,
+        ),
+        Paint()..color = farbe,
+      );
+      if (text != null) {
+        final maler = TextPainter(
+          text: TextSpan(
+            text: text,
+            style: TextStyle(fontSize: nummerGroesse, color: strich),
+          ),
+          textDirection: TextDirection.ltr,
+        )..layout();
+        maler.paint(canvas, ort + const Offset(auflagerGroesse, 0));
+      }
     }
     final strebe = Paint()
       ..color = strebenFarbe

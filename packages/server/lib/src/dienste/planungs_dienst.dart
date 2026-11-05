@@ -23,6 +23,7 @@ typedef Unterkonstruktionssuche = Artikel? Function(Planungsstand stand);
 /// Zeichnung (M6-06), die Stellfüße zur Nutzung (M6-07), die Auflager mit
 /// Abstand, Höhenbereichen und Meldungen (M6-08), die Feldbreite (M6-09),
 /// die UK-Verlegung mit Hölzern, Stücken und Holzvolumen (M6-10), die
+/// Auflager mit Höhenzuordnung und Mengen (M6-11), die
 /// Materialliste
 /// (M9-03)
 /// und die Stückliste mit den Farben im Plan (M9-04)
@@ -168,6 +169,7 @@ class PlanungsDienst {
     Regelwerk? regelwerk,
     Hoehenpunkte? hoehenpunkte,
     UkVerlegung? uk,
+    Auflagerbedarf? auflager,
   ]) {
     // offene Freiform (M4-08): nur der gezeichnete Linienzug
     if (stand.grundriss case FreiformGrundriss(
@@ -193,6 +195,7 @@ class PlanungsDienst {
         belag: belag,
         uk: unterkonstruktion,
         verlegung: uk,
+        auflager: auflager,
       ),
     );
   }
@@ -234,6 +237,7 @@ class PlanungsDienst {
     Befestigungsbedarf? befestigung, [
     Ukzusatz? zusatz,
     UkVerlegung? uk,
+    Auflagerbedarf? auflager,
   ]) {
     final meldungen = belagmeldungen(stand, belag, v, regelwerk: regelwerk);
     if (v == null) {
@@ -261,7 +265,11 @@ class PlanungsDienst {
           ganzeLaenge: v.laengste,
         ),
     ];
-    final ukStuecke = [...?uk?.stuecke, ...?zusatz?.stuecke];
+    final ukStuecke = [
+      ...?uk?.stuecke,
+      ...?zusatz?.stuecke,
+      ...?auflager?.stuecke,
+    ];
     return Berechnung(
       umriss: flaeche.umriss,
       ecken: flaeche.ecken,
@@ -331,10 +339,19 @@ class PlanungsDienst {
         ukv,
       );
       final zusatz = _ukZusatz(f.stand, artikel, regelwerk, uk, verlegung, ukv);
+      final auflager = _auflager(f.stand, regelwerk, uk, ukv, hoehen);
       final bearbeitet = i == planung.aktiv;
       // Höhenpunkte nur für die bearbeitete Fläche (M6-02)
       final grund = bearbeitet
-          ? _grundflaeche(f.stand, artikel, uk, regelwerk, hoehen, ukv)
+          ? _grundflaeche(
+              f.stand,
+              artikel,
+              uk,
+              regelwerk,
+              hoehen,
+              ukv,
+              auflager,
+            )
           : _grundflaeche(f.stand);
       gesamt += grund.flaeche * f.haeufigkeit;
       if (verlegung != null) {
@@ -348,6 +365,7 @@ class PlanungsDienst {
             ...?befestigung?.bedarf,
             ...?ukv?.bedarf,
             ...zusatz.bedarf,
+            ...?auflager?.bedarf,
           ])
             b * f.haeufigkeit,
         ]);
@@ -362,6 +380,7 @@ class PlanungsDienst {
           befestigung,
           zusatz,
           ukv,
+          auflager,
         );
       }
     }
@@ -402,6 +421,43 @@ class PlanungsDienst {
       uk,
       ukAbstand: wirksameFeldbreite(stand.feldbreite, hoechste),
       linien: verlegung?.lagen,
+    );
+  }
+
+  /// Auflager der UK-Verlegung [v] (M6-11, `auflagerbedarf`): Abstand aus
+  /// dem Regelwerk der UK (M6-08), Höhe aus den geprüften Höhenpunkten,
+  /// Bereiche der Stelzfüße und Pads; ohne Verlegung oder Aufbauhöhe keine.
+  static Auflagerbedarf? _auflager(
+    Planungsstand stand,
+    Regelwerk? regelwerk,
+    Artikel? uk,
+    UkVerlegung? v,
+    Hoehenpunkte hoehen,
+  ) {
+    final aufbau = hoehen.aufbauhoehe;
+    if (v == null || aufbau == null) return null;
+    // mit Verlegung gibt es immer eine UK
+    final artikel = uk!;
+    final daten = regelwerk?.datei[artikel.nummer] == null ? null : regelwerk;
+    return auflagerbedarf(
+      stand,
+      v,
+      uk: artikel,
+      abstand: auflagerabstand(
+        stand,
+        daten?.abstaende(artikel.nummer).stelzfuesse,
+      ),
+      flaeche: Hoehenflaeche(stand.grundriss.ecken, hoehen.hoehen),
+      aufbauhoehe: aufbau,
+      bereiche: daten == null
+          ? const []
+          : auflagerbereiche(
+              daten,
+              artikel,
+              gewerblich: stand.gewerblich,
+              auflagen: stand.auflagen,
+            ),
+      regelwerk: daten,
     );
   }
 

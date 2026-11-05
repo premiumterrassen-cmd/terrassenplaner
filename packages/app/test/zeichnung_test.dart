@@ -406,6 +406,44 @@ void main() {
       expect(m.holzlinien(), isEmpty);
     });
 
+    test('Auflager (M6-11): Quadrate, rot ohne passendes Auflager, Spalt ab '
+        '150 % Zoom, nur mit der Ebene UK', () {
+      final z = Zeichnung(
+        auflager: const [
+          (Offset(20, 0), Millimeter(45), true),
+          (Offset(20, 515), Millimeter(300), false),
+        ],
+      );
+      expect(
+        () => z.auflager.add((Offset.zero, const Millimeter(0), true)),
+        throwsUnsupportedError,
+      );
+      final o = AnsichtsOptionen();
+      final a = AnsichtSteuerung();
+      final m = _maler(z, o, a);
+      final [(ort, farbe, text), (_, rot, _)] = m.auflagerpunkte();
+      expect(ort, a.verschiebung + const Offset(2, 0));
+      expect(farbe, ZeichnungsMaler.auflagerFarbe);
+      expect(rot.toARGB32(), Stueckfarbe.rot.argb);
+      expect(ZeichnungsMaler.ohneFarbe.toARGB32(), Stueckfarbe.rot.argb);
+      expect(text, isNull);
+      expect(ZeichnungsMaler.hoeheAbZoom, 1.5);
+      expect(ZeichnungsMaler.auflagerGroesse, 6);
+      a.zoomeAuf(1.5);
+      expect(m.auflagerpunkte().first.$3, '4,5');
+      expect(m.auflagerpunkte().last.$3, '30');
+      final aufnahme = PictureRecorder();
+      final leinwand = _ZaehlendeLeinwand(Canvas(aufnahme));
+      m.paint(leinwand, const Size(800, 600));
+      aufnahme.endRecording();
+      a.zoomeAuf(1);
+      final ohneText = PictureRecorder();
+      m.paint(_ZaehlendeLeinwand(Canvas(ohneText)), const Size(800, 600));
+      ohneText.endRecording();
+      o.setzeEbenen({Ebene.belag});
+      expect(m.auflagerpunkte(), isEmpty);
+    });
+
     test('Dielennummern (M5-08): nur wo sie ins Stück passen, längs '
         'gedreht, nie auf dem Kopf', () {
       final z = Zeichnung(

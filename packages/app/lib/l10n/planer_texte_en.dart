@@ -1119,6 +1119,20 @@ class PlanerTexteEn extends PlanerTexte {
       'With an existing substructure the new one is fixed to the existing joists with ground anchors; the spacing is the span.';
 
   @override
+  String get hoehenzuordnung =>
+      'Height assignment of the supports (gap below the substructure):';
+
+  @override
+  String hoehenzuordnungZeile(String titel, int anzahl, int von, int bis) {
+    return '$titel: $anzahl pcs for $von to $bis mm';
+  }
+
+  @override
+  String auflagerOhneHoehe(int anzahl) {
+    return '$anzahl supports without a matching height';
+  }
+
+  @override
   String get feldbreiteHinweis =>
       'Largest spacing of the substructure joists (centre to centre). Company rule: at most 40 cm, safer below 35 cm.';
 

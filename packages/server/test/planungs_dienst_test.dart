@@ -1575,6 +1575,167 @@ void main() {
     });
   });
 
+  group('Stelzfüße und Pads mit Höhenzuordnung (M6-11)', () {
+    Artikel artikel(String nummer, Artikelart art, {int inhalt = 1}) => Artikel(
+      nummer: Artikelnummer(nummer),
+      titel: 'Artikel $nummer',
+      art: art,
+      einheit: Verkaufseinheit(Mengeneinheit.karton, inhalt: inhalt),
+    );
+    final diele = Artikel(
+      nummer: const Artikelnummer('10-10-073'),
+      titel: 'Diele',
+      art: Artikelart.diele,
+      einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+      abmessungen: Abmessungen(
+        breite: const Millimeter(60),
+        staerke: const Millimeter(21),
+        laengen: const [Millimeter(5000)],
+      ),
+      holzart: robinie,
+      serie: basic,
+      profil: Profil.genutet,
+    );
+    final uk = Artikel(
+      nummer: const Artikelnummer('10-10-031'),
+      titel: 'UK',
+      art: Artikelart.unterkonstruktion,
+      einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+      abmessungen: Abmessungen(
+        breite: const Millimeter(40),
+        staerke: const Millimeter(60),
+      ),
+      holzart: robinie,
+      serie: basic,
+    );
+    final pad = artikel('50-60-005', Artikelart.pad, inhalt: 70);
+    final fuss = artikel('60-55-136', Artikelart.stellfuss, inhalt: 20);
+    final anker = artikel('70-20-001', Artikelart.bodenanker);
+    final regelwerk = Regelwerk(
+      Artikeldatei(
+        quelle: 'test',
+        version: '1',
+        eintraege: [
+          Artikeleintrag(artikel: diele),
+          Artikeleintrag(
+            artikel: uk,
+            verweise: {
+              Beziehung.stellfussPrivat.spalte: [fuss.nummer],
+              Beziehung.unterlegpads.spalte: [pad.nummer],
+            },
+            angaben: const {'Abstand_Stelzfuesse': 600},
+          ),
+          Artikeleintrag(
+            artikel: pad,
+            angaben: const {'MinHoehe': 5, 'MaxHoehe': 5},
+          ),
+          Artikeleintrag(
+            artikel: fuss,
+            angaben: const {'MinHoehe': 55, 'MaxHoehe': 95},
+          ),
+          Artikeleintrag(artikel: anker),
+        ],
+      ),
+    );
+    Berechnung rechne(Planung planung, {Regelwerk? mit}) => Berechnung.ausBytes(
+      PlanungsDienst.berechnePlanung(
+        planung,
+        (_) => diele,
+        mit ?? regelwerk,
+        false,
+        (_) => uk,
+      ).zuBytes(),
+    );
+    int? anzahl(Berechnung b, Artikel a) => b.materialliste.positionen
+        .where((p) => p.nummer == a.nummer)
+        .firstOrNull
+        ?.anzahl;
+
+    test('F01: 91 Auflager mit Pad, Höhenzuordnung, Materialliste verpackt '
+        'über alle Flächen', () {
+      final b = rechne(Planung.start);
+      expect(b.unterbau.auflagerpunkte, hasLength(91));
+      // 86 − 21 − 60 = 5 mm
+      expect(b.unterbau.auflagerpunkte.first.spalt, const Millimeter(5));
+      expect(b.unterbau.zuordnung.single.titel, 'Artikel 50-60-005');
+      expect(b.unterbau.zuordnung.single.anzahl, 91);
+      expect(anzahl(b, pad), 2);
+      final doppelt = rechne(Planung.start.mitHaeufigkeit(2));
+      expect(anzahl(doppelt, pad), 3);
+    });
+
+    test('Gefälle: Höhe je Auflager, hohe Seite auf Füßen; zu hoch ohne '
+        'Auflager', () {
+      final stand = Planungsstand.start
+          .mitGefaelle(true)
+          .mitEckhoehe(0, const Millimeter(150))
+          .mitEckhoehe(1, const Millimeter(150));
+      final b = rechne(Planung.start.mitStand(stand));
+      final titel = {for (final z in b.unterbau.zuordnung) z.titel: z.anzahl};
+      // Spalt je Holz 69, 58, 48, 37, 26, 16, 5 mm: 55–95 mm passt für die
+      // ersten beiden, 48 und 37 liegen näher am Fuß, 26 und 16 näher am
+      // Pad (Lücke: der nächste Bereich, M6-08), 5 mm ist das Pad
+      expect(
+        [for (final p in b.unterbau.auflagerpunkte.take(7)) p.spalt.mm],
+        [69, 58, 48, 37, 26, 16, 5],
+      );
+      expect(titel, {'Artikel 50-60-005': 39, 'Artikel 60-55-136': 52});
+      expect(b.unterbau.auflagerpunkte.every((p) => p.zeile != null), isTrue);
+      // zu hoch (über 95 mm Spalt): ohne Auflager
+      final hoch = rechne(
+        Planung.start.mitStand(stand.mitEckhoehe(0, const Millimeter(200))),
+      );
+      expect(
+        hoch.unterbau.auflagerpunkte.where((p) => p.zeile == null),
+        isNotEmpty,
+      );
+      expect(anzahl(b, fuss), 3);
+    });
+
+    test('Hochterrasse: Stützen in der Stückliste, Bodenanker; vorhandene '
+        'UK: Bodenanker; ohne Belag keine Auflager', () {
+      final hoch = rechne(
+        Planung.start.mitStand(
+          Planungsstand.start.mitTerrassenart(Terrassenart.hochterrasse),
+        ),
+      );
+      expect(anzahl(hoch, anker), 91);
+      expect(
+        hoch.stueckliste.zeilen.where((z) => z.farbe == Stueckfarbe.gruen),
+        isNotEmpty,
+      );
+      final vorhanden = rechne(
+        Planung.start.mitStand(
+          Planungsstand.start.mitTerrassenart(Terrassenart.vorhandeneUk),
+        ),
+      );
+      expect(anzahl(vorhanden, anker), 65);
+      final ohneBelag = Berechnung.ausBytes(
+        PlanungsDienst.berechnePlanung(
+          Planung.start,
+          (_) => null,
+          regelwerk,
+          false,
+          (_) => uk,
+        ).zuBytes(),
+      );
+      expect(ohneBelag.unterbau.auflagerpunkte, isEmpty);
+      // Regelwerk kennt die UK nicht: Auflager ohne Zuordnung
+      final fremd = rechne(
+        Planung.start,
+        mit: Regelwerk(
+          Artikeldatei(
+            quelle: 't',
+            version: '2',
+            eintraege: [Artikeleintrag(artikel: diele)],
+          ),
+        ),
+      );
+      expect(fremd.unterbau.auflagerpunkte, hasLength(91));
+      expect(fremd.unterbau.zuordnung, isEmpty);
+    });
+  });
+
   test('ungültige Maße sind ein Fehler', () async {
     final fbb = fb.Builder();
     final masse = fbb.writeListInt32([4800, 100]);

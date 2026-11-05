@@ -19,6 +19,10 @@ Future<Berechnung> _server(Planung planung) async => Berechnung(
       (von: Punkt(4780, 0), bis: Punkt(4780, 6000), farbe: Stueckfarbe.rot),
     ],
     holzbreite: const Millimeter(40),
+    auflagerpunkte: const [
+      (ort: Punkt(20, 0), spalt: Millimeter(5), zeile: 0),
+      (ort: Punkt(20, 515), spalt: Millimeter(300), zeile: null),
+    ],
   ),
 );
 
@@ -52,6 +56,11 @@ void main() {
       ),
     ]);
     expect(z.ukBreite, 40);
+    // Auflager (M6-11): Ort, Spalt, ob passend
+    expect(z.auflager, [
+      (const Offset(20, 0), const Millimeter(5), true),
+      (const Offset(20, 515), const Millimeter(300), false),
+    ]);
   });
 
   testWidgets('ohne Hölzer Breite 0', (tester) async {

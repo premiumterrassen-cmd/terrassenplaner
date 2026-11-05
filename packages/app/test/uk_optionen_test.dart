@@ -557,6 +557,59 @@ void main() {
       expect(chip(tester, Auflagen.stelzfuesseUndPads).selected, isTrue);
     });
 
+    testWidgets('Höhenzuordnung (M6-11): Tabelle je Auflager-Art und '
+        'Auflager ohne passende Höhe', (tester) async {
+      final planung = PlanungsSteuerung();
+      final berechnung = BerechnungsSteuerung(
+        planung: planung,
+        berechne: (_) async => Berechnung(
+          umriss: const [],
+          flaeche: 1,
+          unterbau: Unterbau(
+            zuordnung: const [
+              (
+                titel: 'Fuß',
+                anzahl: 26,
+                von: Millimeter(57),
+                bis: Millimeter(68),
+              ),
+            ],
+            auflagerpunkte: const [
+              (ort: Punkt(20, 0), spalt: Millimeter(68), zeile: 0),
+              (ort: Punkt(20, 515), spalt: Millimeter(300), zeile: null),
+              (ort: Punkt(20, 1030), spalt: Millimeter(310), zeile: null),
+            ],
+          ),
+        ),
+      );
+      addTearDown(() {
+        berechnung.dispose();
+        planung.dispose();
+      });
+      await tester.pumpWidget(
+        testApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: AuflagenWahl(
+                planung: planung,
+                berechnung: berechnung,
+                onGeaendert: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      planung.setze(planung.aktuell.mitGewerblich(true));
+      await tester.pump();
+      await tester.pump();
+      expect(find.text(de.hoehenzuordnung), findsOneWidget);
+      expect(
+        find.text('• ${de.hoehenzuordnungZeile('Fuß', 26, 57, 68)}'),
+        findsOneWidget,
+      );
+      expect(find.text(de.auflagerOhneHoehe(2)), findsOneWidget);
+    });
+
     testWidgets('Hochterrasse und vorhandene UK: Hinweis statt Bereiche', (
       tester,
     ) async {
@@ -583,6 +636,8 @@ void main() {
       );
       expect(find.byKey(const ValueKey('auflager-abstand')), findsNothing);
       expect(find.byKey(const ValueKey('auflager-hoehen')), findsNothing);
+      expect(find.byKey(const ValueKey('hoehenzuordnung')), findsNothing);
+      expect(find.byKey(const ValueKey('auflager-ohne-hoehe')), findsNothing);
     });
   });
 

@@ -58,6 +58,10 @@ class BerechnungsSteuerung extends ChangeNotifier {
           ),
       ],
       ukBreite: (b.unterbau.holzbreite?.mm ?? 0).toDouble(),
+      auflager: [
+        for (final p in b.unterbau.auflagerpunkte)
+          (Offset(p.ort.x, p.ort.y), p.spalt, p.zeile != null),
+      ],
       ausgangspunkt: switch (b.ausgangspunkt) {
         final p? => Offset(p.x, p.y),
         null => null,
