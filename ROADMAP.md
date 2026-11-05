@@ -415,7 +415,7 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/9
 - [x] **M8-03 Pflichtzubehör** ([#72](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/72)) – `feature/m8-03-pflichtzubehoer`
   - Benötigtes Zubehör mit fester Anzahl je Artikel automatisch ergänzen.
   - Abnahme: Pflichtartikel nicht abwählbar
-- [ ] **M8-04 Freidielen** ([#73](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/73)) – `feature/m8-04-freidielen`
+- [x] **M8-04 Freidielen** ([#73](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/73)) – `feature/m8-04-freidielen`
   - Feste Regel im Planer: ab 25 Dielen kostenlose Freidielen als eigene Position mit Preis 0 (B-079).
   - Abnahme: Regel getestet, Position im Export
 

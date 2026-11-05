@@ -47,6 +47,7 @@ export 'src/referenz/referenzfall.dart';
 export 'src/referenz/referenzkonfiguration.dart';
 export 'src/regeln/befestigungsbedarf.dart';
 export 'src/regeln/belagmeldungen.dart';
+export 'src/regeln/freidielen.dart';
 export 'src/regeln/hoehenpunkte.dart';
 export 'src/regeln/planungsregeln.dart';
 export 'src/regeln/regelwerk.dart';

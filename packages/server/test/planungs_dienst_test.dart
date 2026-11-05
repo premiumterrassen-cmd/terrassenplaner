@@ -734,9 +734,69 @@ void main() {
     });
 
     group('Materialliste (M9-03)', () {
+      // ohne Freidielen (M8-04), die prüft ein eigener Test
       Map<(String, int?), int> zeilen(Materialliste m) => {
-        for (final p in m.positionen) (p.nummer.wert, p.laenge?.mm): p.anzahl,
+        for (final p in m.positionen)
+          if (p.zusatz == null) (p.nummer.wert, p.laenge?.mm): p.anzahl,
       };
+
+      test('Freidielen (M8-04, R-B09, B-228): eigene Position mit Preis 0, '
+          'einmal je Planung', () {
+        Materialzeile? frei(Planung planung) =>
+            PlanungsDienst.berechnePlanung(planung, (_) => diele, regelwerk)
+                .materialliste
+                .positionen
+                .where((p) => p.zusatz == Materialzusatz.freidiele)
+                .singleOrNull;
+        // F01: 48 Dielen à 5000 mm → eine Freidiele, wie im alten Planer
+        final f01 = frei(Planung.start)!;
+        expect(f01.nummer, diele.nummer);
+        expect(f01.laenge, const Millimeter(5000));
+        expect(f01.anzahl, 1);
+        expect(f01.einzelpreis, const Cent(0));
+        expect(f01.positionspreis, const Cent(0));
+        // die Position steht nach den Dielen, getrennt von ihnen
+        final m = PlanungsDienst.berechnePlanung(
+          Planung.start,
+          (_) => diele,
+          regelwerk,
+        ).materialliste;
+        expect(
+          m.positionen
+              .where((p) => p.nummer == diele.nummer)
+              .map((p) => p.anzahl),
+          [48, 1],
+        );
+        // zwei gleiche Flächen: 96 Dielen → zwei, nicht je Fläche eine
+        expect(frei(Planung.start.mitHaeufigkeit(2))!.anzahl, 2);
+        // unter 25 Dielen keine (200 × 100 cm: 16 Dielen)
+        final klein = Planung([
+          Terrassenflaeche(
+            Planungsstand.start.mitGrundriss(
+              RechteckGrundriss(const Millimeter(2000), const Millimeter(1000)),
+            ),
+          ),
+        ]);
+        expect(frei(klein), isNull);
+        // Holzfliesen haben keine Freidielen
+        final fliese = Artikel(
+          nummer: const Artikelnummer('40-10-001'),
+          titel: 'Terrassenfliese',
+          art: Artikelart.holzfliese,
+          einheit: Verkaufseinheit(Mengeneinheit.stueck),
+          abmessungen: Abmessungen(
+            breite: const Millimeter(606),
+            laengen: const [Millimeter(606)],
+          ),
+        );
+        expect(
+          PlanungsDienst.berechnePlanung(
+            Planung.start,
+            (_) => fliese,
+          ).materialliste.positionen.where((p) => p.zusatz != null),
+          isEmpty,
+        );
+      });
 
       test('F01 gegen die Materialliste des alten Planers', () {
         final m = PlanungsDienst.berechnePlanung(
@@ -765,7 +825,7 @@ void main() {
           48,
         );
         // Clips wie im alten Planer; keine Terrassenschrauben für Randdielen
-        // (B-033), UK und Auflager folgen mit M6, Zubehör und Freidiele mit M8
+        // (B-033), UK und Auflager folgen mit M6; Zubehör und Freidiele (M8)
         expect(zeilen(m), {
           ('10-10-073-R', 5000): 48,
           ('80-10-001-250', null): 2,
@@ -778,7 +838,8 @@ void main() {
             zeilen(m)[('80-10-001-$vpe', null)],
           );
         }
-        expect([for (final p in m.positionen) p.position], [1, 2, 3, 4]);
+        // fünfte Position: die Freidiele (M8-04)
+        expect([for (final p in m.positionen) p.position], [1, 2, 3, 4, 5]);
         // die Testartikel haben keine Preise
         expect(m.vollstaendig, isFalse);
         expect(m.summe, const Cent(0));

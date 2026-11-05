@@ -265,7 +265,8 @@ class PlanungsDienst {
   ///
   /// Die Materialliste (M9-03) sammelt den Bedarf aller Flächen mal ihrer
   /// Häufigkeit: Dielen je Lieferlänge, die Befestigung in Stück (erst
-  /// die Summe wird verpackt) und das Zubehör (M8-02, M8-03). Geänderte Mengen der Planung gelten nur
+  /// die Summe wird verpackt) und das Zubehör (M8-02, M8-03); dazu die
+  /// Freidielen der ganzen Planung (M8-04). Geänderte Mengen der Planung gelten nur
   /// [mitMengen] – vom Server nur für Mitarbeiter gesetzt
   /// ([darfMengenAendern]).
   static Berechnung berechnePlanung(
@@ -277,6 +278,7 @@ class PlanungsDienst {
   ]) {
     var gesamt = 0.0;
     final listen = <Artikelnummer, Dielenliste>{};
+    final belaege = <Artikelnummer, Artikel>{};
     final bedarfe = <Materialbedarf>[];
     late Berechnung aktuell;
     for (final (i, f) in planung.flaechen.indexed) {
@@ -299,6 +301,7 @@ class PlanungsDienst {
       if (verlegung != null) {
         final liste = verlegung.dielenliste * f.haeufigkeit;
         listen.update(artikel!.nummer, (l) => l + liste, ifAbsent: () => liste);
+        belaege[artikel.nummer] = artikel;
         bedarfe.addAll([
           for (final MapEntry(key: laenge, value: anzahl)
               in liste.anzahl.entries)
@@ -322,19 +325,31 @@ class PlanungsDienst {
       }
     }
     final summe = listen.values.fold(Dielenliste.leer, (a, b) => a + b);
+    final dielenliste = [
+      for (final MapEntry(key: nummer, value: liste) in listen.entries)
+        for (final MapEntry(key: laenge, value: anzahl) in liste.anzahl.entries)
+          (belag: nummer, laenge: laenge, anzahl: anzahl),
+    ];
+    // Freidielen der ganzen Planung (M8-04, R-B09, B-228): eigene Position
+    // mit Preis 0, einmal je Planung
+    final frei = freidielenposition(
+      dielenliste,
+      istDiele: (n) => belaege[n]!.art == Artikelart.diele,
+    );
     return aktuell.mitPlanung(
       gesamt,
       verschnitt: listen.isEmpty ? null : summe.verschnitt,
-      dielenliste: [
-        for (final MapEntry(key: nummer, value: liste) in listen.entries)
-          for (final MapEntry(key: laenge, value: anzahl)
-              in liste.anzahl.entries)
-            (belag: nummer, laenge: laenge, anzahl: anzahl),
-      ],
-      materialliste: Materialliste.aus(
-        bedarfe,
-        mengen: mitMengen ? planung.mengen : const {},
-      ),
+      dielenliste: dielenliste,
+      materialliste: Materialliste.aus([
+        ...bedarfe,
+        if (frei != null)
+          Materialbedarf(
+            [belaege[frei.belag]!],
+            frei.anzahl,
+            laenge: frei.laenge,
+            zusatz: Materialzusatz.freidiele,
+          ),
+      ], mengen: mitMengen ? planung.mengen : const {}),
     );
   }
 
