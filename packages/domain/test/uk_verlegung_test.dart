@@ -77,6 +77,9 @@ void main() {
       expect(v.linien.first.abschnitte, [(0.0, 3090.0)]);
       expect(v.linien.first.stoesse, isEmpty);
       expect(v.stossanzahl, 0);
+      // Länge aller Hölzer (Gummiband, M8-02): 13 × 309 cm
+      expect(v.laenge, 13 * 3090);
+      expect(UkVerlegung.keine.laenge, 0);
       expect(_liste(v), ['13x3090 blau']);
       expect(_bedarf(v), {4000: 13});
       expect(v.hoelzer.first, (

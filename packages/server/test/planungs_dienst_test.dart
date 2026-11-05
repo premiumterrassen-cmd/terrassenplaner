@@ -629,6 +629,97 @@ void main() {
       );
     });
 
+    test('Zubehör (M8-02): Clips aus der Befestigung, Eingaben '
+        '„Tatsächlich“ gehen vor', () {
+      Map<String, (int, int)> zeilen(Berechnung b) => {
+        for (final z in b.zubehoer) z.nummer.wert: (z.berechnet, z.menge),
+      };
+      final stand = Planungsstand.start
+          .mitZubehoermenge(const Artikelnummer('80-10-001-250'), 3)
+          .mitZubehoermenge(const Artikelnummer('50-80-006'), 2);
+      expect(zeilen(PlanungsDienst.berechne(stand, diele, regelwerk)), {
+        '80-10-001-50': (1, 1),
+        '80-10-001-100': (1, 1),
+        '80-10-001-250': (2, 3),
+        '50-80-006': (0, 2),
+      });
+      // ohne Regelwerk und ohne Belag: nur die Eingaben
+      for (final b in [
+        PlanungsDienst.berechne(stand, diele),
+        PlanungsDienst.berechne(stand),
+      ]) {
+        expect(zeilen(b), {'80-10-001-250': (0, 3), '50-80-006': (0, 2)});
+      }
+      expect(
+        PlanungsDienst.berechnePlanung(
+          Planung([Terrassenflaeche(stand)]),
+          (_) => diele,
+          regelwerk,
+        ).zubehoer,
+        hasLength(4),
+      );
+    });
+
+    test('Pflichtzubehör (M8-03): je Diele, je Befestigung, je Eingabe, '
+        'nicht abwählbar', () {
+      Artikel teil(String nummer) => Artikel(
+        nummer: Artikelnummer(nummer),
+        titel: 'Teil $nummer',
+        art: Artikelart.sonstiges,
+        einheit: Verkaufseinheit(Mengeneinheit.stueck),
+      );
+      final pflichtig = Regelwerk(
+        Artikeldatei(
+          quelle: 'test',
+          version: '2',
+          eintraege: [
+            Artikeleintrag(
+              artikel: diele,
+              verweise: {
+                Beziehung.befestigung.spalte: [for (final c in clips) c.nummer],
+              },
+              angaben: const {'Abstand_UK': 400},
+              benoetigt: const {Artikelnummer('p-diele'): 1},
+            ),
+            for (final c in clips)
+              Artikeleintrag(
+                artikel: c,
+                benoetigt: const {Artikelnummer('p-clip'): 2},
+              ),
+            Artikeleintrag(
+              artikel: teil('vlies'),
+              benoetigt: const {Artikelnummer('p-vlies'): 3},
+            ),
+            for (final n in ['p-diele', 'p-clip', 'p-vlies'])
+              Artikeleintrag(artikel: teil(n)),
+          ],
+        ),
+      );
+      Map<String, (int, int, int)> zeilen(Berechnung b) => {
+        for (final z in b.zubehoer)
+          z.nummer.wert: (z.berechnet, z.menge, z.pflicht),
+      };
+      final stand = Planungsstand.start
+          .mitZubehoermenge(const Artikelnummer('vlies'), 2)
+          .mitZubehoermenge(const Artikelnummer('p-clip'), 1);
+      // F01: 48 Dielen; 4 Clip-Packungen à 2; 2 × Vlies à 3
+      expect(zeilen(PlanungsDienst.berechne(stand, diele, pflichtig)), {
+        '80-10-001-50': (1, 1, 0),
+        '80-10-001-100': (1, 1, 0),
+        '80-10-001-250': (2, 2, 0),
+        'p-diele': (48, 48, 48),
+        'p-clip': (8, 8, 8),
+        'p-vlies': (6, 6, 6),
+        'vlies': (0, 2, 0),
+      });
+      // ohne Verlegung: nur das Pflichtzubehör der Eingaben
+      expect(zeilen(PlanungsDienst.berechne(stand, null, pflichtig)), {
+        'p-vlies': (6, 6, 6),
+        'p-clip': (0, 1, 0),
+        'vlies': (0, 2, 0),
+      });
+    });
+
     test('über den Router mit dem Regelwerk', () async {
       await dienst.stoppe();
       dienst = await PlanungsDienst.starte(
@@ -643,9 +734,69 @@ void main() {
     });
 
     group('Materialliste (M9-03)', () {
+      // ohne Freidielen (M8-04), die prüft ein eigener Test
       Map<(String, int?), int> zeilen(Materialliste m) => {
-        for (final p in m.positionen) (p.nummer.wert, p.laenge?.mm): p.anzahl,
+        for (final p in m.positionen)
+          if (p.zusatz == null) (p.nummer.wert, p.laenge?.mm): p.anzahl,
       };
+
+      test('Freidielen (M8-04, R-B09, B-228): eigene Position mit Preis 0, '
+          'einmal je Planung', () {
+        Materialzeile? frei(Planung planung) =>
+            PlanungsDienst.berechnePlanung(planung, (_) => diele, regelwerk)
+                .materialliste
+                .positionen
+                .where((p) => p.zusatz == Materialzusatz.freidiele)
+                .singleOrNull;
+        // F01: 48 Dielen à 5000 mm → eine Freidiele, wie im alten Planer
+        final f01 = frei(Planung.start)!;
+        expect(f01.nummer, diele.nummer);
+        expect(f01.laenge, const Millimeter(5000));
+        expect(f01.anzahl, 1);
+        expect(f01.einzelpreis, const Cent(0));
+        expect(f01.positionspreis, const Cent(0));
+        // die Position steht nach den Dielen, getrennt von ihnen
+        final m = PlanungsDienst.berechnePlanung(
+          Planung.start,
+          (_) => diele,
+          regelwerk,
+        ).materialliste;
+        expect(
+          m.positionen
+              .where((p) => p.nummer == diele.nummer)
+              .map((p) => p.anzahl),
+          [48, 1],
+        );
+        // zwei gleiche Flächen: 96 Dielen → zwei, nicht je Fläche eine
+        expect(frei(Planung.start.mitHaeufigkeit(2))!.anzahl, 2);
+        // unter 25 Dielen keine (200 × 100 cm: 16 Dielen)
+        final klein = Planung([
+          Terrassenflaeche(
+            Planungsstand.start.mitGrundriss(
+              RechteckGrundriss(const Millimeter(2000), const Millimeter(1000)),
+            ),
+          ),
+        ]);
+        expect(frei(klein), isNull);
+        // Holzfliesen haben keine Freidielen
+        final fliese = Artikel(
+          nummer: const Artikelnummer('40-10-001'),
+          titel: 'Terrassenfliese',
+          art: Artikelart.holzfliese,
+          einheit: Verkaufseinheit(Mengeneinheit.stueck),
+          abmessungen: Abmessungen(
+            breite: const Millimeter(606),
+            laengen: const [Millimeter(606)],
+          ),
+        );
+        expect(
+          PlanungsDienst.berechnePlanung(
+            Planung.start,
+            (_) => fliese,
+          ).materialliste.positionen.where((p) => p.zusatz != null),
+          isEmpty,
+        );
+      });
 
       test('F01 gegen die Materialliste des alten Planers', () {
         final m = PlanungsDienst.berechnePlanung(
@@ -674,7 +825,7 @@ void main() {
           48,
         );
         // Clips wie im alten Planer; keine Terrassenschrauben für Randdielen
-        // (B-033), UK und Auflager folgen mit M6, Zubehör und Freidiele mit M8
+        // (B-033), UK und Auflager folgen mit M6; Zubehör und Freidiele (M8)
         expect(zeilen(m), {
           ('10-10-073-R', 5000): 48,
           ('80-10-001-250', null): 2,
@@ -687,7 +838,8 @@ void main() {
             zeilen(m)[('80-10-001-$vpe', null)],
           );
         }
-        expect([for (final p in m.positionen) p.position], [1, 2, 3, 4]);
+        // fünfte Position: die Freidiele (M8-04)
+        expect([for (final p in m.positionen) p.position], [1, 2, 3, 4, 5]);
         // die Testartikel haben keine Preise
         expect(m.vollstaendig, isFalse);
         expect(m.summe, const Cent(0));
@@ -717,6 +869,85 @@ void main() {
             PlanungsDienst.berechnePlanung(planung, (_) => diele).materialliste,
           ),
           {('10-10-073-R', 5000): 144},
+        );
+      });
+
+      test('Zubehör (M8-02/M8-03): Tatsächlich in Verkaufseinheiten, '
+          'Werkzeug einmal je Planung, geänderte Clips aus dem Zubehör', () {
+        Artikel zubehoer(String nummer, Artikelart art, {int inhalt = 1}) =>
+            Artikel(
+              nummer: Artikelnummer(nummer),
+              titel: 'Zubehör $nummer',
+              art: art,
+              einheit: Verkaufseinheit(Mengeneinheit.karton, inhalt: inhalt),
+            );
+        final vlies = zubehoer('vlies', Artikelart.sonstiges, inhalt: 10);
+        final bit = zubehoer('bit', Artikelart.werkzeug);
+        final mitZubehoer = Regelwerk(
+          Artikeldatei(
+            quelle: 'test',
+            version: '3',
+            eintraege: [
+              ...regelwerk.datei.eintraege,
+              Artikeleintrag(artikel: vlies),
+              Artikeleintrag(artikel: bit),
+            ],
+          ),
+        );
+        var stand = Planungsstand.start
+            .mitZubehoermenge(vlies.nummer, 3)
+            .mitZubehoermenge(bit.nummer, 1)
+            .mitZubehoermenge(const Artikelnummer('unbekannt'), 4);
+        final zweimal = Planung([Terrassenflaeche(stand, haeufigkeit: 2)]);
+        expect(
+          zeilen(
+            PlanungsDienst.berechnePlanung(
+              zweimal,
+              (_) => diele,
+              mitZubehoer,
+            ).materialliste,
+          ),
+          {
+            ('10-10-073-R', 5000): 96,
+            // 2 × 637 Clips zusammen verpackt: 5 × 250 + 50
+            ('80-10-001-250', null): 5,
+            ('80-10-001-50', null): 1,
+            // 3 Kartons je Fläche, das Bit nur einmal
+            ('vlies', null): 6,
+            ('bit', null): 1,
+          },
+        );
+        // Clips im Zubehör geändert: die Zubehörmengen gelten, je Fläche
+        stand = stand.mitZubehoermenge(const Artikelnummer('80-10-001-250'), 3);
+        expect(
+          zeilen(
+            PlanungsDienst.berechnePlanung(
+              Planung([Terrassenflaeche(stand, haeufigkeit: 2)]),
+              (_) => diele,
+              mitZubehoer,
+            ).materialliste,
+          ),
+          {
+            ('10-10-073-R', 5000): 96,
+            ('80-10-001-50', null): 2,
+            ('80-10-001-100', null): 2,
+            ('80-10-001-250', null): 6,
+            ('vlies', null): 6,
+            ('bit', null): 1,
+          },
+        );
+        // Abgewählt (0) fehlt in der Materialliste
+        expect(
+          zeilen(
+            PlanungsDienst.berechnePlanung(
+              Planung([
+                Terrassenflaeche(stand.mitZubehoermenge(vlies.nummer, 0)),
+              ]),
+              (_) => diele,
+              mitZubehoer,
+            ).materialliste,
+          ).keys,
+          isNot(contains(('vlies', null))),
         );
       });
 
@@ -1525,11 +1756,11 @@ void main() {
       expect(b.unterbau.hoelzer, hasLength(13));
       expect(b.unterbau.holzbreite, const Millimeter(40));
       expect(b.befestigung.punkte, 624);
-      // 48 Dielen à 5 m 60 × 21 + 13 UK à 4 m 40 × 60
-      expect(b.volumen, closeTo(0.3024 + 0.1248, 1e-9));
+      // 48 Dielen à 5 m 60 × 21 + Freidiele (M8-04) + 13 UK à 4 m 40 × 60
+      expect(b.volumen, closeTo(0.3024 + 0.0063 + 0.1248, 1e-9));
       // ohne UK: Dielen allein, Befestigung auf gleichmäßigen Linien
       final ohne = rechne(Planung.start);
-      expect(ohne.volumen, closeTo(0.3024, 1e-9));
+      expect(ohne.volumen, closeTo(0.3024 + 0.0063, 1e-9));
       expect(ohne.unterbau.hoelzer, isEmpty);
       expect(ohne.befestigung.punkte, 624);
       // ohne Grundriss mit Fläche kein Volumen
@@ -1548,7 +1779,8 @@ void main() {
       final planung = Planung.start.mitHaeufigkeit(2);
       final b = rechne(planung, mitUk: uk);
       expect(anzahl(b, '10-10-031', 4000), 26);
-      expect(b.volumen, closeTo(2 * (0.3024 + 0.1248), 1e-9));
+      // 96 Dielen: zwei Freidielen (B-079)
+      expect(b.volumen, closeTo(2 * (0.3024 + 0.0063 + 0.1248), 1e-9));
       // 7 cm: UK flach, in der Draufsicht 60 mm breit
       final flach = rechne(
         Planung.start.mitStand(
@@ -1557,6 +1789,62 @@ void main() {
         mitUk: uk,
       );
       expect(flach.unterbau.holzbreite, const Millimeter(60));
+    });
+
+    test('Zubehör (M8-02) auf der UK-Verlegung: Gummiband über die Länge der '
+        'Hölzer, Clips nur einmal in der Materialliste', () {
+      final band = Artikel(
+        nummer: const Artikelnummer('50-60-001'),
+        titel: 'Gummiband 10m-Rolle 75 mm',
+        art: Artikelart.gummiband,
+        einheit: Verkaufseinheit(Mengeneinheit.stueck),
+        abmessungen: Abmessungen(laengen: const [Millimeter(10000)]),
+      );
+      final mitBand = Regelwerk(
+        Artikeldatei(
+          quelle: 'test',
+          version: '2',
+          eintraege: [
+            Artikeleintrag(
+              artikel: diele,
+              verweise: {
+                Beziehung.befestigung.spalte: [clip.nummer],
+                Beziehung.zubehoer.spalte: [band.nummer],
+              },
+            ),
+            Artikeleintrag(artikel: clip),
+            Artikeleintrag(artikel: band),
+            Artikeleintrag(artikel: uk),
+          ],
+        ),
+      );
+      Berechnung mit(Planungsstand stand) => PlanungsDienst.berechnePlanung(
+        Planung.start.mitStand(stand),
+        (_) => diele,
+        mitBand,
+        false,
+        (_) => uk,
+      );
+      int? menge(Berechnung b, Artikel a) =>
+          b.zubehoer.where((z) => z.nummer == a.nummer).firstOrNull?.menge;
+      int clips(Berechnung b) => b.materialliste.positionen
+          .where((p) => p.nummer == clip.nummer)
+          .fold(0, (n, p) => n + p.anzahl);
+      // F01: 13 Hölzer à 309 cm = 40,17 m → 5 Rollen wie im alten Planer
+      final f01 = mit(Planungsstand.start);
+      expect(menge(f01, band), 5);
+      // 624 + 13 Randpunkte = 637 Clips → 3 VPE 250, einmal
+      expect(menge(f01, clip), 3);
+      expect(clips(f01), 3);
+      // Feldbreite 30 cm: 17 Hölzer → 6 Rollen, mehr Clips
+      final eng = mit(Planungsstand.start.mitFeldbreite(const Millimeter(300)));
+      expect(menge(eng, band), 6);
+      expect(clips(eng), 4);
+      // im Zubehör geänderte Clips gelten statt der Befestigung (M8-01)
+      final geaendert = mit(
+        Planungsstand.start.mitZubehoermenge(clip.nummer, 5),
+      );
+      expect(clips(geaendert), 5);
     });
 
     test('einzelne Fläche (berechne) mit UK-Verlegung', () {
