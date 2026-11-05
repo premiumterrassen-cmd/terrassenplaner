@@ -1,4 +1,4 @@
-@Timeout(Duration(minutes: 2))
+@Timeout(Duration(minutes: 6))
 library;
 
 import 'dart:async';
@@ -313,7 +313,9 @@ Future<({Process prozess, String adresse})> _starteAuthServer() async {
     }
   });
   unawaited(prozess.stderr.drain<void>());
-  await bereit.future.timeout(const Duration(seconds: 60));
+  // Großzügig: `dart run` übersetzt den Auth-Server erst, und flutter test
+  // läuft mit mehreren Testdateien gleichzeitig.
+  await bereit.future.timeout(const Duration(minutes: 4));
   final verwaltung = await MitarbeiterWerkzeug.verbinde({
     'PLANER_AUTH_ADRESSE': adresse,
     'PLANER_AUTH_DIENST_TICKET': _ticket,
