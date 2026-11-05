@@ -28,6 +28,7 @@ import 'rahmen_zustand.dart';
 import 'rundung.dart';
 import 'standardwert_hinweis.dart';
 import 'steuerung.dart';
+import 'treppen.dart';
 import 'uk_auswahl.dart';
 import 'unterkonstruktion.dart';
 import 'zeichenflaeche.dart';
@@ -804,6 +805,11 @@ class Bearbeitungsmenue extends StatelessWidget {
       onGeaendert: () => zustand.markiereGeaendert(schritt),
     ),
     (PlanerSchritt.terrassenanschluss, 2) => RinnenWahl(
+      planung: planung,
+      berechnung: berechnung,
+      onGeaendert: () => zustand.markiereGeaendert(schritt),
+    ),
+    (PlanerSchritt.treppen, 0) => TreppenWahl(
       planung: planung,
       berechnung: berechnung,
       onGeaendert: () => zustand.markiereGeaendert(schritt),

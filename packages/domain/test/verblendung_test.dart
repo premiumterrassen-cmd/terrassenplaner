@@ -156,7 +156,7 @@ void main() {
       }
       expect(
         [for (final m in Anschlussmeldung.values) m.nummer],
-        [1, 2, 3, 4, 5],
+        [1, 2, 3, 4, 5, 6],
       );
       expect(() => Anschlussmeldung.ausNummer(0), throwsFormatException);
       final fbb = fb.Builder()..startTable(1);
@@ -183,7 +183,6 @@ void main() {
         regelwerk: _regelwerk(_belag, [_blende]),
         uk: _uk,
         ukAbstand: const Millimeter(400),
-        ukStuecke: ukStuecke,
       );
       expect(_anzahl(b, _blende, 4000), 2);
       expect(_anzahl(b, _blende, 5000), 1);
@@ -202,16 +201,47 @@ void main() {
       expect(b.meldungen.clear, throwsUnsupportedError);
       // Volumen der Verblendung wie F37 → F36: 13 m × 80 × 21 mm
       expect(holzvolumen(b.bedarf), closeTo(13 * 0.08 * 0.021, 1e-9));
-      // ohne Reste der UK-Verlegung: eigene Hölzer
-      final ohne = verblendungsbedarf(
-        _f37,
-        hoehen: _vier,
-        belag: _belag,
-        regelwerk: _regelwerk(_belag, [_blende]),
-        uk: _uk,
-        ukAbstand: const Millimeter(400),
+      // zusammen (anschlussbedarf): aus den Resten der UK-Verlegung keine
+      // weitere UK, ohne Reste eigene Hölzer
+      Anschlussbedarf alles([List<Millimeter> reste = const []]) =>
+          anschlussbedarf(
+            _f37,
+            hoehen: _vier,
+            belag: _belag,
+            regelwerk: _regelwerk(_belag, [_blende]),
+            uk: _uk,
+            ukAbstand: const Millimeter(400),
+            ukStuecke: reste,
+          );
+      expect(_anzahl(alles(ukStuecke), _uk, 4000), 0);
+      expect(alles(ukStuecke).stuecke, hasLength(31));
+      expect(_anzahl(alles(), _uk, 4000), 1);
+      // feste UK-Länge 5000 mm
+      expect(
+        _anzahl(
+          anschlussbedarf(
+            _f37.mitUkLaenge(const Millimeter(5000)),
+            hoehen: _vier,
+            belag: _belag,
+            regelwerk: _regelwerk(_belag, [_blende]),
+            uk: _uk,
+            ukAbstand: const Millimeter(400),
+          ),
+          _uk,
+          5000,
+        ),
+        1,
       );
-      expect(_anzahl(ohne, _uk, 4000), 1);
+      // ohne UK nur die Verblendung
+      expect(
+        anschlussbedarf(
+          _f37,
+          hoehen: _vier,
+          belag: _belag,
+          regelwerk: _regelwerk(_belag, [_blende]),
+        ).bedarf,
+        hasLength(2),
+      );
     });
 
     test('eine Seite: keine Unterlüftungs-Warnung, höhere Ecke zählt, '

@@ -1373,4 +1373,84 @@ class PlanerTexteEn extends PlanerTexte {
   @override
   String get hoehenpunktHilfe =>
       'For example a drain: position from point A (to the right and downwards, negative allowed), movable in the drawing.';
+
+  @override
+  String get treppenFrage => 'On which sides should stairs be planned?';
+
+  @override
+  String get treppeHinzufuegen => 'Add stairs';
+
+  @override
+  String treppeName(int nummer) {
+    return 'Stairs $nummer';
+  }
+
+  @override
+  String get treppeEntfernen => 'Remove stairs';
+
+  @override
+  String get treppeStart => 'Start';
+
+  @override
+  String get treppeAbstand => 'Side (distance from the start point)';
+
+  @override
+  String get treppeBreite => 'Width';
+
+  @override
+  String get treppeKonstruktionsart => 'Type of construction';
+
+  @override
+  String get treppeKonstruktion => 'Construction';
+
+  @override
+  String get treppeFundament => 'Foundation';
+
+  @override
+  String get treppeArt => 'Type of stairs';
+
+  @override
+  String get treppeRegulaer => 'Regular stairs';
+
+  @override
+  String get treppeZweiteilig => '2-part fan stairs';
+
+  @override
+  String get treppeDreiteilig => '3-part fan stairs';
+
+  @override
+  String get treppeIndividuell => 'Individual step dimensions?';
+
+  @override
+  String get treppeAnzahl => 'Number of steps';
+
+  @override
+  String get treppeStufenmasse => 'Step dimensions';
+
+  @override
+  String treppeStufe(int nummer) {
+    return 'Step $nummer';
+  }
+
+  @override
+  String get treppeTiefe => 'Depth';
+
+  @override
+  String get treppeHoehe => 'Height';
+
+  @override
+  String get treppePodest => 'Landing dimensions';
+
+  @override
+  String treppeMasse(String laenge, String breite, String hoehe) {
+    return 'Stair dimensions in cm (L x W x H): $laenge x $breite x $hoehe';
+  }
+
+  @override
+  String get treppeUngueltig =>
+      'Please enter a value within the permitted range';
+
+  @override
+  String get meldungTreppeNichtFrei =>
+      'A staircase lies on a side at a building element or with a channel – it is not calculated.';
 }

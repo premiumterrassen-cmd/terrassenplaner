@@ -502,7 +502,8 @@ class PlanungsDienst {
 
   /// Terrassenanschluss der Fläche (M7): Verblendung (M7-02) mit
   /// Blendenhaltern im UK-Achsabstand aus den Resten der UK-Verlegung (ohne
-  /// UK-Verlegung keine Blendenhalter) und Entwässerungsrinnen (M7-03).
+  /// UK-Verlegung keine Blendenhalter), Entwässerungsrinnen (M7-03) und
+  /// Treppen (M7-05).
   static Anschlussbedarf _anschluss(
     Planungsstand stand,
     Artikel? belag,
@@ -510,7 +511,7 @@ class PlanungsDienst {
     Artikel? uk,
     UkVerlegung? v,
     Hoehenpunkte hoehen,
-  ) => verblendungsbedarf(
+  ) => anschlussbedarf(
     stand,
     hoehen: hoehen.hoehen,
     belag: belag,
@@ -524,7 +525,7 @@ class PlanungsDienst {
             belagFeldbreite(belag, regelwerk)!,
           ),
     ukStuecke: [for (final s in v?.stuecke ?? const <Planstueck>[]) s.laenge],
-  ).und(rinnenbedarf(stand, belag: belag, regelwerk: regelwerk));
+  );
 
   /// **Stelle für die Mitarbeiter-Anmeldung (M9-10):** Geänderte Mengen der
   /// Materialliste (Mitarbeiter-Ansicht, Fachkonzept 08) übernimmt der

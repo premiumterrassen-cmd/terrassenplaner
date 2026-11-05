@@ -1376,4 +1376,84 @@ class PlanerTexteDe extends PlanerTexte {
   @override
   String get hoehenpunktHilfe =>
       'Zum Beispiel ein Ablauf: Lage ab Punkt A (nach rechts und nach unten, auch negativ), in der Zeichnung verschiebbar.';
+
+  @override
+  String get treppenFrage => 'An welchen Seiten sollen Treppen geplant werden?';
+
+  @override
+  String get treppeHinzufuegen => 'Treppe hinzufügen';
+
+  @override
+  String treppeName(int nummer) {
+    return 'Treppe $nummer';
+  }
+
+  @override
+  String get treppeEntfernen => 'Treppe entfernen';
+
+  @override
+  String get treppeStart => 'Start';
+
+  @override
+  String get treppeAbstand => 'Seite (Abstand vom Startpunkt)';
+
+  @override
+  String get treppeBreite => 'Breite';
+
+  @override
+  String get treppeKonstruktionsart => 'Konstruktionsart';
+
+  @override
+  String get treppeKonstruktion => 'Konstruktion';
+
+  @override
+  String get treppeFundament => 'Fundament';
+
+  @override
+  String get treppeArt => 'Treppenart';
+
+  @override
+  String get treppeRegulaer => 'Reguläre Treppe';
+
+  @override
+  String get treppeZweiteilig => '2-teilige Fächertreppe';
+
+  @override
+  String get treppeDreiteilig => '3-teilige Fächertreppe';
+
+  @override
+  String get treppeIndividuell => 'Individuelle Stufenmaße?';
+
+  @override
+  String get treppeAnzahl => 'Anzahl der Stufen';
+
+  @override
+  String get treppeStufenmasse => 'Stufenmaße';
+
+  @override
+  String treppeStufe(int nummer) {
+    return 'Stufe $nummer';
+  }
+
+  @override
+  String get treppeTiefe => 'Tiefe';
+
+  @override
+  String get treppeHoehe => 'Höhe';
+
+  @override
+  String get treppePodest => 'Podestmaße';
+
+  @override
+  String treppeMasse(String laenge, String breite, String hoehe) {
+    return 'Treppenmaße in cm (L x B x H): $laenge x $breite x $hoehe';
+  }
+
+  @override
+  String get treppeUngueltig =>
+      'Bitte einen Wert im erlaubten Bereich eingeben';
+
+  @override
+  String get meldungTreppeNichtFrei =>
+      'Eine Treppe liegt an einer Seite am Bauelement oder mit Rinne – sie wird nicht gerechnet.';
 }

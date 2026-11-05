@@ -287,6 +287,28 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 100));
     }
     expect(griff, findsOneWidget);
+    // M7-05: Treppe unter 5.1; die Treppenmaße rechnet der Server
+    await tester.tap(find.byKey(const ValueKey('station-treppen')));
+    await tester.pumpAndSettle();
+    await _waehle(tester, 'treppe-hinzufuegen');
+    Future<void> masse(String text) async {
+      final f = find.text(text);
+      for (var i = 0; i < 50 && f.evaluate().isEmpty; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+        await _imMenue(tester, find.byKey(const ValueKey('treppe-0')));
+      }
+      await _imMenue(tester, f);
+      expect(f, findsOneWidget);
+    }
+
+    await masse(de.treppeMasse('100', '54', '31,2'));
+    await _waehle(tester, 'treppe-0-art-Treppenart.zweiteilig');
+    expect(
+      await _gewaehlt(tester, 'treppe-0-art-Treppenart.zweiteilig'),
+      isTrue,
+    );
+    await masse(de.treppeMasse('104', '108', '46,8'));
   });
 }
 

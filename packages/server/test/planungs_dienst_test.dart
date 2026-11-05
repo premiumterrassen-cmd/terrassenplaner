@@ -2044,6 +2044,83 @@ void main() {
       expect(ohneGefaelle.anschluss.hoehenpunkte, isEmpty);
       expect(ohneGefaelle.hoehenpunkte.hoehen, hasLength(4));
     });
+
+    test('Treppe (M7-05): F39 – Zeichnung mit Maßen, Dielen in Stück- und '
+        'Materialliste, UK aus den Resten; an belegter Seite Hinweis', () {
+      final uk = Artikel(
+        nummer: const Artikelnummer('10-10-031'),
+        titel: 'UK',
+        art: Artikelart.unterkonstruktion,
+        einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+        abmessungen: Abmessungen(
+          breite: const Millimeter(40),
+          staerke: const Millimeter(60),
+        ),
+        holzart: robinie,
+        serie: basic,
+      );
+      final regelwerk = Regelwerk(
+        Artikeldatei(
+          quelle: 'test',
+          version: '1',
+          eintraege: [
+            Artikeleintrag(artikel: diele),
+            Artikeleintrag(artikel: uk),
+          ],
+        ),
+      );
+      Berechnung mit(Planungsstand stand) => Berechnung.ausBytes(
+        PlanungsDienst.berechnePlanung(
+          Planung.start.mitStand(stand),
+          (_) => diele,
+          regelwerk,
+          false,
+          (_) => uk,
+        ).zuBytes(),
+      );
+      int? anzahl(Berechnung b, Artikelnummer nummer, int laenge) => b
+          .materialliste
+          .positionen
+          .where((p) => p.nummer == nummer && p.laenge?.mm == laenge)
+          .firstOrNull
+          ?.anzahl;
+      final f39 = Planungsstand.start.mitNeuerTreppe().mitTreppe(
+        0,
+        const Treppe(seite: 2),
+      );
+      final b = mit(f39);
+      final f01 = mit(Planungsstand.start);
+      final treppe = b.anschluss.treppen.single;
+      expect(treppe.frei, isTrue);
+      expect(treppe.masse, (
+        laenge: const Millimeter(1000),
+        breite: const Millimeter(540),
+        hoehe: const Millimeter(312),
+      ));
+      expect(treppe.teile, hasLength(2));
+      expect(
+        b.stueckliste.zeilen
+            .where(
+              (z) =>
+                  z.nummer == diele.nummer &&
+                  z.laenge == const Millimeter(1000),
+            )
+            .single
+            .stueck,
+        16,
+      );
+      // 16 × 100 cm aus 5000 mm: 4 Dielen mehr
+      expect(
+        anzahl(b, diele.nummer, 5000),
+        anzahl(f01, diele.nummer, 5000)! + 4,
+      );
+      expect(anzahl(b, uk.nummer, 4000), anzahl(f01, uk.nummer, 4000));
+      expect(b.volumen, greaterThan(f01.volumen!));
+      final belegt = mit(f39.mitAngrenzend(2, an: true));
+      expect(belegt.anschluss.treppen.single.frei, isFalse);
+      expect(belegt.anschluss.meldungen, [Anschlussmeldung.treppeNichtFrei]);
+      expect(belegt.materialliste, f01.materialliste);
+    });
   });
 
   test('ungültige Maße sind ein Fehler', () async {

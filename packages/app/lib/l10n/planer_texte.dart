@@ -2481,6 +2481,150 @@ abstract class PlanerTexte {
   /// In de, this message translates to:
   /// **'Zum Beispiel ein Ablauf: Lage ab Punkt A (nach rechts und nach unten, auch negativ), in der Zeichnung verschiebbar.'**
   String get hoehenpunktHilfe;
+
+  /// No description provided for @treppenFrage.
+  ///
+  /// In de, this message translates to:
+  /// **'An welchen Seiten sollen Treppen geplant werden?'**
+  String get treppenFrage;
+
+  /// No description provided for @treppeHinzufuegen.
+  ///
+  /// In de, this message translates to:
+  /// **'Treppe hinzufügen'**
+  String get treppeHinzufuegen;
+
+  /// No description provided for @treppeName.
+  ///
+  /// In de, this message translates to:
+  /// **'Treppe {nummer}'**
+  String treppeName(int nummer);
+
+  /// No description provided for @treppeEntfernen.
+  ///
+  /// In de, this message translates to:
+  /// **'Treppe entfernen'**
+  String get treppeEntfernen;
+
+  /// No description provided for @treppeStart.
+  ///
+  /// In de, this message translates to:
+  /// **'Start'**
+  String get treppeStart;
+
+  /// No description provided for @treppeAbstand.
+  ///
+  /// In de, this message translates to:
+  /// **'Seite (Abstand vom Startpunkt)'**
+  String get treppeAbstand;
+
+  /// No description provided for @treppeBreite.
+  ///
+  /// In de, this message translates to:
+  /// **'Breite'**
+  String get treppeBreite;
+
+  /// No description provided for @treppeKonstruktionsart.
+  ///
+  /// In de, this message translates to:
+  /// **'Konstruktionsart'**
+  String get treppeKonstruktionsart;
+
+  /// No description provided for @treppeKonstruktion.
+  ///
+  /// In de, this message translates to:
+  /// **'Konstruktion'**
+  String get treppeKonstruktion;
+
+  /// No description provided for @treppeFundament.
+  ///
+  /// In de, this message translates to:
+  /// **'Fundament'**
+  String get treppeFundament;
+
+  /// No description provided for @treppeArt.
+  ///
+  /// In de, this message translates to:
+  /// **'Treppenart'**
+  String get treppeArt;
+
+  /// No description provided for @treppeRegulaer.
+  ///
+  /// In de, this message translates to:
+  /// **'Reguläre Treppe'**
+  String get treppeRegulaer;
+
+  /// No description provided for @treppeZweiteilig.
+  ///
+  /// In de, this message translates to:
+  /// **'2-teilige Fächertreppe'**
+  String get treppeZweiteilig;
+
+  /// No description provided for @treppeDreiteilig.
+  ///
+  /// In de, this message translates to:
+  /// **'3-teilige Fächertreppe'**
+  String get treppeDreiteilig;
+
+  /// No description provided for @treppeIndividuell.
+  ///
+  /// In de, this message translates to:
+  /// **'Individuelle Stufenmaße?'**
+  String get treppeIndividuell;
+
+  /// No description provided for @treppeAnzahl.
+  ///
+  /// In de, this message translates to:
+  /// **'Anzahl der Stufen'**
+  String get treppeAnzahl;
+
+  /// No description provided for @treppeStufenmasse.
+  ///
+  /// In de, this message translates to:
+  /// **'Stufenmaße'**
+  String get treppeStufenmasse;
+
+  /// No description provided for @treppeStufe.
+  ///
+  /// In de, this message translates to:
+  /// **'Stufe {nummer}'**
+  String treppeStufe(int nummer);
+
+  /// No description provided for @treppeTiefe.
+  ///
+  /// In de, this message translates to:
+  /// **'Tiefe'**
+  String get treppeTiefe;
+
+  /// No description provided for @treppeHoehe.
+  ///
+  /// In de, this message translates to:
+  /// **'Höhe'**
+  String get treppeHoehe;
+
+  /// No description provided for @treppePodest.
+  ///
+  /// In de, this message translates to:
+  /// **'Podestmaße'**
+  String get treppePodest;
+
+  /// No description provided for @treppeMasse.
+  ///
+  /// In de, this message translates to:
+  /// **'Treppenmaße in cm (L x B x H): {laenge} x {breite} x {hoehe}'**
+  String treppeMasse(String laenge, String breite, String hoehe);
+
+  /// No description provided for @treppeUngueltig.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte einen Wert im erlaubten Bereich eingeben'**
+  String get treppeUngueltig;
+
+  /// No description provided for @meldungTreppeNichtFrei.
+  ///
+  /// In de, this message translates to:
+  /// **'Eine Treppe liegt an einer Seite am Bauelement oder mit Rinne – sie wird nicht gerechnet.'**
+  String get meldungTreppeNichtFrei;
 }
 
 class _PlanerTexteDelegate extends LocalizationsDelegate<PlanerTexte> {

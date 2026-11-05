@@ -15,6 +15,7 @@ import 'grundriss.dart';
 import 'nutzungsart.dart';
 import 'rundungen.dart';
 import 'terrassenart.dart';
+import 'treppe.dart';
 import 'untergrund.dart';
 import 'verlegeart.dart';
 import 'verlegerichtung.dart';
@@ -36,7 +37,7 @@ typedef Hoehenreferenzpunkt = ({Millimeter x, Millimeter y, Millimeter hoehe});
 /// mit Art der Terrassennutzung, seit M6-06 mit Querstreben, seit M6-07
 /// mit privater oder gewerblicher Nutzung, seit M6-08 mit Auflagen, seit
 /// M6-09 mit maximaler Feldbreite, seit M7-01 mit dem Terrassenanschluss,
-/// seit M7-04 mit weiteren Höhenreferenzpunkten;
+/// seit M7-04 mit weiteren Höhenreferenzpunkten, seit M7-05 mit Treppen;
 /// Unterkonstruktion usw. folgen als weitere Felder. Berechnet wird daraus
 /// auf dem Server.
 final class Planungsstand {
@@ -70,6 +71,7 @@ final class Planungsstand {
     this.feldbreite,
     this.anschluss = Anschluss.keiner,
     this.hoehenpunkte = const [],
+    this.treppen = const [],
   });
 
   /// Liest einen Planungsstand aus dem Transportformat ([zuBytes]).
@@ -265,6 +267,10 @@ final class Planungsstand {
         final ort? => Anschluss.lies(puffer, ort),
         null => Anschluss.keiner,
       },
+      treppen: List.unmodifiable(
+        const fb.ListReader<Treppe>(_TreppenLeser())
+            .vTableGet(puffer, wurzel, _versatz(_treppenPlatz), const []),
+      ),
       hoehenpunkte: _liesHoehenpunkte(
         const fb.ListReader<int>(fb.Int32Reader())
             .vTableGet(puffer, wurzel, _versatz(_hoehenpunktePlatz), const []),
@@ -469,6 +475,34 @@ final class Planungsstand {
   Planungsstand ohneHoehenpunkt(int index) =>
       _mit(hoehenpunkte: List.unmodifiable([...hoehenpunkte]..removeAt(index)));
 
+  /// Treppen an den Seiten (M7-05, Fachkonzept 5.1) in der Reihenfolge
+  /// „Treppe 1“, „Treppe 2“ …; bei einem Grundriss mit anderer Eckenzahl
+  /// beginnen sie neu wie der Anschluss.
+  final List<Treppe> treppen;
+
+  /// Mit einer neuen Treppe in den Vorgaben an der ersten freien Seite
+  /// (nicht am Bauelement, ohne Rinne; sonst A — B).
+  Planungsstand mitNeuerTreppe() {
+    var seite = 0;
+    while (seite < seitenzahl - 1 &&
+        (anschluss.grenztAn(seite) || anschluss.rinneAn(seite) != null)) {
+      seite++;
+    }
+    return _mit(treppen: List.unmodifiable([...treppen, Treppe(seite: seite)]));
+  }
+
+  /// Kopie, in der die Treppe [index] durch [treppe] ersetzt ist; ihre
+  /// Seite muss es geben.
+  Planungsstand mitTreppe(int index, Treppe treppe) {
+    RangeError.checkValidIndex(index, treppen, 'index');
+    _pruefeSeite(treppe.seite);
+    return _mit(treppen: List.unmodifiable([...treppen]..[index] = treppe));
+  }
+
+  /// Ohne die Treppe [index].
+  Planungsstand ohneTreppe(int index) =>
+      _mit(treppen: List.unmodifiable([...treppen]..removeAt(index)));
+
   /// Seiten des Grundrisses für den Terrassenanschluss: Seite `i` läuft von
   /// Ecke `i` zur nächsten. Der Kreis hat keine Seiten, die offene Freiform
   /// auch nicht.
@@ -595,6 +629,7 @@ final class Planungsstand {
     ({Millimeter? wert})? feldbreite,
     Anschluss? anschluss,
     List<Hoehenreferenzpunkt>? hoehenpunkte,
+    List<Treppe>? treppen,
   }) {
     final neu = grundriss ?? this.grundriss;
     final ecke = ausgangsecke ?? this.ausgangsecke;
@@ -637,6 +672,9 @@ final class Planungsstand {
           ? anschluss ?? this.anschluss
           : Anschluss.keiner,
       hoehenpunkte: hoehenpunkte ?? this.hoehenpunkte,
+      treppen: _seitenzahl(neu) == seitenzahl
+          ? treppen ?? this.treppen
+          : const [],
     );
   }
 
@@ -668,6 +706,7 @@ final class Planungsstand {
     ausschnitte: [if (form == Terrassenform.oForm) Ausschnitt.oForm],
     rundungen: Rundungen.keine,
     anschluss: Anschluss.keiner,
+    treppen: const [],
   );
 
   /// Grundriss um [grad] gedreht (M4-10); die Ausschnitte werden dabei
@@ -859,7 +898,8 @@ final class Planungsstand {
   /// Stelzfüße und Pads) (M6-08), 101: feldbreite (int32 mm; fehlt =
   /// automatisch) (M6-09), 140: anschluss (Tabelle, `Anschluss.schreibe`;
   /// fehlt ohne Rollen) (M7), 141: hoehenpunkte ([int32] x, y, Höhe in mm je
-  /// Punkt, M7-04) }`. Plätze
+  /// Punkt, M7-04), 142: treppen ([Tabelle], `Treppe.schreibe`, M7-05) }`.
+  /// Plätze
   /// 14–19 gehören der Dielenverlegung (M5-08), 40–49 dem Zubehör (M8),
   /// 80–89 der Unterkonstruktion ab M6-04, 100–109 Auflagen, Feldbreite und
   /// UK-Verlegung (M6-08 bis M6-11), 140–149 dem Anschluss, den
@@ -889,11 +929,14 @@ final class Planungsstand {
       null => null,
     };
     final anschlussOrt = anschluss.leer ? null : anschluss.schreibe(fbb);
+    final treppenOrt = fbb.writeList([
+      for (final t in treppen) t.schreibe(fbb),
+    ]);
     final hoehenpunkteOrt = fbb.writeListInt32([
       for (final p in hoehenpunkte) ...[p.x.mm, p.y.mm, p.hoehe.mm],
     ]);
     fbb
-      ..startTable(_hoehenpunktePlatz + 1)
+      ..startTable(_treppenPlatz + 1)
       ..addUint16(_schemaPlatz, schema)
       ..addOffset(_grundrissPlatz, grundrissOrt)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
@@ -923,7 +966,8 @@ final class Planungsstand {
       ..addUint8(_auflagenPlatz, auflagen.nummer)
       ..addInt32(_feldbreitePlatz, feldbreite?.mm)
       ..addOffset(_anschlussPlatz, anschlussOrt)
-      ..addOffset(_hoehenpunktePlatz, hoehenpunkteOrt);
+      ..addOffset(_hoehenpunktePlatz, hoehenpunkteOrt)
+      ..addOffset(_treppenPlatz, treppenOrt);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
   }
@@ -974,6 +1018,7 @@ final class Planungsstand {
   static const _feldbreitePlatz = 101;
   static const _anschlussPlatz = 140;
   static const _hoehenpunktePlatz = 141;
+  static const _treppenPlatz = 142;
 
   @override
   bool operator ==(Object other) {
@@ -1005,6 +1050,7 @@ final class Planungsstand {
         other.feldbreite != feldbreite ||
         other.anschluss != anschluss ||
         other.hoehenpunkte.length != hoehenpunkte.length ||
+        other.treppen.length != treppen.length ||
         other.eckhoehen.length != eckhoehen.length ||
         other.ausschnitte.length != ausschnitte.length) {
       return false;
@@ -1017,6 +1063,9 @@ final class Planungsstand {
     }
     for (var i = 0; i < hoehenpunkte.length; i++) {
       if (other.hoehenpunkte[i] != hoehenpunkte[i]) return false;
+    }
+    for (var i = 0; i < treppen.length; i++) {
+      if (other.treppen[i] != treppen[i]) return false;
     }
     return true;
   }
@@ -1053,6 +1102,7 @@ final class Planungsstand {
       feldbreite,
       anschluss,
       Object.hashAll(hoehenpunkte),
+      Object.hashAll(treppen),
     ),
   );
 }
@@ -1117,6 +1167,14 @@ final class _AusschnittLeser extends fb.TableReader<Ausschnitt> {
       inhalt: _wert(Ausschnittinhalt.values, (i) => i.nummer, puffer, ort, 4),
     );
   }
+}
+
+final class _TreppenLeser extends fb.TableReader<Treppe> {
+  const _TreppenLeser();
+
+  @override
+  Treppe createObject(fb.BufferContext puffer, int ort) =>
+      Treppe.lies(puffer, ort);
 }
 
 /// Liest nur den Ort einer Tabelle – die Felder liest der Aufrufer.

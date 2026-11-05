@@ -66,6 +66,10 @@ class BerechnungsSteuerung extends ChangeNotifier {
         for (final s in b.anschluss.seiten)
           (Offset(s.von.x, s.von.y), Offset(s.bis.x, s.bis.y), s.rolle),
       ],
+      treppen: [
+        for (final t in b.anschluss.treppen)
+          for (final teil in t.teile) _offsets(teil),
+      ],
       ablaeufe: [
         for (final p in b.anschluss.hoehenpunkte) Offset(p.ort.x, p.ort.y),
       ],

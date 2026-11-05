@@ -178,9 +178,11 @@ void main() {
         find.byKey(const ValueKey('anschluss-ohneRinnenartikel')),
         findsNothing,
       );
-      for (final m in Anschlussmeldung.values.where(
-        (m) => m != Anschlussmeldung.ohneRinnenartikel,
-      )) {
+      expect(
+        find.byKey(const ValueKey('anschluss-treppeNichtFrei')),
+        findsNothing,
+      );
+      for (final m in zurVerblendung) {
         expect(find.byKey(ValueKey('anschluss-${m.name}')), findsOneWidget);
         expect(find.text(anschlussmeldungText(de, m)), findsOneWidget);
       }
@@ -313,6 +315,10 @@ void main() {
       expect(
         anschlussmeldungText(de, Anschlussmeldung.ohneRinnenartikel),
         de.meldungOhneRinnenartikel,
+      );
+      expect(
+        anschlussmeldungText(de, Anschlussmeldung.treppeNichtFrei),
+        de.meldungTreppeNichtFrei,
       );
     });
 

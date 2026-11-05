@@ -404,9 +404,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/8
   - Weitere Höhenreferenzpunkte setzen (Position waagerecht/senkrecht, ab Punkt A, negative Werte möglich).
   - Abnahme: Punkte per Maus und Eingabe
   - Ergebnis: Unter 3.2 (mit Gefälle) „Weiteren Höhenreferenzpunkt einplanen“ mit Waagerecht/Senkrecht ab A (negativ erlaubt) und Höhe, Griff zum Ziehen in der Zeichnung; Planungsstand Platz 141. Server prüft die Höhen mit, zeichnet die Punkte als Abläufe und teilt die Höhenfläche an ihnen (Auflagerhöhen M6-11).
-- [ ] **M7-05 Treppen** ([#69](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/69)) – `feature/m7-05-treppen`
+- [x] **M7-05 Treppen** ([#69](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/69)) – `feature/m7-05-treppen`
   - Treppe an einer Seite: Startpunkt, Maße L × B × H, Anzahl Stufen, individuelle Stufenmaße (Höhe, Tiefe).
   - Abnahme: Treppe in Zeichnung und Material
+  - Ergebnis: Unterpunkt 5.1 mit Treppenblöcken (Start nur an freien Seiten, Abstand, Breite, Fundament/Konstruktion, regulär/2-/3-teilige Fächertreppe, Stufen ±, individuelle Stufenmaße, Podest), Planungsstand Platz 142. Server: Treppenmaße (F39 100 × 54 × 31,2, F41 104 × 108 × 46,8, F42 158 × 108 × 46,8), Umrisse je Stufe für die Zeichnung, Dielen (F39 16 × 100 cm) in Stück- und Materialliste, UK unter den Auftritten und – nur bei Konstruktion – Stützen (R-D02), aus den Resten der UK. Abweichung zu F39 (UK-Menge) begründet im Fachkonzept 5.
 - [ ] **M7-06 Drainageroste** ([#119](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/119)) – `feature/m7-06-drainageroste`
   - Drainageroste in der Fläche platzieren (Position, Länge); Belag und UK werden ausgespart, Material ergänzt.
   - Abnahme: Rost platzieren, verschieben, löschen; Aussparung in Belag und UK, Material in der Liste

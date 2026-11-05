@@ -110,9 +110,9 @@ bool ohneUnterlueftung(Planungsstand stand) {
 ///   „Verblendung“ (Fachkonzept 08).
 /// - **Blendenhalter** (R-C05): kurze Stücke aus UK-Holz ([uk]) in der
 ///   Terrassenhöhe, je Strecke im UK-Achsabstand [ukAbstand] plus eins
-///   (F37: 9 + 13 + 9 = 31 à 8,6 cm), beim Kreis ohne das eine. Sie werden
-///   zuerst aus den Resten der Hölzer der UK-Verlegung ([ukStuecke])
-///   geschnitten (`zusaetzlicheLieferstuecke`, F37: keine weitere UK).
+///   (F37: 9 + 13 + 9 = 31 à 8,6 cm), beim Kreis ohne das eine. Ihre
+///   Lieferstücke rechnet `anschlussbedarf` mit den übrigen UK-Zuschnitten
+///   des Anschlusses.
 ///
 /// Meldungen: Unterlüftung (alle freien Seiten verblendet), Belagstärke
 /// außerhalb 19–23 mm, kein Höhenunterschied (Blendenhöhe ≤ 0) und kein
@@ -124,7 +124,6 @@ Anschlussbedarf verblendungsbedarf(
   Regelwerk? regelwerk,
   Artikel? uk,
   Millimeter? ukAbstand,
-  List<Millimeter> ukStuecke = const [],
 }) {
   final meldungen = [
     if (ohneUnterlueftung(stand)) Anschlussmeldung.unterlueftung,
@@ -152,18 +151,7 @@ Anschlussbedarf verblendungsbedarf(
   final halter = _blendenhalter(stand, strecken, uk, ukAbstand);
   return Anschlussbedarf(
     stuecke: halter,
-    bedarf: [
-      if (artikel != null) ..._dielen(artikel, strecken, staerke),
-      if (uk != null && halter.isNotEmpty)
-        for (final MapEntry(key: laenge, value: anzahl)
-            in zusaetzlicheLieferstuecke(
-              [for (final h in halter) h.laenge],
-              ukStuecke,
-              ukLieferlaengen(uk),
-              fest: stand.ukLaenge,
-            ).entries)
-          Materialbedarf([uk], anzahl, laenge: laenge),
-    ],
+    bedarf: [if (artikel != null) ..._dielen(artikel, strecken, staerke)],
     meldungen: meldungen,
   );
 }

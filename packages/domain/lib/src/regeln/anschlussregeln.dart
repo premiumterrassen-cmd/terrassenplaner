@@ -7,6 +7,7 @@ import '../geometrie/punkt.dart';
 import '../konfiguration/anschlussergebnis.dart';
 import '../konfiguration/grundriss.dart';
 import '../konfiguration/planungsstand.dart';
+import 'treppen.dart';
 
 /// Strecke der Seite [seite] von ihrer Ecke zur nächsten in mm – gerade von
 /// Eckpunkt zu Eckpunkt wie die Seitenlänge der Beschriftung.
@@ -62,5 +63,6 @@ Anschlussergebnis anschlussergebnis(
           hoehe: hoehen.elementAtOrNull(stand.hoehen.length + i) ?? p.hoehe,
         ),
     ],
+    treppen: treppenbilder(stand),
   );
 }

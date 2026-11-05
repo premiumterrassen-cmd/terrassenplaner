@@ -155,7 +155,7 @@ class VerblendungWahl extends StatelessWidget {
             ),
           Hinweis(text: t.verblendungHinweis),
           for (final m in meldungen)
-            if (m != Anschlussmeldung.ohneRinnenartikel)
+            if (zurVerblendung.contains(m))
               Hinweis(
                 key: ValueKey('anschluss-${m.name}'),
                 text: anschlussmeldungText(t, m),
@@ -167,6 +167,14 @@ class VerblendungWahl extends StatelessWidget {
   );
 }
 
+/// Hinweise, die unter 4.2 Verblendung stehen.
+const zurVerblendung = {
+  Anschlussmeldung.unterlueftung,
+  Anschlussmeldung.keinHoehenunterschied,
+  Anschlussmeldung.belagstaerke,
+  Anschlussmeldung.ohneVerblendungsartikel,
+};
+
 /// Text eines Hinweises zum Terrassenanschluss.
 String anschlussmeldungText(PlanerTexte t, Anschlussmeldung m) => switch (m) {
   Anschlussmeldung.unterlueftung => t.meldungUnterlueftung,
@@ -174,6 +182,7 @@ String anschlussmeldungText(PlanerTexte t, Anschlussmeldung m) => switch (m) {
   Anschlussmeldung.belagstaerke => t.meldungBelagstaerke,
   Anschlussmeldung.ohneVerblendungsartikel => t.meldungOhneVerblendungsartikel,
   Anschlussmeldung.ohneRinnenartikel => t.meldungOhneRinnenartikel,
+  Anschlussmeldung.treppeNichtFrei => t.meldungTreppeNichtFrei,
 };
 
 /// Text einer Rinnenlage wie im alten Planer.
