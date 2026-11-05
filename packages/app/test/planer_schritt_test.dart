@@ -21,7 +21,7 @@ void main() {
     );
     expect(
       [for (final s in PlanerSchritt.values) s.unterpunkte(de).length],
-      [4, 6, 8, 3, 1, 8, 1],
+      [4, 6, 9, 3, 1, 8, 1],
     );
   });
 
@@ -67,6 +67,7 @@ void main() {
           'Art der Terrassennutzung',
           'Querstreben',
           'Nutzung privat oder gewerblich',
+          'Auflagen',
         ],
         'terrassenanschluss': [
           'Angrenzende Bauelemente',
@@ -98,7 +99,7 @@ void main() {
     ]);
     expect(
       PlanerSchritt.unterkonstruktion.nummerierteUnterpunkte(de).last,
-      '3.8 Nutzung privat oder gewerblich',
+      '3.9 Auflagen',
     );
     expect(
       PlanerSchritt.zubehoer.nummerierteUnterpunkte(de).last,
@@ -115,7 +116,7 @@ void main() {
         de,
         stand,
       );
-      expect(punkte.length, art.mitNutzungsart ? 8 : 7, reason: art.name);
+      expect(punkte.length, art.mitNutzungsart ? 9 : 8, reason: art.name);
       expect(
         PlanerSchritt.unterkonstruktion.entfaellt(5, stand),
         !art.mitNutzungsart,
@@ -132,9 +133,10 @@ void main() {
       de,
       start.mitTerrassenart(Terrassenart.vorhandeneUk),
     );
-    expect([for (final p in ohne) p.index], [0, 1, 2, 3, 4, 6, 7]);
+    expect([for (final p in ohne) p.index], [0, 1, 2, 3, 4, 6, 7, 8]);
     expect(ohne[5].text, '3.6 Querstreben');
-    expect(ohne.last.text, '3.7 Nutzung privat oder gewerblich');
+    expect(ohne[6].text, '3.7 Nutzung privat oder gewerblich');
+    expect(ohne.last.text, '3.8 Auflagen');
   });
 
   test('Zustand: Auswahl, besuchte Stationen, Fortschritt', () {

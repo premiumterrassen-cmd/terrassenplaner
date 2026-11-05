@@ -20,7 +20,8 @@ typedef Unterkonstruktionssuche = Artikel? Function(Planungsstand stand);
 /// den Ausgangspunkt der Verlegung (M5-07), die Befestigung (M5-09), die
 /// geprüften Höhenpunkte (M6-02), die Meldungen zum Belag (M5-10), das
 /// zusätzliche UK-Holz der Nutzungsart (M6-05) samt Querstreben für die
-/// Zeichnung (M6-06), die Stellfüße zur Nutzung (M6-07), die Materialliste
+/// Zeichnung (M6-06), die Stellfüße zur Nutzung (M6-07), die Auflager mit
+/// Abstand, Höhenbereichen und Meldungen (M6-08), die Materialliste
 /// (M9-03)
 /// und die Stückliste mit den Farben im Plan (M9-04)
 /// – die App rechnet nichts selbst (Frontend bleibt „doof“). Hin- und
@@ -118,20 +119,27 @@ class PlanungsDienst {
       return Berechnung(umriss: punkte, flaeche: 0, geschlossen: false);
     }
     final kontur = stand.kontur;
+    final hoehen = pruefeHoehen(
+      stand.hoehen,
+      art: stand.terrassenart,
+      doppelteUk: stand.doppelteUk,
+      dielenstaerke: belag?.abmessungen.staerke,
+      uk: ukMasse(unterkonstruktion),
+    );
     return Berechnung(
       // Bögen (Kreis) als Sehnenzug für die Zeichnung, Ecken für die Namen
       umriss: kontur.vieleck(),
       ecken: stand.grundriss.ecken,
       flaeche: kontur.flaeche,
       ausschnitte: [for (final a in stand.ausschnitte) a.kontur.punkte],
-      hoehenpunkte: pruefeHoehen(
-        stand.hoehen,
-        art: stand.terrassenart,
-        doppelteUk: stand.doppelteUk,
-        dielenstaerke: belag?.abmessungen.staerke,
-        uk: ukMasse(unterkonstruktion),
-      ),
+      hoehenpunkte: hoehen,
       stellfuesse: _stellfuesse(stand, regelwerk, unterkonstruktion),
+      unterbau: unterbauFuer(
+        stand,
+        hoehen: hoehen,
+        regelwerk: regelwerk,
+        uk: unterkonstruktion,
+      ),
     );
   }
 
@@ -183,6 +191,7 @@ class PlanungsDienst {
         belagmeldungen: meldungen,
         hoehenpunkte: flaeche.hoehenpunkte,
         stellfuesse: flaeche.stellfuesse,
+        unterbau: flaeche.unterbau,
       );
     }
     final stuecke = [for (final t in v.teile) ...t.stuecke];
@@ -212,6 +221,7 @@ class PlanungsDienst {
       kurzeZuschnitte: v.kurzeZuschnitte,
       hoehenpunkte: flaeche.hoehenpunkte,
       stellfuesse: flaeche.stellfuesse,
+      unterbau: flaeche.unterbau,
       befestigung: befestigung,
       stueckliste: Stueckliste.aus([...planstuecke, ...ukStuecke]),
       stueckfarben: [for (final p in planstuecke) p.farbe],

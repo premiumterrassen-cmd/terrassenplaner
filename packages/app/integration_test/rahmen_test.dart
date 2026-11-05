@@ -201,6 +201,14 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('rueckgaengig')));
     await tester.pumpAndSettle();
     expect(_gewaehlt(tester, 'nutzung-privat'), isTrue);
+    // M6-08: Auflagen unter 3.9; ohne Artikeldatei keine Auflager mit
+    // Höhenangaben, die Wahl ist ein Schritt für Rückgängig
+    await _waehle(tester, 'auflagen-stelzfuesse');
+    expect(_gewaehlt(tester, 'auflagen-stelzfuesse'), isTrue);
+    expect(find.text(de.auflagerKeine), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('rueckgaengig')));
+    await tester.pumpAndSettle();
+    expect(_gewaehlt(tester, 'auflagen-stelzfuesseUndPads'), isTrue);
   });
 }
 

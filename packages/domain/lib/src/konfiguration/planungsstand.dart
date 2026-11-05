@@ -7,6 +7,7 @@ import '../artikel/artikel.dart';
 import '../artikel/einheiten.dart';
 import '../geometrie/kontur.dart';
 import '../geometrie/punkt.dart';
+import 'auflagen.dart';
 import 'ausschnitt.dart';
 import 'befestigungsart.dart';
 import 'grundriss.dart';
@@ -26,7 +27,7 @@ import 'verlegerichtung.dart';
 /// Terrasse und Spannweite, seit M6-02 mit Höhenpunkten, seit M6-03 mit
 /// Unterkonstruktion und UK-Länge, seit M6-04 mit Untergrund, seit M6-05
 /// mit Art der Terrassennutzung, seit M6-06 mit Querstreben, seit M6-07
-/// mit privater oder gewerblicher Nutzung;
+/// mit privater oder gewerblicher Nutzung, seit M6-08 mit Auflagen;
 /// Unterkonstruktion usw. folgen als weitere Felder. Berechnet wird daraus
 /// auf dem Server.
 final class Planungsstand {
@@ -56,6 +57,7 @@ final class Planungsstand {
     this.querstreben = false,
     this.querstrebenReihen,
     this.gewerblich = false,
+    this.auflagen = Auflagen.stelzfuesseUndPads,
   });
 
   /// Liest einen Planungsstand aus dem Transportformat ([zuBytes]).
@@ -227,6 +229,14 @@ final class Planungsstand {
         _versatz(_gewerblichPlatz),
         false,
       ),
+      auflagen: Auflagen.ausNummer(
+        const fb.Uint8Reader().vTableGet(
+          puffer,
+          wurzel,
+          _versatz(_auflagenPlatz),
+          Auflagen.stelzfuesseUndPads.nummer,
+        ),
+      ),
     );
   }
 
@@ -342,6 +352,11 @@ final class Planungsstand {
   /// Regelwerk (`Regelwerk.stellfuesse`).
   final bool gewerblich;
 
+  /// „Auflagen“ (M6-08, Fachkonzept 3.9): nur Stelzfüße oder Stelzfüße und
+  /// Pads (Vorgabe wie F01). Welche Artikel in welcher Höhe gelten, sagt
+  /// das Regelwerk der UK (`auflagerbereiche`).
+  final Auflagen auflagen;
+
   /// Ob [reihen] als Anzahl der Quertraversen gilt: 1 bis 99.
   static bool querstrebenReihenGueltig(int reihen) =>
       reihen >= 1 && reihen <= 99;
@@ -420,6 +435,7 @@ final class Planungsstand {
     bool? querstreben,
     ({int? wert})? querstrebenReihen,
     bool? gewerblich,
+    Auflagen? auflagen,
   }) {
     final neu = grundriss ?? this.grundriss;
     final ecke = ausgangsecke ?? this.ausgangsecke;
@@ -455,6 +471,7 @@ final class Planungsstand {
           ? this.querstrebenReihen
           : querstrebenReihen.wert,
       gewerblich: gewerblich ?? this.gewerblich,
+      auflagen: auflagen ?? this.auflagen,
     );
   }
 
@@ -613,6 +630,9 @@ final class Planungsstand {
   /// Kopie mit privater oder gewerblicher Nutzung (M6-07).
   Planungsstand mitGewerblich(bool gewerblich) => _mit(gewerblich: gewerblich);
 
+  /// Kopie mit anderen Auflagen (M6-08).
+  Planungsstand mitAuflagen(Auflagen auflagen) => _mit(auflagen: auflagen);
+
   /// Kopie mit oder ohne Gefälle (M6-02).
   Planungsstand mitGefaelle(bool gefaelle) => _mit(gefaelle: gefaelle);
 
@@ -656,9 +676,11 @@ final class Planungsstand {
   /// 25: unterkonstruktion (string), 26: ukLaenge (int32 mm; fehlt =
   /// automatisch) (M6-03), 80: untergrund (uint8) (M6-04), 81: nutzungsart (uint8) (M6-05), 82: querstreben (bool),
   /// 83: querstrebenReihen (uint16; fehlt = automatisch) (M6-06),
-  /// 84: gewerblich (bool) (M6-07) }`. Plätze
+  /// 84: gewerblich (bool) (M6-07), 100: auflagen (uint8; fehlt =
+  /// Stelzfüße und Pads) (M6-08) }`. Plätze
   /// 14–19 gehören der Dielenverlegung (M5-08), 40–49 dem Zubehör (M8),
-  /// 80–89 der Unterkonstruktion ab M6-04.
+  /// 80–89 der Unterkonstruktion ab M6-04, 100–109 Auflagen, Feldbreite und
+  /// UK-Verlegung (M6-08 bis M6-11).
   /// Neue Felder nur anhängen (docs/architektur/datenmodell.md).
   Uint8List zuBytes() {
     final fbb = fb.Builder();
@@ -684,7 +706,7 @@ final class Planungsstand {
       null => null,
     };
     fbb
-      ..startTable(_gewerblichPlatz + 1)
+      ..startTable(_auflagenPlatz + 1)
       ..addUint16(_schemaPlatz, schema)
       ..addOffset(_grundrissPlatz, grundrissOrt)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
@@ -710,7 +732,8 @@ final class Planungsstand {
       ..addUint8(_nutzungsartPlatz, nutzungsart.nummer)
       ..addBool(_querstrebenPlatz, querstreben)
       ..addUint16(_querstrebenReihenPlatz, querstrebenReihen)
-      ..addBool(_gewerblichPlatz, gewerblich);
+      ..addBool(_gewerblichPlatz, gewerblich)
+      ..addUint8(_auflagenPlatz, auflagen.nummer);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
   }
@@ -757,6 +780,7 @@ final class Planungsstand {
   static const _querstrebenPlatz = 82;
   static const _querstrebenReihenPlatz = 83;
   static const _gewerblichPlatz = 84;
+  static const _auflagenPlatz = 100;
 
   @override
   bool operator ==(Object other) {
@@ -784,6 +808,7 @@ final class Planungsstand {
         other.querstreben != querstreben ||
         other.querstrebenReihen != querstrebenReihen ||
         other.gewerblich != gewerblich ||
+        other.auflagen != auflagen ||
         other.eckhoehen.length != eckhoehen.length ||
         other.ausschnitte.length != ausschnitte.length) {
       return false;
@@ -825,6 +850,7 @@ final class Planungsstand {
       querstreben,
       querstrebenReihen,
       gewerblich,
+      auflagen,
     ),
   );
 }

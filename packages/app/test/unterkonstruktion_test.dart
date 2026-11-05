@@ -300,6 +300,7 @@ void main() {
     expect(find.textContaining(de.unterkonstruktion6), findsNothing);
     expect(find.text('3.6 ${de.unterkonstruktion7}'), findsOneWidget);
     expect(find.text('3.7 ${de.unterkonstruktion8}'), findsOneWidget);
+    expect(find.text('3.8 ${de.unterkonstruktion9}'), findsOneWidget);
     expect(
       zustand.unveraendert,
       isNot(contains(PlanerSchritt.unterkonstruktion)),

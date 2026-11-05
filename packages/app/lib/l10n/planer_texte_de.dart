@@ -598,6 +598,9 @@ class PlanerTexteDe extends PlanerTexte {
   String get unterkonstruktion8 => 'Nutzung privat oder gewerblich';
 
   @override
+  String get unterkonstruktion9 => 'Auflagen';
+
+  @override
   String get terrassenanschluss1 => 'Angrenzende Bauelemente';
 
   @override
@@ -1062,6 +1065,57 @@ class PlanerTexteDe extends PlanerTexte {
   @override
   String get stellfuesseKeine =>
       'Für die gewählte Unterkonstruktion sind keine Stellfüße hinterlegt.';
+
+  @override
+  String get auflagenStelzfuesse => 'Mit Stelzfüßen';
+
+  @override
+  String get auflagenStelzfuesseUndPads => 'Mit Stelzfüßen und Pads';
+
+  @override
+  String auflagerAbstand(String cm) {
+    return 'Abstand der Auflager längs der Unterkonstruktion: höchstens $cm cm';
+  }
+
+  @override
+  String get auflagerListe => 'Auflager laut Artikeldaten:';
+
+  @override
+  String auflagerBereich(String titel, int von, int bis) {
+    return '$titel: $von bis $bis mm';
+  }
+
+  @override
+  String auflagerPad(String titel, int dicke) {
+    return '$titel: $dicke mm';
+  }
+
+  @override
+  String auflagerHoehen(String von, String bis) {
+    return 'Mögliche Höhe (Oberkante Belag bis Boden): $von bis $bis cm';
+  }
+
+  @override
+  String auflagerUnter(String cm) {
+    return 'Ein Höhenpunkt liegt unter der Mindesthöhe von $cm cm mit Stelzfüßen. Wählen Sie Stelzfüße und Pads oder einen höheren Höhenpunkt.';
+  }
+
+  @override
+  String auflagerUeber(String cm) {
+    return 'Ein Höhenpunkt liegt über der Höchsthöhe von $cm cm mit Stelzfüßen. Wählen Sie die Hochterrasse oder einen niedrigeren Höhenpunkt.';
+  }
+
+  @override
+  String get auflagerKeine =>
+      'Für die gewählte Unterkonstruktion sind keine Auflager mit Höhenangaben hinterlegt.';
+
+  @override
+  String get auflagerHochterrasse =>
+      'Bei der Hochterrasse steht die Unterkonstruktion auf Stützen aus UK-Holz mit Bodenankern.';
+
+  @override
+  String get auflagerVorhandeneUk =>
+      'Bei vorhandener Unterkonstruktion wird die neue UK mit Bodenankern auf den vorhandenen Trägern befestigt; der Abstand ist die Spannweite.';
 
   @override
   String get automatisch => 'Automatisch';

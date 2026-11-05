@@ -360,9 +360,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/7
   - Steuert Stellfüße (privat/gewerblich) und Belastung.
   - Abnahme: Stellfußauswahl folgt dem Regelwerk
   - Ergebnis: Unterpunkt 3.8 mit privater (Vorgabe) und gewerblicher Nutzung; Planungsstand-Feld `gewerblich` (Platz 84). Der Server liefert die Stellfüße der gewählten UK aus den Verweisspalten privat/gewerblich der Artikeldaten (`Regelwerk.stellfuesse`, Berechnung Platz 92), die App zeigt sie bzw. den Hinweis, dass keine hinterlegt sind. Belastung wie im alten Planer nur über mehr Gummiband (F35, R-C09) – die Mengen rechnen M6-08/M6-11.
-- [ ] **M6-08 Auflagen: Stelzfüße und Pads** ([#61](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/61)) – `feature/m6-08-auflagen-stelzfuesse-und-pads`
+- [x] **M6-08 Auflagen: Stelzfüße und Pads** ([#61](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/61)) – `feature/m6-08-auflagen-stelzfuesse-und-pads`
   - Mit Stelzfüßen / mit Stelzfüßen und Pads; Abstände, Min-/Max-Höhe mit Meldungen.
   - Abnahme: Höhengrenzen mit Meldung; Abstände aus dem Regelwerk
+  - Ergebnis: Unterpunkt 3.9 „Auflagen“ mit Stelzfüßen oder Stelzfüßen und Pads (Vorgabe wie F01); Planungsstand-Feld `auflagen` (Platz 100). Abstand der Auflager aus `Abstand_Stelzfuesse` der UK (60 cm; F28 13 × 7 = 91), vorhandene UK: Spannweite (F29 65), gewerblich zwei Drittel (F35, R-C09). Höhenbereiche aus Stellfüßen und Unterlegpads der UK mit Min-/Max-Höhe (B-122), Wahl je Spalt (Pad, dann Fuß, F30: 4 mm → 5 mm), Meldungen unter/über den Höhengrenzen; Berechnung Platz 110 (`Unterbau`). Mengen und Höhe je Auflager: M6-11.
 - [ ] **M6-09 Maximale Feldbreite** ([#62](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/62)) – `feature/m6-09-maximale-feldbreite`
   - Feldbreite 40/50/60 cm; Firmenregel UK-Achsabstand max. 40 cm (M1-04).
   - Abnahme: Regel aus M1-04 umgesetzt

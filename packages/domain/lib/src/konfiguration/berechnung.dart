@@ -12,6 +12,7 @@ import '../regeln/belagmeldungen.dart';
 import '../regeln/hoehenpunkte.dart';
 import '../regeln/uk_zusatz.dart';
 import 'befestigungsart.dart';
+import 'unterbau.dart';
 
 /// Was der Server aus einem Planungsstand berechnet und die App nur anzeigt
 /// (M4-02): Umriss, Ausschnitte (M4-06) und Dielenstücke (M5-05) für die
@@ -20,7 +21,8 @@ import 'befestigungsart.dart';
 /// M5-08 Dielennummern, Dielenliste und Verschnitt der ganzen Planung,
 /// seit M5-10 die Meldungen zum Belag, seit M6-02 die geprüften
 /// Höhenpunkte, seit M9-03 die Materialliste der ganzen Planung, seit M9-04
-/// Stückliste und Farbe je Dielenstück. Das Volumen folgt mit M6.
+/// Stückliste und Farbe je Dielenstück, seit M6-08 die Unterkonstruktion
+/// ([unterbau]). Das Volumen folgt mit M6.
 final class Berechnung {
   Berechnung({
     required List<Punkt> umriss,
@@ -46,7 +48,9 @@ final class Berechnung {
     List<Strebe> querstreben = const [],
     this.querstrebenReihen,
     List<Stellfuss> stellfuesse = const [],
-  }) : querstreben = List.unmodifiable(querstreben),
+    Unterbau? unterbau,
+  }) : unterbau = unterbau ?? Unterbau.leer,
+       querstreben = List.unmodifiable(querstreben),
        stellfuesse = List.unmodifiable(stellfuesse),
        materialliste = materialliste ?? Materialliste.leer,
        stueckliste = stueckliste ?? Stueckliste.leer,
@@ -185,6 +189,14 @@ final class Berechnung {
             ),
           ),
       ],
+      unterbau: switch (const _Tabellenort().vTableGetNullable(
+        puffer,
+        wurzel,
+        _versatz(_unterbauPlatz),
+      )) {
+        final ort? => Unterbau.lies(puffer, ort),
+        null => null,
+      },
     );
   }
 
@@ -361,6 +373,10 @@ final class Berechnung {
   /// Regelwerk oder Verweise.
   final List<Stellfuss> stellfuesse;
 
+  /// Unterkonstruktion der bearbeiteten Fläche (M6-08 bis M6-11): Auflager
+  /// mit Abstand, Höhenbereichen und Meldungen.
+  final Unterbau unterbau;
+
   /// Kopie mit den Werten der ganzen Planung (M4-14, M5-08).
   Berechnung mitPlanung(
     double gesamtflaeche, {
@@ -391,6 +407,7 @@ final class Berechnung {
     querstreben: querstreben,
     querstrebenReihen: querstrebenReihen,
     stellfuesse: stellfuesse,
+    unterbau: unterbau,
   );
 
   /// FlatBuffer für den Weg zur App (#110):
@@ -414,7 +431,8 @@ final class Berechnung {
   /// `Stueckliste.schreibe`), 62: stueckfarben ([uint8] je Dielenstück)
   /// (M9-04), 90: querstreben ([float64] x, y von und bis je Strebe),
   /// 91: querstrebenReihen (uint16; fehlt ohne) (M6-06), 92: stellfuesse
-  /// ([{ 0: nummer (string), 1: titel (string) }]) (M6-07) }`. Die Plätze 18–34 sind für die Unterkonstruktion (M6)
+  /// ([{ 0: nummer (string), 1: titel (string) }]) (M6-07), 110: unterbau
+  /// (Tabelle, `Unterbau.schreibe`, M6-08 bis M6-11) }`. Die Plätze 18–34 sind für die Unterkonstruktion (M6)
   /// frei gehalten, 60–69 für die Ergebnisse (M9).
   Uint8List zuBytes() {
     final fbb = fb.Builder();
@@ -457,8 +475,9 @@ final class Berechnung {
     final fuesseOrt = fbb.writeList([
       for (final f in stellfuesse) _stellfuss(fbb, f),
     ]);
+    final unterbauOrt = unterbau.schreibe(fbb);
     fbb
-      ..startTable(_stellfuessePlatz + 1)
+      ..startTable(_unterbauPlatz + 1)
       ..addOffset(_umrissPlatz, umrissOrt)
       ..addFloat64(_flaechePlatz, flaeche)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
@@ -487,7 +506,8 @@ final class Berechnung {
       ..addOffset(_stueckfarbenPlatz, farbenOrt)
       ..addOffset(_querstrebenPlatz, strebenOrt)
       ..addUint16(_querstrebenReihenPlatz, querstrebenReihen)
-      ..addOffset(_stellfuessePlatz, fuesseOrt);
+      ..addOffset(_stellfuessePlatz, fuesseOrt)
+      ..addOffset(_unterbauPlatz, unterbauOrt);
     if (verschnitt case final v?) fbb.addFloat64(_verschnittPlatz, v);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
@@ -589,6 +609,7 @@ final class Berechnung {
   static const _querstrebenPlatz = 90;
   static const _querstrebenReihenPlatz = 91;
   static const _stellfuessePlatz = 92;
+  static const _unterbauPlatz = 110;
 
   static int _versatz(int platz) => 4 + 2 * platz;
 }

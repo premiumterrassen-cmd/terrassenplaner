@@ -453,6 +453,167 @@ void main() {
     });
   });
 
+  group('Auflagen: Stelzfüße und Pads (M6-08)', () {
+    /// Antwort wie vom Server: Abstand, Bereiche und Meldungen je Wahl.
+    Future<Berechnung> server(Planung planung) async {
+      final pads = planung.aktuell.auflagen.mitPads;
+      return Berechnung(
+        umriss: const [],
+        flaeche: 1,
+        unterbau: Unterbau(
+          auflagerabstand: const Millimeter(600),
+          auflager: [
+            if (pads)
+              (
+                titel: 'Unterleger',
+                von: const Millimeter(5),
+                bis: const Millimeter(5),
+                pad: true,
+              ),
+            (
+              titel: 'Fuß',
+              von: const Millimeter(35),
+              bis: const Millimeter(55),
+              pad: false,
+            ),
+          ],
+          hoeheVon: Millimeter(pads ? 82 : 117),
+          hoeheBis: const Millimeter(137),
+          meldungen: [
+            if (!pads) Auflagermeldung.unterMindesthoehe,
+            Auflagermeldung.ueberHoechsthoehe,
+          ],
+        ),
+      );
+    }
+
+    Future<PlanungsSteuerung> zeige(
+      WidgetTester tester, {
+      Locale sprache = const Locale('de'),
+      bool mitServer = true,
+      List<int>? aenderungen,
+    }) async {
+      final planung = PlanungsSteuerung();
+      final berechnung = BerechnungsSteuerung(
+        planung: planung,
+        berechne: server,
+      );
+      addTearDown(() {
+        berechnung.dispose();
+        planung.dispose();
+      });
+      await tester.pumpWidget(
+        testApp(
+          sprache: sprache,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: AuflagenWahl(
+                planung: planung,
+                berechnung: mitServer ? berechnung : null,
+                onGeaendert: () => aenderungen?.add(aenderungen.length),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      return planung;
+    }
+
+    ChoiceChip chip(WidgetTester tester, Auflagen a) =>
+        tester.widget(find.byKey(ValueKey('auflagen-${a.name}')));
+
+    testWidgets('Vorgabe Stelzfüße und Pads; Abstand, Bereiche, Höhen und '
+        'Meldungen vom Server; Wahl ist ein Schritt', (tester) async {
+      final aenderungen = <int>[];
+      final planung = await zeige(tester, aenderungen: aenderungen);
+      expect(chip(tester, Auflagen.stelzfuesseUndPads).selected, isTrue);
+      expect(chip(tester, Auflagen.stelzfuesse).selected, isFalse);
+      expect(find.text(de.auflagerAbstand('60')), findsOneWidget);
+      expect(find.text(de.auflagerListe), findsOneWidget);
+      expect(find.text('• ${de.auflagerPad('Unterleger', 5)}'), findsOneWidget);
+      expect(
+        find.text('• ${de.auflagerBereich('Fuß', 35, 55)}'),
+        findsOneWidget,
+      );
+      expect(find.text(de.auflagerHoehen('8,2', '13,7')), findsOneWidget);
+      expect(find.text(de.auflagerUeber('13,7')), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('auflager-unterMindesthoehe')),
+        findsNothing,
+      );
+      await tester.tap(find.byKey(const ValueKey('auflagen-stelzfuesse')));
+      await tester.pump();
+      await tester.pump();
+      expect(planung.aktuell.auflagen, Auflagen.stelzfuesse);
+      expect(chip(tester, Auflagen.stelzfuesse).selected, isTrue);
+      expect(find.text(de.auflagerUnter('11,7')), findsOneWidget);
+      expect(aenderungen, [0]);
+      await tester.tap(find.byKey(const ValueKey('auflagen-stelzfuesse')));
+      await tester.pump();
+      expect(aenderungen, [0]);
+      planung.rueckgaengig();
+      await tester.pump();
+      expect(chip(tester, Auflagen.stelzfuesseUndPads).selected, isTrue);
+    });
+
+    testWidgets('Hochterrasse und vorhandene UK: Hinweis statt Bereiche', (
+      tester,
+    ) async {
+      final planung = await zeige(tester);
+      planung.setze(planung.aktuell.mitTerrassenart(Terrassenart.hochterrasse));
+      await tester.pump();
+      await tester.pump();
+      expect(find.text(de.auflagerHochterrasse), findsOneWidget);
+      expect(find.text(de.auflagerListe), findsNothing);
+      planung.setze(planung.aktuell.mitTerrassenart(Terrassenart.vorhandeneUk));
+      await tester.pump();
+      await tester.pump();
+      expect(find.text(de.auflagerVorhandeneUk), findsOneWidget);
+    });
+
+    testWidgets('ohne Server: keine Auflager; englische Texte', (tester) async {
+      await zeige(tester, sprache: const Locale('en'), mitServer: false);
+      expect(find.text('With adjustable feet and pads'), findsOneWidget);
+      expect(
+        find.text(
+          'No supports with heights are listed for the selected substructure.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.byKey(const ValueKey('auflager-abstand')), findsNothing);
+      expect(find.byKey(const ValueKey('auflager-hoehen')), findsNothing);
+    });
+  });
+
+  testWidgets('Menü: 3.9 Auflagen', (tester) async {
+    tester.view.physicalSize = const Size(1440, 2400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final zustand = RahmenZustand()..waehle(PlanerSchritt.unterkonstruktion);
+    final planung = PlanungsSteuerung();
+    addTearDown(planung.dispose);
+    await tester.pumpWidget(
+      testApp(
+        home: PlanerRahmen(
+          status: const SizedBox(),
+          zustand: zustand,
+          planung: planung,
+        ),
+      ),
+    );
+    expect(find.text('3.9 ${de.unterkonstruktion9}'), findsOneWidget);
+    final nur = find.byKey(const ValueKey('auflagen-stelzfuesse'));
+    await tester.ensureVisible(nur);
+    await tester.tap(nur);
+    await tester.pump();
+    expect(planung.aktuell.auflagen, Auflagen.stelzfuesse);
+    expect(
+      zustand.unveraendert,
+      isNot(contains(PlanerSchritt.unterkonstruktion)),
+    );
+  });
+
   testWidgets('Menü: 3.8 Nutzung privat oder gewerblich', (tester) async {
     tester.view.physicalSize = const Size(1440, 2400);
     tester.view.devicePixelRatio = 1;

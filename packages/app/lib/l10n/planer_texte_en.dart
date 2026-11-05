@@ -598,6 +598,9 @@ class PlanerTexteEn extends PlanerTexte {
   String get unterkonstruktion8 => 'Private or commercial use';
 
   @override
+  String get unterkonstruktion9 => 'Supports';
+
+  @override
   String get terrassenanschluss1 => 'Adjacent building elements';
 
   @override
@@ -1060,6 +1063,57 @@ class PlanerTexteEn extends PlanerTexte {
   @override
   String get stellfuesseKeine =>
       'No adjustable feet are listed for the selected substructure.';
+
+  @override
+  String get auflagenStelzfuesse => 'With adjustable feet';
+
+  @override
+  String get auflagenStelzfuesseUndPads => 'With adjustable feet and pads';
+
+  @override
+  String auflagerAbstand(String cm) {
+    return 'Spacing of the supports along the substructure: at most $cm cm';
+  }
+
+  @override
+  String get auflagerListe => 'Supports according to the article data:';
+
+  @override
+  String auflagerBereich(String titel, int von, int bis) {
+    return '$titel: $von to $bis mm';
+  }
+
+  @override
+  String auflagerPad(String titel, int dicke) {
+    return '$titel: $dicke mm';
+  }
+
+  @override
+  String auflagerHoehen(String von, String bis) {
+    return 'Possible height (top of decking to ground): $von to $bis cm';
+  }
+
+  @override
+  String auflagerUnter(String cm) {
+    return 'A height point lies below the minimum height of $cm cm with adjustable feet. Choose feet and pads or a higher height point.';
+  }
+
+  @override
+  String auflagerUeber(String cm) {
+    return 'A height point lies above the maximum height of $cm cm with adjustable feet. Choose the raised terrace or a lower height point.';
+  }
+
+  @override
+  String get auflagerKeine =>
+      'No supports with heights are listed for the selected substructure.';
+
+  @override
+  String get auflagerHochterrasse =>
+      'For a raised terrace the substructure stands on posts made of substructure timber with ground anchors.';
+
+  @override
+  String get auflagerVorhandeneUk =>
+      'With an existing substructure the new one is fixed to the existing joists with ground anchors; the spacing is the span.';
 
   @override
   String get automatisch => 'Automatic';

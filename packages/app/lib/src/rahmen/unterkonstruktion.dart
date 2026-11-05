@@ -504,6 +504,111 @@ class GewerblichWahl extends StatelessWidget {
   );
 }
 
+/// Unterpunkt „Auflagen“ (Fachkonzept 3.9, M6-08): mit Stelzfüßen oder
+/// mit Stelzfüßen und Pads (Vorgabe); darunter der Abstand der Auflager
+/// und ihre Höhenbereiche aus dem Regelwerk der UK, die mögliche Höhe und
+/// die Meldungen zu den Höhengrenzen – alles vom Server (`Unterbau`). Bei
+/// Hochterrasse und vorhandener UK ein Hinweis auf Stützen bzw.
+/// Bodenanker. Jede Wahl ist ein Schritt für Rückgängig/Wiederherstellen.
+class AuflagenWahl extends StatelessWidget {
+  const AuflagenWahl({
+    required this.planung,
+    required this.onGeaendert,
+    this.berechnung,
+    super.key,
+  });
+
+  final PlanungsSteuerung planung;
+
+  /// Berechnung des Servers mit dem Unterbau; ohne sie nur die Wahl.
+  final BerechnungsSteuerung? berechnung;
+
+  /// Meldet eine Änderung (Standardwert-Hinweis, M3-05).
+  final VoidCallback onGeaendert;
+
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: Listenable.merge([planung, berechnung]),
+    builder: (context, _) {
+      final t = context.texte;
+      final stand = planung.aktuell;
+      final unterbau = berechnung?.ergebnis?.unterbau ?? Unterbau.leer;
+      return Column(
+        key: const ValueKey('auflagen'),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: PlanerAbstand.klein,
+            children: [
+              for (final (auflagen, text) in [
+                (Auflagen.stelzfuesse, t.auflagenStelzfuesse),
+                (Auflagen.stelzfuesseUndPads, t.auflagenStelzfuesseUndPads),
+              ])
+                ChoiceChip(
+                  key: ValueKey('auflagen-${auflagen.name}'),
+                  label: Text(text),
+                  selected: stand.auflagen == auflagen,
+                  onSelected: (an) {
+                    if (an) {
+                      planung.setze(stand.mitAuflagen(auflagen));
+                      onGeaendert();
+                    }
+                  },
+                ),
+            ],
+          ),
+          if (unterbau.auflagerabstand case final abstand?)
+            _Hinweis(
+              key: const ValueKey('auflager-abstand'),
+              text: t.auflagerAbstand(cmText(t, abstand)),
+            ),
+          ...switch (stand.terrassenart) {
+            Terrassenart.hochterrasse => [
+              _Hinweis(text: t.auflagerHochterrasse),
+            ],
+            Terrassenart.vorhandeneUk => [
+              _Hinweis(text: t.auflagerVorhandeneUk),
+            ],
+            Terrassenart.normal => _bereiche(t, unterbau),
+          },
+        ],
+      );
+    },
+  );
+
+  /// Höhenbereiche, mögliche Höhe und Meldungen der normalen Terrasse.
+  List<Widget> _bereiche(PlanerTexte t, Unterbau unterbau) => [
+    if (unterbau.auflager.isEmpty)
+      Text(t.auflagerKeine, key: const ValueKey('auflager-keine'))
+    else ...[
+      const SizedBox(height: PlanerAbstand.klein),
+      Text(t.auflagerListe),
+      for (final a in unterbau.auflager)
+        Text(
+          '• ${a.pad ? t.auflagerPad(a.titel, a.bis.mm) : t.auflagerBereich(a.titel, a.von.mm, a.bis.mm)}',
+        ),
+    ],
+    if ((unterbau.hoeheVon, unterbau.hoeheBis) case (final von?, final bis?))
+      _Hinweis(
+        key: const ValueKey('auflager-hoehen'),
+        text: t.auflagerHoehen(cmText(t, von), cmText(t, bis)),
+      ),
+    for (final m in unterbau.meldungen)
+      _Hinweis(
+        key: ValueKey('auflager-${m.name}'),
+        warnung: true,
+        text: switch (m) {
+          Auflagermeldung.unterMindesthoehe => t.auflagerUnter(
+            cmText(t, unterbau.hoeheVon!),
+          ),
+          Auflagermeldung.ueberHoechsthoehe => t.auflagerUeber(
+            cmText(t, unterbau.hoeheBis!),
+          ),
+        },
+      ),
+  ];
+}
+
 /// Hinweis mit Symbol; als [warnung] in der Fehlerfarbe.
 class _Hinweis extends StatelessWidget {
   const _Hinweis({required this.text, this.warnung = false, super.key});

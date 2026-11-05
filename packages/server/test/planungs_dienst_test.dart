@@ -1235,6 +1235,109 @@ void main() {
     });
   });
 
+  group('Auflagen: Stelzfüße und Pads (M6-08)', () {
+    Artikel artikel(String nummer, Artikelart art) => Artikel(
+      nummer: Artikelnummer(nummer),
+      titel: 'Artikel $nummer',
+      art: art,
+      einheit: Verkaufseinheit(Mengeneinheit.stueck),
+    );
+    final uk = Artikel(
+      nummer: const Artikelnummer('10-10-031'),
+      titel: 'UK',
+      art: Artikelart.unterkonstruktion,
+      einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+      abmessungen: Abmessungen(
+        breite: const Millimeter(40),
+        staerke: const Millimeter(60),
+      ),
+      holzart: robinie,
+      serie: basic,
+    );
+    final diele = Artikel(
+      nummer: const Artikelnummer('10-10-073'),
+      titel: 'Diele',
+      art: Artikelart.diele,
+      einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+      abmessungen: Abmessungen(
+        breite: const Millimeter(60),
+        staerke: const Millimeter(21),
+        laengen: const [Millimeter(5000)],
+      ),
+      holzart: robinie,
+      serie: basic,
+      profil: Profil.genutet,
+    );
+    final pad = artikel('50-60-005', Artikelart.pad);
+    final fuss = artikel('60-55-110', Artikelart.stellfuss);
+    final regelwerk = Regelwerk(
+      Artikeldatei(
+        quelle: 'test',
+        version: '1',
+        eintraege: [
+          Artikeleintrag(
+            artikel: uk,
+            verweise: {
+              Beziehung.stellfussPrivat.spalte: [fuss.nummer],
+              Beziehung.unterlegpads.spalte: [pad.nummer],
+            },
+            angaben: const {'Abstand_Stelzfuesse': 500},
+          ),
+          Artikeleintrag(
+            artikel: pad,
+            angaben: const {'MinHoehe': 5, 'MaxHoehe': 5},
+          ),
+          Artikeleintrag(
+            artikel: fuss,
+            angaben: const {'MinHoehe': 35, 'MaxHoehe': 55},
+          ),
+        ],
+      ),
+    );
+    Unterbau unterbau(Planungsstand stand, {Artikel? belag}) =>
+        Berechnung.ausBytes(
+          PlanungsDienst.berechnePlanung(
+            Planung.start.mitStand(stand),
+            (_) => belag,
+            regelwerk,
+            false,
+            (_) => uk,
+          ).zuBytes(),
+        ).unterbau;
+
+    test('Abstand und Höhenbereiche aus dem Regelwerk der UK', () {
+      final u = unterbau(Planungsstand.start, belag: diele);
+      expect(u.auflagerabstand, const Millimeter(500));
+      expect(
+        [for (final a in u.auflager) a.titel],
+        ['Artikel 50-60-005', 'Artikel 60-55-110'],
+      );
+      // Belag 21 mm + UK 60 mm = 81 mm; Pads ab 0, Füße bis 55 mm
+      expect(u.hoeheVon, const Millimeter(81));
+      expect(u.hoeheBis, const Millimeter(136));
+      expect(u.meldungen, isEmpty);
+    });
+
+    test('Höhengrenzen mit Meldung: ohne Pads zu niedrig, zu hoch', () {
+      final nurFuesse = Planungsstand.start.mitAuflagen(Auflagen.stelzfuesse);
+      expect(unterbau(nurFuesse, belag: diele).meldungen, [
+        Auflagermeldung.unterMindesthoehe,
+      ]);
+      expect(
+        unterbau(
+          Planungsstand.start.mitHoehe(const Millimeter(200)),
+          belag: diele,
+        ).meldungen,
+        [Auflagermeldung.ueberHoechsthoehe],
+      );
+      // ohne Belag ungeprüft: keine Grenzen, keine Meldung
+      final ohne = unterbau(nurFuesse);
+      expect(ohne.auflager, hasLength(1));
+      expect(ohne.hoeheVon, isNull);
+      expect(ohne.meldungen, isEmpty);
+    });
+  });
+
   test('ungültige Maße sind ein Fehler', () async {
     final fbb = fb.Builder();
     final masse = fbb.writeListInt32([4800, 100]);
