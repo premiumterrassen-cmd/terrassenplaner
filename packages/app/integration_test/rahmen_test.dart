@@ -160,16 +160,16 @@ void main() {
     // M6-04: Untergrund unter 3.5, nur Information; Rückgängig wie bei den
     // anderen Eingaben
     await _waehle(tester, 'untergrund-beton');
-    expect(_gewaehlt(tester, 'untergrund-beton'), isTrue);
+    expect(await _gewaehlt(tester, 'untergrund-beton'), isTrue);
     expect(find.text(de.untergrundHinweis), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('rueckgaengig')));
     await tester.pumpAndSettle();
-    expect(_gewaehlt(tester, 'untergrund-schotter'), isTrue);
+    expect(await _gewaehlt(tester, 'untergrund-schotter'), isTrue);
     // M6-05: Art der Terrassennutzung unter 3.6; schwimmend mit Warnung
     // zur Verwindung, Rahmen ohne – Rückgängig stellt sie wieder her
     await _imMenue(tester, find.text(de.nutzungsartVerwindung));
     await _waehle(tester, 'nutzungsart-rahmen');
-    expect(_gewaehlt(tester, 'nutzungsart-rahmen'), isTrue);
+    expect(await _gewaehlt(tester, 'nutzungsart-rahmen'), isTrue);
     expect(find.text(de.nutzungsartVerwindung), findsNothing);
     await tester.tap(find.byKey(const ValueKey('rueckgaengig')));
     await tester.pumpAndSettle();
@@ -187,34 +187,30 @@ void main() {
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
     expect(tester.widget<TextField>(anzahl).decoration!.hintText, '4');
-    expect(_gewaehlt(tester, 'querstreben-automatisch'), isFalse);
+    expect(await _gewaehlt(tester, 'querstreben-automatisch'), isFalse);
     for (var i = 0; i < 2; i++) {
       await tester.tap(find.byKey(const ValueKey('rueckgaengig')));
       await tester.pumpAndSettle();
     }
-    expect(_gewaehlt(tester, 'querstreben-nein'), isTrue);
+    expect(await _gewaehlt(tester, 'querstreben-nein'), isTrue);
     // M6-07: private oder gewerbliche Nutzung unter 3.8; ohne Artikeldatei
     // kennt der Smoke-Server keine Stellfüße
     await _waehle(tester, 'nutzung-gewerblich');
-    expect(_gewaehlt(tester, 'nutzung-gewerblich'), isTrue);
+    expect(await _gewaehlt(tester, 'nutzung-gewerblich'), isTrue);
     expect(find.text(de.stellfuesseKeine), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('rueckgaengig')));
     await tester.pumpAndSettle();
-    await _imMenue(tester, find.byKey(const ValueKey('nutzung-privat')));
-    expect(_gewaehlt(tester, 'nutzung-privat'), isTrue);
+    expect(await _gewaehlt(tester, 'nutzung-privat'), isTrue);
     // M6-08: Auflagen unter 3.9; ohne Artikeldatei keine Auflager mit
     // Höhenangaben, die Wahl ist ein Schritt für Rückgängig
     await _waehle(tester, 'auflagen-stelzfuesse');
-    expect(_gewaehlt(tester, 'auflagen-stelzfuesse'), isTrue);
+    expect(await _gewaehlt(tester, 'auflagen-stelzfuesse'), isTrue);
     final ohneAuflager = find.text(de.auflagerKeine);
     await _imMenue(tester, ohneAuflager);
     expect(ohneAuflager, findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('rueckgaengig')));
     await tester.pumpAndSettle();
-    // das Menü baut nur die sichtbaren Unterpunkte: erst hinscrollen
-    final pads = find.byKey(const ValueKey('auflagen-stelzfuesseUndPads'));
-    await _imMenue(tester, pads);
-    expect(_gewaehlt(tester, 'auflagen-stelzfuesseUndPads'), isTrue);
+    expect(await _gewaehlt(tester, 'auflagen-stelzfuesseUndPads'), isTrue);
   });
 }
 
@@ -245,5 +241,11 @@ Future<void> _waehle(WidgetTester tester, String schluessel) async {
   await tester.pumpAndSettle();
 }
 
-bool _gewaehlt(WidgetTester tester, String schluessel) =>
-    tester.widget<ChoiceChip>(find.byKey(ValueKey(schluessel))).selected;
+/// Ob der Auswahl-Chip [schluessel] gewählt ist; scrollt vorher zu ihm,
+/// weil das Menü nur die sichtbaren Unterpunkte baut (in kleinen Fenstern
+/// der Build-Chain z. B. nach Rückgängig).
+Future<bool> _gewaehlt(WidgetTester tester, String schluessel) async {
+  final chip = find.byKey(ValueKey(schluessel));
+  await _imMenue(tester, chip);
+  return tester.widget<ChoiceChip>(chip).selected;
+}
