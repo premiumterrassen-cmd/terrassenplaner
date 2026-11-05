@@ -227,7 +227,7 @@
 
     # --- Produktivbetrieb (M10-03) ---
     - name: Gemeinsame Prüfungen (Härtung, Log-Rotation, ObjectBox-Sicherung)
-      ansible.builtin.include_tasks: verify_betrieb.yml
+      ansible.builtin.include_tasks: tasks/betrieb.yml
 
     - name: Härtung der Dart-Dienste aktiv  # noqa: command-instead-of-module
       ansible.builtin.command: >-
