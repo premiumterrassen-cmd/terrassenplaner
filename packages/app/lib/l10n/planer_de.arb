@@ -345,6 +345,22 @@
   "belagmeldungBefestigungsart": "Genutete Dielen werden verdeckt mit Clips befestigt. Die gewählte Verschraubung gilt nur für glattkante Dielen.",
   "belagmeldungOhneBefestigung": "Für diesen Belag sind keine passenden Clips oder Schrauben hinterlegt – die Befestigung fehlt in der Materialliste. Bitte sprechen Sie uns an.",
   "belagmeldungSchraubeZuKurz": "Keine hinterlegte Schraube ist mindestens doppelt so lang, wie die Diele stark ist. Gerechnet wird mit der längsten – bitte prüfen Sie die Schraubenlänge.",
+
+  "zubehoerLaedt": "Zubehör wird geladen …",
+  "zubehoerFehler": "Das Zubehör konnte nicht geladen werden.",
+  "zubehoerKeine": "In dieser Gruppe gibt es keine Artikel.",
+  "zubehoerBezeichnung": "Bezeichnung",
+  "zubehoerTatsaechlich": "Tatsächlich",
+  "zubehoerMengeUngueltig": "Bitte 0 bis {max} eingeben",
+  "@zubehoerMengeUngueltig": {"placeholders": {"max": {"type": "int"}}},
+
+  "zubehoerBerechnet": "berechnet: {anzahl}",
+  "@zubehoerBerechnet": {"placeholders": {"anzahl": {"type": "int"}}},
+
+  "zubehoerPflicht": "Pflichtzubehör, mindestens {anzahl}",
+  "@zubehoerPflicht": {"placeholders": {"anzahl": {"type": "int"}}},
+  "zubehoerPflichtMindestens": "Pflichtzubehör: mindestens {anzahl}",
+  "@zubehoerPflichtMindestens": {"placeholders": {"anzahl": {"type": "int"}}},
   "ukLaedt": "Unterkonstruktionen werden geladen …",
   "ukFehler": "Die Unterkonstruktionen konnten nicht geladen werden.",
   "ukKeine": "Zum gewählten Belag passt keine Unterkonstruktion aus dem Sortiment.",

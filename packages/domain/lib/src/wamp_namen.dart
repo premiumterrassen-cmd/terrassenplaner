@@ -19,6 +19,10 @@ abstract final class WampNamen {
   /// lfm und je m²; der erste ist die Vorgabe.
   static const belagAuswahl = '${kunde}belag.auswahl';
 
+  /// Zubehörauswahl (M8-01): die acht Gruppen des Schritts „Zubehör“ mit
+  /// ihren Artikeln in Datenreihenfolge.
+  static const zubehoerAuswahl = '${kunde}zubehoer.auswahl';
+
   /// Unterkonstruktionen zum Belag (M6-03): Argument die Artikelnummer des
   /// Belags (fehlt = Vorgabe-Belag); Antwort `Ukauswahl` als JSON, die
   /// erste UK ist die Vorgabe.

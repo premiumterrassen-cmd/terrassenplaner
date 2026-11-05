@@ -45,6 +45,7 @@ void main() {
       // Planungsunterlagen erzeugt der Server, der Browser lädt sie nur
       // herunter (M9-06).
       unterlagen: Unterlagenabruf(verbindung.unterlagen),
+      zubehoer: verbindung.zubehoer,
       // Speichern, Laden und Entwurf über den Konfigurationsdienst (M9-05);
       // der Browser merkt sich nur Nummer, Version und Sitzungsschlüssel.
       ablage: verbindung,
