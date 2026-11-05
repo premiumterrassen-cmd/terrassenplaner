@@ -49,11 +49,18 @@ final class Planung {
     List<Terrassenflaeche> flaechen, {
     this.aktiv = 0,
     Map<Positionsschluessel, int> mengen = const {},
+    this.verschnittvariante = 0,
   }) : flaechen = List.unmodifiable(flaechen),
        mengen = Map.unmodifiable(mengen) {
     if (flaechen.isEmpty) {
       throw ArgumentError.value(flaechen, 'flaechen', 'mindestens eine Fläche');
     }
+    RangeError.checkValueInInterval(
+      verschnittvariante,
+      0,
+      hoechsteVerschnittvariante,
+      'verschnittvariante',
+    );
     RangeError.checkValidIndex(aktiv, flaechen, 'aktiv');
     for (final anzahl in this.mengen.values) {
       if (anzahl < 0) {
@@ -62,7 +69,10 @@ final class Planung {
     }
   }
 
-  const Planung._(this.flaechen) : aktiv = 0, mengen = const {};
+  const Planung._(this.flaechen)
+    : aktiv = 0,
+      mengen = const {},
+      verschnittvariante = 0;
 
   /// Liest eine Planung aus dem Transportformat ([zuBytes]).
   factory Planung.ausBytes(Uint8List bytes) {
@@ -90,6 +100,12 @@ final class Planung {
             0,
           ),
       },
+      verschnittvariante: const fb.Uint8Reader().vTableGet(
+        puffer,
+        wurzel,
+        _versatz(_verschnittvariantePlatz),
+        0,
+      ),
     );
   }
 
@@ -126,6 +142,15 @@ final class Planung {
   /// übernimmt sie nur von Mitarbeitern (M9-10).
   final Map<Positionsschluessel, int> mengen;
 
+  /// Gewählte Verschnittvariante (M9-01, Fachkonzept 7.1) ab 1; 0 = nicht
+  /// optimiert – dann wird jede Teilfläche für sich zugeschnitten (M5-08).
+  /// Sie gilt für die ganze Planung und bleibt bei Änderungen gewählt;
+  /// gibt es weniger Varianten, gilt die letzte.
+  final int verschnittvariante;
+
+  /// Höchstens so viele Varianten bietet die Verschnittoptimierung an.
+  static const hoechsteVerschnittvariante = 3;
+
   /// Häufigkeit der bearbeiteten Fläche.
   int get haeufigkeit => flaechen[aktiv].haeufigkeit;
 
@@ -142,11 +167,16 @@ final class Planung {
     [...flaechen, Terrassenflaeche.start],
     aktiv: flaechen.length,
     mengen: mengen,
+    verschnittvariante: verschnittvariante,
   );
 
   /// Wechselt zu Reiter [index].
-  Planung gewaehlt(int index) =>
-      Planung(flaechen, aktiv: index, mengen: mengen);
+  Planung gewaehlt(int index) => Planung(
+    flaechen,
+    aktiv: index,
+    mengen: mengen,
+    verschnittvariante: verschnittvariante,
+  );
 
   /// Löscht Fläche [index]; die letzte Fläche bleibt. Danach wird die Fläche
   /// davor bearbeitet, wenn die gelöschte die bearbeitete oder eine frühere
@@ -160,6 +190,7 @@ final class Planung {
       [...flaechen]..removeAt(index),
       aktiv: index > aktiv || aktiv == 0 ? aktiv : aktiv - 1,
       mengen: mengen,
+      verschnittvariante: verschnittvariante,
     );
   }
 
@@ -173,15 +204,30 @@ final class Planung {
         if (key != schluessel) key: value,
       schluessel: ?anzahl,
     },
+    verschnittvariante: verschnittvariante,
   );
 
-  Planung _mit(Terrassenflaeche flaeche) =>
-      Planung([...flaechen]..[aktiv] = flaeche, aktiv: aktiv, mengen: mengen);
+  /// „Optimierung erstellen“ (1), Variante wählen (1–3) oder „zurücksetzen“
+  /// (0) – M9-01.
+  Planung mitVerschnittvariante(int variante) => Planung(
+    flaechen,
+    aktiv: aktiv,
+    mengen: mengen,
+    verschnittvariante: variante,
+  );
+
+  Planung _mit(Terrassenflaeche flaeche) => Planung(
+    [...flaechen]..[aktiv] = flaeche,
+    aktiv: aktiv,
+    mengen: mengen,
+    verschnittvariante: verschnittvariante,
+  );
 
   /// `{ 0: schema (uint16), 1: flaechen ([{ 0: stand ([uint8], Planungsstand
   /// als eigener FlatBuffer), 1: haeufigkeit (uint16) }]), 2: aktiv (uint16),
   /// 70: mengen ([{ 0: nummer (string), 1: laenge (int32 mm, fehlt ohne
-  /// Länge), 2: zusatz (uint8), 3: anzahl (uint32) }], M9-03) }`. Neue Felder
+  /// Länge), 2: zusatz (uint8), 3: anzahl (uint32) }], M9-03),
+  /// 160: verschnittvariante (uint8, fehlt = 0, M9-01) }`. Neue Felder
   /// nur anhängen (docs/architektur/datenmodell.md); die Plätze 70–79 sind
   /// für die Ergebnisse (M9) vorgesehen.
   Uint8List zuBytes() {
@@ -196,11 +242,15 @@ final class Planung {
               _menge(fbb, key, value),
           ]);
     fbb
-      ..startTable(_mengenPlatz + 1)
+      ..startTable(_verschnittvariantePlatz + 1)
       ..addUint16(_schemaPlatz, schema)
       ..addOffset(_flaechenPlatz, flaechenOrt)
       ..addUint16(_aktivPlatz, aktiv)
-      ..addOffset(_mengenPlatz, mengenOrt);
+      ..addOffset(_mengenPlatz, mengenOrt)
+      ..addUint8(
+        _verschnittvariantePlatz,
+        verschnittvariante == 0 ? null : verschnittvariante,
+      );
     fbb.finish(fbb.endTable());
     return fbb.buffer;
   }
@@ -232,11 +282,13 @@ final class Planung {
   static const _flaechenPlatz = 1;
   static const _aktivPlatz = 2;
   static const _mengenPlatz = 70;
+  static const _verschnittvariantePlatz = 160;
 
   @override
   bool operator ==(Object other) {
     if (other is! Planung ||
         other.aktiv != aktiv ||
+        other.verschnittvariante != verschnittvariante ||
         other.flaechen.length != flaechen.length ||
         other.mengen.length != mengen.length) {
       return false;
@@ -253,6 +305,7 @@ final class Planung {
   @override
   int get hashCode => Object.hash(
     aktiv,
+    verschnittvariante,
     Object.hashAll(flaechen),
     Object.hashAllUnordered([
       for (final MapEntry(:key, :value) in mengen.entries) (key, value),

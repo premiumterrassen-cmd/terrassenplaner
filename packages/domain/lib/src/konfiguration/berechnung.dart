@@ -50,7 +50,16 @@ final class Berechnung {
     List<Stellfuss> stellfuesse = const [],
     Unterbau? unterbau,
     this.volumen,
+    List<Verschnittangebot> verschnittvarianten = const [],
+    this.verschnittvariante,
   }) : unterbau = unterbau ?? Unterbau.leer,
+       verschnittvarianten = List.unmodifiable([
+         for (final v in verschnittvarianten)
+           (
+             verschnitt: v.verschnitt,
+             dielen: List<Lieferposition>.unmodifiable(v.dielen),
+           ),
+       ]),
        querstreben = List.unmodifiable(querstreben),
        stellfuesse = List.unmodifiable(stellfuesse),
        materialliste = materialliste ?? Materialliste.leer,
@@ -116,23 +125,29 @@ final class Berechnung {
         wurzel,
         _versatz(_verschnittPlatz),
       ),
-      dielenliste: [
-        for (final ort in const fb.ListReader<int>(
-          _Tabellenort(),
-        ).vTableGet(puffer, wurzel, _versatz(_dielenlistePlatz), const []))
+      dielenliste: _lieferpositionen(puffer, wurzel, _dielenlistePlatz),
+      verschnittvarianten: [
+        for (final ort in const fb.ListReader<int>(_Tabellenort()).vTableGet(
+          puffer,
+          wurzel,
+          _versatz(_verschnittvariantenPlatz),
+          const [],
+        ))
           (
-            belag: Artikelnummer(
-              const fb.StringReader().vTableGet(puffer, ort, _versatz(0), ''),
-            ),
-            laenge: _mm(puffer, ort, 1),
-            anzahl: const fb.Int32Reader().vTableGet(
+            verschnitt: const fb.Float64Reader().vTableGet(
               puffer,
               ort,
-              _versatz(2),
+              _versatz(0),
               0,
             ),
+            dielen: _lieferpositionen(puffer, ort, 1),
           ),
       ],
+      verschnittvariante: const fb.Uint8Reader().vTableGetNullable(
+        puffer,
+        wurzel,
+        _versatz(_verschnittvariantePlatz),
+      ),
       befestigung: _befestigung(puffer, wurzel),
       belagmeldungen: [
         for (final n in const fb.ListReader<int>(
@@ -276,6 +291,23 @@ final class Berechnung {
     );
   }
 
+  static List<Lieferposition> _lieferpositionen(
+    fb.BufferContext puffer,
+    int tabelle,
+    int platz,
+  ) => [
+    for (final ort in const fb.ListReader<int>(
+      _Tabellenort(),
+    ).vTableGet(puffer, tabelle, _versatz(platz), const []))
+      (
+        belag: Artikelnummer(
+          const fb.StringReader().vTableGet(puffer, ort, _versatz(0), ''),
+        ),
+        laenge: _mm(puffer, ort, 1),
+        anzahl: const fb.Int32Reader().vTableGet(puffer, ort, _versatz(2), 0),
+      ),
+  ];
+
   static Millimeter _mm(fb.BufferContext puffer, int wurzel, int platz) =>
       Millimeter(
         const fb.Int32Reader().vTableGet(puffer, wurzel, _versatz(platz), 0),
@@ -388,13 +420,24 @@ final class Berechnung {
   /// Häufigkeit (`holzvolumen`); `null` ohne Holz.
   final double? volumen;
 
-  /// Kopie mit den Werten der ganzen Planung (M4-14, M5-08).
+  /// Angebotene Verschnittvarianten der ganzen Planung (M9-01), die mit
+  /// dem geringsten Verschnitt zuerst; leer, solange nicht optimiert ist
+  /// oder keine Dielen verlegt sind.
+  final List<Verschnittangebot> verschnittvarianten;
+
+  /// Gewählte Verschnittvariante ab 1 (M9-01) – gibt es weniger als
+  /// gewählt, die letzte; `null` = nicht optimiert (oder ohne Dielen).
+  final int? verschnittvariante;
+
+  /// Kopie mit den Werten der ganzen Planung (M4-14, M5-08, M9-01).
   Berechnung mitPlanung(
     double gesamtflaeche, {
     double? verschnitt,
     List<Lieferposition> dielenliste = const [],
     Materialliste? materialliste,
     double? volumen,
+    List<Verschnittangebot> verschnittvarianten = const [],
+    int? verschnittvariante,
   }) => Berechnung(
     umriss: umriss,
     ecken: ecken,
@@ -421,6 +464,8 @@ final class Berechnung {
     stellfuesse: stellfuesse,
     unterbau: unterbau,
     volumen: volumen,
+    verschnittvarianten: verschnittvarianten,
+    verschnittvariante: verschnittvariante,
   );
 
   /// FlatBuffer für den Weg zur App (#110):
@@ -446,7 +491,9 @@ final class Berechnung {
   /// 91: querstrebenReihen (uint16; fehlt ohne) (M6-06), 92: stellfuesse
   /// ([{ 0: nummer (string), 1: titel (string) }]) (M6-07), 110: unterbau
   /// (Tabelle, `Unterbau.schreibe`, M6-08 bis M6-11), 111: volumen (float64
-  /// m³; fehlt ohne Holz, M6-10) }`. Die Plätze 18–34 sind für die Unterkonstruktion (M6)
+  /// m³; fehlt ohne Holz, M6-10), 165: verschnittvarianten ([{ 0: verschnitt
+  /// (float64), 1: dielen (wie dielenliste) }]), 166: verschnittvariante
+  /// (uint8; fehlt = nicht optimiert) (M9-01) }`. Die Plätze 18–34 sind für die Unterkonstruktion (M6)
   /// frei gehalten, 60–69 für die Ergebnisse (M9).
   Uint8List zuBytes() {
     final fbb = fb.Builder();
@@ -490,8 +537,11 @@ final class Berechnung {
       for (final f in stellfuesse) _stellfuss(fbb, f),
     ]);
     final unterbauOrt = unterbau.schreibe(fbb);
+    final variantenOrt = fbb.writeList([
+      for (final v in verschnittvarianten) _verschnittangebot(fbb, v),
+    ]);
     fbb
-      ..startTable(_volumenPlatz + 1)
+      ..startTable(_verschnittvariantePlatz + 1)
       ..addOffset(_umrissPlatz, umrissOrt)
       ..addFloat64(_flaechePlatz, flaeche)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
@@ -521,7 +571,9 @@ final class Berechnung {
       ..addOffset(_querstrebenPlatz, strebenOrt)
       ..addUint16(_querstrebenReihenPlatz, querstrebenReihen)
       ..addOffset(_stellfuessePlatz, fuesseOrt)
-      ..addOffset(_unterbauPlatz, unterbauOrt);
+      ..addOffset(_unterbauPlatz, unterbauOrt)
+      ..addOffset(_verschnittvariantenPlatz, variantenOrt)
+      ..addUint8(_verschnittvariantePlatz, verschnittvariante);
     if (verschnitt case final v?) fbb.addFloat64(_verschnittPlatz, v);
     if (volumen case final v?) fbb.addFloat64(_volumenPlatz, v);
     fbb.finish(fbb.endTable());
@@ -532,6 +584,17 @@ final class Berechnung {
       fbb.writeListFloat64([
         for (final p in punkte) ...[p.x, p.y],
       ]);
+
+  static int _verschnittangebot(fb.Builder fbb, Verschnittangebot v) {
+    final dielenOrt = fbb.writeList([
+      for (final p in v.dielen) _lieferposition(fbb, p),
+    ]);
+    fbb
+      ..startTable(2)
+      ..addFloat64(0, v.verschnitt)
+      ..addOffset(1, dielenOrt);
+    return fbb.endTable();
+  }
 
   static int _lieferposition(fb.Builder fbb, Lieferposition p) {
     final belagOrt = fbb.writeString(p.belag.wert);
@@ -626,6 +689,8 @@ final class Berechnung {
   static const _stellfuessePlatz = 92;
   static const _unterbauPlatz = 110;
   static const _volumenPlatz = 111;
+  static const _verschnittvariantenPlatz = 165;
+  static const _verschnittvariantePlatz = 166;
 
   static int _versatz(int platz) => 4 + 2 * platz;
 }
@@ -636,6 +701,10 @@ typedef Stellfuss = ({Artikelnummer nummer, String titel});
 /// Zeile der Dielenliste (M5-08): so viele Dielen des Belags in dieser
 /// Lieferlänge.
 typedef Lieferposition = ({Artikelnummer belag, Millimeter laenge, int anzahl});
+
+/// Eine Verschnittvariante zur Auswahl (M9-01): Verschnitt als Anteil und
+/// die benötigten Dielen je Belag und Lieferlänge.
+typedef Verschnittangebot = ({double verschnitt, List<Lieferposition> dielen});
 
 /// Liest nur den Ort einer Tabelle – die Felder liest der Aufrufer.
 final class _Tabellenort extends fb.TableReader<int> {

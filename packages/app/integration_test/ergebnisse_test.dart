@@ -30,4 +30,47 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('materialliste-dialog')), findsNothing);
   });
+
+  testWidgets('Verschnittoptimierung erstellen und zurücksetzen (M9-01)', (
+    tester,
+  ) async {
+    await starteApp(tester);
+    await tester.tap(find.byKey(const ValueKey('neu')));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('station-verschnittoptimierung')),
+    );
+    await tester.pumpAndSettle();
+    final erstellen = find.byKey(const ValueKey('optimierung-erstellen'));
+    await _zeige(tester, erstellen);
+    // Der Smoke-Server läuft ohne Artikeldatei: keine Dielen
+    expect(find.text(de.keineDielen), findsOneWidget);
+    await tester.tap(erstellen);
+    await tester.pumpAndSettle();
+    final zuruecksetzen = find.byKey(
+      const ValueKey('optimierung-zuruecksetzen'),
+    );
+    await _zeige(tester, zuruecksetzen);
+    expect(erstellen, findsNothing);
+    await tester.tap(zuruecksetzen);
+    await tester.pumpAndSettle();
+    await _zeige(tester, erstellen);
+  });
+}
+
+/// Scrollt das Bearbeitungsmenü bis [finder] (es baut nur sichtbare
+/// Unterpunkte) und wartet auf ihn.
+Future<void> _zeige(WidgetTester tester, Finder finder) async {
+  final liste = find
+      .descendant(
+        of: find.descendant(
+          of: find.byKey(const ValueKey('bearbeitungsmenue')),
+          matching: find.byType(ListView),
+        ),
+        matching: find.byType(Scrollable),
+      )
+      .first;
+  await tester.scrollUntilVisible(finder, 200, scrollable: liste);
+  await tester.pumpAndSettle();
+  await warteAuf(tester, finder);
 }

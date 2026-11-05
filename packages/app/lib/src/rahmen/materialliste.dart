@@ -57,7 +57,7 @@ class MateriallisteAnsicht extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
-    listenable: berechnung,
+    listenable: Listenable.merge([berechnung, planung]),
     builder: (context, _) => _liste(context, berechnung.materialliste),
   );
 
@@ -152,6 +152,14 @@ class MateriallisteAnsicht extends StatelessWidget {
           ),
         const SizedBox(height: PlanerAbstand.klein),
         Text(t.materialPreishinweis, style: const TextStyle(fontSize: 12)),
+        // Erinnerung, falls nicht optimiert (M9-01, Fachkonzept 7.1)
+        if (planung.planung.verschnittvariante == 0 &&
+            berechnung.dielenliste.isNotEmpty)
+          Text(
+            key: const ValueKey('materialliste-nicht-optimiert'),
+            t.materialNichtOptimiert,
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
       ],
     );
   }

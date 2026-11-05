@@ -231,6 +231,42 @@ void main() {
     );
   });
 
+  testWidgets('Erinnerung, falls nicht optimiert (M9-01)', (tester) async {
+    tester.view
+      ..physicalSize = const Size(1440, 900)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final (:planung, :berechnung) = _steuerung(
+      (p) async => (await _berechne(p)).mitPlanung(
+        1,
+        materialliste: _liste(p),
+        dielenliste: const [
+          (belag: Artikelnummer('10-10-073-R'), laenge: _m5, anzahl: 48),
+        ],
+      ),
+    );
+    await tester.pumpWidget(
+      testApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: MateriallisteAnsicht(
+              berechnung: berechnung,
+              planung: planung,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    final hinweis = find.byKey(const ValueKey('materialliste-nicht-optimiert'));
+    expect(hinweis, findsOneWidget);
+    expect(tester.widget<Text>(hinweis).data, de.materialNichtOptimiert);
+    planung.setzePlanung(planung.planung.mitVerschnittvariante(1));
+    await tester.pump();
+    await tester.pump();
+    expect(hinweis, findsNothing);
+  });
+
   testWidgets('Artikel ohne Preis: Hinweis unter der Summe', (tester) async {
     tester.view
       ..physicalSize = const Size(1440, 900)

@@ -467,6 +467,90 @@ void main() {
       );
     });
 
+    test('Verschnittoptimierung über alle Flächen (M9-01)', () {
+      Planungsstand rechteck(int ab) => Planungsstand(
+        grundriss: RechteckGrundriss(Millimeter(ab), const Millimeter(3090)),
+      );
+      // 48 Reihen à 380 cm und 48 à 220 cm: je Fläche 48 × 4000 und
+      // 24 × 5000 mm, gemeinsam 48 × 6000 mm ohne Verschnitt
+      final planung = Planung([
+        Terrassenflaeche(rechteck(3800)),
+        Terrassenflaeche(rechteck(2200)),
+      ]);
+      Map<int, int> liste(Berechnung b) => {
+        for (final p in b.dielenliste) p.laenge.mm: p.anzahl,
+      };
+      final ohne = PlanungsDienst.berechnePlanung(planung, (_) => diele);
+      expect(liste(ohne), {4000: 48, 5000: 24});
+      expect(ohne.verschnittvarianten, isEmpty);
+      expect(ohne.verschnittvariante, isNull);
+
+      final b = PlanungsDienst.berechnePlanung(
+        planung.mitVerschnittvariante(1),
+        (_) => diele,
+      );
+      expect(liste(b), {6000: 48});
+      expect(b.verschnitt, 0);
+      expect(b.verschnittvariante, 1);
+      expect(
+        [
+          for (final v in b.verschnittvarianten)
+            {for (final p in v.dielen) p.laenge.mm: p.anzahl},
+        ],
+        [
+          {6000: 48},
+          {5000: 72},
+          {4000: 96},
+        ],
+      );
+      expect(b.verschnittvarianten.first.verschnitt, 0);
+      expect(
+        b.verschnittvarianten[1].verschnitt,
+        closeTo(1 - 288000 / 360000, 1e-12),
+      );
+      expect(b.verschnittvarianten.first.dielen.first.belag, diele.nummer);
+      // die Wahl gilt für Dielen- und Materialliste
+      final dritte = PlanungsDienst.berechnePlanung(
+        planung.mitVerschnittvariante(3),
+        (_) => diele,
+      );
+      expect(liste(dritte), {4000: 96});
+      expect(dritte.verschnittvariante, 3);
+      expect(
+        {
+          for (final p in dritte.materialliste.positionen)
+            p.laenge?.mm: p.anzahl,
+        },
+        {4000: 96},
+      );
+      // Häufigkeit: alle Stücke zusammen
+      final doppelt = PlanungsDienst.berechnePlanung(
+        planung
+            .mitHaeufigkeit(2)
+            .gewaehlt(1)
+            .mitHaeufigkeit(2)
+            .mitVerschnittvariante(1),
+        (_) => diele,
+      );
+      expect(liste(doppelt), {6000: 96});
+      // weniger Varianten als gewählt: die letzte (F01: 5000 und 6000 mm)
+      final f01 = PlanungsDienst.berechnePlanung(
+        Planung.start.mitVerschnittvariante(3),
+        (_) => diele,
+      );
+      expect(f01.verschnittvarianten, hasLength(2));
+      expect(f01.verschnittvariante, 2);
+      expect(liste(f01), {6000: 48});
+      expect(f01.verschnitt, closeTo(0.2, 1e-12));
+      // ohne Dielen keine Varianten
+      final leer = PlanungsDienst.berechnePlanung(
+        Planung.start.mitVerschnittvariante(1),
+      );
+      expect(leer.verschnittvarianten, isEmpty);
+      expect(leer.verschnittvariante, isNull);
+      expect(leer.verschnitt, isNull);
+    });
+
     test('Stückliste und Farben im Plan (M9-04)', () {
       // F01: 48 Stücke à 4800 mm aus 5000 mm, längste Lieferlänge 6000 mm
       final f01 = PlanungsDienst.berechne(Planungsstand.start, diele);

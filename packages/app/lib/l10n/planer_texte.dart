@@ -304,6 +304,42 @@ abstract class PlanerTexte {
   /// **'Noch keine Dielen verlegt.'**
   String get keineDielen;
 
+  /// No description provided for @verschnittNichtOptimiert.
+  ///
+  /// In de, this message translates to:
+  /// **'Der Verschnitt ist noch nicht optimiert – die Optimierung verteilt die Stücke über alle Flächen und verringert oft den Bedarf an Dielen.'**
+  String get verschnittNichtOptimiert;
+
+  /// No description provided for @optimierungErstellen.
+  ///
+  /// In de, this message translates to:
+  /// **'OPTIMIERUNG ERSTELLEN'**
+  String get optimierungErstellen;
+
+  /// No description provided for @optimierungZuruecksetzen.
+  ///
+  /// In de, this message translates to:
+  /// **'OPTIMIERUNG ZURÜCKSETZEN'**
+  String get optimierungZuruecksetzen;
+
+  /// No description provided for @verschnittauswahlGeaendert.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Verschnittauswahl wurde geändert!'**
+  String get verschnittauswahlGeaendert;
+
+  /// No description provided for @materialNichtOptimiert.
+  ///
+  /// In de, this message translates to:
+  /// **'Hinweis: Der Verschnitt ist noch nicht optimiert. Unter „7. Verschnittoptimierung“ lässt sich der Bedarf an Dielen oft verringern.'**
+  String get materialNichtOptimiert;
+
+  /// No description provided for @verschnittvariante.
+  ///
+  /// In de, this message translates to:
+  /// **'Variante {nummer}'**
+  String verschnittvariante(int nummer);
+
   /// No description provided for @massPlatzhalter.
   ///
   /// In de, this message translates to:
