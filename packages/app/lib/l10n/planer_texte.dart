@@ -1852,6 +1852,36 @@ abstract class PlanerTexte {
   /// **'Die Länge ergibt sich, sobald eine Unterkonstruktion gewählt ist.'**
   String get ukLaengeOhneUk;
 
+  /// No description provided for @untergrundFrage.
+  ///
+  /// In de, this message translates to:
+  /// **'Auf welchem Untergrund wird die Terrasse aufgebaut?'**
+  String get untergrundFrage;
+
+  /// No description provided for @untergrundSchotter.
+  ///
+  /// In de, this message translates to:
+  /// **'Schotter (verdichtet)'**
+  String get untergrundSchotter;
+
+  /// No description provided for @untergrundBeton.
+  ///
+  /// In de, this message translates to:
+  /// **'Beton'**
+  String get untergrundBeton;
+
+  /// No description provided for @untergrundBitumen.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitumenabdichtung'**
+  String get untergrundBitumen;
+
+  /// No description provided for @untergrundHinweis.
+  ///
+  /// In de, this message translates to:
+  /// **'Der Untergrund hilft uns bei den Hinweisen zum Unterbau; die Materialliste ändert er nicht.'**
+  String get untergrundHinweis;
+
   /// No description provided for @automatisch.
   ///
   /// In de, this message translates to:

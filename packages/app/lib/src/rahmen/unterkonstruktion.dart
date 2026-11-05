@@ -176,6 +176,57 @@ class HoehenpunkteWahl extends StatelessWidget {
   );
 }
 
+/// Unterpunkt „Untergrund“ (Fachkonzept 3.5, M6-04): Schotter (Vorgabe),
+/// Beton oder Bitumenabdichtung – nur Information für die Planer, ohne
+/// Wirkung auf die Berechnung (R-C07). Jede Wahl ist ein Schritt für
+/// Rückgängig/Wiederherstellen.
+class UntergrundWahl extends StatelessWidget {
+  const UntergrundWahl({
+    required this.planung,
+    required this.onGeaendert,
+    super.key,
+  });
+
+  final PlanungsSteuerung planung;
+
+  /// Meldet eine Änderung (Standardwert-Hinweis, M3-05).
+  final VoidCallback onGeaendert;
+
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: planung,
+    builder: (context, _) {
+      final t = context.texte;
+      final gewaehlt = planung.aktuell.untergrund;
+      return Column(
+        key: const ValueKey('untergrund'),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(t.untergrundFrage),
+          Wrap(
+            spacing: PlanerAbstand.klein,
+            children: [
+              for (final u in Untergrund.values)
+                ChoiceChip(
+                  key: ValueKey('untergrund-${u.name}'),
+                  label: Text(untergrundText(t, u)),
+                  selected: u == gewaehlt,
+                  onSelected: (an) {
+                    if (an) {
+                      planung.setze(planung.aktuell.mitUntergrund(u));
+                      onGeaendert();
+                    }
+                  },
+                ),
+            ],
+          ),
+          _Hinweis(text: t.untergrundHinweis),
+        ],
+      );
+    },
+  );
+}
+
 /// Hinweis mit Symbol; als [warnung] in der Fehlerfarbe.
 class _Hinweis extends StatelessWidget {
   const _Hinweis({required this.text, this.warnung = false, super.key});
@@ -282,4 +333,10 @@ String terrassenartText(PlanerTexte t, Terrassenart a) => switch (a) {
   Terrassenart.normal => t.terrassenartNormal,
   Terrassenart.hochterrasse => t.terrassenartHochterrasse,
   Terrassenart.vorhandeneUk => t.terrassenartVorhandeneUk,
+};
+
+String untergrundText(PlanerTexte t, Untergrund u) => switch (u) {
+  Untergrund.schotter => t.untergrundSchotter,
+  Untergrund.beton => t.untergrundBeton,
+  Untergrund.bitumen => t.untergrundBitumen,
 };

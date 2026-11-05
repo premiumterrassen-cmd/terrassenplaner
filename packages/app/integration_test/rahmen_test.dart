@@ -169,5 +169,34 @@ void main() {
     await tester.pumpAndSettle();
     expect(keineUk, findsOneWidget);
     expect(find.text(de.ukLaengeOhneUk), findsOneWidget);
+    // M6-04: Untergrund unter 3.5, nur Information; Rückgängig wie bei den
+    // anderen Eingaben
+    await _waehle(tester, 'untergrund-beton');
+    expect(_gewaehlt(tester, 'untergrund-beton'), isTrue);
+    expect(find.text(de.untergrundHinweis), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('rueckgaengig')));
+    await tester.pumpAndSettle();
+    expect(_gewaehlt(tester, 'untergrund-schotter'), isTrue);
   });
 }
+
+/// Tippt den Auswahl-Chip [schluessel] im Bearbeitungsmenü an.
+Future<void> _waehle(WidgetTester tester, String schluessel) async {
+  final chip = find.byKey(ValueKey(schluessel));
+  await tester.scrollUntilVisible(
+    chip,
+    200,
+    scrollable: find
+        .descendant(
+          of: find.byKey(const ValueKey('bearbeitungsmenue')),
+          matching: find.byType(Scrollable),
+        )
+        .first,
+  );
+  await tester.pumpAndSettle();
+  await tester.tap(chip);
+  await tester.pumpAndSettle();
+}
+
+bool _gewaehlt(WidgetTester tester, String schluessel) =>
+    tester.widget<ChoiceChip>(find.byKey(ValueKey(schluessel))).selected;

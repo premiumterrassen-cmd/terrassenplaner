@@ -344,9 +344,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/7
   - Produktauswahl Unterkonstruktion mit Maßen/Material; Länge der UK (feste Längen).
   - Abnahme: Nur zum Belag passende UK
   - Ergebnis: Unterpunkt 3.3 mit gewählter UK und Dialog „Unterkonstruktion auswählen“ (Produktkarten wie beim Belag, Preis je lfm), Unterpunkt 3.4 mit „Automatisch“ (Vorgabe) oder fester Lieferlänge; Planungsstand-Felder `unterkonstruktion` und `ukLaenge` (Plätze 25/26). Der Artikeldienst liefert je Belag nur passende Robinien-UK (`unterkonstruktion.auswahl`, `ukPasstZuBelag`: gleiche Serie, Format der Serie mit Breite/Stärke tauschbar, B-034/B-212, keine Alu-UK, B-122); die erste ist die Vorgabe, eine nicht mehr passende Wahl fällt auf sie zurück. Lieferlängen = Länge der Artikeldaten plus Lieferlängen der Serie (B-035) – behebt „nur 600 cm“ des alten Planers. Die gewählte UK prüft die Höhenpunkte (M6-02); die Mengen folgen mit M6-10.
-- [ ] **M6-04 Untergrund** ([#57](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/57)) – `feature/m6-04-untergrund`
+- [x] **M6-04 Untergrund** ([#57](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/57)) – `feature/m6-04-untergrund`
   - Schotter (verdichtet, Standard), Beton, Bitumenabdichtung.
   - Abnahme: Auswirkung auf Auflagen/Zubehör wie im alten Planer
+  - Ergebnis: Unterpunkt 3.5 mit Schotter (Vorgabe), Beton und Bitumenabdichtung als Chips samt Hinweis; Planungsstand-Feld `untergrund` (Platz 80, fehlend = Schotter). Nur Information für die Planer, keine Wirkung auf Auflagen, Zubehör oder Materialliste (R-C07, Antwort 6) – im alten Planer ebenso nicht erfasst.
 - [ ] **M6-05 Art der Terrassennutzung** ([#58](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/58)) – `feature/m6-05-art-der-terrassennutzung` · Benchmark
   - Schwimmende Verlegung, Versteifung ohne Rahmen, Rahmen (Standard), Versteifung mit Rahmen, doppelte UK; Warnung zur Verwindung ohne Bodenbefestigung.
   - Abnahme: Jede Variante ergibt die Konstruktion der Referenzfälle

@@ -1000,6 +1000,23 @@ class PlanerTexteDe extends PlanerTexte {
       'Die Länge ergibt sich, sobald eine Unterkonstruktion gewählt ist.';
 
   @override
+  String get untergrundFrage =>
+      'Auf welchem Untergrund wird die Terrasse aufgebaut?';
+
+  @override
+  String get untergrundSchotter => 'Schotter (verdichtet)';
+
+  @override
+  String get untergrundBeton => 'Beton';
+
+  @override
+  String get untergrundBitumen => 'Bitumenabdichtung';
+
+  @override
+  String get untergrundHinweis =>
+      'Der Untergrund hilft uns bei den Hinweisen zum Unterbau; die Materialliste ändert er nicht.';
+
+  @override
   String get automatisch => 'Automatisch';
 
   @override

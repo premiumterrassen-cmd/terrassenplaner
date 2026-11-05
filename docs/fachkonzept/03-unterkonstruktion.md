@@ -58,6 +58,11 @@ Neuer Planer (M6-03):
 
 Schotter (verdichtet) (Vorgabe) | Beton | Bitumenabdichtung. **Nur Information für die Planer** (richtige Unterbauhinweise an den Kunden) – keine Wirkung auf die Berechnung.
 
+Neuer Planer (M6-04):
+
+- Unterpunkt 3.5 mit der Frage „Auf welchem Untergrund wird die Terrasse aufgebaut?“ und den drei Untergründen als Chips (Vorgabe Schotter, F01) sowie dem Hinweis, dass der Untergrund die Materialliste nicht ändert. Planungsstand-Feld `untergrund` (Platz 80, fehlt = Schotter); jede Wahl ist ein Schritt für Rückgängig/Wiederherstellen.
+- **Keine Wirkung auf die Berechnung** (R-C07, Antwort 6): Das Abnahmekriterium „Auswirkung auf Auflagen/Zubehör wie im alten Planer“ ist damit erfüllt, dass es keine gibt – die Referenzkonfigurationen haben keine Untergrund-Varianten (laut Alexander nur Information). Der Untergrund wird gespeichert, damit die Planer ihn in der Anfrage sehen.
+
 ## 3.6 Art der Terrassennutzung
 
 | Art | Volumen | Summe | Unterschied zur Materialliste |

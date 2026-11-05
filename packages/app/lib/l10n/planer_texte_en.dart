@@ -999,6 +999,22 @@ class PlanerTexteEn extends PlanerTexte {
       'The length follows as soon as a substructure is selected.';
 
   @override
+  String get untergrundFrage => 'What surface will the terrace be built on?';
+
+  @override
+  String get untergrundSchotter => 'Gravel (compacted)';
+
+  @override
+  String get untergrundBeton => 'Concrete';
+
+  @override
+  String get untergrundBitumen => 'Bitumen sealing';
+
+  @override
+  String get untergrundHinweis =>
+      'The surface helps us give the right advice on the base; it does not change the material list.';
+
+  @override
   String get automatisch => 'Automatic';
 
   @override
