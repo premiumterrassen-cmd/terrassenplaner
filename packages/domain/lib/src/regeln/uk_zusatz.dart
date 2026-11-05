@@ -20,6 +20,7 @@ import '../ergebnisse/stueckliste.dart';
 import '../geometrie/kontur.dart';
 import '../geometrie/punkt.dart';
 import '../holzart/holzart.dart';
+import '../konfiguration/belagverlegung.dart';
 import '../konfiguration/planungsstand.dart';
 import 'planungsregeln.dart';
 
@@ -35,7 +36,9 @@ final class Ukzusatz {
     List<Materialbedarf> bedarf = const [],
     List<Strebe> streben = const [],
     this.reihen = 0,
+    List<Lieferdiele> zuschnitt = const [],
   }) : stuecke = List.unmodifiable(stuecke),
+       zuschnitt = List.unmodifiable(zuschnitt),
        bedarf = List.unmodifiable(bedarf),
        streben = List.unmodifiable(streben);
 
@@ -47,6 +50,9 @@ final class Ukzusatz {
 
   /// Lieferstücke der UK je Lieferlänge.
   final List<Materialbedarf> bedarf;
+
+  /// Welche Schnitte aus welchem Lieferholz kommen (M9-02, `lieferhoelzer`).
+  final List<Lieferdiele> zuschnitt;
 
   /// Querstreben in Planungskoordinaten.
   final List<Strebe> streben;
@@ -92,7 +98,7 @@ int strebenreihen(Planungsstand stand, Millimeter laenge) {
 ///   wie der lichte Abstand der Linien (Achsabstand minus der schmalen Seite
 ///   der hochkant stehenden UK).
 ///
-/// Die Lieferlängen rechnet `lieferstuecke`; eine erzwungene UK-Länge (3.4)
+/// Die Lieferhölzer rechnet `lieferhoelzer`; eine erzwungene UK-Länge (3.4)
 /// gilt auch hier. [linien] sind die Lagen der UK-Hölzer in der gedrehten
 /// Fläche (M6-10); zwischen den beiden Hölzern einer doppelten UK am Stoß
 /// (lichter Abstand unter [mindestStrebe]) gibt es keine Strebe.
@@ -140,17 +146,15 @@ Ukzusatz ukZusatz(
     for (final l in laengs) stueck(l, Stuecklage.laengs),
     for (final s in streben) stueck(s.von.abstand(s.bis), Stuecklage.quer),
   ];
-  final lieferung = lieferstuecke(
+  final zuschnitt = lieferhoelzer(
     [for (final s in stuecke) s.laenge],
     laengen,
     fest: stand.ukLaenge,
   );
   return Ukzusatz(
     stuecke: stuecke,
-    bedarf: [
-      for (final MapEntry(key: laenge, value: anzahl) in lieferung.entries)
-        Materialbedarf([uk], anzahl, laenge: laenge),
-    ],
+    zuschnitt: zuschnitt,
+    bedarf: ukBedarf(uk, zuschnitt),
     streben: [
       for (final s in streben)
         (von: s.von.gedreht(-drehung), bis: s.bis.gedreht(-drehung)),
@@ -159,54 +163,75 @@ Ukzusatz ukZusatz(
   );
 }
 
-/// Lieferstücke für die Zuschnitte [stuecke] aus den Lieferlängen
-/// [laengen] (aufsteigend), Anzahl je Länge aufsteigend sortiert.
+/// Materialbedarf der Lieferhölzer [zuschnitt] der UK [uk] je Lieferlänge
+/// (aufsteigend).
+List<Materialbedarf> ukBedarf(Artikel uk, List<Lieferdiele> zuschnitt) => [
+  for (final MapEntry(key: laenge, value: anzahl) in Dielenliste.aus(
+    zuschnitt,
+  ).anzahl.entries)
+    Materialbedarf([uk], anzahl, laenge: laenge),
+];
+
+/// Welche Lieferhölzer für die Zuschnitte [stuecke] aus den Lieferlängen
+/// [laengen] (aufsteigend) geschnitten werden (M9-02, UK-Zuschnittplan):
 ///
 /// - Lange Stücke (ab der halben kürzesten Lieferlänge) bekommen eigene
 ///   Hölzer wie eine Dielenreihe (R-B10, `lieferlaengenFuer`): 480 cm →
-///   5000 mm.
+///   5000 mm; ein Stück über der längsten wird gestückelt (ganze Hölzer
+///   und der Rest aus dem letzten).
 /// - Kurze Stücke (Querstreben) werden der Größe nach aus gemeinsamen
 ///   Hölzern geschnitten: zuerst in ein angeschnittenes Holz, in das sie
 ///   passen; sonst in ein neues, das so lang ist wie der Rest aller kurzen
 ///   Stücke (höchstens die längste Lieferlänge) – so wenig Verschnitt wie
 ///   möglich (R-B11).
 ///
-/// Liefert die UK die Wunschlänge [fest], wird nur sie verwendet.
-Map<Millimeter, int> lieferstuecke(
+/// Liefert die UK die Wunschlänge [fest], wird nur sie verwendet. Ohne
+/// Lieferlängen keine Hölzer.
+List<Lieferdiele> lieferhoelzer(
   List<Millimeter> stuecke,
   List<Millimeter> laengen, {
   Millimeter? fest,
 }) {
   final moeglich = laengen.contains(fest) ? [fest!] : laengen;
-  final anzahl = <Millimeter, int>{};
-  void liefere(Millimeter l) =>
-      anzahl.update(l, (n) => n + 1, ifAbsent: () => 1);
-  if (moeglich.isEmpty) return anzahl;
+  if (moeglich.isEmpty) return const [];
   final grenze = moeglich.first.mm / 2;
+  final hoelzer = <Lieferdiele>[];
+  for (final s in stuecke) {
+    if (s.mm < grenze) continue;
+    final lieferung = lieferlaengenFuer(s, moeglich);
+    var rest = s;
+    for (final (i, l) in lieferung.indexed) {
+      final schnitt = i == lieferung.length - 1 ? rest : l;
+      hoelzer.add(Lieferdiele(l, [schnitt]));
+      rest -= schnitt;
+    }
+  }
   final kurz = [
     for (final s in stuecke)
       if (s.mm < grenze) s.mm,
   ]..sort((a, b) => b.compareTo(a));
-  for (final s in stuecke) {
-    if (s.mm >= grenze) lieferlaengenFuer(s, moeglich).forEach(liefere);
-  }
-  final reste = <int>[];
-  var offen = kurz.fold(0, (a, b) => a + b);
+  final offen = <({int laenge, List<Millimeter> schnitte, int rest})>[];
+  var summe = kurz.fold(0, (a, b) => a + b);
   for (final s in kurz) {
-    final i = reste.indexWhere((r) => r >= s);
+    final i = offen.indexWhere((h) => h.rest >= s);
     if (i >= 0) {
-      reste[i] -= s;
+      final h = offen[i];
+      offen[i] = (
+        laenge: h.laenge,
+        schnitte: [...h.schnitte, Millimeter(s)],
+        rest: h.rest - s,
+      );
     } else {
-      final ziel = math.min(offen, moeglich.last.mm);
-      final holz = moeglich.firstWhere((l) => l.mm >= ziel);
-      liefere(holz);
-      reste.add(holz.mm - s);
+      final ziel = math.min(summe, moeglich.last.mm);
+      final holz = moeglich.firstWhere((l) => l.mm >= ziel).mm;
+      offen.add((laenge: holz, schnitte: [Millimeter(s)], rest: holz - s));
     }
-    offen -= s;
+    summe -= s;
   }
-  return Map.fromEntries(
-    anzahl.entries.toList()..sort((a, b) => a.key.mm.compareTo(b.key.mm)),
-  );
+  return [
+    ...hoelzer,
+    for (final h in offen) Lieferdiele(Millimeter(h.laenge), h.schnitte),
+  ];
 }
 
 /// UK-Achsabstand für einen Belag der [holzart]: der des Belags laut

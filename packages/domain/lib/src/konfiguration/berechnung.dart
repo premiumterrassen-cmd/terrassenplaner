@@ -6,6 +6,7 @@ import '../artikel/artikel.dart';
 import '../artikel/einheiten.dart';
 import '../ergebnisse/materialliste.dart';
 import '../ergebnisse/stueckliste.dart';
+import '../ergebnisse/zuschnittplan.dart';
 import '../geometrie/punkt.dart';
 import '../regeln/befestigungsbedarf.dart';
 import '../regeln/belagmeldungen.dart';
@@ -23,7 +24,7 @@ import 'unterbau.dart';
 /// Höhenpunkte, seit M9-03 die Materialliste der ganzen Planung, seit M9-04
 /// Stückliste und Farbe je Dielenstück, seit M6-08 die Unterkonstruktion
 /// ([unterbau]), seit M6-10 das Holzvolumen der ganzen Planung, seit M9-01
-/// die Verschnittvarianten mit der gewählten.
+/// die Verschnittvarianten mit der gewählten, seit M9-02 die Zuschnittpläne.
 final class Berechnung {
   Berechnung({
     required List<Punkt> umriss,
@@ -53,7 +54,11 @@ final class Berechnung {
     this.volumen,
     List<Verschnittangebot> verschnittvarianten = const [],
     this.verschnittvariante,
+    Zuschnittplan? zuschnittBelag,
+    Zuschnittplan? zuschnittUk,
   }) : unterbau = unterbau ?? Unterbau.leer,
+       zuschnittBelag = zuschnittBelag ?? Zuschnittplan.leer,
+       zuschnittUk = zuschnittUk ?? Zuschnittplan.leer,
        verschnittvarianten = List.unmodifiable([
          for (final v in verschnittvarianten)
            (
@@ -149,6 +154,8 @@ final class Berechnung {
         wurzel,
         _versatz(_verschnittvariantePlatz),
       ),
+      zuschnittBelag: _zuschnittplan(puffer, wurzel, _zuschnittBelagPlatz),
+      zuschnittUk: _zuschnittplan(puffer, wurzel, _zuschnittUkPlatz),
       befestigung: _befestigung(puffer, wurzel),
       belagmeldungen: [
         for (final n in const fb.ListReader<int>(
@@ -292,6 +299,19 @@ final class Berechnung {
     );
   }
 
+  static Zuschnittplan? _zuschnittplan(
+    fb.BufferContext puffer,
+    int wurzel,
+    int platz,
+  ) => switch (const _Tabellenort().vTableGetNullable(
+    puffer,
+    wurzel,
+    _versatz(platz),
+  )) {
+    final ort? => Zuschnittplan.lies(puffer, ort),
+    null => null,
+  };
+
   static List<Lieferposition> _lieferpositionen(
     fb.BufferContext puffer,
     int tabelle,
@@ -430,7 +450,16 @@ final class Berechnung {
   /// gewählt, die letzte; `null` = nicht optimiert (oder ohne Dielen).
   final int? verschnittvariante;
 
-  /// Kopie mit den Werten der ganzen Planung (M4-14, M5-08, M9-01).
+  /// Zuschnittplan des Belags der ganzen Planung (M9-02): je Artikel
+  /// Ausgangslänge, Menge und Schnittmaße – mit der gewählten
+  /// Verschnittvariante, sonst je Teilfläche (M5-08).
+  final Zuschnittplan zuschnittBelag;
+
+  /// Zuschnittplan der Unterkonstruktion der ganzen Planung (M9-02): Hölzer
+  /// der UK-Verlegung, zusätzliches Holz und Stützen.
+  final Zuschnittplan zuschnittUk;
+
+  /// Kopie mit den Werten der ganzen Planung (M4-14, M5-08, M9-01, M9-02).
   Berechnung mitPlanung(
     double gesamtflaeche, {
     double? verschnitt,
@@ -439,6 +468,8 @@ final class Berechnung {
     double? volumen,
     List<Verschnittangebot> verschnittvarianten = const [],
     int? verschnittvariante,
+    Zuschnittplan? zuschnittBelag,
+    Zuschnittplan? zuschnittUk,
   }) => Berechnung(
     umriss: umriss,
     ecken: ecken,
@@ -467,6 +498,8 @@ final class Berechnung {
     volumen: volumen,
     verschnittvarianten: verschnittvarianten,
     verschnittvariante: verschnittvariante,
+    zuschnittBelag: zuschnittBelag,
+    zuschnittUk: zuschnittUk,
   );
 
   /// FlatBuffer für den Weg zur App (#110):
@@ -494,7 +527,8 @@ final class Berechnung {
   /// (Tabelle, `Unterbau.schreibe`, M6-08 bis M6-11), 111: volumen (float64
   /// m³; fehlt ohne Holz, M6-10), 165: verschnittvarianten ([{ 0: verschnitt
   /// (float64), 1: dielen (wie dielenliste) }]), 166: verschnittvariante
-  /// (uint8; fehlt = nicht optimiert) (M9-01) }`. Die Plätze 18–34 sind für die Unterkonstruktion (M6)
+  /// (uint8; fehlt = nicht optimiert) (M9-01), 167: zuschnittBelag,
+  /// 168: zuschnittUk (Tabellen, `Zuschnittplan.schreibe`, M9-02) }`. Die Plätze 18–34 sind für die Unterkonstruktion (M6)
   /// frei gehalten, 60–69 für die Ergebnisse (M9).
   Uint8List zuBytes() {
     final fbb = fb.Builder();
@@ -541,8 +575,10 @@ final class Berechnung {
     final variantenOrt = fbb.writeList([
       for (final v in verschnittvarianten) _verschnittangebot(fbb, v),
     ]);
+    final belagOrt = zuschnittBelag.schreibe(fbb);
+    final ukOrt = zuschnittUk.schreibe(fbb);
     fbb
-      ..startTable(_verschnittvariantePlatz + 1)
+      ..startTable(_zuschnittUkPlatz + 1)
       ..addOffset(_umrissPlatz, umrissOrt)
       ..addFloat64(_flaechePlatz, flaeche)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
@@ -574,7 +610,9 @@ final class Berechnung {
       ..addOffset(_stellfuessePlatz, fuesseOrt)
       ..addOffset(_unterbauPlatz, unterbauOrt)
       ..addOffset(_verschnittvariantenPlatz, variantenOrt)
-      ..addUint8(_verschnittvariantePlatz, verschnittvariante);
+      ..addUint8(_verschnittvariantePlatz, verschnittvariante)
+      ..addOffset(_zuschnittBelagPlatz, belagOrt)
+      ..addOffset(_zuschnittUkPlatz, ukOrt);
     if (verschnitt case final v?) fbb.addFloat64(_verschnittPlatz, v);
     if (volumen case final v?) fbb.addFloat64(_volumenPlatz, v);
     fbb.finish(fbb.endTable());
@@ -692,6 +730,8 @@ final class Berechnung {
   static const _volumenPlatz = 111;
   static const _verschnittvariantenPlatz = 165;
   static const _verschnittvariantePlatz = 166;
+  static const _zuschnittBelagPlatz = 167;
+  static const _zuschnittUkPlatz = 168;
 
   static int _versatz(int platz) => 4 + 2 * platz;
 }

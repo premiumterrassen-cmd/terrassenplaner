@@ -305,6 +305,9 @@ class PlanungsDienst {
   /// Stücke eines Belags über alle Flächen gemeinsam zu
   /// (`verschnittvarianten`), liefert die Varianten mit und rechnet Dielen-
   /// und Materialliste mit der gewählten.
+  /// Die Zuschnittpläne (M9-02) fassen
+  /// die Lieferstücke von Belag und UK aller Flächen mal Häufigkeit
+  /// zusammen.
   ///
   /// Die Materialliste (M9-03) sammelt den Bedarf aller Flächen mal ihrer
   /// Häufigkeit: Dielen je Lieferlänge, die Befestigung in Stück (erst
@@ -325,6 +328,8 @@ class PlanungsDienst {
     final optimieren = planung.verschnittvariante > 0;
     final artikelJe = <Artikelnummer, Artikel>{};
     final gruppen = <(Artikelnummer, String), Belagstuecke>{};
+    final zuschnittBelag = <Lieferzuschnitt>[];
+    final zuschnittUk = <Lieferzuschnitt>[];
     late Berechnung aktuell;
     for (final (i, f) in planung.flaechen.indexed) {
       final artikel = belag(f.stand.belag);
@@ -383,7 +388,21 @@ class PlanungsDienst {
         } else {
           final liste = verlegung.dielenliste * f.haeufigkeit;
           listen.update(nummer, (l) => l + liste, ifAbsent: () => liste);
+          zuschnittBelag.addAll([
+            for (final t in verlegung.teile)
+              for (final d in t.zuschnitt)
+                (artikel: artikel, stueck: d, anzahl: f.haeufigkeit),
+          ]);
         }
+        zuschnittUk.addAll([
+          for (final d in [
+            ...?ukv?.zuschnitt,
+            ...zusatz.zuschnitt,
+            ...?auflager?.zuschnitt,
+          ])
+            // UK-Holz gibt es nur mit UK
+            (artikel: uk!, stueck: d, anzahl: f.haeufigkeit),
+        ]);
         bedarfe.addAll([
           for (final b in [
             ...?befestigung?.bedarf,
@@ -412,7 +431,16 @@ class PlanungsDienst {
     final gewaehlt = varianten.isEmpty
         ? null
         : math.min(planung.verschnittvariante, varianten.length);
-    if (gewaehlt != null) listen.addAll(varianten[gewaehlt - 1].dielenlisten);
+    if (gewaehlt != null) {
+      final variante = varianten[gewaehlt - 1];
+      listen.addAll(variante.dielenlisten);
+      zuschnittBelag.addAll([
+        for (final MapEntry(key: nummer, value: dielen)
+            in variante.zuschnitt.entries)
+          for (final d in dielen)
+            (artikel: artikelJe[nummer]!, stueck: d, anzahl: 1),
+      ]);
+    }
     for (final MapEntry(key: nummer, value: liste) in listen.entries) {
       bedarfe.addAll([
         for (final MapEntry(key: laenge, value: anzahl) in liste.anzahl.entries)
@@ -434,6 +462,8 @@ class PlanungsDienst {
           (verschnitt: v.summe.verschnitt, dielen: _positionen(v.dielenlisten)),
       ],
       verschnittvariante: gewaehlt,
+      zuschnittBelag: Zuschnittplan.aus(zuschnittBelag),
+      zuschnittUk: Zuschnittplan.aus(zuschnittUk),
     );
   }
 

@@ -15,6 +15,7 @@ import '../ergebnisse/stueckliste.dart';
 import '../geometrie/kontur.dart';
 import '../geometrie/punkt.dart';
 import '../konfiguration/ausschnitt.dart';
+import '../konfiguration/belagverlegung.dart';
 import '../konfiguration/dielenverlegung.dart';
 import '../konfiguration/planungsstand.dart';
 import 'regelwerk.dart';
@@ -40,9 +41,11 @@ final class UkVerlegung {
     List<Planstueck> stuecke = const [],
     List<Materialbedarf> bedarf = const [],
     List<UkHolz> hoelzer = const [],
+    List<Lieferdiele> zuschnitt = const [],
     this.breite = const Millimeter(0),
     this.winkel = 0,
   }) : linien = List.unmodifiable(linien),
+       zuschnitt = List.unmodifiable(zuschnitt),
        stuecke = List.unmodifiable(stuecke),
        bedarf = List.unmodifiable(bedarf),
        hoelzer = List.unmodifiable(hoelzer);
@@ -59,6 +62,9 @@ final class UkVerlegung {
 
   /// Lieferstücke je Lieferlänge und Längsverbinder für die Materialliste.
   final List<Materialbedarf> bedarf;
+
+  /// Welche Stücke aus welchem Lieferholz kommen (M9-02, `lieferhoelzer`).
+  final List<Lieferdiele> zuschnitt;
 
   /// UK-Hölzer in Planungskoordinaten für die Zeichnung.
   final List<UkHolz> hoelzer;
@@ -95,7 +101,7 @@ final class UkVerlegung {
 ///   eine Dielenreihe (`lieferlaengenFuer`, R-B10: kürzeste Länge, die ihn
 ///   abdeckt, längere gestückelt; 1000 cm → 600 + 400 cm wie 2026-07-07);
 ///   eine erzwungene UK-Länge (3.4, M6-03) gilt. Die Lieferstücke rechnet
-///   `lieferstuecke` (kurze Reste aus gemeinsamen Hölzern).
+///   `lieferhoelzer` (kurze Reste aus gemeinsamen Hölzern).
 /// - **Längsverbinder:** je Stoß einer aus den Längsverbindern der UK im
 ///   [regelwerk] (Spalte „mögliche Längsverbinder“), wenn es welche gibt –
 ///   Robinien-UK haben keine.
@@ -172,16 +178,17 @@ UkVerlegung ukVerlegung(
   final verbinder = regelwerk?.datei[uk.nummer] == null
       ? const <Artikel>[]
       : regelwerk!.moeglich(uk.nummer, Beziehung.laengsverbinder);
+  final zuschnitt = lieferhoelzer(
+    [for (final s in stuecke) s.laenge],
+    laengen,
+    fest: stand.ukLaenge,
+  );
   return UkVerlegung(
     linien: linien,
     stuecke: stuecke,
+    zuschnitt: zuschnitt,
     bedarf: [
-      for (final MapEntry(key: laenge, value: anzahl) in lieferstuecke(
-        [for (final s in stuecke) s.laenge],
-        laengen,
-        fest: stand.ukLaenge,
-      ).entries)
-        Materialbedarf([uk], anzahl, laenge: laenge),
+      ...ukBedarf(uk, zuschnitt),
       if (verbinder.isNotEmpty && stossanzahl > 0)
         Materialbedarf(verbinder, stossanzahl),
     ],

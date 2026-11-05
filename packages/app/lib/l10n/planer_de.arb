@@ -444,5 +444,13 @@
   "stueckfarbeRot": "rot – ganze Länge",
   "stueckfarbeBlau": "blau – zugeschnitten",
   "stueckfarbeGruen": "grün – Querstück",
-  "stuecklisteHinweis": "Stücke der bearbeiteten Fläche; die Farbe zeigt das Stück in der Zeichnung."
+  "stuecklisteHinweis": "Stücke der bearbeiteten Fläche; die Farbe zeigt das Stück in der Zeichnung.",
+  "zuschnitt": "Zuschnitt",
+  "zuschnittLeer": "Der Zuschnittplan entsteht, sobald ein Belag verlegt ist.",
+  "zuschnittBelag": "Zuschnitt Belag",
+  "zuschnittUk": "Zuschnitt Unterkonstruktion",
+  "zuschnittSpalteAusgangslaenge": "Ausgangslänge (cm)",
+  "zuschnittSpalteMenge": "Menge",
+  "zuschnittSpalteSchnitte": "Schnittmaße (cm)",
+  "zuschnittHinweis": "Alle Flächen mal Häufigkeit; je Zeile werden aus jedem Stück der Ausgangslänge die Schnittmaße gesägt, ohne Zugabe."
 }

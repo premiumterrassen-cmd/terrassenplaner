@@ -121,6 +121,14 @@ class BerechnungsSteuerung extends ChangeNotifier {
   /// Berechnung vorliegt.
   Stueckliste get stueckliste => _ergebnis?.stueckliste ?? Stueckliste.leer;
 
+  /// Zuschnittplan des Belags der ganzen Planung (M9-02); leer, solange
+  /// keine Berechnung vorliegt.
+  Zuschnittplan get zuschnittBelag =>
+      _ergebnis?.zuschnittBelag ?? Zuschnittplan.leer;
+
+  /// Zuschnittplan der Unterkonstruktion der ganzen Planung (M9-02).
+  Zuschnittplan get zuschnittUk => _ergebnis?.zuschnittUk ?? Zuschnittplan.leer;
+
   Future<void> _frage() async {
     final nummer = ++_anfrage;
     try {

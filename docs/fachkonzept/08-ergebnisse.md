@@ -43,6 +43,20 @@ Neuer Planer (M9-04):
 - **Anzeige:** im Dialog „Materialliste“ umschaltbar auf „Stückliste“: Artikel | Länge (cm) | Stück | Farbe im Plan (Farbfeld und Name).
 - Beispiele: F01 48 × 480 cm blau (aus 5000 mm geschnitten); 800 × 309 cm 48 × 600 cm rot und 48 × 200 cm blau; mit Dielenlänge fest 400 cm 96 × 400 cm rot.
 
+## Zuschnittpläne
+
+In den Planungsunterlagen des alten Planers stehen „Zuschnitt Unterkonstruktion“ und „Zuschnitt Deckbelag“, dieselben Zeilen exportiert die Zuschnittliste der Mitarbeiter-Ansicht: Artikel, Ausgangslänge (cm), Menge, je Schnitt ein Maß (cm) – z. B. F09 „600 cm, 46 ×, 600“ und „400 cm, 23 ×, 200 | 200“.
+
+Neuer Planer (M9-02):
+
+- **Rechnet der Server** (`Zuschnittplan.aus`, Berechnung Plätze 167 Belag und 168 UK) für die ganze Planung: jede Fläche mal ihrer Häufigkeit (Menge), gleiche Lieferstücke (Artikel, Ausgangslänge, Schnitte) in einer Zeile. Reihenfolge: Artikel in der Reihenfolge ihres ersten Stücks, dann die längste Ausgangslänge, dann die größte Menge; Schnitte längste zuerst. Gesägt wird ohne Zugabe (2.7).
+- **Belag:** die Lieferdielen der Verlegung – ohne Optimierung je Teilfläche (2.7), mit Verschnittoptimierung die der gewählten Variante über alle Flächen (07). Freidielen und Verblendungsdielen stehen nicht im Zuschnitt (wie im alten Planer); sie kommen mit M8/M7 nur in die Materialliste.
+- **Unterkonstruktion:** neu die Zuordnung Stück → Lieferholz (`lieferhoelzer`) für alle UK-Quellen: Hölzer der UK-Verlegung (3.11), zusätzliches Holz (Rahmen, zweite Lage, Querstreben, 3.6) und Stützen der Hochterrasse (3.12). Lange Stücke bekommen eigene Hölzer (über der längsten Lieferlänge: ganze Hölzer plus Rest), kurze werden aus gemeinsamen Hölzern geschnitten – dieselbe Regel wie bisher für die Mengen, die Materialliste zählt jetzt die Hölzer des Zuschnitts. Blendenhalter (Verblendung, M7-02) kommen mit M7 dazu.
+- **Anzeige:** im Dialog „Materialliste“ dritte Ansicht „Zuschnitt“ mit „Zuschnitt Belag“ und „Zuschnitt Unterkonstruktion“: Artikel | Ausgangslänge (cm) | Menge | Schnittmaße (cm, getrennt durch „|“). Das PDF (M9-06) und die Zuschnittliste für das ERP übernehmen dieselben Zeilen.
+- **Artikelbezeichnung:** der Titel wie im Shop (B-152); die internen Produktionsbezeichnungen des alten Planers („… - FJ 2 CLIP BOMBIERT“) gehören in den ERP-Export, nicht in die Oberfläche (Annahme).
+- **Abgleich Belag** (Tests): Bei allen 14 vergleichbaren Referenzkonfigurationen (F01, F02, F06–F13, F20, F21, F23, F24) und den 8 Referenzfällen mit gleichen Lieferlängen stimmt der Zuschnitt Deckbelag Zeile für Zeile mit dem alten Planer, wenn man dessen einseitig genutete Anfangsdielen (FJ 1, B-033) zu den übrigen zählt – auch die gemischten Schnitte von F21 (19 × 500: 360 + 140, 19 × 500: 360 + 100). Abweichend F22 (3000 mm gibt es nicht mehr, R-A06).
+- **Abgleich UK** (Tests): F01 13 × 400: 309, F06 14, F07 15, F09 22, F11 24 wie im alten Planer; F02 9 × 500: 480 (alt 5 × 479 + 4 × 481 – Rundung seiner Lage); F10 24 statt 25 Hölzer (Lage der UK-Linien, M6-10, nicht Zuschnitt); F20 10 × 400: 400 wie alt, dessen zwei zusätzliche Stücke à 353 cm gehören zu keinem Holz der Verlegung; F13 nutzt alt 650 cm (Fehler B-035).
+
 ## Angebot anfordern
 
 Knopf „Jetzt Angebot anfordern“ (Materialliste) öffnet „Angebot anfordern“:

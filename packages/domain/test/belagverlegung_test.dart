@@ -70,6 +70,26 @@ int _optimiert(Belagverlegung v) => optimiereZuschnitt([
     for (final s in t.stuecke) s.laenge,
 ], v.lieferlaengen).fold(0, (summe, d) => summe + d.laenge.mm);
 
+/// Zuschnittplan (M9-02) als „Ausgangslänge cm: Schnitte cm“ → Menge;
+/// Schnitte sortiert, Artikel zusammengefasst.
+Map<String, int> _plan(Iterable<(double, List<double>, int)> zeilen) {
+  final plan = <String, int>{};
+  for (final (laenge, schnitte, menge) in zeilen) {
+    final schluessel =
+        '$laenge: ${([...schnitte]..sort((a, b) => b.compareTo(a))).join(' + ')}';
+    plan.update(schluessel, (n) => n + menge, ifAbsent: () => menge);
+  }
+  return plan;
+}
+
+Map<String, int> _neuerPlan(Belagverlegung v) => _plan([
+  for (final z in Zuschnittplan.aus([
+    for (final t in v.teile)
+      for (final d in t.zuschnitt) (artikel: _diele(60), stueck: d, anzahl: 1),
+  ]).zeilen)
+    (z.ausgangslaenge.cm, [for (final s in z.schnitte) s.cm], z.menge),
+]);
+
 int _summe(Map<int, int> anzahl) =>
     anzahl.entries.fold(0, (summe, e) => summe + e.key * e.value);
 
@@ -575,6 +595,22 @@ void _referenzkonfigurationen() {
       expect(_summe(alt(fall('F22'))), 237000);
     });
 
+    test('M9-02: Zuschnitt Deckbelag wie im alten Planer (Anfangsdielen '
+        'zusammengefasst, B-033)', () {
+      for (final id in [
+        'F01', 'F02', 'F06', 'F07', 'F08', 'F09', 'F10', 'F11', 'F12', //
+        'F13', 'F20', 'F21', 'F23', 'F24',
+      ]) {
+        final f = fall(id);
+        final alt = _plan([
+          for (final z in f.zuschnitt)
+            if (z.artikel.startsWith('Terrassendiele'))
+              (z.ausgangslaengeCm, z.schnitteCm, z.menge),
+        ]);
+        expect(_neuerPlan(verlege(f)), alt, reason: id);
+      }
+    });
+
     test('F22: Teilfläche A1 in 4 × 6000 + 4000 statt 3000 mm (R-A06)', () {
       final f = fall('F22');
       final erwartet = alt(f)
@@ -685,6 +721,14 @@ void _referenzfaelle() {
         final v = verlege(id, richtung: richtung);
         expect(_sorten(v), alt(id));
         expect(_anzahl(v.dielenliste), altLieferung(id));
+        // M9-02: Zuschnitt Deckbelag wie in der Unterlage
+        expect(
+          _neuerPlan(v),
+          _plan([
+            for (final z in faelle[id]!.$1.zuschnittDeckbelag)
+              (z.ausgangslaengeCm, z.schnitteCm, z.menge),
+          ]),
+        );
       });
     }
 

@@ -1301,4 +1301,30 @@ class PlanerTexteEn extends PlanerTexte {
   @override
   String get stuecklisteHinweis =>
       'Pieces of the area being edited; the colour marks the piece in the drawing.';
+
+  @override
+  String get zuschnitt => 'Cutting plan';
+
+  @override
+  String get zuschnittLeer =>
+      'The cutting plan appears as soon as decking has been laid.';
+
+  @override
+  String get zuschnittBelag => 'Cutting plan decking';
+
+  @override
+  String get zuschnittUk => 'Cutting plan substructure';
+
+  @override
+  String get zuschnittSpalteAusgangslaenge => 'Stock length (cm)';
+
+  @override
+  String get zuschnittSpalteMenge => 'Quantity';
+
+  @override
+  String get zuschnittSpalteSchnitte => 'Cuts (cm)';
+
+  @override
+  String get zuschnittHinweis =>
+      'All areas times their frequency; per row, the cuts are sawn from each piece of the stock length, without allowance.';
 }

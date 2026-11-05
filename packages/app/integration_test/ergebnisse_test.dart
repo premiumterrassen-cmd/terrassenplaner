@@ -8,28 +8,38 @@ import 'start.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('Material- und Stückliste vom Server (M9-03, M9-04)', (
-    tester,
-  ) async {
-    await starteApp(tester);
-    await tester.tap(find.byKey(const ValueKey('neu')));
-    await tester.pumpAndSettle();
-    // erst der Hinweis auf unveränderte Standardwerte (M3-05)
-    await tester.tap(find.byKey(const ValueKey('materialliste-knopf')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('standardwert-fortfahren')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('materialliste-dialog')), findsOneWidget);
-    // Der Smoke-Server läuft ohne Artikeldatei: nichts verlegt, Liste leer
-    await warteAuf(tester, find.text(de.materiallisteLeer));
-    // M9-04: umschalten auf die Stückliste, ebenfalls leer
-    await tester.tap(find.byKey(const ValueKey('zur-stueckliste')));
-    await tester.pumpAndSettle();
-    expect(find.text(de.stuecklisteLeer), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('materialliste-schliessen')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('materialliste-dialog')), findsNothing);
-  });
+  testWidgets(
+    'Material-, Stückliste und Zuschnitt vom Server (M9-02 bis M9-04)',
+    (tester) async {
+      await starteApp(tester);
+      await tester.tap(find.byKey(const ValueKey('neu')));
+      await tester.pumpAndSettle();
+      // erst der Hinweis auf unveränderte Standardwerte (M3-05)
+      await tester.tap(find.byKey(const ValueKey('materialliste-knopf')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('standardwert-fortfahren')));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('materialliste-dialog')),
+        findsOneWidget,
+      );
+      // Der Smoke-Server läuft ohne Artikeldatei: nichts verlegt, Liste leer
+      await warteAuf(tester, find.text(de.materiallisteLeer));
+      // M9-04: umschalten auf die Stückliste, ebenfalls leer
+      await tester.tap(find.byKey(const ValueKey('zur-stueckliste')));
+      await tester.pumpAndSettle();
+      expect(find.text(de.stuecklisteLeer), findsOneWidget);
+      // M9-02: Zuschnittpläne, ohne Artikeldatei ebenfalls leer
+      await tester.tap(find.byKey(const ValueKey('zum-zuschnitt')));
+      await tester.pumpAndSettle();
+      final leer = find.byKey(const ValueKey('zuschnittplan-leer'));
+      await tester.ensureVisible(leer);
+      expect(tester.widget<Text>(leer).data, de.zuschnittLeer);
+      await tester.tap(find.byKey(const ValueKey('materialliste-schliessen')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('materialliste-dialog')), findsNothing);
+    },
+  );
 
   testWidgets('Verschnittoptimierung erstellen und zurücksetzen (M9-01)', (
     tester,

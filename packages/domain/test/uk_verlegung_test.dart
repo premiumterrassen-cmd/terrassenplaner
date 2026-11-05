@@ -63,6 +63,15 @@ Map<int?, int> _bedarf(UkVerlegung v) => {
   for (final b in v.bedarf) b.laenge?.mm: b.stueck,
 };
 
+/// UK-Zuschnittplan (M9-02) als „Menge × Ausgangslänge: Schnitte“ in cm.
+List<String> _zuschnitt(UkVerlegung v) => [
+  for (final z in Zuschnittplan.aus([
+    for (final d in v.zuschnitt) (artikel: _uk4060, stueck: d, anzahl: 1),
+  ]).zeilen)
+    '${z.menge} × ${z.ausgangslaenge.cm}: '
+        '${[for (final s in z.schnitte) s.cm].join(' + ')}',
+];
+
 void main() {
   group('UK-Verlegung (M6-10)', () {
     test('F01: 13 Hölzer à 309 cm quer zu den Dielen, äußere bündig am Rand '
@@ -608,5 +617,33 @@ void main() {
       expect(ohne.streben, hasLength(20 * ohne.reihen));
       expect(ohne.streben.first.von.x, 20);
     });
+  });
+
+  test('M9-02: UK-Zuschnitt wie in den Zuschnittlisten des alten Planers', () {
+    for (final (art, ab, erwartet) in [
+      (Verlegeart.fugenschnitt, 4800, ['13 × 400.0: 309.0']), // F01
+      (Verlegeart.halbverband, 4800, ['14 × 400.0: 309.0']), // F06
+      (Verlegeart.drittelverband, 4800, ['15 × 400.0: 309.0']), // F07
+      (Verlegeart.fugenschnitt, 8000, ['22 × 400.0: 309.0']), // F09
+      // F10: alter Planer 25 Hölzer – Lage der UK-Linien (M6-10), nicht Zuschnitt
+      (Verlegeart.halbverband, 8000, ['24 × 400.0: 309.0']),
+      (Verlegeart.drittelverband, 8000, ['24 × 400.0: 309.0']), // F11
+    ]) {
+      final v = _verlege(_rechteck(ab, 3090).mitVerlegeart(art));
+      expect(_zuschnitt(v), erwartet, reason: '$art $ab');
+    }
+    // F02 senkrecht: alt 5 × 479 + 4 × 481 cm aus 500 cm (Rundung der
+    // alten Lage), neu 9 × 480 cm – gleiche Hölzer
+    expect(
+      _zuschnitt(
+        _verlege(
+          _rechteck(4800, 3090).mitVerlegerichtung(Verlegerichtung.senkrecht),
+        ),
+      ),
+      ['9 × 500.0: 480.0'],
+    );
+    // F20 (360 × 400 cm): 10 × 400 cm wie alt; die zwei Stücke à 353 cm
+    // des alten Planers gehören zu keinem UK-Holz der Verlegung
+    expect(_zuschnitt(_verlege(_rechteck(3600, 4000))), ['10 × 400.0: 400.0']);
   });
 }

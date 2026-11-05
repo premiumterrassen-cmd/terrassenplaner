@@ -1304,4 +1304,30 @@ class PlanerTexteDe extends PlanerTexte {
   @override
   String get stuecklisteHinweis =>
       'Stücke der bearbeiteten Fläche; die Farbe zeigt das Stück in der Zeichnung.';
+
+  @override
+  String get zuschnitt => 'Zuschnitt';
+
+  @override
+  String get zuschnittLeer =>
+      'Der Zuschnittplan entsteht, sobald ein Belag verlegt ist.';
+
+  @override
+  String get zuschnittBelag => 'Zuschnitt Belag';
+
+  @override
+  String get zuschnittUk => 'Zuschnitt Unterkonstruktion';
+
+  @override
+  String get zuschnittSpalteAusgangslaenge => 'Ausgangslänge (cm)';
+
+  @override
+  String get zuschnittSpalteMenge => 'Menge';
+
+  @override
+  String get zuschnittSpalteSchnitte => 'Schnittmaße (cm)';
+
+  @override
+  String get zuschnittHinweis =>
+      'Alle Flächen mal Häufigkeit; je Zeile werden aus jedem Stück der Ausgangslänge die Schnittmaße gesägt, ohne Zugabe.';
 }

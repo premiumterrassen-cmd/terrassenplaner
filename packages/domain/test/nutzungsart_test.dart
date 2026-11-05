@@ -450,13 +450,23 @@ void main() {
   group('Lieferstücke (M6-05)', () {
     const laengen = [Millimeter(4000), Millimeter(5000), Millimeter(6000)];
     Map<int, int> liefer(List<int> stuecke, {int? fest}) => {
-      for (final MapEntry(:key, :value) in lieferstuecke(
-        [for (final s in stuecke) Millimeter(s)],
-        laengen,
-        fest: fest == null ? null : Millimeter(fest),
-      ).entries)
+      for (final MapEntry(:key, :value) in Dielenliste.aus(
+        lieferhoelzer(
+          [for (final s in stuecke) Millimeter(s)],
+          laengen,
+          fest: fest == null ? null : Millimeter(fest),
+        ),
+      ).anzahl.entries)
         key.mm: value,
     };
+
+    /// Zuschnitt als Texte „Länge: Schnitte“ (M9-02).
+    List<String> hoelzer(List<int> stuecke) => [
+      for (final d in lieferhoelzer([
+        for (final s in stuecke) Millimeter(s),
+      ], laengen))
+        '${d.laenge.mm}: ${[for (final s in d.schnitte) s.mm].join(' + ')}',
+    ];
 
     test('lange Stücke einzeln wie eine Dielenreihe (R-B10)', () {
       expect(liefer([4800, 3090, 2000]), {4000: 2, 5000: 1});
@@ -479,8 +489,19 @@ void main() {
       expect(liefer([1900, 1900, 1900, 1900]), {4000: 1, 6000: 1});
     });
 
+    test('Zuschnitt je Lieferholz (M9-02): lange einzeln, über der '
+        'längsten gestückelt, kurze gemeinsam', () {
+      expect(hoelzer([8000, 3090, 1900, 1900, 300]), [
+        '6000: 6000',
+        '4000: 2000',
+        '4000: 3090',
+        '5000: 1900 + 1900 + 300',
+      ]);
+      expect(hoelzer([13000]), ['6000: 6000', '6000: 6000', '4000: 1000']);
+    });
+
     test('ohne Lieferlängen nichts', () {
-      expect(lieferstuecke(const [Millimeter(500)], const []), isEmpty);
+      expect(lieferhoelzer(const [Millimeter(500)], const []), isEmpty);
       expect(liefer(const []), isEmpty);
     });
 

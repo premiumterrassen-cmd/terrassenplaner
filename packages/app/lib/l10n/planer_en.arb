@@ -391,5 +391,13 @@
   "stueckfarbeRot": "red – full length",
   "stueckfarbeBlau": "blue – cut to length",
   "stueckfarbeGruen": "green – cross piece",
-  "stuecklisteHinweis": "Pieces of the area being edited; the colour marks the piece in the drawing."
+  "stuecklisteHinweis": "Pieces of the area being edited; the colour marks the piece in the drawing.",
+  "zuschnitt": "Cutting plan",
+  "zuschnittLeer": "The cutting plan appears as soon as decking has been laid.",
+  "zuschnittBelag": "Cutting plan decking",
+  "zuschnittUk": "Cutting plan substructure",
+  "zuschnittSpalteAusgangslaenge": "Stock length (cm)",
+  "zuschnittSpalteMenge": "Quantity",
+  "zuschnittSpalteSchnitte": "Cuts (cm)",
+  "zuschnittHinweis": "All areas times their frequency; per row, the cuts are sawn from each piece of the stock length, without allowance."
 }
