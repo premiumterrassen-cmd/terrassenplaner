@@ -37,14 +37,13 @@ Future<AuthServerEinstellungen> testAuthEinstellungen() async =>
     );
 
 /// Startet bin/auth_server.dart als eigenen Prozess (gleiches TMPDIR wie der
-/// Testprozess – ab connectanum beta.7 erlaubt) und wartet auf „bereit“.
+/// Testprozess – ab connectanum beta.7 erlaubt), wartet auf „bereit“ und
+/// legt die [mitarbeiter] über die Verwaltung an (M9-10).
 Future<Process> starteAuthServerProzess({
   required String listen,
   required List<MitarbeiterZugang> mitarbeiter,
 }) async {
   final ordner = Directory.systemTemp.createTempSync('auth-server-');
-  final datei = File('${ordner.path}/mitarbeiter.json')
-    ..writeAsStringSync(jsonEncode([for (final m in mitarbeiter) m.alsJson()]));
   final prozess = await Process.start(
     Platform.resolvedExecutable,
     ['run', 'bin/auth_server.dart'],
@@ -53,8 +52,7 @@ Future<Process> starteAuthServerProzess({
       'PLANER_AUTH_DIENST_TICKET': testTicket,
       'PLANER_AUTH_LISTEN': listen,
       'PLANER_AUTH_HEALTH_LISTEN': await freieAdresse(),
-      'PLANER_MITARBEITER_DATEI': datei.path,
-      // Mitarbeiter liegen in ObjectBox (M0-15); die Datei wird übernommen.
+      // Mitarbeiter-Konten liegen in ObjectBox (M0-15, M9-10).
       'PLANER_DATENVERZEICHNIS': '${ordner.path}/daten',
       'PLANER_KNOTEN': 'test',
       // Freier Port: ein liegengebliebener Prozess darf spätere Starts nicht blockieren.
@@ -83,6 +81,14 @@ Future<Process> starteAuthServerProzess({
     prozess.kill();
     rethrow;
   }
+  final verwaltung = await MitarbeiterWerkzeug.verbinde({
+    'PLANER_AUTH_ADRESSE': listen,
+    'PLANER_AUTH_DIENST_TICKET': testTicket,
+  });
+  for (final m in mitarbeiter) {
+    await verwaltung.rufe(MitarbeiterVerwaltung.anlegen, [m.alsJson()]);
+  }
+  await verwaltung.schliesse();
   return prozess;
 }
 

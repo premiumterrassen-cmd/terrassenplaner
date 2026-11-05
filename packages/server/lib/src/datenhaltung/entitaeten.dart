@@ -68,14 +68,17 @@ class Aenderung {
   String art;
 }
 
-/// Mitarbeiter-Zugang (Referenzdaten, Partition `global`): nur abgeleitete
-/// SCRAM-Schlüssel, nie das Passwort.
+/// Mitarbeiter-Konto (Referenzdaten, Partition `global`): nur abgeleitete
+/// SCRAM-Schlüssel, nie das Passwort. `authId` ist die E-Mail-Adresse in
+/// Kleinschreibung (M9-10).
 @Entity()
 class Benutzer implements Basisdatensatz {
   Benutzer({
     required this.authId,
     required this.salt,
+    required this.kdf,
     required this.iterationen,
+    required this.speicher,
     required this.storedKey,
     required this.serverKey,
     this.rolle = 'mitarbeiter',
@@ -101,17 +104,30 @@ class Benutzer implements Basisdatensatz {
   @override
   int? geloeschtAm;
 
+  /// 2: Schlüsselableitung (`kdf`, `speicher`) und Sperre (M9-10).
   @override
-  int schema = 1;
+  int schema = 2;
 
   @Unique()
   String authId;
 
   String salt;
+
+  /// Schlüsselableitung des SCRAM-Verfahrens: `argon2id13` oder `pbkdf2`.
+  String kdf;
+
+  /// Durchläufe (Argon2id: Zeitkosten).
   int iterationen;
+
+  /// Speicherbedarf in KiB (nur Argon2id, sonst 0).
+  int speicher;
+
   String storedKey;
   String serverKey;
   String rolle;
+
+  /// Gesperrte Konten können sich nicht anmelden (M9-10).
+  bool gesperrt = false;
 }
 
 /// Kopf einer gespeicherten Konfiguration (M9-05, Bewegungsdaten): fachlicher

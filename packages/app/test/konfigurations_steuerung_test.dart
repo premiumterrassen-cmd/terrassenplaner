@@ -36,9 +36,12 @@ void main() {
     expect(k.stand, isNull);
     expect(k.planung.planung, Planung.start);
     expect(
-      '${KonfigurationNichtGefunden(KonfigurationsStand(_nummer, 2))}',
+      '${KonfigurationNichtGefunden.zu(KonfigurationsStand(_nummer, 2))}',
       'Konfiguration 2026-11-04-0001-K7QXM v2 nicht gefunden',
     );
+    final ohneCode = const KonfigurationNichtGefunden('2026-11-04-0001', 3);
+    expect([ohneCode.eingabe, ohneCode.version], ['2026-11-04-0001', 3]);
+    expect('$ohneCode', 'Konfiguration 2026-11-04-0001 v3 nicht gefunden');
     expect(const Fund().entwurf, isFalse);
     expect(const Fund().stand, isNull);
   });
@@ -89,6 +92,31 @@ void main() {
       k.planung.setze(_stand(4000));
       await expectLater(
         k.lade(KonfigurationsStand(_nummer, 1)),
+        throwsA(isA<KonfigurationNichtGefunden>()),
+      );
+      expect(k.planung.planung, _planung(4000));
+      expect(k.stand, isNull);
+      expect(meldungen, 0);
+    });
+  });
+
+  group('laden ohne Prüfcode (Mitarbeiter, M9-10)', () {
+    test('merkt die vollständige Kennung vom Server', () async {
+      final v1 = await ablage.speichere(_planung(6000));
+      k.planung.setze(_stand(4000));
+      await k.ladeOhnePruefcode(v1.nummer, 1);
+      expect(k.planung.planung, _planung(6000));
+      expect(k.planung.kannRueckgaengig, isFalse);
+      expect(k.stand, v1);
+      expect(gedaechtnis.letzteKonfiguration(), v1);
+      expect(meldungen, 1);
+      expect((await k.speichere()).kennung, v1.kennung);
+    });
+
+    test('unbekannt: Fehler, nichts ändert sich', () async {
+      k.planung.setze(_stand(4000));
+      await expectLater(
+        k.ladeOhnePruefcode(_nummer.nummer, 1),
         throwsA(isA<KonfigurationNichtGefunden>()),
       );
       expect(k.planung.planung, _planung(4000));
