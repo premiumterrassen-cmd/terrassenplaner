@@ -1096,6 +1096,7 @@ void main() {
             null,
             null,
             Untergrund.schotter,
+            Nutzungsart.schwimmend,
           ),
         ),
       );

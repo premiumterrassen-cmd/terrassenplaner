@@ -10,6 +10,7 @@ import '../geometrie/punkt.dart';
 import 'ausschnitt.dart';
 import 'befestigungsart.dart';
 import 'grundriss.dart';
+import 'nutzungsart.dart';
 import 'rundungen.dart';
 import 'terrassenart.dart';
 import 'untergrund.dart';
@@ -23,7 +24,8 @@ import 'verlegerichtung.dart';
 /// Verlegeart, seit M5-05 mit Verlegerichtung, seit M5-07 mit
 /// Ausgangspunkt, seit M5-09 mit Befestigungsart, seit M6-01 mit Art der
 /// Terrasse und Spannweite, seit M6-02 mit Höhenpunkten, seit M6-03 mit
-/// Unterkonstruktion und UK-Länge, seit M6-04 mit Untergrund;
+/// Unterkonstruktion und UK-Länge, seit M6-04 mit Untergrund, seit M6-05
+/// mit Art der Terrassennutzung;
 /// Unterkonstruktion usw. folgen als weitere Felder. Berechnet wird daraus
 /// auf dem Server.
 final class Planungsstand {
@@ -49,6 +51,7 @@ final class Planungsstand {
     this.unterkonstruktion,
     this.ukLaenge,
     this.untergrund = Untergrund.schotter,
+    this.nutzungsart = Nutzungsart.schwimmend,
   });
 
   /// Liest einen Planungsstand aus dem Transportformat ([zuBytes]).
@@ -195,6 +198,14 @@ final class Planungsstand {
           0,
         ),
       ),
+      nutzungsart: Nutzungsart.ausNummer(
+        const fb.Uint8Reader().vTableGet(
+          puffer,
+          wurzel,
+          _versatz(_nutzungsartPlatz),
+          0,
+        ),
+      ),
     );
   }
 
@@ -291,6 +302,22 @@ final class Planungsstand {
   /// für die Planer, ohne Wirkung auf die Berechnung (R-C07).
   final Untergrund untergrund;
 
+  /// Art der Terrassennutzung (M6-05, Fachkonzept 3.6); Vorgabe schwimmende
+  /// Verlegung. Gilt nur bei der normalen Terrasse ([wirksameNutzungsart]);
+  /// die Wahl bleibt beim Wechsel der Art erhalten.
+  final Nutzungsart nutzungsart;
+
+  /// Die Nutzungsart, die gilt: bei Hochterrasse und vorhandener UK keine –
+  /// dort entfällt 3.6 (M6-01, F28, F29).
+  Nutzungsart? get wirksameNutzungsart =>
+      terrassenart.mitNutzungsart ? nutzungsart : null;
+
+  /// Ob die UK zwei Lagen hat (Lattenkreuz): bei der Hochterrasse immer,
+  /// sonst mit der Nutzungsart doppelte UK (M6-05).
+  bool get doppelteUk =>
+      terrassenart.ukLagen == 2 ||
+      wirksameNutzungsart == Nutzungsart.doppelteUk;
+
   /// Höhe ohne Gefälle: die eingegebene oder die Vorgabehöhe der Art.
   Millimeter get alleHoehe => hoehe ?? terrassenart.vorgabehoehe;
 
@@ -350,6 +377,7 @@ final class Planungsstand {
     Artikelnummer? unterkonstruktion,
     ({Millimeter? wert})? ukLaenge,
     Untergrund? untergrund,
+    Nutzungsart? nutzungsart,
   }) {
     final neu = grundriss ?? this.grundriss;
     final ecke = ausgangsecke ?? this.ausgangsecke;
@@ -379,6 +407,7 @@ final class Planungsstand {
       unterkonstruktion: unterkonstruktion ?? this.unterkonstruktion,
       ukLaenge: ukLaenge == null ? this.ukLaenge : ukLaenge.wert,
       untergrund: untergrund ?? this.untergrund,
+      nutzungsart: nutzungsart ?? this.nutzungsart,
     );
   }
 
@@ -518,6 +547,9 @@ final class Planungsstand {
   Planungsstand mitUntergrund(Untergrund untergrund) =>
       _mit(untergrund: untergrund);
 
+  /// Kopie mit anderer Art der Terrassennutzung (M6-05).
+  Planungsstand mitNutzungsart(Nutzungsart art) => _mit(nutzungsart: art);
+
   /// Kopie mit oder ohne Gefälle (M6-02).
   Planungsstand mitGefaelle(bool gefaelle) => _mit(gefaelle: gefaelle);
 
@@ -559,7 +591,7 @@ final class Planungsstand {
   /// 21: spannweite (int32 mm) (M6-01), 22: gefaelle (bool), 23: hoehe
   /// (int32 mm; fehlt = Vorgabehöhe), 24: eckhoehen ([int32] mm) (M6-02),
   /// 25: unterkonstruktion (string), 26: ukLaenge (int32 mm; fehlt =
-  /// automatisch) (M6-03), 80: untergrund (uint8) (M6-04) }`. Plätze
+  /// automatisch) (M6-03), 80: untergrund (uint8) (M6-04), 81: nutzungsart (uint8) (M6-05) }`. Plätze
   /// 14–19 gehören der Dielenverlegung (M5-08), 40–49 dem Zubehör (M8),
   /// 80–89 der Unterkonstruktion ab M6-04.
   /// Neue Felder nur anhängen (docs/architektur/datenmodell.md).
@@ -587,7 +619,7 @@ final class Planungsstand {
       null => null,
     };
     fbb
-      ..startTable(_untergrundPlatz + 1)
+      ..startTable(_nutzungsartPlatz + 1)
       ..addUint16(_schemaPlatz, schema)
       ..addOffset(_grundrissPlatz, grundrissOrt)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
@@ -609,7 +641,8 @@ final class Planungsstand {
       ..addOffset(_eckhoehenPlatz, eckhoehenOrt)
       ..addOffset(_unterkonstruktionPlatz, ukOrt)
       ..addInt32(_ukLaengePlatz, ukLaenge?.mm)
-      ..addUint8(_untergrundPlatz, untergrund.nummer);
+      ..addUint8(_untergrundPlatz, untergrund.nummer)
+      ..addUint8(_nutzungsartPlatz, nutzungsart.nummer);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
   }
@@ -652,6 +685,7 @@ final class Planungsstand {
   static const _unterkonstruktionPlatz = 25;
   static const _ukLaengePlatz = 26;
   static const _untergrundPlatz = 80;
+  static const _nutzungsartPlatz = 81;
 
   @override
   bool operator ==(Object other) {
@@ -675,6 +709,7 @@ final class Planungsstand {
         other.unterkonstruktion != unterkonstruktion ||
         other.ukLaenge != ukLaenge ||
         other.untergrund != untergrund ||
+        other.nutzungsart != nutzungsart ||
         other.eckhoehen.length != eckhoehen.length ||
         other.ausschnitte.length != ausschnitte.length) {
       return false;
@@ -712,6 +747,7 @@ final class Planungsstand {
       unterkonstruktion,
       ukLaenge,
       untergrund,
+      nutzungsart,
     ),
   );
 }

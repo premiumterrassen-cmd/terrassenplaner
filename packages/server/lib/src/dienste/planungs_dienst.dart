@@ -18,8 +18,9 @@ typedef Unterkonstruktionssuche = Artikel? Function(Planungsstand stand);
 /// Kennzahlen der bearbeiteten Fläche, die Gesamtfläche (M4-14), die
 /// Dielenstücke (M5-05) mit Nummern, Dielenliste und Verschnitt (M5-08),
 /// den Ausgangspunkt der Verlegung (M5-07), die Befestigung (M5-09), die
-/// geprüften Höhenpunkte (M6-02), die Meldungen zum Belag (M5-10), die
-/// Materialliste (M9-03) und die Stückliste mit den Farben im Plan (M9-04)
+/// geprüften Höhenpunkte (M6-02), die Meldungen zum Belag (M5-10), das
+/// zusätzliche UK-Holz der Nutzungsart (M6-05), die Materialliste (M9-03)
+/// und die Stückliste mit den Farben im Plan (M9-04)
 /// – die App rechnet nichts selbst (Frontend bleibt „doof“). Hin- und
 /// Rückweg als typisierte FlatBuffers (Packed PPT, #110).
 class PlanungsDienst {
@@ -123,6 +124,7 @@ class PlanungsDienst {
       hoehenpunkte: pruefeHoehen(
         stand.hoehen,
         art: stand.terrassenart,
+        doppelteUk: stand.doppelteUk,
         dielenstaerke: belag?.abmessungen.staerke,
         uk: ukMasse(unterkonstruktion),
       ),
@@ -146,8 +148,9 @@ class PlanungsDienst {
     Artikel? belag,
     Regelwerk? regelwerk,
     Belagverlegung? v,
-    Befestigungsbedarf? befestigung,
-  ) {
+    Befestigungsbedarf? befestigung, [
+    Ukzusatz? zusatz,
+  ]) {
     final meldungen = belagmeldungen(stand, belag, v, regelwerk: regelwerk);
     if (v == null) {
       return Berechnung(
@@ -172,6 +175,7 @@ class PlanungsDienst {
           ganzeLaenge: v.laengste,
         ),
     ];
+    final ukStuecke = zusatz?.stuecke ?? const <Planstueck>[];
     return Berechnung(
       umriss: flaeche.umriss,
       ecken: flaeche.ecken,
@@ -186,7 +190,7 @@ class PlanungsDienst {
       kurzeZuschnitte: v.kurzeZuschnitte,
       hoehenpunkte: flaeche.hoehenpunkte,
       befestigung: befestigung,
-      stueckliste: Stueckliste.aus(planstuecke),
+      stueckliste: Stueckliste.aus([...planstuecke, ...ukStuecke]),
       stueckfarben: [for (final p in planstuecke) p.farbe],
     );
   }
@@ -197,8 +201,9 @@ class PlanungsDienst {
   /// zugeschnitten und mal ihrer Häufigkeit gezählt.
   ///
   /// Die Materialliste (M9-03) sammelt den Bedarf aller Flächen mal ihrer
-  /// Häufigkeit: Dielen je Lieferlänge und die Befestigung in Stück (erst
-  /// die Summe wird verpackt). Geänderte Mengen der Planung gelten nur
+  /// Häufigkeit: Dielen je Lieferlänge, die Befestigung in Stück (erst
+  /// die Summe wird verpackt) und das zusätzliche UK-Holz der Nutzungsart
+  /// (M6-05, `ukZusatz`) mit der UK der Fläche. Geänderte Mengen der Planung gelten nur
   /// [mitMengen] – vom Server nur für Mitarbeiter gesetzt
   /// ([darfMengenAendern]).
   static Berechnung berechnePlanung(
@@ -216,10 +221,12 @@ class PlanungsDienst {
       final artikel = belag(f.stand.belag);
       final verlegung = verlegeBelag(f.stand, artikel);
       final befestigung = _befestigung(f.stand, artikel, regelwerk, verlegung);
+      final uk = unterkonstruktion(f.stand);
+      final zusatz = _ukZusatz(f.stand, artikel, regelwerk, uk, verlegung);
       final bearbeitet = i == planung.aktiv;
       // Höhenpunkte nur für die bearbeitete Fläche (M6-02)
       final grund = bearbeitet
-          ? _grundflaeche(f.stand, artikel, unterkonstruktion(f.stand))
+          ? _grundflaeche(f.stand, artikel, uk)
           : _grundflaeche(f.stand);
       gesamt += grund.flaeche * f.haeufigkeit;
       if (verlegung != null) {
@@ -229,7 +236,7 @@ class PlanungsDienst {
           for (final MapEntry(key: laenge, value: anzahl)
               in liste.anzahl.entries)
             Materialbedarf([artikel], anzahl, laenge: laenge),
-          for (final b in befestigung?.bedarf ?? const <Materialbedarf>[])
+          for (final b in [...?befestigung?.bedarf, ...zusatz.bedarf])
             b * f.haeufigkeit,
         ]);
       }
@@ -241,6 +248,7 @@ class PlanungsDienst {
           regelwerk,
           verlegung,
           befestigung,
+          zusatz,
         );
       }
     }
@@ -259,6 +267,25 @@ class PlanungsDienst {
         mengen: mitMengen ? planung.mengen : const {},
       ),
     );
+  }
+
+  /// Zusätzliches UK-Holz der Nutzungsart (M6-05) – nur mit verlegtem Belag
+  /// aus Holz und bekannter [uk]; der UK-Achsabstand kommt wie bei der
+  /// Befestigung aus Belag und Holzart (R-C01).
+  static Ukzusatz _ukZusatz(
+    Planungsstand stand,
+    Artikel? belag,
+    Regelwerk? regelwerk,
+    Artikel? uk,
+    Belagverlegung? v,
+  ) {
+    final holzart = belag?.holzart;
+    if (v == null || uk == null || holzart == null) return Ukzusatz.keiner;
+    final nummer = belag!.nummer;
+    final abstand = regelwerk?.datei[nummer] == null
+        ? null
+        : regelwerk!.abstaende(nummer).uk;
+    return ukZusatz(stand, uk, ukAbstand: ukAbstandFuer(holzart, abstand));
   }
 
   /// **Stelle für die Mitarbeiter-Anmeldung (M9-10):** Geänderte Mengen der

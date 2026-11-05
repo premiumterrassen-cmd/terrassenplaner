@@ -8,6 +8,12 @@ import '../artikel/einheiten.dart';
 /// Abstand der Querstreben (Leiterverband) (R-C03, Alexander).
 const querstrebenAbstand = Millimeter(600);
 
+/// Höchster Abstand der Querstreben-Reihen bei der Nutzungsart Versteifung
+/// (Leiterverband, M6-05). Annahme aus den Referenzkonfigurationen F31/F33:
+/// der alte Planer setzt bei 309 cm UK-Länge zwei Reihen – das ergibt
+/// höchstens der doppelte Querstreben-Abstand.
+const versteifungsAbstand = Millimeter(1200);
+
 /// Fuge zwischen zwei Dielen (R-B06, Alexander).
 const fuge = Millimeter(5);
 

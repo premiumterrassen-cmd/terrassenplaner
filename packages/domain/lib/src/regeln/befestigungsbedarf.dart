@@ -13,6 +13,7 @@ import '../konfiguration/befestigungsart.dart';
 import '../konfiguration/dielenverlegung.dart';
 import 'belagmeldungen.dart';
 import 'regelwerk.dart';
+import 'uk_zusatz.dart';
 
 /// Eine Position der Befestigung: Artikel und Anzahl Verkaufseinheiten
 /// (z. B. 2 × CLIP-FIXX VPE 250).
@@ -189,10 +190,10 @@ Befestigungsbedarf befestigungsbedarf(
       art == null) {
     return Befestigungsbedarf.keiner;
   }
-  final ukArtikel = regelwerk.abstaende(belag.nummer).uk;
-  final ukAbstand = ukArtikel != null && ukArtikel < holzart.ukAchsabstandMax
-      ? ukArtikel
-      : holzart.ukAchsabstandMax;
+  final ukAbstand = ukAbstandFuer(
+    holzart,
+    regelwerk.abstaende(belag.nummer).uk,
+  );
   final (:punkte, :randpunkte) = befestigungspunkte(
     stuecke,
     winkel: winkel,

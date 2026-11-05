@@ -954,6 +954,145 @@ void main() {
     });
   });
 
+  group('Art der Terrassennutzung (M6-05)', () {
+    Artikel holz(String nummer, Artikelart art, int breite, int staerke) =>
+        Artikel(
+          nummer: Artikelnummer(nummer),
+          titel: nummer,
+          art: art,
+          einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+          abmessungen: Abmessungen(
+            breite: Millimeter(breite),
+            staerke: Millimeter(staerke),
+            laengen: const [Millimeter(4000), Millimeter(5000)],
+          ),
+          holzart: robinie,
+          serie: basic,
+          profil: art == Artikelart.diele ? Profil.genutet : null,
+        );
+    final diele = holz('10-10-073', Artikelart.diele, 60, 21);
+    final uk = holz('10-10-031', Artikelart.unterkonstruktion, 40, 60);
+    Map<(String, int?), int> zeilen(Materialliste m) => {
+      for (final p in m.positionen) (p.nummer.wert, p.laenge?.mm): p.anzahl,
+    };
+    Berechnung rechne(
+      Planung planung, {
+      Artikel? mitUk,
+      Regelwerk? regelwerk,
+      Artikel? belag,
+    }) => PlanungsDienst.berechnePlanung(
+      planung,
+      (_) => belag ?? diele,
+      regelwerk,
+      false,
+      (_) => mitUk,
+    );
+
+    test('Rahmen: 2 × 5000 mm in Material- und Stückliste (F32)', () {
+      final stand = Planungsstand.start.mitNutzungsart(Nutzungsart.rahmen);
+      final b = rechne(Planung.start.mitStand(stand), mitUk: uk);
+      expect(zeilen(b.materialliste)[('10-10-031', 5000)], 2);
+      expect(b.stueckliste.zeilen.where((z) => z.nummer == uk.nummer), [
+        const Stuecklistenzeile(
+          nummer: Artikelnummer('10-10-031'),
+          titel: '10-10-031',
+          laenge: Millimeter(4800),
+          stueck: 2,
+          farbe: Stueckfarbe.blau,
+        ),
+      ]);
+      // die Farben im Plan bleiben die der Dielen
+      expect(b.stueckfarben, hasLength(b.dielen.length));
+      // schwimmend (F01): kein UK-Holz
+      final f01 = rechne(Planung.start, mitUk: uk);
+      expect(
+        zeilen(f01.materialliste).keys.map((k) => k.$1),
+        isNot(contains('10-10-031')),
+      );
+    });
+
+    test('alle Flächen mal Häufigkeit; ohne UK, ohne Holzbelag oder ohne '
+        'Dielen keins', () {
+      final stand = Planungsstand.start.mitNutzungsart(Nutzungsart.rahmen);
+      final planung = Planung.start
+          .mitStand(stand)
+          .mitHaeufigkeit(2)
+          .mitNeuerFlaeche()
+          .mitStand(stand);
+      expect(
+        zeilen(rechne(planung, mitUk: uk).materialliste)[('10-10-031', 5000)],
+        6,
+      );
+      expect(
+        zeilen(rechne(planung).materialliste).keys.map((k) => k.$1),
+        isNot(contains('10-10-031')),
+      );
+      final fliese = Artikel(
+        nummer: const Artikelnummer('10-20-001'),
+        titel: 'Fliese',
+        art: Artikelart.holzfliese,
+        einheit: Verkaufseinheit(Mengeneinheit.stueck),
+        abmessungen: Abmessungen(staerke: const Millimeter(40)),
+      );
+      expect(
+        rechne(planung, mitUk: uk, belag: fliese).materialliste.istLeer,
+        isTrue,
+      );
+      final offen = Planung.start.mitStand(
+        Planungsstand(
+          grundriss: FreiformGrundriss(const [Punkt(0, 0), Punkt(1000, 0)]),
+        ).mitNutzungsart(Nutzungsart.rahmen),
+      );
+      expect(rechne(offen, mitUk: uk).materialliste.istLeer, isTrue);
+    });
+
+    test('doppelte UK im Achsabstand des Belags (Regelwerk) und mit zwei '
+        'Lagen in der Höhenprüfung', () {
+      final stand = Planungsstand.start.mitNutzungsart(Nutzungsart.doppelteUk);
+      // ohne Regelwerk: Achsabstand der Holzart, 9 Lagen à 480 cm (F34)
+      expect(
+        zeilen(rechne(Planung.start.mitStand(stand), mitUk: uk).materialliste)[(
+          '10-10-031',
+          5000,
+        )],
+        9,
+      );
+      final regelwerk = Regelwerk(
+        Artikeldatei(
+          quelle: 'test',
+          version: '1',
+          eintraege: [
+            Artikeleintrag(artikel: diele, angaben: const {'Abstand_UK': 350}),
+          ],
+        ),
+      );
+      final b = rechne(
+        Planung.start.mitStand(stand),
+        mitUk: uk,
+        regelwerk: regelwerk,
+      );
+      // 309 cm mit 35 cm: 9 Felder, 10 Lagen
+      expect(zeilen(b.materialliste)[('10-10-031', 5000)], 10);
+      // Belag 21 mm + 2 × 40 mm: 8,6 cm wird auf 10,1 cm korrigiert
+      expect(b.hoehenpunkte.mindesthoehe, const Millimeter(101));
+      expect(b.hoehenpunkte.korrigiert, isTrue);
+      // ein Regelwerk, das den Belag nicht kennt: Achsabstand der Holzart
+      final fremd = Regelwerk(
+        Artikeldatei(quelle: 't', version: '2', eintraege: const []),
+      );
+      expect(
+        zeilen(
+          rechne(
+            Planung.start.mitStand(stand),
+            mitUk: uk,
+            regelwerk: fremd,
+          ).materialliste,
+        )[('10-10-031', 5000)],
+        9,
+      );
+    });
+  });
+
   test('ungültige Maße sind ein Fehler', () async {
     final fbb = fb.Builder();
     final masse = fbb.writeListInt32([4800, 100]);
