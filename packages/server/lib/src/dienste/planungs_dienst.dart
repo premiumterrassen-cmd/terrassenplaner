@@ -26,7 +26,7 @@ typedef Unterkonstruktionssuche = Artikel? Function(Planungsstand stand);
 /// die UK-Verlegung mit Hölzern, Stücken und Holzvolumen (M6-10), die
 /// Auflager mit Höhenzuordnung und Mengen (M6-11), die
 /// Materialliste
-/// (M9-03)
+/// (M9-03) mit der gewählten Verschnittvariante (M9-01)
 /// und die Stückliste mit den Farben im Plan (M9-04)
 /// – die App rechnet nichts selbst (Frontend bleibt „doof“). Hin- und
 /// Rückweg als typisierte FlatBuffers (Packed PPT, #110).

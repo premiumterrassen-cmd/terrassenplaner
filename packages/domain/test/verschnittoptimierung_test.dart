@@ -225,6 +225,19 @@ void main() {
       );
     });
 
+    test('zuerst weniger geliefert, auch mit mehr Dielen', () {
+      final v = verschnittvarianten([
+        (
+          belag: _diele,
+          laengen: const [_m4, _m6],
+          stuecke: List.filled(7, const Millimeter(1900)),
+        ),
+      ]);
+      expect([for (final x in v) x.summe.geliefert.mm], [14000, 16000, 18000]);
+      expect(v[1].dielenlisten[_diele]!.anzahl, {_m4: 4});
+      expect(v[2].dielenlisten[_diele]!.anzahl, {_m6: 3});
+    });
+
     test('mehrere Beläge: Variante k nimmt je Belag die k-te oder letzte; '
         'Gruppen desselben Belags zusammen', () {
       final v = verschnittvarianten([

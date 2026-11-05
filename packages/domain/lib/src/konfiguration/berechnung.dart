@@ -22,7 +22,8 @@ import 'unterbau.dart';
 /// seit M5-10 die Meldungen zum Belag, seit M6-02 die geprüften
 /// Höhenpunkte, seit M9-03 die Materialliste der ganzen Planung, seit M9-04
 /// Stückliste und Farbe je Dielenstück, seit M6-08 die Unterkonstruktion
-/// ([unterbau]), seit M6-10 das Holzvolumen der ganzen Planung.
+/// ([unterbau]), seit M6-10 das Holzvolumen der ganzen Planung, seit M9-01
+/// die Verschnittvarianten mit der gewählten.
 final class Berechnung {
   Berechnung({
     required List<Punkt> umriss,
