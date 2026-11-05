@@ -45,7 +45,9 @@ final class Berechnung {
     List<Stueckfarbe> stueckfarben = const [],
     List<Strebe> querstreben = const [],
     this.querstrebenReihen,
+    List<Stellfuss> stellfuesse = const [],
   }) : querstreben = List.unmodifiable(querstreben),
+       stellfuesse = List.unmodifiable(stellfuesse),
        materialliste = materialliste ?? Materialliste.leer,
        stueckliste = stueckliste ?? Stueckliste.leer,
        stueckfarben = List.unmodifiable(stueckfarben),
@@ -167,6 +169,22 @@ final class Berechnung {
         wurzel,
         _versatz(_querstrebenReihenPlatz),
       ),
+      stellfuesse: [
+        for (final ort in const fb.ListReader<int>(
+          _Tabellenort(),
+        ).vTableGet(puffer, wurzel, _versatz(_stellfuessePlatz), const []))
+          (
+            nummer: Artikelnummer(
+              const fb.StringReader().vTableGet(puffer, ort, _versatz(0), ''),
+            ),
+            titel: const fb.StringReader().vTableGet(
+              puffer,
+              ort,
+              _versatz(1),
+              '',
+            ),
+          ),
+      ],
     );
   }
 
@@ -338,6 +356,11 @@ final class Berechnung {
   /// bearbeiteten Fläche (M6-06); `null` ohne Querstreben.
   final int? querstrebenReihen;
 
+  /// Stellfüße zur UK der bearbeiteten Fläche für die gewählte Nutzung
+  /// (M6-07, `Regelwerk.stellfuesse`) in Datenreihenfolge; leer ohne UK,
+  /// Regelwerk oder Verweise.
+  final List<Stellfuss> stellfuesse;
+
   /// Kopie mit den Werten der ganzen Planung (M4-14, M5-08).
   Berechnung mitPlanung(
     double gesamtflaeche, {
@@ -367,6 +390,7 @@ final class Berechnung {
     stueckfarben: stueckfarben,
     querstreben: querstreben,
     querstrebenReihen: querstrebenReihen,
+    stellfuesse: stellfuesse,
   );
 
   /// FlatBuffer für den Weg zur App (#110):
@@ -389,7 +413,8 @@ final class Berechnung {
   /// (Tabelle, `Materialliste.schreibe`, M9-03), 61: stueckliste (Tabelle,
   /// `Stueckliste.schreibe`), 62: stueckfarben ([uint8] je Dielenstück)
   /// (M9-04), 90: querstreben ([float64] x, y von und bis je Strebe),
-  /// 91: querstrebenReihen (uint16; fehlt ohne) (M6-06) }`. Die Plätze 18–34 sind für die Unterkonstruktion (M6)
+  /// 91: querstrebenReihen (uint16; fehlt ohne) (M6-06), 92: stellfuesse
+  /// ([{ 0: nummer (string), 1: titel (string) }]) (M6-07) }`. Die Plätze 18–34 sind für die Unterkonstruktion (M6)
   /// frei gehalten, 60–69 für die Ergebnisse (M9).
   Uint8List zuBytes() {
     final fbb = fb.Builder();
@@ -429,8 +454,11 @@ final class Berechnung {
     final strebenOrt = _schreibe(fbb, [
       for (final s in querstreben) ...[s.von, s.bis],
     ]);
+    final fuesseOrt = fbb.writeList([
+      for (final f in stellfuesse) _stellfuss(fbb, f),
+    ]);
     fbb
-      ..startTable(_querstrebenReihenPlatz + 1)
+      ..startTable(_stellfuessePlatz + 1)
       ..addOffset(_umrissPlatz, umrissOrt)
       ..addFloat64(_flaechePlatz, flaeche)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
@@ -458,7 +486,8 @@ final class Berechnung {
       ..addOffset(_stuecklistePlatz, stueckOrt)
       ..addOffset(_stueckfarbenPlatz, farbenOrt)
       ..addOffset(_querstrebenPlatz, strebenOrt)
-      ..addUint16(_querstrebenReihenPlatz, querstrebenReihen);
+      ..addUint16(_querstrebenReihenPlatz, querstrebenReihen)
+      ..addOffset(_stellfuessePlatz, fuesseOrt);
     if (verschnitt case final v?) fbb.addFloat64(_verschnittPlatz, v);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
@@ -485,6 +514,16 @@ final class Berechnung {
     fbb
       ..startTable(1)
       ..addOffset(0, ort);
+    return fbb.endTable();
+  }
+
+  static int _stellfuss(fb.Builder fbb, Stellfuss f) {
+    final nummerOrt = fbb.writeString(f.nummer.wert);
+    final titelOrt = fbb.writeString(f.titel);
+    fbb
+      ..startTable(2)
+      ..addOffset(0, nummerOrt)
+      ..addOffset(1, titelOrt);
     return fbb.endTable();
   }
 
@@ -549,9 +588,13 @@ final class Berechnung {
   static const _stueckfarbenPlatz = 62;
   static const _querstrebenPlatz = 90;
   static const _querstrebenReihenPlatz = 91;
+  static const _stellfuessePlatz = 92;
 
   static int _versatz(int platz) => 4 + 2 * platz;
 }
+
+/// Stellfuß zur Auswahl (M6-07): Artikelnummer und Titel.
+typedef Stellfuss = ({Artikelnummer nummer, String titel});
 
 /// Zeile der Dielenliste (M5-08): so viele Dielen des Belags in dieser
 /// Lieferlänge.

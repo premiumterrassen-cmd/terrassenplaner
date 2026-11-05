@@ -20,7 +20,8 @@ typedef Unterkonstruktionssuche = Artikel? Function(Planungsstand stand);
 /// den Ausgangspunkt der Verlegung (M5-07), die Befestigung (M5-09), die
 /// geprüften Höhenpunkte (M6-02), die Meldungen zum Belag (M5-10), das
 /// zusätzliche UK-Holz der Nutzungsart (M6-05) samt Querstreben für die
-/// Zeichnung (M6-06), die Materialliste (M9-03)
+/// Zeichnung (M6-06), die Stellfüße zur Nutzung (M6-07), die Materialliste
+/// (M9-03)
 /// und die Stückliste mit den Farben im Plan (M9-04)
 /// – die App rechnet nichts selbst (Frontend bleibt „doof“). Hin- und
 /// Rückweg als typisierte FlatBuffers (Packed PPT, #110).
@@ -107,6 +108,7 @@ class PlanungsDienst {
     Planungsstand stand, [
     Artikel? belag,
     Artikel? unterkonstruktion,
+    Regelwerk? regelwerk,
   ]) {
     // offene Freiform (M4-08): nur der gezeichnete Linienzug
     if (stand.grundriss case FreiformGrundriss(
@@ -129,7 +131,25 @@ class PlanungsDienst {
         dielenstaerke: belag?.abmessungen.staerke,
         uk: ukMasse(unterkonstruktion),
       ),
+      stellfuesse: _stellfuesse(stand, regelwerk, unterkonstruktion),
     );
+  }
+
+  /// Stellfüße der [uk] für die Nutzung privat oder gewerblich (M6-07) aus
+  /// dem Regelwerk; ohne UK oder wenn das Regelwerk sie nicht kennt: keine.
+  static List<Stellfuss> _stellfuesse(
+    Planungsstand stand,
+    Regelwerk? regelwerk,
+    Artikel? uk,
+  ) {
+    if (uk == null || regelwerk?.datei[uk.nummer] == null) return const [];
+    return [
+      for (final f in regelwerk!.stellfuesse(
+        uk.nummer,
+        gewerblich: stand.gewerblich,
+      ))
+        (nummer: f.nummer, titel: f.titel),
+    ];
   }
 
   /// Breite und Stärke einer UK; `null`, wenn eins fehlt (z. B. Alu-UK
@@ -162,6 +182,7 @@ class PlanungsDienst {
         ausschnitte: flaeche.ausschnitte,
         belagmeldungen: meldungen,
         hoehenpunkte: flaeche.hoehenpunkte,
+        stellfuesse: flaeche.stellfuesse,
       );
     }
     final stuecke = [for (final t in v.teile) ...t.stuecke];
@@ -190,6 +211,7 @@ class PlanungsDienst {
       grenzeObenUnten: v.grenzen.y,
       kurzeZuschnitte: v.kurzeZuschnitte,
       hoehenpunkte: flaeche.hoehenpunkte,
+      stellfuesse: flaeche.stellfuesse,
       befestigung: befestigung,
       stueckliste: Stueckliste.aus([...planstuecke, ...ukStuecke]),
       stueckfarben: [for (final p in planstuecke) p.farbe],
@@ -232,7 +254,7 @@ class PlanungsDienst {
       final bearbeitet = i == planung.aktiv;
       // Höhenpunkte nur für die bearbeitete Fläche (M6-02)
       final grund = bearbeitet
-          ? _grundflaeche(f.stand, artikel, uk)
+          ? _grundflaeche(f.stand, artikel, uk, regelwerk)
           : _grundflaeche(f.stand);
       gesamt += grund.flaeche * f.haeufigkeit;
       if (verlegung != null) {

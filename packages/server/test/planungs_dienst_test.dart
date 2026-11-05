@@ -1131,6 +1131,110 @@ void main() {
     });
   });
 
+  group('Nutzung privat oder gewerblich (M6-07)', () {
+    Artikel artikel(String nummer, Artikelart art) => Artikel(
+      nummer: Artikelnummer(nummer),
+      titel: 'Artikel $nummer',
+      art: art,
+      einheit: Verkaufseinheit(Mengeneinheit.stueck),
+    );
+    final uk = Artikel(
+      nummer: const Artikelnummer('10-10-031'),
+      titel: 'UK',
+      art: Artikelart.unterkonstruktion,
+      einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+      abmessungen: Abmessungen(
+        breite: const Millimeter(40),
+        staerke: const Millimeter(60),
+      ),
+      holzart: robinie,
+      serie: basic,
+    );
+    final privat = artikel('70-10-001', Artikelart.stellfuss);
+    final gewerblich = artikel('70-10-002', Artikelart.stellfuss);
+    final regelwerk = Regelwerk(
+      Artikeldatei(
+        quelle: 'test',
+        version: '1',
+        eintraege: [
+          Artikeleintrag(
+            artikel: uk,
+            verweise: {
+              Beziehung.stellfussPrivat.spalte: [privat.nummer],
+              Beziehung.stellfussGewerblich.spalte: [
+                gewerblich.nummer,
+                privat.nummer,
+              ],
+            },
+          ),
+          Artikeleintrag(artikel: privat),
+          Artikeleintrag(artikel: gewerblich),
+        ],
+      ),
+    );
+    List<String> fuesse(Planungsstand stand, {Regelwerk? mit, Artikel? zu}) => [
+      for (final f in PlanungsDienst.berechnePlanung(
+        Planung.start.mitStand(stand),
+        (_) => null,
+        mit,
+        false,
+        (_) => zu,
+      ).stellfuesse)
+        f.nummer.wert,
+    ];
+
+    test('Stellfußauswahl folgt dem Regelwerk der UK', () {
+      expect(fuesse(Planungsstand.start, mit: regelwerk, zu: uk), [
+        '70-10-001',
+      ]);
+      expect(
+        fuesse(Planungsstand.start.mitGewerblich(true), mit: regelwerk, zu: uk),
+        ['70-10-002', '70-10-001'],
+      );
+      final b = PlanungsDienst.berechnePlanung(
+        Planung.start,
+        (_) => null,
+        regelwerk,
+        false,
+        (_) => uk,
+      );
+      expect(b.stellfuesse.single.titel, 'Artikel 70-10-001');
+      expect(Berechnung.ausBytes(b.zuBytes()).stellfuesse, b.stellfuesse);
+    });
+
+    test('mit Belag und Dielen ebenso; ohne UK oder unbekannt: keine', () {
+      final diele = Artikel(
+        nummer: const Artikelnummer('10-10-073'),
+        titel: 'Diele',
+        art: Artikelart.diele,
+        einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+        abmessungen: Abmessungen(
+          breite: const Millimeter(60),
+          staerke: const Millimeter(21),
+          laengen: const [Millimeter(5000)],
+        ),
+        holzart: robinie,
+        serie: basic,
+        profil: Profil.genutet,
+      );
+      final mitDielen = PlanungsDienst.berechnePlanung(
+        Planung.start,
+        (_) => diele,
+        regelwerk,
+        false,
+        (_) => uk,
+      );
+      expect(mitDielen.dielen, isNotEmpty);
+      expect(mitDielen.stellfuesse, hasLength(1));
+      expect(fuesse(Planungsstand.start, mit: regelwerk), isEmpty);
+      expect(fuesse(Planungsstand.start, zu: uk), isEmpty);
+      final fremd = Regelwerk(
+        Artikeldatei(quelle: 't', version: '2', eintraege: const []),
+      );
+      expect(fuesse(Planungsstand.start, mit: fremd, zu: uk), isEmpty);
+    });
+  });
+
   test('ungültige Maße sind ein Fehler', () async {
     final fbb = fb.Builder();
     final masse = fbb.writeListInt32([4800, 100]);

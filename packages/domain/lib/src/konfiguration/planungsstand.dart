@@ -25,7 +25,8 @@ import 'verlegerichtung.dart';
 /// Ausgangspunkt, seit M5-09 mit Befestigungsart, seit M6-01 mit Art der
 /// Terrasse und Spannweite, seit M6-02 mit Höhenpunkten, seit M6-03 mit
 /// Unterkonstruktion und UK-Länge, seit M6-04 mit Untergrund, seit M6-05
-/// mit Art der Terrassennutzung, seit M6-06 mit Querstreben;
+/// mit Art der Terrassennutzung, seit M6-06 mit Querstreben, seit M6-07
+/// mit privater oder gewerblicher Nutzung;
 /// Unterkonstruktion usw. folgen als weitere Felder. Berechnet wird daraus
 /// auf dem Server.
 final class Planungsstand {
@@ -54,6 +55,7 @@ final class Planungsstand {
     this.nutzungsart = Nutzungsart.schwimmend,
     this.querstreben = false,
     this.querstrebenReihen,
+    this.gewerblich = false,
   });
 
   /// Liest einen Planungsstand aus dem Transportformat ([zuBytes]).
@@ -219,6 +221,12 @@ final class Planungsstand {
         wurzel,
         _versatz(_querstrebenReihenPlatz),
       ),
+      gewerblich: const fb.BoolReader().vTableGet(
+        puffer,
+        wurzel,
+        _versatz(_gewerblichPlatz),
+        false,
+      ),
     );
   }
 
@@ -329,6 +337,11 @@ final class Planungsstand {
   /// beim Abwählen der Querstreben für später erhalten.
   final int? querstrebenReihen;
 
+  /// „Nutzung privat oder gewerblich“ (M6-07, Fachkonzept 3.8): `true` =
+  /// gewerbliche Nutzung; Vorgabe privat (F01). Wählt die Stellfüße aus dem
+  /// Regelwerk (`Regelwerk.stellfuesse`).
+  final bool gewerblich;
+
   /// Ob [reihen] als Anzahl der Quertraversen gilt: 1 bis 99.
   static bool querstrebenReihenGueltig(int reihen) =>
       reihen >= 1 && reihen <= 99;
@@ -406,6 +419,7 @@ final class Planungsstand {
     Nutzungsart? nutzungsart,
     bool? querstreben,
     ({int? wert})? querstrebenReihen,
+    bool? gewerblich,
   }) {
     final neu = grundriss ?? this.grundriss;
     final ecke = ausgangsecke ?? this.ausgangsecke;
@@ -440,6 +454,7 @@ final class Planungsstand {
       querstrebenReihen: querstrebenReihen == null
           ? this.querstrebenReihen
           : querstrebenReihen.wert,
+      gewerblich: gewerblich ?? this.gewerblich,
     );
   }
 
@@ -595,6 +610,9 @@ final class Planungsstand {
     return _mit(querstrebenReihen: (wert: reihen));
   }
 
+  /// Kopie mit privater oder gewerblicher Nutzung (M6-07).
+  Planungsstand mitGewerblich(bool gewerblich) => _mit(gewerblich: gewerblich);
+
   /// Kopie mit oder ohne Gefälle (M6-02).
   Planungsstand mitGefaelle(bool gefaelle) => _mit(gefaelle: gefaelle);
 
@@ -637,7 +655,8 @@ final class Planungsstand {
   /// (int32 mm; fehlt = Vorgabehöhe), 24: eckhoehen ([int32] mm) (M6-02),
   /// 25: unterkonstruktion (string), 26: ukLaenge (int32 mm; fehlt =
   /// automatisch) (M6-03), 80: untergrund (uint8) (M6-04), 81: nutzungsart (uint8) (M6-05), 82: querstreben (bool),
-  /// 83: querstrebenReihen (uint16; fehlt = automatisch) (M6-06) }`. Plätze
+  /// 83: querstrebenReihen (uint16; fehlt = automatisch) (M6-06),
+  /// 84: gewerblich (bool) (M6-07) }`. Plätze
   /// 14–19 gehören der Dielenverlegung (M5-08), 40–49 dem Zubehör (M8),
   /// 80–89 der Unterkonstruktion ab M6-04.
   /// Neue Felder nur anhängen (docs/architektur/datenmodell.md).
@@ -665,7 +684,7 @@ final class Planungsstand {
       null => null,
     };
     fbb
-      ..startTable(_querstrebenReihenPlatz + 1)
+      ..startTable(_gewerblichPlatz + 1)
       ..addUint16(_schemaPlatz, schema)
       ..addOffset(_grundrissPlatz, grundrissOrt)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
@@ -690,7 +709,8 @@ final class Planungsstand {
       ..addUint8(_untergrundPlatz, untergrund.nummer)
       ..addUint8(_nutzungsartPlatz, nutzungsart.nummer)
       ..addBool(_querstrebenPlatz, querstreben)
-      ..addUint16(_querstrebenReihenPlatz, querstrebenReihen);
+      ..addUint16(_querstrebenReihenPlatz, querstrebenReihen)
+      ..addBool(_gewerblichPlatz, gewerblich);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
   }
@@ -736,6 +756,7 @@ final class Planungsstand {
   static const _nutzungsartPlatz = 81;
   static const _querstrebenPlatz = 82;
   static const _querstrebenReihenPlatz = 83;
+  static const _gewerblichPlatz = 84;
 
   @override
   bool operator ==(Object other) {
@@ -762,6 +783,7 @@ final class Planungsstand {
         other.nutzungsart != nutzungsart ||
         other.querstreben != querstreben ||
         other.querstrebenReihen != querstrebenReihen ||
+        other.gewerblich != gewerblich ||
         other.eckhoehen.length != eckhoehen.length ||
         other.ausschnitte.length != ausschnitte.length) {
       return false;
@@ -802,6 +824,7 @@ final class Planungsstand {
       nutzungsart,
       querstreben,
       querstrebenReihen,
+      gewerblich,
     ),
   );
 }
