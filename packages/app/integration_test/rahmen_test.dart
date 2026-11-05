@@ -200,14 +200,20 @@ void main() {
     expect(find.text(de.stellfuesseKeine), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('rueckgaengig')));
     await tester.pumpAndSettle();
+    await _imMenue(tester, find.byKey(const ValueKey('nutzung-privat')));
     expect(_gewaehlt(tester, 'nutzung-privat'), isTrue);
     // M6-08: Auflagen unter 3.9; ohne Artikeldatei keine Auflager mit
     // Höhenangaben, die Wahl ist ein Schritt für Rückgängig
     await _waehle(tester, 'auflagen-stelzfuesse');
     expect(_gewaehlt(tester, 'auflagen-stelzfuesse'), isTrue);
-    expect(find.text(de.auflagerKeine), findsOneWidget);
+    final ohneAuflager = find.text(de.auflagerKeine);
+    await _imMenue(tester, ohneAuflager);
+    expect(ohneAuflager, findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('rueckgaengig')));
     await tester.pumpAndSettle();
+    // das Menü baut nur die sichtbaren Unterpunkte: erst hinscrollen
+    final pads = find.byKey(const ValueKey('auflagen-stelzfuesseUndPads'));
+    await _imMenue(tester, pads);
     expect(_gewaehlt(tester, 'auflagen-stelzfuesseUndPads'), isTrue);
     // M6-09: maximale Feldbreite unter 3.10; ohne Artikeldatei kein Belag
     // aus Holz, also nur der Hinweis
