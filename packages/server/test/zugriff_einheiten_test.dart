@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math';
 
 import 'package:connectanum_router/connectanum_router.dart';
@@ -8,136 +7,187 @@ import 'package:test/test.dart';
 
 void main() {
   group('MitarbeiterZugang', () {
-    test('leitet SCRAM-Schlüssel aus Passwort und Salt ab', () async {
-      final zugang = await MitarbeiterZugang.ableiten(
-        authId: 'anna',
-        passwort: 'geheim',
-        iterationen: 4096,
-        zufall: Random(1),
-      );
-      final erwartet = ScramAuthentication.deriveServerSecrets(
-        secret: 'geheim',
-        salt: zugang.salt,
-        iterations: 4096,
-      );
-      expect(zugang.authId, 'anna');
-      expect(zugang.iterationen, 4096);
-      expect(base64.decode(zugang.salt), hasLength(16));
-      expect(zugang.storedKey, erwartet.storedKey);
-      expect(zugang.serverKey, erwartet.serverKey);
-      expect(zugang.alsJson().values, isNot(contains('geheim')));
-    });
-
-    test('verschiedene Zufallsquellen ergeben verschiedene Salts', () async {
-      final a = await MitarbeiterZugang.ableiten(
-        authId: 'a',
-        passwort: 'x',
-        iterationen: 4096,
-        zufall: Random(1),
-      );
-      final b = await MitarbeiterZugang.ableiten(
-        authId: 'a',
-        passwort: 'x',
-        iterationen: 4096,
-        zufall: Random(2),
-      );
-      expect(a.salt, isNot(b.salt));
-    });
-
     test(
-      'ohne Angabe: sichere Zufallsquelle und Standard-Iterationen',
+      'leitet SCRAM-Schlüssel mit Argon2id aus Passwort und Salt ab',
       () async {
         final zugang = await MitarbeiterZugang.ableiten(
-          authId: 'a',
-          passwort: 'x',
+          authId: 'anna@example.test',
+          passwort: 'geheim',
+          iterationen: 1,
+          speicher: 8,
+          zufall: Random(1),
         );
-        expect(zugang.iterationen, MitarbeiterZugang.standardIterationen);
-        expect(MitarbeiterZugang.standardIterationen, 100000);
+        final erwartet = ScramAuthentication.deriveServerSecrets(
+          secret: 'geheim',
+          salt: zugang.salt,
+          kdf: ScramAuthentication.kdfArgon,
+          iterations: 1,
+          memory: 8,
+        );
+        expect(zugang.authId, 'anna@example.test');
+        expect(zugang.kdf, 'argon2id13');
+        expect(zugang.iterationen, 1);
+        expect(zugang.speicher, 8);
+        expect(zugang.gesperrt, isFalse);
+        expect(base64.decode(zugang.salt), hasLength(16));
+        expect(zugang.storedKey, erwartet.storedKey);
+        expect(zugang.serverKey, erwartet.serverKey);
+        expect(zugang.alsJson().values, isNot(contains('geheim')));
       },
     );
 
-    test('JSON hin und zurück', () {
+    test('verschiedene Zufallsquellen ergeben verschiedene Salts', () async {
+      Future<MitarbeiterZugang> mit(int saat) => MitarbeiterZugang.ableiten(
+        authId: 'a',
+        passwort: 'x',
+        iterationen: 1,
+        speicher: 8,
+        zufall: Random(saat),
+      );
+      expect((await mit(1)).salt, isNot((await mit(2)).salt));
+    });
+
+    test('Standard: Argon2id nach OWASP, sichere Zufallsquelle', () async {
+      expect(MitarbeiterZugang.standardIterationen, 2);
+      expect(MitarbeiterZugang.standardSpeicher, 19456);
+      const z = MitarbeiterZugang(
+        authId: 'a',
+        salt: 's',
+        storedKey: 'k',
+        serverKey: 'v',
+      );
+      expect(
+        [z.kdf, z.iterationen, z.speicher, z.gesperrt],
+        ['argon2id13', 2, 19456, false],
+      );
+      final zugang = await MitarbeiterZugang.ableiten(
+        authId: 'a',
+        passwort: 'x',
+      );
+      expect(zugang.iterationen, 2);
+      expect(zugang.speicher, 19456);
+      final erwartet = ScramAuthentication.deriveServerSecrets(
+        secret: 'x',
+        salt: zugang.salt,
+        kdf: ScramAuthentication.kdfArgon,
+        iterations: 2,
+        memory: 19456,
+      );
+      expect(zugang.storedKey, erwartet.storedKey);
+    });
+
+    test('JSON hin und zurück (ohne Sperre)', () {
       const zugang = MitarbeiterZugang(
-        authId: 'anna',
+        authId: 'anna@example.test',
         salt: 'c2FsdA==',
+        kdf: 'pbkdf2',
         iterationen: 7,
+        speicher: 0,
         storedKey: 'sk',
         serverKey: 'svk',
+        gesperrt: true,
       );
       final json = zugang.alsJson();
       expect(json, {
-        'authid': 'anna',
+        'authid': 'anna@example.test',
         'salt': 'c2FsdA==',
+        'kdf': 'pbkdf2',
         'iterationen': 7,
+        'speicher': 0,
         'stored_key': 'sk',
         'server_key': 'svk',
       });
       final zurueck = MitarbeiterZugang.ausJson(json);
       expect(zurueck.alsJson(), json);
-    });
-  });
-
-  group('MitarbeiterVerzeichnis', () {
-    const anna = MitarbeiterZugang(
-      authId: 'anna',
-      salt: 's',
-      iterationen: 1,
-      storedKey: 'a',
-      serverKey: 'b',
-    );
-
-    test('findet Zugänge nach authid', () {
-      final v = MitarbeiterVerzeichnis([anna]);
-      expect(v.finde('anna'), same(anna));
-      expect(v.finde('bob'), isNull);
-      expect(v.anzahl, 1);
-      expect(v.alle.single, same(anna));
+      expect(zurueck.gesperrt, isFalse);
     });
 
-    test('leeres Verzeichnis', () {
-      final v = MitarbeiterVerzeichnis.leer();
-      expect(v.anzahl, 0);
-      expect(v.finde('anna'), isNull);
-    });
-
-    test('liest eine JSON-Datei', () {
-      final ordner = Directory.systemTemp.createTempSync('mitarbeiter');
-      addTearDown(() => ordner.deleteSync(recursive: true));
-      final datei = File('${ordner.path}/mitarbeiter.json')
-        ..writeAsStringSync(jsonEncode([anna.alsJson()]));
-      final v = MitarbeiterVerzeichnis.ausDatei(datei.path);
-      expect(v.anzahl, 1);
-      expect(v.finde('anna')!.alsJson(), anna.alsJson());
+    test('E-Mail-Adresse als Anmeldename', () {
+      expect(
+        MitarbeiterZugang.email('  Anna.Muster@Example.TEST '),
+        'anna.muster@example.test',
+      );
+      for (final falsch in [
+        '',
+        'anna',
+        'anna@',
+        '@example.test',
+        'anna@example',
+        'an na@example.test',
+        'anna@@example.test',
+        'anna@example.test x',
+      ]) {
+        expect(
+          () => MitarbeiterZugang.email(falsch),
+          throwsA(
+            isA<ArgumentError>()
+                .having((e) => e.invalidValue, 'wert', falsch)
+                .having((e) => e.message, 'meldung', 'keine E-Mail-Adresse'),
+          ),
+          reason: falsch,
+        );
+      }
     });
   });
 
   group('PlanerZugangsdaten', () {
+    late Datenbank db;
+    late Mitarbeiterkonten konten;
+    late PlanerZugangsdaten daten;
+    var nr = 0;
     const anna = MitarbeiterZugang(
-      authId: 'anna',
+      authId: 'anna@example.test',
       salt: 'salz',
-      iterationen: 4096,
+      iterationen: 3,
+      speicher: 64,
       storedKey: 'stored',
       serverKey: 'server',
     );
-    final daten = PlanerZugangsdaten(
-      realm: 'planer',
-      verzeichnis: MitarbeiterVerzeichnis([anna]),
-    );
+
+    setUp(() {
+      db = Datenbank.oeffne('memory:zugangsdaten-${nr++}', knoten: 'k');
+      konten = Mitarbeiterkonten(db)..anlegen(anna);
+      daten = PlanerZugangsdaten(realm: 'planer', konten: konten);
+    });
+
+    tearDown(() => db.schliesse());
 
     test('liefert SCRAM-Zugang mit Rolle mitarbeiter', () async {
-      final c = (await daten.loadScram(realmUri: 'planer', authId: 'anna'))!;
+      final c = (await daten.loadScram(
+        realmUri: 'planer',
+        authId: 'anna@example.test',
+      ))!;
       expect(c.storedKey, 'stored');
       expect(c.serverKey, 'server');
       expect(c.salt, 'salz');
-      expect(c.iterations, 4096);
+      expect(c.kdf, 'argon2id13');
+      expect(c.iterations, 3);
+      expect(c.memory, 64);
       expect(c.role, Rollen.mitarbeiter);
       expect(c.provider, 'planer');
       expect(c.secret, isNull);
+      expect(daten.konten, same(konten));
     });
 
-    test('anderer Realm oder unbekannte authid ergibt nichts', () async {
-      expect(await daten.loadScram(realmUri: 'anders', authId: 'anna'), isNull);
-      expect(await daten.loadScram(realmUri: 'planer', authId: 'bob'), isNull);
+    test('anderer Realm, unbekannt oder gesperrt ergibt nichts', () async {
+      expect(
+        await daten.loadScram(realmUri: 'anders', authId: anna.authId),
+        isNull,
+      );
+      expect(
+        await daten.loadScram(realmUri: 'planer', authId: 'bob@example.test'),
+        isNull,
+      );
+      konten.sperre(anna.authId, gesperrt: true);
+      expect(
+        await daten.loadScram(realmUri: 'planer', authId: anna.authId),
+        isNull,
+      );
+      konten.sperre(anna.authId, gesperrt: false);
+      expect(
+        await daten.loadScram(realmUri: 'planer', authId: anna.authId),
+        isNotNull,
+      );
     });
   });
 

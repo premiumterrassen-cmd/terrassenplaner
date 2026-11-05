@@ -8,13 +8,23 @@ import '../rahmen/steuerung.dart';
 /// Der Server kennt die Konfigurationsnummer oder Version nicht, oder der
 /// Prüfcode passt nicht (M9-05, M9-05b) – beides sieht gleich aus.
 final class KonfigurationNichtGefunden implements Exception {
-  const KonfigurationNichtGefunden(this.stand);
+  const KonfigurationNichtGefunden(this.eingabe, this.version);
 
-  final KonfigurationsStand stand;
+  /// Zur Kennung von [stand].
+  KonfigurationNichtGefunden.zu(KonfigurationsStand stand)
+    : this(stand.kennung.wert, stand.version);
+
+  /// Kennung oder – beim Laden ohne Prüfcode (M9-10) – Nummer.
+  final String eingabe;
+  final int version;
 
   @override
-  String toString() => 'Konfiguration $stand nicht gefunden';
+  String toString() => 'Konfiguration $eingabe v$version nicht gefunden';
 }
+
+/// Eine geladene Planung mit ihrem vollständigen Stand (Kennung mit
+/// Prüfcode und Version).
+typedef GeladeneKonfiguration = ({Planung planung, KonfigurationsStand stand});
 
 /// Automatisch zwischengespeicherter Stand und die gespeicherte
 /// Konfiguration, auf der er beruht (`null` = noch nie gespeichert).
@@ -32,6 +42,14 @@ abstract interface class KonfigurationsAblage {
 
   /// Lädt die Version [stand]; unbekannt: [KonfigurationNichtGefunden].
   Future<Planung> lade(KonfigurationsStand stand);
+
+  /// Lädt Version [version] von [nummer] ohne Prüfcode – nur für
+  /// angemeldete Mitarbeiter (M9-10); sonst und wenn es sie nicht gibt:
+  /// [KonfigurationNichtGefunden].
+  Future<GeladeneKonfiguration> ladeOhnePruefcode(
+    Konfigurationsnummer nummer,
+    int version,
+  );
 
   /// Merkt [planung] als Entwurf der Sitzung [schluessel].
   Future<void> merkeEntwurf(
@@ -117,6 +135,17 @@ class KonfigurationsSteuerung extends ChangeNotifier {
     final geladen = await ablage.lade(stand);
     _setzeStand(stand);
     planung.beginne(geladen);
+  }
+
+  /// LADEN ohne Prüfcode (angemeldete Mitarbeiter, M9-10): gemerkt wird
+  /// die vollständige Kennung vom Server, damit SPEICHERN weiterführt.
+  Future<void> ladeOhnePruefcode(
+    Konfigurationsnummer nummer,
+    int version,
+  ) async {
+    final geladen = await ablage.ladeOhnePruefcode(nummer, version);
+    _setzeStand(geladen.stand);
+    planung.beginne(geladen.planung);
   }
 
   /// Sucht beim Start den Entwurf dieser Sitzung (Server) und die zuletzt

@@ -1,0 +1,12 @@
+#!/bin/sh
+# Verwaltet von Ansible (Terrassenplaner) – Mitarbeiter-Konten verwalten (M9-10):
+#   planer-mitarbeiter anlegen|passwort|sperren|entsperren <email>
+#   planer-mitarbeiter liste
+# Das Passwort kommt über stdin, nie als Argument (docs/betrieb/mitarbeiter.md).
+set -eu
+set -a
+. /etc/terrassenplaner/planer-auth.env
+set +a
+LD_LIBRARY_PATH={{ planer_basis }}/auth_server/lib
+export LD_LIBRARY_PATH
+exec {{ planer_basis }}/auth_server/bin/mitarbeiter "$@"

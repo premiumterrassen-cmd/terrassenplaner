@@ -165,11 +165,15 @@ jobs:
         run: |
           dart build cli --target=bin/server.dart --output=build/server
           dart build cli --target=bin/auth_server.dart --output=build/auth_server
+          dart build cli --target=bin/mitarbeiter.dart --output=build/mitarbeiter
       - name: Artefakte zusammenstellen
         run: |
           mkdir -p artefakte
           cp -r packages/server/build/server/bundle artefakte/server
           cp -r packages/server/build/auth_server/bundle artefakte/auth_server
+          # Werkzeug für Mitarbeiter-Konten (M9-10) ins Bündel des Auth-Servers
+          cp packages/server/build/mitarbeiter/bundle/bin/mitarbeiter artefakte/auth_server/bin/
+          if [ -d packages/server/build/mitarbeiter/bundle/lib ]; then cp -rn packages/server/build/mitarbeiter/bundle/lib/. artefakte/auth_server/lib/; fi
           cp -r packages/app/build/web artefakte/web
           # native ObjectBox-Bibliothek in beide Bündel (LD_LIBRARY_PATH zeigt auf lib/)
           tool/objectbox_bibliothek.sh artefakte/auth_server/lib

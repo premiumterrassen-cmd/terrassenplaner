@@ -1,5 +1,6 @@
 import 'package:connectanum_router/connectanum_router.dart';
 
+import '../dienste/mitarbeiter_verwaltung.dart';
 import 'router_einstellungen.dart';
 import 'umgebung.dart';
 
@@ -36,12 +37,19 @@ class AuthServerEinstellungen {
 
   static const standardListen = '127.0.0.1:8082';
 
-  /// Realm, in dem der Auth-Server `authenticate.*` anbietet.
+  /// Realm, in dem der Auth-Server `authenticate.*` und die
+  /// Mitarbeiter-Verwaltung anbietet.
   static const authRealm = 'connectanum.authenticate';
 
   /// Anmeldename und Rolle des Planer-Routers beim Auth-Server.
   static const clientId = 'router';
   static const clientRolle = 'auth-client';
+
+  /// Anmeldename und Rolle des Verwaltungswerkzeugs `bin/mitarbeiter.dart`
+  /// (M9-10); es meldet sich mit demselben Dienst-Ticket an wie der Router,
+  /// darf aber nur die Verwaltungsprozeduren aufrufen.
+  static const verwaltungId = 'verwaltung';
+  static const verwaltungRolle = 'verwaltung';
 
   /// authid und Rolle der internen Sitzung, über die der Auth-Server seine
   /// Prozeduren registriert.
@@ -64,11 +72,24 @@ class AuthServerEinstellungen {
       ..addAuthMethod('ticket', options: {'authenticator': 'dienst-ticket'})
       ..addRoleFromBuilder(
         RoleSettingsBuilder(clientRolle)
-          ..addPermissionFromBuilder(_recht(const ['call'])),
+          ..addPermissionFromBuilder(_recht(_authenticate, const ['call'])),
+      )
+      ..addRoleFromBuilder(
+        RoleSettingsBuilder(verwaltungRolle)..addPermissionFromBuilder(
+          _recht(MitarbeiterVerwaltung.uriBasis, const ['call']),
+        ),
       )
       ..addRoleFromBuilder(
         RoleSettingsBuilder(sitzungRolle)
-          ..addPermissionFromBuilder(_recht(const ['register', 'unregister'])),
+          ..addPermissionFromBuilder(
+            _recht(_authenticate, const ['register', 'unregister']),
+          )
+          ..addPermissionFromBuilder(
+            _recht(MitarbeiterVerwaltung.uriBasis, const [
+              'register',
+              'unregister',
+            ]),
+          ),
       );
     final listener = ListenerSettingsBuilder('rawsocket', listen)
       ..addAuthMethod('ticket')
@@ -86,6 +107,7 @@ class AuthServerEinstellungen {
           options: {
             'secrets': {
               clientId: {'ticket': dienstTicket, 'role': clientRolle},
+              verwaltungId: {'ticket': dienstTicket, 'role': verwaltungRolle},
             },
           },
         ),
@@ -110,8 +132,10 @@ class AuthServerEinstellungen {
             ))
           .build();
 
-  static PermissionSettingsBuilder _recht(List<String> erlaubt) =>
-      PermissionSettingsBuilder('authenticate.')
+  static const _authenticate = 'authenticate.';
+
+  static PermissionSettingsBuilder _recht(String uri, List<String> erlaubt) =>
+      PermissionSettingsBuilder(uri)
         ..setMatchPolicy(PermissionMatchPolicy.prefix)
         ..allowOperations(erlaubt);
 }

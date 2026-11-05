@@ -1,25 +1,24 @@
 import 'package:connectanum_auth_server/connectanum_auth_server.dart';
 import 'package:connectanum_router/auth.dart';
 
-import '../zugriff/mitarbeiter_verzeichnis.dart';
+import '../datenhaltung/mitarbeiterkonten.dart';
+import '../dienste/mitarbeiter_verwaltung.dart';
 import '../zugriff/planer_zugangsdaten.dart';
 import 'auth_server_einstellungen.dart';
 import 'router_laufzeit.dart';
 
 /// Laufender Auth-Server: eigener Router mit Auth-Realm, an dem
-/// connectanum_auth_server `authenticate.*` über eine interne Sitzung anbietet.
+/// connectanum_auth_server `authenticate.*` und die Mitarbeiter-Verwaltung
+/// (M9-10) über eine interne Sitzung anbieten.
 class AuthServerProzess {
   AuthServerProzess._(this.einstellungen, this._laufzeit);
 
   static Future<AuthServerProzess> starte(
     AuthServerEinstellungen einstellungen, {
-    MitarbeiterQuelle? mitarbeiter,
+    required Mitarbeiterkonten konten,
   }) async {
     AuthCredentialRegistry.registerProvider(
-      PlanerZugangsdaten(
-        realm: einstellungen.planerRealm,
-        verzeichnis: mitarbeiter ?? MitarbeiterVerzeichnis.leer(),
-      ),
+      PlanerZugangsdaten(realm: einstellungen.planerRealm, konten: konten),
     );
     final laufzeit = RouterLaufzeit.starte(
       einstellungen.alsRouterSettings(),
@@ -38,6 +37,7 @@ class AuthServerProzess {
       ),
       session: sitzung,
     );
+    await MitarbeiterVerwaltung.registriere(sitzung, konten);
     return AuthServerProzess._(einstellungen, laufzeit);
   }
 

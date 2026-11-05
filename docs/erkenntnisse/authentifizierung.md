@@ -9,7 +9,7 @@
 | `dienst` | Backend-Dienste auf unserem Server | interne Router-Sitzung (`PlanerRouter.dienstSitzung`), keine Netzwerk-Anmeldung | `register`, `unregister`, `publish`, `call`, `subscribe` auf `de.robinienwelt.terrassenplaner.` |
 
 - **Zwei getrennte Dienste** (Diensttrennung, Vorgabe Alexander 03.10.2026): `bin/server.dart` (Planer-Router) und `bin/auth_server.dart` (eigener Router mit Realm `connectanum.authenticate`, an dem `connectanum_auth_server` `authenticate.hello/authenticate/abort` über eine interne Sitzung anbietet). Der Planer-Router delegiert Mitarbeiter-Anmeldungen per WAMP (`remote`-Authenticator mit `rpc`) an den RawSocket-Listener des Auth-Servers (`PLANER_AUTH_LISTEN`/`PLANER_AUTH_ADRESSE`, Standard `127.0.0.1:8082`, nur Ticket-Anmeldung). Gemeinsame Geheimnisse: `PLANER_AUTH_TOKEN`, `PLANER_AUTH_DIENST_TICKET` (Pflicht).
-- Mitarbeiter-Zugänge: nur abgeleitete SCRAM-Schlüssel (PBKDF2, 100.000 Iterationen, zufälliges Salt), vorläufig aus `PLANER_MITARBEITER_DATEI` (JSON-Liste), später ObjectBox (M0-15). Eintrag erzeugen: `dart run bin/mitarbeiter_zugang.dart <authid>` (Passwort verdeckt).
+- Mitarbeiter-Konten: nur abgeleitete SCRAM-Schlüssel, seit M9-10 mit Argon2id (vorher PBKDF2), in ObjectBox; Verwaltung mit `bin/mitarbeiter.dart` über WAMP (Rolle `verwaltung` im Auth-Realm). Anmeldung in der App, Sperre nach Fehlversuchen und Befunde: `mitarbeiter-anmeldung.md`.
 
 ## Befunde (für Alexander als Maintainer)
 

@@ -1,8 +1,9 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
+import '../anmeldung/anmelde_dialog.dart';
+import '../anmeldung/mitarbeiter_anmeldung.dart';
 import '../design/darstellung.dart';
 import '../design/planer_design.dart';
 import '../konfiguration/konfigurations_steuerung.dart';
@@ -53,7 +54,7 @@ class PlanerRahmen extends StatefulWidget {
     this.unterlagen,
     this.sprache,
     this.darstellung,
-    this.mitarbeiter,
+    this.anmeldung,
   });
 
   /// Inhalt der Statuszeile (z. B. Verbindung zum Server).
@@ -99,10 +100,9 @@ class PlanerRahmen extends StatefulWidget {
   /// Auswahl.
   final DarstellungSteuerung? darstellung;
 
-  /// Ob ein Mitarbeiter angemeldet ist (Mitarbeiter-Ansicht der
-  /// Materialliste, Fachkonzept 08); `null` = Kunde. Die Anmeldung selbst
-  /// folgt mit M9-10.
-  final ValueListenable<bool>? mitarbeiter;
+  /// ANMELDEN für Mitarbeiter (M9-10); ohne sie kein Knopf. Angemeldet
+  /// zeigt die Materialliste die Mitarbeiter-Ansicht (Fachkonzept 08).
+  final MitarbeiterAnmeldung? anmeldung;
 
   @override
   State<PlanerRahmen> createState() => _PlanerRahmenState();
@@ -154,9 +154,17 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
     null => null,
   };
 
+  /// Mitarbeiter-Ansicht der Materialliste, solange jemand angemeldet ist.
+  late final _mitarbeiter = ValueNotifier<bool>(_istAngemeldet);
+
+  bool get _istAngemeldet => widget.anmeldung?.angemeldetAls.value != null;
+
+  void _angemeldet() => _mitarbeiter.value = _istAngemeldet;
+
   @override
   void initState() {
     super.initState();
+    widget.anmeldung?.angemeldetAls.addListener(_angemeldet);
     _berechnung?.addListener(_meldeFehler);
     _zustand.addListener(_verlaesstRundung);
   }
@@ -187,6 +195,8 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
 
   @override
   void dispose() {
+    widget.anmeldung?.angemeldetAls.removeListener(_angemeldet);
+    _mitarbeiter.dispose();
     _berechnung?.dispose();
     _belaege?.dispose();
     _uk?.dispose();
@@ -224,7 +234,7 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
       builder: (_) => MateriallisteDialog(
         berechnung: berechnung,
         planung: _planung,
-        mitarbeiter: widget.mitarbeiter,
+        mitarbeiter: _mitarbeiter,
       ),
     );
   }
@@ -284,20 +294,37 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
     messenger.showSnackBar(SnackBar(content: Text(meldung)));
   }
 
-  /// LADEN: „Konfiguration laden“ mit der geöffneten Konfiguration vorbelegt.
+  /// LADEN: „Konfiguration laden“ mit der geöffneten Konfiguration
+  /// vorbelegt; angemeldete Mitarbeiter laden auch ohne Prüfcode (M9-10).
   Future<void> _lade(KonfigurationsSteuerung konfiguration) async {
+    final mitarbeiter = _istAngemeldet;
     final geladen = await showDialog<bool>(
       context: context,
       builder: (_) => LadenDialog(
         laden: konfiguration.lade,
         speichern: konfiguration.speichere,
         vorgabe: konfiguration.stand,
+        ladenOhnePruefcode: mitarbeiter
+            ? konfiguration.ladeOhnePruefcode
+            : null,
       ),
     );
     if (geladen ?? false) {
       _zustand.vergissAenderungen();
       _ansicht.zentriere();
     }
+  }
+
+  Future<void> _anmelden(MitarbeiterAnmeldung anmeldung) => showDialog<bool>(
+    context: context,
+    builder: (_) => AnmeldeDialog(anmeldung: anmeldung),
+  );
+
+  Future<void> _abmelden(MitarbeiterAnmeldung anmeldung) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final meldung = context.texte.abgemeldetMeldung;
+    await anmeldung.abmelden();
+    messenger.showSnackBar(SnackBar(content: Text(meldung)));
   }
 
   @override
@@ -313,9 +340,17 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
 
   Widget _seite(BuildContext context) => Scaffold(
     body: ListenableBuilder(
-      listenable: Listenable.merge([_zustand, _planung, _berechnung, _rundung]),
+      listenable: Listenable.merge([
+        _zustand,
+        _planung,
+        _berechnung,
+        _rundung,
+        widget.anmeldung?.angemeldetAls,
+      ]),
       builder: (context, _) => LayoutBuilder(
         builder: (context, raum) {
+          final anmeldung = widget.anmeldung;
+          final angemeldetAls = anmeldung?.angemeldetAls.value;
           final desktop = PlanerLayout.istDesktop(raum.maxWidth);
           final menuOffen = _zustand.menuOffen(desktop: desktop);
           final menu = Bearbeitungsmenue(
@@ -343,6 +378,15 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
                 },
                 onLaden: switch (widget.konfiguration) {
                   final k? => () => _lade(k),
+                  null => null,
+                },
+                angemeldetAls: angemeldetAls,
+                onAnmelden: switch (anmeldung) {
+                  final a? => () => _anmelden(a),
+                  null => null,
+                },
+                onAbmelden: switch (anmeldung) {
+                  final a? => () => _abmelden(a),
                   null => null,
                 },
                 onVideoberatung: () =>
@@ -427,7 +471,11 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
                   ],
                 ),
               ),
-              Statuszeile(oeffne: widget.aktionen.oeffne, child: widget.status),
+              Statuszeile(
+                oeffne: widget.aktionen.oeffne,
+                angemeldetAls: angemeldetAls,
+                child: widget.status,
+              ),
             ],
           );
         },
@@ -450,6 +498,9 @@ class Kopfzeile extends StatelessWidget {
     this.darstellung,
     this.onSpeichern,
     this.onLaden,
+    this.onAnmelden,
+    this.onAbmelden,
+    this.angemeldetAls,
   });
 
   final bool breit;
@@ -464,13 +515,23 @@ class Kopfzeile extends StatelessWidget {
   final VoidCallback? onSpeichern;
   final VoidCallback? onLaden;
 
+  /// ANMELDEN und Abmelden der Mitarbeiter (M9-10); ohne Rückruf kein Knopf.
+  final VoidCallback? onAnmelden;
+  final VoidCallback? onAbmelden;
+
+  /// E-Mail-Adresse des angemeldeten Mitarbeiters; dann ABMELDEN statt
+  /// ANMELDEN (schmal mit „Angemeldet als …“ im Tooltip). Die Anzeige
+  /// „Angemeldet als …“ steht in der [Statuszeile] – in der Kopfzeile ist
+  /// kein Platz dafür.
+  final String? angemeldetAls;
+
   static const logo = 'assets/bilder/robinienwelt_logo.png';
 
   /// Ab dieser Breite (px) tragen die Knöpfe ihre Beschriftung; darunter
   /// nur Symbole mit Tooltip – auch für längere Übersetzungen (M3-07) und
   /// mit Sprach- und Darstellungsauswahl (M3-09) sowie SPEICHERN und LADEN
-  /// (M9-05; Englisch braucht 1627 px).
-  static const textAb = 1680.0;
+  /// (M9-05) und ANMELDEN bzw. ABMELDEN (M9-10; Deutsch braucht 1800 px).
+  static const textAb = 1800.0;
 
   Widget _knopf(
     String schluessel,
@@ -478,6 +539,7 @@ class Kopfzeile extends StatelessWidget {
     String text,
     VoidCallback onPressed, {
     required bool mitText,
+    String? tooltip,
   }) => mitText
       ? TextButton.icon(
           key: ValueKey(schluessel),
@@ -487,10 +549,25 @@ class Kopfzeile extends StatelessWidget {
         )
       : IconButton(
           key: ValueKey(schluessel),
-          tooltip: text,
+          tooltip: tooltip ?? text,
           onPressed: onPressed,
           icon: Icon(symbol),
         );
+
+  /// ANMELDEN bzw. ABMELDEN (M9-10).
+  List<Widget> _anmeldung(PlanerTexte t, {required bool mitText}) => [
+    if ((angemeldetAls, onAnmelden) case (null, final anmelden?))
+      _knopf('anmelden', Icons.login, t.anmelden, anmelden, mitText: mitText),
+    if ((angemeldetAls, onAbmelden) case (final email?, final abmelden?))
+      _knopf(
+        'abmelden',
+        Icons.logout,
+        t.abmelden,
+        abmelden,
+        mitText: mitText,
+        tooltip: '${t.angemeldetAls(email)} – ${t.abmelden}',
+      ),
+  ];
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(
@@ -561,6 +638,7 @@ class Kopfzeile extends StatelessWidget {
             onZuruecksetzen,
             mitText: mitText,
           ),
+          ..._anmeldung(t, mitText: mitText),
           _knopf(
             'pdf',
             Icons.picture_as_pdf_outlined,
@@ -999,10 +1077,18 @@ class Kennzahlen extends StatelessWidget {
 
 /// Fußbereich (M3-06): Status links, rechtliche Links rechts.
 class Statuszeile extends StatelessWidget {
-  const Statuszeile({required this.child, required this.oeffne, super.key});
+  const Statuszeile({
+    required this.child,
+    required this.oeffne,
+    super.key,
+    this.angemeldetAls,
+  });
 
   final Widget child;
   final LinkOeffner oeffne;
+
+  /// „Angemeldet als …“ (M9-10); `null` = Kunde, anonym.
+  final String? angemeldetAls;
 
   @override
   Widget build(BuildContext context) {
@@ -1019,6 +1105,14 @@ class Statuszeile extends StatelessWidget {
         child: Row(
           children: [
             Expanded(child: child),
+            if (angemeldetAls case final email?)
+              Flexible(
+                child: Text(
+                  t.angemeldetAls(email),
+                  key: const ValueKey('angemeldet-als'),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             for (final (name, text, adresse) in [
               ('agb', t.agb, PlanerLinks.agb),
               ('datenschutz', t.datenschutz, PlanerLinks.datenschutz),

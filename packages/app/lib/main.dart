@@ -52,6 +52,8 @@ void main() {
       gedaechtnis: einstellungen,
       sprache: einstellungen.sprache(),
       darstellung: einstellungen.darstellung(),
+      // ANMELDEN für Mitarbeiter (M9-10): nur die Sitzung, nie das Passwort.
+      anmeldung: verbindung,
     ),
   );
 }

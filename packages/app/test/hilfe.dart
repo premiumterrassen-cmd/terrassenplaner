@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:terrassenplaner_app/src/anmeldung/mitarbeiter_anmeldung.dart';
 import 'package:terrassenplaner_app/src/einstellungen/einstellungs_speicher.dart';
 import 'package:terrassenplaner_app/src/einstellungen/lokale_einstellungen.dart';
 import 'package:terrassenplaner_app/src/konfiguration/konfigurations_steuerung.dart';
@@ -37,6 +39,40 @@ Konfigurationskennung kennung(String text) => Konfigurationskennung.lies(text);
 /// Stand aus Kennungstext und Version für Tests.
 KonfigurationsStand stand(String kennungText, int version) =>
     KonfigurationsStand(kennung(kennungText), version);
+
+/// Anmeldung wie der Server (M9-10): nur [email] mit [passwort] wird
+/// angenommen; mit [erreichbar] = false scheitert jeder Versuch wie ohne
+/// Server.
+class TestAnmeldung implements MitarbeiterAnmeldung {
+  TestAnmeldung({this.email = 'anna@example.test', this.passwort = 'richtig'});
+
+  final String email;
+  final String passwort;
+  var erreichbar = true;
+
+  /// Hält jeden Versuch an, bis der Test ihn freigibt.
+  Completer<void>? sperre;
+  final versuche = <(String, String)>[];
+
+  final _angemeldetAls = ValueNotifier<String?>(null);
+
+  @override
+  ValueNotifier<String?> get angemeldetAls => _angemeldetAls;
+
+  @override
+  Future<void> anmelden(String email, String passwort) async {
+    versuche.add((email, passwort));
+    await sperre?.future;
+    if (!erreichbar) throw StateError('Server nicht erreichbar');
+    if (anmeldename(email) != this.email || passwort != this.passwort) {
+      throw const AnmeldungAbgelehnt();
+    }
+    angemeldetAls.value = this.email;
+  }
+
+  @override
+  Future<void> abmelden() async => angemeldetAls.value = null;
+}
 
 /// Ablage im Arbeitsspeicher wie der Konfigurationsdienst (M9-05); mit
 /// [erreichbar] = false scheitert jeder Aufruf wie ohne Server.
@@ -80,7 +116,23 @@ class TestAblage implements KonfigurationsAblage {
   @override
   Future<Planung> lade(KonfigurationsStand stand) async {
     _pruefe();
-    return versionen[stand] ?? (throw KonfigurationNichtGefunden(stand));
+    return versionen[stand] ?? (throw KonfigurationNichtGefunden.zu(stand));
+  }
+
+  /// Wie der Dienst für Mitarbeiter (M9-10): die Nummer genügt, die
+  /// Antwort bringt die vollständige Kennung.
+  @override
+  Future<GeladeneKonfiguration> ladeOhnePruefcode(
+    Konfigurationsnummer nummer,
+    int version,
+  ) async {
+    _pruefe();
+    for (final MapEntry(key: stand, value: planung) in versionen.entries) {
+      if (stand.nummer == nummer && stand.version == version) {
+        return (planung: planung, stand: stand);
+      }
+    }
+    throw KonfigurationNichtGefunden(nummer.wert, version);
   }
 
   @override
