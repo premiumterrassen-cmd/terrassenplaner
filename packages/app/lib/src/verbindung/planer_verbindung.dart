@@ -129,6 +129,18 @@ class PlanerVerbindung implements KonfigurationsAblage {
         );
       });
 
+  /// Importdatei für GrandTotal zur [planung] vom Exportdienst (M9-08);
+  /// [adresse] ist die Adresse der Web-App für die Bild-Links. Nur für
+  /// angemeldete Mitarbeiter – sonst lehnt der Router den Aufruf ab.
+  Future<String> exportGrandTotal(Planung planung, Uri adresse) =>
+      _mitSitzung((sitzung) async {
+        final antwort = await sitzung.callSingle(
+          WampNamen.exportGrandTotal,
+          arguments: [planung.zuBytes(), '$adresse'],
+        );
+        return antwort.arguments!.single! as String;
+      });
+
   /// Zum Belag passende Unterkonstruktionen vom Artikeldienst (M6-03);
   /// ohne [belag] die zum Vorgabe-Belag.
   Future<Ukauswahl> unterkonstruktionen(Artikelnummer? belag) =>

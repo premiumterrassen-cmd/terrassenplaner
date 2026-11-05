@@ -8,6 +8,7 @@ export 'src/datenhaltung/konfigurationen.dart';
 export 'src/datenhaltung/roh_speicher.dart';
 export 'src/dienste/artikel_dienst.dart';
 export 'src/dienste/artikeldatei_quelle.dart';
+export 'src/dienste/export_dienst.dart';
 export 'src/dienste/hallo_dienst.dart';
 export 'src/dienste/konfigurations_dienst.dart';
 export 'src/dienste/modell3d_dienst.dart';

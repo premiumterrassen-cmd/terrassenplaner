@@ -5,6 +5,7 @@ import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 import '../artikel/artikelbild_widget.dart';
 import '../design/planer_design.dart';
+import '../export/grandtotal_export.dart';
 import '../sprache/sprache.dart';
 import 'berechnung_steuerung.dart';
 import 'steuerung.dart';
@@ -18,13 +19,15 @@ import 'stueckliste.dart';
 /// In der Mitarbeiter-Ansicht ([mitarbeiter], Fachkonzept 08) ist die Menge
 /// je Position änderbar und wird mit dem Häkchen übernommen; die Planung
 /// merkt sich die Menge, der Server rechnet mit ihr – aber nur für
-/// angemeldete Mitarbeiter (M9-10).
+/// angemeldete Mitarbeiter (M9-10). Dort gibt es auch den Export für
+/// GrandTotal (M9-08), wenn ein [export] angeschlossen ist.
 class MateriallisteAnsicht extends StatelessWidget {
   const MateriallisteAnsicht({
     required this.berechnung,
     required this.planung,
     super.key,
     this.mitarbeiter = false,
+    this.export,
   });
 
   final BerechnungsSteuerung berechnung;
@@ -32,6 +35,9 @@ class MateriallisteAnsicht extends StatelessWidget {
 
   /// Ob die Mengen änderbar sind (Rolle Mitarbeiter, M9-10).
   final bool mitarbeiter;
+
+  /// Export für GrandTotal (M9-08); nur in der Mitarbeiter-Ansicht.
+  final GrandTotalExport? export;
 
   /// Betrag in Euro mit zwei Nachkommastellen im Format der Sprache
   /// („2.066,57 €“); „–“ ohne Preis.
@@ -80,6 +86,11 @@ class MateriallisteAnsicht extends StatelessWidget {
             key: const ValueKey('materialliste-mitarbeiter'),
             t.materialMitarbeiter,
             style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
+        if ((mitarbeiter, export) case (true, final e?))
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: GrandTotalExportKnopf(export: e, planung: planung),
           ),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
@@ -290,13 +301,15 @@ class _MengenfeldState extends State<Mengenfeld> {
 
 /// Dialog mit Materialliste (M9-03) und Stückliste (M9-04), umschaltbar;
 /// [mitarbeiter] schaltet die Mitarbeiter-Ansicht der Materialliste frei
-/// (Rollenprüfung, angeschlossen mit M9-10).
+/// (Rollenprüfung, angeschlossen mit M9-10) samt Export für GrandTotal
+/// ([export], M9-08).
 class MateriallisteDialog extends StatefulWidget {
   const MateriallisteDialog({
     required this.berechnung,
     required this.planung,
     super.key,
     this.mitarbeiter,
+    this.export,
   });
 
   final BerechnungsSteuerung berechnung;
@@ -304,6 +317,9 @@ class MateriallisteDialog extends StatefulWidget {
 
   /// Rolle der Sitzung; `null` = Kunde (keine Anmeldung).
   final ValueListenable<bool>? mitarbeiter;
+
+  /// Export für GrandTotal (M9-08); `null` = keiner angeschlossen.
+  final GrandTotalExport? export;
 
   @override
   State<MateriallisteDialog> createState() => _MateriallisteDialogState();
@@ -348,6 +364,7 @@ class _MateriallisteDialogState extends State<MateriallisteDialog> {
                 berechnung: widget.berechnung,
                 planung: widget.planung,
                 mitarbeiter: istMitarbeiter,
+                export: widget.export,
               ),
             ),
             Ergebnisliste.stueck => StuecklisteAnsicht(

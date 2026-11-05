@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import 'package:terrassenplaner_server/terrassenplaner_server.dart';
 
 /// Öffentlicher Planer-Router. Braucht einen laufenden Auth-Server
@@ -11,12 +12,20 @@ Future<void> main() async {
   final hallo = await HalloDienst.starte(router);
   final modell3d = await Modell3dDienst.starte(router);
   final artikel = await ArtikelDienst.starte(router, ArtikeldateiQuelle.leer);
+  Artikel? unterkonstruktion(Planungsstand stand) =>
+      artikel.unterkonstruktion(stand.belag, stand.unterkonstruktion);
   final planung = await PlanungsDienst.starte(
     router,
     belag: artikel.belag,
     regelwerk: () => artikel.regelwerk,
-    unterkonstruktion: (stand) =>
-        artikel.unterkonstruktion(stand.belag, stand.unterkonstruktion),
+    unterkonstruktion: unterkonstruktion,
+  );
+  // Export für GrandTotal (M9-08) aus der Materialliste.
+  final export = await ExportDienst.starte(
+    router,
+    belag: artikel.belag,
+    regelwerk: () => artikel.regelwerk,
+    unterkonstruktion: unterkonstruktion,
   );
   // Konfigurationen (M9-05) in einer eigenen ObjectBox-Datenbank – ObjectBox
   // erlaubt einen Prozess je Datenbank, der Auth-Server hat seine eigene.
@@ -56,6 +65,7 @@ Future<void> main() async {
   nachladen.cancel();
   await artikel.stoppe();
   await planung.stoppe();
+  await export.stoppe();
   await konfiguration.stoppe();
   datenbank.schliesse();
   await modell3d.stoppe();

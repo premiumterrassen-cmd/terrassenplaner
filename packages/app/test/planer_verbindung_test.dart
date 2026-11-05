@@ -32,6 +32,13 @@ void main() {
     addTearDown(modell3d.stoppe);
     final planung = await PlanungsDienst.starte(router);
     addTearDown(planung.stoppe);
+    final export = await ExportDienst.starte(
+      router,
+      belag: (_) => null,
+      regelwerk: () => null,
+      unterkonstruktion: (_) => null,
+    );
+    addTearDown(export.stoppe);
     final artikel = await ArtikelDienst.starte(
       router,
       Artikeldatei(
@@ -87,6 +94,14 @@ void main() {
       expect(uk.version, 'v1');
       expect(uk.angebote, isEmpty);
     }
+    // M9-08: Importdatei für GrandTotal als Text (ohne Belag nur der Kopf)
+    expect(
+      await verbindung.exportGrandTotal(
+        Planung.start,
+        Uri.parse('https://planer.example/'),
+      ),
+      grandTotalCsv(const []),
+    );
   });
 
   test(

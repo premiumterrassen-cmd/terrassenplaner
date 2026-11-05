@@ -41,6 +41,8 @@ void main() {
       berechne: verbindung.berechne,
       belaege: verbindung.belaege,
       unterkonstruktionen: verbindung.unterkonstruktionen,
+      // Export für GrandTotal (M9-08): nur für angemeldete Mitarbeiter.
+      exportGrandTotal: verbindung.exportGrandTotal,
       // Speichern, Laden und Entwurf über den Konfigurationsdienst (M9-05);
       // der Browser merkt sich nur Nummer, Version und Sitzungsschlüssel.
       ablage: verbindung,

@@ -3,6 +3,7 @@ import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 import 'src/design/darstellung.dart';
 import 'src/design/planer_design.dart';
+import 'src/export/grandtotal_export.dart';
 import 'src/konfiguration/konfigurations_steuerung.dart';
 import 'src/rahmen/belag.dart';
 import 'src/rahmen/berechnung_steuerung.dart';
@@ -25,6 +26,7 @@ class PlanerApp extends StatefulWidget {
     this.berechne,
     this.belaege,
     this.unterkonstruktionen,
+    this.exportGrandTotal,
     this.sprache,
     this.darstellung,
   });
@@ -46,6 +48,9 @@ class PlanerApp extends StatefulWidget {
 
   /// Unterkonstruktionen zum Belag vom Server (M6-03).
   final UnterkonstruktionenLaden? unterkonstruktionen;
+
+  /// Export für GrandTotal vom Server (M9-08, Mitarbeiter-Ansicht).
+  final GrandTotalAnfordern? exportGrandTotal;
 
   /// Sprache aus den lokalen Einstellungen (M3-09); ohne Vorgabe Deutsch
   /// (M3-07).
@@ -96,6 +101,7 @@ class _PlanerAppState extends State<PlanerApp> {
           berechne: widget.berechne,
           belaege: widget.belaege,
           unterkonstruktionen: widget.unterkonstruktionen,
+          exportGrandTotal: widget.exportGrandTotal,
           sprache: _sprache,
           darstellung: _darstellung,
         ),

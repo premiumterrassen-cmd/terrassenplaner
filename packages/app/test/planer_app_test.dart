@@ -17,12 +17,19 @@ void main() {
       ..physicalSize = const Size(1440, 900)
       ..devicePixelRatio = 1;
     addTearDown(tester.view.reset);
+    Future<String> export(Planung planung, Uri adresse) async => '';
     await tester.pumpWidget(
       PlanerApp(
         ablage: TestAblage(),
         gedaechtnis: testGedaechtnis(),
         hallo: () async => 'x',
+        exportGrandTotal: export,
       ),
+    );
+    // Export für GrandTotal (M9-08) reicht die App an den Rahmen durch
+    expect(
+      tester.widget<PlanerRahmen>(find.byType(PlanerRahmen)).exportGrandTotal,
+      same(export),
     );
     final app = tester.widget<MaterialApp>(find.byType(MaterialApp));
     expect(app.title, 'Terrassenplaner – ALTO HOLZ');

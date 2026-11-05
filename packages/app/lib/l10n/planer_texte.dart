@@ -2218,6 +2218,24 @@ abstract class PlanerTexte {
   /// **'Mitarbeiter-Ansicht: Mengen änderbar'**
   String get materialMitarbeiter;
 
+  /// No description provided for @exportGrandTotal.
+  ///
+  /// In de, this message translates to:
+  /// **'Export für GrandTotal'**
+  String get exportGrandTotal;
+
+  /// No description provided for @exportGrandTotalFertig.
+  ///
+  /// In de, this message translates to:
+  /// **'Importdatei {datei} erstellt.'**
+  String exportGrandTotalFertig(String datei);
+
+  /// No description provided for @exportGrandTotalFehler.
+  ///
+  /// In de, this message translates to:
+  /// **'Der Export für GrandTotal ist fehlgeschlagen. Bitte versuchen Sie es erneut.'**
+  String get exportGrandTotalFehler;
+
   /// No description provided for @einheitStueck.
   ///
   /// In de, this message translates to:
