@@ -27,7 +27,8 @@ import 'verlegerichtung.dart';
 /// Terrasse und Spannweite, seit M6-02 mit Höhenpunkten, seit M6-03 mit
 /// Unterkonstruktion und UK-Länge, seit M6-04 mit Untergrund, seit M6-05
 /// mit Art der Terrassennutzung, seit M6-06 mit Querstreben, seit M6-07
-/// mit privater oder gewerblicher Nutzung, seit M6-08 mit Auflagen;
+/// mit privater oder gewerblicher Nutzung, seit M6-08 mit Auflagen, seit
+/// M6-09 mit maximaler Feldbreite;
 /// Unterkonstruktion usw. folgen als weitere Felder. Berechnet wird daraus
 /// auf dem Server.
 final class Planungsstand {
@@ -58,6 +59,7 @@ final class Planungsstand {
     this.querstrebenReihen,
     this.gewerblich = false,
     this.auflagen = Auflagen.stelzfuesseUndPads,
+    this.feldbreite,
   });
 
   /// Liest einen Planungsstand aus dem Transportformat ([zuBytes]).
@@ -237,6 +239,14 @@ final class Planungsstand {
           Auflagen.stelzfuesseUndPads.nummer,
         ),
       ),
+      feldbreite: switch (const fb.Int32Reader().vTableGetNullable(
+        puffer,
+        wurzel,
+        _versatz(_feldbreitePlatz),
+      )) {
+        final mm? => Millimeter(mm),
+        null => null,
+      },
     );
   }
 
@@ -357,6 +367,16 @@ final class Planungsstand {
   /// das Regelwerk der UK (`auflagerbereiche`).
   final Auflagen auflagen;
 
+  /// „Maximale Feldbreite“ (M6-09, Fachkonzept 3.10): höchster Abstand der
+  /// UK-Hölzer; `null` = automatisch, die höchste erlaubte (R-C01). Darüber
+  /// rechnet der Server mit der höchsten (`wirksameFeldbreite`).
+  final Millimeter? feldbreite;
+
+  /// Ob [feldbreite] als Eingabe gilt: 10 bis 100 cm.
+  static bool feldbreiteGueltig(Millimeter feldbreite) =>
+      feldbreite >= const Millimeter(100) &&
+      feldbreite <= const Millimeter(1000);
+
   /// Ob [reihen] als Anzahl der Quertraversen gilt: 1 bis 99.
   static bool querstrebenReihenGueltig(int reihen) =>
       reihen >= 1 && reihen <= 99;
@@ -436,6 +456,7 @@ final class Planungsstand {
     ({int? wert})? querstrebenReihen,
     bool? gewerblich,
     Auflagen? auflagen,
+    ({Millimeter? wert})? feldbreite,
   }) {
     final neu = grundriss ?? this.grundriss;
     final ecke = ausgangsecke ?? this.ausgangsecke;
@@ -472,6 +493,7 @@ final class Planungsstand {
           : querstrebenReihen.wert,
       gewerblich: gewerblich ?? this.gewerblich,
       auflagen: auflagen ?? this.auflagen,
+      feldbreite: feldbreite == null ? this.feldbreite : feldbreite.wert,
     );
   }
 
@@ -633,6 +655,19 @@ final class Planungsstand {
   /// Kopie mit anderen Auflagen (M6-08).
   Planungsstand mitAuflagen(Auflagen auflagen) => _mit(auflagen: auflagen);
 
+  /// Kopie mit maximaler Feldbreite (`feldbreiteGueltig`); `null` =
+  /// automatisch (M6-09).
+  Planungsstand mitFeldbreite(Millimeter? feldbreite) {
+    if (feldbreite != null && !feldbreiteGueltig(feldbreite)) {
+      throw ArgumentError.value(
+        feldbreite.mm,
+        'feldbreite',
+        'muss 100 bis 1000 mm sein',
+      );
+    }
+    return _mit(feldbreite: (wert: feldbreite));
+  }
+
   /// Kopie mit oder ohne Gefälle (M6-02).
   Planungsstand mitGefaelle(bool gefaelle) => _mit(gefaelle: gefaelle);
 
@@ -677,7 +712,8 @@ final class Planungsstand {
   /// automatisch) (M6-03), 80: untergrund (uint8) (M6-04), 81: nutzungsart (uint8) (M6-05), 82: querstreben (bool),
   /// 83: querstrebenReihen (uint16; fehlt = automatisch) (M6-06),
   /// 84: gewerblich (bool) (M6-07), 100: auflagen (uint8; fehlt =
-  /// Stelzfüße und Pads) (M6-08) }`. Plätze
+  /// Stelzfüße und Pads) (M6-08), 101: feldbreite (int32 mm; fehlt =
+  /// automatisch) (M6-09) }`. Plätze
   /// 14–19 gehören der Dielenverlegung (M5-08), 40–49 dem Zubehör (M8),
   /// 80–89 der Unterkonstruktion ab M6-04, 100–109 Auflagen, Feldbreite und
   /// UK-Verlegung (M6-08 bis M6-11).
@@ -706,7 +742,7 @@ final class Planungsstand {
       null => null,
     };
     fbb
-      ..startTable(_auflagenPlatz + 1)
+      ..startTable(_feldbreitePlatz + 1)
       ..addUint16(_schemaPlatz, schema)
       ..addOffset(_grundrissPlatz, grundrissOrt)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
@@ -733,7 +769,8 @@ final class Planungsstand {
       ..addBool(_querstrebenPlatz, querstreben)
       ..addUint16(_querstrebenReihenPlatz, querstrebenReihen)
       ..addBool(_gewerblichPlatz, gewerblich)
-      ..addUint8(_auflagenPlatz, auflagen.nummer);
+      ..addUint8(_auflagenPlatz, auflagen.nummer)
+      ..addInt32(_feldbreitePlatz, feldbreite?.mm);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
   }
@@ -781,6 +818,7 @@ final class Planungsstand {
   static const _querstrebenReihenPlatz = 83;
   static const _gewerblichPlatz = 84;
   static const _auflagenPlatz = 100;
+  static const _feldbreitePlatz = 101;
 
   @override
   bool operator ==(Object other) {
@@ -809,6 +847,7 @@ final class Planungsstand {
         other.querstrebenReihen != querstrebenReihen ||
         other.gewerblich != gewerblich ||
         other.auflagen != auflagen ||
+        other.feldbreite != feldbreite ||
         other.eckhoehen.length != eckhoehen.length ||
         other.ausschnitte.length != ausschnitte.length) {
       return false;
@@ -851,6 +890,7 @@ final class Planungsstand {
       querstrebenReihen,
       gewerblich,
       auflagen,
+      feldbreite,
     ),
   );
 }

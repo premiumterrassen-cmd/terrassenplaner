@@ -298,10 +298,14 @@ void main() {
         expect(u.auflager, isEmpty);
         expect(u.meldungen, isEmpty);
       }
-      expect(
-        unterbauFuer(f01, hoehen: hoehen, regelwerk: auflagerRegelwerk),
-        same(Unterbau.leer),
+      final ohneUk = unterbauFuer(
+        f01,
+        hoehen: hoehen,
+        regelwerk: auflagerRegelwerk,
       );
+      expect(ohneUk.auflagerabstand, isNull);
+      expect(ohneUk.auflager, isEmpty);
+      expect(ohneUk.feldbreite, isNull);
       final fremd = unterbauFuer(
         f01,
         hoehen: hoehen,

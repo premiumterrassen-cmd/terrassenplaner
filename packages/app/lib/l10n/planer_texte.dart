@@ -1180,6 +1180,12 @@ abstract class PlanerTexte {
   /// **'Auflagen'**
   String get unterkonstruktion9;
 
+  /// No description provided for @unterkonstruktion10.
+  ///
+  /// In de, this message translates to:
+  /// **'Maximale Feldbreite'**
+  String get unterkonstruktion10;
+
   /// No description provided for @terrassenanschluss1.
   ///
   /// In de, this message translates to:
@@ -2043,6 +2049,30 @@ abstract class PlanerTexte {
   /// In de, this message translates to:
   /// **'Bei vorhandener Unterkonstruktion wird die neue UK mit Bodenankern auf den vorhandenen Trägern befestigt; der Abstand ist die Spannweite.'**
   String get auflagerVorhandeneUk;
+
+  /// No description provided for @feldbreiteHinweis.
+  ///
+  /// In de, this message translates to:
+  /// **'Höchster Abstand der UK-Hölzer (Achsabstand). Firmenregel: höchstens 40 cm, sicherer unter 35 cm.'**
+  String get feldbreiteHinweis;
+
+  /// No description provided for @feldbreiteCm.
+  ///
+  /// In de, this message translates to:
+  /// **'{cm} cm'**
+  String feldbreiteCm(String cm);
+
+  /// No description provided for @feldbreiteBegrenzt.
+  ///
+  /// In de, this message translates to:
+  /// **'Die gewählte Feldbreite überschreitet die Firmenregel; gerechnet wird mit {cm} cm.'**
+  String feldbreiteBegrenzt(String cm);
+
+  /// No description provided for @feldbreiteOhneBelag.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Feldbreite hängt vom Belag ab: Wählen Sie zuerst einen Belag aus Holz.'**
+  String get feldbreiteOhneBelag;
 
   /// No description provided for @automatisch.
   ///

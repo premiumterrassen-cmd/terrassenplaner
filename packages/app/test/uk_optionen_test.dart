@@ -586,6 +586,148 @@ void main() {
     });
   });
 
+  group('Maximale Feldbreite (M6-09)', () {
+    /// Antwort wie vom Server: Robinie 30–40 cm; über 40 cm begrenzt.
+    Future<Berechnung> server(Planung planung) async {
+      final gewaehlt = planung.aktuell.feldbreite;
+      final zuBreit = gewaehlt != null && gewaehlt > const Millimeter(400);
+      return Berechnung(
+        umriss: const [],
+        flaeche: 1,
+        unterbau: Unterbau(
+          feldbreiten: const [
+            Millimeter(300),
+            Millimeter(350),
+            Millimeter(400),
+          ],
+          feldbreite: zuBreit
+              ? const Millimeter(400)
+              : gewaehlt ?? const Millimeter(400),
+          feldbreiteBegrenzt: zuBreit,
+        ),
+      );
+    }
+
+    Future<PlanungsSteuerung> zeige(
+      WidgetTester tester, {
+      Locale sprache = const Locale('de'),
+      bool mitServer = true,
+      List<int>? aenderungen,
+    }) async {
+      final planung = PlanungsSteuerung();
+      final berechnung = BerechnungsSteuerung(
+        planung: planung,
+        berechne: server,
+      );
+      addTearDown(() {
+        berechnung.dispose();
+        planung.dispose();
+      });
+      await tester.pumpWidget(
+        testApp(
+          sprache: sprache,
+          home: Scaffold(
+            body: FeldbreiteWahl(
+              planung: planung,
+              berechnung: mitServer ? berechnung : null,
+              onGeaendert: () => aenderungen?.add(aenderungen.length),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      return planung;
+    }
+
+    ChoiceChip chip(WidgetTester tester, String name) =>
+        tester.widget(find.byKey(ValueKey('feldbreite-$name')));
+
+    testWidgets('Automatisch und 30/35/40 cm vom Server; Wahl ist ein '
+        'Schritt; gespeicherte 60 cm werden begrenzt', (tester) async {
+      final aenderungen = <int>[];
+      final planung = await zeige(tester, aenderungen: aenderungen);
+      expect(chip(tester, 'automatisch').selected, isTrue);
+      expect(find.text(de.feldbreiteCm('30')), findsOneWidget);
+      expect(find.text(de.feldbreiteCm('35')), findsOneWidget);
+      expect(find.text(de.feldbreiteCm('40')), findsOneWidget);
+      expect(find.text(de.feldbreiteHinweis), findsOneWidget);
+      expect(find.byKey(const ValueKey('feldbreite-begrenzt')), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('feldbreite-350')));
+      await tester.pump();
+      await tester.pump();
+      expect(planung.aktuell.feldbreite, const Millimeter(350));
+      expect(chip(tester, '350').selected, isTrue);
+      expect(chip(tester, 'automatisch').selected, isFalse);
+      expect(aenderungen, [0]);
+      await tester.tap(find.byKey(const ValueKey('feldbreite-350')));
+      await tester.pump();
+      expect(aenderungen, [0]);
+      await tester.tap(find.byKey(const ValueKey('feldbreite-automatisch')));
+      await tester.pump();
+      expect(planung.aktuell.feldbreite, isNull);
+      expect(aenderungen, [0, 1]);
+      await tester.tap(find.byKey(const ValueKey('feldbreite-automatisch')));
+      await tester.pump();
+      expect(aenderungen, [0, 1]);
+      planung.rueckgaengig();
+      await tester.pump();
+      expect(chip(tester, '350').selected, isTrue);
+      planung.setze(planung.aktuell.mitFeldbreite(const Millimeter(600)));
+      await tester.pump();
+      await tester.pump();
+      expect(find.text(de.feldbreiteBegrenzt('40')), findsOneWidget);
+    });
+
+    testWidgets('ohne Belag: Hinweis; englische Texte', (tester) async {
+      await zeige(tester, sprache: const Locale('en'), mitServer: false);
+      expect(
+        find.text(
+          'The field width depends on the decking: choose a timber decking '
+          'first.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.byType(ChoiceChip), findsNothing);
+    });
+  });
+
+  testWidgets('Menü: 3.10 Maximale Feldbreite', (tester) async {
+    tester.view.physicalSize = const Size(1440, 5000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final zustand = RahmenZustand()..waehle(PlanerSchritt.unterkonstruktion);
+    final planung = PlanungsSteuerung();
+    addTearDown(planung.dispose);
+    await tester.pumpWidget(
+      testApp(
+        home: PlanerRahmen(
+          status: const SizedBox(),
+          zustand: zustand,
+          planung: planung,
+          berechne: (_) async => Berechnung(
+            umriss: const [],
+            flaeche: 1,
+            unterbau: Unterbau(
+              feldbreiten: const [Millimeter(300)],
+              feldbreite: const Millimeter(400),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.text('3.10 ${de.unterkonstruktion10}'), findsOneWidget);
+    final f30 = find.byKey(const ValueKey('feldbreite-300'));
+    await tester.ensureVisible(f30);
+    await tester.tap(f30);
+    await tester.pump();
+    expect(planung.aktuell.feldbreite, const Millimeter(300));
+    expect(
+      zustand.unveraendert,
+      isNot(contains(PlanerSchritt.unterkonstruktion)),
+    );
+  });
+
   testWidgets('Menü: 3.9 Auflagen', (tester) async {
     tester.view.physicalSize = const Size(1440, 2400);
     tester.view.devicePixelRatio = 1;

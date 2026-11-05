@@ -50,6 +50,7 @@ export 'src/referenz/referenzkonfiguration.dart';
 export 'src/regeln/auflager.dart';
 export 'src/regeln/befestigungsbedarf.dart';
 export 'src/regeln/belagmeldungen.dart';
+export 'src/regeln/feldbreite.dart';
 export 'src/regeln/hoehenpunkte.dart';
 export 'src/regeln/planungsregeln.dart';
 export 'src/regeln/regelwerk.dart';

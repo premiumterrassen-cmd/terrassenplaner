@@ -209,6 +209,12 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('rueckgaengig')));
     await tester.pumpAndSettle();
     expect(_gewaehlt(tester, 'auflagen-stelzfuesseUndPads'), isTrue);
+    // M6-09: maximale Feldbreite unter 3.10; ohne Artikeldatei kein Belag
+    // aus Holz, also nur der Hinweis
+    final feldbreite = find.text(de.feldbreiteOhneBelag);
+    await _imMenue(tester, feldbreite);
+    expect(feldbreite, findsOneWidget);
+    expect(find.text(de.feldbreiteHinweis), findsOneWidget);
   });
 }
 

@@ -119,3 +119,14 @@ Neuer Planer (M6-08):
 - **Höhengrenzen mit Meldung** (Abnahme, `auflagermeldungen`): „Ein Höhenpunkt liegt unter der Mindesthöhe von … cm mit Stelzfüßen …“ (nur ohne Pads: der niedrigste Fuß, z. B. Justierkeil 14 mm, passt nicht unter die UK) und „… über der Höchsthöhe von … cm …“ (über dem höchsten Fuß, z. B. 200 mm: dann Hochterrasse). Geprüft werden die Höhenpunkte; dazwischen ist die Höhe linear (M6-11), die Grenzen liegen also an den Eckpunkten.
 - Bei Hochterrasse und vorhandener UK gibt es keine Stelzfüße: Hinweis auf Stützen aus UK-Holz mit Bodenankern bzw. Bodenanker auf den vorhandenen Trägern (Mengen M6-11).
 - Berechnung Platz 110 (`Unterbau`): Abstand, Bereiche, mögliche Höhe und Meldungen.
+
+## 3.10 Maximale Feldbreite
+
+Im alten Planer nicht einstellbar (er rechnet mit 40 cm UK-Achsabstand); die neue Planer-Version bietet eine Feldbreite von 40, 50 oder 60 cm. Firmenregel M1-04: UK-Achsabstand höchstens 40 cm, sicherer unter 35 cm (R-C01, Antwort 4).
+
+Neuer Planer (M6-09):
+
+- Unterpunkt 3.10 (bei Hochterrasse und vorhandener UK 3.9) „Maximale Feldbreite“ mit „Automatisch“ (Vorgabe) und den Feldbreiten, die der Server für den Belag erlaubt, als Chips; Hinweis „Höchster Abstand der UK-Hölzer (Achsabstand). Firmenregel: höchstens 40 cm, sicherer unter 35 cm.“ Planungsstand-Feld `feldbreite` (Platz 101, fehlt = automatisch, 10–100 cm); jede Wahl ist ein Schritt für Rückgängig/Wiederherstellen. Ohne Belag aus Holz: „Die Feldbreite hängt vom Belag ab …“.
+- **Regel aus M1-04 umgesetzt** (Abnahme): Zur Wahl stehen 30, 35, 40, 50 und 60 cm (`feldbreitenAuswahl`: die der neuen Planer-Version und die sichereren unter 35 cm), aber nur bis zur höchsten Feldbreite des Belags (`hoechsteFeldbreite`: UK-Abstand des Belags laut Artikeldaten, höchstens der der Holzart, Robinie 40 cm). Für Robinie also 30, 35 und 40 cm; 50 und 60 cm verbietet die Firmenregel. Eine gespeicherte breitere Wahl (etwa aus einer anderen Holzart) gilt nicht: gerechnet wird mit der höchsten, die App meldet „Die gewählte Feldbreite überschreitet die Firmenregel; gerechnet wird mit 40 cm.“
+- **Wirkung** (`wirksameFeldbreite`): Sie ist der UK-Achsabstand für die Befestigungspunkte (M5-09), das zusätzliche UK-Holz der Nutzungsart (M6-05: zweite Lage, Leiterverband) und die UK-Verlegung (M6-10). F01 mit 30 cm: 17 statt 13 UK-Linien (624 → 816 Befestigungspunkte), doppelte UK 12 statt 9 Hölzer in der zweiten Lage.
+- Berechnung (Unterbau, Plätze 5–7): wählbare Feldbreiten, wirksame Feldbreite, ob begrenzt.

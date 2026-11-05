@@ -1338,6 +1338,98 @@ void main() {
     });
   });
 
+  group('Maximale Feldbreite (M6-09)', () {
+    final clip = Artikel(
+      nummer: const Artikelnummer('80-10-001-250'),
+      titel: 'CLIP-FIXX - VPE 250',
+      art: Artikelart.clip,
+      einheit: Verkaufseinheit(Mengeneinheit.verpackungseinheit, inhalt: 250),
+    );
+    final diele = Artikel(
+      nummer: const Artikelnummer('10-10-073'),
+      titel: 'Diele',
+      art: Artikelart.diele,
+      einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+      abmessungen: Abmessungen(
+        breite: const Millimeter(60),
+        staerke: const Millimeter(21),
+        laengen: const [Millimeter(5000)],
+      ),
+      holzart: robinie,
+      serie: basic,
+      profil: Profil.genutet,
+    );
+    final uk = Artikel(
+      nummer: const Artikelnummer('10-10-031'),
+      titel: 'UK',
+      art: Artikelart.unterkonstruktion,
+      einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+      abmessungen: Abmessungen(
+        breite: const Millimeter(40),
+        staerke: const Millimeter(60),
+      ),
+      holzart: robinie,
+      serie: basic,
+    );
+    final regelwerk = Regelwerk(
+      Artikeldatei(
+        quelle: 'test',
+        version: '1',
+        eintraege: [
+          Artikeleintrag(
+            artikel: diele,
+            verweise: {
+              Beziehung.befestigung.spalte: [clip.nummer],
+            },
+          ),
+          Artikeleintrag(artikel: clip),
+          Artikeleintrag(artikel: uk),
+        ],
+      ),
+    );
+    Berechnung rechne(Planungsstand stand) => Berechnung.ausBytes(
+      PlanungsDienst.berechnePlanung(
+        Planung.start.mitStand(stand),
+        (_) => diele,
+        regelwerk,
+        false,
+        (_) => uk,
+      ).zuBytes(),
+    );
+
+    test('Auswahl und wirksame Feldbreite; 30 cm: mehr UK-Linien für '
+        'Befestigung und zusätzliches UK-Holz', () {
+      final auto = rechne(
+        Planungsstand.start.mitNutzungsart(Nutzungsart.doppelteUk),
+      );
+      expect(auto.unterbau.feldbreiten, const [
+        Millimeter(300),
+        Millimeter(350),
+        Millimeter(400),
+      ]);
+      expect(auto.unterbau.feldbreite, const Millimeter(400));
+      expect(auto.befestigung.punkte, 624);
+      final eng = rechne(
+        Planungsstand.start
+            .mitNutzungsart(Nutzungsart.doppelteUk)
+            .mitFeldbreite(const Millimeter(300)),
+      );
+      expect(eng.unterbau.feldbreite, const Millimeter(300));
+      expect(eng.unterbau.feldbreiteBegrenzt, isFalse);
+      expect(eng.befestigung.punkte, 48 * 17);
+      int laengs(Berechnung b) =>
+          b.stueckliste.zeilen.fold(0, (n, z) => n + z.stueck);
+      // zweite Lage: 309 cm mit 30 cm → 12 statt 9 Hölzer
+      expect(laengs(eng) - laengs(auto), 3);
+      final zuBreit = rechne(
+        Planungsstand.start.mitFeldbreite(const Millimeter(600)),
+      );
+      expect(zuBreit.unterbau.feldbreite, const Millimeter(400));
+      expect(zuBreit.unterbau.feldbreiteBegrenzt, isTrue);
+      expect(zuBreit.befestigung.punkte, 624);
+    });
+  });
+
   test('ungültige Maße sind ein Fehler', () async {
     final fbb = fb.Builder();
     final masse = fbb.writeListInt32([4800, 100]);

@@ -12,6 +12,7 @@ import '../holzart/holzart.dart';
 import '../konfiguration/befestigungsart.dart';
 import '../konfiguration/dielenverlegung.dart';
 import 'belagmeldungen.dart';
+import 'feldbreite.dart';
 import 'regelwerk.dart';
 import 'uk_zusatz.dart';
 
@@ -168,13 +169,15 @@ final class Befestigungsbedarf {
 ///
 /// Die Artikel kommen aus den Befestigungsverweisen des Belags; Preise und
 /// Verkaufseinheiten unverändert aus den Artikeldaten (B-153). Abstand der
-/// UK: der des Belags laut Artikeldaten, höchstens der der Holzart (R-C01).
+/// UK: der des Belags laut Artikeldaten, höchstens der der Holzart (R-C01),
+/// und höchstens die gewählte [feldbreite] (M6-09, `wirksameFeldbreite`).
 Befestigungsbedarf befestigungsbedarf(
   Regelwerk regelwerk,
   Artikel belag,
   Befestigungsart gewaehlt,
   List<Dielenstueck> stuecke, {
   required double winkel,
+  Millimeter? feldbreite,
 }) {
   final (holzart, serie, profil, breite) = (
     belag.holzart,
@@ -190,9 +193,9 @@ Befestigungsbedarf befestigungsbedarf(
       art == null) {
     return Befestigungsbedarf.keiner;
   }
-  final ukAbstand = ukAbstandFuer(
-    holzart,
-    regelwerk.abstaende(belag.nummer).uk,
+  final ukAbstand = wirksameFeldbreite(
+    feldbreite,
+    ukAbstandFuer(holzart, regelwerk.abstaende(belag.nummer).uk),
   );
   final (:punkte, :randpunkte) = befestigungspunkte(
     stuecke,

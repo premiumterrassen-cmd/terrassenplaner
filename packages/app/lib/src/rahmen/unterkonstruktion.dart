@@ -609,6 +609,85 @@ class AuflagenWahl extends StatelessWidget {
   ];
 }
 
+/// Unterpunkt „Maximale Feldbreite“ (Fachkonzept 3.10, M6-09):
+/// „Automatisch“ (Vorgabe, die höchste erlaubte) oder eine der Feldbreiten,
+/// die der Server für den Belag erlaubt (R-C01: Robinie 30, 35, 40 cm);
+/// dazu der Hinweis zur Firmenregel und – wenn eine gespeicherte Wahl
+/// darüber liegt – die Meldung, mit welcher Breite gerechnet wird. Jede
+/// Wahl ist ein Schritt für Rückgängig/Wiederherstellen.
+class FeldbreiteWahl extends StatelessWidget {
+  const FeldbreiteWahl({
+    required this.planung,
+    required this.onGeaendert,
+    this.berechnung,
+    super.key,
+  });
+
+  final PlanungsSteuerung planung;
+
+  /// Berechnung des Servers mit den wählbaren Feldbreiten.
+  final BerechnungsSteuerung? berechnung;
+
+  /// Meldet eine Änderung (Standardwert-Hinweis, M3-05).
+  final VoidCallback onGeaendert;
+
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: Listenable.merge([planung, berechnung]),
+    builder: (context, _) {
+      final t = context.texte;
+      final stand = planung.aktuell;
+      final unterbau = berechnung?.ergebnis?.unterbau ?? Unterbau.leer;
+      void waehle(Millimeter? feldbreite) {
+        planung.setze(stand.mitFeldbreite(feldbreite));
+        onGeaendert();
+      }
+
+      return Column(
+        key: const ValueKey('feldbreite'),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (unterbau.feldbreiten.isEmpty)
+            Text(t.feldbreiteOhneBelag, key: const ValueKey('feldbreite-leer'))
+          else
+            Wrap(
+              spacing: PlanerAbstand.klein,
+              children: [
+                ChoiceChip(
+                  key: const ValueKey('feldbreite-automatisch'),
+                  label: Text(t.automatisch),
+                  selected: stand.feldbreite == null,
+                  onSelected: (an) {
+                    if (an) waehle(null);
+                  },
+                ),
+                for (final f in unterbau.feldbreiten)
+                  ChoiceChip(
+                    key: ValueKey('feldbreite-${f.mm}'),
+                    label: Text(t.feldbreiteCm(cmText(t, f))),
+                    selected: stand.feldbreite == f,
+                    onSelected: (an) {
+                      if (an) waehle(f);
+                    },
+                  ),
+              ],
+            ),
+          _Hinweis(text: t.feldbreiteHinweis),
+          if ((unterbau.feldbreiteBegrenzt, unterbau.feldbreite) case (
+            true,
+            final wirksam?,
+          ))
+            _Hinweis(
+              key: const ValueKey('feldbreite-begrenzt'),
+              warnung: true,
+              text: t.feldbreiteBegrenzt(cmText(t, wirksam)),
+            ),
+        ],
+      );
+    },
+  );
+}
+
 /// Hinweis mit Symbol; als [warnung] in der Fehlerfarbe.
 class _Hinweis extends StatelessWidget {
   const _Hinweis({required this.text, this.warnung = false, super.key});

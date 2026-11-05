@@ -349,6 +349,23 @@ void main() {
       },
     );
 
+    test('Feldbreite (M6-09): 30 cm statt 40 cm – mehr UK-Linien, mehr '
+        'Clips; über der Firmenregel gilt 40 cm (R-C01)', () {
+      int punkte(int? feldbreite) => befestigungsbedarf(
+        regelwerk,
+        _genutet60,
+        Befestigungsart.clips,
+        _verlegt(),
+        winkel: 0,
+        feldbreite: feldbreite == null ? null : Millimeter(feldbreite),
+      ).punkte;
+      // 480 cm: 13 Linien mit 40 cm, 17 mit 30 cm – je 48 Reihen
+      expect(punkte(null), 624);
+      expect(punkte(300), 48 * 17);
+      expect(punkte(400), 624);
+      expect(punkte(600), 624);
+    });
+
     test('PREMIUM SELECT genutet ab 100 mm: DUO-CLIP-FIXX (Abnahme, B-094, '
         'B-150)', () {
       final b = befestigungsbedarf(

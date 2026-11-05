@@ -364,9 +364,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/7
   - Mit Stelzfüßen / mit Stelzfüßen und Pads; Abstände, Min-/Max-Höhe mit Meldungen.
   - Abnahme: Höhengrenzen mit Meldung; Abstände aus dem Regelwerk
   - Ergebnis: Unterpunkt 3.9 „Auflagen“ mit Stelzfüßen oder Stelzfüßen und Pads (Vorgabe wie F01); Planungsstand-Feld `auflagen` (Platz 100). Abstand der Auflager aus `Abstand_Stelzfuesse` der UK (60 cm; F28 13 × 7 = 91), vorhandene UK: Spannweite (F29 65), gewerblich zwei Drittel (F35, R-C09). Höhenbereiche aus Stellfüßen und Unterlegpads der UK mit Min-/Max-Höhe (B-122), Wahl je Spalt (Pad, dann Fuß, F30: 4 mm → 5 mm), Meldungen unter/über den Höhengrenzen; Berechnung Platz 110 (`Unterbau`). Mengen und Höhe je Auflager: M6-11.
-- [ ] **M6-09 Maximale Feldbreite** ([#62](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/62)) – `feature/m6-09-maximale-feldbreite`
+- [x] **M6-09 Maximale Feldbreite** ([#62](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/62)) – `feature/m6-09-maximale-feldbreite`
   - Feldbreite 40/50/60 cm; Firmenregel UK-Achsabstand max. 40 cm (M1-04).
   - Abnahme: Regel aus M1-04 umgesetzt
+  - Ergebnis: Unterpunkt 3.10 mit „Automatisch“ und den erlaubten Feldbreiten; Planungsstand-Feld `feldbreite` (Platz 101). Auswahl 30/35/40/50/60 cm nur bis zur höchsten des Belags (UK-Abstand der Artikeldaten, höchstens Holzart: Robinie 40 cm, R-C01) – 50/60 cm der neuen Planer-Version verbietet die Firmenregel; eine breitere gespeicherte Wahl wird mit Meldung begrenzt. Die wirksame Feldbreite ist der UK-Achsabstand für Befestigung (M5-09), UK-Zusatz (M6-05) und UK-Verlegung (M6-10); Unterbau Plätze 5–7.
 - [ ] **M6-10 Berechnung der UK-Verlegung** ([#63](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/63)) – `feature/m6-10-berechnung-der-uk-verlegung` · Benchmark
   - Lage der UK-Hölzer, Stöße, Randabstand, Längsverbinder, Farbkennzeichnung im Plan, Stückliste.
   - Abnahme: UK-Stückliste je Referenzfall entspricht der Planungsunterlage; Benchmark: große Fläche mit Gefälle

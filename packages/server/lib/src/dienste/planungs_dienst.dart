@@ -100,9 +100,14 @@ class PlanungsDienst {
     // verlegt wird nur mit Belag
     final artikel = belag!;
     if (regelwerk?.datei[artikel.nummer] == null) return null;
-    return befestigungsbedarf(regelwerk!, artikel, stand.befestigungsart, [
-      for (final t in v.teile) ...t.stuecke,
-    ], winkel: stand.dielenwinkel.toDouble());
+    return befestigungsbedarf(
+      regelwerk!,
+      artikel,
+      stand.befestigungsart,
+      [for (final t in v.teile) ...t.stuecke],
+      winkel: stand.dielenwinkel.toDouble(),
+      feldbreite: stand.feldbreite,
+    );
   }
 
   static Berechnung _grundflaeche(
@@ -138,6 +143,7 @@ class PlanungsDienst {
         stand,
         hoehen: hoehen,
         regelwerk: regelwerk,
+        belag: belag,
         uk: unterkonstruktion,
       ),
     );
@@ -309,7 +315,8 @@ class PlanungsDienst {
 
   /// Zusätzliches UK-Holz der Nutzungsart (M6-05) – nur mit verlegtem Belag
   /// aus Holz und bekannter [uk]; der UK-Achsabstand kommt wie bei der
-  /// Befestigung aus Belag und Holzart (R-C01).
+  /// Befestigung aus Belag und Holzart (R-C01), höchstens die gewählte
+  /// Feldbreite (M6-09).
   static Ukzusatz _ukZusatz(
     Planungsstand stand,
     Artikel? belag,
@@ -317,13 +324,13 @@ class PlanungsDienst {
     Artikel? uk,
     Belagverlegung? v,
   ) {
-    final holzart = belag?.holzart;
-    if (v == null || uk == null || holzart == null) return Ukzusatz.keiner;
-    final nummer = belag!.nummer;
-    final abstand = regelwerk?.datei[nummer] == null
-        ? null
-        : regelwerk!.abstaende(nummer).uk;
-    return ukZusatz(stand, uk, ukAbstand: ukAbstandFuer(holzart, abstand));
+    final hoechste = belagFeldbreite(belag, regelwerk);
+    if (v == null || uk == null || hoechste == null) return Ukzusatz.keiner;
+    return ukZusatz(
+      stand,
+      uk,
+      ukAbstand: wirksameFeldbreite(stand.feldbreite, hoechste),
+    );
   }
 
   /// **Stelle für die Mitarbeiter-Anmeldung (M9-10):** Geänderte Mengen der

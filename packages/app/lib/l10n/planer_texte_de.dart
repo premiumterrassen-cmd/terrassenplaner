@@ -601,6 +601,9 @@ class PlanerTexteDe extends PlanerTexte {
   String get unterkonstruktion9 => 'Auflagen';
 
   @override
+  String get unterkonstruktion10 => 'Maximale Feldbreite';
+
+  @override
   String get terrassenanschluss1 => 'Angrenzende Bauelemente';
 
   @override
@@ -1116,6 +1119,24 @@ class PlanerTexteDe extends PlanerTexte {
   @override
   String get auflagerVorhandeneUk =>
       'Bei vorhandener Unterkonstruktion wird die neue UK mit Bodenankern auf den vorhandenen Trägern befestigt; der Abstand ist die Spannweite.';
+
+  @override
+  String get feldbreiteHinweis =>
+      'Höchster Abstand der UK-Hölzer (Achsabstand). Firmenregel: höchstens 40 cm, sicherer unter 35 cm.';
+
+  @override
+  String feldbreiteCm(String cm) {
+    return '$cm cm';
+  }
+
+  @override
+  String feldbreiteBegrenzt(String cm) {
+    return 'Die gewählte Feldbreite überschreitet die Firmenregel; gerechnet wird mit $cm cm.';
+  }
+
+  @override
+  String get feldbreiteOhneBelag =>
+      'Die Feldbreite hängt vom Belag ab: Wählen Sie zuerst einen Belag aus Holz.';
 
   @override
   String get automatisch => 'Automatisch';

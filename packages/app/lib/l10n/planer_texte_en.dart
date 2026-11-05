@@ -601,6 +601,9 @@ class PlanerTexteEn extends PlanerTexte {
   String get unterkonstruktion9 => 'Supports';
 
   @override
+  String get unterkonstruktion10 => 'Maximum field width';
+
+  @override
   String get terrassenanschluss1 => 'Adjacent building elements';
 
   @override
@@ -1114,6 +1117,24 @@ class PlanerTexteEn extends PlanerTexte {
   @override
   String get auflagerVorhandeneUk =>
       'With an existing substructure the new one is fixed to the existing joists with ground anchors; the spacing is the span.';
+
+  @override
+  String get feldbreiteHinweis =>
+      'Largest spacing of the substructure joists (centre to centre). Company rule: at most 40 cm, safer below 35 cm.';
+
+  @override
+  String feldbreiteCm(String cm) {
+    return '$cm cm';
+  }
+
+  @override
+  String feldbreiteBegrenzt(String cm) {
+    return 'The chosen field width exceeds the company rule; $cm cm is used.';
+  }
+
+  @override
+  String get feldbreiteOhneBelag =>
+      'The field width depends on the decking: choose a timber decking first.';
 
   @override
   String get automatisch => 'Automatic';

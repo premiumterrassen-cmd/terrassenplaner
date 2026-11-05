@@ -8,7 +8,7 @@ import '../regeln/auflager.dart';
 /// Berechnung (Platz 110), damit die UK ihre Felder an einer Stelle hat.
 ///
 /// Seit M6-08: Abstand der Auflager, ihre Höhenbereiche und Höhengrenzen
-/// samt Meldungen.
+/// samt Meldungen; seit M6-09 die wählbaren und die wirksame Feldbreite.
 final class Unterbau {
   Unterbau({
     this.auflagerabstand,
@@ -16,7 +16,11 @@ final class Unterbau {
     this.hoeheVon,
     this.hoeheBis,
     List<Auflagermeldung> meldungen = const [],
-  }) : auflager = List.unmodifiable(auflager),
+    List<Millimeter> feldbreiten = const [],
+    this.feldbreite,
+    this.feldbreiteBegrenzt = false,
+  }) : feldbreiten = List.unmodifiable(feldbreiten),
+       auflager = List.unmodifiable(auflager),
        meldungen = List.unmodifiable(meldungen);
 
   /// Liest die Tabelle am Ort [ort] ([schreibe]).
@@ -56,6 +60,19 @@ final class Unterbau {
         ).vTableGet(puffer, ort, _versatz(_meldungenPlatz), const []))
           Auflagermeldung.ausNummer(n),
       ],
+      feldbreiten: [
+        for (final mm in const fb.ListReader<int>(
+          fb.Int32Reader(),
+        ).vTableGet(puffer, ort, _versatz(_feldbreitenPlatz), const []))
+          Millimeter(mm),
+      ],
+      feldbreite: mm(_feldbreitePlatz),
+      feldbreiteBegrenzt: const fb.BoolReader().vTableGet(
+        puffer,
+        ort,
+        _versatz(_begrenztPlatz),
+        false,
+      ),
     );
   }
 
@@ -79,10 +96,22 @@ final class Unterbau {
   /// Meldungen zu den Höhengrenzen (`auflagermeldungen`).
   final List<Auflagermeldung> meldungen;
 
+  /// Wählbare Feldbreiten (`feldbreiten`, R-C01); leer ohne Belag aus Holz.
+  final List<Millimeter> feldbreiten;
+
+  /// Feldbreite, mit der gerechnet wird (`wirksameFeldbreite`); `null`
+  /// ohne Belag aus Holz.
+  final Millimeter? feldbreite;
+
+  /// Ob die gewählte Feldbreite über der Firmenregel lag und begrenzt wurde.
+  final bool feldbreiteBegrenzt;
+
   /// Schreibt `{ 0: auflagerabstand (int32 mm; fehlt ohne UK),
   /// 1: auflager ([{ 0: titel (string), 1: von (int32 mm), 2: bis (int32
   /// mm), 3: pad (bool) }]), 2: hoeheVon, 3: hoeheBis (int32 mm; fehlen
-  /// ohne Auflager), 4: meldungen ([uint8]) (M6-08) }`.
+  /// ohne Auflager), 4: meldungen ([uint8]) (M6-08), 5: feldbreiten ([int32]
+  /// mm), 6: feldbreite (int32 mm; fehlt ohne Belag), 7: feldbreiteBegrenzt
+  /// (bool) (M6-09) }`.
   int schreibe(fb.Builder fbb) {
     final auflagerOrt = fbb.writeList([
       for (final a in auflager) _auflager(fbb, a),
@@ -90,13 +119,19 @@ final class Unterbau {
     final meldungenOrt = fbb.writeListUint8([
       for (final m in meldungen) m.nummer,
     ]);
+    final feldbreitenOrt = fbb.writeListInt32([
+      for (final f in feldbreiten) f.mm,
+    ]);
     fbb
-      ..startTable(_meldungenPlatz + 1)
+      ..startTable(_begrenztPlatz + 1)
       ..addInt32(_abstandPlatz, auflagerabstand?.mm)
       ..addOffset(_auflagerPlatz, auflagerOrt)
       ..addInt32(_hoeheVonPlatz, hoeheVon?.mm)
       ..addInt32(_hoeheBisPlatz, hoeheBis?.mm)
-      ..addOffset(_meldungenPlatz, meldungenOrt);
+      ..addOffset(_meldungenPlatz, meldungenOrt)
+      ..addOffset(_feldbreitenPlatz, feldbreitenOrt)
+      ..addInt32(_feldbreitePlatz, feldbreite?.mm)
+      ..addBool(_begrenztPlatz, feldbreiteBegrenzt);
     return fbb.endTable();
   }
 
@@ -116,6 +151,9 @@ final class Unterbau {
   static const _hoeheVonPlatz = 2;
   static const _hoeheBisPlatz = 3;
   static const _meldungenPlatz = 4;
+  static const _feldbreitenPlatz = 5;
+  static const _feldbreitePlatz = 6;
+  static const _begrenztPlatz = 7;
 
   static int _versatz(int platz) => 4 + 2 * platz;
 }
