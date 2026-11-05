@@ -7,7 +7,8 @@
 #   mit <ref> geänderten Dateien mutieren (jeder Push). Leer: alles.
 # MUTATION_TEIL=<nummer>/<anzahl>: nur diesen Teil der Dateien eines Pakets
 #   mutieren, ohne Schwelle – sie prüft tool/mutation_summe.sh über alle Teile
-#   (nächtlicher Vollauf, Workflow mutation-vollauf.yml).
+#   (nächtlicher Vollauf mutation-vollauf.yml; mit MUTATION_BASIS auch die
+#   Build-Chain, damit große Änderungen unter dem 6-Stunden-Limit bleiben).
 # MUTATION_NUR_KONFIGURATION=1: nur die Konfigurationen erzeugen, nichts ausführen.
 # Begründung: docs/erkenntnisse/mutation-tests.md
 set -euo pipefail
@@ -93,7 +94,9 @@ nur_teil() {
 konfiguration() {
   local pkg="$1" vorlage="tool/mutation/$1.xml" dateien
   if [ -n "$TEIL" ]; then
-    GEAENDERT="$(git ls-files "packages/$pkg/lib")"
+    # Mit Basis: nur die geänderten Dateien aufteilen (Build-Chain), sonst alle
+    # (nächtlicher Vollauf).
+    [ -z "$BASIS" ] && GEAENDERT="$(git ls-files "packages/$pkg/lib")"
     dateien="$(quelldateien "$pkg" | nur_teil)"
   elif [ -n "$BASIS" ]; then
     dateien="$(quelldateien "$pkg")"
@@ -123,6 +126,11 @@ for pkg in "${packages[@]}"; do
   config="$(konfiguration "$pkg")"
   if [ -z "$config" ]; then
     echo "== Mutation-Tests: $pkg – keine geänderten Quelldateien, übersprungen"
+    # Leerer Bericht, damit tool/mutation_summe.sh den Teil als gelaufen zählt.
+    if [ -n "$TEIL" ] && [ -z "${MUTATION_NUR_KONFIGURATION:-}" ]; then
+      mkdir -p "mutation-test-report/$pkg"
+      echo '<testsuites></testsuites>' >"mutation-test-report/$pkg/mutation-test.xunit.xml"
+    fi
     continue
   fi
   echo "== Mutation-Tests: $pkg ($config)"

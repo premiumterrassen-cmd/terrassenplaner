@@ -111,6 +111,27 @@ pruefe "Teile: app ohne Ausschlüsse" test "$(lauf_teil 1/1 app)" = "packages/ap
 pruefe "Teile: Schwelle aus" grep -qF '<threshold failure="0">' "$REPO/mutation-test-report/konfiguration/app.xml"
 pruefe "Teile: Testbefehl erhalten" grep -qF 'frist.sh 290 flutter test --fail-fast</command>' "$REPO/mutation-test-report/konfiguration/app.xml"
 
+# Build-Chain in Teilen: Teil + Basis teilt nur die geänderten Dateien auf;
+# ein Teil ohne Dateien hinterlässt einen leeren Bericht für die Summe
+echo "// geändert" >>"$REPO/packages/domain/lib/a.dart"
+git_ add -A && git_ commit -qm teile
+lauf_basis_teil() {
+  rm -rf "$REPO/mutation-test-report"
+  (cd "$REPO" && MUTATION_NUR_KONFIGURATION=1 MUTATION_BASIS=main MUTATION_TEIL="$1" tool/mutation.sh domain server >/dev/null)
+}
+basis_dateien() { sed -n 's#^ *<file>\(.*\)</file>#\1#p' <(sed -n '/<files>/,/<\/files>/p' "$REPO/mutation-test-report/konfiguration/domain.xml"); }
+lauf_basis_teil 2/2
+basis2="$(basis_dateien)"
+lauf_basis_teil 1/2
+basis1="$(basis_dateien)"
+pruefe "Basis+Teil: geänderte Dateien je genau einmal" test "$(printf '%s\n' "$basis1" "$basis2" | sort | tr '\n' ' ')" = \
+  "packages/domain/lib/a.dart packages/domain/lib/b.dart "
+pruefe "Basis+Teil: Schwelle aus" grep -qF '<threshold failure="0">' "$REPO/mutation-test-report/konfiguration/domain.xml"
+rm -rf "$REPO/mutation-test-report"
+(cd "$REPO" && MUTATION_BASIS=main MUTATION_TEIL=1/2 tool/mutation.sh server >/dev/null)
+pruefe "Basis+Teil ohne Dateien: leerer Bericht" grep -qF '<testsuites></testsuites>' "$REPO/mutation-test-report/server/mutation-test.xunit.xml"
+pruefe "Basis+Teil ohne Dateien: keine Konfiguration" test ! -e "$REPO/mutation-test-report/konfiguration/server.xml"
+
 # Summe der Teile: Schwelle gilt je Paket über alle Teile
 BERICHTE="$REPO/berichte"
 bericht() { # <paket> <teil> <von> <mutanten> <unerkannt> <blockiert>
