@@ -11,6 +11,7 @@ import 'ausschnitt.dart';
 import 'befestigungsart.dart';
 import 'grundriss.dart';
 import 'rundungen.dart';
+import 'terrassenart.dart';
 import 'verlegeart.dart';
 import 'verlegerichtung.dart';
 
@@ -19,8 +20,10 @@ import 'verlegerichtung.dart';
 /// Grundriss, seit M4-06 mit Ausschnitten, seit M5-01 mit Belag, seit M5-02
 /// mit Dielenlänge, seit M5-03 mit „kurze Stücke verbinden“, seit M5-04 mit
 /// Verlegeart, seit M5-05 mit Verlegerichtung, seit M5-07 mit
-/// Ausgangspunkt, seit M5-09 mit Befestigungsart, seit M8-01 mit den
-/// Zubehör-Mengen „Tatsächlich“;
+/// Ausgangspunkt, seit M5-09 mit Befestigungsart, seit M6-01 mit Art der
+/// Terrasse und Spannweite, seit M6-02 mit Höhenpunkten, seit M6-03 mit
+/// Unterkonstruktion und UK-Länge, seit M8-01 mit den Zubehör-Mengen
+/// „Tatsächlich“;
 /// Unterkonstruktion usw. folgen als weitere Felder. Berechnet wird daraus
 /// auf dem Server.
 final class Planungsstand {
@@ -38,6 +41,13 @@ final class Planungsstand {
     this.verschiebungX = const Millimeter(0),
     this.verschiebungY = const Millimeter(0),
     this.befestigungsart = Befestigungsart.clips,
+    this.terrassenart = Terrassenart.normal,
+    this.spannweite = Terrassenart.vorgabeSpannweite,
+    this.gefaelle = false,
+    this.hoehe,
+    this.eckhoehen = const [],
+    this.unterkonstruktion,
+    this.ukLaenge,
     this.zubehoer = const {},
   });
 
@@ -125,6 +135,58 @@ final class Planungsstand {
           0,
         ),
       ),
+      terrassenart: Terrassenart.ausNummer(
+        const fb.Uint8Reader().vTableGet(
+          puffer,
+          wurzel,
+          _versatz(_terrassenartPlatz),
+          0,
+        ),
+      ),
+      spannweite: Millimeter(
+        const fb.Int32Reader().vTableGet(
+          puffer,
+          wurzel,
+          _versatz(_spannweitePlatz),
+          Terrassenart.vorgabeSpannweite.mm,
+        ),
+      ),
+      gefaelle: const fb.BoolReader().vTableGet(
+        puffer,
+        wurzel,
+        _versatz(_gefaellePlatz),
+        false,
+      ),
+      hoehe: switch (const fb.Int32Reader().vTableGetNullable(
+        puffer,
+        wurzel,
+        _versatz(_hoehePlatz),
+      )) {
+        final mm? => Millimeter(mm),
+        null => null,
+      },
+      eckhoehen: List.unmodifiable([
+        for (final mm in const fb.ListReader<int>(
+          fb.Int32Reader(),
+        ).vTableGet(puffer, wurzel, _versatz(_eckhoehenPlatz), const []))
+          Millimeter(mm),
+      ]),
+      unterkonstruktion: switch (const fb.StringReader().vTableGetNullable(
+        puffer,
+        wurzel,
+        _versatz(_unterkonstruktionPlatz),
+      )) {
+        final nummer? => Artikelnummer(nummer),
+        null => null,
+      },
+      ukLaenge: switch (const fb.Int32Reader().vTableGetNullable(
+        puffer,
+        wurzel,
+        _versatz(_ukLaengePlatz),
+      )) {
+        final mm? => Millimeter(mm),
+        null => null,
+      },
       zubehoer: {
         for (final ort in const fb.ListReader<int>(
           _Tabellenort(),
@@ -200,6 +262,51 @@ final class Planungsstand {
   /// Wahl bleibt bei einem Belagwechsel erhalten.
   final Befestigungsart befestigungsart;
 
+  /// Art der Terrasse (M6-01, Fachkonzept 3.1); Vorgabe normale Terrasse.
+  final Terrassenart terrassenart;
+
+  /// „Spannweite der Unterkonstruktion“ (M6-01): Abstand der vorhandenen
+  /// Träger, gefragt nur bei [Terrassenart.vorhandeneUk]; bleibt beim
+  /// Wechsel der Art erhalten.
+  final Millimeter spannweite;
+
+  /// Höhenpunkte „mit Gefälle“ (M6-02, Fachkonzept 3.2): je Eckpunkt eine
+  /// eigene Höhe ([eckhoehen]); sonst gilt [alleHoehe] für alle.
+  final bool gefaelle;
+
+  /// Feld „Alle“ ohne Gefälle in mm von Oberkante Belag bis Boden; `null` =
+  /// die Vorgabehöhe der [terrassenart].
+  final Millimeter? hoehe;
+
+  /// Höhen je Eckpunkt A, B … mit Gefälle; fehlt ein Eckpunkt, gilt
+  /// [alleHoehe]. Bleiben beim Ausschalten des Gefälles erhalten.
+  final List<Millimeter> eckhoehen;
+
+  /// Gewählte Unterkonstruktion (M6-03, Fachkonzept 3.3); `null` = Vorgabe,
+  /// die erste zum Belag passende UK der Artikeldaten. Passt sie nach einem
+  /// Belagwechsel nicht mehr, gilt die Vorgabe (`Ukauswahl.gewaehlt`).
+  final Artikelnummer? unterkonstruktion;
+
+  /// Erzwungene Länge der UK (M6-03, Fachkonzept 3.4); `null` = automatisch
+  /// wie bei den Dielen (R-B10). Gilt nur, solange die UK sie liefert
+  /// (`ukLieferlaengen`).
+  final Millimeter? ukLaenge;
+
+  /// Höhe ohne Gefälle: die eingegebene oder die Vorgabehöhe der Art.
+  Millimeter get alleHoehe => hoehe ?? terrassenart.vorgabehoehe;
+
+  /// Eingegebene Höhe je Höhenpunkt – ein Punkt je Ecke wie beim
+  /// Ausgangspunkt ([ausgangsecken], der Kreis hat nur A). Geprüft und
+  /// korrigiert rechnet sie der Server (`pruefeHoehen`).
+  List<Millimeter> get hoehen => [
+    for (var i = 0; i < ausgangsecken; i++)
+      gefaelle && i < eckhoehen.length ? eckhoehen[i] : alleHoehe,
+  ];
+
+  /// Ob [hoehe] als Höhenpunkt gilt: über 0 bis 300 cm.
+  static bool hoeheGueltig(Millimeter hoehe) =>
+      hoehe > const Millimeter(0) && hoehe <= const Millimeter(3000);
+
   /// Zubehör-Mengen, die im Schritt „Zubehör“ unter „Tatsächlich“
   /// eingegeben wurden (M8-01, Fachkonzept 06, R-D04): Anzahl
   /// Verkaufseinheiten je Artikel, 0 = abgewählt. Artikel ohne Eintrag
@@ -242,6 +349,13 @@ final class Planungsstand {
     Millimeter? verschiebungX,
     Millimeter? verschiebungY,
     Befestigungsart? befestigungsart,
+    Terrassenart? terrassenart,
+    Millimeter? spannweite,
+    bool? gefaelle,
+    ({Millimeter? wert})? hoehe,
+    List<Millimeter>? eckhoehen,
+    Artikelnummer? unterkonstruktion,
+    ({Millimeter? wert})? ukLaenge,
     Map<Artikelnummer, int>? zubehoer,
   }) {
     final neu = grundriss ?? this.grundriss;
@@ -264,6 +378,13 @@ final class Planungsstand {
       verschiebungX: verschiebungX ?? this.verschiebungX,
       verschiebungY: verschiebungY ?? this.verschiebungY,
       befestigungsart: befestigungsart ?? this.befestigungsart,
+      terrassenart: terrassenart ?? this.terrassenart,
+      spannweite: spannweite ?? this.spannweite,
+      gefaelle: gefaelle ?? this.gefaelle,
+      hoehe: hoehe == null ? this.hoehe : hoehe.wert,
+      eckhoehen: eckhoehen ?? this.eckhoehen,
+      unterkonstruktion: unterkonstruktion ?? this.unterkonstruktion,
+      ukLaenge: ukLaenge == null ? this.ukLaenge : ukLaenge.wert,
       zubehoer: zubehoer ?? this.zubehoer,
     );
   }
@@ -374,6 +495,61 @@ final class Planungsstand {
   Planungsstand mitBefestigungsart(Befestigungsart art) =>
       _mit(befestigungsart: art);
 
+  /// Kopie mit anderer Art der Terrasse (M6-01); die Höhenpunkte springen
+  /// wie im alten Planer auf die Vorgabehöhe der Art (M6-02).
+  Planungsstand mitTerrassenart(Terrassenart art) =>
+      _mit(terrassenart: art, hoehe: (wert: null), eckhoehen: const []);
+
+  /// Kopie mit anderer Spannweite (M6-01); nur 10 bis 300 cm
+  /// (`Terrassenart.spannweiteGueltig`).
+  Planungsstand mitSpannweite(Millimeter spannweite) {
+    if (!Terrassenart.spannweiteGueltig(spannweite)) {
+      throw ArgumentError.value(
+        spannweite.mm,
+        'spannweite',
+        'muss 100 bis 3000 mm sein',
+      );
+    }
+    return _mit(spannweite: spannweite);
+  }
+
+  /// Kopie mit anderer Unterkonstruktion (M6-03); die UK-Länge bleibt.
+  Planungsstand mitUnterkonstruktion(Artikelnummer uk) =>
+      _mit(unterkonstruktion: uk);
+
+  /// Kopie mit erzwungener UK-Länge; `null` = automatisch (M6-03).
+  Planungsstand mitUkLaenge(Millimeter? laenge) =>
+      _mit(ukLaenge: (wert: laenge));
+
+  /// Kopie mit oder ohne Gefälle (M6-02).
+  Planungsstand mitGefaelle(bool gefaelle) => _mit(gefaelle: gefaelle);
+
+  /// Kopie mit der Höhe „Alle“ (M6-02, `hoeheGueltig`).
+  Planungsstand mitHoehe(Millimeter hoehe) {
+    _pruefeHoehe(hoehe);
+    return _mit(hoehe: (wert: hoehe));
+  }
+
+  /// Kopie mit der Höhe des Eckpunkts [ecke] (0 = A); die übrigen Punkte
+  /// behalten ihre Höhe.
+  Planungsstand mitEckhoehe(int ecke, Millimeter hoehe) {
+    if (ecke < 0 || ecke >= ausgangsecken) {
+      throw RangeError.range(ecke, 0, ausgangsecken - 1, 'ecke');
+    }
+    _pruefeHoehe(hoehe);
+    return _mit(
+      eckhoehen: List.unmodifiable(
+        [..._mit(gefaelle: true).hoehen]..[ecke] = hoehe,
+      ),
+    );
+  }
+
+  static void _pruefeHoehe(Millimeter hoehe) {
+    if (!hoeheGueltig(hoehe)) {
+      throw ArgumentError.value(hoehe.mm, 'hoehe', 'muss 1 bis 3000 mm sein');
+    }
+  }
+
   /// Kopie mit der Menge „Tatsächlich“ [anzahl] für das Zubehör [nummer]
   /// (M8-01); `null` nimmt die Eingabe zurück (wieder der berechnete Wert).
   Planungsstand mitZubehoermenge(Artikelnummer nummer, int? anzahl) {
@@ -400,9 +576,13 @@ final class Planungsstand {
   /// 7: verlegeart (uint8), 8: verlegerichtung (uint8),
   /// 9: verlegewinkel (uint8 Grad), 10: ausgangsecke (uint16),
   /// 11: verschiebungX (int32 mm), 12: verschiebungY (int32 mm),
-  /// 13: befestigungsart (uint8, M5-09), 40: zubehoer ([{ 0: nummer
-  /// (string), 1: anzahl (uint32) }], M8-01) }`. Die Plätze 14–39 sind für
-  /// andere Schritte frei gehalten (M6 ab 20), M8 nutzt 40–49.
+  /// 13: befestigungsart (uint8, M5-09), 20: terrassenart (uint8),
+  /// 21: spannweite (int32 mm) (M6-01), 22: gefaelle (bool), 23: hoehe
+  /// (int32 mm; fehlt = Vorgabehöhe), 24: eckhoehen ([int32] mm) (M6-02),
+  /// 25: unterkonstruktion (string), 26: ukLaenge (int32 mm; fehlt =
+  /// automatisch) (M6-03), 40: zubehoer ([{ 0: nummer (string), 1: anzahl
+  /// (uint32) }], M8-01) }`. Plätze 14–19 gehören der Dielenverlegung
+  /// (M5-08), 40–49 dem Zubehör (M8).
   /// Neue Felder nur anhängen (docs/architektur/datenmodell.md).
   Uint8List zuBytes() {
     final fbb = fb.Builder();
@@ -422,6 +602,11 @@ final class Planungsstand {
         _zubehoermenge(fbb, key, value),
     ]);
     final rundungenOrt = fbb.writeListInt32(rundungen.masse);
+    final eckhoehenOrt = fbb.writeListInt32([for (final h in eckhoehen) h.mm]);
+    final ukOrt = switch (unterkonstruktion) {
+      final nummer? => fbb.writeString(nummer.wert),
+      null => null,
+    };
     final belagOrt = switch (belag) {
       final nummer? => fbb.writeString(nummer.wert),
       null => null,
@@ -442,6 +627,13 @@ final class Planungsstand {
       ..addInt32(_verschiebungXPlatz, verschiebungX.mm)
       ..addInt32(_verschiebungYPlatz, verschiebungY.mm)
       ..addUint8(_befestigungsartPlatz, befestigungsart.nummer)
+      ..addUint8(_terrassenartPlatz, terrassenart.nummer)
+      ..addInt32(_spannweitePlatz, spannweite.mm)
+      ..addBool(_gefaellePlatz, gefaelle)
+      ..addInt32(_hoehePlatz, hoehe?.mm)
+      ..addOffset(_eckhoehenPlatz, eckhoehenOrt)
+      ..addOffset(_unterkonstruktionPlatz, ukOrt)
+      ..addInt32(_ukLaengePlatz, ukLaenge?.mm)
       ..addOffset(_zubehoerPlatz, zubehoerOrt);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
@@ -486,6 +678,13 @@ final class Planungsstand {
   static const _verschiebungXPlatz = 11;
   static const _verschiebungYPlatz = 12;
   static const _befestigungsartPlatz = 13;
+  static const _terrassenartPlatz = 20;
+  static const _spannweitePlatz = 21;
+  static const _gefaellePlatz = 22;
+  static const _hoehePlatz = 23;
+  static const _eckhoehenPlatz = 24;
+  static const _unterkonstruktionPlatz = 25;
+  static const _ukLaengePlatz = 26;
   static const _zubehoerPlatz = 40;
 
   @override
@@ -503,6 +702,13 @@ final class Planungsstand {
         other.verschiebungX != verschiebungX ||
         other.verschiebungY != verschiebungY ||
         other.befestigungsart != befestigungsart ||
+        other.terrassenart != terrassenart ||
+        other.spannweite != spannweite ||
+        other.gefaelle != gefaelle ||
+        other.hoehe != hoehe ||
+        other.unterkonstruktion != unterkonstruktion ||
+        other.ukLaenge != ukLaenge ||
+        other.eckhoehen.length != eckhoehen.length ||
         other.ausschnitte.length != ausschnitte.length ||
         other.zubehoer.length != zubehoer.length) {
       return false;
@@ -512,6 +718,9 @@ final class Planungsstand {
     }
     for (var i = 0; i < ausschnitte.length; i++) {
       if (other.ausschnitte[i] != ausschnitte[i]) return false;
+    }
+    for (var i = 0; i < eckhoehen.length; i++) {
+      if (other.eckhoehen[i] != eckhoehen[i]) return false;
     }
     return true;
   }
@@ -531,6 +740,15 @@ final class Planungsstand {
     verschiebungX,
     verschiebungY,
     befestigungsart,
+    Object.hash(
+      terrassenart,
+      spannweite,
+      gefaelle,
+      hoehe,
+      Object.hashAll(eckhoehen),
+      unterkonstruktion,
+      ukLaenge,
+    ),
     Object.hashAllUnordered([
       for (final MapEntry(:key, :value) in zubehoer.entries)
         Object.hash(key, value),

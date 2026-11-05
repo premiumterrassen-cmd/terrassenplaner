@@ -332,15 +332,18 @@ Terrassenart, Höhenpunkte/Gefälle, UK-Auswahl, Untergrund, Nutzungsart, Querst
 
 GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/7
 
-- [ ] **M6-01 Art der Terrasse** ([#54](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/54)) – `feature/m6-01-art-der-terrasse`
+- [x] **M6-01 Art der Terrasse** ([#54](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/54)) – `feature/m6-01-art-der-terrasse`
   - Normale Terrasse / Hochterrasse / vorhandene UK – mit Auswirkungen auf die folgenden Schritte.
   - Abnahme: Folgeschritte passen sich an
-- [ ] **M6-02 Höhenpunkte und Gefälle** ([#55](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/55)) – `feature/m6-02-hoehenpunkte-und-gefaelle`
+  - Ergebnis: Unterpunkt 3.1 mit normaler Terrasse (Vorgabe, 8,6 cm), Hochterrasse (54,2 cm) und vorhandener UK (14,2 cm) samt Feld „Spannweite“ (Vorgabe 80 cm, 10–300 cm); Planungsstand-Felder `terrassenart` und `spannweite` (Plätze 20/21, fehlend = Vorgabe). Bei Hochterrasse und vorhandener UK entfällt 3.6 „Art der Terrassennutzung“, die Unterpunkte werden lückenlos nummeriert (F28, F29). Die Vorgabehöhe der Art nutzen die Höhenpunkte (M6-02).
+- [x] **M6-02 Höhenpunkte und Gefälle** ([#55](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/55)) – `feature/m6-02-hoehenpunkte-und-gefaelle`
   - Ohne Gefälle (eine Höhe für alle) / mit Gefälle (je Eckpunkt); gemessen von Oberkante Belag bis Boden; Aufbauhöhe; Hinweis, wenn die UK zur Einhaltung der Aufbauhöhe gedreht wird.
   - Abnahme: Höhen an den Eckpunkten wie in den Planungsunterlagen
-- [ ] **M6-03 UK-Auswahl und UK-Länge** ([#56](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/56)) – `feature/m6-03-uk-auswahl-und-uk-laenge`
+  - Ergebnis: Unterpunkt 3.2 ohne Gefälle (Feld „Alle“) oder mit Gefälle (je Eckpunkt A, B …), in cm von Oberkante Belag bis Boden, Vorgabe die Höhe der Terrassenart; Planungsstand-Felder `gefaelle`, `hoehe`, `eckhoehen` (Plätze 22–24). `pruefeHoehen` auf dem Server: Aufbauhöhe = Dielenstärke + UK hochkant (Hochterrasse zwei Lagen); darunter wird die UK gedreht (B-034, Hinweis), unter Belag + UK flach wird der Punkt korrigiert (Meldung). Berechnung trägt Höhen je Eckpunkt, Aufbau- und Mindesthöhe, gedreht/korrigiert (Plätze 25–29). Abnahme: 18 Referenzfälle mit Höhen unverändert, F30. Annahme: vorhandene UK ohne eigene Mindesthöhe; Auflager folgen mit M6-08/M6-11.
+- [x] **M6-03 UK-Auswahl und UK-Länge** ([#56](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/56)) – `feature/m6-03-uk-auswahl-und-uk-laenge`
   - Produktauswahl Unterkonstruktion mit Maßen/Material; Länge der UK (feste Längen).
   - Abnahme: Nur zum Belag passende UK
+  - Ergebnis: Unterpunkt 3.3 mit gewählter UK und Dialog „Unterkonstruktion auswählen“ (Produktkarten wie beim Belag, Preis je lfm), Unterpunkt 3.4 mit „Automatisch“ (Vorgabe) oder fester Lieferlänge; Planungsstand-Felder `unterkonstruktion` und `ukLaenge` (Plätze 25/26). Der Artikeldienst liefert je Belag nur passende Robinien-UK (`unterkonstruktion.auswahl`, `ukPasstZuBelag`: gleiche Serie, Format der Serie mit Breite/Stärke tauschbar, B-034/B-212, keine Alu-UK, B-122); die erste ist die Vorgabe, eine nicht mehr passende Wahl fällt auf sie zurück. Lieferlängen = Länge der Artikeldaten plus Lieferlängen der Serie (B-035) – behebt „nur 600 cm“ des alten Planers. Die gewählte UK prüft die Höhenpunkte (M6-02); die Mengen folgen mit M6-10.
 - [ ] **M6-04 Untergrund** ([#57](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/57)) – `feature/m6-04-untergrund`
   - Schotter (verdichtet, Standard), Beton, Bitumenabdichtung.
   - Abnahme: Auswirkung auf Auflagen/Zubehör wie im alten Planer

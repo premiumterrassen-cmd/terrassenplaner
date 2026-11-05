@@ -8,7 +8,7 @@
     </directory>
   </directories>
   <commands>
-    <command group="test" expected-return="0" working-directory="packages/server" timeout="120">dart test --fail-fast</command>
+    <command group="test" expected-return="0" working-directory="packages/server" timeout="120">bash ../../tool/mutation/frist.sh 110 dart --old_gen_heap_size=1024 test --fail-fast</command>
   </commands>
   <exclude>
     <token begin="//" end="\n"/>

@@ -9,6 +9,7 @@ import '../ergebnisse/stueckliste.dart';
 import '../geometrie/punkt.dart';
 import '../regeln/befestigungsbedarf.dart';
 import '../regeln/belagmeldungen.dart';
+import '../regeln/hoehenpunkte.dart';
 import '../regeln/zubehoerbedarf.dart';
 import 'befestigungsart.dart';
 
@@ -17,9 +18,10 @@ import 'befestigungsart.dart';
 /// Zeichnung und Kennzahlen, seit M5-07 Ausgangspunkt, Verschiebungsgrenzen
 /// und Warnung vor kurzen Zuschnitten, seit M5-09 die Befestigung, seit
 /// M5-08 Dielennummern, Dielenliste und Verschnitt der ganzen Planung,
-/// seit M5-10 die Meldungen zum Belag, seit M9-03 die Materialliste der
-/// ganzen Planung, seit M9-04 Stückliste und Farbe je Dielenstück, seit
-/// M8-02 die Mengen im Zubehör. Das Volumen folgt mit M6.
+/// seit M5-10 die Meldungen zum Belag, seit M6-02 die geprüften
+/// Höhenpunkte, seit M9-03 die Materialliste der ganzen Planung, seit M9-04
+/// Stückliste und Farbe je Dielenstück, seit M8-02 die Mengen im Zubehör.
+/// Das Volumen folgt mit M6.
 final class Berechnung {
   Berechnung({
     required List<Punkt> umriss,
@@ -38,6 +40,7 @@ final class Berechnung {
     List<Lieferposition> dielenliste = const [],
     Befestigungsbedarf? befestigung,
     List<Belagmeldung> belagmeldungen = const [],
+    Hoehenpunkte? hoehenpunkte,
     List<Zubehoerposition> zubehoer = const [],
     Materialliste? materialliste,
     Stueckliste? stueckliste,
@@ -48,6 +51,7 @@ final class Berechnung {
        stueckfarben = List.unmodifiable(stueckfarben),
        belagmeldungen = List.unmodifiable(belagmeldungen),
        befestigung = befestigung ?? Befestigungsbedarf.keiner,
+       hoehenpunkte = hoehenpunkte ?? Hoehenpunkte.keine,
        nummern = List.unmodifiable(nummern),
        dielenliste = List.unmodifiable(dielenliste),
        gesamtflaeche = gesamtflaeche ?? flaeche,
@@ -179,6 +183,29 @@ final class Berechnung {
         ).vTableGet(puffer, wurzel, _versatz(_stueckfarbenPlatz), const []))
           Stueckfarbe.ausNummer(n),
       ],
+      hoehenpunkte: _hoehenpunkte(puffer, wurzel),
+    );
+  }
+
+  static Hoehenpunkte _hoehenpunkte(fb.BufferContext puffer, int wurzel) {
+    Millimeter? mm(int platz) => switch (const fb.Int32Reader()
+        .vTableGetNullable(puffer, wurzel, _versatz(platz))) {
+      final wert? => Millimeter(wert),
+      null => null,
+    };
+    bool ja(int platz) =>
+        const fb.BoolReader().vTableGet(puffer, wurzel, _versatz(platz), false);
+    return Hoehenpunkte(
+      hoehen: [
+        for (final h in const fb.ListReader<int>(
+          fb.Int32Reader(),
+        ).vTableGet(puffer, wurzel, _versatz(_hoehenPlatz), const []))
+          Millimeter(h),
+      ],
+      aufbauhoehe: mm(_aufbauhoehePlatz),
+      mindesthoehe: mm(_mindesthoehePlatz),
+      korrigiert: ja(_hoehenKorrigiertPlatz),
+      gedreht: ja(_ukGedrehtPlatz),
     );
   }
 
@@ -281,6 +308,10 @@ final class Berechnung {
   /// Befestigungspunkte und Artikel mit Anzahl; ohne Dielen keine.
   final Befestigungsbedarf befestigung;
 
+  /// Geprüfte Höhenpunkte (M6-02) mit Aufbauhöhe und Hinweisen; bei der
+  /// offenen Freiform keine.
+  final Hoehenpunkte hoehenpunkte;
+
   /// Nummer je Dielenstück (parallel zu [dielen], M5-08) wie in „Dielen
   /// nach Nummer“; jede Teilfläche zählt ab 1. Leer ohne Dielen.
   final List<int> nummern;
@@ -332,6 +363,7 @@ final class Berechnung {
     grenzeObenUnten: grenzeObenUnten,
     kurzeZuschnitte: kurzeZuschnitte,
     befestigung: befestigung,
+    hoehenpunkte: hoehenpunkte,
     nummern: nummern,
     verschnitt: verschnitt,
     dielenliste: dielenliste,
@@ -355,8 +387,11 @@ final class Berechnung {
   /// (string), 2: anzahl (uint32) }]) (M5-09), 15: nummern ([int32]),
   /// 16: verschnitt (float64, fehlt ohne Dielen), 17: dielenliste
   /// ([{ 0: belag (string), 1: laenge (int32 mm), 2: anzahl (int32) }])
-  /// (M5-08), 35: belagmeldungen ([uint8], M5-10), 50: zubehoer ([{ 0:
-  /// nummer (string), 1: berechnet (uint32), 2: menge (uint32), 3: pflicht
+  /// (M5-08), 25: hoehen ([int32] mm je Eckpunkt), 26: hoehenKorrigiert
+  /// (bool), 27: ukGedreht (bool), 28: aufbauhoehe (int32 mm),
+  /// 29: mindesthoehe (int32 mm; beide fehlen ungeprüft) (M6-02),
+  /// 35: belagmeldungen ([uint8], M5-10), 50: zubehoer ([{ 0: nummer
+  /// (string), 1: berechnet (uint32), 2: menge (uint32), 3: pflicht
   /// (uint32, M8-03) }], M8-02), 60: materialliste (Tabelle,
   /// `Materialliste.schreibe`, M9-03), 61: stueckliste (Tabelle,
   /// `Stueckliste.schreibe`), 62: stueckfarben ([uint8] je Dielenstück)
@@ -385,6 +420,9 @@ final class Berechnung {
     ]);
     final mittelOrt = fbb.writeList([
       for (final m in befestigung.mittel) _position(fbb, m),
+    ]);
+    final hoehenOrt = fbb.writeListInt32([
+      for (final h in hoehenpunkte.hoehen) h.mm,
     ]);
     final meldungenOrt = fbb.writeListUint8([
       for (final m in belagmeldungen) m.nummer,
@@ -416,6 +454,11 @@ final class Berechnung {
       ..addOffset(_befestigungsmittelPlatz, mittelOrt)
       ..addOffset(_nummernPlatz, nummernOrt)
       ..addOffset(_dielenlistePlatz, listeOrt)
+      ..addOffset(_hoehenPlatz, hoehenOrt)
+      ..addBool(_hoehenKorrigiertPlatz, hoehenpunkte.korrigiert)
+      ..addBool(_ukGedrehtPlatz, hoehenpunkte.gedreht)
+      ..addInt32(_aufbauhoehePlatz, hoehenpunkte.aufbauhoehe?.mm)
+      ..addInt32(_mindesthoehePlatz, hoehenpunkte.mindesthoehe?.mm)
       ..addOffset(_belagmeldungenPlatz, meldungenOrt)
       ..addOffset(_zubehoerPlatz, zubehoerOrt)
       ..addOffset(_materiallistePlatz, materialOrt)
@@ -511,6 +554,11 @@ final class Berechnung {
   static const _nummernPlatz = 15;
   static const _verschnittPlatz = 16;
   static const _dielenlistePlatz = 17;
+  static const _hoehenPlatz = 25;
+  static const _hoehenKorrigiertPlatz = 26;
+  static const _ukGedrehtPlatz = 27;
+  static const _aufbauhoehePlatz = 28;
+  static const _mindesthoehePlatz = 29;
   static const _belagmeldungenPlatz = 35;
   static const _zubehoerPlatz = 50;
   static const _materiallistePlatz = 60;

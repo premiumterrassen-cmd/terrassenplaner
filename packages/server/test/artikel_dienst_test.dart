@@ -189,6 +189,91 @@ void main() {
     expect(dienst.regelwerk.datei.version, 'v2');
   });
 
+  test('Unterkonstruktionen zum Belag (M6-03): nur passende Robinien-UK, '
+      'gewählt oder Vorgabe, auch über WAMP', () async {
+    Artikeleintrag uk(String nummer, Serie serie, int breite, int staerke) =>
+        Artikeleintrag(
+          artikel: Artikel(
+            nummer: Artikelnummer(nummer),
+            titel: 'UK $nummer',
+            art: Artikelart.unterkonstruktion,
+            einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+            abmessungen: Abmessungen(
+              breite: Millimeter(breite),
+              staerke: Millimeter(staerke),
+              laengen: const [Millimeter(6000)],
+            ),
+            preisBrutto: const Cent(990),
+            holzart: robinie,
+            serie: serie,
+          ),
+        );
+    final alu = Artikeleintrag(
+      artikel: Artikel(
+        nummer: const Artikelnummer('50-20-007'),
+        titel: 'Alu',
+        art: Artikelart.aluUnterkonstruktion,
+        einheit: Verkaufseinheit(Mengeneinheit.stueck),
+      ),
+    );
+    await dienst.ersetze(
+      _datei('v2', [
+        _diele('10-10-073-R', Profil.genutet),
+        alu,
+        uk('10-10-031-S', ecoSelect, 40, 60),
+        uk('10-10-030-R', premiumSelect, 40, 60),
+        uk('10-10-031-R', premiumSelect, 45, 60),
+        uk('10-10-039-R', premiumSelect, 45, 70),
+        _clip,
+      ]),
+    );
+    expect(
+      [for (final a in dienst.ukauswahl(null).angebote) a.artikel.nummer.wert],
+      ['10-10-031-R', '10-10-039-R'],
+    );
+    expect(dienst.ukauswahl(null).version, 'v2');
+    expect(dienst.unterkonstruktion(null, null)!.nummer.wert, '10-10-031-R');
+    expect(
+      dienst
+          .unterkonstruktion(
+            const Artikelnummer('10-10-073-R'),
+            const Artikelnummer('10-10-039-R'),
+          )!
+          .nummer,
+      const Artikelnummer('10-10-039-R'),
+    );
+    // nicht passende Wahl: die Vorgabe
+    expect(
+      dienst
+          .unterkonstruktion(null, const Artikelnummer('10-10-031-S'))!
+          .nummer,
+      const Artikelnummer('10-10-031-R'),
+    );
+    for (final argumente in [
+      <Object?>['10-10-073-R'],
+      <Object?>[],
+    ]) {
+      final antwort = await _rufe(
+        kunde,
+        WampNamen.ukAuswahl,
+        arguments: argumente,
+      );
+      final auswahl = Ukauswahl.ausJson(
+        alsJsonObjekt(antwort.arguments!.single),
+        {robinie.id: robinie},
+      );
+      expect(auswahl.vorgabe!.artikel.nummer.wert, '10-10-031-R');
+      expect(auswahl.vorgabe!.preisJeLfm, const Cent(990));
+      expect(auswahl.angebote, hasLength(2));
+    }
+    // ohne passenden Belag keine UK
+    await dienst.ersetze(
+      _datei('v3', [uk('10-10-031-R', premiumSelect, 45, 60)]),
+    );
+    expect(dienst.ukauswahl(null).angebote, isEmpty);
+    expect(dienst.unterkonstruktion(null, null), isNull);
+  });
+
   test('ungültiger Filter ist ein Fehler', () async {
     await expectLater(
       _rufe(

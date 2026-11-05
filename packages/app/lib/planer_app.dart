@@ -7,6 +7,7 @@ import 'src/konfiguration/konfigurations_steuerung.dart';
 import 'src/rahmen/belag.dart';
 import 'src/rahmen/berechnung_steuerung.dart';
 import 'src/rahmen/planer_rahmen.dart';
+import 'src/rahmen/uk_auswahl.dart';
 import 'src/rahmen/zubehoer.dart';
 import 'src/sprache/sprache.dart';
 import 'src/start/eingangsdialog.dart';
@@ -24,6 +25,7 @@ class PlanerApp extends StatefulWidget {
     this.info = terrassenplaner,
     this.berechne,
     this.belaege,
+    this.unterkonstruktionen,
     this.zubehoer,
     this.sprache,
     this.darstellung,
@@ -43,6 +45,9 @@ class PlanerApp extends StatefulWidget {
 
   /// Beläge vom Server (M5-01).
   final BelaegeLaden? belaege;
+
+  /// Unterkonstruktionen zum Belag vom Server (M6-03).
+  final UnterkonstruktionenLaden? unterkonstruktionen;
 
   /// Zubehör vom Server (M8-01).
   final ZubehoerLaden? zubehoer;
@@ -95,6 +100,7 @@ class _PlanerAppState extends State<PlanerApp> {
           status: ServerStatus(hallo: widget.hallo),
           berechne: widget.berechne,
           belaege: widget.belaege,
+          unterkonstruktionen: widget.unterkonstruktionen,
           zubehoer: widget.zubehoer,
           sprache: _sprache,
           darstellung: _darstellung,

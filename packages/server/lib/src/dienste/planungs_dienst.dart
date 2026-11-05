@@ -11,11 +11,15 @@ typedef Belagsuche = Artikel? Function(Artikelnummer? nummer);
 /// Regelwerk der aktuellen Artikeldaten (M5-09); `null` = keins.
 typedef Regelwerksuche = Regelwerk? Function();
 
+/// Unterkonstruktion zum Planungsstand (M6-02); `null` = keine bekannt.
+typedef Unterkonstruktionssuche = Artikel? Function(Planungsstand stand);
+
 /// Planungsdienst (M4-02): berechnet aus der Planung der App Umriss und
 /// Kennzahlen der bearbeiteten Fläche, die Gesamtfläche (M4-14), die
 /// Dielenstücke (M5-05) mit Nummern, Dielenliste und Verschnitt (M5-08),
 /// den Ausgangspunkt der Verlegung (M5-07), die Befestigung (M5-09), die
-/// Meldungen zum Belag (M5-10), die Mengen im Zubehör (M8-02, M8-03), die
+/// geprüften Höhenpunkte (M6-02), die Meldungen zum Belag (M5-10), die
+/// Mengen im Zubehör (M8-02, M8-03), die
 /// Materialliste (M9-03) und die Stückliste mit den Farben im Plan (M9-04)
 /// – die App rechnet nichts selbst (Frontend bleibt „doof“). Hin- und
 /// Rückweg als typisierte FlatBuffers (Packed PPT, #110).
@@ -25,20 +29,26 @@ class PlanungsDienst {
   /// [belag] liefert den Belag aus den aktuellen Artikeldaten; ohne ihn
   /// (oder ohne Artikeldatei) rechnet der Dienst ohne Dielen. [regelwerk]
   /// liefert die Befestigungsartikel; ohne es keine Befestigung.
+  /// [unterkonstruktion] liefert die UK für die Prüfung der Höhenpunkte;
+  /// ohne sie bleiben die Höhen ungeprüft.
   static Future<PlanungsDienst> starte(
     PlanerRouter router, {
     Belagsuche belag = _ohneBelag,
     Regelwerksuche regelwerk = _ohneRegelwerk,
+    Unterkonstruktionssuche unterkonstruktion = _ohneUnterkonstruktion,
   }) async {
     final sitzung = await router.dienstSitzung(sitzungId);
-    (await sitzung.register(WampNamen.planungBerechnen))
-        .onLazyInvokePayload((aufruf) => _berechne(aufruf, belag, regelwerk));
+    (await sitzung.register(WampNamen.planungBerechnen)).onLazyInvokePayload(
+      (aufruf) => _berechne(aufruf, belag, regelwerk, unterkonstruktion),
+    );
     return PlanungsDienst._(sitzung);
   }
 
   static Artikel? _ohneBelag(Artikelnummer? nummer) => null;
 
   static Regelwerk? _ohneRegelwerk() => null;
+
+  static Artikel? _ohneUnterkonstruktion(Planungsstand stand) => null;
 
   /// authid der internen Dienst-Sitzung.
   static const sitzungId = 'planungs-dienst';
@@ -55,15 +65,18 @@ class PlanungsDienst {
   /// Teilflächen (`verlegeBelag`, M5-05, M5-08) ab dem verschobenen
   /// Ausgangspunkt, die Grenzen der Verschiebung und ob kurze Zuschnitte
   /// entstehen (M5-07). Mit dem [regelwerk] auch die Befestigung (M5-09).
+  /// Die Höhenpunkte prüft der Dienst gegen Belag und [unterkonstruktion]
+  /// (M6-02, `pruefeHoehen`).
   static Berechnung berechne(
     Planungsstand stand, [
     Artikel? belag,
     Regelwerk? regelwerk,
+    Artikel? unterkonstruktion,
   ]) {
     final verlegung = verlegeBelag(stand, belag);
     final befestigung = _befestigung(stand, belag, regelwerk, verlegung);
     return _mitVerlegung(
-      _grundflaeche(stand),
+      _grundflaeche(stand, belag, unterkonstruktion),
       stand,
       belag,
       regelwerk,
@@ -91,7 +104,11 @@ class PlanungsDienst {
     ], winkel: stand.dielenwinkel.toDouble());
   }
 
-  static Berechnung _grundflaeche(Planungsstand stand) {
+  static Berechnung _grundflaeche(
+    Planungsstand stand, [
+    Artikel? belag,
+    Artikel? unterkonstruktion,
+  ]) {
     // offene Freiform (M4-08): nur der gezeichnete Linienzug
     if (stand.grundriss case FreiformGrundriss(
       :final punkte,
@@ -106,8 +123,22 @@ class PlanungsDienst {
       ecken: stand.grundriss.ecken,
       flaeche: kontur.flaeche,
       ausschnitte: [for (final a in stand.ausschnitte) a.kontur.punkte],
+      hoehenpunkte: pruefeHoehen(
+        stand.hoehen,
+        art: stand.terrassenart,
+        dielenstaerke: belag?.abmessungen.staerke,
+        uk: ukMasse(unterkonstruktion),
+      ),
     );
   }
+
+  /// Breite und Stärke einer UK; `null`, wenn eins fehlt (z. B. Alu-UK
+  /// ohne Maße in den Artikeldaten).
+  static UkMasse? ukMasse(Artikel? uk) =>
+      switch ((uk?.abmessungen.breite, uk?.abmessungen.staerke)) {
+        (final a?, final b?) => (a: a, b: b),
+        _ => null,
+      };
 
   /// [flaeche] mit den Stücken der Verlegung [v] und den Meldungen zum
   /// Belag (M5-10, auch ohne Verlegung); die Befestigung zählt die Punkte
@@ -130,6 +161,7 @@ class PlanungsDienst {
         flaeche: flaeche.flaeche,
         ausschnitte: flaeche.ausschnitte,
         belagmeldungen: meldungen,
+        hoehenpunkte: flaeche.hoehenpunkte,
         zubehoer: zubehoer,
       );
     }
@@ -157,6 +189,7 @@ class PlanungsDienst {
       grenzeLinksRechts: v.grenzen.x,
       grenzeObenUnten: v.grenzen.y,
       kurzeZuschnitte: v.kurzeZuschnitte,
+      hoehenpunkte: flaeche.hoehenpunkte,
       befestigung: befestigung,
       stueckliste: Stueckliste.aus(planstuecke),
       stueckfarben: [for (final p in planstuecke) p.farbe],
@@ -240,6 +273,7 @@ class PlanungsDienst {
     Belagsuche belag = _ohneBelag,
     Regelwerk? regelwerk,
     bool mitMengen = false,
+    Unterkonstruktionssuche unterkonstruktion = _ohneUnterkonstruktion,
   ]) {
     var gesamt = 0.0;
     final listen = <Artikelnummer, Dielenliste>{};
@@ -256,7 +290,11 @@ class PlanungsDienst {
         verlegung,
         befestigung,
       );
-      final grund = _grundflaeche(f.stand);
+      final bearbeitet = i == planung.aktiv;
+      // Höhenpunkte nur für die bearbeitete Fläche (M6-02)
+      final grund = bearbeitet
+          ? _grundflaeche(f.stand, artikel, unterkonstruktion(f.stand))
+          : _grundflaeche(f.stand);
       gesamt += grund.flaeche * f.haeufigkeit;
       if (verlegung != null) {
         final liste = verlegung.dielenliste * f.haeufigkeit;
@@ -271,7 +309,7 @@ class PlanungsDienst {
         for (final b in _bedarf(f.stand, regelwerk, befestigung, zubehoer))
           b * f.haeufigkeit,
       ]);
-      if (i == planung.aktiv) {
+      if (bearbeitet) {
         aktuell = _mitVerlegung(
           grund,
           f.stand,
@@ -311,6 +349,7 @@ class PlanungsDienst {
     LazyInvocationPayload aufruf,
     Belagsuche belag,
     Regelwerksuche regelwerk,
+    Unterkonstruktionssuche unterkonstruktion,
   ) {
     try {
       final planung = Planung.ausBytes(_bytes(aufruf));
@@ -321,6 +360,7 @@ class PlanungsDienst {
             belag,
             regelwerk(),
             darfMengenAendern(aufruf),
+            unterkonstruktion,
           ).zuBytes(),
         ),
         options: ppt,
