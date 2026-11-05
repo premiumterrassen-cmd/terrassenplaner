@@ -12,6 +12,7 @@ import 'befestigungsart.dart';
 import 'grundriss.dart';
 import 'rundungen.dart';
 import 'terrassenart.dart';
+import 'untergrund.dart';
 import 'verlegeart.dart';
 import 'verlegerichtung.dart';
 
@@ -22,7 +23,7 @@ import 'verlegerichtung.dart';
 /// Verlegeart, seit M5-05 mit Verlegerichtung, seit M5-07 mit
 /// Ausgangspunkt, seit M5-09 mit Befestigungsart, seit M6-01 mit Art der
 /// Terrasse und Spannweite, seit M6-02 mit Höhenpunkten, seit M6-03 mit
-/// Unterkonstruktion und UK-Länge;
+/// Unterkonstruktion und UK-Länge, seit M6-04 mit Untergrund;
 /// Unterkonstruktion usw. folgen als weitere Felder. Berechnet wird daraus
 /// auf dem Server.
 final class Planungsstand {
@@ -47,6 +48,7 @@ final class Planungsstand {
     this.eckhoehen = const [],
     this.unterkonstruktion,
     this.ukLaenge,
+    this.untergrund = Untergrund.schotter,
   });
 
   /// Liest einen Planungsstand aus dem Transportformat ([zuBytes]).
@@ -185,6 +187,14 @@ final class Planungsstand {
         final mm? => Millimeter(mm),
         null => null,
       },
+      untergrund: Untergrund.ausNummer(
+        const fb.Uint8Reader().vTableGet(
+          puffer,
+          wurzel,
+          _versatz(_untergrundPlatz),
+          0,
+        ),
+      ),
     );
   }
 
@@ -277,6 +287,10 @@ final class Planungsstand {
   /// (`ukLieferlaengen`).
   final Millimeter? ukLaenge;
 
+  /// Untergrund (M6-04, Fachkonzept 3.5); Vorgabe Schotter. Nur Information
+  /// für die Planer, ohne Wirkung auf die Berechnung (R-C07).
+  final Untergrund untergrund;
+
   /// Höhe ohne Gefälle: die eingegebene oder die Vorgabehöhe der Art.
   Millimeter get alleHoehe => hoehe ?? terrassenart.vorgabehoehe;
 
@@ -335,6 +349,7 @@ final class Planungsstand {
     List<Millimeter>? eckhoehen,
     Artikelnummer? unterkonstruktion,
     ({Millimeter? wert})? ukLaenge,
+    Untergrund? untergrund,
   }) {
     final neu = grundriss ?? this.grundriss;
     final ecke = ausgangsecke ?? this.ausgangsecke;
@@ -363,6 +378,7 @@ final class Planungsstand {
       eckhoehen: eckhoehen ?? this.eckhoehen,
       unterkonstruktion: unterkonstruktion ?? this.unterkonstruktion,
       ukLaenge: ukLaenge == null ? this.ukLaenge : ukLaenge.wert,
+      untergrund: untergrund ?? this.untergrund,
     );
   }
 
@@ -498,6 +514,10 @@ final class Planungsstand {
   Planungsstand mitUkLaenge(Millimeter? laenge) =>
       _mit(ukLaenge: (wert: laenge));
 
+  /// Kopie mit anderem Untergrund (M6-04).
+  Planungsstand mitUntergrund(Untergrund untergrund) =>
+      _mit(untergrund: untergrund);
+
   /// Kopie mit oder ohne Gefälle (M6-02).
   Planungsstand mitGefaelle(bool gefaelle) => _mit(gefaelle: gefaelle);
 
@@ -539,8 +559,9 @@ final class Planungsstand {
   /// 21: spannweite (int32 mm) (M6-01), 22: gefaelle (bool), 23: hoehe
   /// (int32 mm; fehlt = Vorgabehöhe), 24: eckhoehen ([int32] mm) (M6-02),
   /// 25: unterkonstruktion (string), 26: ukLaenge (int32 mm; fehlt =
-  /// automatisch) (M6-03) }`. Plätze 14–19 gehören der
-  /// Dielenverlegung (M5-08).
+  /// automatisch) (M6-03), 80: untergrund (uint8) (M6-04) }`. Plätze
+  /// 14–19 gehören der Dielenverlegung (M5-08), 40–49 dem Zubehör (M8),
+  /// 80–89 der Unterkonstruktion ab M6-04.
   /// Neue Felder nur anhängen (docs/architektur/datenmodell.md).
   Uint8List zuBytes() {
     final fbb = fb.Builder();
@@ -566,7 +587,7 @@ final class Planungsstand {
       null => null,
     };
     fbb
-      ..startTable(27)
+      ..startTable(_untergrundPlatz + 1)
       ..addUint16(_schemaPlatz, schema)
       ..addOffset(_grundrissPlatz, grundrissOrt)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
@@ -587,7 +608,8 @@ final class Planungsstand {
       ..addInt32(_hoehePlatz, hoehe?.mm)
       ..addOffset(_eckhoehenPlatz, eckhoehenOrt)
       ..addOffset(_unterkonstruktionPlatz, ukOrt)
-      ..addInt32(_ukLaengePlatz, ukLaenge?.mm);
+      ..addInt32(_ukLaengePlatz, ukLaenge?.mm)
+      ..addUint8(_untergrundPlatz, untergrund.nummer);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
   }
@@ -629,6 +651,7 @@ final class Planungsstand {
   static const _eckhoehenPlatz = 24;
   static const _unterkonstruktionPlatz = 25;
   static const _ukLaengePlatz = 26;
+  static const _untergrundPlatz = 80;
 
   @override
   bool operator ==(Object other) {
@@ -651,6 +674,7 @@ final class Planungsstand {
         other.hoehe != hoehe ||
         other.unterkonstruktion != unterkonstruktion ||
         other.ukLaenge != ukLaenge ||
+        other.untergrund != untergrund ||
         other.eckhoehen.length != eckhoehen.length ||
         other.ausschnitte.length != ausschnitte.length) {
       return false;
@@ -687,6 +711,7 @@ final class Planungsstand {
       Object.hashAll(eckhoehen),
       unterkonstruktion,
       ukLaenge,
+      untergrund,
     ),
   );
 }
