@@ -7,6 +7,7 @@ import '../artikel/artikel.dart';
 import '../artikel/einheiten.dart';
 import '../geometrie/kontur.dart';
 import '../geometrie/punkt.dart';
+import 'anschluss.dart';
 import 'auflagen.dart';
 import 'ausschnitt.dart';
 import 'befestigungsart.dart';
@@ -28,7 +29,7 @@ import 'verlegerichtung.dart';
 /// Unterkonstruktion und UK-Länge, seit M6-04 mit Untergrund, seit M6-05
 /// mit Art der Terrassennutzung, seit M6-06 mit Querstreben, seit M6-07
 /// mit privater oder gewerblicher Nutzung, seit M6-08 mit Auflagen, seit
-/// M6-09 mit maximaler Feldbreite;
+/// M6-09 mit maximaler Feldbreite, seit M7-01 mit dem Terrassenanschluss;
 /// Unterkonstruktion usw. folgen als weitere Felder. Berechnet wird daraus
 /// auf dem Server.
 final class Planungsstand {
@@ -60,6 +61,7 @@ final class Planungsstand {
     this.gewerblich = false,
     this.auflagen = Auflagen.stelzfuesseUndPads,
     this.feldbreite,
+    this.anschluss = Anschluss.keiner,
   });
 
   /// Liest einen Planungsstand aus dem Transportformat ([zuBytes]).
@@ -247,6 +249,14 @@ final class Planungsstand {
         final mm? => Millimeter(mm),
         null => null,
       },
+      anschluss: switch (const _Tabellenort().vTableGetNullable(
+        puffer,
+        wurzel,
+        _versatz(_anschlussPlatz),
+      )) {
+        final ort? => Anschluss.lies(puffer, ort),
+        null => Anschluss.keiner,
+      },
     );
   }
 
@@ -372,6 +382,33 @@ final class Planungsstand {
   /// rechnet der Server mit der höchsten (`wirksameFeldbreite`).
   final Millimeter? feldbreite;
 
+  /// Terrassenanschluss (M7, Fachkonzept 04): Rollen der Seiten. Bei einem
+  /// Grundriss mit anderer Eckenzahl beginnt er neu.
+  final Anschluss anschluss;
+
+  /// Seiten des Grundrisses für den Terrassenanschluss: Seite `i` läuft von
+  /// Ecke `i` zur nächsten. Der Kreis hat keine Seiten, die offene Freiform
+  /// auch nicht.
+  int get seitenzahl => _seitenzahl(grundriss);
+
+  static int _seitenzahl(Grundriss g) => switch (g) {
+    FreiformGrundriss(geschlossen: false) => 0,
+    _ => g.ecken.length,
+  };
+
+  /// Kopie, in der die Seite [seite] an ein Bauelement grenzt ([an]) oder
+  /// nicht (M7-01, Fachkonzept 4.1).
+  Planungsstand mitAngrenzend(int seite, {required bool an}) {
+    _pruefeSeite(seite);
+    return _mit(anschluss: anschluss.mitAngrenzend(seite, an: an));
+  }
+
+  void _pruefeSeite(int seite) {
+    if (seite < 0 || seite >= seitenzahl) {
+      throw RangeError.range(seite, 0, seitenzahl - 1, 'seite');
+    }
+  }
+
   /// Ob [feldbreite] als Eingabe gilt: 10 bis 100 cm.
   static bool feldbreiteGueltig(Millimeter feldbreite) =>
       feldbreite >= const Millimeter(100) &&
@@ -457,6 +494,7 @@ final class Planungsstand {
     bool? gewerblich,
     Auflagen? auflagen,
     ({Millimeter? wert})? feldbreite,
+    Anschluss? anschluss,
   }) {
     final neu = grundriss ?? this.grundriss;
     final ecke = ausgangsecke ?? this.ausgangsecke;
@@ -494,6 +532,10 @@ final class Planungsstand {
       gewerblich: gewerblich ?? this.gewerblich,
       auflagen: auflagen ?? this.auflagen,
       feldbreite: feldbreite == null ? this.feldbreite : feldbreite.wert,
+      // andere Seiten: der Anschluss beginnt neu
+      anschluss: _seitenzahl(neu) == seitenzahl
+          ? anschluss ?? this.anschluss
+          : Anschluss.keiner,
     );
   }
 
@@ -524,6 +566,7 @@ final class Planungsstand {
     grundriss: form.vorgabe,
     ausschnitte: [if (form == Terrassenform.oForm) Ausschnitt.oForm],
     rundungen: Rundungen.keine,
+    anschluss: Anschluss.keiner,
   );
 
   /// Grundriss um [grad] gedreht (M4-10); die Ausschnitte werden dabei
@@ -713,10 +756,12 @@ final class Planungsstand {
   /// 83: querstrebenReihen (uint16; fehlt = automatisch) (M6-06),
   /// 84: gewerblich (bool) (M6-07), 100: auflagen (uint8; fehlt =
   /// Stelzfüße und Pads) (M6-08), 101: feldbreite (int32 mm; fehlt =
-  /// automatisch) (M6-09) }`. Plätze
+  /// automatisch) (M6-09), 140: anschluss (Tabelle, `Anschluss.schreibe`;
+  /// fehlt ohne Rollen) (M7) }`. Plätze
   /// 14–19 gehören der Dielenverlegung (M5-08), 40–49 dem Zubehör (M8),
   /// 80–89 der Unterkonstruktion ab M6-04, 100–109 Auflagen, Feldbreite und
-  /// UK-Verlegung (M6-08 bis M6-11).
+  /// UK-Verlegung (M6-08 bis M6-11), 140–149 dem Anschluss, den
+  /// Höhenreferenzpunkten und den Treppen (M7).
   /// Neue Felder nur anhängen (docs/architektur/datenmodell.md).
   Uint8List zuBytes() {
     final fbb = fb.Builder();
@@ -741,8 +786,9 @@ final class Planungsstand {
       final nummer? => fbb.writeString(nummer.wert),
       null => null,
     };
+    final anschlussOrt = anschluss.leer ? null : anschluss.schreibe(fbb);
     fbb
-      ..startTable(_feldbreitePlatz + 1)
+      ..startTable(_anschlussPlatz + 1)
       ..addUint16(_schemaPlatz, schema)
       ..addOffset(_grundrissPlatz, grundrissOrt)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
@@ -770,7 +816,8 @@ final class Planungsstand {
       ..addUint16(_querstrebenReihenPlatz, querstrebenReihen)
       ..addBool(_gewerblichPlatz, gewerblich)
       ..addUint8(_auflagenPlatz, auflagen.nummer)
-      ..addInt32(_feldbreitePlatz, feldbreite?.mm);
+      ..addInt32(_feldbreitePlatz, feldbreite?.mm)
+      ..addOffset(_anschlussPlatz, anschlussOrt);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
   }
@@ -819,6 +866,7 @@ final class Planungsstand {
   static const _gewerblichPlatz = 84;
   static const _auflagenPlatz = 100;
   static const _feldbreitePlatz = 101;
+  static const _anschlussPlatz = 140;
 
   @override
   bool operator ==(Object other) {
@@ -848,6 +896,7 @@ final class Planungsstand {
         other.gewerblich != gewerblich ||
         other.auflagen != auflagen ||
         other.feldbreite != feldbreite ||
+        other.anschluss != anschluss ||
         other.eckhoehen.length != eckhoehen.length ||
         other.ausschnitte.length != ausschnitte.length) {
       return false;
@@ -891,6 +940,7 @@ final class Planungsstand {
       gewerblich,
       auflagen,
       feldbreite,
+      anschluss,
     ),
   );
 }
@@ -955,6 +1005,14 @@ final class _AusschnittLeser extends fb.TableReader<Ausschnitt> {
       inhalt: _wert(Ausschnittinhalt.values, (i) => i.nummer, puffer, ort, 4),
     );
   }
+}
+
+/// Liest nur den Ort einer Tabelle – die Felder liest der Aufrufer.
+final class _Tabellenort extends fb.TableReader<int> {
+  const _Tabellenort();
+
+  @override
+  int createObject(fb.BufferContext puffer, int ort) => ort;
 }
 
 /// Eintrag aus [werte] zur Nummer im Feldplatz [platz] (fehlt er: 0).

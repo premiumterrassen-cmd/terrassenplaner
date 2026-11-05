@@ -225,6 +225,27 @@ void main() {
     expect(find.byKey(const ValueKey('hoehenzuordnung')), findsNothing);
     expect(find.byKey(const ValueKey('auflager-ohne-hoehe')), findsNothing);
   });
+
+  testWidgets('Terrassenanschluss (M7)', (tester) async {
+    await starteApp(tester);
+    await tester.tap(find.byKey(const ValueKey('neu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('station-terrassenanschluss')));
+    await tester.pumpAndSettle();
+    // M7-01: angrenzende Seiten unter 4.1, je Seite ein Schalter
+    await _waehle(tester, 'angrenzend-0');
+    expect(await _an(tester, 'angrenzend-0'), isTrue);
+    await tester.tap(find.byKey(const ValueKey('rueckgaengig')));
+    await tester.pumpAndSettle();
+    expect(await _an(tester, 'angrenzend-0'), isFalse);
+  });
+}
+
+/// Ob der Schalter-Chip [schluessel] an ist; scrollt vorher zu ihm.
+Future<bool> _an(WidgetTester tester, String schluessel) async {
+  final chip = find.byKey(ValueKey(schluessel));
+  await _imMenue(tester, chip);
+  return tester.widget<FilterChip>(chip).selected;
 }
 
 /// Zeigt [finder] im Bearbeitungsmenü: Die Liste baut nur die sichtbaren

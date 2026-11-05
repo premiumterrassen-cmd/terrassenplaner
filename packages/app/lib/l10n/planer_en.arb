@@ -385,5 +385,7 @@
   "stueckfarbeRot": "red – full length",
   "stueckfarbeBlau": "blue – cut to length",
   "stueckfarbeGruen": "green – cross piece",
-  "stuecklisteHinweis": "Pieces of the area being edited; the colour marks the piece in the drawing."
+  "stuecklisteHinweis": "Pieces of the area being edited; the colour marks the piece in the drawing.",
+  "angrenzendFrage": "Which sides adjoin existing building elements? (shown in grey in the configuration)",
+  "ohneSeiten": "This shape has no sides to choose from."
 }

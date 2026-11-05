@@ -444,6 +444,43 @@ void main() {
       expect(m.auflagerpunkte(), isEmpty);
     });
 
+    test('Seiten mit Rolle (M7): dick in ihrer Farbe, unabhängig von den '
+        'Ebenen', () {
+      final z = Zeichnung(
+        seiten: const [(Offset(0, 0), Offset(4800, 0), Seitenrolle.bauelement)],
+      );
+      expect(
+        () => z.seiten.add((Offset.zero, Offset.zero, Seitenrolle.bauelement)),
+        throwsUnsupportedError,
+      );
+      final o = AnsichtsOptionen();
+      final a = AnsichtSteuerung();
+      final m = _maler(z, o, a);
+      final [(von, bis, farbe)] = m.seitenlinien();
+      expect(von, a.verschiebung);
+      expect(bis, a.verschiebung + const Offset(480, 0));
+      expect(farbe, ZeichnungsMaler.bauelementFarbe);
+      expect(ZeichnungsMaler.bauelementFarbe, const Color(0xFF9E9E9E));
+      expect(
+        ZeichnungsMaler.seitenfarbe(Seitenrolle.bauelement),
+        ZeichnungsMaler.bauelementFarbe,
+      );
+      final aufnahme = PictureRecorder();
+      final leinwand = _ZaehlendeLeinwand(Canvas(aufnahme));
+      m.paint(leinwand, const Size(800, 600));
+      aufnahme.endRecording();
+      expect(
+        leinwand.linienStifte.where(
+          (p) => p.strokeWidth == ZeichnungsMaler.seitenBreite,
+        ),
+        hasLength(1),
+      );
+      expect(ZeichnungsMaler.seitenBreite, 8);
+      o.setzeEbenen({});
+      expect(m.seitenlinien(), hasLength(1));
+      expect(Zeichnung.leer.seiten, isEmpty);
+    });
+
     test('Dielennummern (M5-08): nur wo sie ins Stück passen, längs '
         'gedreht, nie auf dem Kopf', () {
       final z = Zeichnung(

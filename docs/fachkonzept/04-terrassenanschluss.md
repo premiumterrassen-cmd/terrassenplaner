@@ -6,6 +6,8 @@ Je Seite des Grundrisses ein Schalter. Eine Seite kann nur eine Rolle haben: Wir
 
 „(wird in der Konfiguration grau dargestellt)“ – die Seite wird grau schraffiert. Sie steht dann nicht mehr für Verblendung oder Treppe zur Wahl.
 
+**Umsetzung (M7-01):** Seite `i` läuft von Ecke `i` zur nächsten (A — B ist Seite 0) und heißt wie in der Beschriftung der Zeichnung. Der Planungsstand merkt sich die angrenzenden Seiten im Anschluss (`Anschluss.angrenzend`, Transportformat Platz 140); ändert sich die Eckenzahl (andere Form, Freiform-Punkte) oder wird eine neue Form gewählt, beginnt der Anschluss neu, bei neuen Maßen oder Drehung bleibt er. Kreis und offene Freiform haben keine Seiten. Der Server liefert die Seiten mit Rolle für die Zeichnung (`Anschlussergebnis`, Berechnung Platz 150); die App zeichnet sie als dicke graue Linie über dem Umriss, unabhängig von den Ebenen. Ohne weitere Rollen hat eine angrenzende Seite keine Wirkung auf Material und Fläche (F36 = F01). Wirkung auf Verblendung, Rinne und Treppe: siehe 4.2, 4.3 und [05](05-treppen.md).
+
 ## 4.2 Welche Seiten sollen verblendet werden?
 
 „(wird in der Konfiguration gelb dargestellt)“ – die Seite wird gelb.

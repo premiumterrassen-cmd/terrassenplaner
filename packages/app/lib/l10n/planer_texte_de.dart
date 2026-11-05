@@ -1281,4 +1281,11 @@ class PlanerTexteDe extends PlanerTexte {
   @override
   String get stuecklisteHinweis =>
       'Stücke der bearbeiteten Fläche; die Farbe zeigt das Stück in der Zeichnung.';
+
+  @override
+  String get angrenzendFrage =>
+      'Welche Seiten grenzen an bestehende Bauelemente? (wird in der Konfiguration grau dargestellt)';
+
+  @override
+  String get ohneSeiten => 'Diese Form hat keine Seiten zur Auswahl.';
 }

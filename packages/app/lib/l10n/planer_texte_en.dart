@@ -1279,4 +1279,11 @@ class PlanerTexteEn extends PlanerTexte {
   @override
   String get stuecklisteHinweis =>
       'Pieces of the area being edited; the colour marks the piece in the drawing.';
+
+  @override
+  String get angrenzendFrage =>
+      'Which sides adjoin existing building elements? (shown in grey in the configuration)';
+
+  @override
+  String get ohneSeiten => 'This shape has no sides to choose from.';
 }

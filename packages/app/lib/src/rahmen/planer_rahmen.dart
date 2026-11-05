@@ -9,6 +9,7 @@ import '../konfiguration/konfigurations_steuerung.dart';
 import '../sprache/sprache.dart';
 import '../start/eingangsdialog.dart';
 import 'aktionen.dart';
+import 'anschluss.dart';
 import 'ansichtsoptionen.dart';
 import 'ausgangspunkt.dart';
 import 'ausschnitte.dart';
@@ -774,6 +775,10 @@ class Bearbeitungsmenue extends StatelessWidget {
     (PlanerSchritt.unterkonstruktion, 9) => FeldbreiteWahl(
       planung: planung,
       berechnung: berechnung,
+      onGeaendert: () => zustand.markiereGeaendert(schritt),
+    ),
+    (PlanerSchritt.terrassenanschluss, 0) => AngrenzendWahl(
+      planung: planung,
       onGeaendert: () => zustand.markiereGeaendert(schritt),
     ),
     (PlanerSchritt.verschnittoptimierung, 0) when berechnung != null =>

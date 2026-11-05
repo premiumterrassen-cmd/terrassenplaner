@@ -1736,6 +1736,54 @@ void main() {
     });
   });
 
+  group('Terrassenanschluss (M7)', () {
+    final diele = Artikel(
+      nummer: const Artikelnummer('10-10-073'),
+      titel: 'Diele',
+      art: Artikelart.diele,
+      einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+      abmessungen: Abmessungen(
+        breite: const Millimeter(60),
+        staerke: const Millimeter(21),
+        laengen: const [Millimeter(5000)],
+      ),
+      holzart: robinie,
+      serie: basic,
+      profil: Profil.genutet,
+    );
+    Berechnung rechne(Planungsstand stand, {Artikel? belag}) =>
+        Berechnung.ausBytes(
+          PlanungsDienst.berechnePlanung(
+            Planung.start.mitStand(stand),
+            (_) => belag,
+          ).zuBytes(),
+        );
+
+    test('angrenzende Seiten (M7-01): grau in der Zeichnung, mit und ohne '
+        'Dielen; F36 ohne Wirkung auf Material und Fläche', () {
+      final f36 = Planungsstand.start.mitAngrenzend(0, an: true);
+      for (final belag in [null, diele]) {
+        final b = rechne(f36, belag: belag);
+        expect(b.anschluss.seiten, [
+          (
+            seite: 0,
+            rolle: Seitenrolle.bauelement,
+            von: Punkt.ursprung,
+            bis: const Punkt(4800, 0),
+          ),
+        ]);
+        final f01 = rechne(Planungsstand.start, belag: belag);
+        expect(f01.anschluss.seiten, isEmpty);
+        expect(b.flaeche, f01.flaeche);
+        expect(b.materialliste, f01.materialliste);
+      }
+      expect(
+        PlanungsDienst.berechne(f36, diele).anschluss.seiten,
+        hasLength(1),
+      );
+    });
+  });
+
   test('ungültige Maße sind ein Fehler', () async {
     final fbb = fb.Builder();
     final masse = fbb.writeListInt32([4800, 100]);

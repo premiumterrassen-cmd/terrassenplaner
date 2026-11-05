@@ -437,5 +437,7 @@
   "stueckfarbeRot": "rot – ganze Länge",
   "stueckfarbeBlau": "blau – zugeschnitten",
   "stueckfarbeGruen": "grün – Querstück",
-  "stuecklisteHinweis": "Stücke der bearbeiteten Fläche; die Farbe zeigt das Stück in der Zeichnung."
+  "stuecklisteHinweis": "Stücke der bearbeiteten Fläche; die Farbe zeigt das Stück in der Zeichnung.",
+  "angrenzendFrage": "Welche Seiten grenzen an bestehende Bauelemente? (wird in der Konfiguration grau dargestellt)",
+  "ohneSeiten": "Diese Form hat keine Seiten zur Auswahl."
 }

@@ -62,6 +62,10 @@ class BerechnungsSteuerung extends ChangeNotifier {
         for (final p in b.unterbau.auflagerpunkte)
           (Offset(p.ort.x, p.ort.y), p.spalt, p.zeile != null),
       ],
+      seiten: [
+        for (final s in b.anschluss.seiten)
+          (Offset(s.von.x, s.von.y), Offset(s.bis.x, s.bis.y), s.rolle),
+      ],
       ausgangspunkt: switch (b.ausgangspunkt) {
         final p? => Offset(p.x, p.y),
         null => null,

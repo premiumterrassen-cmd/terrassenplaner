@@ -388,9 +388,10 @@ Angrenzende Seiten, Verblendung, Entwässerungsrinnen, bodentiefe Elemente, Abl�
 
 GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/8
 
-- [ ] **M7-01 Angrenzende Seiten** ([#65](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/65)) – `feature/m7-01-angrenzende-seiten`
+- [x] **M7-01 Angrenzende Seiten** ([#65](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/65)) – `feature/m7-01-angrenzende-seiten`
   - Seiten, die an Bauelemente grenzen, auswählen (grau dargestellt).
   - Abnahme: Auswirkung auf Verblendung/Rinnen
+  - Ergebnis: Unterpunkt 4.1 mit einem Schalter je Seite (A — B …), Planungsstand `Anschluss` (Platz 140), Seiten mit Rolle vom Server (`Anschlussergebnis`, Platz 150) grau in der Zeichnung. F36 = F01 (kein Material). Kreis/offene Freiform ohne Seiten; neue Eckenzahl setzt den Anschluss zurück. Wirkung auf Verblendung (M7-02), Rinne (M7-03) und Treppe (M7-05) dort.
 - [ ] **M7-02 Verblendung** ([#66](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/66)) – `feature/m7-02-verblendung`
   - Seiten verblenden (gelb dargestellt), bei Kreis „Fläche verblenden“; nur bei Belagstärke 19–23 mm; Warnungen (Unterlüftung, keine Verblendung ohne Höhenunterschied).
   - Abnahme: Regeln und Warnungen wie beschrieben; Verblendungsmaterial in der Materialliste

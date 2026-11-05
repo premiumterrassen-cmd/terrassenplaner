@@ -27,8 +27,10 @@ final class Zeichnung {
     List<(Offset, Offset, Color)> ukHoelzer = const [],
     this.ukBreite = 0,
     List<(Offset, Millimeter, bool)> auflager = const [],
+    List<(Offset, Offset, Seitenrolle)> seiten = const [],
     this.ausgangspunkt,
   }) : umriss = List.unmodifiable(umriss),
+       seiten = List.unmodifiable(seiten),
        auflager = List.unmodifiable(auflager),
        ukHoelzer = List.unmodifiable(ukHoelzer),
        querstreben = List.unmodifiable(querstreben),
@@ -89,6 +91,9 @@ final class Zeichnung {
   /// Auflager in mm (M6-11) mit dem Spalt unter der UK und ob ein passendes
   /// Auflager gefunden wurde.
   final List<(Offset, Millimeter, bool)> auflager;
+
+  /// Seiten mit Rolle im Terrassenanschluss (M7) in mm: von, bis, Rolle.
+  final List<(Offset, Offset, Seitenrolle)> seiten;
 
   /// Ausgangspunkt der Verlegung in mm (M5-07): Ecke plus Verschiebung, dort
   /// liegt der Griff der ersten ganzen Diele; `null` ohne Dielen.
@@ -196,6 +201,24 @@ class ZeichnungsMaler extends CustomPainter {
               : null,
         ),
   ];
+
+  /// Seiten mit Rolle auf dem Bildschirm in ihrer Farbe (M7): an
+  /// Bauelementen grau. Unabhängig von den Ebenen – sie gehören zum Umriss.
+  List<(Offset, Offset, Color)> seitenlinien() => [
+    for (final (von, bis, rolle) in zeichnung.seiten)
+      (bildschirm(von), bildschirm(bis), seitenfarbe(rolle)),
+  ];
+
+  /// Farbe einer Seite nach ihrer Rolle (Fachkonzept 04).
+  static Color seitenfarbe(Seitenrolle rolle) => switch (rolle) {
+    Seitenrolle.bauelement => bauelementFarbe,
+  };
+
+  /// Grau der Seiten an Bauelementen (Fachkonzept 4.1).
+  static const bauelementFarbe = Color(0xFF9E9E9E);
+
+  /// Strichbreite der Seiten mit Rolle in Pixeln.
+  static const seitenBreite = 8.0;
 
   /// Farbe der Auflager; ohne passendes Auflager rot wie ganze Stücke.
   static const auflagerFarbe = Color(0xFF424242);
@@ -517,6 +540,15 @@ class ZeichnungsMaler extends CustomPainter {
       ..strokeWidth = 3;
     for (final (von, bis) in strebenlinien()) {
       canvas.drawLine(von, bis, strebe);
+    }
+    for (final (von, bis, farbe) in seitenlinien()) {
+      canvas.drawLine(
+        von,
+        bis,
+        Paint()
+          ..color = farbe
+          ..strokeWidth = seitenBreite,
+      );
     }
     final umriss = [for (final p in zeichnung.umriss) bildschirm(p)];
     final linie = Paint()

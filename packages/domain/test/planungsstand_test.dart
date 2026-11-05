@@ -1102,6 +1102,7 @@ void main() {
             false,
             Auflagen.stelzfuesseUndPads,
             null,
+            Anschluss.keiner,
           ),
         ),
       );

@@ -23,8 +23,8 @@ typedef Unterkonstruktionssuche = Artikel? Function(Planungsstand stand);
 /// Zeichnung (M6-06), die Stellfüße zur Nutzung (M6-07), die Auflager mit
 /// Abstand, Höhenbereichen und Meldungen (M6-08), die Feldbreite (M6-09),
 /// die UK-Verlegung mit Hölzern, Stücken und Holzvolumen (M6-10), die
-/// Auflager mit Höhenzuordnung und Mengen (M6-11), die
-/// Materialliste
+/// Auflager mit Höhenzuordnung und Mengen (M6-11), den Terrassenanschluss
+/// (M7), die Materialliste
 /// (M9-03)
 /// und die Stückliste mit den Farben im Plan (M9-04)
 /// – die App rechnet nichts selbst (Frontend bleibt „doof“). Hin- und
@@ -197,6 +197,7 @@ class PlanungsDienst {
         verlegung: uk,
         auflager: auflager,
       ),
+      anschluss: anschlussergebnis(stand),
     );
   }
 
@@ -251,6 +252,7 @@ class PlanungsDienst {
         hoehenpunkte: flaeche.hoehenpunkte,
         stellfuesse: flaeche.stellfuesse,
         unterbau: flaeche.unterbau,
+        anschluss: flaeche.anschluss,
       );
     }
     final stuecke = [for (final t in v.teile) ...t.stuecke];
@@ -285,6 +287,7 @@ class PlanungsDienst {
       hoehenpunkte: flaeche.hoehenpunkte,
       stellfuesse: flaeche.stellfuesse,
       unterbau: flaeche.unterbau,
+      anschluss: flaeche.anschluss,
       befestigung: befestigung,
       stueckliste: Stueckliste.aus([...planstuecke, ...ukStuecke]),
       stueckfarben: [for (final p in planstuecke) p.farbe],

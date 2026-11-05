@@ -2325,6 +2325,18 @@ abstract class PlanerTexte {
   /// In de, this message translates to:
   /// **'Stücke der bearbeiteten Fläche; die Farbe zeigt das Stück in der Zeichnung.'**
   String get stuecklisteHinweis;
+
+  /// No description provided for @angrenzendFrage.
+  ///
+  /// In de, this message translates to:
+  /// **'Welche Seiten grenzen an bestehende Bauelemente? (wird in der Konfiguration grau dargestellt)'**
+  String get angrenzendFrage;
+
+  /// No description provided for @ohneSeiten.
+  ///
+  /// In de, this message translates to:
+  /// **'Diese Form hat keine Seiten zur Auswahl.'**
+  String get ohneSeiten;
 }
 
 class _PlanerTexteDelegate extends LocalizationsDelegate<PlanerTexte> {
