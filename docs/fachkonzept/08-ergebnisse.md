@@ -16,6 +16,33 @@ Neuer Planer: Prüfcode für gespeicherte Konfigurationen (Alexander, 04.11.2026
 - Der Browser merkt sich für „Weiterplanen“ die Kennung mit Prüfcode.
 - Angemeldete Mitarbeiter (M9-10) laden auch mit der Nummer allein; ein fehlender oder falscher Prüfcode stört dann nicht. Der Planer übernimmt die vollständige Kennung vom Server, SPEICHERN führt dieselbe Nummer weiter. Der Ladedialog weist darauf hin.
 
+## Materialliste
+
+Im alten Planer: rechter Reiter „Materialliste“ mit Bild | Artikel | € Gesamt, „Summe gesamt“ und „enthaltene 19% MwSt.“ ([00](00-rahmen.md#materialliste)); Mengen zeigt nur die Mitarbeiter-Ansicht (Fehler, [09](09-nicht-teil-der-kopie.md)).
+
+Neuer Planer (M9-03):
+
+- **Knopf „Materialliste“** unter den Kennzahlen rechts oben, immer sichtbar (wie in der neuen Planer-Version). Vorher kommt wie bei PDF und Angebot der Hinweis auf unveränderte Standardwerte (M3-05).
+- **Spalten:** Pos. | Bild | Artikel (Titel wie im Shop, B-152; darunter „Länge: 5000 mm“ und ggf. „Freidiele“) | Menge mit Einheit (Dielen und UK in Stück, sonst die Verkaufseinheit: VPE, Karton …) | Einzelpreis | Preis je lfm | Gesamt-lfm | Positionspreis. Darunter „Summe gesamt“, „enthaltene 19 % MwSt.“ und der Hinweis „Alle Preise inkl. MwSt. und nur zur Information – verbindlich ist unser Angebot.“ (B-055). Mengen sieht jeder – das Fehlen im alten Planer wird nicht übernommen.
+- **Rechnet der Server** (`Materialliste.aus`, Berechnung Platz 60) über die ganze Planung, jede Fläche mal ihrer Häufigkeit. Jede Quelle liefert eine Liste `Materialbedarf` (Verkaufseinheiten eines Artikels, Stück, optional Lieferlänge, Zusatz, „einmal je Planung“): heute Belag (Dielenliste M5-08) und Befestigung (M5-09), später Unterkonstruktion (M6) und Zubehör samt Freidielen (M8) – ohne Sonderfälle in der Liste.
+- **Zusammenfassen und Verpacken:** Gleiche Bedarfe (Einheiten, Länge, Zusatz) werden über Flächen addiert; erst die Summe wird verpackt (wenig Überhang, dann wenig Packungen wie 2.6) – drei Flächen F01 ergeben 1911 Clips → 7 × VPE 250 + 2 × VPE 100 statt dreimal 2 × 250 + 100 + 50. Ein Bedarf „einmal je Planung“ (Montagehilfe) zählt einmal. Stücke mit Länge werden gezählt, nicht verpackt.
+- **Reihenfolge:** Bereich (Belag, Unterkonstruktion, Befestigung, Auflager, Anschluss, Zubehör), dann Artikelnummer, Länge, Zusatz; Positionen ab 1.
+- **Preise** nur Verkaufspreise aus den Artikeldaten (B-123, B-152), brutto, in ganzen Cent, je Wert einmal gerundet. Ware je lfm (Dielen): Preis je lfm = Preis der Verkaufseinheit ÷ Inhalt, Einzelpreis = je lfm × Länge, Positionspreis = je lfm × Gesamt-lfm – die Summe hängt so nicht von der Längenmischung ab (7.1). Sonst Einzelpreis = Preis der Verkaufseinheit, Positionspreis = Einzelpreis × Anzahl, mit Länge auch Preis je lfm. Holzfliesen je Stück (Fehler F25 nicht übernommen). Freidielen kosten 0 €. Summe = Summe der Positionspreise; enthaltene MwSt. = Summe − gerundetes Netto (Summe × 100 ÷ 119), damit Netto + Steuer genau die Summe ergeben (2.066,57 € → 329,96 €). Fehlt einem Artikel der Preis, steht „–“ und unter der Summe ein Hinweis.
+- **Mitarbeiter-Ansicht:** Menge je Position als Eingabe mit Häkchen „Menge übernehmen“ (auch Enter); nach einer Änderung „berechnet: 48“ mit Knopf zurück zur berechneten Menge (R-D04); 0 wählt die Position ab. Die Planung merkt sich die Mengen (`Planung.mengen`, Platz 70, mit Speichern/Laden und Rückgängig), Schlüssel Artikelnummer + Länge + Zusatz. Freigeschaltet nur mit der Rolle Mitarbeiter (M9-10): In der App schaltet die Anmeldung die Eingaben frei, der Server übernimmt die Mengen nur, wenn `PlanungsDienst.darfMengenAendern` den Aufrufer an der vom Router gesetzten Rolle als Mitarbeiter erkennt. Kunden sehen keine Eingaben, und geänderte Mengen von Kunden übernimmt der Server nicht.
+- **Noch nicht enthalten:** Unterkonstruktion, Auflager, Gummiband (M6), Zubehör und Freidielen (M8), Systemdielen je m² (noch nicht verlegt, 2.7). Im Vergleich mit F01 stimmen Dielen (48 × 5000 mm ohne die einseitig genuteten Anfangsdielen, B-033) und Clips (2 × VPE 250 + 100 + 50); die Terrassenschrauben der Randdielen entfallen (2.6).
+
+## Stückliste
+
+In den Planungsunterlagen des alten Planers steht die Stückliste beim UK-Plan: Artikel, Länge, Stück und eine Farbe, in der das Stück im Plan gezeichnet ist (Referenzfälle M1-02, z. B. RELO C 200 cm rot, 87 cm blau, 36/35/33 cm grün).
+
+Neuer Planer (M9-04):
+
+- **Farben** (eine Quelle für Zeichnung, Liste und später PDF, `Stueckfarbe.argb`): **rot** ein Längsstück in ganzer Länge (ungeschnitten), **blau** ein zugeschnittenes Längsstück, **grün** ein Querstück. Ganze Länge = längste Lieferlänge des Artikels bzw. die erzwungene Dielenlänge (wie die UK-Länge im alten Planer). Geprüft gegen alle UK-Stücklisten der Referenzfälle: jede rote und blaue Zeile passt, wenn UK-Holz 6000 mm lang ist (die 6500 mm des alten Planers sind der Fehler aus B-035, F14); grüne Zeilen sind Querstücke.
+- **Schnittstelle:** Jede Quelle liefert ihre Stücke als `Planstueck` (Artikel, Länge, ganze Länge, Lage längs/quer); `Stueckliste.aus` zählt gleiche Artikel, Länge und Farbe zu einer Zeile – Artikel in der Reihenfolge ihres ersten Stücks, darin rot, blau, grün und die längsten zuerst. Heute liefert der Belag seine Dielenstücke (Teilflächen eingeschlossen), mit M6 kommt die Unterkonstruktion mit Längs- und Querstücken dazu.
+- **Zuordnung zum Plan:** Der Server liefert je Dielenstück dieselbe Farbe (`stueckfarben`, Berechnung Platz 62, Stückliste Platz 61); die Zeichnung umrandet jedes Stück in dieser Farbe. Die Stückliste gilt für die bearbeitete Fläche ohne Häufigkeit, weil sie die Zeichnung erklärt; Mengen für die Bestellung stehen in der Materialliste.
+- **Anzeige:** im Dialog „Materialliste“ umschaltbar auf „Stückliste“: Artikel | Länge (cm) | Stück | Farbe im Plan (Farbfeld und Name).
+- Beispiele: F01 48 × 480 cm blau (aus 5000 mm geschnitten); 800 × 309 cm 48 × 600 cm rot und 48 × 200 cm blau; mit Dielenlänge fest 400 cm 96 × 400 cm rot.
+
 ## Angebot anfordern
 
 Knopf „Jetzt Angebot anfordern“ (Materialliste) öffnet „Angebot anfordern“:
@@ -38,7 +65,7 @@ Knopf „Jetzt Angebot anfordern“ (Materialliste) öffnet „Angebot anfordern
   - ANMELDEN steht in der Kopfzeile nach ZURÜCKSETZEN (schmal nur als Symbol). Dialog „Login“ mit Hinweis „Nur für Mitarbeiter von ALTO HOLZ.“, Feldern E-Mail-Adresse und Passwort (verdeckt), „Abbrechen“ und „Anmelden“; Enter im Passwortfeld meldet an.
   - Falsche Angaben: „Anmeldung nicht möglich. Bitte prüfen Sie E-Mail-Adresse und Passwort – nach mehreren Fehlversuchen ist das Konto für 15 Minuten gesperrt.“ Das Passwortfeld wird geleert, die E-Mail-Adresse bleibt. Ohne Server eine eigene Meldung.
   - Angemeldet: ABMELDEN statt ANMELDEN, „Angemeldet als …“ in der Statuszeile (schmal zusätzlich im Tooltip). ABMELDEN meldet ohne Rückfrage ab („Sie sind abgemeldet.“). Neu laden der Seite oder Verbindungsabbruch melden ebenfalls ab – der Browser speichert keine Anmeldung und kein Passwort.
-  - Mitarbeiter dürfen Konfigurationen ohne Prüfcode laden (siehe oben). Die Mitarbeiter-Ansicht der Materialliste und die ERP-Exporte (unten) folgen mit M9-04/M9-08.
+  - Mitarbeiter dürfen Konfigurationen ohne Prüfcode laden (siehe oben) und sehen die Mitarbeiter-Ansicht der Materialliste mit änderbaren Mengen. Die ERP-Exporte (unten) folgen mit M9-08.
   - Kunden bleiben anonym; es gibt keine Selbstregistrierung. Konten legt die Verwaltung auf dem Server an (`docs/betrieb/mitarbeiter.md`); E-Mail-Adressen gelten ohne Groß-/Kleinschreibung.
 - **Video Beratung buchen**: externer Terminlink (nicht geöffnet).
 - **Kontakt-Knopf** (rot, rechts): E-Mail-Kontakt.

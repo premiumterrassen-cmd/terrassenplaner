@@ -286,6 +286,24 @@ abstract class PlanerTexte {
   /// **'Volumen: {wert}'**
   String volumen(String wert);
 
+  /// No description provided for @verschnitt.
+  ///
+  /// In de, this message translates to:
+  /// **'Verschnitt: {wert}'**
+  String verschnitt(String wert);
+
+  /// No description provided for @benoetigteDielen.
+  ///
+  /// In de, this message translates to:
+  /// **'Benötigte Dielen:'**
+  String get benoetigteDielen;
+
+  /// No description provided for @keineDielen.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch keine Dielen verlegt.'**
+  String get keineDielen;
+
   /// No description provided for @massPlatzhalter.
   ///
   /// In de, this message translates to:
@@ -1102,6 +1120,12 @@ abstract class PlanerTexte {
   /// **'Ausgangspunkt des Belags'**
   String get terrassenbelag5;
 
+  /// No description provided for @terrassenbelag6.
+  ///
+  /// In de, this message translates to:
+  /// **'Befestigungsart'**
+  String get terrassenbelag6;
+
   /// No description provided for @unterkonstruktion1.
   ///
   /// In de, this message translates to:
@@ -1582,6 +1606,42 @@ abstract class PlanerTexte {
   /// **'Achtung: Es entstehen Zuschnitte unter 5 cm. Verschieben Sie die erste ganze Diele, damit keine so schmalen oder kurzen Stücke entstehen.'**
   String get zuschnittWarnung;
 
+  /// No description provided for @befestigungsartClips.
+  ///
+  /// In de, this message translates to:
+  /// **'Mit Clips'**
+  String get befestigungsartClips;
+
+  /// No description provided for @befestigungsartVerschraubt.
+  ///
+  /// In de, this message translates to:
+  /// **'Direkt verschraubt'**
+  String get befestigungsartVerschraubt;
+
+  /// No description provided for @befestigungsartAbstandshalter.
+  ///
+  /// In de, this message translates to:
+  /// **'Verschraubt mit Abstandshaltern'**
+  String get befestigungsartAbstandshalter;
+
+  /// No description provided for @befestigungOhneDielen.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Befestigung ergibt sich, sobald ein Belag aus Dielen verlegt ist.'**
+  String get befestigungOhneDielen;
+
+  /// No description provided for @befestigungspunkte.
+  ///
+  /// In de, this message translates to:
+  /// **'Befestigungspunkte: {anzahl}'**
+  String befestigungspunkte(int anzahl);
+
+  /// No description provided for @befestigungsmittel.
+  ///
+  /// In de, this message translates to:
+  /// **'{anzahl} × {titel}'**
+  String befestigungsmittel(int anzahl, String titel);
+
   /// No description provided for @kurzeStueckeVerbinden.
   ///
   /// In de, this message translates to:
@@ -1683,6 +1743,420 @@ abstract class PlanerTexte {
   /// In de, this message translates to:
   /// **'Als Mitarbeiter genügt die Konfigurationsnummer – der Prüfcode darf fehlen.'**
   String get nummerHinweisMitarbeiter;
+
+  /// No description provided for @terrassenartNormal.
+  ///
+  /// In de, this message translates to:
+  /// **'Normale Terrasse'**
+  String get terrassenartNormal;
+
+  /// No description provided for @terrassenartHochterrasse.
+  ///
+  /// In de, this message translates to:
+  /// **'Hochterrasse'**
+  String get terrassenartHochterrasse;
+
+  /// No description provided for @terrassenartVorhandeneUk.
+  ///
+  /// In de, this message translates to:
+  /// **'Vorhandene UK'**
+  String get terrassenartVorhandeneUk;
+
+  /// No description provided for @vorgabehoehe.
+  ///
+  /// In de, this message translates to:
+  /// **'Vorgabehöhe: {cm} cm'**
+  String vorgabehoehe(String cm);
+
+  /// No description provided for @spannweiteFrage.
+  ///
+  /// In de, this message translates to:
+  /// **'Spannweite der Unterkonstruktion (Abstand der vorhandenen Träger)'**
+  String get spannweiteFrage;
+
+  /// No description provided for @spannweite.
+  ///
+  /// In de, this message translates to:
+  /// **'Spannweite'**
+  String get spannweite;
+
+  /// No description provided for @spannweiteUngueltig.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte eine Zahl von 10 bis 300 cm eingeben'**
+  String get spannweiteUngueltig;
+
+  /// No description provided for @hoehenpunkteHilfe.
+  ///
+  /// In de, this message translates to:
+  /// **'Gemessen von Oberkante Belag bis Boden.'**
+  String get hoehenpunkteHilfe;
+
+  /// No description provided for @ohneGefaelle.
+  ///
+  /// In de, this message translates to:
+  /// **'ohne Gefälle'**
+  String get ohneGefaelle;
+
+  /// No description provided for @mitGefaelle.
+  ///
+  /// In de, this message translates to:
+  /// **'mit Gefälle'**
+  String get mitGefaelle;
+
+  /// No description provided for @hoeheAlle.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle'**
+  String get hoeheAlle;
+
+  /// No description provided for @hoeheUngueltig.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte eine Zahl über 0 bis 300 cm eingeben'**
+  String get hoeheUngueltig;
+
+  /// No description provided for @aufbauhoehe.
+  ///
+  /// In de, this message translates to:
+  /// **'Aufbauhöhe (Belag und Unterkonstruktion): {cm} cm'**
+  String aufbauhoehe(String cm);
+
+  /// No description provided for @ukGedreht.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Unterkonstruktion wird gedreht (Breite und Stärke getauscht), damit die Aufbauhöhe eingehalten wird.'**
+  String get ukGedreht;
+
+  /// No description provided for @hoeheKorrigiert.
+  ///
+  /// In de, this message translates to:
+  /// **'Der Höhenreferenzpunkt unterschreitet die minimale Höhe von {cm} cm. Er wurde korrigiert.'**
+  String hoeheKorrigiert(String cm);
+
+  /// No description provided for @belagmeldungBelagErsetzt.
+  ///
+  /// In de, this message translates to:
+  /// **'Der gewählte Belag ist nicht mehr im Sortiment. Geplant wird mit dem Vorgabebelag – wählen Sie bei Bedarf über „Produktauswahl“ einen anderen.'**
+  String get belagmeldungBelagErsetzt;
+
+  /// No description provided for @belagmeldungOhneMasse.
+  ///
+  /// In de, this message translates to:
+  /// **'Für diesen Belag fehlen Breite oder Lieferlängen, er kann nicht verlegt werden. Bitte wählen Sie einen anderen Belag.'**
+  String get belagmeldungOhneMasse;
+
+  /// No description provided for @belagmeldungSystemdiele.
+  ///
+  /// In de, this message translates to:
+  /// **'Systemdielen werden im Längenmix endlos verlegt – das zeichnet der Planer noch nicht.'**
+  String get belagmeldungSystemdiele;
+
+  /// No description provided for @belagmeldungFlaecheKleiner.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Fläche oder eine Teilfläche ist kleiner als eine Diele bzw. Fliese: Es passt keine ganze Belagbreite hinein, nur ein Zuschnitt.'**
+  String get belagmeldungFlaecheKleiner;
+
+  /// No description provided for @belagmeldungFliesenSpitzeWinkel.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Fläche hat Ecken unter 90°. Holzfliesen müssen dort schräg zugeschnitten werden – für solche Formen eignen sich Dielen besser.'**
+  String get belagmeldungFliesenSpitzeWinkel;
+
+  /// No description provided for @belagmeldungBombierung.
+  ///
+  /// In de, this message translates to:
+  /// **'Ab 8 cm Breite empfehlen wir bombierte (leicht gewölbte) Dielen.'**
+  String get belagmeldungBombierung;
+
+  /// No description provided for @belagmeldungLaengeNichtLieferbar.
+  ///
+  /// In de, this message translates to:
+  /// **'Die gewählte Länge von {cm} cm gibt es für diesen Belag nicht. Die Dielenlänge wird automatisch ermittelt.'**
+  String belagmeldungLaengeNichtLieferbar(int cm);
+
+  /// No description provided for @belagmeldungBefestigungsart.
+  ///
+  /// In de, this message translates to:
+  /// **'Genutete Dielen werden verdeckt mit Clips befestigt. Die gewählte Verschraubung gilt nur für glattkante Dielen.'**
+  String get belagmeldungBefestigungsart;
+
+  /// No description provided for @belagmeldungOhneBefestigung.
+  ///
+  /// In de, this message translates to:
+  /// **'Für diesen Belag sind keine passenden Clips oder Schrauben hinterlegt – die Befestigung fehlt in der Materialliste. Bitte sprechen Sie uns an.'**
+  String get belagmeldungOhneBefestigung;
+
+  /// No description provided for @belagmeldungSchraubeZuKurz.
+  ///
+  /// In de, this message translates to:
+  /// **'Keine hinterlegte Schraube ist mindestens doppelt so lang, wie die Diele stark ist. Gerechnet wird mit der längsten – bitte prüfen Sie die Schraubenlänge.'**
+  String get belagmeldungSchraubeZuKurz;
+
+  /// No description provided for @ukLaedt.
+  ///
+  /// In de, this message translates to:
+  /// **'Unterkonstruktionen werden geladen …'**
+  String get ukLaedt;
+
+  /// No description provided for @ukFehler.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Unterkonstruktionen konnten nicht geladen werden.'**
+  String get ukFehler;
+
+  /// No description provided for @ukKeine.
+  ///
+  /// In de, this message translates to:
+  /// **'Zum gewählten Belag passt keine Unterkonstruktion aus dem Sortiment.'**
+  String get ukKeine;
+
+  /// No description provided for @ukDialogTitel.
+  ///
+  /// In de, this message translates to:
+  /// **'Unterkonstruktion auswählen'**
+  String get ukDialogTitel;
+
+  /// No description provided for @ukLaengeOhneUk.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Länge ergibt sich, sobald eine Unterkonstruktion gewählt ist.'**
+  String get ukLaengeOhneUk;
+
+  /// No description provided for @automatisch.
+  ///
+  /// In de, this message translates to:
+  /// **'Automatisch'**
+  String get automatisch;
+
+  /// No description provided for @materialliste.
+  ///
+  /// In de, this message translates to:
+  /// **'Materialliste'**
+  String get materialliste;
+
+  /// No description provided for @materiallisteLeer.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Materialliste entsteht, sobald ein Belag verlegt ist.'**
+  String get materiallisteLeer;
+
+  /// No description provided for @materialSpaltePosition.
+  ///
+  /// In de, this message translates to:
+  /// **'Pos.'**
+  String get materialSpaltePosition;
+
+  /// No description provided for @materialSpalteBild.
+  ///
+  /// In de, this message translates to:
+  /// **'Bild'**
+  String get materialSpalteBild;
+
+  /// No description provided for @materialSpalteArtikel.
+  ///
+  /// In de, this message translates to:
+  /// **'Artikel'**
+  String get materialSpalteArtikel;
+
+  /// No description provided for @materialSpalteMenge.
+  ///
+  /// In de, this message translates to:
+  /// **'Menge'**
+  String get materialSpalteMenge;
+
+  /// No description provided for @materialSpalteEinzelpreis.
+  ///
+  /// In de, this message translates to:
+  /// **'Einzelpreis'**
+  String get materialSpalteEinzelpreis;
+
+  /// No description provided for @materialSpaltePreisJeLfm.
+  ///
+  /// In de, this message translates to:
+  /// **'Preis je lfm'**
+  String get materialSpaltePreisJeLfm;
+
+  /// No description provided for @materialSpalteGesamtLfm.
+  ///
+  /// In de, this message translates to:
+  /// **'Gesamt-lfm'**
+  String get materialSpalteGesamtLfm;
+
+  /// No description provided for @materialSpaltePositionspreis.
+  ///
+  /// In de, this message translates to:
+  /// **'Positionspreis'**
+  String get materialSpaltePositionspreis;
+
+  /// No description provided for @materialLaenge.
+  ///
+  /// In de, this message translates to:
+  /// **'Länge: {laenge} mm'**
+  String materialLaenge(int laenge);
+
+  /// No description provided for @materialFreidiele.
+  ///
+  /// In de, this message translates to:
+  /// **'Freidiele'**
+  String get materialFreidiele;
+
+  /// No description provided for @materialBerechnet.
+  ///
+  /// In de, this message translates to:
+  /// **'berechnet: {anzahl}'**
+  String materialBerechnet(int anzahl);
+
+  /// No description provided for @materialSumme.
+  ///
+  /// In de, this message translates to:
+  /// **'Summe gesamt: {betrag}'**
+  String materialSumme(String betrag);
+
+  /// No description provided for @materialMehrwertsteuer.
+  ///
+  /// In de, this message translates to:
+  /// **'enthaltene {satz} % MwSt.: {betrag}'**
+  String materialMehrwertsteuer(int satz, String betrag);
+
+  /// No description provided for @materialPreishinweis.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle Preise inkl. MwSt. und nur zur Information – verbindlich ist unser Angebot.'**
+  String get materialPreishinweis;
+
+  /// No description provided for @materialOhnePreis.
+  ///
+  /// In de, this message translates to:
+  /// **'Für einzelne Artikel liegt kein Preis vor; sie fehlen in der Summe.'**
+  String get materialOhnePreis;
+
+  /// No description provided for @materialMengeUebernehmen.
+  ///
+  /// In de, this message translates to:
+  /// **'Menge übernehmen'**
+  String get materialMengeUebernehmen;
+
+  /// No description provided for @materialMengeBerechnet.
+  ///
+  /// In de, this message translates to:
+  /// **'Berechnete Menge verwenden'**
+  String get materialMengeBerechnet;
+
+  /// No description provided for @materialMitarbeiter.
+  ///
+  /// In de, this message translates to:
+  /// **'Mitarbeiter-Ansicht: Mengen änderbar'**
+  String get materialMitarbeiter;
+
+  /// No description provided for @einheitStueck.
+  ///
+  /// In de, this message translates to:
+  /// **'Stück'**
+  String get einheitStueck;
+
+  /// No description provided for @einheitLaufmeter.
+  ///
+  /// In de, this message translates to:
+  /// **'lfm'**
+  String get einheitLaufmeter;
+
+  /// No description provided for @einheitQuadratmeter.
+  ///
+  /// In de, this message translates to:
+  /// **'m²'**
+  String get einheitQuadratmeter;
+
+  /// No description provided for @einheitVerpackungseinheit.
+  ///
+  /// In de, this message translates to:
+  /// **'VPE'**
+  String get einheitVerpackungseinheit;
+
+  /// No description provided for @einheitKarton.
+  ///
+  /// In de, this message translates to:
+  /// **'Karton'**
+  String get einheitKarton;
+
+  /// No description provided for @einheitSet.
+  ///
+  /// In de, this message translates to:
+  /// **'Set'**
+  String get einheitSet;
+
+  /// No description provided for @einheitKiste.
+  ///
+  /// In de, this message translates to:
+  /// **'Kiste'**
+  String get einheitKiste;
+
+  /// No description provided for @einheitLiter.
+  ///
+  /// In de, this message translates to:
+  /// **'l'**
+  String get einheitLiter;
+
+  /// No description provided for @stueckliste.
+  ///
+  /// In de, this message translates to:
+  /// **'Stückliste'**
+  String get stueckliste;
+
+  /// No description provided for @stuecklisteLeer.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Stückliste entsteht, sobald ein Belag verlegt ist.'**
+  String get stuecklisteLeer;
+
+  /// No description provided for @stueckSpalteArtikel.
+  ///
+  /// In de, this message translates to:
+  /// **'Artikel'**
+  String get stueckSpalteArtikel;
+
+  /// No description provided for @stueckSpalteLaenge.
+  ///
+  /// In de, this message translates to:
+  /// **'Länge (cm)'**
+  String get stueckSpalteLaenge;
+
+  /// No description provided for @stueckSpalteStueck.
+  ///
+  /// In de, this message translates to:
+  /// **'Stück'**
+  String get stueckSpalteStueck;
+
+  /// No description provided for @stueckSpalteFarbe.
+  ///
+  /// In de, this message translates to:
+  /// **'Farbe im Plan'**
+  String get stueckSpalteFarbe;
+
+  /// No description provided for @stueckfarbeRot.
+  ///
+  /// In de, this message translates to:
+  /// **'rot – ganze Länge'**
+  String get stueckfarbeRot;
+
+  /// No description provided for @stueckfarbeBlau.
+  ///
+  /// In de, this message translates to:
+  /// **'blau – zugeschnitten'**
+  String get stueckfarbeBlau;
+
+  /// No description provided for @stueckfarbeGruen.
+  ///
+  /// In de, this message translates to:
+  /// **'grün – Querstück'**
+  String get stueckfarbeGruen;
+
+  /// No description provided for @stuecklisteHinweis.
+  ///
+  /// In de, this message translates to:
+  /// **'Stücke der bearbeiteten Fläche; die Farbe zeigt das Stück in der Zeichnung.'**
+  String get stuecklisteHinweis;
 }
 
 class _PlanerTexteDelegate extends LocalizationsDelegate<PlanerTexte> {

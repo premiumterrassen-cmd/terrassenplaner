@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:terrassenplaner_app/src/rahmen/planer_schritt.dart';
 import 'package:terrassenplaner_app/src/rahmen/rahmen_zustand.dart';
+import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 import 'hilfe.dart';
 
@@ -20,7 +21,7 @@ void main() {
     );
     expect(
       [for (final s in PlanerSchritt.values) s.unterpunkte(de).length],
-      [4, 5, 8, 3, 1, 8, 1],
+      [4, 6, 8, 3, 1, 8, 1],
     );
   });
 
@@ -55,6 +56,7 @@ void main() {
           'Verlegearten',
           'Verlegerichtungen',
           'Ausgangspunkt des Belags',
+          'Befestigungsart',
         ],
         'unterkonstruktion': [
           'Art der Terrasse',
@@ -102,6 +104,37 @@ void main() {
       PlanerSchritt.zubehoer.nummerierteUnterpunkte(de).last,
       '6.8 Terrassenöl RIBOL',
     );
+  });
+
+  test('ohne Nutzungsart bei Hochterrasse und vorhandener UK '
+      'lückenlos nummeriert (M6-01)', () {
+    const start = Planungsstand.start;
+    for (final art in Terrassenart.values) {
+      final stand = start.mitTerrassenart(art);
+      final punkte = PlanerSchritt.unterkonstruktion.sichtbareUnterpunkte(
+        de,
+        stand,
+      );
+      expect(punkte.length, art.mitNutzungsart ? 8 : 7, reason: art.name);
+      expect(
+        PlanerSchritt.unterkonstruktion.entfaellt(5, stand),
+        !art.mitNutzungsart,
+      );
+      // andere Schritte und Unterpunkte entfallen nie
+      for (final s in PlanerSchritt.values) {
+        for (var i = 0; i < s.unterpunkte(de).length; i++) {
+          if (s == PlanerSchritt.unterkonstruktion && i == 5) continue;
+          expect(s.entfaellt(i, stand), isFalse);
+        }
+      }
+    }
+    final ohne = PlanerSchritt.unterkonstruktion.sichtbareUnterpunkte(
+      de,
+      start.mitTerrassenart(Terrassenart.vorhandeneUk),
+    );
+    expect([for (final p in ohne) p.index], [0, 1, 2, 3, 4, 6, 7]);
+    expect(ohne[5].text, '3.6 Querstreben');
+    expect(ohne.last.text, '3.7 Nutzung privat oder gewerblich');
   });
 
   test('Zustand: Auswahl, besuchte Stationen, Fortschritt', () {

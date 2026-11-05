@@ -29,9 +29,9 @@ Die mit ⚙ markierten Regeln sind im domain-Paket ausführbar und mit Tests bel
 
 | Nr. | Regel | Quelle | Status |
 |---|---|---|---|
-| R-B01 ⚙ | Verdeckte Befestigung genutet: unter 100 mm **CLIP-FIXX** (1 Schraube je Clip); genutete PREMIUM SELECT ab 100 mm **DUO-CLIP-FIXX** (2 Schrauben); ECO SELECT und BASIC 100 mm genutet: CLIP-FIXX. Schrauben sind im Clip-Lieferumfang. | B-094, B-150, B-074 | gilt |
+| R-B01 ⚙ | Verdeckte Befestigung genutet: unter 100 mm **CLIP-FIXX** (1 Schraube je Clip); genutete PREMIUM SELECT ab 100 mm **DUO-CLIP-FIXX** (2 Schrauben); ECO SELECT und BASIC 100 mm genutet: CLIP-FIXX. Schrauben sind im Clip-Lieferumfang. Artikel und Mengen: `befestigungsbedarf` (M5-09, [02 · 2.6](02-terrassenbelag.md)). | B-094, B-150, B-074 | gilt |
 | R-B02 ⚙ | Dielen über 100 mm werden empfohlen, dann **ausschließlich von oben verschraubt** (glattkant); 2 Schrauben je Auflager ab 100 mm. | B-090, Matrix Artikelbeschreibungen | gilt |
-| R-B03 | Ab 80 mm Breite Bombierung empfehlen; 60 und 80 mm sind am besten geeignet. | Montagehinweise Regel 7 | gilt (Hinweis) |
+| R-B03 ⚙ | Ab 80 mm Breite Bombierung empfehlen; 60 und 80 mm sind am besten geeignet. Meldung im Planer: `belagmeldungen` (M5-10, [02 · 2.8](02-terrassenbelag.md)). | Montagehinweise Regel 7 | gilt (Hinweis) |
 | R-B04 | Befestigungsmaterial wie bisher (CLIP-FIXX/DUO schwarz beschichtet), keine A4-Pflicht. | B-095 | gilt |
 | R-B05 | Verschraubung von unten ist nicht zulässig. | Merkblatt M-10, Antwort 6 | gilt (Hinweis) |
 | R-B06 | Fuge (Abstand der Dielen nebeneinander): **5 mm** im Planer; ERP-Flächenformel rechnet mit Breite + 5 mm. | Alexander (Frage 2), ERP-Plugins, Antwort 3 | gilt – 5 mm überall („auf der sicheren Seite“) |

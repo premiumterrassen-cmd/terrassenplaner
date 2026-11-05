@@ -84,6 +84,12 @@ void main() {
     expect(belaege.version, 'v1');
     expect(belaege.vorgabe!.artikel.serie, premiumSelect);
     expect(belaege.vorgabe!.preisJeM2, const Cent(20000));
+    // M6-03: Unterkonstruktionen zum Belag (die Testdatei hat keine)
+    for (final belag in [null, const Artikelnummer('10-10-060-R')]) {
+      final uk = await verbindung.unterkonstruktionen(belag);
+      expect(uk.version, 'v1');
+      expect(uk.angebote, isEmpty);
+    }
   });
 
   test(

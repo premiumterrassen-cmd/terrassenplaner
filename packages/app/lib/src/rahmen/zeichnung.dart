@@ -21,9 +21,13 @@ final class Zeichnung {
     List<Bauteil> bauteile = const [],
     List<Offset> ablaeufe = const [],
     List<List<Offset>> dielen = const [],
+    List<int> nummern = const [],
+    List<Color> dielenfarben = const [],
     this.ausgangspunkt,
   }) : umriss = List.unmodifiable(umriss),
+       dielenfarben = List.unmodifiable(dielenfarben),
        dielen = List.unmodifiable(dielen),
+       nummern = List.unmodifiable(nummern),
        ecken = List.unmodifiable(ecken ?? umriss),
        ausschnitte = List.unmodifiable(ausschnitte),
        ausschnittDarstellung = List.unmodifiable(ausschnittDarstellung),
@@ -56,6 +60,14 @@ final class Zeichnung {
 
   /// Umrisse der Dielenstücke in mm (M5-05), vom Server verlegt.
   final List<List<Offset>> dielen;
+
+  /// Nummer je Dielenstück wie in „Dielen nach Nummer“ (M5-08), parallel
+  /// zu [dielen]; fehlt eine, bleibt das Stück ohne Nummer.
+  final List<int> nummern;
+
+  /// Farbe je Dielenstück wie in der Stückliste (M9-04), parallel zu
+  /// [dielen]; fehlt eine, bekommt das Stück die normale Fuge.
+  final List<Color> dielenfarben;
 
   /// Ausgangspunkt der Verlegung in mm (M5-07): Ecke plus Verschiebung, dort
   /// liegt der Griff der ersten ganzen Diele; `null` ohne Dielen.
@@ -126,6 +138,54 @@ class ZeichnungsMaler extends CustomPainter {
       for (final d in zeichnung.dielen)
         Path()..addPolygon([for (final p in d) bildschirm(p)], true),
   ];
+
+  /// Rand des Dielenstücks [index] in der Farbe der Stückliste (M9-04);
+  /// `null` = normale Fuge.
+  Color? dielenrand(int index) => zeichnung.dielenfarben.elementAtOrNull(index);
+
+  /// Schriftgröße der Dielennummern in Pixeln.
+  static const nummerGroesse = 10.0;
+
+  /// Dielennummern (M5-08) auf der Ebene Belag: mittig im Stück, längs
+  /// gedreht, nur wo die Nummer auf dem Bildschirm ins Stück passt – Breite
+  /// (Fläche ÷ längste Kante) mindestens eine Zeile, Länge mindestens die
+  /// Ziffern.
+  List<({String text, Offset ort, double winkel})> dielennummern() => [
+    if (optionen.zeigt(Ebene.belag))
+      for (final (i, d) in zeichnung.dielen.indexed)
+        if (i < zeichnung.nummern.length)
+          ?_nummernlage([
+            for (final p in d) bildschirm(p),
+          ], zeichnung.nummern[i]),
+  ];
+
+  static ({String text, Offset ort, double winkel})? _nummernlage(
+    List<Offset> schirm,
+    int nummer,
+  ) {
+    var kante = Offset.zero;
+    var flaeche = 0.0;
+    var summe = Offset.zero;
+    for (var i = 0; i < schirm.length; i++) {
+      final p = schirm[i];
+      final q = schirm[_nachher(schirm, i)];
+      if ((q - p).distance > kante.distance) kante = q - p;
+      flaeche += p.dx * q.dy - q.dx * p.dy;
+      summe += p;
+    }
+    final text = '$nummer';
+    final laenge = kante.distance;
+    if (laenge == 0 ||
+        flaeche.abs() / 2 / laenge < nummerGroesse + 2 ||
+        laenge < text.length * nummerGroesse * 0.6 + 4) {
+      return null;
+    }
+    // Text nie auf dem Kopf: Winkel zwischen −90° und 90°
+    var winkel = math.atan2(kante.dy, kante.dx);
+    if (winkel > math.pi / 2) winkel -= math.pi;
+    if (winkel <= -math.pi / 2) winkel += math.pi;
+    return (text: text, ort: summe / schirm.length.toDouble(), winkel: winkel);
+  }
 
   /// Alle Texte der eingeschalteten Beschriftungen und Maße: Seitenlängen
   /// außen neben der Kante, Winkel innen in der Ecke, Punktnamen außen.
@@ -305,13 +365,49 @@ class ZeichnungsMaler extends CustomPainter {
             ..style = PaintingStyle.stroke,
         );
     }
+    // Ausschnitte unter dem Belag: leere bleiben frei, Teilflächen mit
+    // anderem Belag tragen ihre eigenen Dielen (M5-08)
+    final ausschnitte = [
+      for (final (i, a) in zeichnung.ausschnitte.indexed)
+        (
+          Path()..addPolygon([for (final p in a) bildschirm(p)], true),
+          i < zeichnung.ausschnittDarstellung.length
+              ? zeichnung.ausschnittDarstellung[i]
+              : (name: '', farbe: leerFarbe),
+        ),
+    ];
+    for (final (pfad, darstellung) in ausschnitte) {
+      canvas.drawPath(pfad, Paint()..color = darstellung.farbe);
+    }
     final fuge = Paint()
       ..color = strich.withValues(alpha: 0.3)
       ..style = PaintingStyle.stroke;
-    for (final pfad in dielenpfade()) {
+    for (final (i, pfad) in dielenpfade().indexed) {
       canvas
         ..drawPath(pfad, Paint()..color = belagFarbe)
-        ..drawPath(pfad, fuge);
+        ..drawPath(pfad, switch (dielenrand(i)) {
+          final farbe? =>
+            Paint()
+              ..color = farbe
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 1.5,
+          null => fuge,
+        });
+    }
+    for (final (:text, :ort, :winkel) in dielennummern()) {
+      final maler = TextPainter(
+        text: TextSpan(
+          text: text,
+          style: TextStyle(fontSize: nummerGroesse, color: strich),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      canvas
+        ..save()
+        ..translate(ort.dx, ort.dy)
+        ..rotate(winkel);
+      maler.paint(canvas, textLage(Offset.zero, Offset.zero, maler.size));
+      canvas.restore();
     }
     final umriss = [for (final p in zeichnung.umriss) bildschirm(p)];
     final linie = Paint()
@@ -326,16 +422,9 @@ class ZeichnungsMaler extends CustomPainter {
         canvas.drawCircle(p, punktRadius, Paint()..color = strich);
       }
     }
-    // Ausschnitte als leere Fläche mit eigenem Rand (Fachkonzept 1.4)
-    for (final (i, a) in zeichnung.ausschnitte.indexed) {
-      final schirm = [for (final p in a) bildschirm(p)];
-      final pfad = Path()..addPolygon(schirm, true);
-      final darstellung = i < zeichnung.ausschnittDarstellung.length
-          ? zeichnung.ausschnittDarstellung[i]
-          : (name: '', farbe: leerFarbe);
-      canvas
-        ..drawPath(pfad, Paint()..color = darstellung.farbe)
-        ..drawPath(pfad, linie);
+    // Rand und Name der Ausschnitte über dem Belag (Fachkonzept 1.4)
+    for (final (pfad, darstellung) in ausschnitte) {
+      canvas.drawPath(pfad, linie);
       final maler = TextPainter(
         text: TextSpan(
           text: darstellung.name,
@@ -343,7 +432,10 @@ class ZeichnungsMaler extends CustomPainter {
         ),
         textDirection: TextDirection.ltr,
       )..layout();
-      maler.paint(canvas, textLage(mitte(schirm), Offset.zero, maler.size));
+      maler.paint(
+        canvas,
+        textLage(pfad.getBounds().center, Offset.zero, maler.size),
+      );
     }
     if (optionen.beschriftet(Beschriftung.ablaeufe)) {
       for (final a in zeichnung.ablaeufe) {

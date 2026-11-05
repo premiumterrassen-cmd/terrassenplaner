@@ -48,8 +48,10 @@ enum Verlegeart {
     if (r <= 0) return const [];
     final basis = switch (this) {
       wechselverband when reihe.isOdd => bis.mm,
-      halbverband when reihe.isOdd => (ausgang ?? von).mm + r ~/ 2,
-      drittelverband => (ausgang ?? von).mm + r * (reihe % 3) ~/ 3,
+      // auf ganze mm gerundet: 404 cm im Drittelverband 134,7 + 269,3 cm
+      // wie im alten Planer (Referenzfall 2026-05-03-4381, M5-08)
+      halbverband when reihe.isOdd => (ausgang ?? von).mm + (r / 2).round(),
+      drittelverband => (ausgang ?? von).mm + (r * (reihe % 3) / 3).round(),
       _ => (ausgang ?? von).mm,
     };
     // erste Linie hinter [von]; Dart rechnet % auch bei negativer Basis ≥ 0

@@ -17,11 +17,23 @@ DRIVER_PID=$!
 # Auth-Server (Mitarbeiter-Anmeldung, M9-10) und Router mit Hallo-Dienst für
 # die Ende-zu-Ende-Tests (M0-12); Geheimnisse nur für den Test. Ports:
 # Router WAMP_PORT (+1 Health), Auth-Server WAMP_PORT+2 (+3 Health).
+# Eigene Logs und nur die eigenen Prozesse beenden: Mehrere Läufe mit eigenen
+# Ports (SMOKE_WAMP_PORT, CHROMEDRIVER_PORT) dürfen parallel laufen.
 AUTH_ADRESSE="127.0.0.1:$((WAMP_PORT + 2))"
+AUTH_LOG="$(mktemp "${TMPDIR:-/tmp}/planer-smoke-auth.XXXXXX")"
+ROUTER_LOG="$(mktemp "${TMPDIR:-/tmp}/planer-smoke-router.XXXXXX")"
+echo "Auth-Log: $AUTH_LOG, Router-Log: $ROUTER_LOG"
 (cd "$ROOT/packages/server" && PLANER_AUTH_TOKEN=smoke PLANER_AUTH_DIENST_TICKET=smoke \
   PLANER_AUTH_LISTEN="$AUTH_ADRESSE" PLANER_AUTH_HEALTH_LISTEN="127.0.0.1:$((WAMP_PORT + 3))" \
-  exec dart run bin/auth_server.dart >/tmp/planer-smoke-auth.log 2>&1) &
+  exec dart run bin/auth_server.dart >"$AUTH_LOG" 2>&1) &
 AUTH_PID=$!
+# Prozess samt Kindern (dart run startet den Server ggf. als eigenen Prozess).
+beende() {
+  pkill -P "$1" 2>/dev/null || true
+  kill "$1" 2>/dev/null || true
+}
+ROUTER_PID=""
+trap 'beende "$DRIVER_PID"; beende "$AUTH_PID"; [ -n "$ROUTER_PID" ] && beende "$ROUTER_PID"' EXIT
 warte_auf_health() {
   for _ in $(seq 1 120); do
     curl -sf "http://127.0.0.1:$1/healthz" >/dev/null && return
@@ -34,9 +46,8 @@ warte_auf_health $((WAMP_PORT + 3))
 (cd "$ROOT/packages/server" && PLANER_AUTH_TOKEN=smoke PLANER_AUTH_DIENST_TICKET=smoke \
   PLANER_PORT="$WAMP_PORT" PLANER_HEALTH_LISTEN="127.0.0.1:$((WAMP_PORT + 1))" \
   PLANER_AUTH_ADRESSE="$AUTH_ADRESSE" \
-  dart run bin/server.dart >/tmp/planer-smoke-router.log 2>&1) &
+  exec dart run bin/server.dart >"$ROUTER_LOG" 2>&1) &
 ROUTER_PID=$!
-trap 'kill "$DRIVER_PID" 2>/dev/null || true; pkill -f "bin/server.dart" 2>/dev/null || true; kill "$ROUTER_PID" "$AUTH_PID" 2>/dev/null || true; pkill -P "$AUTH_PID" 2>/dev/null || true' EXIT
 warte_auf_health $((WAMP_PORT + 1))
 
 # Testkonto nur für diesen Lauf (Konten liegen nur im Arbeitsspeicher des

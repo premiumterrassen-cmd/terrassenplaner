@@ -115,6 +115,17 @@ class PlanerTexteEn extends PlanerTexte {
   }
 
   @override
+  String verschnitt(String wert) {
+    return 'Waste: $wert';
+  }
+
+  @override
+  String get benoetigteDielen => 'Boards required:';
+
+  @override
+  String get keineDielen => 'No boards laid yet.';
+
+  @override
   String massPlatzhalter(String kante) {
     return '$kante: cm';
   }
@@ -560,6 +571,9 @@ class PlanerTexteEn extends PlanerTexte {
   String get terrassenbelag5 => 'Starting point of the decking';
 
   @override
+  String get terrassenbelag6 => 'Fastening method';
+
+  @override
   String get unterkonstruktion1 => 'Type of terrace';
 
   @override
@@ -833,6 +847,29 @@ class PlanerTexteEn extends PlanerTexte {
       'Caution: there are cuts under 5 cm. Move the first full board so that no such narrow or short pieces are left.';
 
   @override
+  String get befestigungsartClips => 'With clips';
+
+  @override
+  String get befestigungsartVerschraubt => 'Screwed directly';
+
+  @override
+  String get befestigungsartAbstandshalter => 'Screwed with spacers';
+
+  @override
+  String get befestigungOhneDielen =>
+      'The fastening follows as soon as decking boards are laid.';
+
+  @override
+  String befestigungspunkte(int anzahl) {
+    return 'Fastening points: $anzahl';
+  }
+
+  @override
+  String befestigungsmittel(int anzahl, String titel) {
+    return '$anzahl × $titel';
+  }
+
+  @override
   String get kurzeStueckeVerbinden =>
       'Should short board pieces be joined together?';
 
@@ -889,4 +926,246 @@ class PlanerTexteEn extends PlanerTexte {
   @override
   String get nummerHinweisMitarbeiter =>
       'As a staff member the configuration number is enough – the check code may be omitted.';
+
+  @override
+  String get terrassenartNormal => 'Normal terrace';
+
+  @override
+  String get terrassenartHochterrasse => 'Raised terrace';
+
+  @override
+  String get terrassenartVorhandeneUk => 'Existing substructure';
+
+  @override
+  String vorgabehoehe(String cm) {
+    return 'Default height: $cm cm';
+  }
+
+  @override
+  String get spannweiteFrage =>
+      'Span of the substructure (spacing of the existing joists)';
+
+  @override
+  String get spannweite => 'Span';
+
+  @override
+  String get spannweiteUngueltig => 'Please enter a number from 10 to 300 cm';
+
+  @override
+  String get hoehenpunkteHilfe =>
+      'Measured from the top of the decking to the ground.';
+
+  @override
+  String get ohneGefaelle => 'without slope';
+
+  @override
+  String get mitGefaelle => 'with slope';
+
+  @override
+  String get hoeheAlle => 'All';
+
+  @override
+  String get hoeheUngueltig => 'Please enter a number above 0 up to 300 cm';
+
+  @override
+  String aufbauhoehe(String cm) {
+    return 'Construction height (decking and substructure): $cm cm';
+  }
+
+  @override
+  String get ukGedreht =>
+      'The substructure is turned (width and thickness swapped) to keep to the construction height.';
+
+  @override
+  String hoeheKorrigiert(String cm) {
+    return 'The height reference point is below the minimum height of $cm cm. It has been corrected.';
+  }
+
+  @override
+  String get belagmeldungBelagErsetzt =>
+      'The selected decking is no longer available. The plan uses the default decking – choose another one via “Product selection” if needed.';
+
+  @override
+  String get belagmeldungOhneMasse =>
+      'Width or delivery lengths are missing for this decking, so it cannot be laid. Please choose another decking.';
+
+  @override
+  String get belagmeldungSystemdiele =>
+      'System boards are laid endlessly in mixed lengths – the planner does not draw this yet.';
+
+  @override
+  String get belagmeldungFlaecheKleiner =>
+      'The area or a partial area is smaller than one board or tile: no full decking width fits, only a cut piece.';
+
+  @override
+  String get belagmeldungFliesenSpitzeWinkel =>
+      'The area has corners below 90°. Wooden tiles must be cut at an angle there – boards are better suited for such shapes.';
+
+  @override
+  String get belagmeldungBombierung =>
+      'From 8 cm width we recommend crowned (slightly curved) boards.';
+
+  @override
+  String belagmeldungLaengeNichtLieferbar(int cm) {
+    return 'The selected length of $cm cm is not available for this decking. The board length is determined automatically.';
+  }
+
+  @override
+  String get belagmeldungBefestigungsart =>
+      'Grooved boards are fixed invisibly with clips. The selected screw fixing only applies to smooth-edged boards.';
+
+  @override
+  String get belagmeldungOhneBefestigung =>
+      'No matching clips or screws are stored for this decking – the fixing is missing from the material list. Please contact us.';
+
+  @override
+  String get belagmeldungSchraubeZuKurz =>
+      'No stored screw is at least twice as long as the board is thick. The longest one is used – please check the screw length.';
+
+  @override
+  String get ukLaedt => 'Loading substructures …';
+
+  @override
+  String get ukFehler => 'The substructures could not be loaded.';
+
+  @override
+  String get ukKeine =>
+      'No substructure in the range matches the selected decking.';
+
+  @override
+  String get ukDialogTitel => 'Select substructure';
+
+  @override
+  String get ukLaengeOhneUk =>
+      'The length follows as soon as a substructure is selected.';
+
+  @override
+  String get automatisch => 'Automatic';
+
+  @override
+  String get materialliste => 'Material list';
+
+  @override
+  String get materiallisteLeer =>
+      'The material list appears as soon as decking has been laid.';
+
+  @override
+  String get materialSpaltePosition => 'No.';
+
+  @override
+  String get materialSpalteBild => 'Image';
+
+  @override
+  String get materialSpalteArtikel => 'Item';
+
+  @override
+  String get materialSpalteMenge => 'Quantity';
+
+  @override
+  String get materialSpalteEinzelpreis => 'Unit price';
+
+  @override
+  String get materialSpaltePreisJeLfm => 'Price per lin. m';
+
+  @override
+  String get materialSpalteGesamtLfm => 'Total lin. m';
+
+  @override
+  String get materialSpaltePositionspreis => 'Line total';
+
+  @override
+  String materialLaenge(int laenge) {
+    return 'Length: $laenge mm';
+  }
+
+  @override
+  String get materialFreidiele => 'Free board';
+
+  @override
+  String materialBerechnet(int anzahl) {
+    return 'calculated: $anzahl';
+  }
+
+  @override
+  String materialSumme(String betrag) {
+    return 'Total: $betrag';
+  }
+
+  @override
+  String materialMehrwertsteuer(int satz, String betrag) {
+    return 'incl. $satz % VAT: $betrag';
+  }
+
+  @override
+  String get materialPreishinweis =>
+      'All prices incl. VAT and for information only – our quotation is binding.';
+
+  @override
+  String get materialOhnePreis =>
+      'Some items have no price yet; they are missing from the total.';
+
+  @override
+  String get materialMengeUebernehmen => 'Apply quantity';
+
+  @override
+  String get materialMengeBerechnet => 'Use calculated quantity';
+
+  @override
+  String get materialMitarbeiter => 'Staff view: quantities editable';
+
+  @override
+  String get einheitStueck => 'pcs';
+
+  @override
+  String get einheitLaufmeter => 'lin. m';
+
+  @override
+  String get einheitQuadratmeter => 'm²';
+
+  @override
+  String get einheitVerpackungseinheit => 'pack';
+
+  @override
+  String get einheitKarton => 'carton';
+
+  @override
+  String get einheitSet => 'set';
+
+  @override
+  String get einheitKiste => 'crate';
+
+  @override
+  String get einheitLiter => 'l';
+
+  @override
+  String get stueckliste => 'Parts list';
+
+  @override
+  String get stuecklisteLeer =>
+      'The parts list appears as soon as decking has been laid.';
+
+  @override
+  String get stueckSpalteArtikel => 'Item';
+
+  @override
+  String get stueckSpalteLaenge => 'Length (cm)';
+
+  @override
+  String get stueckSpalteStueck => 'Pieces';
+
+  @override
+  String get stueckSpalteFarbe => 'Colour in the plan';
+
+  @override
+  String get stueckfarbeRot => 'red – full length';
+
+  @override
+  String get stueckfarbeBlau => 'blue – cut to length';
+
+  @override
+  String get stueckfarbeGruen => 'green – cross piece';
+
+  @override
+  String get stuecklisteHinweis =>
+      'Pieces of the area being edited; the colour marks the piece in the drawing.';
 }

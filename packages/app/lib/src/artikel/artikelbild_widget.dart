@@ -7,23 +7,31 @@ import '../sprache/sprache.dart';
 /// Platzhalter, wenn der Artikel das Bild nicht hat oder es nicht geladen
 /// werden kann.
 class Artikelbild extends StatelessWidget {
-  const Artikelbild(
-    this.artikel, {
+  Artikelbild(Artikel artikel, {super.key, this.groesse = 96, int nummer = 0})
+    : bild = artikel.bilder.elementAtOrNull(nummer),
+      titel = artikel.titel;
+
+  /// Bild aus dem Dateinamen der Artikeldaten (z. B. einer Position der
+  /// Materialliste, M9-03); `null` = Platzhalter.
+  const Artikelbild.datei(
+    this.bild,
+    this.titel, {
     super.key,
     this.groesse = 96,
-    this.nummer = 0,
   });
 
-  final Artikel artikel;
-  final double groesse;
+  /// Dateiname aus den Artikeldaten (Index [Artikel.bilder]: Profilansicht,
+  /// Stirnseite, Profilzeichnung).
+  final String? bild;
 
-  /// Index in [Artikel.bilder] (Profilansicht, Stirnseite, Profilzeichnung).
-  final int nummer;
+  /// Titel des Artikels für den Vorleser.
+  final String titel;
+  final double groesse;
 
   @override
   Widget build(BuildContext context) {
     final platzhalter = ArtikelbildPlatzhalter(groesse: groesse);
-    final bild = artikel.bilder.elementAtOrNull(nummer);
+    final bild = this.bild;
     if (bild == null) return platzhalter;
     Widget beiFehler(BuildContext _, Object _, StackTrace? _) => platzhalter;
     return Image.network(
@@ -31,7 +39,7 @@ class Artikelbild extends StatelessWidget {
       width: groesse,
       height: groesse,
       fit: BoxFit.contain,
-      semanticLabel: artikel.titel,
+      semanticLabel: titel,
       errorBuilder: beiFehler,
     );
   }

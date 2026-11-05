@@ -635,6 +635,149 @@ void main() {
       expect(q.laenge, closeTo(1000, 1e-9));
     });
 
+    group('Fangen (#128)', () {
+      const t = 25.0;
+
+      test('weit weg von Strahl und Raster: genau am Klickort', () {
+        // Gemeldeter Fall: 3 m rechts, 45 cm tiefer (8,5°) landete auf 15°.
+        const klick = Punkt(3055, 455);
+        expect(Zeichenhilfe.fange(Punkt.ursprung, klick, toleranz: t), klick);
+        expect(
+          Zeichenhilfe.fange(null, const Punkt(55, 47), toleranz: t),
+          const Punkt(55, 47),
+        );
+      });
+
+      test('nahe am Strahl: Winkel rastet, Länge auf 10 cm', () {
+        final p = Zeichenhilfe.fange(
+          const Punkt(100, 100),
+          const Punkt(3080, 115),
+          toleranz: t,
+        );
+        expect(p.x, closeTo(3100, 1e-6));
+        expect(p.y, closeTo(100, 1e-6));
+        // 45°: Länge 1414 → 1400, Winkel bleibt.
+        final q = Zeichenhilfe.fange(
+          Punkt.ursprung,
+          Zeichenhilfe.streckenpunkt(Punkt.ursprung, 1414, 45.5),
+          toleranz: t,
+        );
+        expect(Zeichenhilfe.winkelVon(Punkt.ursprung, q), closeTo(45, 1e-9));
+        expect(q.laenge, closeTo(1400, 1e-9));
+      });
+
+      test('nahe am Strahl, Länge weit vom Raster: Länge bleibt', () {
+        final p = Zeichenhilfe.fange(
+          Punkt.ursprung,
+          const Punkt(1250, 10),
+          toleranz: t,
+        );
+        expect(p.x, closeTo(const Punkt(1250, 10).laenge, 1e-6));
+        expect(p.y, closeTo(0, 1e-6));
+      });
+
+      test('genau an der Grenze fängt es noch, knapp darüber nicht', () {
+        expect(
+          Zeichenhilfe.fange(null, const Punkt(125, 275), toleranz: t),
+          const Punkt(100, 300),
+        );
+        expect(
+          Zeichenhilfe.fange(null, const Punkt(126, 274), toleranz: t),
+          const Punkt(126, 274),
+        );
+        final strahl = Zeichenhilfe.fange(
+          Punkt.ursprung,
+          const Punkt(2000, 24),
+          toleranz: t,
+          mitRaster: false,
+        );
+        expect(strahl.y, closeTo(0, 1e-9));
+        expect(
+          Zeichenhilfe.fange(
+            Punkt.ursprung,
+            const Punkt(2000, 26),
+            toleranz: t,
+            mitRaster: false,
+          ),
+          const Punkt(2000, 26),
+        );
+      });
+
+      test('Grenzwerte gelten einschließlich', () {
+        // Abstand zum Strahl genau gleich der Toleranz: fängt noch.
+        const klick = Punkt(2000, 100);
+        final abstand =
+            (Zeichenhilfe.ausrichten(Punkt.ursprung, klick) - klick).laenge;
+        final p = Zeichenhilfe.fange(
+          Punkt.ursprung,
+          klick,
+          toleranz: abstand,
+          mitRaster: false,
+        );
+        expect(p.y, closeTo(0, 1e-9));
+        // Länge genau 2,5 cm neben dem Raster: rastet noch auf 10 cm.
+        final q = Zeichenhilfe.fange(
+          Punkt.ursprung,
+          const Punkt(1025, 0),
+          toleranz: t,
+        );
+        expect(q.x, closeTo(1000, 1e-9));
+      });
+
+      test('Raster höchstens ein Viertel der Rasterweite', () {
+        expect(
+          Zeichenhilfe.fange(null, const Punkt(1230, 1555), toleranz: 80),
+          const Punkt(1230, 1555),
+        );
+        expect(
+          Zeichenhilfe.fange(null, const Punkt(1210, 1555), toleranz: 80),
+          const Punkt(1200, 1555),
+        );
+      });
+
+      test('Hilfen einzeln abschaltbar', () {
+        const klick = Punkt(1980, 15);
+        expect(
+          Zeichenhilfe.fange(
+            Punkt.ursprung,
+            klick,
+            toleranz: t,
+            mitWinkel: false,
+            mitRaster: false,
+          ),
+          klick,
+        );
+        expect(
+          Zeichenhilfe.fange(
+            Punkt.ursprung,
+            klick,
+            toleranz: t,
+            mitWinkel: false,
+          ),
+          const Punkt(2000, 0),
+        );
+        final nurWinkel = Zeichenhilfe.fange(
+          Punkt.ursprung,
+          klick,
+          toleranz: t,
+          mitRaster: false,
+        );
+        expect(nurWinkel.x, closeTo(klick.laenge, 1e-9));
+        expect(nurWinkel.y, closeTo(0, 1e-9));
+      });
+
+      test('derselbe Punkt wie der letzte: kein Winkel, nur Raster', () {
+        expect(
+          Zeichenhilfe.fange(
+            const Punkt(110, 90),
+            const Punkt(110, 90),
+            toleranz: t,
+          ),
+          const Punkt(100, 100),
+        );
+      });
+    });
+
     test('Strecke aus Länge und Winkel (Abnahme M4-08)', () {
       final p = Zeichenhilfe.streckenpunkt(const Punkt(100, 200), 2000, 90);
       expect(p.x, closeTo(100, 1e-9));
@@ -943,6 +1086,16 @@ void main() {
           0,
           const Millimeter(0),
           const Millimeter(0),
+          Befestigungsart.clips,
+          Object.hash(
+            Terrassenart.normal,
+            const Millimeter(800),
+            false,
+            null,
+            Object.hashAll(const []),
+            null,
+            null,
+          ),
         ),
       );
       final neu = start.mitGrundriss(_rechteck(5400, 3600));
@@ -1295,6 +1448,76 @@ void main() {
       expect(geaendert.mitAusgangspunkt(ecke: 0).ausgangspunkt, Punkt.ursprung);
     });
 
+    test('Befestigungsart (M5-09): Vorgabe Clips, bleibt bei allen '
+        'Änderungen, fehlt im Transport = Vorgabe', () {
+      const start = Planungsstand.start;
+      expect(start.befestigungsart, Befestigungsart.clips);
+      final stand = start.mitBefestigungsart(
+        Befestigungsart.verschraubtMitAbstandshaltern,
+      );
+      expect(
+        stand.befestigungsart,
+        Befestigungsart.verschraubtMitAbstandshaltern,
+      );
+      for (final art in Befestigungsart.values) {
+        final s = start.mitBefestigungsart(art);
+        expect(Planungsstand.ausBytes(s.zuBytes()), s);
+      }
+      expect(stand == start, isFalse);
+      expect(stand.hashCode == start.hashCode, isFalse);
+      expect(stand.mitBefestigungsart(Befestigungsart.clips), start);
+      final mitA = stand.mitNeuemAusschnitt();
+      for (final s in [
+        stand.mitGrundriss(_rechteck(5000, 3000)),
+        stand.mitRundungen(Rundungen.keine),
+        stand.mitForm(Terrassenform.oForm),
+        stand.gedreht(90),
+        stand.mitBelag(const Artikelnummer('10-10-146')),
+        stand.mitDielenlaenge(const Millimeter(4000)),
+        stand.mitKurzeStueckeVerbinden(true),
+        stand.mitVerlegeart(Verlegeart.halbverband),
+        stand.mitVerlegerichtung(Verlegerichtung.senkrecht),
+        stand.mitAusgangspunkt(ecke: 1),
+        mitA,
+        mitA.mitAusschnitt(0, mitA.ausschnitte.single),
+        mitA.ohneAusschnitt(0),
+      ]) {
+        expect(
+          s.befestigungsart,
+          Befestigungsart.verschraubtMitAbstandshaltern,
+        );
+      }
+      final geaendert = start
+          .mitVerlegeart(Verlegeart.halbverband)
+          .mitAusgangspunkt(ecke: 2, x: const Millimeter(5))
+          .mitBefestigungsart(Befestigungsart.verschraubt);
+      expect(geaendert.verlegeart, Verlegeart.halbverband);
+      expect(geaendert.ausgangsecke, 2);
+      expect(geaendert.verschiebungX, const Millimeter(5));
+      Uint8List alt(int? art) {
+        final fbb = fb.Builder();
+        final masseOrt = fbb.writeListInt32([4800, 3090]);
+        fbb
+          ..startTable(2)
+          ..addUint8(0, 0)
+          ..addOffset(1, masseOrt);
+        final ort = fbb.endTable();
+        fbb
+          ..startTable(14)
+          ..addOffset(1, ort)
+          ..addUint8(13, art);
+        fbb.finish(fbb.endTable());
+        return fbb.buffer;
+      }
+
+      expect(Planungsstand.ausBytes(alt(null)), start);
+      expect(
+        Planungsstand.ausBytes(alt(2)).befestigungsart,
+        Befestigungsart.verschraubtMitAbstandshaltern,
+      );
+      expect(() => Planungsstand.ausBytes(alt(3)), throwsFormatException);
+    });
+
     test('Ausgangsecke nach Formwechsel: zurück auf A, wenn es sie nicht '
         'mehr gibt (M5-07)', () {
       final l = Planungsstand.start.mitForm(Terrassenform.lForm);
@@ -1539,11 +1762,13 @@ void main() {
         grenzeLinksRechts: const Millimeter(4800),
         grenzeObenUnten: const Millimeter(65),
         kurzeZuschnitte: true,
+        nummern: const [1],
+        verschnitt: 0.25,
+        dielenliste: const [
+          (belag: Artikelnummer('x'), laenge: Millimeter(5000), anzahl: 1),
+        ],
       );
-      for (final k in [
-        Berechnung.ausBytes(b.zuBytes()),
-        b.mitGesamtflaeche(9),
-      ]) {
+      for (final k in [Berechnung.ausBytes(b.zuBytes()), b.mitPlanung(9)]) {
         expect(k.ausgangspunkt, const Punkt(12.5, -3));
         expect(k.grenzeLinksRechts, const Millimeter(4800));
         expect(k.grenzeObenUnten, const Millimeter(65));
@@ -1556,7 +1781,7 @@ void main() {
         expect(k.dielen, b.dielen);
       }
       expect(b.gesamtflaeche, 7);
-      expect(b.mitGesamtflaeche(9).gesamtflaeche, 9);
+      expect(b.mitPlanung(9).gesamtflaeche, 9);
       final ohne = Berechnung.ausBytes(
         Berechnung(umriss: const [], flaeche: 0).zuBytes(),
       );
@@ -1564,6 +1789,102 @@ void main() {
       expect(ohne.grenzeLinksRechts, const Millimeter(0));
       expect(ohne.grenzeObenUnten, const Millimeter(0));
       expect(ohne.kurzeZuschnitte, isFalse);
+      expect(ohne.nummern, isEmpty);
+      expect(ohne.verschnitt, isNull);
+      expect(ohne.dielenliste, isEmpty);
+      // die Kopie übernimmt Nummern, die Planungswerte kommen neu
+      expect(b.mitPlanung(9).nummern, [1]);
+      expect(b.mitPlanung(9).verschnitt, isNull);
+      expect(b.mitPlanung(9).dielenliste, isEmpty);
+    });
+
+    test('Nummern, Verschnitt und Dielenliste (M5-08) hin und zurück, '
+        'unveränderlich', () {
+      const liste = [
+        (
+          belag: Artikelnummer('10-10-001'),
+          laenge: Millimeter(4000),
+          anzahl: 2,
+        ),
+        (
+          belag: Artikelnummer('10-10-001'),
+          laenge: Millimeter(5000),
+          anzahl: 48,
+        ),
+        (belag: Artikelnummer('40-10-001'), laenge: Millimeter(606), anzahl: 7),
+      ];
+      final b = Berechnung(
+        umriss: const [Punkt(0, 0), Punkt(4800, 0), Punkt(4800, 3090)],
+        flaeche: 1,
+        dielen: [
+          [const Punkt(0, 0), const Punkt(4800, 0), const Punkt(4800, 65)],
+          [const Punkt(0, 65), const Punkt(4800, 65), const Punkt(4800, 130)],
+        ],
+        nummern: const [1, 2],
+      ).mitPlanung(3, verschnitt: 0.04, dielenliste: liste);
+      for (final k in [b, Berechnung.ausBytes(b.zuBytes())]) {
+        expect(k.nummern, [1, 2]);
+        expect(k.verschnitt, 0.04);
+        expect(k.dielenliste, liste);
+        expect(k.gesamtflaeche, 3);
+      }
+      expect(() => b.nummern.add(3), throwsUnsupportedError);
+      expect(b.dielenliste.clear, throwsUnsupportedError);
+      // Verschnitt 0 bleibt 0, nicht „fehlt“
+      expect(
+        Berechnung.ausBytes(
+          Berechnung(umriss: const [], flaeche: 0, verschnitt: 0).zuBytes(),
+        ).verschnitt,
+        0,
+      );
+    });
+
+    test('Befestigung (M5-09) hin und zurück, auch in der Kopie mit '
+        'Gesamtfläche', () {
+      final b = Berechnung(
+        umriss: const [],
+        flaeche: 1,
+        befestigung: Befestigungsbedarf(
+          arten: const [
+            Befestigungsart.verschraubt,
+            Befestigungsart.verschraubtMitAbstandshaltern,
+          ],
+          art: Befestigungsart.verschraubtMitAbstandshaltern,
+          punkte: 390,
+          mittel: const [
+            Befestigungsposition(Artikelnummer('50-50-102'), 'Schrauben', 4),
+            Befestigungsposition(
+              Artikelnummer('50-90-004'),
+              'Abstandshalter',
+              3,
+            ),
+          ],
+        ),
+      );
+      for (final k in [Berechnung.ausBytes(b.zuBytes()), b.mitPlanung(2)]) {
+        expect(k.befestigung.arten, b.befestigung.arten);
+        expect(
+          k.befestigung.art,
+          Befestigungsart.verschraubtMitAbstandshaltern,
+        );
+        expect(k.befestigung.punkte, 390);
+        expect(k.befestigung.mittel, b.befestigung.mittel);
+      }
+      expect(
+        () => b.befestigung.mittel.add(b.befestigung.mittel.first),
+        throwsUnsupportedError,
+      );
+      final ohne = Berechnung.ausBytes(
+        Berechnung(umriss: const [], flaeche: 0).zuBytes(),
+      );
+      expect(ohne.befestigung.arten, isEmpty);
+      expect(ohne.befestigung.art, isNull);
+      expect(ohne.befestigung.punkte, 0);
+      expect(ohne.befestigung.mittel, isEmpty);
+      expect(
+        Berechnung(umriss: const [], flaeche: 0).befestigung,
+        same(Befestigungsbedarf.keiner),
+      );
     });
 
     test('leere Nachricht: kein Umriss, Fläche 0', () {

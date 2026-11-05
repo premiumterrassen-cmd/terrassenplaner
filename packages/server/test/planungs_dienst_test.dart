@@ -1,6 +1,8 @@
 @Timeout(Duration(minutes: 2))
 library;
 
+import 'dart:convert';
+import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
@@ -207,19 +209,23 @@ void main() {
   });
 
   group('Dielenstücke (M5-05)', () {
-    Artikel belag(Artikelart art, {Millimeter? breite, List<int>? laengen}) =>
-        Artikel(
-          nummer: const Artikelnummer('10-10-073-R'),
-          titel: 'Diele',
-          art: art,
-          einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
-          abmessungen: Abmessungen(
-            breite: breite,
-            laengen: [for (final l in laengen ?? const <int>[]) Millimeter(l)],
-          ),
-          holzart: art == Artikelart.diele ? robinie : null,
-          serie: art == Artikelart.diele ? premiumSelect : null,
-        );
+    Artikel belag(
+      Artikelart art, {
+      Millimeter? breite,
+      List<int>? laengen,
+      String nummer = '10-10-073-R',
+    }) => Artikel(
+      nummer: Artikelnummer(nummer),
+      titel: 'Diele',
+      art: art,
+      einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+      abmessungen: Abmessungen(
+        breite: breite,
+        laengen: [for (final l in laengen ?? const <int>[]) Millimeter(l)],
+      ),
+      holzart: art.istHolz ? robinie : null,
+      serie: art.istHolz ? premiumSelect : null,
+    );
     final diele = belag(
       Artikelart.diele,
       breite: const Millimeter(60),
@@ -278,9 +284,9 @@ void main() {
     test('ohne Dielen keine Stücke', () {
       for (final b in [
         belag(
-          Artikelart.holzfliese,
-          breite: const Millimeter(606),
-          laengen: const [606],
+          Artikelart.systemdiele,
+          breite: const Millimeter(60),
+          laengen: const [800],
         ),
         belag(Artikelart.diele, laengen: const [6000]),
         belag(Artikelart.diele, breite: const Millimeter(60)),
@@ -365,6 +371,164 @@ void main() {
       expect(planung.kurzeZuschnitte, isFalse);
     });
 
+    test('Nummern, Teilflächen und Holzfliesen (M5-08)', () {
+      final f01 = PlanungsDienst.berechne(Planungsstand.start, diele);
+      expect(f01.nummern, [...List.filled(47, 1), 2]);
+      final fliese = belag(
+        Artikelart.holzfliese,
+        breite: const Millimeter(606),
+        laengen: const [606],
+      );
+      // F25: 8 × 6 Fliesen
+      final f25 = PlanungsDienst.berechne(Planungsstand.start, fliese);
+      expect(f25.dielen, hasLength(48));
+      expect(f25.grenzeLinksRechts, const Millimeter(606));
+      // Ausschnitt mit anderem Belag: eigene Stücke, eigene Nummern ab 1
+      final anders = Planungsstand.start.mitNeuemAusschnitt();
+      final mitTeil = anders.mitAusschnitt(
+        0,
+        anders.ausschnitte.single.mitFunktion(Ausschnittfunktion.andererBelag),
+      );
+      final ohneTeil = PlanungsDienst.berechne(anders, diele);
+      final teil = PlanungsDienst.berechne(mitTeil, diele);
+      final zusatz = teil.dielen.length - ohneTeil.dielen.length;
+      // 180 × 120 cm: 18 Reihen + 3 cm
+      expect(zusatz, 19);
+      expect(teil.nummern, hasLength(teil.dielen.length));
+      expect(teil.nummern.skip(ohneTeil.dielen.length), [
+        ...List.filled(18, 1),
+        2,
+      ]);
+    });
+
+    test('Dielenliste und Verschnitt der ganzen Planung (M5-08)', () {
+      final f01 = Planungsstand.start.mitBelag(const Artikelnummer('d'));
+      final planung = Planung([
+        Terrassenflaeche(f01, haeufigkeit: 2),
+        Terrassenflaeche(f01.mitBelag(const Artikelnummer('f'))),
+        // ohne Belag und offen: zählen nicht
+        Terrassenflaeche(f01.mitBelag(const Artikelnummer('x'))),
+        Terrassenflaeche(
+          Planungsstand(
+            grundriss: FreiformGrundriss(const [Punkt(0, 0), Punkt(1000, 0)]),
+          ).mitBelag(const Artikelnummer('d')),
+        ),
+        Terrassenflaeche(f01.mitVerlegerichtung(Verlegerichtung.senkrecht)),
+      ], aktiv: 1);
+      final d = belag(
+        Artikelart.diele,
+        breite: const Millimeter(60),
+        laengen: const [4000, 5000, 6000],
+        nummer: 'd',
+      );
+      final f = belag(
+        Artikelart.holzfliese,
+        breite: const Millimeter(606),
+        laengen: const [606],
+        nummer: 'f',
+      );
+      Artikel? suche(Artikelnummer? n) => switch (n?.wert) {
+        'd' => d,
+        'f' => f,
+        _ => null,
+      };
+      final b = PlanungsDienst.berechnePlanung(planung, suche);
+      // bearbeitet ist die Fliesenfläche
+      expect(b.dielen, hasLength(48));
+      expect(b.dielenliste, [
+        (
+          belag: const Artikelnummer('d'),
+          laenge: const Millimeter(4000),
+          anzahl: 74,
+        ),
+        (
+          belag: const Artikelnummer('d'),
+          laenge: const Millimeter(5000),
+          anzahl: 96,
+        ),
+        (
+          belag: const Artikelnummer('f'),
+          laenge: const Millimeter(606),
+          anzahl: 48,
+        ),
+      ]);
+      // geliefert: 2 × 48 × 5000 + 74 × 4000 + 48 × 606 mm
+      const geliefert = 2 * 48 * 5000 + 74 * 4000 + 48 * 606;
+      const geplant = 2 * 48 * 4800 + 74 * 3090 + 6 * 4800;
+      expect(b.verschnitt, closeTo((geliefert - geplant) / geliefert, 1e-12));
+      // ohne verlegte Fläche kein Verschnitt
+      final ohne = PlanungsDienst.berechnePlanung(Planung.start);
+      expect(ohne.verschnitt, isNull);
+      expect(ohne.dielenliste, isEmpty);
+      // eine Fläche: wie der alte Planer F01 4 %
+      expect(
+        PlanungsDienst.berechnePlanung(Planung.start, (_) => diele).verschnitt,
+        closeTo(0.04, 1e-12),
+      );
+    });
+
+    test('Stückliste und Farben im Plan (M9-04)', () {
+      // F01: 48 Stücke à 4800 mm aus 5000 mm, längste Lieferlänge 6000 mm
+      final f01 = PlanungsDienst.berechne(Planungsstand.start, diele);
+      expect(f01.stueckliste.zeilen, [
+        const Stuecklistenzeile(
+          nummer: Artikelnummer('10-10-073-R'),
+          titel: 'Diele',
+          laenge: Millimeter(4800),
+          stueck: 48,
+          farbe: Stueckfarbe.blau,
+        ),
+      ]);
+      expect(f01.stueckfarben, List.filled(48, Stueckfarbe.blau));
+      // F09 (800 cm): 600 rot in ganzer Länge, 200 blau; jede Farbe gehört
+      // zu genau dem Stück der Zeichnung
+      final f09 = PlanungsDienst.berechne(
+        Planungsstand.start.mitGrundriss(
+          RechteckGrundriss(const Millimeter(8000), const Millimeter(3090)),
+        ),
+        diele,
+      );
+      expect(
+        [
+          for (final z in f09.stueckliste.zeilen)
+            (z.laenge.mm, z.stueck, z.farbe),
+        ],
+        [(6000, 48, Stueckfarbe.rot), (2000, 48, Stueckfarbe.blau)],
+      );
+      expect(f09.stueckfarben, hasLength(f09.dielen.length));
+      for (final (i, d) in f09.dielen.indexed) {
+        final xs = [for (final p in d) p.x];
+        final laenge = xs.reduce(math.max) - xs.reduce(math.min);
+        expect(
+          f09.stueckfarben[i],
+          laenge > 5999 ? Stueckfarbe.rot : Stueckfarbe.blau,
+        );
+      }
+      // erzwungene Länge 4000: zwei ganze Dielen je Reihe, rot (F13)
+      final f13 = PlanungsDienst.berechne(
+        Planungsstand.start
+            .mitGrundriss(
+              RechteckGrundriss(const Millimeter(8000), const Millimeter(3090)),
+            )
+            .mitDielenlaenge(const Millimeter(4000)),
+        diele,
+      );
+      expect(f13.stueckliste.zeilen.single.farbe, Stueckfarbe.rot);
+      expect(f13.stueckliste.zeilen.single.stueck, 96);
+      // ohne Dielen keine Stückliste; über die Planung die bearbeitete Fläche
+      expect(
+        PlanungsDienst.berechne(Planungsstand.start).stueckliste.istLeer,
+        isTrue,
+      );
+      expect(
+        PlanungsDienst.berechnePlanung(
+          Planung.start.mitHaeufigkeit(3),
+          (_) => diele,
+        ).stueckliste.zeilen.single.stueck,
+        48,
+      );
+    });
+
     test('über den Router mit der Belagsuche', () async {
       await dienst.stoppe();
       final gefragt = <Artikelnummer?>[];
@@ -388,6 +552,451 @@ void main() {
         PlanungsDienst.berechnePlanung(planung, (_) => diele).dielen,
         b.dielen,
       );
+    });
+  });
+
+  group('Befestigung (M5-09)', () {
+    Artikel clip(String vpe, int inhalt) => Artikel(
+      nummer: Artikelnummer('80-10-001-$vpe'),
+      titel: 'CLIP-FIXX® "BLACK EDITION" - VPE $vpe',
+      art: Artikelart.clip,
+      einheit: Verkaufseinheit(Mengeneinheit.stueck, inhalt: inhalt),
+    );
+    final clips = [clip('50', 50), clip('100', 100), clip('250', 250)];
+    final diele = Artikel(
+      nummer: const Artikelnummer('10-10-073-R'),
+      titel: 'Terrassendiele Robinie PREMIUM SELECT 60 x 23 mm, genutet',
+      art: Artikelart.diele,
+      einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+      abmessungen: Abmessungen(
+        breite: const Millimeter(60),
+        staerke: const Millimeter(23),
+        laengen: const [Millimeter(4000), Millimeter(5000), Millimeter(6000)],
+      ),
+      holzart: robinie,
+      serie: premiumSelect,
+      profil: Profil.genutet,
+    );
+    final regelwerk = Regelwerk(
+      Artikeldatei(
+        quelle: 'test',
+        version: '1',
+        eintraege: [
+          Artikeleintrag(
+            artikel: diele,
+            verweise: {
+              Beziehung.befestigung.spalte: [for (final c in clips) c.nummer],
+            },
+            angaben: const {'Abstand_UK': 400},
+          ),
+          for (final c in clips) Artikeleintrag(artikel: c),
+        ],
+      ),
+    );
+
+    test('F01: 637 CLIP-FIXX als 2 × 250 + 100 + 50 (B-094)', () {
+      final b = PlanungsDienst.berechne(
+        Planungsstand.start,
+        diele,
+        regelwerk,
+      ).befestigung;
+      expect(b.art, Befestigungsart.clips);
+      expect(b.arten, [Befestigungsart.clips]);
+      expect(b.punkte, 624);
+      expect(
+        {for (final m in b.mittel) m.nummer.wert: m.anzahl},
+        {'80-10-001-50': 1, '80-10-001-100': 1, '80-10-001-250': 2},
+      );
+      // ohne Regelwerk oder mit einem, das den Belag nicht kennt: keine
+      expect(
+        PlanungsDienst.berechne(Planungsstand.start, diele).befestigung,
+        same(Befestigungsbedarf.keiner),
+      );
+      final fremd = Regelwerk(
+        Artikeldatei(quelle: 't', version: '2', eintraege: const []),
+      );
+      expect(
+        PlanungsDienst.berechne(Planungsstand.start, diele, fremd).befestigung,
+        same(Befestigungsbedarf.keiner),
+      );
+      expect(
+        PlanungsDienst.berechnePlanung(
+          Planung.start,
+          (_) => diele,
+          regelwerk,
+        ).befestigung.punkte,
+        624,
+      );
+    });
+
+    test('über den Router mit dem Regelwerk', () async {
+      await dienst.stoppe();
+      dienst = await PlanungsDienst.starte(
+        router,
+        belag: (_) => diele,
+        regelwerk: () => regelwerk,
+      );
+      final antwort = await rufe(Planung.start.zuBytes());
+      final b = Berechnung.ausBytes(antwort.payload.packedPayloadBytes!);
+      expect(b.befestigung.punkte, 624);
+      expect(b.befestigung.mittel, hasLength(3));
+    });
+
+    group('Materialliste (M9-03)', () {
+      Map<(String, int?), int> zeilen(Materialliste m) => {
+        for (final p in m.positionen) (p.nummer.wert, p.laenge?.mm): p.anzahl,
+      };
+
+      test('F01 gegen die Materialliste des alten Planers', () {
+        final m = PlanungsDienst.berechnePlanung(
+          Planung.start,
+          (_) => diele,
+          regelwerk,
+        ).materialliste;
+        final alt = Referenzkonfiguration.ausJson(
+          jsonDecode(
+            File('../domain/test/referenzkonfigurationen/F01.json')
+                .readAsStringSync(),
+          ) as Map<String, Object?>,
+        );
+        int altAnzahl(bool Function(String typ, String text) passt) => alt
+            .materialliste
+            .where((p) => passt(p.typ, p.bezeichnung))
+            .fold(0, (n, p) => n + p.anzahl);
+        // Deckbelag samt Anfangsdielen ohne Freidiele: 48 × 5000 mm (die
+        // einseitig genuteten Anfangsdielen gibt es nicht mehr, B-033)
+        expect(
+          altAnzahl(
+            (typ, text) =>
+                (typ == 'Deckbelag' || typ == 'Anfangsdiele') &&
+                !text.contains('Freidiele'),
+          ),
+          48,
+        );
+        // Clips wie im alten Planer; keine Terrassenschrauben für Randdielen
+        // (B-033), UK und Auflager folgen mit M6, Zubehör und Freidiele mit M8
+        expect(zeilen(m), {
+          ('10-10-073-R', 5000): 48,
+          ('80-10-001-250', null): 2,
+          ('80-10-001-100', null): 1,
+          ('80-10-001-50', null): 1,
+        });
+        for (final vpe in ['50', '100', '250']) {
+          expect(
+            altAnzahl((_, text) => text.endsWith('VPE $vpe')),
+            zeilen(m)[('80-10-001-$vpe', null)],
+          );
+        }
+        expect([for (final p in m.positionen) p.position], [1, 2, 3, 4]);
+        // die Testartikel haben keine Preise
+        expect(m.vollstaendig, isFalse);
+        expect(m.summe, const Cent(0));
+      });
+
+      test('alle Flächen mal Häufigkeit, Clips erst in der Summe verpackt', () {
+        final planung = Planung.start.mitHaeufigkeit(2).mitNeuerFlaeche();
+        final m = PlanungsDienst.berechnePlanung(
+          planung,
+          (_) => diele,
+          regelwerk,
+        ).materialliste;
+        // 3 × 637 = 1911 Clips → 7 × 250 + 2 × 100: 9 Packungen statt
+        // 3 × (2 × 250 + 100 + 50) = 12, wenn jede Fläche verpackt würde
+        expect(zeilen(m), {
+          ('10-10-073-R', 5000): 144,
+          ('80-10-001-250', null): 7,
+          ('80-10-001-100', null): 2,
+        });
+        // ohne Belag oder Regelwerk: keine bzw. nur Dielen
+        expect(
+          PlanungsDienst.berechnePlanung(planung).materialliste.istLeer,
+          isTrue,
+        );
+        expect(
+          zeilen(
+            PlanungsDienst.berechnePlanung(planung, (_) => diele).materialliste,
+          ),
+          {('10-10-073-R', 5000): 144},
+        );
+      });
+
+      test('geänderte Mengen nur mit Freigabe (Mitarbeiter, M9-10)', () async {
+        const schluessel = (
+          nummer: Artikelnummer('10-10-073-R'),
+          laenge: Millimeter(5000),
+          zusatz: null,
+        );
+        final planung = Planung.start.mitMenge(schluessel, 50);
+        final mit = PlanungsDienst.berechnePlanung(
+          planung,
+          (_) => diele,
+          regelwerk,
+          true,
+        ).materialliste.positionen.first;
+        expect((mit.anzahl, mit.berechnet), (50, 48));
+        expect(
+          PlanungsDienst.berechnePlanung(
+            planung,
+            (_) => diele,
+            regelwerk,
+          ).materialliste.positionen.first.anzahl,
+          48,
+        );
+        // über den Router: ein Kunde kann sich nicht als Mitarbeiter ausgeben
+        await dienst.stoppe();
+        dienst = await PlanungsDienst.starte(
+          router,
+          belag: (_) => diele,
+          regelwerk: () => regelwerk,
+        );
+        final antwort = await kunde
+            .callSingleLazyPayloadView(
+              WampNamen.planungBerechnen,
+              payload: PlanungsDienst.verpacke(planung.zuBytes()),
+              options: CallOptions(
+                pptScheme: WampNamen.pptSchema,
+                pptSerializer: WampNamen.pptSerializer,
+                discloseMe: true,
+                custom: {'caller_authrole': Rollen.mitarbeiter},
+              ),
+            )
+            .timeout(const Duration(seconds: 5));
+        final b = Berechnung.ausBytes(antwort.payload.packedPayloadBytes!);
+        expect(zeilen(b.materialliste)[('10-10-073-R', 5000)], 48);
+        expect(b.materialliste.positionen.first.berechnet, isNull);
+        // die Rolle aus den Aufrufdetails des Routers entscheidet
+        LazyInvocationPayload aufruf(Map<String, dynamic>? details) =>
+            LazyInvocationPayload(
+              requestId: 1,
+              registrationId: 2,
+              receiveProgress: false,
+              respondWith: ({
+                arguments,
+                argumentsKeywords,
+                isError = false,
+                errorUri,
+                lazyPayload,
+                options,
+              }) {},
+              isResponseClosed: () => false,
+              payload: PlanungsDienst.verpacke(planung.zuBytes()),
+              customDetails: details,
+            );
+        expect(
+          PlanungsDienst.darfMengenAendern(
+            aufruf({'caller_authrole': Rollen.mitarbeiter}),
+          ),
+          isTrue,
+        );
+        for (final details in [
+          null,
+          <String, dynamic>{'caller_authrole': Rollen.kunde},
+          <String, dynamic>{'caller_authid': Rollen.mitarbeiter},
+        ]) {
+          expect(
+            PlanungsDienst.darfMengenAendern(aufruf(details)),
+            isFalse,
+            reason: '$details',
+          );
+        }
+      });
+    });
+  });
+
+  group('Meldungen zum Belag (M5-10)', () {
+    final diele = Artikel(
+      nummer: const Artikelnummer('10-10-073-R'),
+      titel: 'Diele',
+      art: Artikelart.diele,
+      einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+      abmessungen: Abmessungen(
+        breite: const Millimeter(60),
+        staerke: const Millimeter(23),
+        laengen: const [Millimeter(4000), Millimeter(5000), Millimeter(6000)],
+      ),
+      holzart: robinie,
+      serie: premiumSelect,
+      profil: Profil.genutet,
+    );
+    final systemdiele = Artikel(
+      nummer: const Artikelnummer('10-15-001'),
+      titel: 'Systemdiele',
+      art: Artikelart.systemdiele,
+      einheit: Verkaufseinheit(Mengeneinheit.quadratmeter),
+      abmessungen: Abmessungen(
+        breite: const Millimeter(60),
+        laengen: const [Millimeter(800)],
+      ),
+      holzart: robinie,
+      serie: massiv,
+    );
+    final regelwerk = Regelwerk(
+      Artikeldatei(
+        quelle: 'test',
+        version: '1',
+        eintraege: [Artikeleintrag(artikel: diele)],
+      ),
+    );
+
+    test('mit Verlegung: Länge und Befestigung (B-035, B-094)', () {
+      final stand = Planungsstand.start
+          .mitDielenlaenge(const Millimeter(7000))
+          .mitBefestigungsart(Befestigungsart.verschraubt);
+      expect(PlanungsDienst.berechne(stand, diele, regelwerk).belagmeldungen, [
+        Belagmeldung.laengeNichtLieferbar,
+        Belagmeldung.befestigungsartNichtMoeglich,
+        Belagmeldung.befestigungOhneArtikel,
+      ]);
+      expect(
+        PlanungsDienst.berechne(Planungsstand.start, diele).belagmeldungen,
+        isEmpty,
+      );
+    });
+
+    test('ohne Verlegung: Systemdiele, Umriss und Fläche bleiben', () {
+      final b = PlanungsDienst.berechne(Planungsstand.start, systemdiele);
+      expect(b.belagmeldungen, [Belagmeldung.systemdieleOhneVerlegung]);
+      expect(b.dielen, isEmpty);
+      expect(b.flaeche, closeTo(4800 * 3090, 1e-6));
+      expect(b.umriss, hasLength(4));
+      expect(b.ecken, hasLength(4));
+      expect(b.geschlossen, isTrue);
+      final o = PlanungsDienst.berechne(
+        Planungsstand.start.mitForm(Terrassenform.oForm),
+        systemdiele,
+      );
+      expect(o.ausschnitte, hasLength(1));
+      final offen = PlanungsDienst.berechne(
+        Planungsstand(
+          grundriss: FreiformGrundriss(const [Punkt(0, 0), Punkt(1000, 0)]),
+        ),
+        systemdiele,
+      );
+      expect(offen.geschlossen, isFalse);
+      expect(
+        PlanungsDienst.berechne(Planungsstand.start).belagmeldungen,
+        isEmpty,
+      );
+    });
+
+    test('Belag nicht mehr in den Artikeldaten über die Planung', () {
+      final planung = Planung.start.mitStand(
+        Planungsstand.start.mitBelag(const Artikelnummer('10-10-999')),
+      );
+      expect(
+        PlanungsDienst.berechnePlanung(planung, (_) => diele).belagmeldungen,
+        [Belagmeldung.belagErsetzt],
+      );
+    });
+
+    test('über den Router', () async {
+      await dienst.stoppe();
+      dienst = await PlanungsDienst.starte(router, belag: (_) => systemdiele);
+      final antwort = await rufe(Planung.start.zuBytes());
+      expect(
+        Berechnung.ausBytes(antwort.payload.packedPayloadBytes!).belagmeldungen,
+        [Belagmeldung.systemdieleOhneVerlegung],
+      );
+    });
+  });
+
+  group('Höhenpunkte (M6-02)', () {
+    Artikel holz(String nummer, Artikelart art, int breite, int staerke) =>
+        Artikel(
+          nummer: Artikelnummer(nummer),
+          titel: nummer,
+          art: art,
+          einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+          abmessungen: Abmessungen(
+            breite: Millimeter(breite),
+            staerke: Millimeter(staerke),
+            laengen: const [Millimeter(4000)],
+          ),
+          holzart: robinie,
+          serie: premiumSelect,
+          profil: art == Artikelart.diele ? Profil.genutet : null,
+        );
+    final diele = holz('10-10-073-R', Artikelart.diele, 60, 23);
+    final uk = holz('10-10-031-R', Artikelart.unterkonstruktion, 45, 60);
+
+    test('ohne Belag ungeprüft, je Ecke die eingegebene Höhe', () {
+      final b = PlanungsDienst.berechne(Planungsstand.start);
+      expect(b.hoehenpunkte.hoehen, List.filled(4, const Millimeter(86)));
+      expect(b.hoehenpunkte.aufbauhoehe, isNull);
+      // offene Freiform: keine Höhenpunkte
+      final offen = PlanungsDienst.berechne(
+        Planungsstand(
+          grundriss: FreiformGrundriss(const [Punkt(0, 0), Punkt(1000, 0)]),
+        ),
+      );
+      expect(offen.hoehenpunkte.hoehen, isEmpty);
+    });
+
+    test('mit Belag und UK geprüft: gedreht und korrigiert', () {
+      final stand = Planungsstand.start
+          .mitGefaelle(true)
+          .mitEckhoehe(0, const Millimeter(150))
+          .mitEckhoehe(2, const Millimeter(70))
+          .mitEckhoehe(3, const Millimeter(50));
+      final b = PlanungsDienst.berechne(stand, diele, null, uk);
+      final p = b.hoehenpunkte;
+      expect(p.hoehen, [
+        const Millimeter(150),
+        const Millimeter(86),
+        const Millimeter(70),
+        const Millimeter(68),
+      ]);
+      expect(p.aufbauhoehe, const Millimeter(68));
+      expect(p.mindesthoehe, const Millimeter(68));
+      expect(p.gedreht, isTrue);
+      expect(p.korrigiert, isTrue);
+      expect(b.dielen, isNotEmpty);
+      // Holzfliese ohne Dielen: Höhen trotzdem geprüft
+      final fliese = Artikel(
+        nummer: const Artikelnummer('10-20-001'),
+        titel: 'Fliese',
+        art: Artikelart.holzfliese,
+        einheit: Verkaufseinheit(Mengeneinheit.stueck),
+        abmessungen: Abmessungen(staerke: const Millimeter(40)),
+      );
+      final f = PlanungsDienst.berechne(stand, fliese, null, uk);
+      expect(f.dielen, isEmpty);
+      expect(f.hoehenpunkte.mindesthoehe, const Millimeter(85));
+    });
+
+    test('UK-Maße: Breite und Stärke, sonst keine', () {
+      expect(PlanungsDienst.ukMasse(uk), (
+        a: const Millimeter(45),
+        b: const Millimeter(60),
+      ));
+      expect(PlanungsDienst.ukMasse(null), isNull);
+      final alu = Artikel(
+        nummer: const Artikelnummer('50-20-007'),
+        titel: 'Alu-Schiene',
+        art: Artikelart.aluUnterkonstruktion,
+        einheit: Verkaufseinheit(Mengeneinheit.stueck),
+        abmessungen: Abmessungen(breite: const Millimeter(56)),
+      );
+      expect(PlanungsDienst.ukMasse(alu), isNull);
+    });
+
+    test('über den Router mit der UK-Suche', () async {
+      await dienst.stoppe();
+      final gefragt = <Planungsstand>[];
+      dienst = await PlanungsDienst.starte(
+        router,
+        belag: (_) => diele,
+        unterkonstruktion: (stand) {
+          gefragt.add(stand);
+          return uk;
+        },
+      );
+      final stand = Planungsstand.start.mitHoehe(const Millimeter(60));
+      final antwort = await rufe(Planung.start.mitStand(stand).zuBytes());
+      final b = Berechnung.ausBytes(antwort.payload.packedPayloadBytes!);
+      expect(b.hoehenpunkte.hoehen, List.filled(4, const Millimeter(68)));
+      expect(b.hoehenpunkte.korrigiert, isTrue);
+      expect(gefragt, [stand]);
     });
   });
 

@@ -21,6 +21,7 @@ class ArtikelDienst {
     );
     (await sitzung.register(WampNamen.artikelListe)).onInvoke(dienst._liste);
     (await sitzung.register(WampNamen.artikelRegeln)).onInvoke(dienst._regeln);
+    (await sitzung.register(WampNamen.ukAuswahl)).onInvoke(dienst._ukauswahl);
     (await sitzung.register(WampNamen.belagAuswahl)).onInvoke(
       (aufruf) =>
           aufruf.respondWith(arguments: [dienst.belagauswahl.alsJson()]),
@@ -36,6 +37,10 @@ class ArtikelDienst {
 
   /// Aktuelle Artikeldatei.
   Artikeldatei get datei => _regelwerk.datei;
+
+  /// Regelwerk der aktuellen Artikeldaten, z. B. für die Befestigung
+  /// (M5-09).
+  Regelwerk get regelwerk => _regelwerk;
 
   /// Alle Beläge mit ihren Preisen (M5-01), in Datenreihenfolge.
   Belagauswahl get belagauswahl => Belagauswahl(datei.version, [
@@ -54,6 +59,20 @@ class ArtikelDienst {
     return belaege.where((a) => a.nummer == nummer).firstOrNull ??
         belaege.firstOrNull;
   }
+
+  /// Unterkonstruktionen zum Belag [belag] (M6-03; `null` = Vorgabe-Belag):
+  /// nur zum Belag passende Robinien-UK (`ukPasstZuBelag`, B-034, B-122)
+  /// in Datenreihenfolge mit Preis je lfm.
+  Ukauswahl ukauswahl(Artikelnummer? belag) => Ukauswahl.fuer(
+    datei.version,
+    this.belag(belag),
+    _regelwerk.imBereich(Bereich.unterkonstruktion),
+  );
+
+  /// Die UK für die Planung: die gewählte [uk], wenn sie zum Belag passt,
+  /// sonst die Vorgabe (die erste passende); ohne passende keine.
+  Artikel? unterkonstruktion(Artikelnummer? belag, Artikelnummer? uk) =>
+      ukauswahl(belag).gewaehlt(uk)?.artikel;
 
   /// Tauscht die Artikeldaten aus und meldet die neue Version – ohne
   /// Neustart und ohne App-Update.
@@ -116,6 +135,14 @@ class ArtikelDienst {
         errorUri: WampNamen.artikelFilterUngueltig,
         arguments: ['$fehler'],
       );
+
+  void _ukauswahl(Invocation aufruf) {
+    final belag = switch (aufruf.arguments) {
+      [final String nummer, ...] => Artikelnummer(nummer),
+      _ => null,
+    };
+    aufruf.respondWith(arguments: [ukauswahl(belag).alsJson()]);
+  }
 
   void _regeln(Invocation aufruf) {
     final argumente = aufruf.arguments ?? const <Object?>[];

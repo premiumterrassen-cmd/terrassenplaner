@@ -12,6 +12,7 @@ import 'ausschnitte.dart';
 import 'freiform.dart';
 import 'rundung.dart';
 import 'steuerung.dart';
+import 'vorschau.dart';
 import 'zeichnung.dart';
 
 /// Zeichenfläche (M3-03): Raster, Zoom mit Mausrad oder Regler, Verschieben
@@ -47,6 +48,13 @@ class Zeichenflaeche extends StatelessWidget {
   /// Erste ganze Diele verschieben (M5-07): ein Griff am Ausgangspunkt der
   /// Verlegung, solange der Schritt Terrassenbelag offen ist.
   final AusgangspunktBedienung? ausgangspunkt;
+
+  /// So weit (Bildschirmpunkte) fangen Zeichnungshilfe und Einrastfunktion
+  /// beim Zeichnen (#128) – unabhängig vom Zoom gleich stark.
+  static const fangPixel = 8.0;
+
+  /// [fangPixel] in mm beim aktuellen Zoom.
+  double get fangToleranz => fangPixel / (pixelJeMm * ansicht.zoom);
 
   /// Bildschirmpunkt in mm der Zeichnung (Umkehrung der Ansicht).
   Punkt inMillimeter(Offset lokal) {
@@ -247,19 +255,51 @@ class Zeichenflaeche extends StatelessWidget {
         return KeyEventResult.handled;
       },
       child: Builder(
-        builder: (fokus) => GestureDetector(
-          key: const ValueKey('freiform-zeichnen'),
-          onTapUp: (tipp) {
-            Focus.of(fokus).requestFocus();
-            FreiformBedienung.melde(
-              context,
-              bedienung!.setzePunkt(inMillimeter(tipp.localPosition)),
-            );
-          },
-          child: kind,
+        builder: (fokus) => MouseRegion(
+          onHover: (zeige) =>
+              bedienung!.modus.zeiger.value = inMillimeter(zeige.localPosition),
+          onExit: (_) => bedienung!.modus.zeiger.value = null,
+          child: GestureDetector(
+            key: const ValueKey('freiform-zeichnen'),
+            onTapUp: (tipp) {
+              Focus.of(fokus).requestFocus();
+              FreiformBedienung.melde(
+                context,
+                bedienung!.setzePunkt(
+                  inMillimeter(tipp.localPosition),
+                  toleranz: fangToleranz,
+                ),
+              );
+            },
+            child: kind,
+          ),
         ),
       ),
     );
+  }
+
+  /// Vorschau des nächsten Punkts (#128), solange die Freiform offen ist.
+  List<Widget> _vorschau(BuildContext context) {
+    final bedienung = freiform;
+    final offen = bedienung?.offen;
+    if (bedienung == null || offen == null) return const [];
+    return [
+      Positioned.fill(
+        child: IgnorePointer(
+          child: CustomPaint(
+            key: const ValueKey('freiform-vorschau'),
+            painter: VorschauMaler(
+              ansicht: ansicht,
+              zeiger: bedienung.modus.zeiger,
+              letzter: offen.punkte.lastOrNull,
+              ziel: (ort) => bedienung.ziel(ort, toleranz: fangToleranz),
+              sprache: context.texte,
+              farbe: context.farben.primary,
+            ),
+          ),
+        ),
+      ),
+    ];
   }
 
   @override
@@ -306,6 +346,7 @@ class Zeichenflaeche extends StatelessWidget {
                       ),
                     ),
                   ),
+                  ..._vorschau(context),
                   ..._griffe(),
                 ],
               ),

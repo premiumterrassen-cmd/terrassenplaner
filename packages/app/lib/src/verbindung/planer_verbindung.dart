@@ -199,6 +199,19 @@ class PlanerVerbindung implements KonfigurationsAblage, MitarbeiterAnmeldung {
         );
       });
 
+  /// Zum Belag passende Unterkonstruktionen vom Artikeldienst (M6-03);
+  /// ohne [belag] die zum Vorgabe-Belag.
+  Future<Ukauswahl> unterkonstruktionen(Artikelnummer? belag) =>
+      _mitSitzung((sitzung) async {
+        final antwort = await sitzung.callSingle(
+          WampNamen.ukAuswahl,
+          arguments: [?belag?.wert],
+        );
+        return Ukauswahl.ausJson(alsJsonObjekt(antwort.arguments!.single), {
+          robinie.id: robinie,
+        });
+      });
+
   /// FlatBuffer als Packed-PPT-Nutzlast; materialisiert ist es ein
   /// Binärargument.
   static LazyMessagePayload verpacke(Uint8List bytes) =>

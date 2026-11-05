@@ -408,8 +408,9 @@ const FAELLE = {
     const seite = await Seite.oeffne(p);
     await seite.abfangen({ halten: ['main.dart.wasm'] });
     await seite.oeffneUrl(adresse);
+    // 10 s ab dem letzten Fortschritt – unter Last kommt der Hinweis erst spät
     await seite.warte(`document.getElementById('ladebild-status').textContent === ${JSON.stringify(TEXT.langsam)}`,
-      'Hinweis „langsam“', 15000);
+      'Hinweis „langsam“', 30000);
     await seite.freigeben();
     await pruefeStart(seite, adresse);
     await seite.schliessen();

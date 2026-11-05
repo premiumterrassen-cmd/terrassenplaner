@@ -13,16 +13,22 @@ import 'aktionen.dart';
 import 'ansichtsoptionen.dart';
 import 'ausgangspunkt.dart';
 import 'ausschnitte.dart';
+import 'befestigung.dart';
 import 'belag.dart';
+import 'belagmeldungen.dart';
 import 'berechnung_steuerung.dart';
+import 'dielenliste.dart';
 import 'flaechen.dart';
 import 'freiform.dart';
 import 'grundriss_eingabe.dart';
+import 'materialliste.dart';
 import 'planer_schritt.dart';
 import 'rahmen_zustand.dart';
 import 'rundung.dart';
 import 'standardwert_hinweis.dart';
 import 'steuerung.dart';
+import 'uk_auswahl.dart';
+import 'unterkonstruktion.dart';
 import 'zeichenflaeche.dart';
 import 'zeichnung.dart';
 
@@ -40,6 +46,7 @@ class PlanerRahmen extends StatefulWidget {
     this.konfiguration,
     this.berechne,
     this.belaege,
+    this.unterkonstruktionen,
     this.aktionen = const RahmenAktionen(),
     this.sprache,
     this.darstellung,
@@ -68,6 +75,10 @@ class PlanerRahmen extends StatefulWidget {
   /// Beläge vom Server (M5-01); ohne sie bleibt die Belagauswahl leer.
   final BelaegeLaden? belaege;
 
+  /// Unterkonstruktionen zum Belag vom Server (M6-03); ohne sie bleibt die
+  /// UK-Auswahl leer.
+  final UnterkonstruktionenLaden? unterkonstruktionen;
+
   /// Links und Ergebnis-Knöpfe (M3-06).
   final RahmenAktionen aktionen;
 
@@ -78,7 +89,8 @@ class PlanerRahmen extends StatefulWidget {
   /// Auswahl.
   final DarstellungSteuerung? darstellung;
 
-  /// ANMELDEN für Mitarbeiter (M9-10); ohne sie kein Knopf.
+  /// ANMELDEN für Mitarbeiter (M9-10); ohne sie kein Knopf. Angemeldet
+  /// zeigt die Materialliste die Mitarbeiter-Ansicht (Fachkonzept 08).
   final MitarbeiterAnmeldung? anmeldung;
 
   @override
@@ -122,10 +134,22 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
     final lade? => BelagQuelle(lade),
     null => null,
   };
+  late final UkQuelle? _uk = switch (widget.unterkonstruktionen) {
+    final lade? => UkQuelle(lade: lade, planung: _planung),
+    null => null,
+  };
+
+  /// Mitarbeiter-Ansicht der Materialliste, solange jemand angemeldet ist.
+  late final _mitarbeiter = ValueNotifier<bool>(_istAngemeldet);
+
+  bool get _istAngemeldet => widget.anmeldung?.angemeldetAls.value != null;
+
+  void _angemeldet() => _mitarbeiter.value = _istAngemeldet;
 
   @override
   void initState() {
     super.initState();
+    widget.anmeldung?.angemeldetAls.addListener(_angemeldet);
     _berechnung?.addListener(_meldeFehler);
     _zustand.addListener(_verlaesstRundung);
   }
@@ -156,8 +180,11 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
 
   @override
   void dispose() {
+    widget.anmeldung?.angemeldetAls.removeListener(_angemeldet);
+    _mitarbeiter.dispose();
     _berechnung?.dispose();
     _belaege?.dispose();
+    _uk?.dispose();
     _modus.dispose();
     _zustand.removeListener(_verlaesstRundung);
     _rundung.dispose();
@@ -180,6 +207,20 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
       return;
     }
     await aktion();
+  }
+
+  /// Materialliste (M9-03): wie Ergebnis und Angebot erst der Hinweis auf
+  /// Standardwerte (M3-05).
+  Future<void> _zeigeMaterialliste(BerechnungsSteuerung berechnung) async {
+    if (!await pruefeStandardwerte(context, _zustand) || !mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (_) => MateriallisteDialog(
+        berechnung: berechnung,
+        planung: _planung,
+        mitarbeiter: _mitarbeiter,
+      ),
+    );
   }
 
   Future<void> _zuruecksetzen() async {
@@ -217,7 +258,7 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
   /// LADEN: „Konfiguration laden“ mit der geöffneten Konfiguration
   /// vorbelegt; angemeldete Mitarbeiter laden auch ohne Prüfcode (M9-10).
   Future<void> _lade(KonfigurationsSteuerung konfiguration) async {
-    final mitarbeiter = widget.anmeldung?.angemeldetAls.value != null;
+    final mitarbeiter = _istAngemeldet;
     final geladen = await showDialog<bool>(
       context: context,
       builder: (_) => LadenDialog(
@@ -280,7 +321,9 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
             rundung: _rundung,
             ausschnitte: _ausschnitte,
             ausgangspunkt: _ausgangspunkt,
+            berechnung: _berechnung,
             belaege: _belaege,
+            unterkonstruktionen: _uk,
           );
           return Column(
             children: [
@@ -345,9 +388,24 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
                           Positioned(
                             top: PlanerAbstand.mittel,
                             right: PlanerAbstand.mittel,
-                            child: Kennzahlen(
-                              flaeche: _berechnung?.flaeche,
-                              gesamtflaeche: _berechnung?.gesamtflaeche,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Kennzahlen(
+                                  flaeche: _berechnung?.flaeche,
+                                  gesamtflaeche: _berechnung?.gesamtflaeche,
+                                  verschnitt: _berechnung?.verschnitt,
+                                ),
+                                if (_berechnung case final b?) ...[
+                                  const SizedBox(height: PlanerAbstand.klein),
+                                  FilledButton.tonalIcon(
+                                    key: const ValueKey('materialliste-knopf'),
+                                    onPressed: () => _zeigeMaterialliste(b),
+                                    icon: const Icon(Icons.list_alt),
+                                    label: Text(context.texte.materialliste),
+                                  ),
+                                ],
+                              ],
                             ),
                           ),
                           // Tablet: Menü liegt über der Zeichenfläche.
@@ -669,7 +727,9 @@ class Bearbeitungsmenue extends StatelessWidget {
     required this.ausschnitte,
     super.key,
     this.ausgangspunkt,
+    this.berechnung,
     this.belaege,
+    this.unterkonstruktionen,
   });
 
   final RahmenZustand zustand;
@@ -679,8 +739,15 @@ class Bearbeitungsmenue extends StatelessWidget {
   final AusschnittBedienung ausschnitte;
   final BelagQuelle? belaege;
 
+  /// Unterkonstruktionen zum Belag (M6-03); ohne Quelle keine Auswahl.
+  final UkQuelle? unterkonstruktionen;
+
   /// Ausgangspunkt des Belags (M5-07); ohne Bedienung keine Eingabe.
   final AusgangspunktBedienung? ausgangspunkt;
+
+  /// Berechnung des Servers für die Befestigung (M5-09) und die
+  /// Dielenliste unter 7.1 (M5-08).
+  final BerechnungsSteuerung? berechnung;
 
   /// Eingaben unter einem Unterpunkt (Schritt, Index ab 0).
   Widget? _eingabe(PlanerSchritt schritt, int unterpunkt) => switch ((
@@ -732,6 +799,34 @@ class Bearbeitungsmenue extends StatelessWidget {
     ),
     (PlanerSchritt.terrassenbelag, 4) when ausgangspunkt != null =>
       AusgangspunktWahl(bedienung: ausgangspunkt!),
+    (PlanerSchritt.terrassenbelag, 5) => BefestigungsartWahl(
+      planung: planung,
+      berechnung: berechnung,
+      onGeaendert: () => zustand.markiereGeaendert(schritt),
+    ),
+    (PlanerSchritt.unterkonstruktion, 0) => TerrassenartWahl(
+      planung: planung,
+      onGeaendert: () => zustand.markiereGeaendert(schritt),
+    ),
+    (PlanerSchritt.unterkonstruktion, 1) => HoehenpunkteWahl(
+      planung: planung,
+      berechnung: berechnung,
+      onGeaendert: () => zustand.markiereGeaendert(schritt),
+    ),
+    (PlanerSchritt.unterkonstruktion, 2) when unterkonstruktionen != null =>
+      UkAnzeige(
+        quelle: unterkonstruktionen!,
+        planung: planung,
+        onGeaendert: () => zustand.markiereGeaendert(schritt),
+      ),
+    (PlanerSchritt.unterkonstruktion, 3) when unterkonstruktionen != null =>
+      UkLaengeWahl(
+        quelle: unterkonstruktionen!,
+        planung: planung,
+        onGeaendert: () => zustand.markiereGeaendert(schritt),
+      ),
+    (PlanerSchritt.verschnittoptimierung, 0) when berechnung != null =>
+      DielenlisteAnzeige(berechnung: berechnung!),
     _ => null,
   };
 
@@ -767,8 +862,10 @@ class Bearbeitungsmenue extends StatelessWidget {
                 onTap: () => zustand.waehle(schritt),
               ),
               if (schritt == zustand.aktiv)
-                for (final (i, punkt)
-                    in schritt.nummerierteUnterpunkte(t).indexed)
+                for (final punkt in schritt.sichtbareUnterpunkte(
+                  t,
+                  planung.aktuell,
+                ))
                   Padding(
                     padding: const EdgeInsets.only(
                       left: PlanerAbstand.gross,
@@ -777,7 +874,17 @@ class Bearbeitungsmenue extends StatelessWidget {
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [Text(punkt), ?_eingabe(schritt, i)],
+                      children: [
+                        Text(punkt.text),
+                        ?_eingabe(schritt, punkt.index),
+                        if (schritt == PlanerSchritt.terrassenbelag &&
+                            berechnung != null)
+                          BelagMeldungen(
+                            berechnung: berechnung!,
+                            planung: planung,
+                            unterpunkt: punkt.index,
+                          ),
+                      ],
                     ),
                   ),
               const Divider(height: 1),
@@ -816,10 +923,17 @@ class MenuGriff extends StatelessWidget {
   );
 }
 
-/// Kennzahlen rechts oben (M4-13): Fläche vom Server und Holzvolumen; das
-/// Volumen ergibt sich erst aus Dielen und Unterkonstruktion (M5-08, M6-10).
+/// Kennzahlen rechts oben (M4-13) in der Reihenfolge des alten Planers:
+/// Fläche, Verschnitt des Belags (M5-08) und Holzvolumen – das Volumen
+/// ergibt sich erst aus Dielen und Unterkonstruktion (M6-10).
 class Kennzahlen extends StatelessWidget {
-  const Kennzahlen({super.key, this.flaeche, this.gesamtflaeche, this.volumen});
+  const Kennzahlen({
+    super.key,
+    this.flaeche,
+    this.gesamtflaeche,
+    this.verschnitt,
+    this.volumen,
+  });
 
   /// Fläche der bearbeiteten Fläche in m², `null` = noch nicht berechnet.
   final double? flaeche;
@@ -828,8 +942,16 @@ class Kennzahlen extends StatelessWidget {
   /// Fläche, ohne eigene Zeile.
   final double? gesamtflaeche;
 
+  /// Verschnitt als Anteil (0,04 = 4 %), `null` = ohne verlegte Dielen.
+  final double? verschnitt;
+
   /// Holzvolumen in m³, `null` = noch nicht berechnet.
   final double? volumen;
+
+  /// Verschnitt in Prozent mit höchstens zwei Nachkommastellen wie im
+  /// alten Planer („3,41 %“), im Format der Sprache.
+  static String prozent(PlanerTexte t, double? anteil) =>
+      anteil == null ? '– %' : '${zahlText(t, anteil * 100, '0.##')} %';
 
   /// Wert mit drei Nachkommastellen wie im alten Planer, im Format der
   /// Sprache („14,832 m²“).
@@ -849,6 +971,7 @@ class Kennzahlen extends StatelessWidget {
             Text(t.flaeche(zahl(t, flaeche, 'm²'))),
             if (gesamtflaeche case final g?)
               Text(t.gesamtflaeche(zahl(t, g, 'm²'))),
+            Text(t.verschnitt(prozent(t, verschnitt))),
             Text(t.volumen(zahl(t, volumen, 'm³'))),
           ],
         ),

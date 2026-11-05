@@ -85,7 +85,7 @@ Neuer Planer (M5-05):
 - **Stoßlinien** im Raster der Verlegeart ab dem Ausgangspunkt, auch zur anderen Seite hin: Bei 135° liegt A mitten in der Ausdehnung, eine Stoßlinie läuft durch A und teilt die Reihen (F04, 154 statt 86 Stücke). Der Wechselverband setzt jede zweite Reihe an der Gegenseite an.
 - **Schmale Restreihen** unter 15 mm Breite entfallen: Der alte Planer lässt eine 14 mm breite Ecke bei 45° (F03) und 11 mm bei 30° (F05) weg, verlegt aber eine 18 mm breite Reihe (Referenzfall 2026-05-29-3162). Die genaue Grenze ist aus den Daten nicht bestimmbar.
 - Abgleich: Die Stücklängen stimmen mit den Zuschnittlisten von F01–F13 auf 1 mm überein (senkrecht 74 × 309 cm, 45° 86 Stücke, 135° 154, 30° 78). Wie die Stücke auf Lieferlängen verteilt werden, gehört zur Verlegung (M5-08).
-- Der Server verlegt mit dem gewählten Belag (Breite, längste oder erzwungene Länge) und liefert die Umrisse der Dielenstücke mit der Berechnung; die Zeichnung zeigt sie auf der Ebene „Belag“. Holzfliesen folgen mit M5-08.
+- Der Server verlegt mit dem gewählten Belag (Breite, längste oder erzwungene Länge) und liefert die Umrisse der Dielenstücke mit der Berechnung; die Zeichnung zeigt sie auf der Ebene „Belag“. Holzfliesen verlegt M5-08 (siehe 2.7).
 
 ## 2.5 Ausgangspunkt des Belags
 
@@ -98,4 +98,65 @@ Neuer Planer (M5-07):
 - Verschoben wird in Bildschirmkoordinaten: „links/rechts um“ positiv nach rechts, „oben/unten um“ positiv nach unten, je Eingabefeld in cm (Enter übernimmt) und Schieberegler in ganzen cm. Mit der Maus zieht man den grünen Griff an der Ecke der ersten ganzen Diele (Ausgangspunkt plus Verschiebung), solange der Schritt Terrassenbelag offen ist. Jede Eingabe und jeder Zug ist ein Schritt für Rückgängig/Wiederherstellen.
 - **Grenzen:** höchstens eine Belaglänge bzw. Belagbreite. Die Achse, die eher in Verlegerichtung liegt (Winkel bis 45° oder ab 135°), bekommt das Raster der Stöße (längste bzw. erzwungene Lieferlänge, höchstens die Ausdehnung der Fläche, siehe 2.3), die andere Dielenbreite plus Fuge. Der Server rechnet die Grenzen und begrenzt auch eine gespeicherte Verschiebung, die nach einem Belagwechsel zu groß ist.
 - **Warnung:** Entsteht ein Dielenstück kürzer als 5 cm oder eine Randreihe schmaler als 5 cm (Reihen unter 15 mm entfallen weiter, siehe 2.4), meldet der Server das mit der Berechnung (`kurzeZuschnitte`), und unter 2.5 erscheint „Achtung: Es entstehen Zuschnitte unter 5 cm …“. Beispiel: 480 × 309 cm mit 6-cm-Dielen hat ab A eine 3,5 cm breite letzte Reihe; 5 cm nach unten verschoben bleiben oben und unten je 5 cm.
-- Ohne verlegte Dielen (kein Belag, Holzfliesen bis M5-08) gibt es keine Verschiebung, nur die Wahl der Ecke.
+- Ohne verlegte Dielen (kein Belag, Systemdielen) gibt es keine Verschiebung, nur die Wahl der Ecke.
+
+## 2.6 Befestigungsart
+
+Im alten Planer ergibt sich die Befestigung aus dem Belag: genutete Dielen mit CLIP-FIXX (Packungsmix VPE 250 + 100 + 50), dazu einseitig genutete Randdielen mit Terrassenschrauben 5,0 × 50 mm (je UK-Kreuzung eine); glattkante Dielen von oben verschraubt (F24: 806 Schrauben für 30 Reihen × 13 UK).
+
+Neuer Planer (M5-09):
+
+- Unterpunkt 2.6 „Befestigungsart“ mit den Arten, die zum Profil des Belags passen: **Mit Clips** nur bei genuteten Dielen (B-094), glattkante Dielen **direkt verschraubt** (Vorgabe) oder **verschraubt mit Abstandshaltern** (B-090). Planungsstand-Feld `befestigungsart` (Vorgabe Clips wie im alten Planer); gilt die gewählte Art für den Belag nicht, gilt die Vorgabe seines Profils, die Wahl bleibt aber für einen späteren Belagwechsel erhalten. Was wählbar ist und was gebraucht wird, rechnet der Server; die Oberfläche zeigt die Befestigungspunkte und die Artikel mit Anzahl.
+- **Artikel** aus den Befestigungsverweisen des Belags in der Upload-Datei (B-122), Preise und Verkaufseinheiten unverändert (B-153): genutet unter 100 mm und genutete ECO SELECT/BASIC ab 100 mm **CLIP-FIXX**, genutete PREMIUM SELECT ab 100 mm **DUO-CLIP-FIXX** (B-094, B-150; R-B01). Die Clipschrauben sind im Lieferumfang und keine eigene Position (B-074). Glattkant: Terrassenschrauben in der kürzesten Länge, die mindestens die doppelte Dielenstärke hat (21–25 mm → 50 mm, 26 mm → 60 mm). Verschraubt mit Abstandshaltern: eine Packung **Montagehilfe Abstandshalter** (wiederverwendbar) für die Fuge von **5 mm** – bei Clips geben die Clips sie vor (5/6 mm, gerechnet wird mit 5 mm; Alexander 04.11.2026). Einweg-Abstandshalter 4/7 mm passen nicht zur Fuge und werden nicht gewählt.
+- **Befestigungspunkte:** jede Kreuzung eines Dielenstücks mit einer UK-Linie. Bis die Unterkonstruktion gerechnet wird (M6), liegen die UK-Linien quer zur Verlegerichtung gleichmäßig über die Ausdehnung der Verlegung, höchstens im UK-Abstand des Belags (Artikeldaten 40 cm, höchstens 40 cm der Holzart, R-C01) auseinander, die äußeren am Rand (B-096). Jedes Stück liegt an beiden Enden auf – am Stoß zwei UK nebeneinander – und dazwischen auf jeder Linie, die es überdeckt. F01: 48 Reihen × 13 = 624 Punkte; F09 (800 cm, Stoß bei 600 cm): 48 × 22.
+- **Mengen:** Clips je Punkt einer, dazu einer je Punkt der äußeren Reihe für deren freie Längskante (Anfangs- und Enddiele sind normale genutete Dielen, B-033) – F01: 637 Clips. Schrauben je Punkt eine, ab 100 mm Breite zwei (R-B02) – F24: 390 Punkte, 780 Schrauben. Montagehilfe eine Packung je Planung.
+- **Verkaufseinheiten:** so wenig Überhang wie möglich, dann so wenig Packungen wie möglich: F01 637 Clips → 2 × VPE 250 + VPE 100 + VPE 50 (wie der alte Planer), 780 Schrauben → 4 × 200 Stück.
+- **Abweichungen vom alten Planer** (Fehler nicht übernommen): keine einseitig genuteten Randdielen mit Terrassenschrauben (B-033) – die Randreihen bekommen Clips, daher F09 1100 statt 1050 Clips und keine 26/44 Terrassenschrauben bei genuteten Dielen; glattkant ohne die 26 zusätzlichen Schrauben aus F24 (806 → 780).
+- Holzfliesen (Verbinder) siehe 2.7; die echten UK-Linien liefert M6.
+
+## 2.7 Berechnung der Dielenverlegung
+
+Ergebnis der Schritte 2.1–2.5: die verlegten, nummerierten Stücke, die Planungsunterlage „Dielen/Platten nach Nummer“, der Deckbelag-Zuschnitt und die Kennzahl Verschnitt.
+
+Neuer Planer (M5-08):
+
+- **Teilflächen:** Die Hauptfläche spart alle Ausschnitte aus – leere Flächen bekommen kein Material (1.4). Ein Ausschnitt mit anderem Terrassenbelag ist eine eigene Teilfläche, verlegt ab seiner Ecke oben links in derselben Richtung und Verlegeart; bis er einen eigenen Belag wählen kann, mit dem Belag der Fläche (F22). Ragt ein Ausschnitt nur in einen Teil einer Reihe, wird die Diele ausgeklinkt und bleibt ein Stück; liegt er ganz in einer Reihe (Pfosten unter der Dielenbreite), endet die Diele an ihm. Rundungen gehen über die Kontur ein, mehrere Flächen (M4-14) jede für sich.
+- **Nummern:** je Teilfläche ab 1 in Verlegereihenfolge; gleiche Länge (auf 1 mm) und gleiche zugeschnittene Breite tragen dieselbe Nummer. Die zugeschnittene Breite ist die Ausdehnung des Stücks quer zur Verlegerichtung ohne Fuge (Randreihe: Restbreite − 5 mm, R-B13). Die Zeichnung schreibt die Nummer längs ins Stück, wo sie auf dem Bildschirm hineinpasst.
+- **Zuschnitt (Reststücke verteilen):** Die Stücke einer Teilfläche werden absteigend auf Lieferdielen verteilt. Ein Stück kommt in den kleinsten passenden Rest einer angefangenen Diele; sonst beginnt eine neue in der Lieferlänge mit dem kleinsten Rest nach dem Auffüllen mit den folgenden Stücken (bei Gleichstand die kürzere); am Ende bekommt jede Diele die kürzeste Länge, die ihre Stücke aufnimmt. Gesägt wird ohne Zugabe wie im alten Planer (2 × 200 cm aus 4000 mm). Beispiele: F09 600 + 200 cm → 48 × 6000 + 24 × 4000 mm, F06 Halbverband → 48 × 5000 mm, F21 → 38 × 5000 + 5 × 4000 mm – jeweils wie der alte Planer.
+- **Dielenliste:** Anzahl je Lieferlänge über alle Teilflächen; über die Planung je Belag, jede Fläche mal ihrer Häufigkeit. Freidielen (R-B09) kommen mit dem Zubehör (M8) als eigene Position mit Preis 0 in die Materialliste (M9-03, [08](08-ergebnisse.md#materialliste)).
+- **Verschnitt** (R-B11) = (geliefert − geplant) ÷ geliefert über die Längen, für die ganze Planung; Kennzahl rechts oben zwischen Fläche und Volumen („Verschnitt: 4 %“, höchstens zwei Nachkommastellen) und unter 7.1 mit „Benötigte Dielen“. F01 4 %, F02 22,75 %, F20 10 %, F23/F24 4 %, F25 0,99 % stimmen.
+- **Holzfliesen** (606 × 606 mm) liegen wie Dielen in Reihen aus Kantenlänge plus 5 mm Fuge und werden längs ohne Fuge gestoßen (F25: 7 × 60,6 + 55,8 cm, 6 Reihen, 48 Fliesen; Referenzfall 2026-08-17-1838: Randreihe 25,1 cm, 36 Fliesen). Kurze Stücke werden bei Fliesen nie verbunden.
+- **Systemdielen** (Längenmix, Endlosverlegung) werden noch nicht verlegt.
+- **Befestigung:** Die Befestigungspunkte (2.6) zählt der Server über die Stücke aller Teilflächen. Fliesenverbinder (F25: 63 Verbinder für 48 Fliesen) bleiben offen – die Regel lässt sich aus einem Fall nicht ableiten.
+- **Volumen:** bleibt „–“, bis die Unterkonstruktion gerechnet wird (M6-10); der alte Planer zeigt Belag plus UK. Hinweis aus F02: 74 × 4000 mm Dielen (0,391 m³) plus 9 × 5000 mm UK 40 × 60 (0,108 m³) ergeben die angezeigten 0,499 m³ – das Volumen rechnet mit den gelieferten Längen.
+- **Grenze zu M9-01:** Die Verteilung ist eine Regel je Teilfläche, keine Optimierung. Varianten, Rest-Ausgleich über Teilflächen und Flächen hinweg und Längenmischungen nach Verschnitt folgen mit der Verschnittoptimierung (7.1, M9-01).
+- **Abgleich Referenzfälle (M1-02, Rechtecke, L- und T-Formen ohne Rundung):** „Dielen nach Nummer“ stimmt bei 18 von 23 vergleichbaren Fällen genau; bei 8 davon auch die Lieferung, bei 10 liegen nur die Zwischenlängen 3,0/4,5/5,5 m des alten Planers auf der nächsten Lieferlänge (R-A06). Abweichungen: 2026-04-13-1946 und 2026-04-29-164 verlegen mit 7000 mm für Dielen mit 4/5/6 m (Fehler wie F14, B-035; mit 7 m stimmen die Stücke), 2026-07-31-3374-v5 nennt an Ausklinkungen die schmale Breite (neu: die volle Breite des Stücks, die man zum Zuschneiden braucht), 2026-06-15-1093 lässt sich ohne Angabe der Verlegeart nicht nachstellen; 2026-06-03-2910 hat einen Ausschnitt ohne Lage. In zwei der verglichenen Unterlagen steht „Waagrecht“, die Zeichnung zeigt senkrecht – verglichen wird die Zeichnung (2026-05-03-347, 2026-06-30-2295). Drittel- und Halbverband runden den Versatz auf ganze mm (404 cm: 134,7 + 269,3 cm wie 2026-05-03-4381).
+- **Abweichung Verschnitt F21:** gleiche Lieferung wie der alte Planer, aber 4,57 statt 4,36 % (geplant 43 × 360 + 19 × (100 + 140) cm); der alte Rechenweg ist aus den Daten nicht nachvollziehbar.
+
+## 2.8 Grenzwerte und Meldungen
+
+Der alte Planer wechselt still auf Vorgaben oder verlegt nichts, ohne es zu sagen. Der neue Planer meldet es dort, wo die Eingabe passiert.
+
+Neuer Planer (M5-10):
+
+- **Wo geprüft wird:** Die Sortimentsgrenzen der Beläge prüft schon der Import (M2-03): Breite × Stärke je Serie und Profil (B-030, B-032, B-036), Lieferlängen je Serie (B-035) und – neu – keine einseitig genuteten Dielen (B-033, Titel mit „einseitig“ ist ein kritischer Befund). Ein Belag außerhalb kommt gar nicht in die Auswahl. Alles, was erst aus Fläche, Belag und Wahl entsteht, prüft der Server mit jeder Berechnung (`belagmeldungen`) und liefert die Meldungen mit; die App zeigt nur an.
+- **Meldungen** (⚠ = Warnung, ℹ = Hinweis), Unterpunkt und Text:
+
+| Meldung | Unterpunkt | Bedingung | Text (Deutsch) |
+|---|---|---|---|
+| ℹ Belag ersetzt | 2.1 | Belag des Planungsstands nicht mehr in den Artikeldaten; es gilt die Vorgabe (M5-01) | „Der gewählte Belag ist nicht mehr im Sortiment. Geplant wird mit dem Vorgabebelag – wählen Sie bei Bedarf über „Produktauswahl“ einen anderen.“ |
+| ⚠ Belag ohne Maße | 2.1 | Diele oder Fliese ohne Breite oder Lieferlänge – nicht verlegt | „Für diesen Belag fehlen Breite oder Lieferlängen, er kann nicht verlegt werden. Bitte wählen Sie einen anderen Belag.“ |
+| ℹ Systemdiele | 2.1 | Längenmix/Endlosverlegung (B-036) wird noch nicht verlegt (2.7) | „Systemdielen werden im Längenmix endlos verlegt – das zeichnet der Planer noch nicht.“ |
+| ⚠ Fläche kleiner als Belag | 2.1 | Eine Teilfläche (Hauptfläche oder Ausschnitt mit anderem Belag) hat kein ganzes Stück: keine volle Reihenbreite (Breite + 5 mm Fuge, 1 mm Spielraum), bei Fliesen auch keine volle Kantenlänge 606 mm. In der Länge wird jede Diele zugeschnitten – das ist keine Grenze. | „Die Fläche oder eine Teilfläche ist kleiner als eine Diele bzw. Fliese: Es passt keine ganze Belagbreite hinein, nur ein Zuschnitt.“ |
+| ⚠ Holzfliesen mit spitzen Ecken | 2.1 | Holzfliese und eine Ecke der Fläche oder einer Teilfläche mit anderem Belag unter 90° (Grenze 89,5°; Freiform, Dreieck) | „Die Fläche hat Ecken unter 90°. Holzfliesen müssen dort schräg zugeschnitten werden – für solche Formen eignen sich Dielen besser.“ |
+| ℹ Bombierung empfohlen | 2.1 | Glatte Diele ab 80 mm Breite (R-B03) | „Ab 8 cm Breite empfehlen wir bombierte (leicht gewölbte) Dielen.“ |
+| ℹ Länge nicht lieferbar | 2.2 | Erzwungene Länge, die der Belag nicht liefert (M5-02, B-035) – es gilt die Automatik | „Die gewählte Länge von 700 cm gibt es für diesen Belag nicht. Die Dielenlänge wird automatisch ermittelt.“ |
+| ℹ Befestigungsart nicht möglich | 2.6 | Verschraubung gewählt, Belag genutet: Clips (B-094). Die Vorgabe Clips bei glattkanten Dielen meldet nichts, weil sie keine bewusste Wahl ist. | „Genutete Dielen werden verdeckt mit Clips befestigt. Die gewählte Verschraubung gilt nur für glattkante Dielen.“ |
+| ⚠ Befestigung ohne Artikel | 2.6 | In den Befestigungsverweisen des Belags (B-122) fehlen passende Clips (bei PREMIUM SELECT ab 100 mm DUO-CLIP-FIXX, B-150) oder Schrauben | „Für diesen Belag sind keine passenden Clips oder Schrauben hinterlegt – die Befestigung fehlt in der Materialliste. Bitte sprechen Sie uns an.“ |
+| ⚠ Schraube zu kurz | 2.6 | Verschraubt und keine hinterlegte Schraube hat die doppelte Dielenstärke (2.6); gerechnet wird mit der längsten | „Keine hinterlegte Schraube ist mindestens doppelt so lang, wie die Diele stark ist. Gerechnet wird mit der längsten – bitte prüfen Sie die Schraubenlänge.“ |
+| ⚠ Zuschnitte unter 5 cm | 2.5 | aus M5-07 (`kurzeZuschnitte`), unverändert | siehe 2.5 |
+
+- **Englisch** über dieselben Schlüssel (`belagmeldung…` in `planer_en.arb`).
+- **Fläche länger oder breiter als sinnvoll:** Die Grenzen der Terrassenmaße (kleinste Seite 50 cm, Freiform und Ausschnitte 10 cm, größte 3000 cm; Frage 18) prüft schon die Eingabe des Grundrisses (M4-02) mit Meldung. Für den Belag gibt es darüber hinaus keine Längengrenze: Reihen über der längsten Lieferlänge werden gestoßen (2.2).
+- **Grenzen der Eingaben** aus M5-05/M5-07 bleiben: Verlegewinkel 0–179° (Meldung am Feld), Verschiebung höchstens eine Belaglänge bzw. -breite (begrenzt, ohne Meldung, weil Regler und Feld die Grenze zeigen).
+- Mehrere Flächen (M4-14): Die Meldungen gelten für die bearbeitete Fläche.
