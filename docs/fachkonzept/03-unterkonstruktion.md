@@ -73,6 +73,18 @@ Neuer Planer (M6-04):
 | Versteifung mit Rahmen | 0,478 m³ | 2.242,79 € | + UK-Holz 5000 und 3000 mm |
 | doppelte Unterkonstruktion | 0,543 m³ | 2.973,42 € | UK-Holz 5000 mm, Bodenanker, mehr KOPPLEX-1, kein KOPPLEX-3 |
 
+Neuer Planer (M6-05):
+
+- Unterpunkt 3.6 mit den fünf Arten als Chips (Vorgabe schwimmende Verlegung wie F01; im Issue steht „Rahmen (Standard)“, die Referenzkonfigurationen zeigen aber schwimmend als Vorgabe). Planungsstand-Feld `nutzungsart` (Platz 81, fehlt = schwimmend); jede Wahl ist ein Schritt für Rückgängig/Wiederherstellen. Bei Hochterrasse und vorhandener UK entfällt der Unterpunkt (M6-01); die Wahl bleibt gespeichert, gilt dort aber nicht (`wirksameNutzungsart`).
+- **Warnung zur Verwindung** bei schwimmender Verlegung: „Achtung: Ohne Bodenbefestigung kann sich eine schwimmend verlegte Unterkonstruktion verwinden. Eine Versteifung oder ein Rahmen hält sie in Form.“ (Annahme: nur bei schwimmend – die anderen Arten sind versteift, gerahmt oder mit Bodenankern verbunden.)
+- **Zusätzliches UK-Holz** (`ukZusatz`, Server) zu den UK-Linien quer zu den Dielen (Lage wie bei der Befestigung; die eigentliche UK-Verlegung rechnet M6-10). Es steht in der Materialliste (UK je Lieferlänge, alle Flächen mal Häufigkeit) und in der Stückliste der bearbeiteten Fläche:
+  - **Rahmen:** je Kante, die nicht parallel zu den UK-Linien läuft, ein Rahmenholz in ihrer Länge. F32: 2 × 480 cm → **2 × 5000 mm wie im alten Planer**.
+  - **Zweite Lage** (doppelte UK, ebenso immer bei der Hochterrasse): Hölzer parallel zu den Dielen im UK-Achsabstand. F34/F28: 9 × 480 cm → **9 × 5000 mm wie im alten Planer**. Die Höhenprüfung (M6-02) rechnet dann mit zwei Lagen: Bei F34 (8,6 cm) wird der Höhenpunkt auf 10,1 cm (21 mm + 2 × 40 mm) korrigiert – der alte Planer prüfte das nicht (Fehler, nicht übernommen).
+  - **Versteifung** (Leiterverband, R-C03): Querstreben zwischen benachbarten UK-Linien in Reihen höchstens 120 cm auseinander (Annahme, Planungsregel `versteifungsAbstand`: der alte Planer setzt bei 309 cm zwei Reihen; der Querstreben-Abstand von 60 cm gilt für die zusätzlichen Querstreben 3.7). Strebe = lichter Abstand der UK (Achsabstand minus schmale Seite der hochkant stehenden UK). F31: 2 Reihen × 12 Streben à 36 cm = 8,64 m → 1 × 6000 + 1 × 4000 mm; der alte Planer lieferte 2 × 4000 mm (8 m) – darin passen nur 22 solche Streben, der neue Planer rechnet die Stücke aus (R-B11). F33 (mit Rahmen): 2 × 5000 + 6000 + 4000 mm statt 3 × 5000 + 3000 mm (3000 mm gibt es nicht mehr, B-035).
+  - **Lieferstücke** (`lieferstuecke`): lange Stücke (ab der halben kürzesten Lieferlänge) wie eine Dielenreihe (R-B10), kurze aus gemeinsamen Hölzern mit möglichst wenig Rest; eine erzwungene UK-Länge (3.4) gilt auch hier. Stückliste: Rahmen und zweite Lage blau bzw. rot, Querstreben grün (Querstück, M9-04).
+- **Nicht hier:** Bodenanker, ROBI-LIFT und Gummiband der doppelten UK (F34) folgen mit den Auflagern (M6-08/M6-11); UK-Holz und Stützen der UK-Linien selbst mit M6-10. Der UK-Abstand bleibt bei gewerblicher Nutzung gleich (R-C09).
+- Benchmark `domain.Ukzusatz.ukZusatz`: große Freiform 12 × 8 m, Versteifung mit Rahmen und doppelte UK, waagrecht und 45° ≈ 1,8–2,1 ms (lokal, unter Last).
+
 ## 3.7 Querstreben
 
 „Möchten Sie zusätzliche Querstreben hinzufügen?“ – „Querstreben Hinzufügen“ startet einen Bearbeitungsmodus („Änderungen übernehmen (ESC)“). Wie Querstreben in der Zeichnung gesetzt werden, ließ sich nicht ermitteln. Fachlich: Querstreben kommen als **Leiterverband zwischen die UK-Hölzer** und versteifen die Unterkonstruktion.

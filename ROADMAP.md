@@ -348,9 +348,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/7
   - Schotter (verdichtet, Standard), Beton, Bitumenabdichtung.
   - Abnahme: Auswirkung auf Auflagen/Zubehör wie im alten Planer
   - Ergebnis: Unterpunkt 3.5 mit Schotter (Vorgabe), Beton und Bitumenabdichtung als Chips samt Hinweis; Planungsstand-Feld `untergrund` (Platz 80, fehlend = Schotter). Nur Information für die Planer, keine Wirkung auf Auflagen, Zubehör oder Materialliste (R-C07, Antwort 6) – im alten Planer ebenso nicht erfasst.
-- [ ] **M6-05 Art der Terrassennutzung** ([#58](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/58)) – `feature/m6-05-art-der-terrassennutzung` · Benchmark
+- [x] **M6-05 Art der Terrassennutzung** ([#58](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/58)) – `feature/m6-05-art-der-terrassennutzung` · Benchmark
   - Schwimmende Verlegung, Versteifung ohne Rahmen, Rahmen (Standard), Versteifung mit Rahmen, doppelte UK; Warnung zur Verwindung ohne Bodenbefestigung.
   - Abnahme: Jede Variante ergibt die Konstruktion der Referenzfälle
+  - Ergebnis: Unterpunkt 3.6 mit den fünf Arten (Vorgabe schwimmend wie F01) und der Warnung zur Verwindung bei schwimmender Verlegung; Planungsstand-Feld `nutzungsart` (Platz 81), wirksam nur bei der normalen Terrasse. Der Server rechnet das zusätzliche UK-Holz (`ukZusatz`) in Material- und Stückliste: Rahmen F32 2 × 5000 mm und zweite Lage F34/F28 9 × 5000 mm wie im alten Planer; Leiterverband F31 in zwei Reihen à 12 Streben (6000 + 4000 mm statt alt 2 × 4000 mm, in die die Streben nicht passen). Doppelte UK prüft die Höhen mit zwei Lagen. Bodenanker/Auflager folgen mit M6-08/M6-11. Benchmark `domain.Ukzusatz.ukZusatz` ≈ 2 ms.
 - [ ] **M6-06 Querstreben** ([#59](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/59)) – `feature/m6-06-querstreben`
   - Querstreben hinzufügen, Anzahl der Quertraversen manuell ändern.
   - Abnahme: Mengen und Zeichnung passen sich an

@@ -1882,6 +1882,42 @@ abstract class PlanerTexte {
   /// **'Der Untergrund hilft uns bei den Hinweisen zum Unterbau; die Materialliste ändert er nicht.'**
   String get untergrundHinweis;
 
+  /// No description provided for @nutzungsartSchwimmend.
+  ///
+  /// In de, this message translates to:
+  /// **'schwimmende Verlegung'**
+  String get nutzungsartSchwimmend;
+
+  /// No description provided for @nutzungsartVersteifungOhneRahmen.
+  ///
+  /// In de, this message translates to:
+  /// **'Versteifung ohne Rahmen'**
+  String get nutzungsartVersteifungOhneRahmen;
+
+  /// No description provided for @nutzungsartRahmen.
+  ///
+  /// In de, this message translates to:
+  /// **'Rahmen'**
+  String get nutzungsartRahmen;
+
+  /// No description provided for @nutzungsartVersteifungMitRahmen.
+  ///
+  /// In de, this message translates to:
+  /// **'Versteifung mit Rahmen'**
+  String get nutzungsartVersteifungMitRahmen;
+
+  /// No description provided for @nutzungsartDoppelteUk.
+  ///
+  /// In de, this message translates to:
+  /// **'doppelte Unterkonstruktion'**
+  String get nutzungsartDoppelteUk;
+
+  /// No description provided for @nutzungsartVerwindung.
+  ///
+  /// In de, this message translates to:
+  /// **'Achtung: Ohne Bodenbefestigung kann sich eine schwimmend verlegte Unterkonstruktion verwinden. Eine Versteifung oder ein Rahmen hält sie in Form.'**
+  String get nutzungsartVerwindung;
+
   /// No description provided for @automatisch.
   ///
   /// In de, this message translates to:

@@ -165,6 +165,15 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('rueckgaengig')));
     await tester.pumpAndSettle();
     expect(_gewaehlt(tester, 'untergrund-schotter'), isTrue);
+    // M6-05: Art der Terrassennutzung unter 3.6; schwimmend mit Warnung
+    // zur Verwindung, Rahmen ohne – Rückgängig stellt sie wieder her
+    await _imMenue(tester, find.text(de.nutzungsartVerwindung));
+    await _waehle(tester, 'nutzungsart-rahmen');
+    expect(_gewaehlt(tester, 'nutzungsart-rahmen'), isTrue);
+    expect(find.text(de.nutzungsartVerwindung), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('rueckgaengig')));
+    await tester.pumpAndSettle();
+    expect(find.text(de.nutzungsartVerwindung), findsOneWidget);
   });
 }
 

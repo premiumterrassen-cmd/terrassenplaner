@@ -751,6 +751,10 @@ class Bearbeitungsmenue extends StatelessWidget {
       planung: planung,
       onGeaendert: () => zustand.markiereGeaendert(schritt),
     ),
+    (PlanerSchritt.unterkonstruktion, 5) => NutzungsartWahl(
+      planung: planung,
+      onGeaendert: () => zustand.markiereGeaendert(schritt),
+    ),
     (PlanerSchritt.verschnittoptimierung, 0) when berechnung != null =>
       DielenlisteAnzeige(berechnung: berechnung!),
     _ => null,

@@ -227,6 +227,63 @@ class UntergrundWahl extends StatelessWidget {
   );
 }
 
+/// Unterpunkt „Art der Terrassennutzung“ (Fachkonzept 3.6, M6-05): die fünf
+/// Arten als Chips (Vorgabe schwimmende Verlegung) und bei schwimmender
+/// Verlegung die Warnung zur Verwindung ohne Bodenbefestigung. Das Holz für
+/// Rahmen, zweite Lage und Leiterverband rechnet der Server
+/// (`ukZusatz`); es steht in Material- und Stückliste. Bei Hochterrasse und
+/// vorhandener UK gibt es den Unterpunkt nicht (M6-01).
+class NutzungsartWahl extends StatelessWidget {
+  const NutzungsartWahl({
+    required this.planung,
+    required this.onGeaendert,
+    super.key,
+  });
+
+  final PlanungsSteuerung planung;
+
+  /// Meldet eine Änderung (Standardwert-Hinweis, M3-05).
+  final VoidCallback onGeaendert;
+
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: planung,
+    builder: (context, _) {
+      final t = context.texte;
+      final gewaehlt = planung.aktuell.nutzungsart;
+      return Column(
+        key: const ValueKey('nutzungsart'),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: PlanerAbstand.klein,
+            children: [
+              for (final art in Nutzungsart.values)
+                ChoiceChip(
+                  key: ValueKey('nutzungsart-${art.name}'),
+                  label: Text(nutzungsartText(t, art)),
+                  selected: art == gewaehlt,
+                  onSelected: (an) {
+                    if (an) {
+                      planung.setze(planung.aktuell.mitNutzungsart(art));
+                      onGeaendert();
+                    }
+                  },
+                ),
+            ],
+          ),
+          if (gewaehlt.verwindungsgefahr)
+            _Hinweis(
+              key: const ValueKey('verwindung'),
+              text: t.nutzungsartVerwindung,
+              warnung: true,
+            ),
+        ],
+      );
+    },
+  );
+}
+
 /// Hinweis mit Symbol; als [warnung] in der Fehlerfarbe.
 class _Hinweis extends StatelessWidget {
   const _Hinweis({required this.text, this.warnung = false, super.key});
@@ -339,4 +396,12 @@ String untergrundText(PlanerTexte t, Untergrund u) => switch (u) {
   Untergrund.schotter => t.untergrundSchotter,
   Untergrund.beton => t.untergrundBeton,
   Untergrund.bitumen => t.untergrundBitumen,
+};
+
+String nutzungsartText(PlanerTexte t, Nutzungsart a) => switch (a) {
+  Nutzungsart.schwimmend => t.nutzungsartSchwimmend,
+  Nutzungsart.versteifungOhneRahmen => t.nutzungsartVersteifungOhneRahmen,
+  Nutzungsart.rahmen => t.nutzungsartRahmen,
+  Nutzungsart.versteifungMitRahmen => t.nutzungsartVersteifungMitRahmen,
+  Nutzungsart.doppelteUk => t.nutzungsartDoppelteUk,
 };

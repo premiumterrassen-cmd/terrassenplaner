@@ -1017,6 +1017,25 @@ class PlanerTexteDe extends PlanerTexte {
       'Der Untergrund hilft uns bei den Hinweisen zum Unterbau; die Materialliste ändert er nicht.';
 
   @override
+  String get nutzungsartSchwimmend => 'schwimmende Verlegung';
+
+  @override
+  String get nutzungsartVersteifungOhneRahmen => 'Versteifung ohne Rahmen';
+
+  @override
+  String get nutzungsartRahmen => 'Rahmen';
+
+  @override
+  String get nutzungsartVersteifungMitRahmen => 'Versteifung mit Rahmen';
+
+  @override
+  String get nutzungsartDoppelteUk => 'doppelte Unterkonstruktion';
+
+  @override
+  String get nutzungsartVerwindung =>
+      'Achtung: Ohne Bodenbefestigung kann sich eine schwimmend verlegte Unterkonstruktion verwinden. Eine Versteifung oder ein Rahmen hält sie in Form.';
+
+  @override
   String get automatisch => 'Automatisch';
 
   @override

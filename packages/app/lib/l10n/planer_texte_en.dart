@@ -1015,6 +1015,25 @@ class PlanerTexteEn extends PlanerTexte {
       'The surface helps us give the right advice on the base; it does not change the material list.';
 
   @override
+  String get nutzungsartSchwimmend => 'Floating installation';
+
+  @override
+  String get nutzungsartVersteifungOhneRahmen => 'Bracing without frame';
+
+  @override
+  String get nutzungsartRahmen => 'Frame';
+
+  @override
+  String get nutzungsartVersteifungMitRahmen => 'Bracing with frame';
+
+  @override
+  String get nutzungsartDoppelteUk => 'Double substructure';
+
+  @override
+  String get nutzungsartVerwindung =>
+      'Note: without anchoring to the ground, a floating substructure can twist. Bracing or a frame keeps it in shape.';
+
+  @override
   String get automatisch => 'Automatic';
 
   @override
