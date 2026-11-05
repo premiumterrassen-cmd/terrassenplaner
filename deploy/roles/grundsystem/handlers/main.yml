@@ -3,6 +3,16 @@
     name: nftables
     state: reloaded
 
+- name: Kernel-Einstellungen anwenden
+  ansible.builtin.command: sysctl -e -p /etc/sysctl.d/90-planer.conf
+  changed_when: true
+  when: ansible_virtualization_type not in grundsystem_virtualisierung_ohne_sysctl
+
+- name: Journal neu starten
+  ansible.builtin.systemd_service:
+    name: systemd-journald
+    state: restarted
+
 - name: SSH neu laden
   ansible.builtin.systemd_service:
     name: ssh

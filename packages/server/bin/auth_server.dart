@@ -37,6 +37,16 @@ Future<void> main() async {
           () =>
               datenbankMetriken(datenbank.kennzahlen(), dienst: 'planer-auth'),
         );
+  // Sicherung im laufenden Betrieb auf SIGUSR1 (M10-03, Rolle `sicherung`).
+  final sicherungsZiel = umgebung['PLANER_SICHERUNG_ZIEL'];
+  final sicherung = datenbank == null || sicherungsZiel == null
+      ? null
+      : Sicherungsdienst.starte(
+          datenbank,
+          sicherungsZiel,
+          ProcessSignal.sigusr1.watch(),
+          protokoll: stdout.writeln,
+        );
   final auth = await AuthServerProzess.starte(
     einstellungen,
     mitarbeiter: mitarbeiter,
@@ -48,6 +58,7 @@ Future<void> main() async {
   await _warteAufStoppsignal();
   await auth.stoppe();
   await metriken?.stoppe();
+  await sicherung?.stoppe();
   datenbank?.schliesse();
   stdout.writeln('Auth-Server beendet');
 }

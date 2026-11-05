@@ -11,7 +11,9 @@ Gemeinsam: Firewall (nftables, von außen nur 22/80/443), SSH nur mit Schlüssel
 
 ## Rollen
 
-`planer` (gemeinsame Werte: Ports, Pfade, Benutzer) · `grundsystem` · `traefik` · `planer_dienste` · `planer_web` · `container`
+`planer` (gemeinsame Werte: Ports, Pfade, Benutzer) · `grundsystem` (Firewall, SSH, Kernel-Härtung, Journal-Rotation) · `traefik` · `planer_dienste` · `planer_web` · `monitoring` · `container` · `sicherung` (Grafana und ObjectBox täglich, `planer-wiederherstellung`)
+
+Betrieb, Alarme, Sicherung und offene Punkte: `docs/betrieb/betriebshandbuch.md`, `docs/betrieb/sicherung.md`.
 
 ## Einmalig: Geheimnisse (Alexander)
 
@@ -34,7 +36,7 @@ Für Tests ohne Rate-Limit: `-e planer_letsencrypt_ca=staging`. Container-Betrie
 
 ## Ports (nur lokal, außer 80/443)
 
-Router 8080 (WebSocket `/ws`, über Traefik), Router-Health 8081, Auth-Server 8082 (nur Router), Auth-Health 8083, Web-App 8090, Traefik-Ping 8092.
+Router 8080 (WebSocket `/ws`, über Traefik), Router-Health 8081, Auth-Server 8082 (nur Router), Auth-Health 8083, Datenbank-Kennzahlen Auth 8084 / Router 8085, Web-App 8090, Traefik-Ping 8092.
 
 ## Tests
 

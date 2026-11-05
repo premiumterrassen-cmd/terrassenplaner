@@ -472,9 +472,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/11
 - [ ] **M10-02 Last- und Leistungstest** ([#85](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/85)) – `feature/m10-02-last-und-leistungstest` · Benchmark
   - Gleichzeitige Nutzer, große Projekte, Router-Durchsatz.
   - Abnahme: Zielwerte festgelegt und erreicht
-- [ ] **M10-03 Produktivbetrieb** ([#86](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/86)) – `feature/m10-03-produktivbetrieb`
+- [x] **M10-03 Produktivbetrieb** ([#86](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/86)) – `feature/m10-03-produktivbetrieb`
   - Produktiv-Deployment auf dem Root-Server, Domain, Let's-Encrypt-Produktivzertifikat über Traefik, Überwachung, Sicherung der Konfigurationen.
   - Abnahme: Wiederherstellung aus Sicherung getestet
+  - Ergebnis: tägliche Online-Sicherung der ObjectBox-Datenbanken von Router (Konfigurationen) und Auth-Server – der Dienst kopiert auf SIGUSR1 selbst und öffnet die Kopie zur Probe (`Sicherungsdienst`) –, 14 Tage + 12 Wochensicherungen, `planer-wiederherstellung` in Molecule für beide Zielarten getestet; Router-Datenbank-Kennzahlen; sieben neue Alarme (Sicherung veraltet/unvollständig, Speicher, CPU, Platten-Prognose, DB-Größe, 5xx-Quote); Härtung (systemd-Sandbox, Container ohne Rechte/nur lesbar, sysctl, SSH); Log-Rotation (Journal 1 GB/14 Tage, Container 5 × 10 MB, logrotate); `docs/betrieb/betriebshandbuch.md`. Offen bei Alexander: Branch-Schutz/PR-Pflicht, externe Sicherungskopie (Vault).
 - [ ] **M10-04 Umstellung vom alten Planer** ([#87](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/87)) – `feature/m10-04-umstellung-vom-alten-planer`
   - Links in Shop und Webseite umstellen, alter Planer aus (Vertrag mit Agentur beachten).
   - Abnahme: Neue Adresse live, alte leitet um

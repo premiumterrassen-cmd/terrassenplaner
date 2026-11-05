@@ -20,6 +20,15 @@ Postausgang `smtps.udag.de:465` (Absender monitoring@robinienwelt.de, Zugang `va
 | Platte fast voll | > 85 % für 10 min |
 | Zertifikat läuft bald ab | < 14 Tage für 1 h |
 | Ungewöhnlich viele WAMP-Sitzungen | > 500 für 10 min |
+| Sicherung veraltet (M10-03) | älteste letzte Sicherung > 26 h, auch bei fehlenden Daten |
+| Sicherung unvollständig (M10-03) | < 3 Datenbestände gemeldet (Grafana, Router, Auth-Server) |
+| Arbeitsspeicher knapp (M10-03) | < 10 % verfügbar für 10 min |
+| Prozessor dauerhaft ausgelastet (M10-03) | > 90 % für 15 min |
+| Platte läuft voll (M10-03) | `predict_linear` über 6 h: in 24 h voll, für 30 min |
+| Datenbank nahe der Größengrenze (M10-03) | > 768 MB (ObjectBox-Grenze 1 GB) für 30 min |
+| Viele Serverfehler (M10-03) | > 5 % HTTP-5xx über Traefik für 10 min |
+
+Seit M10-03 meldet auch der Router seine Datenbank-Kennzahlen (`127.0.0.1:8085`, Konfigurationen), und der Node-Exporter liest Textdateien aus `/var/lib/prometheus/node-exporter` (Sicherungszeitpunkte). Was bei welchem Alarm zu tun ist: `docs/betrieb/betriebshandbuch.md`.
 
 ## Neue WAMP-Dienste
 

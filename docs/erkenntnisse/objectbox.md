@@ -14,5 +14,5 @@
 
 ## Offen
 
-- Geplante Sicherung auf dem Server (Zeitplan, Aufbewahrung, Ablage außerhalb des Servers) – mit M0-14/M10-03.
+- Ablage der Sicherungen außerhalb des Servers (braucht Ziel und Zugangsdaten von Alexander). Die geplante Sicherung selbst gibt es seit M10-03: Der Dienst kopiert seine Datenbank auf SIGUSR1 im laufenden Betrieb und öffnet die Kopie zur Probe (`Sicherungsdienst`), weil ObjectBox nur einen Prozess je Datenbank erlaubt – Ablauf in `docs/betrieb/sicherung.md`.
 - ObjectBox erlaubt einen Prozess je Datenbank: Verwaltung von Mitarbeitern künftig über WAMP-Prozeduren des Auth-Servers statt über Dateien.
