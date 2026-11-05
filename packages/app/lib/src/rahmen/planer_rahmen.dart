@@ -31,6 +31,7 @@ import 'uk_auswahl.dart';
 import 'unterkonstruktion.dart';
 import 'zeichenflaeche.dart';
 import 'zeichnung.dart';
+import 'zubehoer.dart';
 
 /// Rahmen der Planer-Oberfläche (M3-01): Kopfzeile, Schrittleiste,
 /// Bearbeitungsmenü, Zeichenfläche mit Kennzahlen und Statuszeile.
@@ -47,6 +48,7 @@ class PlanerRahmen extends StatefulWidget {
     this.berechne,
     this.belaege,
     this.unterkonstruktionen,
+    this.zubehoer,
     this.aktionen = const RahmenAktionen(),
     this.sprache,
     this.darstellung,
@@ -78,6 +80,9 @@ class PlanerRahmen extends StatefulWidget {
   /// Unterkonstruktionen zum Belag vom Server (M6-03); ohne sie bleibt die
   /// UK-Auswahl leer.
   final UnterkonstruktionenLaden? unterkonstruktionen;
+
+  /// Zubehör vom Server (M8-01); ohne es bleiben die Gruppen leer.
+  final ZubehoerLaden? zubehoer;
 
   /// Links und Ergebnis-Knöpfe (M3-06).
   final RahmenAktionen aktionen;
@@ -134,6 +139,10 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
     final lade? => BelagQuelle(lade),
     null => null,
   };
+  late final ZubehoerQuelle? _zubehoer = switch (widget.zubehoer) {
+    final lade? => ZubehoerQuelle(lade),
+    null => null,
+  };
   late final UkQuelle? _uk = switch (widget.unterkonstruktionen) {
     final lade? => UkQuelle(lade: lade, planung: _planung),
     null => null,
@@ -185,6 +194,7 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
     _berechnung?.dispose();
     _belaege?.dispose();
     _uk?.dispose();
+    _zubehoer?.dispose();
     _modus.dispose();
     _zustand.removeListener(_verlaesstRundung);
     _rundung.dispose();
@@ -324,6 +334,7 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
             berechnung: _berechnung,
             belaege: _belaege,
             unterkonstruktionen: _uk,
+            zubehoer: _zubehoer,
           );
           return Column(
             children: [
@@ -730,6 +741,7 @@ class Bearbeitungsmenue extends StatelessWidget {
     this.berechnung,
     this.belaege,
     this.unterkonstruktionen,
+    this.zubehoer,
   });
 
   final RahmenZustand zustand;
@@ -741,6 +753,9 @@ class Bearbeitungsmenue extends StatelessWidget {
 
   /// Unterkonstruktionen zum Belag (M6-03); ohne Quelle keine Auswahl.
   final UkQuelle? unterkonstruktionen;
+
+  /// Zubehör der acht Gruppen (M8-01).
+  final ZubehoerQuelle? zubehoer;
 
   /// Ausgangspunkt des Belags (M5-07); ohne Bedienung keine Eingabe.
   final AusgangspunktBedienung? ausgangspunkt;
@@ -861,7 +876,21 @@ class Bearbeitungsmenue extends StatelessWidget {
                 ),
                 onTap: () => zustand.waehle(schritt),
               ),
-              if (schritt == zustand.aktiv)
+              if (schritt == zustand.aktiv && schritt == PlanerSchritt.zubehoer)
+                Padding(
+                  padding: const EdgeInsets.only(
+                    left: PlanerAbstand.gross,
+                    right: PlanerAbstand.mittel,
+                    bottom: PlanerAbstand.klein,
+                  ),
+                  child: ZubehoerBereich(
+                    quelle: zubehoer,
+                    berechnung: berechnung,
+                    planung: planung,
+                    onGeaendert: () => zustand.markiereGeaendert(schritt),
+                  ),
+                )
+              else if (schritt == zustand.aktiv)
                 for (final punkt in schritt.sichtbareUnterpunkte(
                   t,
                   planung.aktuell,

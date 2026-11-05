@@ -9,6 +9,7 @@ import 'src/rahmen/belag.dart';
 import 'src/rahmen/berechnung_steuerung.dart';
 import 'src/rahmen/planer_rahmen.dart';
 import 'src/rahmen/uk_auswahl.dart';
+import 'src/rahmen/zubehoer.dart';
 import 'src/sprache/sprache.dart';
 import 'src/start/eingangsdialog.dart';
 
@@ -26,6 +27,7 @@ class PlanerApp extends StatefulWidget {
     this.berechne,
     this.belaege,
     this.unterkonstruktionen,
+    this.zubehoer,
     this.sprache,
     this.darstellung,
     this.anmeldung,
@@ -48,6 +50,9 @@ class PlanerApp extends StatefulWidget {
 
   /// Unterkonstruktionen zum Belag vom Server (M6-03).
   final UnterkonstruktionenLaden? unterkonstruktionen;
+
+  /// Zubehör vom Server (M8-01).
+  final ZubehoerLaden? zubehoer;
 
   /// Sprache aus den lokalen Einstellungen (M3-09); ohne Vorgabe Deutsch
   /// (M3-07).
@@ -101,6 +106,7 @@ class _PlanerAppState extends State<PlanerApp> {
           berechne: widget.berechne,
           belaege: widget.belaege,
           unterkonstruktionen: widget.unterkonstruktionen,
+          zubehoer: widget.zubehoer,
           sprache: _sprache,
           darstellung: _darstellung,
           anmeldung: widget.anmeldung,

@@ -20,6 +20,7 @@
     "domain.Verlegeart.reihenstuecke(RunTime)": 3768.8024475524476,
     "domain.Dielenverlegung.verlegeDielen(RunTime)": 566655.5,
     "domain.Belagverlegung.verlegeBelag(RunTime)": 243530.8,
-    "server.Konfiguration.speichernLaden": 10670.218085106382
+    "server.Konfiguration.speichernLaden": 10670.218085106382,
+    "domain.Zubehoer.berechnetesZubehoer": 14356.227272727272
   }
 }

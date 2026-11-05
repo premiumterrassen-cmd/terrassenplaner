@@ -53,6 +53,15 @@ void main() {
               serie: premiumSelect,
             ),
           ),
+          Artikeleintrag(
+            artikel: Artikel(
+              nummer: const Artikelnummer('50-80-006'),
+              titel: 'Schutz-Vlies',
+              art: Artikelart.sonstiges,
+              einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+              zubehoergruppe: Zubehoergruppe.allgemein,
+            ),
+          ),
         ],
       ),
     );
@@ -90,6 +99,13 @@ void main() {
       expect(uk.version, 'v1');
       expect(uk.angebote, isEmpty);
     }
+    // M8-01: Zubehör der acht Gruppen
+    final zubehoer = await verbindung.zubehoer();
+    expect(zubehoer.version, 'v1');
+    expect(
+      zubehoer.gruppen[Zubehoergruppe.allgemein]!.single.titel,
+      'Schutz-Vlies',
+    );
   });
 
   test(

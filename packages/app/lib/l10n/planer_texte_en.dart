@@ -1023,6 +1023,41 @@ class PlanerTexteEn extends PlanerTexte {
       'No stored screw is at least twice as long as the board is thick. The longest one is used – please check the screw length.';
 
   @override
+  String get zubehoerLaedt => 'Loading accessories …';
+
+  @override
+  String get zubehoerFehler => 'The accessories could not be loaded.';
+
+  @override
+  String get zubehoerKeine => 'There are no articles in this group.';
+
+  @override
+  String get zubehoerBezeichnung => 'Description';
+
+  @override
+  String get zubehoerTatsaechlich => 'Actual';
+
+  @override
+  String zubehoerMengeUngueltig(int max) {
+    return 'Please enter 0 to $max';
+  }
+
+  @override
+  String zubehoerBerechnet(int anzahl) {
+    return 'calculated: $anzahl';
+  }
+
+  @override
+  String zubehoerPflicht(int anzahl) {
+    return 'Required accessory, at least $anzahl';
+  }
+
+  @override
+  String zubehoerPflichtMindestens(int anzahl) {
+    return 'Required accessory: at least $anzahl';
+  }
+
+  @override
   String get ukLaedt => 'Loading substructures …';
 
   @override

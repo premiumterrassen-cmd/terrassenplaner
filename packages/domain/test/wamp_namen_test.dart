@@ -15,6 +15,10 @@ void main() {
       WampNamen.belagAuswahl,
       'de.robinienwelt.terrassenplaner.kunde.belag.auswahl',
     );
+    expect(
+      WampNamen.zubehoerAuswahl,
+      'de.robinienwelt.terrassenplaner.kunde.zubehoer.auswahl',
+    );
   });
 
   test('Begrüßung nennt den Projekttitel', () {

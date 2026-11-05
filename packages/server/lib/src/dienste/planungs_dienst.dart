@@ -20,6 +20,7 @@ typedef Unterkonstruktionssuche = Artikel? Function(Planungsstand stand);
 /// Dielenstücke (M5-05) mit Nummern, Dielenliste und Verschnitt (M5-08),
 /// den Ausgangspunkt der Verlegung (M5-07), die Befestigung (M5-09), die
 /// geprüften Höhenpunkte (M6-02), die Meldungen zum Belag (M5-10), die
+/// Mengen im Zubehör (M8-02, M8-03), die
 /// Materialliste (M9-03) und die Stückliste mit den Farben im Plan (M9-04)
 /// – die App rechnet nichts selbst (Frontend bleibt „doof“). Hin- und
 /// Rückweg als typisierte FlatBuffers (Packed PPT, #110).
@@ -78,13 +79,15 @@ class PlanungsDienst {
     Artikel? unterkonstruktion,
   ]) {
     final verlegung = verlegeBelag(stand, belag);
+    final befestigung = _befestigung(stand, belag, regelwerk, verlegung);
     return _mitVerlegung(
       _grundflaeche(stand, belag, unterkonstruktion),
       stand,
       belag,
       regelwerk,
       verlegung,
-      _befestigung(stand, belag, regelwerk, verlegung),
+      befestigung,
+      _zubehoer(stand, belag, regelwerk, verlegung, befestigung),
     );
   }
 
@@ -152,6 +155,7 @@ class PlanungsDienst {
     Regelwerk? regelwerk,
     Belagverlegung? v,
     Befestigungsbedarf? befestigung,
+    List<Zubehoerposition> zubehoer,
   ) {
     final meldungen = belagmeldungen(stand, belag, v, regelwerk: regelwerk);
     if (v == null) {
@@ -163,6 +167,7 @@ class PlanungsDienst {
         ausschnitte: flaeche.ausschnitte,
         belagmeldungen: meldungen,
         hoehenpunkte: flaeche.hoehenpunkte,
+        zubehoer: zubehoer,
       );
     }
     final stuecke = [for (final t in v.teile) ...t.stuecke];
@@ -193,7 +198,69 @@ class PlanungsDienst {
       befestigung: befestigung,
       stueckliste: Stueckliste.aus(planstuecke),
       stueckfarben: [for (final p in planstuecke) p.farbe],
+      zubehoer: zubehoer,
     );
+  }
+
+  /// Zeilen im Zubehör der Fläche [stand] (M8-02) samt Pflichtzubehör
+  /// (M8-03): was der Belag (je Diele), die Befestigung, das berechnete und
+  /// das eingegebene Zubehör laut Artikeldaten benötigen. Ohne Verlegung
+  /// oder Befestigung nur die Eingaben und deren Pflichtzubehör.
+  static List<Zubehoerposition> _zubehoer(
+    Planungsstand stand,
+    Artikel? belag,
+    Regelwerk? regelwerk,
+    Belagverlegung? v,
+    Befestigungsbedarf? befestigung,
+  ) {
+    final berechnet = befestigung == null
+        ? const <Artikelnummer, int>{}
+        : berechnetesZubehoer(regelwerk!, belag!, befestigung, [
+            for (final t in v!.teile) ...t.stuecke,
+          ], winkel: stand.dielenwinkel.toDouble());
+    final verwendet = <Artikelnummer, int>{
+      if ((belag, v) case (final b?, final verlegung?))
+        b.nummer: verlegung.dielenliste.anzahl.values.fold(0, (a, n) => a + n),
+      ...berechnet,
+      ...stand.zubehoer,
+    };
+    return zubehoerpositionen(
+      berechnet,
+      stand.zubehoer,
+      pflicht: regelwerk == null
+          ? const {}
+          : pflichtzubehoer(regelwerk, verwendet),
+    );
+  }
+
+  /// Bedarf der Materialliste (M9-03) aus Befestigung und Zubehör einer
+  /// Fläche: Die Befestigung geht in Stück ein (verpackt wird die Summe der
+  /// Planung), das übrige Zubehör mit seiner Menge „Tatsächlich“ in
+  /// Verkaufseinheiten – Werkzeug einmal je Planung. Hat der Kunde im
+  /// Zubehör eine Menge der Befestigung geändert, gelten für die Fläche die
+  /// Zubehörmengen auch für die Befestigung.
+  static List<Materialbedarf> _bedarf(
+    Planungsstand stand,
+    Regelwerk? regelwerk,
+    Befestigungsbedarf? befestigung,
+    List<Zubehoerposition> zubehoer,
+  ) {
+    final mittel = {
+      for (final m in befestigung?.mittel ?? const <Befestigungsposition>[])
+        m.nummer,
+    };
+    final geaendert = mittel.any(stand.zubehoer.containsKey);
+    return [
+      if (!geaendert) ...?befestigung?.bedarf,
+      for (final z in zubehoer)
+        if (regelwerk?.datei[z.nummer]?.artikel case final a?
+            when z.menge > 0 && (geaendert || !mittel.contains(z.nummer)))
+          Materialbedarf(
+            [a],
+            z.menge * a.einheit.inhalt.ceil(),
+            jePlanung: a.art == Artikelart.werkzeug,
+          ),
+    ];
   }
 
   /// Berechnung der bearbeiteten Fläche mit den Werten der ganzen Planung
@@ -202,8 +269,9 @@ class PlanungsDienst {
   /// zugeschnitten und mal ihrer Häufigkeit gezählt.
   ///
   /// Die Materialliste (M9-03) sammelt den Bedarf aller Flächen mal ihrer
-  /// Häufigkeit: Dielen je Lieferlänge und die Befestigung in Stück (erst
-  /// die Summe wird verpackt). Geänderte Mengen der Planung gelten nur
+  /// Häufigkeit: Dielen je Lieferlänge, die Befestigung in Stück (erst
+  /// die Summe wird verpackt) und das Zubehör (M8-02, M8-03); dazu die
+  /// Freidielen der ganzen Planung (M8-04). Geänderte Mengen der Planung gelten nur
   /// [mitMengen] – vom Server nur für Mitarbeiter gesetzt
   /// ([darfMengenAendern]).
   static Berechnung berechnePlanung(
@@ -215,12 +283,20 @@ class PlanungsDienst {
   ]) {
     var gesamt = 0.0;
     final listen = <Artikelnummer, Dielenliste>{};
+    final belaege = <Artikelnummer, Artikel>{};
     final bedarfe = <Materialbedarf>[];
     late Berechnung aktuell;
     for (final (i, f) in planung.flaechen.indexed) {
       final artikel = belag(f.stand.belag);
       final verlegung = verlegeBelag(f.stand, artikel);
       final befestigung = _befestigung(f.stand, artikel, regelwerk, verlegung);
+      final zubehoer = _zubehoer(
+        f.stand,
+        artikel,
+        regelwerk,
+        verlegung,
+        befestigung,
+      );
       final bearbeitet = i == planung.aktiv;
       // Höhenpunkte nur für die bearbeitete Fläche (M6-02)
       final grund = bearbeitet
@@ -230,14 +306,17 @@ class PlanungsDienst {
       if (verlegung != null) {
         final liste = verlegung.dielenliste * f.haeufigkeit;
         listen.update(artikel!.nummer, (l) => l + liste, ifAbsent: () => liste);
+        belaege[artikel.nummer] = artikel;
         bedarfe.addAll([
           for (final MapEntry(key: laenge, value: anzahl)
               in liste.anzahl.entries)
             Materialbedarf([artikel], anzahl, laenge: laenge),
-          for (final b in befestigung?.bedarf ?? const <Materialbedarf>[])
-            b * f.haeufigkeit,
         ]);
       }
+      bedarfe.addAll([
+        for (final b in _bedarf(f.stand, regelwerk, befestigung, zubehoer))
+          b * f.haeufigkeit,
+      ]);
       if (bearbeitet) {
         aktuell = _mitVerlegung(
           grund,
@@ -246,23 +325,36 @@ class PlanungsDienst {
           regelwerk,
           verlegung,
           befestigung,
+          zubehoer,
         );
       }
     }
     final summe = listen.values.fold(Dielenliste.leer, (a, b) => a + b);
+    final dielenliste = [
+      for (final MapEntry(key: nummer, value: liste) in listen.entries)
+        for (final MapEntry(key: laenge, value: anzahl) in liste.anzahl.entries)
+          (belag: nummer, laenge: laenge, anzahl: anzahl),
+    ];
+    // Freidielen der ganzen Planung (M8-04, R-B09, B-228): eigene Position
+    // mit Preis 0, einmal je Planung
+    final frei = freidielenposition(
+      dielenliste,
+      istDiele: (n) => belaege[n]!.art == Artikelart.diele,
+    );
     return aktuell.mitPlanung(
       gesamt,
       verschnitt: listen.isEmpty ? null : summe.verschnitt,
-      dielenliste: [
-        for (final MapEntry(key: nummer, value: liste) in listen.entries)
-          for (final MapEntry(key: laenge, value: anzahl)
-              in liste.anzahl.entries)
-            (belag: nummer, laenge: laenge, anzahl: anzahl),
-      ],
-      materialliste: Materialliste.aus(
-        bedarfe,
-        mengen: mitMengen ? planung.mengen : const {},
-      ),
+      dielenliste: dielenliste,
+      materialliste: Materialliste.aus([
+        ...bedarfe,
+        if (frei != null)
+          Materialbedarf(
+            [belaege[frei.belag]!],
+            frei.anzahl,
+            laenge: frei.laenge,
+            zusatz: Materialzusatz.freidiele,
+          ),
+      ], mengen: mitMengen ? planung.mengen : const {}),
     );
   }
 

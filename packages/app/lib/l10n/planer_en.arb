@@ -314,6 +314,18 @@
   "belagmeldungBefestigungsart": "Grooved boards are fixed invisibly with clips. The selected screw fixing only applies to smooth-edged boards.",
   "belagmeldungOhneBefestigung": "No matching clips or screws are stored for this decking – the fixing is missing from the material list. Please contact us.",
   "belagmeldungSchraubeZuKurz": "No stored screw is at least twice as long as the board is thick. The longest one is used – please check the screw length.",
+
+  "zubehoerLaedt": "Loading accessories …",
+  "zubehoerFehler": "The accessories could not be loaded.",
+  "zubehoerKeine": "There are no articles in this group.",
+  "zubehoerBezeichnung": "Description",
+  "zubehoerTatsaechlich": "Actual",
+  "zubehoerMengeUngueltig": "Please enter 0 to {max}",
+
+  "zubehoerBerechnet": "calculated: {anzahl}",
+
+  "zubehoerPflicht": "Required accessory, at least {anzahl}",
+  "zubehoerPflichtMindestens": "Required accessory: at least {anzahl}",
   "ukLaedt": "Loading substructures …",
   "ukFehler": "The substructures could not be loaded.",
   "ukKeine": "No substructure in the range matches the selected decking.",
