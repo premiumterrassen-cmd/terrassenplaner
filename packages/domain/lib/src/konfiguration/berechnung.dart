@@ -11,6 +11,7 @@ import '../regeln/befestigungsbedarf.dart';
 import '../regeln/belagmeldungen.dart';
 import '../regeln/hoehenpunkte.dart';
 import '../regeln/uk_zusatz.dart';
+import '../regeln/zubehoerbedarf.dart';
 import 'befestigungsart.dart';
 import 'unterbau.dart';
 
@@ -21,9 +22,10 @@ import 'unterbau.dart';
 /// M5-08 Dielennummern, Dielenliste und Verschnitt der ganzen Planung,
 /// seit M5-10 die Meldungen zum Belag, seit M6-02 die geprüften
 /// Höhenpunkte, seit M9-03 die Materialliste der ganzen Planung, seit M9-04
-/// Stückliste und Farbe je Dielenstück, seit M6-08 die Unterkonstruktion
-/// ([unterbau]), seit M6-10 das Holzvolumen der ganzen Planung, seit M9-01
-/// die Verschnittvarianten mit der gewählten.
+/// Stückliste und Farbe je Dielenstück, seit M8-02 die Mengen im Zubehör,
+/// seit M6-08 die Unterkonstruktion ([unterbau]), seit M6-10 das
+/// Holzvolumen der ganzen Planung, seit M9-01 die Verschnittvarianten mit
+/// der gewählten.
 final class Berechnung {
   Berechnung({
     required List<Punkt> umriss,
@@ -43,6 +45,7 @@ final class Berechnung {
     Befestigungsbedarf? befestigung,
     List<Belagmeldung> belagmeldungen = const [],
     Hoehenpunkte? hoehenpunkte,
+    List<Zubehoerposition> zubehoer = const [],
     Materialliste? materialliste,
     Stueckliste? stueckliste,
     List<Stueckfarbe> stueckfarben = const [],
@@ -61,6 +64,7 @@ final class Berechnung {
              dielen: List<Lieferposition>.unmodifiable(v.dielen),
            ),
        ]),
+       zubehoer = List.unmodifiable(zubehoer),
        querstreben = List.unmodifiable(querstreben),
        stellfuesse = List.unmodifiable(stellfuesse),
        materialliste = materialliste ?? Materialliste.leer,
@@ -155,6 +159,34 @@ final class Berechnung {
           fb.Uint8Reader(),
         ).vTableGet(puffer, wurzel, _versatz(_belagmeldungenPlatz), const []))
           Belagmeldung.ausNummer(n),
+      ],
+      zubehoer: [
+        for (final ort in const fb.ListReader<int>(
+          _Tabellenort(),
+        ).vTableGet(puffer, wurzel, _versatz(_zubehoerPlatz), const []))
+          Zubehoerposition(
+            Artikelnummer(
+              const fb.StringReader().vTableGet(puffer, ort, _versatz(0), ''),
+            ),
+            berechnet: const fb.Uint32Reader().vTableGet(
+              puffer,
+              ort,
+              _versatz(1),
+              0,
+            ),
+            menge: const fb.Uint32Reader().vTableGet(
+              puffer,
+              ort,
+              _versatz(2),
+              0,
+            ),
+            pflicht: const fb.Uint32Reader().vTableGet(
+              puffer,
+              ort,
+              _versatz(3),
+              0,
+            ),
+          ),
       ],
       materialliste: switch (const _Tabellenort().vTableGetNullable(
         puffer,
@@ -387,6 +419,10 @@ final class Berechnung {
   /// `belagmeldungen`); die App zeigt sie unter dem Unterpunkt der Eingabe.
   final List<Belagmeldung> belagmeldungen;
 
+  /// Zeilen im Schritt „Zubehör“ der bearbeiteten Fläche (M8-02): berechnete
+  /// Menge und „Tatsächlich“ je Artikel (`zubehoerpositionen`).
+  final List<Zubehoerposition> zubehoer;
+
   /// Materialliste der ganzen Planung (M9-03): Belag und Befestigung aller
   /// Flächen mal ihrer Häufigkeit; Preise nur Anzeige (B-055).
   final Materialliste materialliste;
@@ -457,6 +493,7 @@ final class Berechnung {
     verschnitt: verschnitt,
     dielenliste: dielenliste,
     belagmeldungen: belagmeldungen,
+    zubehoer: zubehoer,
     materialliste: materialliste,
     stueckliste: stueckliste,
     stueckfarben: stueckfarben,
@@ -485,8 +522,10 @@ final class Berechnung {
   /// (M5-08), 25: hoehen ([int32] mm je Eckpunkt), 26: hoehenKorrigiert
   /// (bool), 27: ukGedreht (bool), 28: aufbauhoehe (int32 mm),
   /// 29: mindesthoehe (int32 mm; beide fehlen ungeprüft) (M6-02),
-  /// 35: belagmeldungen ([uint8], M5-10), 60: materialliste
-  /// (Tabelle, `Materialliste.schreibe`, M9-03), 61: stueckliste (Tabelle,
+  /// 35: belagmeldungen ([uint8], M5-10), 50: zubehoer ([{ 0: nummer
+  /// (string), 1: berechnet (uint32), 2: menge (uint32), 3: pflicht
+  /// (uint32, M8-03) }], M8-02), 60: materialliste (Tabelle,
+  /// `Materialliste.schreibe`, M9-03), 61: stueckliste (Tabelle,
   /// `Stueckliste.schreibe`), 62: stueckfarben ([uint8] je Dielenstück)
   /// (M9-04), 90: querstreben ([float64] x, y von und bis je Strebe),
   /// 91: querstrebenReihen (uint16; fehlt ohne) (M6-06), 92: stellfuesse
@@ -494,8 +533,9 @@ final class Berechnung {
   /// (Tabelle, `Unterbau.schreibe`, M6-08 bis M6-11), 111: volumen (float64
   /// m³; fehlt ohne Holz, M6-10), 165: verschnittvarianten ([{ 0: verschnitt
   /// (float64), 1: dielen (wie dielenliste) }]), 166: verschnittvariante
-  /// (uint8; fehlt = nicht optimiert) (M9-01) }`. Die Plätze 18–34 sind für die Unterkonstruktion (M6)
-  /// frei gehalten, 60–69 für die Ergebnisse (M9).
+  /// (uint8; fehlt = nicht optimiert) (M9-01) }`. Die Plätze 18–34 sind für
+  /// die Unterkonstruktion (M6) frei gehalten, 50–59 für das Zubehör (M8),
+  /// 60–69 für die Ergebnisse (M9), 110–119 für die UK ab M6-08.
   Uint8List zuBytes() {
     final fbb = fb.Builder();
     final umrissOrt = _schreibe(fbb, umriss);
@@ -525,6 +565,9 @@ final class Berechnung {
     ]);
     final meldungenOrt = fbb.writeListUint8([
       for (final m in belagmeldungen) m.nummer,
+    ]);
+    final zubehoerOrt = fbb.writeList([
+      for (final z in zubehoer) _zubehoerposition(fbb, z),
     ]);
     final materialOrt = materialliste.schreibe(fbb);
     final stueckOrt = stueckliste.schreibe(fbb);
@@ -566,6 +609,7 @@ final class Berechnung {
       ..addInt32(_aufbauhoehePlatz, hoehenpunkte.aufbauhoehe?.mm)
       ..addInt32(_mindesthoehePlatz, hoehenpunkte.mindesthoehe?.mm)
       ..addOffset(_belagmeldungenPlatz, meldungenOrt)
+      ..addOffset(_zubehoerPlatz, zubehoerOrt)
       ..addOffset(_materiallistePlatz, materialOrt)
       ..addOffset(_stuecklistePlatz, stueckOrt)
       ..addOffset(_stueckfarbenPlatz, farbenOrt)
@@ -637,6 +681,17 @@ final class Berechnung {
     return fbb.endTable();
   }
 
+  static int _zubehoerposition(fb.Builder fbb, Zubehoerposition z) {
+    final nummerOrt = fbb.writeString(z.nummer.wert);
+    fbb
+      ..startTable(4)
+      ..addOffset(0, nummerOrt)
+      ..addUint32(1, z.berechnet)
+      ..addUint32(2, z.menge)
+      ..addUint32(3, z.pflicht);
+    return fbb.endTable();
+  }
+
   static List<List<Punkt>> _umrisse(
     fb.BufferContext puffer,
     int wurzel,
@@ -682,6 +737,7 @@ final class Berechnung {
   static const _aufbauhoehePlatz = 28;
   static const _mindesthoehePlatz = 29;
   static const _belagmeldungenPlatz = 35;
+  static const _zubehoerPlatz = 50;
   static const _materiallistePlatz = 60;
   static const _stuecklistePlatz = 61;
   static const _stueckfarbenPlatz = 62;

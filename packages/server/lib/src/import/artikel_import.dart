@@ -199,6 +199,17 @@ Artikeleintrag? _eintrag(
   if (titel.isEmpty) fehler('Artikelbezeichnung', 'fehlt');
   final art = artikelartFuer(text('Artikeltyp'), titel, text('Zubehoergruppe'));
   if (art == null) fehler('Artikeltyp', 'unbekannt: „${text('Artikeltyp')}“');
+  final gruppe = zubehoergruppeFuer(text('Artikeltyp'), text('Zubehoergruppe'));
+  if (gruppe == null && text('Zubehoergruppe').isNotEmpty) {
+    befunde.add(
+      Befund(
+        zeile,
+        'Zubehoergruppe',
+        'unbekannt: „${text('Zubehoergruppe')}“ – nicht im Schritt Zubehör',
+        kritisch: false,
+      ),
+    );
+  }
   final einheit = Mengeneinheit.lies(text('VPE'));
   if (einheit == null) fehler('VPE', 'unbekannte Einheit: „${text('VPE')}“');
   final inhalt = zahl('Inhalt_pro_Einheit') ?? 1;
@@ -268,6 +279,7 @@ Artikeleintrag? _eintrag(
                   ? Oberseite.bombiert
                   : Oberseite.glatt)
             : null,
+        zubehoergruppe: gruppe,
         bilder: [
           for (final spalte in ['Abbildung_1', 'Abbildung_2', 'Abbildung_3'])
             // „Kein Bild“ steht in den Daten für eine fehlende Abbildung.
@@ -318,6 +330,14 @@ Artikelart? artikelartFuer(String typ, String titel, String gruppe) {
     _ => null,
   };
 }
+
+/// Gruppe im Schritt „Zubehör“ (M8-01) aus der Spalte `Zubehoergruppe`;
+/// reines Zubehör (Artikeltyp `Zubehoer`) ohne Gruppe gehört zu „Allgemein“
+/// wie im alten Planer (Bits, Handschuhe, Schutz-Vlies, Montagehilfen …).
+Zubehoergruppe? zubehoergruppeFuer(String typ, String gruppe) =>
+    gruppe.trim().isEmpty && typ.replaceFirst(RegExp('^_'), '') == 'Zubehoer'
+    ? Zubehoergruppe.allgemein
+    : Zubehoergruppe.lies(gruppe);
 
 Artikelart _zubehoer(String titel, String gruppe) => switch (gruppe) {
   'Terrassenöl RIBOL' => Artikelart.pflege,

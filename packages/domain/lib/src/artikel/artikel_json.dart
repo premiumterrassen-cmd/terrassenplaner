@@ -1,6 +1,7 @@
 import '../holzart/holzart.dart';
 import 'artikel.dart';
 import 'einheiten.dart';
+import 'zubehoergruppe.dart';
 
 /// JSON-Darstellung eines Artikels – gleich in Artikeldatei und WAMP-Antworten
 /// (M2-06). Nur Verkaufsdaten (B-020).
@@ -20,6 +21,7 @@ Map<String, Object?> artikelAlsJson(Artikel a) => {
   'serie': a.serie?.name,
   'profil': a.profil?.name,
   'oberseite': a.oberseite?.name,
+  'zubehoergruppe': a.zubehoergruppe?.name,
   'bilder': a.bilder,
 };
 
@@ -55,6 +57,7 @@ Artikel artikelAusJson(Map<String, Object?> j, Map<String, Holzart> holzarten) {
     serie: opt('serie', Serie.new),
     profil: opt('profil', Profil.values.byName),
     oberseite: opt('oberseite', Oberseite.values.byName),
+    zubehoergruppe: opt('zubehoergruppe', Zubehoergruppe.values.byName),
     bilder: [for (final b in j['bilder']! as List<Object?>) b! as String],
   );
 }

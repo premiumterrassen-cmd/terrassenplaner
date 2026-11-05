@@ -47,12 +47,50 @@ final class Befestigungsposition {
 /// ([randpunkte]), deren freie Längskante einen eigenen Clip braucht.
 typedef Befestigungspunkte = ({int punkte, int randpunkte});
 
-/// Zählt die Befestigungspunkte der [stuecke] (M5-09). Solange die
-/// Unterkonstruktion fehlt (M6), liegen die UK-Linien quer zur
-/// Verlegerichtung gleichmäßig über die Ausdehnung der Verlegung, höchstens
-/// [ukAbstand] auseinander, die äußeren am Rand (keine Überstände, B-096) –
-/// 480 cm mit 40 cm: 13 Linien wie in F01. Jedes Dielenstück liegt an beiden
-/// Enden auf (am Stoß zwei UK nebeneinander, F09: 22 statt 21 Linien) und
+/// Lage eines Dielenstücks quer gedreht: von [anfang] bis [ende] in
+/// Verlegerichtung, von [unten] bis [oben] quer dazu (mm).
+typedef Uklage = ({double anfang, double ende, double unten, double oben});
+
+/// Übergangs-Unterkonstruktion, solange keine UK verlegt ist (ohne UK-Artikel;
+/// mit UK rechnet M6-10 `ukVerlegung`):
+/// Die UK-Linien liegen quer zur Verlegerichtung gleichmäßig über die
+/// Ausdehnung der Verlegung, höchstens [ukAbstand] auseinander, die äußeren
+/// am Rand (keine Überstände, B-096) – 480 cm mit 40 cm: 13 Linien wie in
+/// F01. [lagen] parallel zu den [stuecke]n, [linien] als Lage in
+/// Verlegerichtung. Grundlage für Befestigung (M5-09) und Zubehör (M8-02).
+({List<Uklage> lagen, List<double> linien}) uebergangsUk(
+  List<Dielenstueck> stuecke, {
+  required double winkel,
+  required Millimeter ukAbstand,
+}) {
+  if (stuecke.isEmpty) return (lagen: const [], linien: const []);
+  final drehung = -winkel * math.pi / 180;
+  final lagen = [
+    for (final s in stuecke)
+      () {
+        final p = [for (final q in s.umriss) q.gedreht(drehung)];
+        final x = p.map((q) => q.x);
+        final y = p.map((q) => q.y);
+        return (
+          anfang: x.reduce(math.min),
+          ende: x.reduce(math.max),
+          unten: y.reduce(math.min),
+          oben: y.reduce(math.max),
+        );
+      }(),
+  ];
+  final von = lagen.map((l) => l.anfang).reduce(math.min);
+  final bis = lagen.map((l) => l.ende).reduce(math.max);
+  final felder = math.max(1, ((bis - von) / ukAbstand.mm - 1e-6).ceil());
+  return (
+    lagen: lagen,
+    linien: [for (var k = 0; k <= felder; k++) von + (bis - von) * k / felder],
+  );
+}
+
+/// Zählt die Befestigungspunkte der [stuecke] (M5-09) auf der
+/// Übergangs-UK ([uebergangsUk]). Jedes Dielenstück liegt an beiden Enden
+/// auf (am Stoß zwei UK nebeneinander, F09: 22 statt 21 Linien) und
 /// dazwischen auf jeder Linie, die es überdeckt.
 Befestigungspunkte befestigungspunkte(
   List<Dielenstueck> stuecke, {
@@ -60,22 +98,17 @@ Befestigungspunkte befestigungspunkte(
   required Millimeter ukAbstand,
 }) {
   if (stuecke.isEmpty) return (punkte: 0, randpunkte: 0);
-  final drehung = -winkel * math.pi / 180;
-  final lagen = [
-    for (final s in stuecke) [for (final p in s.umriss) p.gedreht(drehung).x],
-  ];
-  final von = lagen.expand((l) => l).reduce(math.min);
-  final bis = lagen.expand((l) => l).reduce(math.max);
-  final felder = math.max(1, ((bis - von) / ukAbstand.mm - 1e-6).ceil());
-  final linien = [
-    for (var k = 0; k <= felder; k++) von + (bis - von) * k / felder,
-  ];
+  final (:lagen, :linien) = uebergangsUk(
+    stuecke,
+    winkel: winkel,
+    ukAbstand: ukAbstand,
+  );
   final randreihe = stuecke.map((s) => s.reihe).reduce(math.max);
   var punkte = 0;
   var randpunkte = 0;
   for (final (i, s) in stuecke.indexed) {
-    final anfang = lagen[i].reduce(math.min) + _toleranz;
-    final ende = lagen[i].reduce(math.max) - _toleranz;
+    final anfang = lagen[i].anfang + _toleranz;
+    final ende = lagen[i].ende - _toleranz;
     final auflagen = 2 + linien.where((x) => x > anfang && x < ende).length;
     punkte += auflagen;
     if (s.reihe == randreihe) randpunkte += auflagen;
@@ -127,10 +160,18 @@ const _toleranz = 1.0;
 /// Verkaufseinheiten für [stueck] Stück aus den [einheiten] (z. B. VPE 50,
 /// 100, 250): so wenig Überhang wie möglich, dann so wenig Packungen wie
 /// möglich (F01: 637 Clips → 2 × 250 + 100 + 50). Ergebnis in der
-/// Reihenfolge der [einheiten], ohne Einheiten mit Anzahl 0.
-List<(Artikel, int)> verpackt(int stueck, List<Artikel> einheiten) {
+/// Reihenfolge der [einheiten], ohne Einheiten mit Anzahl 0. [inhalt]
+/// liefert den Inhalt einer Einheit, wenn er nicht der Inhalt der
+/// Verkaufseinheit ist (Öl in Zentilitern, M8-02).
+List<(Artikel, int)> verpackt(
+  int stueck,
+  List<Artikel> einheiten, {
+  int Function(Artikel)? inhalt,
+}) {
   if (stueck <= 0 || einheiten.isEmpty) return const [];
-  final inhalte = [for (final e in einheiten) e.einheit.inhalt.ceil()];
+  final inhalte = [
+    for (final e in einheiten) inhalt?.call(e) ?? e.einheit.inhalt.ceil(),
+  ];
   // jeder Bereich so lang wie die größte Packung enthält ein Vielfaches davon
   final grenze = stueck + inhalte.reduce(math.max);
   final packungen = List<int?>.filled(grenze, null)..[0] = 0;
