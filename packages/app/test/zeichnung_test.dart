@@ -462,6 +462,11 @@ void main() {
       expect(farbe, ZeichnungsMaler.bauelementFarbe);
       expect(ZeichnungsMaler.bauelementFarbe, const Color(0xFF9E9E9E));
       expect(
+        ZeichnungsMaler.seitenfarbe(Seitenrolle.verblendung),
+        const Color(0xFFF2C200),
+      );
+      expect(ZeichnungsMaler.verblendungFarbe, const Color(0xFFF2C200));
+      expect(
         ZeichnungsMaler.seitenfarbe(Seitenrolle.bauelement),
         ZeichnungsMaler.bauelementFarbe,
       );

@@ -25,7 +25,11 @@ const mehrwertsteuerSatz = 19;
 enum Materialzusatz {
   /// Freidiele (B-079, R-B09): steht mit Preis 0 in der Materialliste
   /// (Fachkonzept 08); gerechnet wird sie mit dem Zubehör (M8).
-  freidiele(1);
+  freidiele(1),
+
+  /// Verblendung (M7-02, Fachkonzept 4.2): Dielen für die verblendeten
+  /// Seiten, „– Verblendung“ wie im alten Planer, nur in der Materialliste.
+  verblendung(2);
 
   const Materialzusatz(this.nummer);
 

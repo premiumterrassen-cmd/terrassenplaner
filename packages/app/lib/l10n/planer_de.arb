@@ -439,5 +439,13 @@
   "stueckfarbeGruen": "grün – Querstück",
   "stuecklisteHinweis": "Stücke der bearbeiteten Fläche; die Farbe zeigt das Stück in der Zeichnung.",
   "angrenzendFrage": "Welche Seiten grenzen an bestehende Bauelemente? (wird in der Konfiguration grau dargestellt)",
-  "ohneSeiten": "Diese Form hat keine Seiten zur Auswahl."
+  "ohneSeiten": "Diese Form hat keine Seiten zur Auswahl.",
+  "verblendungFrage": "Welche Seiten sollen verblendet werden? (wird in der Konfiguration gelb dargestellt)",
+  "flaecheVerblenden": "Fläche verblenden",
+  "verblendungHinweis": "Verblendet wird nur bei einer Belagstärke von 19 bis 23 mm.",
+  "meldungUnterlueftung": "Achtung: Bitte beachten Sie, dass eine Unterlüftung der Terrasse gewährleistet sein muss!",
+  "meldungKeinHoehenunterschied": "Ohne Höhenunterschied zum Boden ist an dieser Seite keine Verblendung möglich.",
+  "meldungBelagstaerke": "Eine Verblendung ist nur bei einer Belagstärke von 19 bis 23 mm möglich – es wird keine gerechnet.",
+  "meldungOhneVerblendungsartikel": "Zu diesem Belag ist keine Verblendung hinterlegt.",
+  "materialVerblendung": "Verblendung"
 }

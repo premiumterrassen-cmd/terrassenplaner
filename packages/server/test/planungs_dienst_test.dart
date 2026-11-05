@@ -1782,6 +1782,124 @@ void main() {
         hasLength(1),
       );
     });
+
+    test('Verblendung (M7-02): F37 mit Dielen, Blendenhaltern aus den Resten '
+        'der UK und Unterlüftungs-Warnung; ohne UK-Verlegung keine Halter', () {
+      final clip = Artikel(
+        nummer: const Artikelnummer('80-10-001-250'),
+        titel: 'Clip',
+        art: Artikelart.clip,
+        einheit: Verkaufseinheit(Mengeneinheit.verpackungseinheit, inhalt: 250),
+      );
+      final blende = Artikel(
+        nummer: const Artikelnummer('10-10-044'),
+        titel: 'Blende 80',
+        art: Artikelart.diele,
+        einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+        abmessungen: Abmessungen(
+          breite: const Millimeter(80),
+          staerke: const Millimeter(21),
+          laengen: const [Millimeter(4000), Millimeter(5000)],
+        ),
+        holzart: robinie,
+        serie: basic,
+        profil: Profil.glattkant,
+      );
+      final uk = Artikel(
+        nummer: const Artikelnummer('10-10-031'),
+        titel: 'UK',
+        art: Artikelart.unterkonstruktion,
+        einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+        abmessungen: Abmessungen(
+          breite: const Millimeter(40),
+          staerke: const Millimeter(60),
+        ),
+        holzart: robinie,
+        serie: basic,
+      );
+      final regelwerk = Regelwerk(
+        Artikeldatei(
+          quelle: 'test',
+          version: '1',
+          eintraege: [
+            Artikeleintrag(
+              artikel: diele,
+              verweise: {
+                Beziehung.befestigung.spalte: [clip.nummer],
+                Beziehung.verblendung.spalte: [blende.nummer],
+              },
+            ),
+            Artikeleintrag(artikel: clip),
+            Artikeleintrag(artikel: blende),
+            Artikeleintrag(artikel: uk),
+          ],
+        ),
+      );
+      Berechnung mit(Planungsstand stand, {Artikel? ukArtikel}) =>
+          Berechnung.ausBytes(
+            PlanungsDienst.berechnePlanung(
+              Planung.start.mitStand(stand),
+              (_) => diele,
+              regelwerk,
+              false,
+              (_) => ukArtikel,
+            ).zuBytes(),
+          );
+      int? anzahl(Berechnung b, Artikelnummer nummer, int laenge) => b
+          .materialliste
+          .positionen
+          .where((p) => p.nummer == nummer && p.laenge?.mm == laenge)
+          .firstOrNull
+          ?.anzahl;
+      final f37 = Planungsstand.start
+          .mitAngrenzend(0, an: true)
+          .mitVerblendet(1, an: true)
+          .mitVerblendet(2, an: true)
+          .mitVerblendet(3, an: true);
+      final b = mit(f37, ukArtikel: uk);
+      final f36 = mit(
+        Planungsstand.start.mitAngrenzend(0, an: true),
+        ukArtikel: uk,
+      );
+      expect(anzahl(b, blende.nummer, 4000), 2);
+      expect(anzahl(b, blende.nummer, 5000), 1);
+      expect(
+        b.materialliste.positionen
+            .where((p) => p.nummer == blende.nummer)
+            .every((p) => p.zusatz == Materialzusatz.verblendung),
+        isTrue,
+      );
+      expect(anzahl(b, uk.nummer, 4000), 13);
+      expect(
+        b.stueckliste.zeilen
+            .where((z) => z.laenge == const Millimeter(86))
+            .single
+            .stueck,
+        31,
+      );
+      expect(b.anschluss.meldungen, [Anschlussmeldung.unterlueftung]);
+      expect(b.volumen! - f36.volumen!, closeTo(13 * 0.08 * 0.021, 1e-9));
+      // ohne UK: Verblendung ja, Halter nein
+      final ohneUk = mit(f37);
+      expect(anzahl(ohneUk, blende.nummer, 4000), 2);
+      expect(
+        ohneUk.stueckliste.zeilen.where((z) => z.nummer == uk.nummer),
+        isEmpty,
+      );
+      // ohne Belag nur die Warnung
+      expect(rechne(f37).anschluss.meldungen, [Anschlussmeldung.unterlueftung]);
+      // Häufigkeit zählt mit
+      final zwei = Berechnung.ausBytes(
+        PlanungsDienst.berechnePlanung(
+          Planung.start.mitStand(f37).mitHaeufigkeit(2),
+          (_) => diele,
+          regelwerk,
+          false,
+          (_) => uk,
+        ).zuBytes(),
+      );
+      expect(anzahl(zwei, blende.nummer, 4000), 4);
+    });
   });
 
   test('ungültige Maße sind ein Fehler', () async {

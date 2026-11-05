@@ -403,6 +403,14 @@ final class Planungsstand {
     return _mit(anschluss: anschluss.mitAngrenzend(seite, an: an));
   }
 
+  /// Kopie, in der die Seite [seite] verblendet ist ([an]) oder nicht
+  /// (M7-02, Fachkonzept 4.2); beim Kreis steht Seite 0 für „Fläche
+  /// verblenden“. Eine angrenzende Seite verliert diese Rolle.
+  Planungsstand mitVerblendet(int seite, {required bool an}) {
+    if (grundriss is! KreisGrundriss || seite != 0) _pruefeSeite(seite);
+    return _mit(anschluss: anschluss.mitVerblendet(seite, an: an));
+  }
+
   void _pruefeSeite(int seite) {
     if (seite < 0 || seite >= seitenzahl) {
       throw RangeError.range(seite, 0, seitenzahl - 1, 'seite');

@@ -203,7 +203,7 @@ class ZeichnungsMaler extends CustomPainter {
   ];
 
   /// Seiten mit Rolle auf dem Bildschirm in ihrer Farbe (M7): an
-  /// Bauelementen grau. Unabhängig von den Ebenen – sie gehören zum Umriss.
+  /// Bauelementen grau, verblendet gelb. Unabhängig von den Ebenen – sie gehören zum Umriss.
   List<(Offset, Offset, Color)> seitenlinien() => [
     for (final (von, bis, rolle) in zeichnung.seiten)
       (bildschirm(von), bildschirm(bis), seitenfarbe(rolle)),
@@ -212,7 +212,11 @@ class ZeichnungsMaler extends CustomPainter {
   /// Farbe einer Seite nach ihrer Rolle (Fachkonzept 04).
   static Color seitenfarbe(Seitenrolle rolle) => switch (rolle) {
     Seitenrolle.bauelement => bauelementFarbe,
+    Seitenrolle.verblendung => verblendungFarbe,
   };
+
+  /// Gelb der verblendeten Seiten (Fachkonzept 4.2).
+  static const verblendungFarbe = Color(0xFFF2C200);
 
   /// Grau der Seiten an Bauelementen (Fachkonzept 4.1).
   static const bauelementFarbe = Color(0xFF9E9E9E);

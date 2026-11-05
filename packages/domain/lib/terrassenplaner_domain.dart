@@ -61,6 +61,7 @@ export 'src/regeln/regelwerk.dart';
 export 'src/regeln/uk_verlegung.dart';
 export 'src/regeln/uk_zusatz.dart';
 export 'src/regeln/unterbau_berechnung.dart';
+export 'src/regeln/verblendung.dart';
 export 'src/schema/ausschnitt_leser.dart';
 export 'src/schema/stapel.dart';
 export 'src/schema/transport.g.dart';

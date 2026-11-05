@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 import '../design/planer_design.dart';
 import '../sprache/sprache.dart';
+import 'berechnung_steuerung.dart';
 import 'steuerung.dart';
+import 'unterkonstruktion.dart';
 import 'zeichnung.dart';
 
 /// Name der Seite [seite] wie in der Zeichnung: „A — B“.
@@ -93,3 +96,80 @@ class AngrenzendWahl extends StatelessWidget {
     },
   );
 }
+
+/// Unterpunkt „Verblendung“ (Fachkonzept 4.2, M7-02): verblendete Seiten
+/// werden gelb dargestellt; Seiten an Bauelementen stehen nicht zur Wahl.
+/// Beim Kreis gibt es nur „Fläche verblenden“. Die Hinweise (Unterlüftung,
+/// Belagstärke, Höhenunterschied, Artikel) kommen vom Server. Jede Wahl ist
+/// ein Schritt für Rückgängig/Wiederherstellen.
+class VerblendungWahl extends StatelessWidget {
+  const VerblendungWahl({
+    required this.planung,
+    required this.onGeaendert,
+    this.berechnung,
+    super.key,
+  });
+
+  final PlanungsSteuerung planung;
+
+  /// Berechnung des Servers mit den Hinweisen zum Anschluss.
+  final BerechnungsSteuerung? berechnung;
+
+  /// Meldet eine Änderung (Standardwert-Hinweis, M3-05).
+  final VoidCallback onGeaendert;
+
+  void _setze(int seite, bool an) {
+    planung.setze(planung.aktuell.mitVerblendet(seite, an: an));
+    onGeaendert();
+  }
+
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: Listenable.merge([planung, berechnung]),
+    builder: (context, _) {
+      final t = context.texte;
+      final stand = planung.aktuell;
+      final anschluss = stand.anschluss;
+      final meldungen =
+          berechnung?.ergebnis?.anschluss.meldungen ??
+          const <Anschlussmeldung>[];
+      return Column(
+        key: const ValueKey('verblendung'),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(t.verblendungFrage),
+          if (stand.grundriss is KreisGrundriss)
+            FilterChip(
+              key: const ValueKey('verblendet-flaeche'),
+              label: Text(t.flaecheVerblenden),
+              selected: anschluss.verblendetAn(0),
+              onSelected: (an) => _setze(0, an),
+            )
+          else
+            Seitenwahl(
+              name: 'verblendet',
+              seitenzahl: stand.seitenzahl,
+              gewaehlt: anschluss.verblendetAn,
+              waehlbar: (seite) => !anschluss.grenztAn(seite),
+              onGewaehlt: _setze,
+            ),
+          Hinweis(text: t.verblendungHinweis),
+          for (final m in meldungen)
+            Hinweis(
+              key: ValueKey('anschluss-${m.name}'),
+              text: anschlussmeldungText(t, m),
+              warnung: true,
+            ),
+        ],
+      );
+    },
+  );
+}
+
+/// Text eines Hinweises zum Terrassenanschluss.
+String anschlussmeldungText(PlanerTexte t, Anschlussmeldung m) => switch (m) {
+  Anschlussmeldung.unterlueftung => t.meldungUnterlueftung,
+  Anschlussmeldung.keinHoehenunterschied => t.meldungKeinHoehenunterschied,
+  Anschlussmeldung.belagstaerke => t.meldungBelagstaerke,
+  Anschlussmeldung.ohneVerblendungsartikel => t.meldungOhneVerblendungsartikel,
+};

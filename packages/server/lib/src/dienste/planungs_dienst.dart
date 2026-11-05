@@ -170,6 +170,7 @@ class PlanungsDienst {
     Hoehenpunkte? hoehenpunkte,
     UkVerlegung? uk,
     Auflagerbedarf? auflager,
+    Anschlussbedarf? anschluss,
   ]) {
     // offene Freiform (M4-08): nur der gezeichnete Linienzug
     if (stand.grundriss case FreiformGrundriss(
@@ -197,7 +198,10 @@ class PlanungsDienst {
         verlegung: uk,
         auflager: auflager,
       ),
-      anschluss: anschlussergebnis(stand),
+      anschluss: anschlussergebnis(
+        stand,
+        meldungen: anschluss?.meldungen ?? const [],
+      ),
     );
   }
 
@@ -239,6 +243,7 @@ class PlanungsDienst {
     Ukzusatz? zusatz,
     UkVerlegung? uk,
     Auflagerbedarf? auflager,
+    Anschlussbedarf? anschluss,
   ]) {
     final meldungen = belagmeldungen(stand, belag, v, regelwerk: regelwerk);
     if (v == null) {
@@ -271,6 +276,7 @@ class PlanungsDienst {
       ...?uk?.stuecke,
       ...?zusatz?.stuecke,
       ...?auflager?.stuecke,
+      ...?anschluss?.stuecke,
     ];
     return Berechnung(
       umriss: flaeche.umriss,
@@ -343,6 +349,14 @@ class PlanungsDienst {
       );
       final zusatz = _ukZusatz(f.stand, artikel, regelwerk, uk, verlegung, ukv);
       final auflager = _auflager(f.stand, regelwerk, uk, ukv, hoehen);
+      final anschluss = _anschluss(
+        f.stand,
+        artikel,
+        regelwerk,
+        uk,
+        ukv,
+        hoehen,
+      );
       final bearbeitet = i == planung.aktiv;
       // Höhenpunkte nur für die bearbeitete Fläche (M6-02)
       final grund = bearbeitet
@@ -354,6 +368,7 @@ class PlanungsDienst {
               hoehen,
               ukv,
               auflager,
+              anschluss,
             )
           : _grundflaeche(f.stand);
       gesamt += grund.flaeche * f.haeufigkeit;
@@ -369,6 +384,7 @@ class PlanungsDienst {
             ...?ukv?.bedarf,
             ...zusatz.bedarf,
             ...?auflager?.bedarf,
+            ...anschluss.bedarf,
           ])
             b * f.haeufigkeit,
         ]);
@@ -384,6 +400,7 @@ class PlanungsDienst {
           zusatz,
           ukv,
           auflager,
+          anschluss,
         );
       }
     }
@@ -463,6 +480,32 @@ class PlanungsDienst {
       regelwerk: daten,
     );
   }
+
+  /// Terrassenanschluss der Fläche (M7): Verblendung (M7-02) mit
+  /// Blendenhaltern im UK-Achsabstand aus den Resten der UK-Verlegung; ohne
+  /// UK-Verlegung keine Blendenhalter.
+  static Anschlussbedarf _anschluss(
+    Planungsstand stand,
+    Artikel? belag,
+    Regelwerk? regelwerk,
+    Artikel? uk,
+    UkVerlegung? v,
+    Hoehenpunkte hoehen,
+  ) => verblendungsbedarf(
+    stand,
+    hoehen: hoehen.hoehen,
+    belag: belag,
+    regelwerk: regelwerk,
+    uk: uk,
+    // mit UK-Verlegung gibt es immer eine Feldbreite
+    ukAbstand: v == null
+        ? null
+        : wirksameFeldbreite(
+            stand.feldbreite,
+            belagFeldbreite(belag, regelwerk)!,
+          ),
+    ukStuecke: [for (final s in v?.stuecke ?? const <Planstueck>[]) s.laenge],
+  );
 
   /// **Stelle für die Mitarbeiter-Anmeldung (M9-10):** Geänderte Mengen der
   /// Materialliste (Mitarbeiter-Ansicht, Fachkonzept 08) übernimmt der

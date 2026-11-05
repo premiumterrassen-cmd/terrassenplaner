@@ -2337,6 +2337,54 @@ abstract class PlanerTexte {
   /// In de, this message translates to:
   /// **'Diese Form hat keine Seiten zur Auswahl.'**
   String get ohneSeiten;
+
+  /// No description provided for @verblendungFrage.
+  ///
+  /// In de, this message translates to:
+  /// **'Welche Seiten sollen verblendet werden? (wird in der Konfiguration gelb dargestellt)'**
+  String get verblendungFrage;
+
+  /// No description provided for @flaecheVerblenden.
+  ///
+  /// In de, this message translates to:
+  /// **'Fläche verblenden'**
+  String get flaecheVerblenden;
+
+  /// No description provided for @verblendungHinweis.
+  ///
+  /// In de, this message translates to:
+  /// **'Verblendet wird nur bei einer Belagstärke von 19 bis 23 mm.'**
+  String get verblendungHinweis;
+
+  /// No description provided for @meldungUnterlueftung.
+  ///
+  /// In de, this message translates to:
+  /// **'Achtung: Bitte beachten Sie, dass eine Unterlüftung der Terrasse gewährleistet sein muss!'**
+  String get meldungUnterlueftung;
+
+  /// No description provided for @meldungKeinHoehenunterschied.
+  ///
+  /// In de, this message translates to:
+  /// **'Ohne Höhenunterschied zum Boden ist an dieser Seite keine Verblendung möglich.'**
+  String get meldungKeinHoehenunterschied;
+
+  /// No description provided for @meldungBelagstaerke.
+  ///
+  /// In de, this message translates to:
+  /// **'Eine Verblendung ist nur bei einer Belagstärke von 19 bis 23 mm möglich – es wird keine gerechnet.'**
+  String get meldungBelagstaerke;
+
+  /// No description provided for @meldungOhneVerblendungsartikel.
+  ///
+  /// In de, this message translates to:
+  /// **'Zu diesem Belag ist keine Verblendung hinterlegt.'**
+  String get meldungOhneVerblendungsartikel;
+
+  /// No description provided for @materialVerblendung.
+  ///
+  /// In de, this message translates to:
+  /// **'Verblendung'**
+  String get materialVerblendung;
 }
 
 class _PlanerTexteDelegate extends LocalizationsDelegate<PlanerTexte> {

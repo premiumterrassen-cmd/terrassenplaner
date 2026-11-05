@@ -4,6 +4,7 @@ library;
 
 import '../geometrie/punkt.dart';
 import '../konfiguration/anschlussergebnis.dart';
+import '../konfiguration/grundriss.dart';
 import '../konfiguration/planungsstand.dart';
 
 /// Strecke der Seite [seite] von ihrer Ecke zur nächsten in mm – gerade von
@@ -13,12 +14,36 @@ import '../konfiguration/planungsstand.dart';
   return (von: ecken[seite], bis: ecken[(seite + 1) % ecken.length]);
 }
 
-/// Anschluss der bearbeiteten Fläche (M7): angrenzende Seiten grau
-/// (M7-01, 4.1).
-Anschlussergebnis anschlussergebnis(Planungsstand stand) => Anschlussergebnis(
-  seiten: [
-    for (final seite in stand.anschluss.angrenzend)
-      if (seitenstrecke(stand, seite) case (:final von, :final bis))
-        (seite: seite, rolle: Seitenrolle.bauelement, von: von, bis: bis),
-  ],
-);
+/// Anschluss der bearbeiteten Fläche (M7) mit den [meldungen]:
+/// angrenzende Seiten grau (M7-01, 4.1), verblendete gelb (M7-02, 4.2) –
+/// beim Kreis („Fläche verblenden“) der ganze Umriss als Sehnenzug.
+Anschlussergebnis anschlussergebnis(
+  Planungsstand stand, {
+  List<Anschlussmeldung> meldungen = const [],
+}) {
+  Iterable<Seitenlinie> linien(List<int> seiten, Seitenrolle rolle) sync* {
+    for (final seite in seiten) {
+      final (:von, :bis) = seitenstrecke(stand, seite);
+      yield (seite: seite, rolle: rolle, von: von, bis: bis);
+    }
+  }
+
+  final kreis = stand.grundriss is KreisGrundriss;
+  final umriss = stand.kontur.vieleck();
+  return Anschlussergebnis(
+    seiten: [
+      ...linien(stand.anschluss.angrenzend, Seitenrolle.bauelement),
+      if (!kreis)
+        ...linien(stand.anschluss.verblendet, Seitenrolle.verblendung)
+      else if (stand.anschluss.verblendetAn(0))
+        for (var i = 0; i < umriss.length; i++)
+          (
+            seite: 0,
+            rolle: Seitenrolle.verblendung,
+            von: umriss[i],
+            bis: umriss[(i + 1) % umriss.length],
+          ),
+    ],
+    meldungen: meldungen,
+  );
+}

@@ -238,6 +238,21 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('rueckgaengig')));
     await tester.pumpAndSettle();
     expect(await _an(tester, 'angrenzend-0'), isFalse);
+    // M7-02: Verblendung unter 4.2; F37 – A — B am Bauelement, die übrigen
+    // Seiten verblendet: der Server warnt vor fehlender Unterlüftung
+    await _waehle(tester, 'angrenzend-0');
+    expect(find.byKey(const ValueKey('verblendet-0')), findsNothing);
+    for (final seite in [1, 2, 3]) {
+      await _waehle(tester, 'verblendet-$seite');
+      expect(await _an(tester, 'verblendet-$seite'), isTrue);
+    }
+    final warnung = find.byKey(const ValueKey('anschluss-unterlueftung'));
+    for (var i = 0; i < 50 && warnung.evaluate().isEmpty; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    }
+    await _imMenue(tester, warnung);
+    expect(warnung, findsOneWidget);
   });
 }
 

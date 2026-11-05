@@ -125,6 +125,39 @@ void main() {
     expect(berechnung.materialliste, _liste(planung.planung));
   });
 
+  testWidgets('Verblendung (M7-02): Zusatz unter dem Titel', (tester) async {
+    final (:planung, :berechnung) = _steuerung(
+      (_) async => Berechnung(
+        umriss: const [],
+        flaeche: 1,
+        materialliste: Materialliste.aus([
+          Materialbedarf(
+            [_diele],
+            2,
+            laenge: const Millimeter(4000),
+            zusatz: Materialzusatz.verblendung,
+          ),
+        ]),
+      ),
+    );
+    await tester.pumpWidget(
+      testApp(
+        sprache: const Locale('en'),
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: MateriallisteAnsicht(
+              berechnung: berechnung,
+              planung: planung,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.text('Cladding'), findsOneWidget);
+    expect(de.materialVerblendung, 'Verblendung');
+  });
+
   testWidgets('leer, solange nichts verlegt ist', (tester) async {
     final (:planung, :berechnung) = _steuerung(_leer);
     await tester.pumpWidget(

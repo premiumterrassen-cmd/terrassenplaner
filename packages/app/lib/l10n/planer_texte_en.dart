@@ -1286,4 +1286,34 @@ class PlanerTexteEn extends PlanerTexte {
 
   @override
   String get ohneSeiten => 'This shape has no sides to choose from.';
+
+  @override
+  String get verblendungFrage =>
+      'Which sides should be clad? (shown in yellow in the configuration)';
+
+  @override
+  String get flaecheVerblenden => 'Clad the area';
+
+  @override
+  String get verblendungHinweis =>
+      'Cladding is only planned for decking 19 to 23 mm thick.';
+
+  @override
+  String get meldungUnterlueftung =>
+      'Attention: please make sure the decking is ventilated from below!';
+
+  @override
+  String get meldungKeinHoehenunterschied =>
+      'Without a height difference to the ground, this side cannot be clad.';
+
+  @override
+  String get meldungBelagstaerke =>
+      'Cladding is only possible for decking 19 to 23 mm thick – none is planned.';
+
+  @override
+  String get meldungOhneVerblendungsartikel =>
+      'No cladding is set up for this decking.';
+
+  @override
+  String get materialVerblendung => 'Cladding';
 }

@@ -387,5 +387,13 @@
   "stueckfarbeGruen": "green – cross piece",
   "stuecklisteHinweis": "Pieces of the area being edited; the colour marks the piece in the drawing.",
   "angrenzendFrage": "Which sides adjoin existing building elements? (shown in grey in the configuration)",
-  "ohneSeiten": "This shape has no sides to choose from."
+  "ohneSeiten": "This shape has no sides to choose from.",
+  "verblendungFrage": "Which sides should be clad? (shown in yellow in the configuration)",
+  "flaecheVerblenden": "Clad the area",
+  "verblendungHinweis": "Cladding is only planned for decking 19 to 23 mm thick.",
+  "meldungUnterlueftung": "Attention: please make sure the decking is ventilated from below!",
+  "meldungKeinHoehenunterschied": "Without a height difference to the ground, this side cannot be clad.",
+  "meldungBelagstaerke": "Cladding is only possible for decking 19 to 23 mm thick – none is planned.",
+  "meldungOhneVerblendungsartikel": "No cladding is set up for this decking.",
+  "materialVerblendung": "Cladding"
 }

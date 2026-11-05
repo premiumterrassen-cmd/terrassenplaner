@@ -392,9 +392,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/8
   - Seiten, die an Bauelemente grenzen, auswählen (grau dargestellt).
   - Abnahme: Auswirkung auf Verblendung/Rinnen
   - Ergebnis: Unterpunkt 4.1 mit einem Schalter je Seite (A — B …), Planungsstand `Anschluss` (Platz 140), Seiten mit Rolle vom Server (`Anschlussergebnis`, Platz 150) grau in der Zeichnung. F36 = F01 (kein Material). Kreis/offene Freiform ohne Seiten; neue Eckenzahl setzt den Anschluss zurück. Wirkung auf Verblendung (M7-02), Rinne (M7-03) und Treppe (M7-05) dort.
-- [ ] **M7-02 Verblendung** ([#66](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/66)) – `feature/m7-02-verblendung`
+- [x] **M7-02 Verblendung** ([#66](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/66)) – `feature/m7-02-verblendung`
   - Seiten verblenden (gelb dargestellt), bei Kreis „Fläche verblenden“; nur bei Belagstärke 19–23 mm; Warnungen (Unterlüftung, keine Verblendung ohne Höhenunterschied).
   - Abnahme: Regeln und Warnungen wie beschrieben; Verblendungsmaterial in der Materialliste
+  - Ergebnis: Unterpunkt 4.2 (Kreis: „Fläche verblenden“), eine Rolle je Seite, gelb in der Zeichnung. `verblendungsbedarf`: Verblendungsdielen aus „moeglicheVerblendung“ in Reihen nach Blendenhöhe (F37: 2 × 4000 + 1 × 5000 mm, Zusatz „Verblendung“, nur Materialliste), 31 Blendenhalter à 8,6 cm aus den Resten der UK (F37 ohne weitere UK), Hinweise Unterlüftung/Belagstärke/Höhenunterschied/Artikel (`Anschlussmeldung`).
 - [ ] **M7-03 Entwässerungsrinnen und bodentiefe Elemente** ([#67](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/67)) – `feature/m7-03-entwaesserungsrinnen-und-bodentiefe-elem`
   - Rinnen je Seite; bodentiefe Elemente mit Optionen (gesamte Seite innen/außen, im/außerhalb des Elements, nur vor dem Element).
   - Abnahme: Alle Optionen mit Material

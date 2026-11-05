@@ -1288,4 +1288,34 @@ class PlanerTexteDe extends PlanerTexte {
 
   @override
   String get ohneSeiten => 'Diese Form hat keine Seiten zur Auswahl.';
+
+  @override
+  String get verblendungFrage =>
+      'Welche Seiten sollen verblendet werden? (wird in der Konfiguration gelb dargestellt)';
+
+  @override
+  String get flaecheVerblenden => 'Fläche verblenden';
+
+  @override
+  String get verblendungHinweis =>
+      'Verblendet wird nur bei einer Belagstärke von 19 bis 23 mm.';
+
+  @override
+  String get meldungUnterlueftung =>
+      'Achtung: Bitte beachten Sie, dass eine Unterlüftung der Terrasse gewährleistet sein muss!';
+
+  @override
+  String get meldungKeinHoehenunterschied =>
+      'Ohne Höhenunterschied zum Boden ist an dieser Seite keine Verblendung möglich.';
+
+  @override
+  String get meldungBelagstaerke =>
+      'Eine Verblendung ist nur bei einer Belagstärke von 19 bis 23 mm möglich – es wird keine gerechnet.';
+
+  @override
+  String get meldungOhneVerblendungsartikel =>
+      'Zu diesem Belag ist keine Verblendung hinterlegt.';
+
+  @override
+  String get materialVerblendung => 'Verblendung';
 }

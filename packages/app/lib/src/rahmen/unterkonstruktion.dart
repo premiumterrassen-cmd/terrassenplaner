@@ -163,9 +163,9 @@ class HoehenpunkteWahl extends StatelessWidget {
               child: Text(t.aufbauhoehe(cmText(t, a))),
             ),
           if (punkte != null && punkte.gedreht)
-            _Hinweis(key: const ValueKey('uk-gedreht'), text: t.ukGedreht),
+            Hinweis(key: const ValueKey('uk-gedreht'), text: t.ukGedreht),
           if (punkte != null && punkte.korrigiert)
-            _Hinweis(
+            Hinweis(
               key: const ValueKey('hoehe-korrigiert'),
               text: t.hoeheKorrigiert(cmText(t, punkte.mindesthoehe!)),
               warnung: true,
@@ -220,7 +220,7 @@ class UntergrundWahl extends StatelessWidget {
                 ),
             ],
           ),
-          _Hinweis(text: t.untergrundHinweis),
+          Hinweis(text: t.untergrundHinweis),
         ],
       );
     },
@@ -273,7 +273,7 @@ class NutzungsartWahl extends StatelessWidget {
             ],
           ),
           if (gewaehlt.verwindungsgefahr)
-            _Hinweis(
+            Hinweis(
               key: const ValueKey('verwindung'),
               text: t.nutzungsartVerwindung,
               warnung: true,
@@ -561,16 +561,16 @@ class AuflagenWahl extends StatelessWidget {
             ],
           ),
           if (unterbau.auflagerabstand case final abstand?)
-            _Hinweis(
+            Hinweis(
               key: const ValueKey('auflager-abstand'),
               text: t.auflagerAbstand(cmText(t, abstand)),
             ),
           ...switch (stand.terrassenart) {
             Terrassenart.hochterrasse => [
-              _Hinweis(text: t.auflagerHochterrasse),
+              Hinweis(text: t.auflagerHochterrasse),
             ],
             Terrassenart.vorhandeneUk => [
-              _Hinweis(text: t.auflagerVorhandeneUk),
+              Hinweis(text: t.auflagerVorhandeneUk),
             ],
             Terrassenart.normal => _bereiche(t, unterbau),
           },
@@ -593,7 +593,7 @@ class AuflagenWahl extends StatelessWidget {
           ),
       ],
       if (ohne > 0)
-        _Hinweis(
+        Hinweis(
           key: const ValueKey('auflager-ohne-hoehe'),
           warnung: true,
           text: t.auflagerOhneHoehe(ohne),
@@ -614,12 +614,12 @@ class AuflagenWahl extends StatelessWidget {
         ),
     ],
     if ((unterbau.hoeheVon, unterbau.hoeheBis) case (final von?, final bis?))
-      _Hinweis(
+      Hinweis(
         key: const ValueKey('auflager-hoehen'),
         text: t.auflagerHoehen(cmText(t, von), cmText(t, bis)),
       ),
     for (final m in unterbau.meldungen)
-      _Hinweis(
+      Hinweis(
         key: ValueKey('auflager-${m.name}'),
         warnung: true,
         text: switch (m) {
@@ -697,12 +697,12 @@ class FeldbreiteWahl extends StatelessWidget {
                   ),
               ],
             ),
-          _Hinweis(text: t.feldbreiteHinweis),
+          Hinweis(text: t.feldbreiteHinweis),
           if ((unterbau.feldbreiteBegrenzt, unterbau.feldbreite) case (
             true,
             final wirksam?,
           ))
-            _Hinweis(
+            Hinweis(
               key: const ValueKey('feldbreite-begrenzt'),
               warnung: true,
               text: t.feldbreiteBegrenzt(cmText(t, wirksam)),
@@ -714,8 +714,8 @@ class FeldbreiteWahl extends StatelessWidget {
 }
 
 /// Hinweis mit Symbol; als [warnung] in der Fehlerfarbe.
-class _Hinweis extends StatelessWidget {
-  const _Hinweis({required this.text, this.warnung = false, super.key});
+class Hinweis extends StatelessWidget {
+  const Hinweis({required this.text, this.warnung = false, super.key});
 
   final String text;
   final bool warnung;
