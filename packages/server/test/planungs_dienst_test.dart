@@ -1046,6 +1046,44 @@ void main() {
       expect(rechne(offen, mitUk: uk).materialliste.istLeer, isTrue);
     });
 
+    test('Querstreben (M6-06): Zeichnung, Anzahl und Mengen der '
+        'bearbeiteten Fläche', () {
+      final stand = Planungsstand.start.mitQuerstreben(true);
+      final b = rechne(Planung.start.mitStand(stand), mitUk: uk);
+      expect(b.querstreben, hasLength(60));
+      expect(b.querstreben.first.von, const Punkt(20, 515));
+      expect(b.querstrebenReihen, 5);
+      expect(
+        b.stueckliste.zeilen.singleWhere((z) => z.nummer == uk.nummer),
+        const Stuecklistenzeile(
+          nummer: Artikelnummer('10-10-031'),
+          titel: '10-10-031',
+          laenge: Millimeter(360),
+          stueck: 60,
+          farbe: Stueckfarbe.gruen,
+        ),
+      );
+      final drei = rechne(
+        Planung.start.mitStand(stand.mitQuerstrebenReihen(3)),
+        mitUk: uk,
+      );
+      expect(drei.querstreben, hasLength(36));
+      expect(drei.querstrebenReihen, 3);
+      // ohne Querstreben und ohne Rahmen keine; mit Rahmen keine Reihen
+      final ohne = rechne(Planung.start, mitUk: uk);
+      expect(ohne.querstreben, isEmpty);
+      expect(ohne.querstrebenReihen, isNull);
+      final rahmen = rechne(
+        Planung.start.mitStand(
+          Planungsstand.start.mitNutzungsart(Nutzungsart.rahmen),
+        ),
+        mitUk: uk,
+      );
+      expect(rahmen.querstrebenReihen, isNull);
+      // im Transportformat zur App
+      expect(Berechnung.ausBytes(b.zuBytes()).querstreben, b.querstreben);
+    });
+
     test('doppelte UK im Achsabstand des Belags (Regelwerk) und mit zwei '
         'Lagen in der Höhenprüfung', () {
       final stand = Planungsstand.start.mitNutzungsart(Nutzungsart.doppelteUk);

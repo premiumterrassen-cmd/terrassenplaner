@@ -10,6 +10,7 @@ import '../geometrie/punkt.dart';
 import '../regeln/befestigungsbedarf.dart';
 import '../regeln/belagmeldungen.dart';
 import '../regeln/hoehenpunkte.dart';
+import '../regeln/uk_zusatz.dart';
 import 'befestigungsart.dart';
 
 /// Was der Server aus einem Planungsstand berechnet und die App nur anzeigt
@@ -42,7 +43,10 @@ final class Berechnung {
     Materialliste? materialliste,
     Stueckliste? stueckliste,
     List<Stueckfarbe> stueckfarben = const [],
-  }) : materialliste = materialliste ?? Materialliste.leer,
+    List<Strebe> querstreben = const [],
+    this.querstrebenReihen,
+  }) : querstreben = List.unmodifiable(querstreben),
+       materialliste = materialliste ?? Materialliste.leer,
        stueckliste = stueckliste ?? Stueckliste.leer,
        stueckfarben = List.unmodifiable(stueckfarben),
        belagmeldungen = List.unmodifiable(belagmeldungen),
@@ -152,7 +156,25 @@ final class Berechnung {
           Stueckfarbe.ausNummer(n),
       ],
       hoehenpunkte: _hoehenpunkte(puffer, wurzel),
+      querstreben: [
+        for (final [von, bis] in _paare(
+          _punkte(puffer, wurzel, _querstrebenPlatz),
+        ))
+          (von: von, bis: bis),
+      ],
+      querstrebenReihen: const fb.Uint16Reader().vTableGetNullable(
+        puffer,
+        wurzel,
+        _versatz(_querstrebenReihenPlatz),
+      ),
     );
+  }
+
+  /// [punkte] je zwei zusammen.
+  static Iterable<List<Punkt>> _paare(List<Punkt> punkte) sync* {
+    for (var i = 1; i < punkte.length; i += 2) {
+      yield [punkte[i - 1], punkte[i]];
+    }
   }
 
   static Hoehenpunkte _hoehenpunkte(fb.BufferContext puffer, int wurzel) {
@@ -308,6 +330,14 @@ final class Berechnung {
   /// der Stückliste; leer ohne Dielen.
   final List<Stueckfarbe> stueckfarben;
 
+  /// Querstreben der bearbeiteten Fläche für die Zeichnung (M6-05
+  /// Versteifung, M6-06 zusätzliche Querstreben); leer ohne.
+  final List<Strebe> querstreben;
+
+  /// Wirksame Anzahl der Quertraversen (Reihen der Querstreben) der
+  /// bearbeiteten Fläche (M6-06); `null` ohne Querstreben.
+  final int? querstrebenReihen;
+
   /// Kopie mit den Werten der ganzen Planung (M4-14, M5-08).
   Berechnung mitPlanung(
     double gesamtflaeche, {
@@ -335,6 +365,8 @@ final class Berechnung {
     materialliste: materialliste,
     stueckliste: stueckliste,
     stueckfarben: stueckfarben,
+    querstreben: querstreben,
+    querstrebenReihen: querstrebenReihen,
   );
 
   /// FlatBuffer für den Weg zur App (#110):
@@ -356,7 +388,8 @@ final class Berechnung {
   /// 35: belagmeldungen ([uint8], M5-10), 60: materialliste
   /// (Tabelle, `Materialliste.schreibe`, M9-03), 61: stueckliste (Tabelle,
   /// `Stueckliste.schreibe`), 62: stueckfarben ([uint8] je Dielenstück)
-  /// (M9-04) }`. Die Plätze 18–34 sind für die Unterkonstruktion (M6)
+  /// (M9-04), 90: querstreben ([float64] x, y von und bis je Strebe),
+  /// 91: querstrebenReihen (uint16; fehlt ohne) (M6-06) }`. Die Plätze 18–34 sind für die Unterkonstruktion (M6)
   /// frei gehalten, 60–69 für die Ergebnisse (M9).
   Uint8List zuBytes() {
     final fbb = fb.Builder();
@@ -393,8 +426,11 @@ final class Berechnung {
     final farbenOrt = fbb.writeListUint8([
       for (final f in stueckfarben) f.nummer,
     ]);
+    final strebenOrt = _schreibe(fbb, [
+      for (final s in querstreben) ...[s.von, s.bis],
+    ]);
     fbb
-      ..startTable(_stueckfarbenPlatz + 1)
+      ..startTable(_querstrebenReihenPlatz + 1)
       ..addOffset(_umrissPlatz, umrissOrt)
       ..addFloat64(_flaechePlatz, flaeche)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
@@ -420,7 +456,9 @@ final class Berechnung {
       ..addOffset(_belagmeldungenPlatz, meldungenOrt)
       ..addOffset(_materiallistePlatz, materialOrt)
       ..addOffset(_stuecklistePlatz, stueckOrt)
-      ..addOffset(_stueckfarbenPlatz, farbenOrt);
+      ..addOffset(_stueckfarbenPlatz, farbenOrt)
+      ..addOffset(_querstrebenPlatz, strebenOrt)
+      ..addUint16(_querstrebenReihenPlatz, querstrebenReihen);
     if (verschnitt case final v?) fbb.addFloat64(_verschnittPlatz, v);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
@@ -509,6 +547,8 @@ final class Berechnung {
   static const _materiallistePlatz = 60;
   static const _stuecklistePlatz = 61;
   static const _stueckfarbenPlatz = 62;
+  static const _querstrebenPlatz = 90;
+  static const _querstrebenReihenPlatz = 91;
 
   static int _versatz(int platz) => 4 + 2 * platz;
 }

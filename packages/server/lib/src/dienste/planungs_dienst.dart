@@ -19,7 +19,8 @@ typedef Unterkonstruktionssuche = Artikel? Function(Planungsstand stand);
 /// Dielenstücke (M5-05) mit Nummern, Dielenliste und Verschnitt (M5-08),
 /// den Ausgangspunkt der Verlegung (M5-07), die Befestigung (M5-09), die
 /// geprüften Höhenpunkte (M6-02), die Meldungen zum Belag (M5-10), das
-/// zusätzliche UK-Holz der Nutzungsart (M6-05), die Materialliste (M9-03)
+/// zusätzliche UK-Holz der Nutzungsart (M6-05) samt Querstreben für die
+/// Zeichnung (M6-06), die Materialliste (M9-03)
 /// und die Stückliste mit den Farben im Plan (M9-04)
 /// – die App rechnet nichts selbst (Frontend bleibt „doof“). Hin- und
 /// Rückweg als typisierte FlatBuffers (Packed PPT, #110).
@@ -192,6 +193,11 @@ class PlanungsDienst {
       befestigung: befestigung,
       stueckliste: Stueckliste.aus([...planstuecke, ...ukStuecke]),
       stueckfarben: [for (final p in planstuecke) p.farbe],
+      querstreben: zusatz?.streben ?? const [],
+      querstrebenReihen: switch (zusatz?.reihen) {
+        final reihen? when reihen > 0 => reihen,
+        _ => null,
+      },
     );
   }
 

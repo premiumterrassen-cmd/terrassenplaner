@@ -35,6 +35,7 @@ final class Ukzusatz {
     List<Planstueck> stuecke = const [],
     List<Materialbedarf> bedarf = const [],
     List<Strebe> streben = const [],
+    this.reihen = 0,
   }) : stuecke = List.unmodifiable(stuecke),
        bedarf = List.unmodifiable(bedarf),
        streben = List.unmodifiable(streben);
@@ -50,15 +51,32 @@ final class Ukzusatz {
 
   /// Querstreben in Planungskoordinaten.
   final List<Strebe> streben;
+
+  /// Reihen der Querstreben (`strebenreihen`); 0 ohne.
+  final int reihen;
 }
 
-/// Reihen des Leiterverbands bei einer Ausdehnung [laenge] quer zu den
-/// Dielen (längs der UK-Linien): bei Versteifung so viele, dass die Reihen
-/// höchstens [versteifungsAbstand] auseinander liegen, mindestens eine.
-int strebenreihen(Planungsstand stand, Millimeter laenge) =>
-    stand.wirksameNutzungsart?.versteift ?? false
-    ? math.max(1, _felder(laenge.mm.toDouble(), versteifungsAbstand) - 1)
-    : 0;
+/// Reihen der Querstreben bei einer Ausdehnung [laenge] quer zu den
+/// Dielen (längs der UK-Linien):
+///
+/// - mit zusätzlichen Querstreben (3.7, M6-06) die eingegebene Anzahl der
+///   Quertraversen oder automatisch so viele, dass sie höchstens
+///   [querstrebenAbstand] (60 cm, R-C03) auseinander liegen – sie ersetzen
+///   dann die Reihen der Versteifung;
+/// - sonst bei Versteifung (3.6, M6-05) höchstens [versteifungsAbstand];
+/// - jeweils mindestens eine Reihe, ohne beides keine.
+int strebenreihen(Planungsstand stand, Millimeter laenge) {
+  final abstand = stand.querstreben
+      ? querstrebenAbstand
+      : stand.wirksameNutzungsart?.versteift ?? false
+      ? versteifungsAbstand
+      : null;
+  if (abstand == null) return 0;
+  if (stand.querstreben && stand.querstrebenReihen != null) {
+    return stand.querstrebenReihen!;
+  }
+  return math.max(1, _felder(laenge.mm.toDouble(), abstand) - 1);
+}
 
 /// Zusätzliches Holz der UK [uk] für [stand] mit dem UK-Achsabstand
 /// [ukAbstand]:
@@ -135,6 +153,7 @@ Ukzusatz ukZusatz(
       for (final s in streben)
         (von: s.von.gedreht(-drehung), bis: s.bis.gedreht(-drehung)),
     ],
+    reihen: reihen,
   );
 }
 

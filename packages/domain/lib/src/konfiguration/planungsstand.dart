@@ -25,7 +25,7 @@ import 'verlegerichtung.dart';
 /// Ausgangspunkt, seit M5-09 mit Befestigungsart, seit M6-01 mit Art der
 /// Terrasse und Spannweite, seit M6-02 mit Höhenpunkten, seit M6-03 mit
 /// Unterkonstruktion und UK-Länge, seit M6-04 mit Untergrund, seit M6-05
-/// mit Art der Terrassennutzung;
+/// mit Art der Terrassennutzung, seit M6-06 mit Querstreben;
 /// Unterkonstruktion usw. folgen als weitere Felder. Berechnet wird daraus
 /// auf dem Server.
 final class Planungsstand {
@@ -52,6 +52,8 @@ final class Planungsstand {
     this.ukLaenge,
     this.untergrund = Untergrund.schotter,
     this.nutzungsart = Nutzungsart.schwimmend,
+    this.querstreben = false,
+    this.querstrebenReihen,
   });
 
   /// Liest einen Planungsstand aus dem Transportformat ([zuBytes]).
@@ -206,6 +208,17 @@ final class Planungsstand {
           0,
         ),
       ),
+      querstreben: const fb.BoolReader().vTableGet(
+        puffer,
+        wurzel,
+        _versatz(_querstrebenPlatz),
+        false,
+      ),
+      querstrebenReihen: const fb.Uint16Reader().vTableGetNullable(
+        puffer,
+        wurzel,
+        _versatz(_querstrebenReihenPlatz),
+      ),
     );
   }
 
@@ -307,6 +320,19 @@ final class Planungsstand {
   /// die Wahl bleibt beim Wechsel der Art erhalten.
   final Nutzungsart nutzungsart;
 
+  /// „Möchten Sie zusätzliche Querstreben hinzufügen?“ (M6-06,
+  /// Fachkonzept 3.7); Vorgabe Nein.
+  final bool querstreben;
+
+  /// „Anzahl der Quertraversen“: Reihen der Querstreben, wenn [querstreben]
+  /// gewählt ist; `null` = automatisch mit 60 cm Abstand (R-C03). Bleibt
+  /// beim Abwählen der Querstreben für später erhalten.
+  final int? querstrebenReihen;
+
+  /// Ob [reihen] als Anzahl der Quertraversen gilt: 1 bis 99.
+  static bool querstrebenReihenGueltig(int reihen) =>
+      reihen >= 1 && reihen <= 99;
+
   /// Die Nutzungsart, die gilt: bei Hochterrasse und vorhandener UK keine –
   /// dort entfällt 3.6 (M6-01, F28, F29).
   Nutzungsart? get wirksameNutzungsart =>
@@ -378,6 +404,8 @@ final class Planungsstand {
     ({Millimeter? wert})? ukLaenge,
     Untergrund? untergrund,
     Nutzungsart? nutzungsart,
+    bool? querstreben,
+    ({int? wert})? querstrebenReihen,
   }) {
     final neu = grundriss ?? this.grundriss;
     final ecke = ausgangsecke ?? this.ausgangsecke;
@@ -408,6 +436,10 @@ final class Planungsstand {
       ukLaenge: ukLaenge == null ? this.ukLaenge : ukLaenge.wert,
       untergrund: untergrund ?? this.untergrund,
       nutzungsart: nutzungsart ?? this.nutzungsart,
+      querstreben: querstreben ?? this.querstreben,
+      querstrebenReihen: querstrebenReihen == null
+          ? this.querstrebenReihen
+          : querstrebenReihen.wert,
     );
   }
 
@@ -550,6 +582,19 @@ final class Planungsstand {
   /// Kopie mit anderer Art der Terrassennutzung (M6-05).
   Planungsstand mitNutzungsart(Nutzungsart art) => _mit(nutzungsart: art);
 
+  /// Kopie mit oder ohne zusätzliche Querstreben (M6-06).
+  Planungsstand mitQuerstreben(bool querstreben) =>
+      _mit(querstreben: querstreben);
+
+  /// Kopie mit fester Anzahl der Quertraversen (`querstrebenReihenGueltig`);
+  /// `null` = automatisch (M6-06).
+  Planungsstand mitQuerstrebenReihen(int? reihen) {
+    if (reihen != null && !querstrebenReihenGueltig(reihen)) {
+      throw ArgumentError.value(reihen, 'reihen', 'muss 1 bis 99 sein');
+    }
+    return _mit(querstrebenReihen: (wert: reihen));
+  }
+
   /// Kopie mit oder ohne Gefälle (M6-02).
   Planungsstand mitGefaelle(bool gefaelle) => _mit(gefaelle: gefaelle);
 
@@ -591,7 +636,8 @@ final class Planungsstand {
   /// 21: spannweite (int32 mm) (M6-01), 22: gefaelle (bool), 23: hoehe
   /// (int32 mm; fehlt = Vorgabehöhe), 24: eckhoehen ([int32] mm) (M6-02),
   /// 25: unterkonstruktion (string), 26: ukLaenge (int32 mm; fehlt =
-  /// automatisch) (M6-03), 80: untergrund (uint8) (M6-04), 81: nutzungsart (uint8) (M6-05) }`. Plätze
+  /// automatisch) (M6-03), 80: untergrund (uint8) (M6-04), 81: nutzungsart (uint8) (M6-05), 82: querstreben (bool),
+  /// 83: querstrebenReihen (uint16; fehlt = automatisch) (M6-06) }`. Plätze
   /// 14–19 gehören der Dielenverlegung (M5-08), 40–49 dem Zubehör (M8),
   /// 80–89 der Unterkonstruktion ab M6-04.
   /// Neue Felder nur anhängen (docs/architektur/datenmodell.md).
@@ -619,7 +665,7 @@ final class Planungsstand {
       null => null,
     };
     fbb
-      ..startTable(_nutzungsartPlatz + 1)
+      ..startTable(_querstrebenReihenPlatz + 1)
       ..addUint16(_schemaPlatz, schema)
       ..addOffset(_grundrissPlatz, grundrissOrt)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
@@ -642,7 +688,9 @@ final class Planungsstand {
       ..addOffset(_unterkonstruktionPlatz, ukOrt)
       ..addInt32(_ukLaengePlatz, ukLaenge?.mm)
       ..addUint8(_untergrundPlatz, untergrund.nummer)
-      ..addUint8(_nutzungsartPlatz, nutzungsart.nummer);
+      ..addUint8(_nutzungsartPlatz, nutzungsart.nummer)
+      ..addBool(_querstrebenPlatz, querstreben)
+      ..addUint16(_querstrebenReihenPlatz, querstrebenReihen);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
   }
@@ -686,6 +734,8 @@ final class Planungsstand {
   static const _ukLaengePlatz = 26;
   static const _untergrundPlatz = 80;
   static const _nutzungsartPlatz = 81;
+  static const _querstrebenPlatz = 82;
+  static const _querstrebenReihenPlatz = 83;
 
   @override
   bool operator ==(Object other) {
@@ -710,6 +760,8 @@ final class Planungsstand {
         other.ukLaenge != ukLaenge ||
         other.untergrund != untergrund ||
         other.nutzungsart != nutzungsart ||
+        other.querstreben != querstreben ||
+        other.querstrebenReihen != querstrebenReihen ||
         other.eckhoehen.length != eckhoehen.length ||
         other.ausschnitte.length != ausschnitte.length) {
       return false;
@@ -748,6 +800,8 @@ final class Planungsstand {
       ukLaenge,
       untergrund,
       nutzungsart,
+      querstreben,
+      querstrebenReihen,
     ),
   );
 }
