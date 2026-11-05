@@ -30,6 +30,19 @@ Uint8List _planung(int laenge) => Planung([
   ),
 ]).zuBytes();
 
+final _diele = Artikel(
+  nummer: const Artikelnummer('10-10-073-R'),
+  titel: 'Diele',
+  art: Artikelart.diele,
+  einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+  abmessungen: Abmessungen(
+    breite: const Millimeter(60),
+    laengen: const [Millimeter(5000)],
+  ),
+  holzart: robinie,
+  serie: premiumSelect,
+);
+
 void main() {
   late PlanerRouter router;
   late Process authServer;
@@ -37,6 +50,7 @@ void main() {
   late Datenbank db;
   late Directory ordner;
   late KonfigurationsDienst konfigurationen;
+  late ExportDienst export;
 
   setUpAll(() async {
     // Kleine Argon2id-Kosten, damit der Test schnell bleibt.
@@ -64,6 +78,13 @@ void main() {
       router,
       Konfigurationsablage(db),
     );
+    // Export für GrandTotal (M9-08) mit einer erfundenen Diele
+    export = await ExportDienst.starte(
+      router,
+      belag: (_) => _diele,
+      regelwerk: () => null,
+      unterkonstruktion: (_) => null,
+    );
     final dienst = await router.dienstSitzung('echo-dienst');
     for (final prozedur in [_kundeEcho, _mitarbeiterEcho]) {
       (await dienst.register(prozedur))
@@ -73,6 +94,7 @@ void main() {
 
   tearDownAll(() async {
     await konfigurationen.stoppe();
+    await export.stoppe();
     db.schliesse();
     ordner.deleteSync(recursive: true);
     await router.stoppe();
@@ -234,6 +256,32 @@ void main() {
         throwsA(anything),
       );
       await anna.close();
+    });
+  });
+
+  group('Export für GrandTotal (M9-08)', () {
+    test('nur Mitarbeiter, mit ihren geänderten Mengen', () async {
+      final planung = Planung.start.mitMenge((
+        nummer: _diele.nummer,
+        laenge: const Millimeter(5000),
+        zusatz: null,
+      ), 50).zuBytes();
+      final kunde = await verbinde();
+      await expectLater(
+        kunde.callSingle(WampNamen.exportGrandTotal, arguments: [planung]),
+        throwsA(anything),
+      );
+      await kunde.close();
+
+      final anna = await verbinde(authId: _anna, passwort: 'richtig');
+      final antwort = await anna.callSingle(
+        WampNamen.exportGrandTotal,
+        arguments: [planung],
+      );
+      await anna.close();
+      final zeilen = (antwort.arguments!.single! as String).split('\r\n');
+      // die Rolle kommt vom Router (disclose_caller): 50 statt 48
+      expect(zeilen[1], startsWith('Diele - Länge: 5000 mm;Diele;;50;'));
     });
   });
 }

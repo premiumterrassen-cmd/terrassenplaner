@@ -113,13 +113,13 @@ void main() {
       zubehoer.gruppen[Zubehoergruppe.allgemein]!.single.titel,
       'Schutz-Vlies',
     );
-    // M9-08: Importdatei für GrandTotal als Text (ohne Belag nur der Kopf)
-    expect(
-      await verbindung.exportGrandTotal(
+    // M9-08: Export für GrandTotal nur für Mitarbeiter – anonym abgelehnt
+    await expectLater(
+      verbindung.exportGrandTotal(
         Planung.start,
         Uri.parse('https://planer.example/'),
       ),
-      grandTotalCsv(const []),
+      throwsA(anything),
     );
   });
 
@@ -247,6 +247,13 @@ void main() {
       addTearDown(router.stoppe);
       final dienst = await KonfigurationsDienst.starte(router, _Speicher());
       addTearDown(dienst.stoppe);
+      final export = await ExportDienst.starte(
+        router,
+        belag: (_) => null,
+        regelwerk: () => null,
+        unterkonstruktion: (_) => null,
+      );
+      addTearDown(export.stoppe);
       final verbindung = PlanerVerbindung(
         Uri.parse('ws://127.0.0.1:${router.webSocketPort}/ws'),
       );
@@ -269,6 +276,14 @@ void main() {
       expect(geladen.stand, v1);
       // Weiter über dieselbe Sitzung (Rolle mitarbeiter)
       expect((await verbindung.speichere(Planung.start)).version, 1);
+      // M9-08: Export für GrandTotal als Text (ohne Belag nur der Kopf)
+      expect(
+        await verbindung.exportGrandTotal(
+          Planung.start,
+          Uri.parse('https://planer.example/'),
+        ),
+        grandTotalCsv(const []),
+      );
       // erneut anmelden ersetzt die Sitzung
       await verbindung.anmelden(_email, _passwort);
       await verbindung.abmelden();

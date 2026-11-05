@@ -10,16 +10,28 @@ import 'package:web/web.dart' as web;
 
 /// Export für GrandTotal (M9-08) im echten Browser: Importdatei vom Server
 /// und Download über einen Blob-Link.
+/// Testkonto, das `tool/smoke.sh` nur für diesen Lauf anlegt (M9-10).
+const _email = String.fromEnvironment('SMOKE_MITARBEITER_EMAIL');
+const _passwort = String.fromEnvironment('SMOKE_MITARBEITER_PASSWORT');
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('Importdatei vom Server', (_) async {
+  testWidgets('Importdatei vom Server nur für Mitarbeiter', (_) async {
+    expect(_email, isNotEmpty, reason: 'Testkonto fehlt (tool/smoke.sh)');
     final verbindung = PlanerVerbindung(
       wampAdresse(
         Uri.base,
         vorgabe: const String.fromEnvironment('PLANER_WAMP_URL'),
       ),
     );
+    // Kunde (anonym): der Router lehnt ab
+    await expectLater(
+      verbindung.exportGrandTotal(Planung.start, Uri.base),
+      throwsA(anything),
+    );
+    await verbindung.anmelden(_email, _passwort);
+    addTearDown(verbindung.abmelden);
     // Der Smoke-Server läuft ohne Artikeldatei: nur die Spaltenköpfe
     expect(
       await verbindung.exportGrandTotal(Planung.start, Uri.base),

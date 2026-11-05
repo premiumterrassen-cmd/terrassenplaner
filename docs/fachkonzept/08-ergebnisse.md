@@ -84,8 +84,8 @@ Nach der Mitarbeiter-Anmeldung zeigt die Materialliste je Artikel die **Menge** 
 
 Neuer Planer (M9-08) – der „CSV-Download“ als Importdatei für GrandTotal:
 
-- **Knopf „Export für GrandTotal“** in der Mitarbeiter-Ansicht der Materialliste (rechts über der Tabelle). Die App fordert die Datei beim Server an (`kunde.export.grandtotal`, Exportdienst) und bietet sie zum Speichern an; sie rechnet nichts selbst. Dateiname `GrandTotal_Import_<Nummer>_v<Version>.csv` der gespeicherten Konfiguration (ohne Prüfcode), sonst `GrandTotal_Import.csv`. Erfolg und Fehler als Hinweis.
-- **Inhalt = Materialliste** (M9-03) der ganzen Planung in ihrer Reihenfolge, eine Zeile je Artikel, Länge und Zusatz; abgewählte Positionen (Menge 0) entfallen. Geänderte Mengen der Mitarbeiter-Ansicht gelten wie in der Materialliste nur für angemeldete Mitarbeiter (Stelle `ExportDienst.darfMengenAendern`, angeschlossen mit M9-10).
+- **Knopf „Export für GrandTotal“** in der Mitarbeiter-Ansicht der Materialliste (rechts über der Tabelle). Die App fordert die Datei beim Server an (`mitarbeiter.export.grandtotal`, Exportdienst) und bietet sie zum Speichern an; sie rechnet nichts selbst. Die Prozedur steht nur angemeldeten Mitarbeitern offen (M9-10) – Aufrufe aus einer Kundensitzung lehnt der Router ab. Dateiname `GrandTotal_Import_<Nummer>_v<Version>.csv` der gespeicherten Konfiguration (ohne Prüfcode), sonst `GrandTotal_Import.csv`. Erfolg und Fehler als Hinweis.
+- **Inhalt = Materialliste** (M9-03) der ganzen Planung in ihrer Reihenfolge, eine Zeile je Artikel, Länge und Zusatz – mit Unterkonstruktion und Auflagern (M6), Zubehör samt Pflichtzubehör und Freidielen (M8); abgewählte Positionen (Menge 0) entfallen. Es gelten die vom Mitarbeiter geänderten Mengen (`Planung.mengen`); die Rolle prüft der Dienst aus den Aufrufdetails des Routers (`disclose_caller`, `ExportDienst.darfMengenAendern`).
 - **Format** wie die bisherigen Importdateien: Text in UTF-8, Trenner `;`, Zeilenende CRLF, Felder mit `;`, `"` oder Zeilenumbruch in Anführungszeichen; Zahlen mit Punkt. Spalten in dieser Reihenfolge:
 
 | Spalte | Inhalt |

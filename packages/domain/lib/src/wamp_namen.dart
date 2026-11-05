@@ -37,10 +37,10 @@ abstract final class WampNamen {
 
   /// Export für GrandTotal (M9-08): Argumente die Planung im
   /// Transportformat (`Planung.zuBytes`) und optional die Adresse der
-  /// Web-App (für die Bild-Links); Antwort die Importdatei als Text. Sie
-  /// enthält nur, was auch die Materialliste zeigt; den Knopf gibt es in der
-  /// Mitarbeiter-Ansicht (Fachkonzept 08).
-  static const exportGrandTotal = '${kunde}export.grandtotal';
+  /// Web-App (für die Bild-Links); Antwort die Importdatei als Text. Nur für
+  /// angemeldete Mitarbeiter (Fachkonzept 08, Mitarbeiter-Ansicht, M9-10) –
+  /// der Router lehnt Kunden ab.
+  static const exportGrandTotal = '${mitarbeiter}export.grandtotal';
 
   /// Konfigurationsdienst (M9-05): SPEICHERN vergibt beim ersten Mal eine
   /// Konfigurationsnummer und legt danach je Speichern eine neue Version an;

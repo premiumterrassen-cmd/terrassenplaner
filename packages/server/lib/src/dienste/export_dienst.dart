@@ -4,6 +4,7 @@ import 'package:connectanum_router/connectanum_router.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 import '../router/planer_router.dart';
+import '../zugriff/rollen.dart';
 import 'planungs_dienst.dart';
 
 /// Exportdienst (M9-08): erzeugt aus einer Planung die Importdatei für
@@ -15,9 +16,10 @@ import 'planungs_dienst.dart';
 /// - export.grandtotal `[planung]` oder `[planung, adresse der App]` →
 ///   `[importdatei]`
 ///
-/// Die Datei enthält nur, was auch die Materialliste zeigt (Verkaufsdaten,
-/// B-055); geänderte Mengen der Mitarbeiter-Ansicht gelten wie beim
-/// Planungsdienst nur für Mitarbeiter ([darfMengenAendern]).
+/// Die Prozedur liegt unter `mitarbeiter.`: Exporte gibt es nur in der
+/// Mitarbeiter-Ansicht (Fachkonzept 08), der Router lehnt Kunden ab. Die
+/// Datei enthält die Materialliste mit Zubehör und Freidielen (M8) und den
+/// vom Mitarbeiter geänderten Mengen (`Planung.mengen`, [darfMengenAendern]).
 class ExportDienst {
   ExportDienst._(this._sitzung);
 
@@ -31,7 +33,11 @@ class ExportDienst {
     required Unterkonstruktionssuche unterkonstruktion,
   }) async {
     final sitzung = await router.dienstSitzung(sitzungId);
-    (await sitzung.register(WampNamen.exportGrandTotal)).onInvoke(
+    (await sitzung.register(
+      WampNamen.exportGrandTotal,
+      // Die Rolle des Aufrufers entscheidet über geänderte Mengen (M9-10).
+      options: RegisterOptions(discloseCaller: true),
+    )).onInvoke(
       (aufruf) => _exportiere(aufruf, belag, regelwerk, unterkonstruktion),
     );
     return ExportDienst._(sitzung);
@@ -59,12 +65,13 @@ class ExportDienst {
   /// Obergrenze der Planung (wie beim Speichern, M9-05).
   static const groessterInhalt = 1 << 20;
 
-  /// **Stelle für die Mitarbeiter-Anmeldung (M9-10):** wie
-  /// `PlanungsDienst.darfMengenAendern` – geänderte Mengen der Materialliste
-  /// gelten nur für angemeldete Mitarbeiter (Rolle `mitarbeiter` aus den
-  /// Aufrufdetails). Bis es die Anmeldung gibt, exportiert der Dienst für
-  /// jeden Aufrufer die berechneten Mengen.
-  static bool darfMengenAendern(Invocation aufruf) => false;
+  /// Geänderte Mengen der Materialliste gelten wie beim Planungsdienst nur
+  /// für angemeldete Mitarbeiter (M9-10). Die Rolle setzt der Router
+  /// (`caller_authrole`, registriert mit `disclose_caller`) – ein Aufrufer
+  /// kann sie nicht selbst angeben; interne Dienste exportieren die
+  /// berechneten Mengen.
+  static bool darfMengenAendern(Invocation aufruf) =>
+      aufruf.details.custom['caller_authrole'] == Rollen.mitarbeiter;
 
   /// Importdatei zu den [argumente]n `[planung]` oder `[planung, adresse]`;
   /// geänderte Mengen der Planung gelten nur [mitMengen]. Wirft bei anderen
