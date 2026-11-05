@@ -2385,6 +2385,54 @@ abstract class PlanerTexte {
   /// In de, this message translates to:
   /// **'Verblendung'**
   String get materialVerblendung;
+
+  /// No description provided for @rinnenFrage.
+  ///
+  /// In de, this message translates to:
+  /// **'An welchen Seiten sollen Entwässerungsrinnen geplant werden?'**
+  String get rinnenFrage;
+
+  /// No description provided for @rinnenLage.
+  ///
+  /// In de, this message translates to:
+  /// **'Lage der Rinne an {seite}'**
+  String rinnenLage(String seite);
+
+  /// No description provided for @rinnenlageGesamteSeite.
+  ///
+  /// In de, this message translates to:
+  /// **'Gesamte Seite (innen)'**
+  String get rinnenlageGesamteSeite;
+
+  /// No description provided for @rinnenlageImElement.
+  ///
+  /// In de, this message translates to:
+  /// **'Im bodentiefen Element'**
+  String get rinnenlageImElement;
+
+  /// No description provided for @rinnenlageAusserhalbElement.
+  ///
+  /// In de, this message translates to:
+  /// **'Außerhalb des bodentiefen Elements'**
+  String get rinnenlageAusserhalbElement;
+
+  /// No description provided for @rinnenlageVorElement.
+  ///
+  /// In de, this message translates to:
+  /// **'Nur vor dem bodentiefen Element'**
+  String get rinnenlageVorElement;
+
+  /// No description provided for @rinnenHinweis.
+  ///
+  /// In de, this message translates to:
+  /// **'Lage und bodentiefes Element sind im Artikel festgelegt; die Lage wählt die Rinne. Die Unterkonstruktion reicht bis an die Seite.'**
+  String get rinnenHinweis;
+
+  /// No description provided for @meldungOhneRinnenartikel.
+  ///
+  /// In de, this message translates to:
+  /// **'Zu diesem Belag ist keine Entwässerungsrinne hinterlegt.'**
+  String get meldungOhneRinnenartikel;
 }
 
 class _PlanerTexteDelegate extends LocalizationsDelegate<PlanerTexte> {

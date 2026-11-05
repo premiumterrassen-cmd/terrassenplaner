@@ -46,6 +46,13 @@ final class Anschlussbedarf {
 
   /// Hinweise zum Anschluss für die App.
   final List<Anschlussmeldung> meldungen;
+
+  /// Beides zusammen, erst dieser, dann [weiterer].
+  Anschlussbedarf und(Anschlussbedarf weiterer) => Anschlussbedarf(
+    stuecke: [...stuecke, ...weiterer.stuecke],
+    bedarf: [...bedarf, ...weiterer.bedarf],
+    meldungen: [...meldungen, ...weiterer.meldungen],
+  );
 }
 
 /// Eine verblendete Strecke: Länge in mm und die Terrassenhöhe dort.

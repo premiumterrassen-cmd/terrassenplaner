@@ -58,6 +58,7 @@ export 'src/regeln/feldbreite.dart';
 export 'src/regeln/hoehenpunkte.dart';
 export 'src/regeln/planungsregeln.dart';
 export 'src/regeln/regelwerk.dart';
+export 'src/regeln/rinnen.dart';
 export 'src/regeln/uk_verlegung.dart';
 export 'src/regeln/uk_zusatz.dart';
 export 'src/regeln/unterbau_berechnung.dart';

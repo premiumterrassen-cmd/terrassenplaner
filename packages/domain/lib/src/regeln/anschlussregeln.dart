@@ -16,7 +16,8 @@ import '../konfiguration/planungsstand.dart';
 
 /// Anschluss der bearbeiteten Fläche (M7) mit den [meldungen]:
 /// angrenzende Seiten grau (M7-01, 4.1), verblendete gelb (M7-02, 4.2) –
-/// beim Kreis („Fläche verblenden“) der ganze Umriss als Sehnenzug.
+/// beim Kreis („Fläche verblenden“) der ganze Umriss als Sehnenzug –,
+/// Seiten mit Rinne blau (M7-03, 4.3).
 Anschlussergebnis anschlussergebnis(
   Planungsstand stand, {
   List<Anschlussmeldung> meldungen = const [],
@@ -43,6 +44,9 @@ Anschlussergebnis anschlussergebnis(
             von: umriss[i],
             bis: umriss[(i + 1) % umriss.length],
           ),
+      ...linien([
+        for (final r in stand.anschluss.rinnen) r.seite,
+      ], Seitenrolle.rinne),
     ],
     meldungen: meldungen,
   );

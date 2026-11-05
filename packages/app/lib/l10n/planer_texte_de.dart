@@ -1318,4 +1318,34 @@ class PlanerTexteDe extends PlanerTexte {
 
   @override
   String get materialVerblendung => 'Verblendung';
+
+  @override
+  String get rinnenFrage =>
+      'An welchen Seiten sollen Entwässerungsrinnen geplant werden?';
+
+  @override
+  String rinnenLage(String seite) {
+    return 'Lage der Rinne an $seite';
+  }
+
+  @override
+  String get rinnenlageGesamteSeite => 'Gesamte Seite (innen)';
+
+  @override
+  String get rinnenlageImElement => 'Im bodentiefen Element';
+
+  @override
+  String get rinnenlageAusserhalbElement =>
+      'Außerhalb des bodentiefen Elements';
+
+  @override
+  String get rinnenlageVorElement => 'Nur vor dem bodentiefen Element';
+
+  @override
+  String get rinnenHinweis =>
+      'Lage und bodentiefes Element sind im Artikel festgelegt; die Lage wählt die Rinne. Die Unterkonstruktion reicht bis an die Seite.';
+
+  @override
+  String get meldungOhneRinnenartikel =>
+      'Zu diesem Belag ist keine Entwässerungsrinne hinterlegt.';
 }

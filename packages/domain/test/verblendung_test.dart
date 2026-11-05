@@ -154,7 +154,10 @@ void main() {
       for (final m in Anschlussmeldung.values) {
         expect(Anschlussmeldung.ausNummer(m.nummer), m);
       }
-      expect([for (final m in Anschlussmeldung.values) m.nummer], [1, 2, 3, 4]);
+      expect(
+        [for (final m in Anschlussmeldung.values) m.nummer],
+        [1, 2, 3, 4, 5],
+      );
       expect(() => Anschlussmeldung.ausNummer(0), throwsFormatException);
       final fbb = fb.Builder()..startTable(1);
       fbb.finish(fbb.endTable());

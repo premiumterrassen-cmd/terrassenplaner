@@ -253,6 +253,19 @@ void main() {
     }
     await _imMenue(tester, warnung);
     expect(warnung, findsOneWidget);
+    // M7-03: Rinne an A — B (Bauelement) unter 4.3 mit Lage; ohne
+    // Artikeldatei hat der Smoke-Server keine Rinne, also der Hinweis
+    await _waehle(tester, 'rinne-0');
+    await _waehle(tester, 'rinne-0-imElement');
+    expect(await _gewaehlt(tester, 'rinne-0-imElement'), isTrue);
+    expect(find.byKey(const ValueKey('rinne-1')), findsNothing);
+    final ohneRinne = find.byKey(const ValueKey('anschluss-ohneRinnenartikel'));
+    for (var i = 0; i < 50 && ohneRinne.evaluate().isEmpty; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    }
+    await _imMenue(tester, ohneRinne);
+    expect(ohneRinne, findsOneWidget);
   });
 }
 

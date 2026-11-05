@@ -786,6 +786,11 @@ class Bearbeitungsmenue extends StatelessWidget {
       berechnung: berechnung,
       onGeaendert: () => zustand.markiereGeaendert(schritt),
     ),
+    (PlanerSchritt.terrassenanschluss, 2) => RinnenWahl(
+      planung: planung,
+      berechnung: berechnung,
+      onGeaendert: () => zustand.markiereGeaendert(schritt),
+    ),
     (PlanerSchritt.verschnittoptimierung, 0) when berechnung != null =>
       DielenlisteAnzeige(berechnung: berechnung!),
     _ => null,

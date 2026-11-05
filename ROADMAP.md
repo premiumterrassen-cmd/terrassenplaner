@@ -396,9 +396,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/8
   - Seiten verblenden (gelb dargestellt), bei Kreis „Fläche verblenden“; nur bei Belagstärke 19–23 mm; Warnungen (Unterlüftung, keine Verblendung ohne Höhenunterschied).
   - Abnahme: Regeln und Warnungen wie beschrieben; Verblendungsmaterial in der Materialliste
   - Ergebnis: Unterpunkt 4.2 (Kreis: „Fläche verblenden“), eine Rolle je Seite, gelb in der Zeichnung. `verblendungsbedarf`: Verblendungsdielen aus „moeglicheVerblendung“ in Reihen nach Blendenhöhe (F37: 2 × 4000 + 1 × 5000 mm, Zusatz „Verblendung“, nur Materialliste), 31 Blendenhalter à 8,6 cm aus den Resten der UK (F37 ohne weitere UK), Hinweise Unterlüftung/Belagstärke/Höhenunterschied/Artikel (`Anschlussmeldung`).
-- [ ] **M7-03 Entwässerungsrinnen und bodentiefe Elemente** ([#67](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/67)) – `feature/m7-03-entwaesserungsrinnen-und-bodentiefe-elem`
+- [x] **M7-03 Entwässerungsrinnen und bodentiefe Elemente** ([#67](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/67)) – `feature/m7-03-entwaesserungsrinnen-und-bodentiefe-elem`
   - Rinnen je Seite; bodentiefe Elemente mit Optionen (gesamte Seite innen/außen, im/außerhalb des Elements, nur vor dem Element).
   - Abnahme: Alle Optionen mit Material
+  - Ergebnis: Unterpunkt 4.3 mit Schalter je Seite (auch am Bauelement, nicht an verblendeten) und vier Lagen; die Lage wählt die Variante aus „moeglicheDrainage“ (R-D01). Belag und Fläche um die Rinnenbreite ausgespart, UK bis an die Seite (F38: 14,256 m², 46 Dielen, 13 × 4000 mm UK, 4 Rinnen, 6 Auflagerprofile); blau in der Zeichnung; Hinweis ohne Rinnenartikel.
 - [ ] **M7-04 Abläufe / Höhenreferenzpunkte** ([#68](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/68)) – `feature/m7-04-ablaeufe-hoehenreferenzpunkte`
   - Weitere Höhenreferenzpunkte setzen (Position waagerecht/senkrecht, ab Punkt A, negative Werte möglich).
   - Abnahme: Punkte per Maus und Eingabe

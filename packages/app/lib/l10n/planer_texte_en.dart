@@ -1316,4 +1316,33 @@ class PlanerTexteEn extends PlanerTexte {
 
   @override
   String get materialVerblendung => 'Cladding';
+
+  @override
+  String get rinnenFrage =>
+      'On which sides should drainage channels be planned?';
+
+  @override
+  String rinnenLage(String seite) {
+    return 'Position of the channel at $seite';
+  }
+
+  @override
+  String get rinnenlageGesamteSeite => 'Entire side (inside)';
+
+  @override
+  String get rinnenlageImElement => 'In the floor-level element';
+
+  @override
+  String get rinnenlageAusserhalbElement => 'Outside the floor-level element';
+
+  @override
+  String get rinnenlageVorElement => 'Only in front of the floor-level element';
+
+  @override
+  String get rinnenHinweis =>
+      'Position and floor-level element are defined by the item; the position selects the channel. The substructure extends up to the side.';
+
+  @override
+  String get meldungOhneRinnenartikel =>
+      'No drainage channel is set up for this decking.';
 }

@@ -171,6 +171,7 @@ class PlanungsDienst {
     UkVerlegung? uk,
     Auflagerbedarf? auflager,
     Anschlussbedarf? anschluss,
+    Planungsstand? belagstand,
   ]) {
     // offene Freiform (M4-08): nur der gezeichnete Linienzug
     if (stand.grundriss case FreiformGrundriss(
@@ -185,7 +186,8 @@ class PlanungsDienst {
       // Bögen (Kreis) als Sehnenzug für die Zeichnung, Ecken für die Namen
       umriss: kontur.vieleck(),
       ecken: stand.grundriss.ecken,
-      flaeche: kontur.flaeche,
+      // eine Rinne verkleinert die Fläche (F38, M7-03)
+      flaeche: (belagstand ?? stand).kontur.flaeche,
       ausschnitte: [for (final a in stand.ausschnitte) a.kontur.punkte],
       hoehenpunkte: hoehen,
       stellfuesse: _stellfuesse(stand, regelwerk, unterkonstruktion),
@@ -329,7 +331,9 @@ class PlanungsDienst {
     late Berechnung aktuell;
     for (final (i, f) in planung.flaechen.indexed) {
       final artikel = belag(f.stand.belag);
-      final verlegung = verlegeBelag(f.stand, artikel);
+      // Rinnen sparen den Belag an ihrer Seite aus (M7-03, R-C08)
+      final belagstand = rinnenstand(f.stand, artikel, regelwerk);
+      final verlegung = verlegeBelag(belagstand, artikel);
       final uk = unterkonstruktion(f.stand);
       final hoehen = _hoehen(f.stand, artikel, uk);
       final ukv = _ukVerlegung(
@@ -369,8 +373,19 @@ class PlanungsDienst {
               ukv,
               auflager,
               anschluss,
+              belagstand,
             )
-          : _grundflaeche(f.stand);
+          : _grundflaeche(
+              f.stand,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              belagstand,
+            );
       gesamt += grund.flaeche * f.haeufigkeit;
       if (verlegung != null) {
         final liste = verlegung.dielenliste * f.haeufigkeit;
@@ -482,8 +497,8 @@ class PlanungsDienst {
   }
 
   /// Terrassenanschluss der Fläche (M7): Verblendung (M7-02) mit
-  /// Blendenhaltern im UK-Achsabstand aus den Resten der UK-Verlegung; ohne
-  /// UK-Verlegung keine Blendenhalter.
+  /// Blendenhaltern im UK-Achsabstand aus den Resten der UK-Verlegung (ohne
+  /// UK-Verlegung keine Blendenhalter) und Entwässerungsrinnen (M7-03).
   static Anschlussbedarf _anschluss(
     Planungsstand stand,
     Artikel? belag,
@@ -505,7 +520,7 @@ class PlanungsDienst {
             belagFeldbreite(belag, regelwerk)!,
           ),
     ukStuecke: [for (final s in v?.stuecke ?? const <Planstueck>[]) s.laenge],
-  );
+  ).und(rinnenbedarf(stand, belag: belag, regelwerk: regelwerk));
 
   /// **Stelle für die Mitarbeiter-Anmeldung (M9-10):** Geänderte Mengen der
   /// Materialliste (Mitarbeiter-Ansicht, Fachkonzept 08) übernimmt der

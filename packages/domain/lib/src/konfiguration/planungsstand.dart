@@ -411,6 +411,14 @@ final class Planungsstand {
     return _mit(anschluss: anschluss.mitVerblendet(seite, an: an));
   }
 
+  /// Kopie mit einer Entwässerungsrinne in der Lage [lage] an der Seite
+  /// [seite] (`null` = ohne, M7-03, Fachkonzept 4.3); die Seite ist dann
+  /// nicht mehr verblendet, an einem Bauelement darf sie liegen.
+  Planungsstand mitRinne(int seite, Rinnenlage? lage) {
+    _pruefeSeite(seite);
+    return _mit(anschluss: anschluss.mitRinne(seite, lage));
+  }
+
   void _pruefeSeite(int seite) {
     if (seite < 0 || seite >= seitenzahl) {
       throw RangeError.range(seite, 0, seitenzahl - 1, 'seite');

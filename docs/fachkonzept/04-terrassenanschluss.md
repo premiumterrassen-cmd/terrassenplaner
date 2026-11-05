@@ -32,3 +32,11 @@ Beispiel B — C (309 cm): + „Terrassendiele Robinie 80 x 22 mm, glattkant, ke
 - Produktkarte „RELO V Ventilationsprofil, Einzelstück(e)“.
 - Lage und bodentiefes Element sind **fest im Artikel verankert**: Rinnen werden nur an den Seiten verbaut, als Ventilationsprofil oder Entwässerungsrinne; die Lageauswahl wählt die Artikelvariante.
 - Beispiel C — D (480 cm), gesamte Seite: Fläche 14,832 → 14,256 m² (Rinne 12 cm breit), + Ventilationsprofil, + Auflagerprofil, weniger Dielen → 2.421,13 €.
+
+**Umsetzung (M7-03):**
+
+- Unterpunkt 4.3: Schalter je Seite – nicht an verblendeten Seiten, an Seiten am Bauelement schon (F38); danach die Lage, Vorgabe „Gesamte Seite (innen)“ (`Anschluss.rinnen`, `Rinnenlage`). Wer eine Seite verblendet, nimmt ihr die Rinne und umgekehrt. Seiten mit Rinne zeichnet die App blau.
+- **Artikel:** die Verweise „moeglicheDrainage“ des Belags in Datenreihenfolge stehen für die vier Lagen in ihrer Reihenfolge; fehlt eine Variante, gilt die erste (`rinnenartikel`, R-D01). Ohne Artikel: Hinweis, kein Material, keine Aussparung.
+- **Fläche und Belag:** die Seite wird um die Breite des Rinnenartikels nach innen versetzt (`belagstand`/`rinnenstand`); Fläche und Belag rechnen mit diesem Umriss – F38: 480 × 297 cm = 14,256 m², 46 statt 48 Dielen (alter Planer 44 + 2 einseitig genutete). Die UK rechnet mit dem ganzen Grundriss (R-C08, 13 × 4000 mm wie F38).
+- **Material:** je Seite Rinnenstücke in den Lieferlängen des Artikels (`lieferlaengenFuer`, F38: 480 cm aus 1200 mm → 4), ohne Längen in lfm; dazu das Pflichtzubehör der Rinne (z. B. Auflagerprofile) im „Abstand_Stelzfuesse“ der Rinne plus eins (F38: 100 cm → 6), ohne Abstand je Rinnenstück, mal der Anzahl aus den Artikeldaten.
+- Annahmen (offen für Alexander): Alle Lagen liegen über die ganze Seite; die Lage wählt nur die Artikelvariante (Reihenfolge der Verweise = Reihenfolge der Lagen). „Nur vor dem bodentiefen Element“ ohne Maß des Elements – ob die Variante ein festes Stück ist, sagt der Artikel. Die Master-Artikelliste v27 hat im Blatt „Import Terrassenplaner“ keine berechneten Werte; die Verweise müssen dort gepflegt werden.

@@ -1900,6 +1900,95 @@ void main() {
       );
       expect(anzahl(zwei, blende.nummer, 4000), 4);
     });
+
+    test('Rinne (M7-03): F38 – Fläche 14,256 m², Belag ausgespart, UK bis '
+        'an die Seite, Rinnen und Zubehör in der Materialliste', () {
+      final rinne = Artikel(
+        nummer: const Artikelnummer('50-30-002'),
+        titel: 'Ventilationsprofil',
+        art: Artikelart.rinne,
+        einheit: Verkaufseinheit(Mengeneinheit.stueck),
+        abmessungen: Abmessungen(
+          breite: const Millimeter(120),
+          laengen: const [Millimeter(1200)],
+        ),
+      );
+      final auflage = Artikel(
+        nummer: const Artikelnummer('50-30-004'),
+        titel: 'Auflagerprofil',
+        art: Artikelart.rinnenzubehoer,
+        einheit: Verkaufseinheit(Mengeneinheit.stueck),
+      );
+      final uk = Artikel(
+        nummer: const Artikelnummer('10-10-031'),
+        titel: 'UK',
+        art: Artikelart.unterkonstruktion,
+        einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+        abmessungen: Abmessungen(
+          breite: const Millimeter(40),
+          staerke: const Millimeter(60),
+        ),
+        holzart: robinie,
+        serie: basic,
+      );
+      final regelwerk = Regelwerk(
+        Artikeldatei(
+          quelle: 'test',
+          version: '1',
+          eintraege: [
+            Artikeleintrag(
+              artikel: diele,
+              verweise: {
+                Beziehung.drainage.spalte: [rinne.nummer],
+              },
+            ),
+            Artikeleintrag(
+              artikel: rinne,
+              benoetigt: {auflage.nummer: 1},
+              angaben: const {'Abstand_Stelzfuesse': 1000},
+            ),
+            Artikeleintrag(artikel: auflage),
+            Artikeleintrag(artikel: uk),
+          ],
+        ),
+      );
+      Berechnung mit(Planung planung) => Berechnung.ausBytes(
+        PlanungsDienst.berechnePlanung(
+          planung,
+          (_) => diele,
+          regelwerk,
+          false,
+          (_) => uk,
+        ).zuBytes(),
+      );
+      int? anzahl(Berechnung b, Artikelnummer nummer, [int? laenge]) => b
+          .materialliste
+          .positionen
+          .where((p) => p.nummer == nummer && p.laenge?.mm == laenge)
+          .firstOrNull
+          ?.anzahl;
+      final f38 = Planungsstand.start
+          .mitAngrenzend(0, an: true)
+          .mitRinne(0, Rinnenlage.gesamteSeite);
+      final b = mit(Planung.start.mitStand(f38));
+      final f01 = mit(Planung.start);
+      expect(b.flaecheQuadratmeter, closeTo(14.256, 1e-9));
+      expect(anzahl(f01, diele.nummer, 5000), 48);
+      expect(anzahl(b, diele.nummer, 5000), 46);
+      expect(anzahl(b, uk.nummer, 4000), 13);
+      expect(anzahl(b, rinne.nummer, 1200), 4);
+      expect(anzahl(b, auflage.nummer), 6);
+      expect(b.anschluss.seiten.last.rolle, Seitenrolle.rinne);
+      // zweite Fläche zählt mit ihrer verkleinerten Fläche
+      final zwei = mit(
+        Planung.start.mitStand(f38).mitNeuerFlaeche().mitStand(f38),
+      );
+      expect(zwei.gesamtflaecheQuadratmeter, closeTo(2 * 14.256, 1e-9));
+      // ohne Artikel: Hinweis, ganze Fläche
+      final ohne = rechne(f38, belag: diele);
+      expect(ohne.anschluss.meldungen, [Anschlussmeldung.ohneRinnenartikel]);
+      expect(ohne.flaecheQuadratmeter, closeTo(14.832, 1e-9));
+    });
   });
 
   test('ungültige Maße sind ein Fehler', () async {

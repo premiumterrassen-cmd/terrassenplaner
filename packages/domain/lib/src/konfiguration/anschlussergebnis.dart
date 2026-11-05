@@ -9,7 +9,10 @@ enum Seitenrolle {
   bauelement(1),
 
   /// Verblendet (M7-02): gelb.
-  verblendung(2);
+  verblendung(2),
+
+  /// Mit Entwässerungsrinne (M7-03): blau.
+  rinne(3);
 
   const Seitenrolle(this.nummer);
 
@@ -37,7 +40,11 @@ enum Anschlussmeldung {
   belagstaerke(3),
 
   /// Die Artikeldaten nennen zum Belag keine Verblendung.
-  ohneVerblendungsartikel(4);
+  ohneVerblendungsartikel(4),
+
+  /// Die Artikeldaten nennen zum Belag keine Rinne (M7-03) – ohne Material
+  /// und ohne Aussparung im Belag.
+  ohneRinnenartikel(5);
 
   const Anschlussmeldung(this.nummer);
 

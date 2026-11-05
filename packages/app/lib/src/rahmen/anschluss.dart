@@ -155,11 +155,12 @@ class VerblendungWahl extends StatelessWidget {
             ),
           Hinweis(text: t.verblendungHinweis),
           for (final m in meldungen)
-            Hinweis(
-              key: ValueKey('anschluss-${m.name}'),
-              text: anschlussmeldungText(t, m),
-              warnung: true,
-            ),
+            if (m != Anschlussmeldung.ohneRinnenartikel)
+              Hinweis(
+                key: ValueKey('anschluss-${m.name}'),
+                text: anschlussmeldungText(t, m),
+                warnung: true,
+              ),
         ],
       );
     },
@@ -172,4 +173,95 @@ String anschlussmeldungText(PlanerTexte t, Anschlussmeldung m) => switch (m) {
   Anschlussmeldung.keinHoehenunterschied => t.meldungKeinHoehenunterschied,
   Anschlussmeldung.belagstaerke => t.meldungBelagstaerke,
   Anschlussmeldung.ohneVerblendungsartikel => t.meldungOhneVerblendungsartikel,
+  Anschlussmeldung.ohneRinnenartikel => t.meldungOhneRinnenartikel,
 };
+
+/// Text einer Rinnenlage wie im alten Planer.
+String rinnenlageText(PlanerTexte t, Rinnenlage l) => switch (l) {
+  Rinnenlage.gesamteSeite => t.rinnenlageGesamteSeite,
+  Rinnenlage.imElement => t.rinnenlageImElement,
+  Rinnenlage.ausserhalbElement => t.rinnenlageAusserhalbElement,
+  Rinnenlage.vorElement => t.rinnenlageVorElement,
+};
+
+/// Unterpunkt „Entwässerungsrinnen“ (Fachkonzept 4.3, M7-03): je Seite ein
+/// Schalter – nicht an verblendeten Seiten, an Bauelementen schon (F38) –,
+/// danach die Lage (Vorgabe „Gesamte Seite (innen)“). Seiten mit Rinne
+/// werden blau dargestellt. Jede Wahl ist ein Schritt für
+/// Rückgängig/Wiederherstellen.
+class RinnenWahl extends StatelessWidget {
+  const RinnenWahl({
+    required this.planung,
+    required this.onGeaendert,
+    this.berechnung,
+    super.key,
+  });
+
+  final PlanungsSteuerung planung;
+
+  /// Berechnung des Servers mit den Hinweisen zum Anschluss.
+  final BerechnungsSteuerung? berechnung;
+
+  /// Meldet eine Änderung (Standardwert-Hinweis, M3-05).
+  final VoidCallback onGeaendert;
+
+  void _setze(int seite, Rinnenlage? lage) {
+    planung.setze(planung.aktuell.mitRinne(seite, lage));
+    onGeaendert();
+  }
+
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: Listenable.merge([planung, berechnung]),
+    builder: (context, _) {
+      final t = context.texte;
+      final stand = planung.aktuell;
+      final anschluss = stand.anschluss;
+      final ohneArtikel =
+          berechnung?.ergebnis?.anschluss.meldungen.contains(
+            Anschlussmeldung.ohneRinnenartikel,
+          ) ??
+          false;
+      return Column(
+        key: const ValueKey('rinnen'),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(t.rinnenFrage),
+          Seitenwahl(
+            name: 'rinne',
+            seitenzahl: stand.seitenzahl,
+            gewaehlt: (seite) => anschluss.rinneAn(seite) != null,
+            waehlbar: (seite) => !anschluss.verblendetAn(seite),
+            onGewaehlt: (seite, an) =>
+                _setze(seite, an ? Rinnenlage.gesamteSeite : null),
+          ),
+          for (final (:seite, :lage) in anschluss.rinnen) ...[
+            const SizedBox(height: PlanerAbstand.klein),
+            Text(t.rinnenLage(seitenname(seite, stand.seitenzahl))),
+            Wrap(
+              spacing: PlanerAbstand.klein,
+              children: [
+                for (final l in Rinnenlage.values)
+                  ChoiceChip(
+                    key: ValueKey('rinne-$seite-${l.name}'),
+                    label: Text(rinnenlageText(t, l)),
+                    selected: l == lage,
+                    onSelected: (an) {
+                      if (an) _setze(seite, l);
+                    },
+                  ),
+              ],
+            ),
+          ],
+          Hinweis(text: t.rinnenHinweis),
+          if (ohneArtikel)
+            Hinweis(
+              key: const ValueKey('anschluss-ohneRinnenartikel'),
+              text: t.meldungOhneRinnenartikel,
+              warnung: true,
+            ),
+        ],
+      );
+    },
+  );
+}

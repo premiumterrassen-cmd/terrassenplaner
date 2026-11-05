@@ -395,5 +395,14 @@
   "meldungKeinHoehenunterschied": "Without a height difference to the ground, this side cannot be clad.",
   "meldungBelagstaerke": "Cladding is only possible for decking 19 to 23 mm thick – none is planned.",
   "meldungOhneVerblendungsartikel": "No cladding is set up for this decking.",
-  "materialVerblendung": "Cladding"
+  "materialVerblendung": "Cladding",
+  "rinnenFrage": "On which sides should drainage channels be planned?",
+  "rinnenLage": "Position of the channel at {seite}",
+  "@rinnenLage": {"placeholders": {"seite": {"type": "String"}}},
+  "rinnenlageGesamteSeite": "Entire side (inside)",
+  "rinnenlageImElement": "In the floor-level element",
+  "rinnenlageAusserhalbElement": "Outside the floor-level element",
+  "rinnenlageVorElement": "Only in front of the floor-level element",
+  "rinnenHinweis": "Position and floor-level element are defined by the item; the position selects the channel. The substructure extends up to the side.",
+  "meldungOhneRinnenartikel": "No drainage channel is set up for this decking."
 }
