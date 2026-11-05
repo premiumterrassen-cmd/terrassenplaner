@@ -175,6 +175,9 @@
   "gespeichertMeldung": "Gespeichert: Konfigurationsnummer {nummer}, Version {version}. Bitte notieren Sie die Nummer samt Prüfcode (die letzten fünf Zeichen) – nur damit lässt sich die Konfiguration wieder laden.",
   "@gespeichertMeldung": {"placeholders": {"nummer": {"type": "String"}, "version": {"type": "int"}}},
   "speichernFehler": "Speichern nicht möglich – der Server ist nicht erreichbar. Ihre Planung bleibt erhalten, bitte später erneut speichern.",
+  "pdfErstellt": "Planungsunterlagen zu Konfigurationsnummer {nummer}, Version {version} erstellt.",
+  "@pdfErstellt": {"placeholders": {"nummer": {"type": "String"}, "version": {"type": "int"}}},
+  "pdfFehler": "PDF nicht möglich – der Server ist nicht erreichbar. Ihre Planung bleibt erhalten, bitte später erneut versuchen.",
 
   "modell3dTitel": "3D-Vorschau (Prototyp): Terrasse 4 x 3 m",
   "modell3dLaedt": "Lade 3D-Modell …",

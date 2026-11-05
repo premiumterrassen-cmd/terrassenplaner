@@ -15,6 +15,7 @@ dependencies:
   ffi: ^2.1.4
   objectbox: 5.3.2
   path: ^1.9.1
+  pdf: ^3.13.1
   terrassenplaner_domain: ^0.1.0
   xml: ^7.1.0
 

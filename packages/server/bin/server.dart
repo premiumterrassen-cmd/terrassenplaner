@@ -33,6 +33,16 @@ Future<void> main() async {
     router,
     Konfigurationsablage(datenbank),
   );
+  // Planungsunterlagen als PDF aus gespeicherter Version und aktuellem
+  // Datenstand (M9-06).
+  final unterlagen = await UnterlagenDienst.starte(
+    router,
+    Konfigurationsablage(datenbank),
+    belag: artikel.belag,
+    regelwerk: () => artikel.regelwerk,
+    unterkonstruktion: (stand) =>
+        artikel.unterkonstruktion(stand.belag, stand.unterkonstruktion),
+  );
   final quelle = ArtikeldateiQuelle(
     Platform.environment[ArtikeldateiQuelle.umgebungsvariable] ??
         ArtikeldateiQuelle.standardPfad,
@@ -57,6 +67,7 @@ Future<void> main() async {
   await artikel.stoppe();
   await planung.stoppe();
   await konfiguration.stoppe();
+  await unterlagen.stoppe();
   datenbank.schliesse();
   await modell3d.stoppe();
   await hallo.stoppe();

@@ -496,6 +496,15 @@ class PlanerTexteDe extends PlanerTexte {
       'Speichern nicht möglich – der Server ist nicht erreichbar. Ihre Planung bleibt erhalten, bitte später erneut speichern.';
 
   @override
+  String pdfErstellt(String nummer, int version) {
+    return 'Planungsunterlagen zu Konfigurationsnummer $nummer, Version $version erstellt.';
+  }
+
+  @override
+  String get pdfFehler =>
+      'PDF nicht möglich – der Server ist nicht erreichbar. Ihre Planung bleibt erhalten, bitte später erneut versuchen.';
+
+  @override
   String get modell3dTitel => '3D-Vorschau (Prototyp): Terrasse 4 x 3 m';
 
   @override
