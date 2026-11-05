@@ -51,6 +51,14 @@ class PlanerVerbindung implements KonfigurationsAblage {
     });
   });
 
+  /// Zubehör der acht Gruppen vom Artikeldienst (M8-01).
+  Future<Zubehoerauswahl> zubehoer() => _mitSitzung((sitzung) async {
+    final antwort = await sitzung.callSingle(WampNamen.zubehoerAuswahl);
+    return Zubehoerauswahl.ausJson(alsJsonObjekt(antwort.arguments!.single), {
+      robinie.id: robinie,
+    });
+  });
+
   /// SPEICHERN über den Konfigurationsdienst (M9-05); die Planung reist im
   /// Transportformat als Binärargument.
   @override

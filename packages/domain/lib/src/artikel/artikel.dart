@@ -1,5 +1,6 @@
 import '../holzart/holzart.dart';
 import 'einheiten.dart';
+import 'zubehoergruppe.dart';
 
 /// Artikelnummer wie im Shop (B-152) – der fachliche Schlüssel eines
 /// Artikels.
@@ -106,6 +107,7 @@ final class Artikel {
     this.serie,
     this.profil,
     this.oberseite,
+    this.zubehoergruppe,
     Iterable<String> bilder = const [],
   }) : titel = titel.trim(),
        abmessungen = abmessungen ?? Abmessungen(),
@@ -144,6 +146,9 @@ final class Artikel {
   final Serie? serie;
   final Profil? profil;
   final Oberseite? oberseite;
+
+  /// Gruppe im Schritt „Zubehör“ (M8-01); `null` = kein Zubehör.
+  final Zubehoergruppe? zubehoergruppe;
 
   /// Abbildungen 1–3 (Profilansicht, Stirnseite, Profilzeichnung).
   final List<String> bilder;

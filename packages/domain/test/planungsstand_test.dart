@@ -1106,6 +1106,7 @@ void main() {
             Object.hashAll(const []),
             Object.hashAll(const []),
           ),
+          Object.hashAllUnordered(const []),
         ),
       );
       final neu = start.mitGrundriss(_rechteck(5400, 3600));
@@ -1526,6 +1527,85 @@ void main() {
         Befestigungsart.verschraubtMitAbstandshaltern,
       );
       expect(() => Planungsstand.ausBytes(alt(3)), throwsFormatException);
+    });
+
+    test('Zubehör „Tatsächlich“ (M8-01): eingeben, zurücknehmen, bleibt bei '
+        'allen Änderungen, reist im Transport', () {
+      const start = Planungsstand.start;
+      expect(start.zubehoer, isEmpty);
+      const vlies = Artikelnummer('50-80-006');
+      const oel = Artikelnummer('568-250');
+      final stand = start
+          .mitZubehoermenge(vlies, 3)
+          .mitZubehoermenge(oel, 0)
+          .mitZubehoermenge(vlies, 4);
+      expect(stand.zubehoer, {vlies: 4, oel: 0});
+      expect(() => stand.zubehoer[vlies] = 1, throwsUnsupportedError);
+      expect(stand.mitZubehoermenge(vlies, null).zubehoer, {oel: 0});
+      expect(
+        stand.mitZubehoermenge(vlies, null).mitZubehoermenge(oel, null),
+        start,
+      );
+      expect(Planungsstand.ausBytes(stand.zuBytes()), stand);
+      expect(Planungsstand.ausBytes(stand.zuBytes()).zubehoer, {
+        vlies: 4,
+        oel: 0,
+      });
+      expect(Planungsstand.ausBytes(start.zuBytes()).zubehoer, isEmpty);
+      // gleiche Mengen in anderer Reihenfolge: gleich
+      final anders = start.mitZubehoermenge(oel, 0).mitZubehoermenge(vlies, 4);
+      expect(anders, stand);
+      expect(anders.hashCode, stand.hashCode);
+      expect(stand == start.mitZubehoermenge(vlies, 4), isFalse);
+      expect(
+        stand == start.mitZubehoermenge(vlies, 4).mitZubehoermenge(oel, 1),
+        isFalse,
+      );
+      expect(
+        stand.hashCode ==
+            start.mitZubehoermenge(vlies, 4).mitZubehoermenge(oel, 1).hashCode,
+        isFalse,
+      );
+      expect(
+        start.mitZubehoermenge(vlies, 4) == start.mitZubehoermenge(oel, 4),
+        isFalse,
+      );
+      expect(start.mitZubehoermenge(vlies, 99999).zubehoer[vlies], 99999);
+      for (final falsch in [-1, 100000]) {
+        expect(
+          () => start.mitZubehoermenge(vlies, falsch),
+          throwsA(
+            isA<RangeError>()
+                .having((e) => e.invalidValue, 'invalidValue', falsch)
+                .having((e) => e.start, 'start', 0)
+                .having((e) => e.end, 'end', 99999)
+                .having((e) => e.name, 'name', 'anzahl'),
+          ),
+        );
+      }
+      final mitA = stand.mitNeuemAusschnitt();
+      for (final s in [
+        stand.mitGrundriss(_rechteck(5000, 3000)),
+        stand.mitRundungen(Rundungen.keine),
+        stand.mitForm(Terrassenform.oForm),
+        stand.gedreht(90),
+        stand.mitBelag(const Artikelnummer('10-10-146')),
+        stand.mitDielenlaenge(const Millimeter(4000)),
+        stand.mitKurzeStueckeVerbinden(true),
+        stand.mitVerlegeart(Verlegeart.halbverband),
+        stand.mitVerlegerichtung(Verlegerichtung.senkrecht),
+        stand.mitAusgangspunkt(ecke: 1),
+        stand.mitBefestigungsart(Befestigungsart.verschraubt),
+        mitA,
+        mitA.mitAusschnitt(0, mitA.ausschnitte.single),
+        mitA.ohneAusschnitt(0),
+      ]) {
+        expect(s.zubehoer, {vlies: 4, oel: 0});
+      }
+      expect(
+        stand.mitBefestigungsart(Befestigungsart.verschraubt).befestigungsart,
+        Befestigungsart.verschraubt,
+      );
     });
 
     test('Ausgangsecke nach Formwechsel: zurück auf A, wenn es sie nicht '

@@ -74,6 +74,13 @@ final class UkVerlegung {
   /// Querstreben.
   List<double> get lagen => [for (final l in linien) l.x];
 
+  /// Länge aller UK-Hölzer in mm – die Abschnitte der Linien, so wie die UK
+  /// unter dem Belag liegt (Gummiband, M8-02).
+  double get laenge => linien.fold(
+    0.0,
+    (summe, l) => l.abschnitte.fold(summe, (s, a) => s + a.$2 - a.$1),
+  );
+
   /// Anzahl der Stöße aller UK-Linien.
   int get stossanzahl => linien.fold(0, (n, l) => n + l.stoesse.length);
 }
