@@ -480,9 +480,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/11
 - [ ] **M10-04 Umstellung vom alten Planer** ([#87](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/87)) – `feature/m10-04-umstellung-vom-alten-planer`
   - Links in Shop und Webseite umstellen, alter Planer aus (Vertrag mit Agentur beachten).
   - Abnahme: Neue Adresse live, alte leitet um
-- [ ] **M10-05 Statistik und Datenschutz** ([#88](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/88)) – `feature/m10-05-statistik-und-datenschutz`
+- [x] **M10-05 Statistik und Datenschutz** ([#88](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/88)) – `feature/m10-05-statistik-und-datenschutz`
   - Entscheidung zu Webanalyse und Cookie-Hinweis (alter Planer nutzt eine Analyse des Agenturanbieters).
   - Abnahme: Entscheidung Alexander umgesetzt
+  - Ergebnis: Entscheidungsvorlage und Bestandsaufnahme `docs/betrieb/datenschutz.md` (Entwurf, Texte nicht verbindlich); umgesetzt ist die Empfehlung „keine Webanalyse, kein Cookie, kein Banner“: Statistik nur aus Summen im Grafana-Dashboard „Nutzung“ (Sitzungen, gespeicherte Konfigurationen/Versionen je Tag, RPC, Web-Anfragen); Traefik-Zugriffsprotokoll ohne IP/Port/Benutzer (JSON), Ersatzschriften nicht mehr von fonts.gstatic.com (`fontFallbackBaseUrl`, 404 vom eigenen Server); in Molecule geprüft. Offen bei Alexander: Bestätigung Weg A, Freigabe der Texte, Speicherdauer der Konfigurationen/Anfragen, AV-Vertrag Server.
 
 ## M11 Verteilte Datenhaltung (bei Bedarf)
 

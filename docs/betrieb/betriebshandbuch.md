@@ -54,9 +54,13 @@ Siehe [sicherung.md](sicherung.md): tägliche Online-Sicherung der ObjectBox-Dat
 
 ## Log-Rotation
 
-- **Journal** (Dienste, Traefik-Zugriffe): höchstens 1 GB, Einträge älter als **14 Tage** werden gelöscht (`/etc/systemd/journald.conf.d/90-planer.conf`). Die Frist begrenzt zugleich, wie lange IP-Adressen aus Zugriffsprotokollen vorliegen (Datenschutz, M10-05).
+- **Journal** (Dienste, Traefik-Zugriffe): höchstens 1 GB, Einträge älter als **14 Tage** werden gelöscht (`/etc/systemd/journald.conf.d/90-planer.conf`). Die Frist begrenzt zugleich, wie lange Protokolldaten vorliegen; IP-Adressen schreibt Traefik seit M10-05 gar nicht mehr ins Zugriffsprotokoll.
 - **Container:** je Container höchstens 5 × 10 MB (`json-file` mit `max-size`/`max-file`).
 - **nginx:** `/var/log/nginx` über `logrotate` (Debian-Standard, täglich, 14 Rotationen).
+
+## Datenschutz und Statistik
+
+Keine Webanalyse, keine Cookies; Statistik nur als Summen im Grafana-Dashboard „Terrassenplaner – Nutzung“. Traefik protokolliert Zugriffe als JSON ohne IP-Adresse, Port und Benutzername. Einzelheiten, Entscheidungsvorlage und Textentwürfe: [datenschutz.md](datenschutz.md) (M10-05).
 
 ## Routine
 

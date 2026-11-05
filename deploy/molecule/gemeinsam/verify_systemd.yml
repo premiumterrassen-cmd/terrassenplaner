@@ -290,3 +290,15 @@
       register: planer_test_alt
       failed_when: planer_test_alt.matched != 1
       loop: [planer-auth, planer-router]
+
+    # --- Statistik und Datenschutz (M10-05) ---
+    - name: Gemeinsame Prüfungen Datenschutz
+      ansible.builtin.include_tasks: verify_datenschutz.yml
+
+    - name: Zugriffsprotokoll von Traefik ohne IP-Adresse
+      ansible.builtin.command: journalctl -u traefik -o cat --no-pager
+      register: planer_test_zugriffe
+      changed_when: false
+      failed_when: >-
+        (planer_test_zugriffe.stdout_lines | select('search', '"RequestPath"') | list | length) == 0
+        or (planer_test_zugriffe.stdout_lines | select('search', '"Client(Addr|Host|Port|Username)"') | list | length) > 0

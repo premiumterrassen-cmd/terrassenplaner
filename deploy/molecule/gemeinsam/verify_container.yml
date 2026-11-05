@@ -184,3 +184,7 @@
       changed_when: false
       failed_when: planer_test_alt.stdout != '1'
       loop: [auth, router]
+
+    # --- Statistik und Datenschutz (M10-05) ---
+    - name: Gemeinsame Prüfungen Datenschutz
+      ansible.builtin.include_tasks: verify_datenschutz.yml

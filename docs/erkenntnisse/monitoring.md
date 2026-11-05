@@ -30,6 +30,8 @@ Postausgang `smtps.udag.de:465` (Absender monitoring@robinienwelt.de, Zugang `va
 
 Seit M10-03 meldet auch der Router seine Datenbank-Kennzahlen (`127.0.0.1:8085`, Konfigurationen), und der Node-Exporter liest Textdateien aus `/var/lib/prometheus/node-exporter` (Sicherungszeitpunkte). Was bei welchem Alarm zu tun ist: `docs/betrieb/betriebshandbuch.md`.
 
+Dashboard „Terrassenplaner – Nutzung“ (M10-05, `files/dashboards/nutzung.json`): Statistik ohne Personenbezug aus denselben Metriken – Sitzungen, gespeicherte Konfigurationen/Versionen je Tag (`delta` der Datensatzzahl), RPC-Aufrufe, Web-Anfragen. Grenze: Prometheus hält 30 Tage.
+
 ## Neue WAMP-Dienste
 
 Weitere WAMP-Server in `roles/monitoring/templates/prometheus.yml.j2` (Job `wamp`) bzw. im Container-Pendant eintragen – das Dashboard und die Alarme greifen über die Labels `job`/`dienst` automatisch.
