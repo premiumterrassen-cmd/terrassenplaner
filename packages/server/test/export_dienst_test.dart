@@ -185,6 +185,10 @@ void main() {
         return antwort.arguments ?? const [];
       }
 
+      test('eigene Dienst-Sitzung', () {
+        expect(ExportDienst.sitzungId, 'export-dienst');
+      });
+
       test('liefert die Importdatei als Text', () async {
         final [csv as String] = await rufe([
           Planung.start.zuBytes(),

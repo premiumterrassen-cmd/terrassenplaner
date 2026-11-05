@@ -32,19 +32,26 @@ class ExportDienst {
   }) async {
     final sitzung = await router.dienstSitzung(sitzungId);
     (await sitzung.register(WampNamen.exportGrandTotal)).onInvoke(
-      (aufruf) => _antworte(
-        aufruf,
-        (argumente) => grandTotal(
-          argumente,
-          belag: belag,
-          regelwerk: regelwerk(),
-          unterkonstruktion: unterkonstruktion,
-          mitMengen: darfMengenAendern(aufruf),
-        ),
-      ),
+      (aufruf) => _exportiere(aufruf, belag, regelwerk, unterkonstruktion),
     );
     return ExportDienst._(sitzung);
   }
+
+  static void _exportiere(
+    Invocation aufruf,
+    Belagsuche belag,
+    Regelwerksuche regelwerk,
+    Unterkonstruktionssuche unterkonstruktion,
+  ) => _antworte(
+    aufruf,
+    (argumente) => grandTotal(
+      argumente,
+      belag: belag,
+      regelwerk: regelwerk(),
+      unterkonstruktion: unterkonstruktion,
+      mitMengen: darfMengenAendern(aufruf),
+    ),
+  );
 
   /// authid der internen Dienst-Sitzung.
   static const sitzungId = 'export-dienst';
