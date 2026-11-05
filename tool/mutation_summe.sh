@@ -16,7 +16,8 @@ packages=("$@")
 summe() {
   local attribut="$1"
   shift
-  cat "$@" | grep -o "<testsuite [^>]*>" | sed "s/.* $attribut=\"\([0-9]*\)\".*/\1/" |
+  # Leere Berichte (Teil ohne geänderte Dateien) haben kein <testsuite>.
+  cat "$@" | { grep -o "<testsuite [^>]*>" || true; } | sed "s/.* $attribut=\"\([0-9]*\)\".*/\1/" |
     awk '{ s += $1 } END { print s + 0 }'
 }
 

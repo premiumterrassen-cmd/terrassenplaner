@@ -152,6 +152,13 @@ bericht app 1 2 50 0 3
 bericht app 2 2 50 0 3
 pruefe "Summe: Timeouts zählen wie im Werkzeug als unerkannt" nicht summe
 bericht app 2 2 50 0 0
+bericht app 1 2 50 0 0
+echo '<testsuites></testsuites>' >"$BERICHTE/mutation-teil-app-2-von-2/app/mutation-test.xunit.xml"
+pruefe "Summe: leerer Bericht eines Teils zählt als gelaufen" summe
+bericht app 1 2 50 3 0
+pruefe "Summe: leerer Teil senkt die Schwelle nicht" nicht summe
+bericht app 1 2 50 0 0
+bericht app 2 2 50 0 0
 rm -r "$BERICHTE/mutation-teil-app-1-von-2"
 pruefe "Summe: fehlender Teil → rot" nicht summe
 rm -r "$BERICHTE/mutation-teil-app-2-von-2"
