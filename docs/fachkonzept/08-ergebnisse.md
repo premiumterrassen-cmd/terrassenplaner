@@ -58,12 +58,13 @@ Neuer Planer (M9-06):
   3. **Unterkonstruktion**: Plan mit den UK-Hölzern in ihrer Farbe (rot/blau/grün wie Zeichnung und Stückliste, M9-04), Querstreben, Auflagern; **Stückliste** ohne den Belag.
   4. **Höhenzuordnung der Auflager** (M6-11): Abstand, je Auflager Spaltbereich und Anzahl – das sind die Stelzfußhöhen.
   5. **Terrassenbelag**: Verlegeplan mit der Nummer in jedem Stück, „Dielen/Platten nach Nummer“ (Nr., Artikel, Maße, Stück), „Benötigte Dielen“ je Lieferlänge; **Zuschnittsplan Belag** (Ausgangslänge, Menge, Schnittmaße; gleiche Lieferdielen zusammengefasst).
-  6. **Materialliste** wie der Dialog (M9-03) mit €/lfm, €/Stück, € gesamt, „Summe gesamt“, „enthaltene 19 % MwSt.“ und dem Hinweis, dass nur das Angebot verbindlich ist (B-055).
+  6. **Materialliste** wie der Dialog (M9-03) – mit Zubehör (M8-02/03) und der Freidiele als eigener Position mit 0 € (M8-04, B-079) – mit €/lfm, €/Stück, € gesamt, „Summe gesamt“, „enthaltene 19 % MwSt.“ und dem Hinweis, dass nur das Angebot verbindlich ist (B-055).
   7. **Hinweise zur Planung**: die Meldungen jeder Fläche (Belag M5-10, UK gedreht, Höhe korrigiert M6-02, Höhengrenzen der Auflager M6-08) – fehlt im alten Planer.
   8. **Rechtliche Hinweise** wie im alten Planer und Grußtext „Es grüßt Sie das RobinienWelt TEAM“ mit E-Mail und Shop.
+- Das Holzvolumen auf dem Deckblatt enthält die Freidiele wie die Kennzahl (M8-04). Geänderte Mengen der Mitarbeiter-Ansicht gelten im PDF wie in der Berechnung nur für angemeldete Mitarbeiter (Rolle vom Router, M9-10).
 - Kopf jeder Folgeseite: Konfigurationsnummer und Version; Fuß: „Seite x von y“. Texte Deutsch und Englisch (Sprache der App).
 - **Schrift:** die Standardschrift des PDF (Helvetica) ohne eingebettete Datei; sie kennt nur Latin-1, deshalb stehen Beträge als „2.066,57 EUR“ und typografische Anführungszeichen/Gedankenstriche als einfache Zeichen.
-- **Nicht enthalten (Folge-Issues):** Zuschnittsplan der UK (M9-02, die UK liefert bisher keine Zuordnung Stück → Lieferlänge), Verblendung (M7), Zubehör und Freidielen (M8), Angebotsteil mit Lieferhinweis und Unterschrift (M9-07, Angebots-PDF), Projektbezeichnung (gibt es im Planungsstand noch nicht).
+- **Nicht enthalten (Folge-Issues):** Zuschnittsplan der UK (M9-02, die UK liefert bisher keine Zuordnung Stück → Lieferlänge), Verblendung (M7), Angebotsteil mit Lieferhinweis und Unterschrift (M9-07, Angebots-PDF), Projektbezeichnung (gibt es im Planungsstand noch nicht).
 - **Abnahme:** Für 31 Referenzfälle (alle Rechtecke, L- und T-Formen mit vollständigen Kantenmaßen) entstehen alle Kapitel und ein PDF (`packages/server/test/referenzunterlagen_test.dart`, mit `PLANER_PDF_AUSGABE=<ordner>` zum Ansehen).
 
 ## Angebot anfordern

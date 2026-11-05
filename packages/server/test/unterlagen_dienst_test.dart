@@ -5,6 +5,9 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:connectanum_client/connectanum.dart';
+import 'package:connectanum_router/connectanum_router.dart'
+    as wamp_router
+    show Invocation, InvocationDetails;
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import 'package:terrassenplaner_server/terrassenplaner_server.dart';
 import 'package:test/test.dart';
@@ -41,6 +44,10 @@ final class _Ablage implements KonfigurationsSpeicher {
 
   @override
   Entwurf? entwurf(String schluessel) => throw UnimplementedError();
+
+  @override
+  Konfigurationskennung kennung(Konfigurationsnummer nummer) =>
+      throw UnimplementedError();
 }
 
 void main() {
@@ -88,6 +95,28 @@ void main() {
     expect(UnterlagenDienst.sitzungId, 'unterlagen-dienst');
   });
 
+  test('geänderte Mengen nur mit der Rolle mitarbeiter (M9-10)', () {
+    wamp_router.Invocation aufruf(Map<String, Object?> custom) =>
+        wamp_router.Invocation(
+          1,
+          2,
+          wamp_router.InvocationDetails(null, null, false),
+        )..details.custom.addAll(custom);
+    expect(
+      UnterlagenDienst.darfMengenAendern(
+        aufruf({'caller_authrole': Rollen.mitarbeiter}),
+      ),
+      isTrue,
+    );
+    for (final custom in [
+      <String, Object?>{},
+      {'caller_authrole': Rollen.kunde},
+      {'caller_authid': Rollen.mitarbeiter},
+    ]) {
+      expect(UnterlagenDienst.darfMengenAendern(aufruf(custom)), isFalse);
+    }
+  });
+
   group('Unterlagen der Planung', () {
     test('je Fläche eine Berechnung mit ihr als bearbeiteter, Werte der '
         'ganzen Planung', () {
@@ -114,6 +143,40 @@ void main() {
       // 4 × 14,832 m²: die zweite Fläche dreimal
       expect(zusammenfassung.first, ('Terrace area', '59.328 m²'));
       expect(zusammenfassung[1], ('Number of areas', '2'));
+    });
+
+    test('Freidiele (M8-04) in Materialliste, geänderte Mengen nur für '
+        'Mitarbeiter (M9-10)', () {
+      final schluessel = (
+        nummer: diele.nummer,
+        laenge: const Millimeter(5000),
+        zusatz: null,
+      );
+      final geaendert = Planung.start.mitMenge(schluessel, 7);
+      List<List<String>> material({required bool mitMengen}) {
+        final u = UnterlagenDienst.unterlagen(
+          geaendert,
+          datum: DateTime(2026, 11, 5),
+          belag: (_) => diele,
+          regelwerk: regelwerk,
+          unterkonstruktion: (_) => uk,
+          mitMengen: mitMengen,
+        );
+        return u.kapitel
+            .singleWhere((k) => k.titel == 'Materialliste')
+            .inhalt
+            .whereType<Tabelle>()
+            .single
+            .zeilen;
+      }
+
+      final kunde = material(mitMengen: false);
+      expect(
+        kunde.map((z) => z[1]),
+        contains('Diele – Länge: 5000 mm – Freidiele'),
+      );
+      expect(kunde.first[2], '48 Stück');
+      expect(material(mitMengen: true).first[2], '7 Stück');
     });
 
     test('ohne Artikeldaten nur Geometrie', () {

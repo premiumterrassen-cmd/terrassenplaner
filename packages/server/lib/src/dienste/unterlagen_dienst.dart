@@ -4,6 +4,7 @@ import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import '../datenhaltung/konfigurationen.dart';
 import '../ergebnisse/planungsunterlagen_pdf.dart';
 import '../router/planer_router.dart';
+import '../zugriff/rollen.dart';
 import 'planungs_dienst.dart';
 
 /// Unterlagendienst (M9-06): erzeugt die Planungsunterlagen einer
@@ -31,11 +32,22 @@ class UnterlagenDienst {
     DateTime Function() uhr = DateTime.now,
   }) async {
     final sitzung = await router.dienstSitzung(sitzungId);
-    (await sitzung.register(WampNamen.planungsunterlagenPdf)).onInvoke(
+    (await sitzung.register(
+      WampNamen.planungsunterlagenPdf,
+      // Die Rolle des Aufrufers entscheidet über geänderte Mengen (M9-10).
+      options: RegisterOptions(discloseCaller: true),
+    )).onInvoke(
       (aufruf) => _antworte(
         aufruf,
-        (argumente) =>
-            _pdf(argumente, ablage, belag, regelwerk, unterkonstruktion, uhr),
+        (argumente) => _pdf(
+          argumente,
+          ablage,
+          belag,
+          regelwerk,
+          unterkonstruktion,
+          uhr,
+          mitMengen: darfMengenAendern(aufruf),
+        ),
       ),
     );
     return UnterlagenDienst._(sitzung);
@@ -47,15 +59,21 @@ class UnterlagenDienst {
 
   static Artikel? _ohneUnterkonstruktion(Planungsstand stand) => null;
 
+  /// Geänderte Mengen der Materialliste (Mitarbeiter-Ansicht) gelten im PDF
+  /// wie in der Berechnung nur für angemeldete Mitarbeiter (Rolle
+  /// `mitarbeiter` vom Router, M9-10).
+  static bool darfMengenAendern(Invocation aufruf) =>
+      aufruf.details.custom['caller_authrole'] == Rollen.mitarbeiter;
+
   /// authid der internen Dienst-Sitzung.
   static const sitzungId = 'unterlagen-dienst';
 
   /// Die Planungsunterlagen der [planung]: je Fläche eine Berechnung mit
   /// ihr als bearbeiteter Fläche und die Verlegung ihres Belags; die Werte
   /// der ganzen Planung (Materialliste, Fläche, Volumen) sind in jeder
-  /// dieser Berechnungen gleich. Geänderte Mengen der Mitarbeiter-Ansicht
-  /// gelten wie in der Berechnung nur für Mitarbeiter (M9-10) – bis dahin
-  /// nie.
+  /// dieser Berechnungen gleich – mit Zubehör und Freidielen (M8) in
+  /// Materialliste und Holzvolumen. Geänderte Mengen der Mitarbeiter-Ansicht
+  /// gelten nur [mitMengen] (M9-10).
   static Planungsunterlagen unterlagen(
     Planung planung, {
     required DateTime datum,
@@ -65,6 +83,7 @@ class UnterlagenDienst {
     KonfigurationsStand? stand,
     Kundendaten? kunde,
     Unterlagensprache sprache = Unterlagensprache.deutsch,
+    bool mitMengen = false,
   }) {
     final flaechen = [
       for (final (i, f) in planung.flaechen.indexed)
@@ -74,6 +93,7 @@ class UnterlagenDienst {
           belag,
           regelwerk,
           unterkonstruktion,
+          mitMengen,
         ),
     ];
     return planungsunterlagen(
@@ -93,6 +113,7 @@ class UnterlagenDienst {
     Belagsuche belag,
     Regelwerk? regelwerk,
     Unterkonstruktionssuche unterkonstruktion,
+    bool mitMengen,
   ) {
     final artikel = belag(stand.belag);
     return Flaechenunterlage(
@@ -100,7 +121,7 @@ class UnterlagenDienst {
         planung,
         belag,
         regelwerk,
-        false,
+        mitMengen,
         unterkonstruktion,
       ),
       belag: artikel,
@@ -115,8 +136,9 @@ class UnterlagenDienst {
     Belagsuche belag,
     Regelwerksuche regelwerk,
     Unterkonstruktionssuche unterkonstruktion,
-    DateTime Function() uhr,
-  ) async {
+    DateTime Function() uhr, {
+    required bool mitMengen,
+  }) async {
     final (kennung, version, sprache, kunde) = switch (argumente) {
       [final String k, final int v] => (k, v, 'de', null),
       [final String k, final int v, final String s] => (k, v, s, null),
@@ -140,6 +162,7 @@ class UnterlagenDienst {
       stand: stand,
       kunde: kunde,
       sprache: Unterlagensprache.ausCode(sprache),
+      mitMengen: mitMengen,
     );
     return [await planungsunterlagenPdf(unterlagen)];
   }
