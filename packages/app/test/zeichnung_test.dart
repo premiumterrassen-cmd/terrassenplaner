@@ -328,6 +328,39 @@ void main() {
       expect(fuge.color.a, closeTo(0.3, 0.01));
     });
 
+    test('Querstreben (M6-06): grün über dem Belag, nur mit der Ebene UK', () {
+      final z = Zeichnung(
+        dielen: const [
+          [Offset(0, 0), Offset(1000, 0), Offset(1000, 65)],
+        ],
+        querstreben: const [(Offset(20, 500), Offset(380, 500))],
+      );
+      expect(
+        () => z.querstreben.add((Offset.zero, Offset.zero)),
+        throwsUnsupportedError,
+      );
+      final o = AnsichtsOptionen();
+      final a = AnsichtSteuerung();
+      final m = _maler(z, o, a);
+      expect(m.strebenlinien(), [
+        (
+          a.verschiebung + const Offset(2, 50),
+          a.verschiebung + const Offset(38, 50),
+        ),
+      ]);
+      final aufnahme = PictureRecorder();
+      final leinwand = _ZaehlendeLeinwand(Canvas(aufnahme));
+      m.paint(leinwand, const Size(800, 600));
+      aufnahme.endRecording();
+      final strebe = leinwand.linienStifte.singleWhere(
+        (p) => p.strokeWidth == 3,
+      );
+      expect(strebe.color.toARGB32(), ZeichnungsMaler.strebenFarbe.toARGB32());
+      expect(ZeichnungsMaler.strebenFarbe.toARGB32(), Stueckfarbe.gruen.argb);
+      o.setzeEbenen({Ebene.belag});
+      expect(m.strebenlinien(), isEmpty);
+    });
+
     test('Dielennummern (M5-08): nur wo sie ins Stück passen, längs '
         'gedreht, nie auf dem Kopf', () {
       final z = Zeichnung(
@@ -634,6 +667,7 @@ class _ZaehlendeLeinwand implements Canvas {
   final aufrufe = <String, int>{};
   final stifte = <Paint>[];
   final pfadStifte = <Paint>[];
+  final linienStifte = <Paint>[];
   final textOrte = <Offset>[];
 
   void _zaehle(String name) => aufrufe[name] = (aufrufe[name] ?? 0) + 1;
@@ -650,6 +684,13 @@ class _ZaehlendeLeinwand implements Canvas {
     _zaehle('drawPath');
     pfadStifte.add(paint);
     _ziel.drawPath(path, paint);
+  }
+
+  @override
+  void drawLine(Offset p1, Offset p2, Paint paint) {
+    _zaehle('drawLine');
+    linienStifte.add(paint);
+    _ziel.drawLine(p1, p2, paint);
   }
 
   @override

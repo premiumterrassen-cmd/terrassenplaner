@@ -45,6 +45,10 @@ class BerechnungsSteuerung extends ChangeNotifier {
       dielen: [for (final d in b.dielen) _offsets(d)],
       nummern: b.nummern,
       dielenfarben: [for (final f in b.stueckfarben) Color(f.argb)],
+      querstreben: [
+        for (final s in b.querstreben)
+          (Offset(s.von.x, s.von.y), Offset(s.bis.x, s.bis.y)),
+      ],
       ausgangspunkt: switch (b.ausgangspunkt) {
         final p? => Offset(p.x, p.y),
         null => null,

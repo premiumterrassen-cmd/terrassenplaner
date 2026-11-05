@@ -1036,6 +1036,21 @@ class PlanerTexteDe extends PlanerTexte {
       'Achtung: Ohne Bodenbefestigung kann sich eine schwimmend verlegte Unterkonstruktion verwinden. Eine Versteifung oder ein Rahmen hält sie in Form.';
 
   @override
+  String get querstrebenFrage =>
+      'Möchten Sie zusätzliche Querstreben hinzufügen?';
+
+  @override
+  String get querstrebenAbstand =>
+      'Querstreben kommen als Leiterverband zwischen die UK-Hölzer; automatisch alle 60 cm.';
+
+  @override
+  String get querstrebenAnzahl => 'Anzahl der Quertraversen';
+
+  @override
+  String get querstrebenAnzahlUngueltig =>
+      'Bitte eine ganze Zahl von 1 bis 99 eingeben';
+
+  @override
   String get automatisch => 'Automatisch';
 
   @override

@@ -174,6 +174,25 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('rueckgaengig')));
     await tester.pumpAndSettle();
     expect(find.text(de.nutzungsartVerwindung), findsOneWidget);
+    // M6-06: zusätzliche Querstreben unter 3.7 mit fester Anzahl der
+    // Quertraversen; Rückgängig nimmt beides zurück
+    await _waehle(tester, 'querstreben-ja');
+    expect(find.text(de.querstrebenAbstand), findsOneWidget);
+    final anzahl = find.descendant(
+      of: find.byKey(const ValueKey('querstreben-anzahl')),
+      matching: find.byType(TextField),
+    );
+    await _imMenue(tester, anzahl);
+    await tester.enterText(anzahl, '4');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(tester.widget<TextField>(anzahl).decoration!.hintText, '4');
+    expect(_gewaehlt(tester, 'querstreben-automatisch'), isFalse);
+    for (var i = 0; i < 2; i++) {
+      await tester.tap(find.byKey(const ValueKey('rueckgaengig')));
+      await tester.pumpAndSettle();
+    }
+    expect(_gewaehlt(tester, 'querstreben-nein'), isTrue);
   });
 }
 

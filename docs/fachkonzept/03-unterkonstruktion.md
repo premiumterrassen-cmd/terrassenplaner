@@ -89,6 +89,13 @@ Neuer Planer (M6-05):
 
 „Möchten Sie zusätzliche Querstreben hinzufügen?“ – „Querstreben Hinzufügen“ startet einen Bearbeitungsmodus („Änderungen übernehmen (ESC)“). Wie Querstreben in der Zeichnung gesetzt werden, ließ sich nicht ermitteln. Fachlich: Querstreben kommen als **Leiterverband zwischen die UK-Hölzer** und versteifen die Unterkonstruktion.
 
+Neuer Planer (M6-06):
+
+- Unterpunkt 3.7 (bei Hochterrasse und vorhandener UK 3.6) mit „Möchten Sie zusätzliche Querstreben hinzufügen?“ und Nein (Vorgabe) / Ja statt des Bearbeitungsmodus des alten Planers, der nicht funktionierte ([09](09-nicht-teil-der-kopie.md)). Mit Ja: Hinweis zum Leiterverband, „Automatisch“ und das Feld „Anzahl der Quertraversen“ (ganze Zahl 1–99, Enter übernimmt; Platzhalter die wirksame Anzahl vom Server). Planungsstand-Felder `querstreben` (Platz 82) und `querstrebenReihen` (Platz 83, fehlt = automatisch); die Anzahl bleibt beim Abwählen erhalten. Jede Eingabe ist ein Schritt für Rückgängig/Wiederherstellen.
+- **Automatisch:** Reihen höchstens 60 cm auseinander (R-C03, `querstrebenAbstand`), mindestens eine – F01 (309 cm): 5 Reihen à 12 Streben zu 36 cm = 21,6 m → 3 × 6000 + 1 × 5000 mm. Die Querstreben ersetzen die Reihen der Versteifung (3.6) und gelten bei jeder Art der Terrasse.
+- **Mengen und Zeichnung passen sich an:** Die Streben gehen wie in M6-05 in Material- und Stückliste (grün, Querstück) und kommen als Linien zur App (Berechnung Platz 90, wirksame Anzahl Platz 91); die Zeichnung zeigt sie grün über dem Belag, solange die Ebene UK eingeschaltet ist.
+- Einzelne Streben von Hand setzen oder entfernen gehört zu M6-12 (UK von Hand anpassen).
+
 ## 3.8 Nutzung privat oder gewerblich
 
 private Nutzung (Vorgabe) | gewerbliche Nutzung. Gewerblich: mehr Auflager (KOPPLEX-3 59,42 → 89,13 €), Summe 2.096,28 €.

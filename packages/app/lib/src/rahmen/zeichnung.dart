@@ -23,8 +23,10 @@ final class Zeichnung {
     List<List<Offset>> dielen = const [],
     List<int> nummern = const [],
     List<Color> dielenfarben = const [],
+    List<(Offset, Offset)> querstreben = const [],
     this.ausgangspunkt,
   }) : umriss = List.unmodifiable(umriss),
+       querstreben = List.unmodifiable(querstreben),
        dielenfarben = List.unmodifiable(dielenfarben),
        dielen = List.unmodifiable(dielen),
        nummern = List.unmodifiable(nummern),
@@ -68,6 +70,9 @@ final class Zeichnung {
   /// Farbe je Dielenstück wie in der Stückliste (M9-04), parallel zu
   /// [dielen]; fehlt eine, bekommt das Stück die normale Fuge.
   final List<Color> dielenfarben;
+
+  /// Querstreben in mm (M6-05/M6-06), je Strebe Anfang und Ende.
+  final List<(Offset, Offset)> querstreben;
 
   /// Ausgangspunkt der Verlegung in mm (M5-07): Ecke plus Verschiebung, dort
   /// liegt der Griff der ersten ganzen Diele; `null` ohne Dielen.
@@ -138,6 +143,17 @@ class ZeichnungsMaler extends CustomPainter {
       for (final d in zeichnung.dielen)
         Path()..addPolygon([for (final p in d) bildschirm(p)], true),
   ];
+
+  /// Querstreben auf dem Bildschirm, wenn die Ebene UK sichtbar ist; sie
+  /// liegen über dem Belag, damit man sie bei beiden Ebenen sieht.
+  List<(Offset, Offset)> strebenlinien() => [
+    if (optionen.zeigt(Ebene.unterkonstruktion))
+      for (final (von, bis) in zeichnung.querstreben)
+        (bildschirm(von), bildschirm(bis)),
+  ];
+
+  /// Farbe der Querstreben: grün wie Querstücke in der Stückliste (M9-04).
+  static final strebenFarbe = Color(Stueckfarbe.gruen.argb);
 
   /// Rand des Dielenstücks [index] in der Farbe der Stückliste (M9-04);
   /// `null` = normale Fuge.
@@ -408,6 +424,12 @@ class ZeichnungsMaler extends CustomPainter {
         ..rotate(winkel);
       maler.paint(canvas, textLage(Offset.zero, Offset.zero, maler.size));
       canvas.restore();
+    }
+    final strebe = Paint()
+      ..color = strebenFarbe
+      ..strokeWidth = 3;
+    for (final (von, bis) in strebenlinien()) {
+      canvas.drawLine(von, bis, strebe);
     }
     final umriss = [for (final p in zeichnung.umriss) bildschirm(p)];
     final linie = Paint()

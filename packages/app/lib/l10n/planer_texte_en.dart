@@ -1034,6 +1034,21 @@ class PlanerTexteEn extends PlanerTexte {
       'Note: without anchoring to the ground, a floating substructure can twist. Bracing or a frame keeps it in shape.';
 
   @override
+  String get querstrebenFrage =>
+      'Would you like to add additional cross braces?';
+
+  @override
+  String get querstrebenAbstand =>
+      'Cross braces form a ladder between the substructure joists; automatically every 60 cm.';
+
+  @override
+  String get querstrebenAnzahl => 'Number of cross brace rows';
+
+  @override
+  String get querstrebenAnzahlUngueltig =>
+      'Please enter a whole number from 1 to 99';
+
+  @override
   String get automatisch => 'Automatic';
 
   @override

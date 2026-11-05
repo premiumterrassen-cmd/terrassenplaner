@@ -284,6 +284,160 @@ class NutzungsartWahl extends StatelessWidget {
   );
 }
 
+/// Unterpunkt „Querstreben“ (Fachkonzept 3.7, M6-06): „Möchten Sie
+/// zusätzliche Querstreben hinzufügen?“ mit Nein (Vorgabe) und Ja; mit Ja
+/// das Feld „Anzahl der Quertraversen“ – leer bzw. „Automatisch“ rechnet der
+/// Server mit 60 cm Abstand (R-C03), eine eingegebene Zahl gilt fest. Die
+/// Querstreben erscheinen in der Zeichnung (Ebene UK) und in Material- und
+/// Stückliste. Jede Eingabe ist ein Schritt für Rückgängig/Wiederherstellen.
+class QuerstrebenWahl extends StatelessWidget {
+  const QuerstrebenWahl({
+    required this.planung,
+    required this.onGeaendert,
+    this.berechnung,
+    super.key,
+  });
+
+  final PlanungsSteuerung planung;
+
+  /// Berechnung des Servers für die wirksame Anzahl der Reihen.
+  final BerechnungsSteuerung? berechnung;
+
+  /// Meldet eine Änderung (Standardwert-Hinweis, M3-05).
+  final VoidCallback onGeaendert;
+
+  void _setze(Planungsstand stand) {
+    planung.setze(stand);
+    onGeaendert();
+  }
+
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: Listenable.merge([planung, berechnung]),
+    builder: (context, _) {
+      final t = context.texte;
+      final stand = planung.aktuell;
+      final reihen = berechnung?.ergebnis?.querstrebenReihen;
+      return Column(
+        key: const ValueKey('querstreben'),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(t.querstrebenFrage),
+          Wrap(
+            spacing: PlanerAbstand.klein,
+            children: [
+              for (final (name, mit, text) in [
+                ('nein', false, t.nein),
+                ('ja', true, t.ja),
+              ])
+                ChoiceChip(
+                  key: ValueKey('querstreben-$name'),
+                  label: Text(text),
+                  selected: stand.querstreben == mit,
+                  onSelected: (an) {
+                    if (an) _setze(planung.aktuell.mitQuerstreben(mit));
+                  },
+                ),
+            ],
+          ),
+          if (stand.querstreben) ...[
+            Text(t.querstrebenAbstand),
+            Wrap(
+              spacing: PlanerAbstand.klein,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                ChoiceChip(
+                  key: const ValueKey('querstreben-automatisch'),
+                  label: Text(t.automatisch),
+                  selected: stand.querstrebenReihen == null,
+                  onSelected: (an) {
+                    if (an) {
+                      _setze(planung.aktuell.mitQuerstrebenReihen(null));
+                    }
+                  },
+                ),
+              ],
+            ),
+            AnzahlFeld(
+              key: const ValueKey('querstreben-anzahl'),
+              titel: t.querstrebenAnzahl,
+              wert: stand.querstrebenReihen ?? reihen,
+              gueltig: Planungsstand.querstrebenReihenGueltig,
+              fehler: t.querstrebenAnzahlUngueltig,
+              onGeaendert: (n) =>
+                  _setze(planung.aktuell.mitQuerstrebenReihen(n)),
+            ),
+          ],
+        ],
+      );
+    },
+  );
+}
+
+/// Eingabefeld für eine ganze Zahl: der aktuelle Wert steht als Platzhalter
+/// darin, Enter übernimmt eine gültige Eingabe, sonst erscheint [fehler].
+class AnzahlFeld extends StatefulWidget {
+  const AnzahlFeld({
+    required this.titel,
+    required this.wert,
+    required this.gueltig,
+    required this.fehler,
+    required this.onGeaendert,
+    super.key,
+  });
+
+  final String titel;
+
+  /// Aktueller Wert; `null` = noch keiner bekannt.
+  final int? wert;
+  final bool Function(int anzahl) gueltig;
+  final String fehler;
+  final ValueChanged<int> onGeaendert;
+
+  @override
+  State<AnzahlFeld> createState() => _AnzahlFeldState();
+}
+
+class _AnzahlFeldState extends State<AnzahlFeld> {
+  final _feld = TextEditingController();
+  String? _fehler;
+
+  @override
+  void dispose() {
+    _feld.dispose();
+    super.dispose();
+  }
+
+  void _uebernimm(String text) {
+    final n = int.tryParse(text.trim());
+    if (n == null || !widget.gueltig(n)) {
+      setState(() => _fehler = widget.fehler);
+      return;
+    }
+    widget.onGeaendert(n);
+    _feld.clear();
+    setState(() => _fehler = null);
+  }
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(top: PlanerAbstand.klein),
+    child: TextField(
+      key: const ValueKey('feld'),
+      controller: _feld,
+      keyboardType: TextInputType.number,
+      decoration: InputDecoration(
+        isDense: true,
+        border: const OutlineInputBorder(),
+        labelText: widget.titel,
+        hintText: widget.wert?.toString(),
+        errorText: _fehler,
+      ),
+      onSubmitted: _uebernimm,
+    ),
+  );
+}
+
 /// Hinweis mit Symbol; als [warnung] in der Fehlerfarbe.
 class _Hinweis extends StatelessWidget {
   const _Hinweis({required this.text, this.warnung = false, super.key});

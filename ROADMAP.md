@@ -352,9 +352,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/7
   - Schwimmende Verlegung, Versteifung ohne Rahmen, Rahmen (Standard), Versteifung mit Rahmen, doppelte UK; Warnung zur Verwindung ohne Bodenbefestigung.
   - Abnahme: Jede Variante ergibt die Konstruktion der Referenzfälle
   - Ergebnis: Unterpunkt 3.6 mit den fünf Arten (Vorgabe schwimmend wie F01) und der Warnung zur Verwindung bei schwimmender Verlegung; Planungsstand-Feld `nutzungsart` (Platz 81), wirksam nur bei der normalen Terrasse. Der Server rechnet das zusätzliche UK-Holz (`ukZusatz`) in Material- und Stückliste: Rahmen F32 2 × 5000 mm und zweite Lage F34/F28 9 × 5000 mm wie im alten Planer; Leiterverband F31 in zwei Reihen à 12 Streben (6000 + 4000 mm statt alt 2 × 4000 mm, in die die Streben nicht passen). Doppelte UK prüft die Höhen mit zwei Lagen. Bodenanker/Auflager folgen mit M6-08/M6-11. Benchmark `domain.Ukzusatz.ukZusatz` ≈ 2 ms.
-- [ ] **M6-06 Querstreben** ([#59](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/59)) – `feature/m6-06-querstreben`
+- [x] **M6-06 Querstreben** ([#59](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/59)) – `feature/m6-06-querstreben`
   - Querstreben hinzufügen, Anzahl der Quertraversen manuell ändern.
   - Abnahme: Mengen und Zeichnung passen sich an
+  - Ergebnis: Unterpunkt 3.7 mit Nein/Ja, „Automatisch“ und Feld „Anzahl der Quertraversen“ (1–99); Planungsstand-Felder `querstreben`/`querstrebenReihen` (Plätze 82/83). Automatisch Reihen höchstens 60 cm auseinander (R-C03; F01: 5 Reihen à 12 Streben); sie ersetzen die Reihen der Versteifung. Streben in Material- und Stückliste (grün) und als Linien in der Zeichnung (Ebene UK; Berechnung Plätze 90/91). Einzelne Streben von Hand: M6-12.
 - [ ] **M6-07 Private oder gewerbliche Nutzung** ([#60](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/60)) – `feature/m6-07-private-oder-gewerbliche-nutzung`
   - Steuert Stellfüße (privat/gewerblich) und Belastung.
   - Abnahme: Stellfußauswahl folgt dem Regelwerk
