@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -62,6 +63,21 @@ void main() {
     expect(pdf, contains('(EUR)'));
     expect(pdf, contains('("Test")'));
     expect(pdf, contains('/Helvetica-Bold'));
+  });
+
+  // Der Satz als Ganzes (Ränder, Schriftgrößen, Abstände, Farben) gegen
+  // eine Referenzdatei – ohne Zeitstempel und Dokumentkennung. Nach einer
+  // gewollten Änderung am Satz neu schreiben mit
+  // PLANER_PDF_REFERENZ_SCHREIBEN=1 dart test test/planungsunterlagen_pdf_test.dart
+  test('Satz unverändert gegenüber der Referenz', () async {
+    final pdf = (await roh(unterlagen))
+        .replaceAll(RegExp(r'/CreationDate\([^)]*\)'), '')
+        .replaceAll(RegExp(r'/ID\[[^\]]*\]'), '');
+    final referenz = File('test/daten/planungsunterlagen_referenz.pdf');
+    if (Platform.environment['PLANER_PDF_REFERENZ_SCHREIBEN'] == '1') {
+      referenz.writeAsStringSync(pdf, encoding: latin1);
+    }
+    expect(pdf, referenz.readAsStringSync(encoding: latin1));
   });
 
   test('komprimiert kleiner als roh', () async {

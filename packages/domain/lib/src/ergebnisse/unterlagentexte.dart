@@ -404,7 +404,7 @@ final class Unterlagentexte {
   final String dezimal;
   final String tausender;
 
-  bool get _de => identical(this, deutsch);
+  bool get _de => dezimal == ',';
 
   /// „Seite 2 von 7“.
   String seitenangabe(int n, int gesamt) =>
@@ -415,8 +415,13 @@ final class Unterlagentexte {
       wert.toStringAsFixed(stellen).replaceFirst('.', dezimal);
 
   /// Länge in cm ohne überflüssige Nachkommastelle: 480 bzw. 43,5.
-  String cm(Millimeter laenge) =>
-      laenge.mm % 10 == 0 ? '${laenge.mm ~/ 10}' : zahl(laenge.cm, 1);
+  String cm(Millimeter laenge) => _ganzeCm(laenge) ?? zahl(laenge.cm, 1);
+
+  /// Ganze Zentimeter von [laenge] als Text, sonst `null`.
+  static String? _ganzeCm(Millimeter laenge) {
+    final cm = laenge.mm ~/ 10;
+    return cm * 10 == laenge.mm ? '$cm' : null;
+  }
 
   /// Betrag mit Tausendertrennung und zwei Nachkommastellen, z. B.
   /// „2.066,57 €“ bzw. „2,066.57 €“.

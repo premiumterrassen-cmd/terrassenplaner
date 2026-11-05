@@ -344,7 +344,9 @@ String _ausgangspunkt(Unterlagentexte t, Planungsstand s) =>
     '${t.cm(s.verschiebungY)} cm)';
 
 /// Name des Eckpunkts [i]: A, B, … wie in der Zeichnung der App.
-String eckname(int i) => String.fromCharCode(0x41 + i.remainder(26));
+String eckname(int i) => _buchstaben[i % _buchstaben.length];
+
+const _buchstaben = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
 Plan _grundriss(Unterlagentexte t, Berechnung b) {
   final ecken = b.ecken;

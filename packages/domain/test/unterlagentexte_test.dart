@@ -160,4 +160,83 @@ void main() {
     expect(de.mehrwertsteuer, 'enthaltene 19 % MwSt.');
     expect(en.mehrwertsteuer, 'incl. 19 % VAT');
   });
+
+  // Wortlaut genau – Bindestriche und Schrägstriche gehören zum Text
+  // (Mutationen „-“ → „+“, „/“ → „*“).
+  test('Wortlaut von Kopf, Tabellen und Absender', () {
+    expect(de.kundenfelder, ['Name', 'Adresse', 'Ort', 'Telefon', 'E-Mail']);
+    expect(en.kundenfelder, ['Name', 'Address', 'Town', 'Phone', 'Email']);
+    expect(
+      de.dielenHinweis,
+      'Hinweis: Die Zahl in den Dielen/Platten ist die Nummer in der '
+      'nachstehenden Tabelle.',
+    );
+    expect(
+      en.dielenHinweis,
+      'Note: the number in the boards/tiles is the number in the table below.',
+    );
+    expect(de.dielenNachNummer, 'Dielen/Platten nach Nummer');
+    expect(en.dielenNachNummer, 'Boards/tiles by number');
+    expect([de.jeLfm, de.jeStueck], ['€/lfm', '€/Stück']);
+    expect([en.jeLfm, en.jeStueck], ['€/m', '€/piece']);
+    for (final t in [de, en]) {
+      expect(t.absender, [
+        'RobinienWelt TEAM',
+        'anfrage@robinienwelt.de',
+        'shop.robinienwelt.de',
+      ]);
+    }
+  });
+
+  test('Wortlaut der rechtlichen Hinweise', () {
+    expect(de.rechtlicheHinweise, [
+      'Ihre Konfiguration ist ein unverbindlicher Entwurf und ersetzt eine '
+          'ausgiebige Beratung durch Handwerk oder Handel nicht. Alle Angaben '
+          'beziehen sich auf die Nutzung ausschließlich von unseren Produkten '
+          'und verstehen sich als Richtwerte ohne Anspruch auf Richtigkeit/ '
+          'Vollständigkeit. Bei dem Austausch einzelner Produkte durch '
+          'Fremdware ist jegliche Gewährleistung ausgeschlossen.',
+      'Halten Sie sich bei der Planung und Verwirklichung Ihres Projekts '
+          'zwingend an alle rechtlichen Vorschriften, unsere Montageanleitung '
+          'sowie die entsprechenden Fachregeln. Bei abweichender Montage '
+          'erlischt die Gewährleistung seitens uns.',
+      'Alle Produkte können fertigungs- und materialbedingte Maßtoleranzen '
+          'aufweisen. Beginnen Sie deshalb mit Fundament- oder '
+          'Zuschnittarbeiten immer erst, wenn die Ware vor Ort und in einem '
+          'verarbeitungsbereiten Zustand ist.',
+    ]);
+    expect(en.rechtlicheHinweise, [
+      'Your configuration is a non-binding draft and does not replace '
+          'thorough advice from a tradesman or dealer. All information '
+          'refers exclusively to the use of our products and is meant as a '
+          'guide without any claim to correctness or completeness. Any '
+          'warranty is excluded if individual products are replaced by '
+          'third-party goods.',
+      'When planning and carrying out your project, strictly follow all '
+          'legal regulations, our installation instructions and the relevant '
+          'technical rules. Our warranty expires if the installation '
+          'deviates from them.',
+      'All products may have manufacturing- and material-related '
+          'dimensional tolerances. Therefore, only start foundation or '
+          'cutting work once the goods are on site and ready to be worked.',
+    ]);
+  });
+
+  test('Wortlaut der Meldungen mit Zahlen und Bindestrichen', () {
+    expect(
+      de.belagmeldung(Belagmeldung.fliesenSpitzeWinkel, null),
+      'Die Fläche hat Ecken unter 90°. Holzfliesen müssen dort schräg '
+      'zugeschnitten werden.',
+    );
+    expect(
+      en.belagmeldung(Belagmeldung.fliesenSpitzeWinkel, null),
+      'The area has corners below 90°. Wooden tiles must be cut at an '
+      'angle there.',
+    );
+    expect(
+      en.belagmeldung(Belagmeldung.befestigungsartNichtMoeglich, null),
+      'Grooved boards are fixed invisibly with clips. The selected screw '
+      'fixing only applies to smooth-edged boards.',
+    );
+  });
 }
