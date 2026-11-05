@@ -84,6 +84,10 @@ void main() {
   final stand = KonfigurationsStand(kennung, 2);
   final planung = Planung.start.mitNeuerFlaeche().mitHaeufigkeit(3);
 
+  test('Kennung der Dienst-Sitzung', () {
+    expect(UnterlagenDienst.sitzungId, 'unterlagen-dienst');
+  });
+
   group('Unterlagen der Planung', () {
     test('je Fläche eine Berechnung mit ihr als bearbeiteter, Werte der '
         'ganzen Planung', () {
