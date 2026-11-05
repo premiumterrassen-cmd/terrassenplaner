@@ -3,11 +3,10 @@
 /// der Terrassennutzung und Art der Terrasse (Hochterrasse: immer zwei
 /// Lagen, Fachkonzept 3.1).
 ///
-/// Solange die UK-Verlegung fehlt (M6-10), liegen die UK-Linien wie bei der
-/// Befestigung (M5-09, `befestigungspunkte`) quer zu den Dielen gleichmäßig
-/// über die Ausdehnung der Fläche, höchstens im UK-Achsabstand auseinander,
-/// die äußeren am Rand. Das Holz hier kommt zu diesen Linien hinzu; die
-/// Linien selbst rechnet M6-10.
+/// Die Querstreben liegen zwischen den UK-Hölzern der UK-Verlegung (M6-10,
+/// `UkVerlegung.lagen`); ohne sie (keine Dielen) gleichmäßig über die
+/// Ausdehnung der Fläche, höchstens im UK-Achsabstand auseinander, die
+/// äußeren am Rand. Das Holz hier kommt zu den UK-Hölzern hinzu.
 library;
 
 import 'dart:math' as math;
@@ -94,11 +93,14 @@ int strebenreihen(Planungsstand stand, Millimeter laenge) {
 ///   der hochkant stehenden UK).
 ///
 /// Die Lieferlängen rechnet `lieferstuecke`; eine erzwungene UK-Länge (3.4)
-/// gilt auch hier.
+/// gilt auch hier. [linien] sind die Lagen der UK-Hölzer in der gedrehten
+/// Fläche (M6-10); zwischen den beiden Hölzern einer doppelten UK am Stoß
+/// (lichter Abstand unter [mindestStrebe]) gibt es keine Strebe.
 Ukzusatz ukZusatz(
   Planungsstand stand,
   Artikel uk, {
   required Millimeter ukAbstand,
+  List<double>? linien,
 }) {
   final (breite, staerke) = (uk.abmessungen.breite, uk.abmessungen.staerke);
   final rahmen = stand.wirksameNutzungsart?.mitRahmen ?? false;
@@ -122,7 +124,7 @@ Ukzusatz ukZusatz(
   final streben = _streben(
     flaeche,
     huelle,
-    _linien(huelle.min.x, huelle.max.x, ukAbstand),
+    linien ?? _linien(huelle.min.x, huelle.max.x, ukAbstand),
     math.min(breite.mm, staerke.mm).toDouble(),
     reihen,
   );
@@ -214,6 +216,10 @@ Millimeter ukAbstandFuer(Holzart holzart, Millimeter? artikel) =>
     ? artikel
     : holzart.ukAchsabstandMax;
 
+/// Kürzeste Querstrebe: darunter liegen zwei UK-Hölzer als doppelte UK am
+/// Stoß der Dielen nebeneinander (M6-10).
+const mindestStrebe = Millimeter(100);
+
 /// Kanten mit weniger Versatz quer (mm) gelten als parallel zu den UK-Linien.
 const _parallel = 1.0;
 
@@ -262,10 +268,11 @@ List<Strebe> _streben(
   for (var r = 1; r <= reihen; r++)
     for (var i = 1; i < linien.length; i++)
       if (huelle.min.y + huelle.hoehe * r / (reihen + 1) case final y
-          when sehnenzugEnthaelt(
-            flaeche,
-            Punkt((linien[i - 1] + linien[i]) / 2, y),
-          ))
+          when linien[i] - linien[i - 1] - uk >= mindestStrebe.mm &&
+              sehnenzugEnthaelt(
+                flaeche,
+                Punkt((linien[i - 1] + linien[i]) / 2, y),
+              ))
         (
           von: Punkt(linien[i - 1] + uk / 2, y),
           bis: Punkt(linien[i] - uk / 2, y),

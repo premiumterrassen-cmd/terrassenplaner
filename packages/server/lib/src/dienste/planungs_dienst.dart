@@ -21,7 +21,9 @@ typedef Unterkonstruktionssuche = Artikel? Function(Planungsstand stand);
 /// geprüften Höhenpunkte (M6-02), die Meldungen zum Belag (M5-10), das
 /// zusätzliche UK-Holz der Nutzungsart (M6-05) samt Querstreben für die
 /// Zeichnung (M6-06), die Stellfüße zur Nutzung (M6-07), die Auflager mit
-/// Abstand, Höhenbereichen und Meldungen (M6-08), die Materialliste
+/// Abstand, Höhenbereichen und Meldungen (M6-08), die Feldbreite (M6-09),
+/// die UK-Verlegung mit Hölzern, Stücken und Holzvolumen (M6-10), die
+/// Materialliste
 /// (M9-03)
 /// und die Stückliste mit den Farben im Plan (M9-04)
 /// – die App rechnet nichts selbst (Frontend bleibt „doof“). Hin- und
@@ -77,13 +79,24 @@ class PlanungsDienst {
     Artikel? unterkonstruktion,
   ]) {
     final verlegung = verlegeBelag(stand, belag);
+    final hoehen = _hoehen(stand, belag, unterkonstruktion);
+    final uk = _ukVerlegung(
+      stand,
+      belag,
+      regelwerk,
+      unterkonstruktion,
+      verlegung,
+      hoehen,
+    );
     return _mitVerlegung(
-      _grundflaeche(stand, belag, unterkonstruktion),
+      _grundflaeche(stand, belag, unterkonstruktion, null, hoehen, uk),
       stand,
       belag,
       regelwerk,
       verlegung,
-      _befestigung(stand, belag, regelwerk, verlegung),
+      _befestigung(stand, belag, regelwerk, verlegung, uk),
+      null,
+      uk,
     );
   }
 
@@ -94,8 +107,9 @@ class PlanungsDienst {
     Planungsstand stand,
     Artikel? belag,
     Regelwerk? regelwerk,
-    Belagverlegung? v,
-  ) {
+    Belagverlegung? v, [
+    UkVerlegung? uk,
+  ]) {
     if (v == null) return null;
     // verlegt wird nur mit Belag
     final artikel = belag!;
@@ -107,6 +121,43 @@ class PlanungsDienst {
       [for (final t in v.teile) ...t.stuecke],
       winkel: stand.dielenwinkel.toDouble(),
       feldbreite: stand.feldbreite,
+      uk: uk,
+    );
+  }
+
+  /// Geprüfte Höhenpunkte (M6-02) mit Belag und UK.
+  static Hoehenpunkte _hoehen(
+    Planungsstand stand,
+    Artikel? belag,
+    Artikel? unterkonstruktion,
+  ) => pruefeHoehen(
+    stand.hoehen,
+    art: stand.terrassenart,
+    doppelteUk: stand.doppelteUk,
+    dielenstaerke: belag?.abmessungen.staerke,
+    uk: ukMasse(unterkonstruktion),
+  );
+
+  /// UK-Verlegung (M6-10) – nur mit verlegtem Belag aus Holz und bekannter
+  /// [uk]; Abstand ist die wirksame Feldbreite (M6-09), die Lage folgt der
+  /// Drehung der UK aus den Höhenpunkten (M6-02, B-034).
+  static UkVerlegung? _ukVerlegung(
+    Planungsstand stand,
+    Artikel? belag,
+    Regelwerk? regelwerk,
+    Artikel? uk,
+    Belagverlegung? v,
+    Hoehenpunkte hoehen,
+  ) {
+    final hoechste = belagFeldbreite(belag, regelwerk);
+    if (v == null || uk == null || hoechste == null) return null;
+    return ukVerlegung(
+      stand,
+      uk,
+      abstand: wirksameFeldbreite(stand.feldbreite, hoechste),
+      dielen: [for (final t in v.teile) ...t.stuecke],
+      gedreht: hoehen.gedreht,
+      regelwerk: regelwerk,
     );
   }
 
@@ -115,6 +166,8 @@ class PlanungsDienst {
     Artikel? belag,
     Artikel? unterkonstruktion,
     Regelwerk? regelwerk,
+    Hoehenpunkte? hoehenpunkte,
+    UkVerlegung? uk,
   ]) {
     // offene Freiform (M4-08): nur der gezeichnete Linienzug
     if (stand.grundriss case FreiformGrundriss(
@@ -124,13 +177,7 @@ class PlanungsDienst {
       return Berechnung(umriss: punkte, flaeche: 0, geschlossen: false);
     }
     final kontur = stand.kontur;
-    final hoehen = pruefeHoehen(
-      stand.hoehen,
-      art: stand.terrassenart,
-      doppelteUk: stand.doppelteUk,
-      dielenstaerke: belag?.abmessungen.staerke,
-      uk: ukMasse(unterkonstruktion),
-    );
+    final hoehen = hoehenpunkte ?? _hoehen(stand, belag, unterkonstruktion);
     return Berechnung(
       // Bögen (Kreis) als Sehnenzug für die Zeichnung, Ecken für die Namen
       umriss: kontur.vieleck(),
@@ -145,6 +192,7 @@ class PlanungsDienst {
         regelwerk: regelwerk,
         belag: belag,
         uk: unterkonstruktion,
+        verlegung: uk,
       ),
     );
   }
@@ -185,6 +233,7 @@ class PlanungsDienst {
     Belagverlegung? v,
     Befestigungsbedarf? befestigung, [
     Ukzusatz? zusatz,
+    UkVerlegung? uk,
   ]) {
     final meldungen = belagmeldungen(stand, belag, v, regelwerk: regelwerk);
     if (v == null) {
@@ -212,7 +261,7 @@ class PlanungsDienst {
           ganzeLaenge: v.laengste,
         ),
     ];
-    final ukStuecke = zusatz?.stuecke ?? const <Planstueck>[];
+    final ukStuecke = [...?uk?.stuecke, ...?zusatz?.stuecke];
     return Berechnung(
       umriss: flaeche.umriss,
       ecken: flaeche.ecken,
@@ -264,13 +313,28 @@ class PlanungsDienst {
     for (final (i, f) in planung.flaechen.indexed) {
       final artikel = belag(f.stand.belag);
       final verlegung = verlegeBelag(f.stand, artikel);
-      final befestigung = _befestigung(f.stand, artikel, regelwerk, verlegung);
       final uk = unterkonstruktion(f.stand);
-      final zusatz = _ukZusatz(f.stand, artikel, regelwerk, uk, verlegung);
+      final hoehen = _hoehen(f.stand, artikel, uk);
+      final ukv = _ukVerlegung(
+        f.stand,
+        artikel,
+        regelwerk,
+        uk,
+        verlegung,
+        hoehen,
+      );
+      final befestigung = _befestigung(
+        f.stand,
+        artikel,
+        regelwerk,
+        verlegung,
+        ukv,
+      );
+      final zusatz = _ukZusatz(f.stand, artikel, regelwerk, uk, verlegung, ukv);
       final bearbeitet = i == planung.aktiv;
       // Höhenpunkte nur für die bearbeitete Fläche (M6-02)
       final grund = bearbeitet
-          ? _grundflaeche(f.stand, artikel, uk, regelwerk)
+          ? _grundflaeche(f.stand, artikel, uk, regelwerk, hoehen, ukv)
           : _grundflaeche(f.stand);
       gesamt += grund.flaeche * f.haeufigkeit;
       if (verlegung != null) {
@@ -280,7 +344,11 @@ class PlanungsDienst {
           for (final MapEntry(key: laenge, value: anzahl)
               in liste.anzahl.entries)
             Materialbedarf([artikel], anzahl, laenge: laenge),
-          for (final b in [...?befestigung?.bedarf, ...zusatz.bedarf])
+          for (final b in [
+            ...?befestigung?.bedarf,
+            ...?ukv?.bedarf,
+            ...zusatz.bedarf,
+          ])
             b * f.haeufigkeit,
         ]);
       }
@@ -293,6 +361,7 @@ class PlanungsDienst {
           verlegung,
           befestigung,
           zusatz,
+          ukv,
         );
       }
     }
@@ -310,6 +379,7 @@ class PlanungsDienst {
         bedarfe,
         mengen: mitMengen ? planung.mengen : const {},
       ),
+      volumen: holzvolumen(bedarfe),
     );
   }
 
@@ -323,6 +393,7 @@ class PlanungsDienst {
     Regelwerk? regelwerk,
     Artikel? uk,
     Belagverlegung? v,
+    UkVerlegung? verlegung,
   ) {
     final hoechste = belagFeldbreite(belag, regelwerk);
     if (v == null || uk == null || hoechste == null) return Ukzusatz.keiner;
@@ -330,6 +401,7 @@ class PlanungsDienst {
       stand,
       uk,
       ukAbstand: wirksameFeldbreite(stand.feldbreite, hoechste),
+      linien: verlegung?.lagen,
     );
   }
 

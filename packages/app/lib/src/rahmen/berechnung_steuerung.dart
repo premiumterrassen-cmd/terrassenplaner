@@ -49,6 +49,15 @@ class BerechnungsSteuerung extends ChangeNotifier {
         for (final s in b.querstreben)
           (Offset(s.von.x, s.von.y), Offset(s.bis.x, s.bis.y)),
       ],
+      ukHoelzer: [
+        for (final h in b.unterbau.hoelzer)
+          (
+            Offset(h.von.x, h.von.y),
+            Offset(h.bis.x, h.bis.y),
+            Color(h.farbe.argb),
+          ),
+      ],
+      ukBreite: (b.unterbau.holzbreite?.mm ?? 0).toDouble(),
       ausgangspunkt: switch (b.ausgangspunkt) {
         final p? => Offset(p.x, p.y),
         null => null,
@@ -92,6 +101,9 @@ class BerechnungsSteuerung extends ChangeNotifier {
   /// Verschnitt der ganzen Planung als Anteil (M5-08); `null` ohne
   /// verlegte Dielen.
   double? get verschnitt => _ergebnis?.verschnitt;
+
+  /// Holzvolumen der ganzen Planung in m³ (M6-10); `null` ohne Holz.
+  double? get volumen => _ergebnis?.volumen;
 
   /// Benötigte Dielen der ganzen Planung je Belag und Lieferlänge (M5-08).
   List<Lieferposition> get dielenliste => _ergebnis?.dielenliste ?? const [];

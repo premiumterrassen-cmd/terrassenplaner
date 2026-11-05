@@ -111,6 +111,22 @@ final class Materialbedarf {
   String toString() => '$stueck × ${einheiten.first}';
 }
 
+/// Holzvolumen der [bedarfe] in m³ (M6-10, Kennzahl „Volumen“ wie im alten
+/// Planer): je Bedarf mit Lieferlänge Stück × Länge × Breite × Stärke des
+/// Artikels – Dielen und UK so, wie sie geliefert werden (F28: 112 m UK
+/// 40 × 60 = 0,269 m³). Bedarfe ohne Länge oder Querschnitt zählen nicht;
+/// `null`, wenn keiner zählt.
+double? holzvolumen(Iterable<Materialbedarf> bedarfe) {
+  double? summe;
+  for (final b in bedarfe) {
+    final masse = b.einheiten.first.abmessungen;
+    final (laenge, breite, staerke) = (b.laenge, masse.breite, masse.staerke);
+    if (laenge == null || breite == null || staerke == null) continue;
+    summe = (summe ?? 0) + b.stueck * laenge.m * breite.m * staerke.m;
+  }
+  return summe;
+}
+
 /// Eine Zeile der Materialliste (M9-03): Position, Bild, Artikel, Menge,
 /// Einzelpreis, Positionspreis, Preis je lfm und Gesamt-lfm. Preise brutto
 /// inklusive Mehrwertsteuer in Cent, nur Anzeige (B-055); `null`, wenn der

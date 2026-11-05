@@ -351,6 +351,7 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
                                   flaeche: _berechnung?.flaeche,
                                   gesamtflaeche: _berechnung?.gesamtflaeche,
                                   verschnitt: _berechnung?.verschnitt,
+                                  volumen: _berechnung?.volumen,
                                 ),
                                 if (_berechnung case final b?) ...[
                                   const SizedBox(height: PlanerAbstand.klein),

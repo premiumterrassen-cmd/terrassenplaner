@@ -24,8 +24,11 @@ final class Zeichnung {
     List<int> nummern = const [],
     List<Color> dielenfarben = const [],
     List<(Offset, Offset)> querstreben = const [],
+    List<(Offset, Offset, Color)> ukHoelzer = const [],
+    this.ukBreite = 0,
     this.ausgangspunkt,
   }) : umriss = List.unmodifiable(umriss),
+       ukHoelzer = List.unmodifiable(ukHoelzer),
        querstreben = List.unmodifiable(querstreben),
        dielenfarben = List.unmodifiable(dielenfarben),
        dielen = List.unmodifiable(dielen),
@@ -73,6 +76,13 @@ final class Zeichnung {
 
   /// Querstreben in mm (M6-05/M6-06), je Strebe Anfang und Ende.
   final List<(Offset, Offset)> querstreben;
+
+  /// UK-Hölzer in mm (M6-10): Achse von, bis und Farbe wie in der
+  /// Stückliste (rot ganze Lieferlänge, blau zugeschnitten).
+  final List<(Offset, Offset, Color)> ukHoelzer;
+
+  /// Breite der UK-Hölzer in der Draufsicht in mm.
+  final double ukBreite;
 
   /// Ausgangspunkt der Verlegung in mm (M5-07): Ecke plus Verschiebung, dort
   /// liegt der Griff der ersten ganzen Diele; `null` ohne Dielen.
@@ -151,6 +161,23 @@ class ZeichnungsMaler extends CustomPainter {
       for (final (von, bis) in zeichnung.querstreben)
         (bildschirm(von), bildschirm(bis)),
   ];
+
+  /// UK-Hölzer auf dem Bildschirm mit Farbe und Strichbreite (M6-10), wenn
+  /// die Ebene UK sichtbar ist; halb durchsichtig über dem Belag, damit
+  /// man sie bei beiden Ebenen sieht. Mindestens 1 Pixel breit.
+  List<(Offset, Offset, Color, double)> holzlinien() => [
+    if (optionen.zeigt(Ebene.unterkonstruktion))
+      for (final (von, bis, farbe) in zeichnung.ukHoelzer)
+        (
+          bildschirm(von),
+          bildschirm(bis),
+          farbe.withValues(alpha: holzDeckkraft),
+          math.max(1, zeichnung.ukBreite * pixelJeMm * ansicht.zoom),
+        ),
+  ];
+
+  /// Deckkraft der UK-Hölzer über dem Belag.
+  static const holzDeckkraft = 0.6;
 
   /// Farbe der Querstreben: grün wie Querstücke in der Stückliste (M9-04).
   static final strebenFarbe = Color(Stueckfarbe.gruen.argb);
@@ -424,6 +451,15 @@ class ZeichnungsMaler extends CustomPainter {
         ..rotate(winkel);
       maler.paint(canvas, textLage(Offset.zero, Offset.zero, maler.size));
       canvas.restore();
+    }
+    for (final (von, bis, farbe, breite) in holzlinien()) {
+      canvas.drawLine(
+        von,
+        bis,
+        Paint()
+          ..color = farbe
+          ..strokeWidth = breite,
+      );
     }
     final strebe = Paint()
       ..color = strebenFarbe

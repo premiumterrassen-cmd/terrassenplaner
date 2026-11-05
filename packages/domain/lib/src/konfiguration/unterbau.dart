@@ -1,14 +1,18 @@
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 
 import '../artikel/einheiten.dart';
+import '../ergebnisse/stueckliste.dart';
+import '../geometrie/punkt.dart';
 import '../regeln/auflager.dart';
+import '../regeln/uk_verlegung.dart';
 
 /// Was der Server zur Unterkonstruktion der bearbeiteten Fläche rechnet
 /// und die App nur anzeigt (M6-08 bis M6-11) – als eigene Tabelle in der
 /// Berechnung (Platz 110), damit die UK ihre Felder an einer Stelle hat.
 ///
 /// Seit M6-08: Abstand der Auflager, ihre Höhenbereiche und Höhengrenzen
-/// samt Meldungen; seit M6-09 die wählbaren und die wirksame Feldbreite.
+/// samt Meldungen; seit M6-09 die wählbaren und die wirksame Feldbreite;
+/// seit M6-10 die UK-Hölzer mit Farbe und Breite für die Zeichnung.
 final class Unterbau {
   Unterbau({
     this.auflagerabstand,
@@ -19,7 +23,10 @@ final class Unterbau {
     List<Millimeter> feldbreiten = const [],
     this.feldbreite,
     this.feldbreiteBegrenzt = false,
-  }) : feldbreiten = List.unmodifiable(feldbreiten),
+    List<UkHolz> hoelzer = const [],
+    this.holzbreite,
+  }) : hoelzer = List.unmodifiable(hoelzer),
+       feldbreiten = List.unmodifiable(feldbreiten),
        auflager = List.unmodifiable(auflager),
        meldungen = List.unmodifiable(meldungen);
 
@@ -73,7 +80,26 @@ final class Unterbau {
         _versatz(_begrenztPlatz),
         false,
       ),
+      hoelzer: _hoelzer(puffer, ort),
+      holzbreite: mm(_holzbreitePlatz),
     );
+  }
+
+  static List<UkHolz> _hoelzer(fb.BufferContext puffer, int ort) {
+    final k = const fb.ListReader<double>(fb.Float64Reader())
+        .vTableGet(puffer, ort, _versatz(_hoelzerPlatz), const []);
+    final farben = const fb.ListReader<int>(fb.Uint8Reader())
+        .vTableGet(puffer, ort, _versatz(_holzfarbenPlatz), const []);
+    // Zählschleife mit i++: ein Mutant „i += 4 → i = 4“ liefe endlos
+    // (docs/erkenntnisse/mutation-tests.md)
+    return [
+      for (var i = 0; i < k.length ~/ 4; i++)
+        (
+          von: Punkt(k[4 * i], k[4 * i + 1]),
+          bis: Punkt(k[4 * i + 2], k[4 * i + 3]),
+          farbe: Stueckfarbe.ausNummer(farben[i]),
+        ),
+    ];
   }
 
   /// Ohne Unterkonstruktion.
@@ -106,12 +132,19 @@ final class Unterbau {
   /// Ob die gewählte Feldbreite über der Firmenregel lag und begrenzt wurde.
   final bool feldbreiteBegrenzt;
 
+  /// UK-Hölzer der Verlegung (M6-10) mit ihrer Farbe aus der Stückliste.
+  final List<UkHolz> hoelzer;
+
+  /// Breite der UK-Hölzer in der Draufsicht; `null` ohne Hölzer.
+  final Millimeter? holzbreite;
+
   /// Schreibt `{ 0: auflagerabstand (int32 mm; fehlt ohne UK),
   /// 1: auflager ([{ 0: titel (string), 1: von (int32 mm), 2: bis (int32
   /// mm), 3: pad (bool) }]), 2: hoeheVon, 3: hoeheBis (int32 mm; fehlen
   /// ohne Auflager), 4: meldungen ([uint8]) (M6-08), 5: feldbreiten ([int32]
   /// mm), 6: feldbreite (int32 mm; fehlt ohne Belag), 7: feldbreiteBegrenzt
-  /// (bool) (M6-09) }`.
+  /// (bool) (M6-09), 8: hoelzer ([float64] x, y von und bis je Holz),
+  /// 9: holzfarben ([uint8] je Holz), 10: holzbreite (int32 mm) (M6-10) }`.
   int schreibe(fb.Builder fbb) {
     final auflagerOrt = fbb.writeList([
       for (final a in auflager) _auflager(fbb, a),
@@ -122,8 +155,14 @@ final class Unterbau {
     final feldbreitenOrt = fbb.writeListInt32([
       for (final f in feldbreiten) f.mm,
     ]);
+    final hoelzerOrt = fbb.writeListFloat64([
+      for (final h in hoelzer) ...[h.von.x, h.von.y, h.bis.x, h.bis.y],
+    ]);
+    final farbenOrt = fbb.writeListUint8([
+      for (final h in hoelzer) h.farbe.nummer,
+    ]);
     fbb
-      ..startTable(_begrenztPlatz + 1)
+      ..startTable(_holzbreitePlatz + 1)
       ..addInt32(_abstandPlatz, auflagerabstand?.mm)
       ..addOffset(_auflagerPlatz, auflagerOrt)
       ..addInt32(_hoeheVonPlatz, hoeheVon?.mm)
@@ -131,7 +170,10 @@ final class Unterbau {
       ..addOffset(_meldungenPlatz, meldungenOrt)
       ..addOffset(_feldbreitenPlatz, feldbreitenOrt)
       ..addInt32(_feldbreitePlatz, feldbreite?.mm)
-      ..addBool(_begrenztPlatz, feldbreiteBegrenzt);
+      ..addBool(_begrenztPlatz, feldbreiteBegrenzt)
+      ..addOffset(_hoelzerPlatz, hoelzerOrt)
+      ..addOffset(_holzfarbenPlatz, farbenOrt)
+      ..addInt32(_holzbreitePlatz, holzbreite?.mm);
     return fbb.endTable();
   }
 
@@ -154,6 +196,9 @@ final class Unterbau {
   static const _feldbreitenPlatz = 5;
   static const _feldbreitePlatz = 6;
   static const _begrenztPlatz = 7;
+  static const _hoelzerPlatz = 8;
+  static const _holzfarbenPlatz = 9;
+  static const _holzbreitePlatz = 10;
 
   static int _versatz(int platz) => 4 + 2 * platz;
 }

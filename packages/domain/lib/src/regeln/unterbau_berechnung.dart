@@ -11,6 +11,7 @@ import 'auflager.dart';
 import 'feldbreite.dart';
 import 'hoehenpunkte.dart';
 import 'regelwerk.dart';
+import 'uk_verlegung.dart';
 
 /// Unterbau für [stand] mit dem [belag], der UK [uk] und den geprüften
 /// [hoehen]:
@@ -23,12 +24,14 @@ import 'regelwerk.dart';
 ///   Stelzfüße und Pads samt Höhengrenzen und Meldungen. Hochterrasse und
 ///   vorhandene UK stehen auf Stützen bzw. der vorhandenen UK (M6-11). Ohne
 ///   UK keine; kennt das Regelwerk die UK nicht, nur der Abstand.
+/// - **UK-Hölzer** (M6-10) der [verlegung] für die Zeichnung.
 Unterbau unterbauFuer(
   Planungsstand stand, {
   required Hoehenpunkte hoehen,
   Regelwerk? regelwerk,
   Artikel? belag,
   Artikel? uk,
+  UkVerlegung? verlegung,
 }) {
   final hoechste = belagFeldbreite(belag, regelwerk);
   final gewaehlt = stand.feldbreite;
@@ -71,6 +74,10 @@ Unterbau unterbauFuer(
     feldbreiten: auswahl,
     feldbreite: wirksam,
     feldbreiteBegrenzt: begrenzt,
+    hoelzer: verlegung?.hoelzer ?? const [],
+    holzbreite: verlegung == null || verlegung.hoelzer.isEmpty
+        ? null
+        : verlegung.breite,
   );
 }
 

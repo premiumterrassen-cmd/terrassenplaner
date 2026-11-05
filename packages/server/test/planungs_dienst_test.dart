@@ -992,6 +992,8 @@ void main() {
       final stand = Planungsstand.start.mitNutzungsart(Nutzungsart.rahmen);
       final b = rechne(Planung.start.mitStand(stand), mitUk: uk);
       expect(zeilen(b.materialliste)[('10-10-031', 5000)], 2);
+      // dazu die UK-Verlegung (M6-10): 13 Hölzer à 309 cm aus 4000 mm
+      expect(zeilen(b.materialliste)[('10-10-031', 4000)], 13);
       expect(b.stueckliste.zeilen.where((z) => z.nummer == uk.nummer), [
         const Stuecklistenzeile(
           nummer: Artikelnummer('10-10-031'),
@@ -1000,14 +1002,23 @@ void main() {
           stueck: 2,
           farbe: Stueckfarbe.blau,
         ),
+        const Stuecklistenzeile(
+          nummer: Artikelnummer('10-10-031'),
+          titel: '10-10-031',
+          laenge: Millimeter(3090),
+          stueck: 13,
+          farbe: Stueckfarbe.blau,
+        ),
       ]);
       // die Farben im Plan bleiben die der Dielen
       expect(b.stueckfarben, hasLength(b.dielen.length));
-      // schwimmend (F01): kein UK-Holz
+      // schwimmend (F01): nur die UK-Hölzer, kein zusätzliches Holz
       final f01 = rechne(Planung.start, mitUk: uk);
       expect(
-        zeilen(f01.materialliste).keys.map((k) => k.$1),
-        isNot(contains('10-10-031')),
+        zeilen(f01.materialliste).keys
+            .where((k) => k.$1 == '10-10-031')
+            .toList(),
+        [('10-10-031', 4000)],
       );
     });
 
@@ -1051,14 +1062,16 @@ void main() {
       final stand = Planungsstand.start.mitQuerstreben(true);
       final b = rechne(Planung.start.mitStand(stand), mitUk: uk);
       expect(b.querstreben, hasLength(60));
-      expect(b.querstreben.first.von, const Punkt(20, 515));
+      // zwischen den UK-Hölzern der Verlegung (M6-10): Achsen 20 mm vom Rand,
+      // 4760 / 12 = 396,7 mm auseinander, Strebe 356,7 mm
+      expect(b.querstreben.first.von, const Punkt(40, 515));
       expect(b.querstrebenReihen, 5);
       expect(
-        b.stueckliste.zeilen.singleWhere((z) => z.nummer == uk.nummer),
+        b.stueckliste.zeilen.singleWhere((z) => z.farbe == Stueckfarbe.gruen),
         const Stuecklistenzeile(
           nummer: Artikelnummer('10-10-031'),
           titel: '10-10-031',
-          laenge: Millimeter(360),
+          laenge: Millimeter(357),
           stueck: 60,
           farbe: Stueckfarbe.gruen,
         ),
@@ -1419,14 +1432,146 @@ void main() {
       expect(eng.befestigung.punkte, 48 * 17);
       int laengs(Berechnung b) =>
           b.stueckliste.zeilen.fold(0, (n, z) => n + z.stueck);
-      // zweite Lage: 309 cm mit 30 cm → 12 statt 9 Hölzer
-      expect(laengs(eng) - laengs(auto), 3);
+      // UK-Verlegung 17 statt 13 Hölzer (M6-10), zweite Lage: 309 cm mit
+      // 30 cm → 12 statt 9 Hölzer
+      expect(laengs(eng) - laengs(auto), 4 + 3);
       final zuBreit = rechne(
         Planungsstand.start.mitFeldbreite(const Millimeter(600)),
       );
       expect(zuBreit.unterbau.feldbreite, const Millimeter(400));
       expect(zuBreit.unterbau.feldbreiteBegrenzt, isTrue);
       expect(zuBreit.befestigung.punkte, 624);
+    });
+  });
+
+  group('UK-Verlegung (M6-10)', () {
+    final clip = Artikel(
+      nummer: const Artikelnummer('80-10-001-250'),
+      titel: 'CLIP-FIXX - VPE 250',
+      art: Artikelart.clip,
+      einheit: Verkaufseinheit(Mengeneinheit.verpackungseinheit, inhalt: 250),
+    );
+    final diele = Artikel(
+      nummer: const Artikelnummer('10-10-073'),
+      titel: 'Diele',
+      art: Artikelart.diele,
+      einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+      abmessungen: Abmessungen(
+        breite: const Millimeter(60),
+        staerke: const Millimeter(21),
+        laengen: const [Millimeter(5000)],
+      ),
+      holzart: robinie,
+      serie: basic,
+      profil: Profil.genutet,
+    );
+    final uk = Artikel(
+      nummer: const Artikelnummer('10-10-031'),
+      titel: 'UK',
+      art: Artikelart.unterkonstruktion,
+      einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+      abmessungen: Abmessungen(
+        breite: const Millimeter(40),
+        staerke: const Millimeter(60),
+      ),
+      holzart: robinie,
+      serie: basic,
+    );
+    final regelwerk = Regelwerk(
+      Artikeldatei(
+        quelle: 'test',
+        version: '1',
+        eintraege: [
+          Artikeleintrag(
+            artikel: diele,
+            verweise: {
+              Beziehung.befestigung.spalte: [clip.nummer],
+            },
+          ),
+          Artikeleintrag(artikel: clip),
+          Artikeleintrag(artikel: uk),
+        ],
+      ),
+    );
+    Berechnung rechne(Planung planung, {Artikel? mitUk}) => Berechnung.ausBytes(
+      PlanungsDienst.berechnePlanung(
+        planung,
+        (_) => diele,
+        regelwerk,
+        false,
+        (_) => mitUk,
+      ).zuBytes(),
+    );
+    int? anzahl(Berechnung b, String nummer, int laenge) => b
+        .materialliste
+        .positionen
+        .where((p) => p.nummer.wert == nummer && p.laenge?.mm == laenge)
+        .firstOrNull
+        ?.anzahl;
+
+    test('F01: 13 × 4000 mm in Material- und Stückliste, Hölzer in der '
+        'Zeichnung, Befestigung auf den Hölzern, Holzvolumen', () {
+      final b = rechne(Planung.start, mitUk: uk);
+      expect(anzahl(b, '10-10-031', 4000), 13);
+      expect(b.stueckliste.zeilen.where((z) => z.nummer == uk.nummer), [
+        const Stuecklistenzeile(
+          nummer: Artikelnummer('10-10-031'),
+          titel: 'UK',
+          laenge: Millimeter(3090),
+          stueck: 13,
+          farbe: Stueckfarbe.blau,
+        ),
+      ]);
+      expect(b.unterbau.hoelzer, hasLength(13));
+      expect(b.unterbau.holzbreite, const Millimeter(40));
+      expect(b.befestigung.punkte, 624);
+      // 48 Dielen à 5 m 60 × 21 + 13 UK à 4 m 40 × 60
+      expect(b.volumen, closeTo(0.3024 + 0.1248, 1e-9));
+      // ohne UK: Dielen allein, Befestigung auf gleichmäßigen Linien
+      final ohne = rechne(Planung.start);
+      expect(ohne.volumen, closeTo(0.3024, 1e-9));
+      expect(ohne.unterbau.hoelzer, isEmpty);
+      expect(ohne.befestigung.punkte, 624);
+      // ohne Grundriss mit Fläche kein Volumen
+      final offen = rechne(
+        Planung.start.mitStand(
+          Planungsstand(
+            grundriss: FreiformGrundriss(const [Punkt(0, 0), Punkt(1000, 0)]),
+          ),
+        ),
+        mitUk: uk,
+      );
+      expect(offen.volumen, isNull);
+    });
+
+    test('alle Flächen mal Häufigkeit; die UK dreht mit (M6-02, B-034)', () {
+      final planung = Planung.start.mitHaeufigkeit(2);
+      final b = rechne(planung, mitUk: uk);
+      expect(anzahl(b, '10-10-031', 4000), 26);
+      expect(b.volumen, closeTo(2 * (0.3024 + 0.1248), 1e-9));
+      // 7 cm: UK flach, in der Draufsicht 60 mm breit
+      final flach = rechne(
+        Planung.start.mitStand(
+          Planungsstand.start.mitHoehe(const Millimeter(70)),
+        ),
+        mitUk: uk,
+      );
+      expect(flach.unterbau.holzbreite, const Millimeter(60));
+    });
+
+    test('einzelne Fläche (berechne) mit UK-Verlegung', () {
+      final b = PlanungsDienst.berechne(
+        Planungsstand.start,
+        diele,
+        regelwerk,
+        uk,
+      );
+      expect(b.unterbau.hoelzer, hasLength(13));
+      expect(b.befestigung.punkte, 624);
+      expect(
+        b.stueckliste.zeilen.where((z) => z.nummer == uk.nummer),
+        hasLength(1),
+      );
     });
   });
 

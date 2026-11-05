@@ -361,6 +361,51 @@ void main() {
       expect(m.strebenlinien(), isEmpty);
     });
 
+    test('UK-Hölzer (M6-10): in der Farbe der Stückliste, so breit wie die '
+        'UK, halb durchsichtig über dem Belag, nur mit der Ebene UK', () {
+      final rot = Color(Stueckfarbe.rot.argb);
+      final z = Zeichnung(
+        ukHoelzer: [(const Offset(20, 0), const Offset(20, 3090), rot)],
+        ukBreite: 40,
+      );
+      expect(
+        () => z.ukHoelzer.add((Offset.zero, Offset.zero, rot)),
+        throwsUnsupportedError,
+      );
+      final o = AnsichtsOptionen();
+      final a = AnsichtSteuerung();
+      final m = _maler(z, o, a);
+      final [(von, bis, farbe, breite)] = m.holzlinien();
+      expect(von, a.verschiebung + const Offset(2, 0));
+      expect(bis, a.verschiebung + const Offset(2, 309));
+      expect(farbe.toARGB32(), rot.withValues(alpha: 0.6).toARGB32());
+      expect(ZeichnungsMaler.holzDeckkraft, 0.6);
+      expect(breite, 4);
+      final aufnahme = PictureRecorder();
+      final leinwand = _ZaehlendeLeinwand(Canvas(aufnahme));
+      m.paint(leinwand, const Size(800, 600));
+      aufnahme.endRecording();
+      expect(
+        leinwand.linienStifte.where((p) => p.strokeWidth == 4),
+        hasLength(1),
+      );
+      // weit herausgezoomt mindestens 1 Pixel
+      a.zoomeAuf(AnsichtSteuerung.kleinsterZoom);
+      final schmal = _maler(
+        Zeichnung(
+          ukHoelzer: [(const Offset(20, 0), const Offset(20, 3090), rot)],
+          ukBreite: 20,
+        ),
+        o,
+        a,
+      );
+      expect(schmal.holzlinien().single.$4, 1);
+      expect(m.holzlinien().single.$4, 1);
+      expect(Zeichnung.leer.ukBreite, 0);
+      o.setzeEbenen({Ebene.belag});
+      expect(m.holzlinien(), isEmpty);
+    });
+
     test('Dielennummern (M5-08): nur wo sie ins Stück passen, längs '
         'gedreht, nie auf dem Kopf', () {
       final z = Zeichnung(

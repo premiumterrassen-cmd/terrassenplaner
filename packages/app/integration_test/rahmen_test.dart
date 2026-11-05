@@ -215,6 +215,9 @@ void main() {
     await _imMenue(tester, feldbreite);
     expect(feldbreite, findsOneWidget);
     expect(find.text(de.feldbreiteHinweis), findsOneWidget);
+    // M6-10: das Holzvolumen steht in den Kennzahlen; ohne Belag und UK
+    // gibt es noch keins
+    expect(find.text(de.volumen('– m³')), findsOneWidget);
   });
 }
 

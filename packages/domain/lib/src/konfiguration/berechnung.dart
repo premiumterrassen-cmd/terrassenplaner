@@ -22,7 +22,7 @@ import 'unterbau.dart';
 /// seit M5-10 die Meldungen zum Belag, seit M6-02 die geprüften
 /// Höhenpunkte, seit M9-03 die Materialliste der ganzen Planung, seit M9-04
 /// Stückliste und Farbe je Dielenstück, seit M6-08 die Unterkonstruktion
-/// ([unterbau]). Das Volumen folgt mit M6.
+/// ([unterbau]), seit M6-10 das Holzvolumen der ganzen Planung.
 final class Berechnung {
   Berechnung({
     required List<Punkt> umriss,
@@ -49,6 +49,7 @@ final class Berechnung {
     this.querstrebenReihen,
     List<Stellfuss> stellfuesse = const [],
     Unterbau? unterbau,
+    this.volumen,
   }) : unterbau = unterbau ?? Unterbau.leer,
        querstreben = List.unmodifiable(querstreben),
        stellfuesse = List.unmodifiable(stellfuesse),
@@ -197,6 +198,11 @@ final class Berechnung {
         final ort? => Unterbau.lies(puffer, ort),
         null => null,
       },
+      volumen: const fb.Float64Reader().vTableGetNullable(
+        puffer,
+        wurzel,
+        _versatz(_volumenPlatz),
+      ),
     );
   }
 
@@ -377,12 +383,18 @@ final class Berechnung {
   /// mit Abstand, Höhenbereichen und Meldungen.
   final Unterbau unterbau;
 
+  /// Holzvolumen der ganzen Planung in m³ (M6-10, aus M4-13): Dielen und
+  /// UK in ihren Lieferlängen mal Querschnitt, jede Fläche mal ihrer
+  /// Häufigkeit (`holzvolumen`); `null` ohne Holz.
+  final double? volumen;
+
   /// Kopie mit den Werten der ganzen Planung (M4-14, M5-08).
   Berechnung mitPlanung(
     double gesamtflaeche, {
     double? verschnitt,
     List<Lieferposition> dielenliste = const [],
     Materialliste? materialliste,
+    double? volumen,
   }) => Berechnung(
     umriss: umriss,
     ecken: ecken,
@@ -408,6 +420,7 @@ final class Berechnung {
     querstrebenReihen: querstrebenReihen,
     stellfuesse: stellfuesse,
     unterbau: unterbau,
+    volumen: volumen,
   );
 
   /// FlatBuffer für den Weg zur App (#110):
@@ -432,7 +445,8 @@ final class Berechnung {
   /// (M9-04), 90: querstreben ([float64] x, y von und bis je Strebe),
   /// 91: querstrebenReihen (uint16; fehlt ohne) (M6-06), 92: stellfuesse
   /// ([{ 0: nummer (string), 1: titel (string) }]) (M6-07), 110: unterbau
-  /// (Tabelle, `Unterbau.schreibe`, M6-08 bis M6-11) }`. Die Plätze 18–34 sind für die Unterkonstruktion (M6)
+  /// (Tabelle, `Unterbau.schreibe`, M6-08 bis M6-11), 111: volumen (float64
+  /// m³; fehlt ohne Holz, M6-10) }`. Die Plätze 18–34 sind für die Unterkonstruktion (M6)
   /// frei gehalten, 60–69 für die Ergebnisse (M9).
   Uint8List zuBytes() {
     final fbb = fb.Builder();
@@ -477,7 +491,7 @@ final class Berechnung {
     ]);
     final unterbauOrt = unterbau.schreibe(fbb);
     fbb
-      ..startTable(_unterbauPlatz + 1)
+      ..startTable(_volumenPlatz + 1)
       ..addOffset(_umrissPlatz, umrissOrt)
       ..addFloat64(_flaechePlatz, flaeche)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
@@ -509,6 +523,7 @@ final class Berechnung {
       ..addOffset(_stellfuessePlatz, fuesseOrt)
       ..addOffset(_unterbauPlatz, unterbauOrt);
     if (verschnitt case final v?) fbb.addFloat64(_verschnittPlatz, v);
+    if (volumen case final v?) fbb.addFloat64(_volumenPlatz, v);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
   }
@@ -610,6 +625,7 @@ final class Berechnung {
   static const _querstrebenReihenPlatz = 91;
   static const _stellfuessePlatz = 92;
   static const _unterbauPlatz = 110;
+  static const _volumenPlatz = 111;
 
   static int _versatz(int platz) => 4 + 2 * platz;
 }

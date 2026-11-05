@@ -368,10 +368,11 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/7
   - Feldbreite 40/50/60 cm; Firmenregel UK-Achsabstand max. 40 cm (M1-04).
   - Abnahme: Regel aus M1-04 umgesetzt
   - Ergebnis: Unterpunkt 3.10 mit „Automatisch“ und den erlaubten Feldbreiten; Planungsstand-Feld `feldbreite` (Platz 101). Auswahl 30/35/40/50/60 cm nur bis zur höchsten des Belags (UK-Abstand der Artikeldaten, höchstens Holzart: Robinie 40 cm, R-C01) – 50/60 cm der neuen Planer-Version verbietet die Firmenregel; eine breitere gespeicherte Wahl wird mit Meldung begrenzt. Die wirksame Feldbreite ist der UK-Achsabstand für Befestigung (M5-09), UK-Zusatz (M6-05) und UK-Verlegung (M6-10); Unterbau Plätze 5–7.
-- [ ] **M6-10 Berechnung der UK-Verlegung** ([#63](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/63)) – `feature/m6-10-berechnung-der-uk-verlegung` · Benchmark
+- [x] **M6-10 Berechnung der UK-Verlegung** ([#63](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/63)) – `feature/m6-10-berechnung-der-uk-verlegung` · Benchmark
   - Lage der UK-Hölzer, Stöße, Randabstand, Längsverbinder, Farbkennzeichnung im Plan, Stückliste.
   - Abnahme: UK-Stückliste je Referenzfall entspricht der Planungsunterlage; Benchmark: große Fläche mit Gefälle
   - Holzvolumen (m³, Dielen und UK) in den Kennzahlen; Abnahme: Volumen stimmt mit den Referenzfällen (M1-02) überein (aus M4-13 verschoben, Alexander 28.10.2026)
+  - Ergebnis: `ukVerlegung`: Hölzer quer zu den Dielen im Abstand der Feldbreite, äußere bündig am Rand (B-096), doppelte UK an den Stößen der Dielen, Abschnitte ohne leere Ausschnitte, Stückelung wie Dielenreihen (R-B10, 1000 cm → 600 rot + 400 blau), erzwungene UK-Länge, Längsverbinder je Stoß aus dem Regelwerk, Drehung (B-034). Stück- und Materialliste, Zeichnung (Ebene UK, Farben M9-04), Befestigung auf den echten Hölzern (`befestigungspunkteAufUk`), Querstreben zwischen ihnen. UK-Stücklisten wie in den Referenzfällen 2810, 1275, 1823, 347, 4381 (2794: 29 statt 31 Linien, alter Planer enger als 40 cm). Holzvolumen Dielen + UK in Lieferlängen (F28-UK 0,269 m³ wie alt; F01 0,427 statt 0,435 m³ wegen 21 statt 22 mm, B-032). Benchmark `domain.UkVerlegung.ukVerlegung` ≈ 5,9 ms.
 - [ ] **M6-11 Berechnung Stelzfüße/Pads mit Höhenzuordnung** ([#64](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/64)) – `feature/m6-11-berechnung-stelzfuesse-pads-mit-hoehenzu` · Benchmark
   - Anzahl und Höhe je Stelzfuß aus Höhenpunkten, Tabelle der Höhenzuordnung.
   - Abnahme: Höhen je Stelzfuß nachvollziehbar und getestet
