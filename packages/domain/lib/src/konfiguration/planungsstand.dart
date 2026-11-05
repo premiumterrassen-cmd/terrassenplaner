@@ -22,7 +22,8 @@ import 'verlegerichtung.dart';
 /// Verlegeart, seit M5-05 mit Verlegerichtung, seit M5-07 mit
 /// Ausgangspunkt, seit M5-09 mit Befestigungsart, seit M6-01 mit Art der
 /// Terrasse und Spannweite, seit M6-02 mit Höhenpunkten, seit M6-03 mit
-/// Unterkonstruktion und UK-Länge;
+/// Unterkonstruktion und UK-Länge, seit M8-01 mit den Zubehör-Mengen
+/// „Tatsächlich“;
 /// Unterkonstruktion usw. folgen als weitere Felder. Berechnet wird daraus
 /// auf dem Server.
 final class Planungsstand {
@@ -47,6 +48,7 @@ final class Planungsstand {
     this.eckhoehen = const [],
     this.unterkonstruktion,
     this.ukLaenge,
+    this.zubehoer = const {},
   });
 
   /// Liest einen Planungsstand aus dem Transportformat ([zuBytes]).
@@ -185,6 +187,19 @@ final class Planungsstand {
         final mm? => Millimeter(mm),
         null => null,
       },
+      zubehoer: {
+        for (final ort in const fb.ListReader<int>(
+          _Tabellenort(),
+        ).vTableGet(puffer, wurzel, _versatz(_zubehoerPlatz), const []))
+          Artikelnummer(
+            const fb.StringReader().vTableGet(puffer, ort, _versatz(0), ''),
+          ): const fb.Uint32Reader().vTableGet(
+            puffer,
+            ort,
+            _versatz(1),
+            0,
+          ),
+      },
     );
   }
 
@@ -292,6 +307,12 @@ final class Planungsstand {
   static bool hoeheGueltig(Millimeter hoehe) =>
       hoehe > const Millimeter(0) && hoehe <= const Millimeter(3000);
 
+  /// Zubehör-Mengen, die im Schritt „Zubehör“ unter „Tatsächlich“
+  /// eingegeben wurden (M8-01, Fachkonzept 06, R-D04): Anzahl
+  /// Verkaufseinheiten je Artikel, 0 = abgewählt. Artikel ohne Eintrag
+  /// behalten den Wert, den der Server berechnet.
+  final Map<Artikelnummer, int> zubehoer;
+
   /// Wie viele Ecken als Ausgangspunkt wählbar sind (A, B …).
   int get ausgangsecken => _eckenzahl(grundriss);
 
@@ -335,6 +356,7 @@ final class Planungsstand {
     List<Millimeter>? eckhoehen,
     Artikelnummer? unterkonstruktion,
     ({Millimeter? wert})? ukLaenge,
+    Map<Artikelnummer, int>? zubehoer,
   }) {
     final neu = grundriss ?? this.grundriss;
     final ecke = ausgangsecke ?? this.ausgangsecke;
@@ -363,6 +385,7 @@ final class Planungsstand {
       eckhoehen: eckhoehen ?? this.eckhoehen,
       unterkonstruktion: unterkonstruktion ?? this.unterkonstruktion,
       ukLaenge: ukLaenge == null ? this.ukLaenge : ukLaenge.wert,
+      zubehoer: zubehoer ?? this.zubehoer,
     );
   }
 
@@ -527,6 +550,24 @@ final class Planungsstand {
     }
   }
 
+  /// Kopie mit der Menge „Tatsächlich“ [anzahl] für das Zubehör [nummer]
+  /// (M8-01); `null` nimmt die Eingabe zurück (wieder der berechnete Wert).
+  Planungsstand mitZubehoermenge(Artikelnummer nummer, int? anzahl) {
+    if (anzahl != null && (anzahl < 0 || anzahl > hoechsteZubehoermenge)) {
+      throw RangeError.range(anzahl, 0, hoechsteZubehoermenge, 'anzahl');
+    }
+    return _mit(
+      zubehoer: Map.unmodifiable({
+        for (final MapEntry(:key, :value) in zubehoer.entries)
+          if (key != nummer) key: value,
+        nummer: ?anzahl,
+      }),
+    );
+  }
+
+  /// Obergrenze einer Eingabe „Tatsächlich“ (fünfstelliges Feld).
+  static const hoechsteZubehoermenge = 99999;
+
   /// FlatBuffer für den Weg zum Server (#110):
   /// `{ 0: schema (uint16), 1: grundriss { 0: form (uint8), 1: masse ([int32] mm) },
   /// 2: ausschnitte ([{ 0: bezeichnung (string), 1: masse ([int32] mm) }]),
@@ -539,8 +580,9 @@ final class Planungsstand {
   /// 21: spannweite (int32 mm) (M6-01), 22: gefaelle (bool), 23: hoehe
   /// (int32 mm; fehlt = Vorgabehöhe), 24: eckhoehen ([int32] mm) (M6-02),
   /// 25: unterkonstruktion (string), 26: ukLaenge (int32 mm; fehlt =
-  /// automatisch) (M6-03) }`. Plätze 14–19 gehören der
-  /// Dielenverlegung (M5-08).
+  /// automatisch) (M6-03), 40: zubehoer ([{ 0: nummer (string), 1: anzahl
+  /// (uint32) }], M8-01) }`. Plätze 14–19 gehören der Dielenverlegung
+  /// (M5-08), 40–49 dem Zubehör (M8).
   /// Neue Felder nur anhängen (docs/architektur/datenmodell.md).
   Uint8List zuBytes() {
     final fbb = fb.Builder();
@@ -555,6 +597,10 @@ final class Planungsstand {
     final ausschnitteOrt = fbb.writeList([
       for (final a in ausschnitte) _ausschnitt(fbb, a),
     ]);
+    final zubehoerOrt = fbb.writeList([
+      for (final MapEntry(:key, :value) in zubehoer.entries)
+        _zubehoermenge(fbb, key, value),
+    ]);
     final rundungenOrt = fbb.writeListInt32(rundungen.masse);
     final eckhoehenOrt = fbb.writeListInt32([for (final h in eckhoehen) h.mm]);
     final ukOrt = switch (unterkonstruktion) {
@@ -566,7 +612,7 @@ final class Planungsstand {
       null => null,
     };
     fbb
-      ..startTable(27)
+      ..startTable(_zubehoerPlatz + 1)
       ..addUint16(_schemaPlatz, schema)
       ..addOffset(_grundrissPlatz, grundrissOrt)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
@@ -587,7 +633,8 @@ final class Planungsstand {
       ..addInt32(_hoehePlatz, hoehe?.mm)
       ..addOffset(_eckhoehenPlatz, eckhoehenOrt)
       ..addOffset(_unterkonstruktionPlatz, ukOrt)
-      ..addInt32(_ukLaengePlatz, ukLaenge?.mm);
+      ..addInt32(_ukLaengePlatz, ukLaenge?.mm)
+      ..addOffset(_zubehoerPlatz, zubehoerOrt);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
   }
@@ -602,6 +649,15 @@ final class Planungsstand {
       ..addUint8(2, a.form.nummer)
       ..addUint8(3, a.funktion.nummer)
       ..addUint8(4, a.inhalt.nummer);
+    return fbb.endTable();
+  }
+
+  static int _zubehoermenge(fb.Builder fbb, Artikelnummer nummer, int anzahl) {
+    final nummerOrt = fbb.writeString(nummer.wert);
+    fbb
+      ..startTable(2)
+      ..addOffset(0, nummerOrt)
+      ..addUint32(1, anzahl);
     return fbb.endTable();
   }
 
@@ -629,6 +685,7 @@ final class Planungsstand {
   static const _eckhoehenPlatz = 24;
   static const _unterkonstruktionPlatz = 25;
   static const _ukLaengePlatz = 26;
+  static const _zubehoerPlatz = 40;
 
   @override
   bool operator ==(Object other) {
@@ -652,8 +709,12 @@ final class Planungsstand {
         other.unterkonstruktion != unterkonstruktion ||
         other.ukLaenge != ukLaenge ||
         other.eckhoehen.length != eckhoehen.length ||
-        other.ausschnitte.length != ausschnitte.length) {
+        other.ausschnitte.length != ausschnitte.length ||
+        other.zubehoer.length != zubehoer.length) {
       return false;
+    }
+    for (final MapEntry(:key, :value) in zubehoer.entries) {
+      if (other.zubehoer[key] != value) return false;
     }
     for (var i = 0; i < ausschnitte.length; i++) {
       if (other.ausschnitte[i] != ausschnitte[i]) return false;
@@ -688,6 +749,10 @@ final class Planungsstand {
       unterkonstruktion,
       ukLaenge,
     ),
+    Object.hashAllUnordered([
+      for (final MapEntry(:key, :value) in zubehoer.entries)
+        Object.hash(key, value),
+    ]),
   );
 }
 
@@ -766,4 +831,12 @@ T _wert<T>(
     (w) => nummer(w) == n,
     orElse: () => throw FormatException('unbekannte Nummer $n'),
   );
+}
+
+/// Liest nur den Ort einer Tabelle – die Felder liest der Aufrufer.
+final class _Tabellenort extends fb.TableReader<int> {
+  const _Tabellenort();
+
+  @override
+  int createObject(fb.BufferContext puffer, int ort) => ort;
 }

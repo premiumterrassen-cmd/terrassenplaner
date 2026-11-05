@@ -14,6 +14,10 @@ const fuge = Millimeter(5);
 /// Wandabstand der Terrasse (R-C10, Alexander 19.10.2026).
 const wandabstand = Millimeter(20);
 
+/// Terrassenöl je m² Holzfläche (R-D05, Mengenfaktor aus realen Projekten;
+/// automatische Menge im Zubehör, M8-02).
+const oelJeQuadratmeter = 0.2;
+
 /// Ab dieser Anzahl Hauptdielen gibt es Freidielen (R-B09, B-079).
 const freidielenAbDielen = 25;
 

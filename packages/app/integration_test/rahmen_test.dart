@@ -169,5 +169,20 @@ void main() {
     await tester.pumpAndSettle();
     expect(keineUk, findsOneWidget);
     expect(find.text(de.ukLaengeOhneUk), findsOneWidget);
+    // M8-01: Zubehör in acht Gruppen vom Artikeldienst; der Smoke-Server
+    // hat keine Artikeldaten, also leere Gruppen. Eine andere Gruppe öffnen
+    // schließt die erste.
+    await tester.tap(find.byKey(const ValueKey('station-zubehoer')));
+    final leer = find.text(de.zubehoerKeine);
+    for (var i = 0; i < 100 && leer.evaluate().isEmpty; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    }
+    expect(leer, findsOneWidget);
+    expect(find.text('6.8 ${de.zubehoer8}'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('zubehoergruppe-anlieferung')));
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.expand_less), findsWidgets);
+    expect(leer, findsOneWidget);
   });
 }
