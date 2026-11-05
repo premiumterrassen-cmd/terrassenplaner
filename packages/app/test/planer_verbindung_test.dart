@@ -1,11 +1,14 @@
-@Timeout(Duration(minutes: 2))
+@Timeout(Duration(minutes: 6))
 library;
 
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:terrassenplaner_app/src/anmeldung/mitarbeiter_anmeldung.dart';
 import 'package:terrassenplaner_app/src/konfiguration/konfigurations_steuerung.dart';
 import 'package:terrassenplaner_app/src/verbindung/planer_verbindung.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
@@ -158,6 +161,18 @@ void main() {
       // Abnahme: geladen identisch zum gespeicherten Stand, alte Version bleibt
       expect(await verbindung.lade(v1), planung);
       expect(await verbindung.lade(v2), Planung.start);
+      // ohne Prüfcode: als Kunde unbekannt (M9-10)
+      await expectLater(
+        verbindung.ladeOhnePruefcode(v1.nummer, 1),
+        throwsA(
+          isA<KonfigurationNichtGefunden>().having(
+            (e) => '$e',
+            'text',
+            'Konfiguration ${v1.nummer.wert} v1 nicht gefunden',
+          ),
+        ),
+      );
+      expect(verbindung.angemeldetAls.value, isNull);
       for (final unbekannt in [
         KonfigurationsStand(v1.kennung, 3),
         // falscher Prüfcode (M9-05b)
@@ -169,11 +184,9 @@ void main() {
         await expectLater(
           verbindung.lade(unbekannt),
           throwsA(
-            isA<KonfigurationNichtGefunden>().having(
-              (e) => e.stand,
-              'stand',
-              unbekannt,
-            ),
+            isA<KonfigurationNichtGefunden>()
+                .having((e) => e.eingabe, 'eingabe', unbekannt.kennung.wert)
+                .having((e) => e.version, 'version', unbekannt.version),
           ),
         );
       }
@@ -214,6 +227,74 @@ void main() {
     },
   );
 
+  test(
+    'Mitarbeiter: anmelden, ohne Prüfcode laden, abmelden (M9-10)',
+    () async {
+      final auth = await _starteAuthServer();
+      addTearDown(() async {
+        auth.prozess.kill(ProcessSignal.sigterm);
+        await auth.prozess.exitCode;
+      });
+      final router = PlanerRouter.starte(
+        RouterEinstellungen(
+          authToken: _token,
+          dienstTicket: _ticket,
+          port: 0,
+          healthListen: await _freieAdresse(),
+          authAdresse: auth.adresse,
+        ),
+      );
+      addTearDown(router.stoppe);
+      final dienst = await KonfigurationsDienst.starte(router, _Speicher());
+      addTearDown(dienst.stoppe);
+      final verbindung = PlanerVerbindung(
+        Uri.parse('ws://127.0.0.1:${router.webSocketPort}/ws'),
+      );
+      final v1 = await verbindung.speichere(Planung.start);
+      final angemeldet = <String?>[];
+      verbindung.angemeldetAls.addListener(
+        () => angemeldet.add(verbindung.angemeldetAls.value),
+      );
+
+      await expectLater(
+        verbindung.anmelden(_email, 'falsch'),
+        throwsA(isA<AnmeldungAbgelehnt>()),
+      );
+      expect(verbindung.angemeldetAls.value, isNull);
+      // Groß- und Leerzeichen wie im Verwaltungswerkzeug normiert
+      await verbindung.anmelden('  Anna@Example.TEST ', _passwort);
+      expect(verbindung.angemeldetAls.value, _email);
+      final geladen = await verbindung.ladeOhnePruefcode(v1.nummer, 1);
+      expect(geladen.planung, Planung.start);
+      expect(geladen.stand, v1);
+      // Weiter über dieselbe Sitzung (Rolle mitarbeiter)
+      expect((await verbindung.speichere(Planung.start)).version, 1);
+      // erneut anmelden ersetzt die Sitzung
+      await verbindung.anmelden(_email, _passwort);
+      await verbindung.abmelden();
+      expect(verbindung.angemeldetAls.value, isNull);
+      expect(angemeldet, [_email, null, _email, null]);
+      await expectLater(
+        verbindung.ladeOhnePruefcode(v1.nummer, 1),
+        throwsA(isA<KonfigurationNichtGefunden>()),
+      );
+      await verbindung.abmelden();
+
+      // Bricht die Verbindung ab, ist der Mitarbeiter abgemeldet.
+      await verbindung.anmelden(_email, _passwort);
+      await router.stoppe();
+      for (var i = 0; i < 50 && verbindung.angemeldetAls.value != null; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      }
+      expect(verbindung.angemeldetAls.value, isNull);
+      // Server weg: kein „abgelehnt“, sondern der Verbindungsfehler
+      await expectLater(
+        verbindung.anmelden(_email, _passwort),
+        throwsA(isNot(isA<AnmeldungAbgelehnt>())),
+      );
+    },
+  );
+
   test('ohne Server: Fehler statt Hängen', () async {
     final frei = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
     final port = frei.port;
@@ -226,6 +307,59 @@ void main() {
     final bytes = Uint8List.fromList([1, 2, 3]);
     expect(PlanerVerbindung.verpacke(bytes).arguments, [bytes]);
   });
+}
+
+const _token = 'test-auth-token';
+const _ticket = 'test-dienst-ticket';
+const _email = 'anna@example.test';
+const _passwort = 'richtig-langes-passwort';
+
+Future<String> _freieAdresse() async {
+  final socket = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
+  final port = socket.port;
+  await socket.close();
+  return '127.0.0.1:$port';
+}
+
+/// Auth-Server als eigener Prozess aus dem Server-Paket (Delegation im
+/// selben Prozess geht nicht, docs/erkenntnisse/authentifizierung.md) mit
+/// einem Testkonto – Konten nur im Arbeitsspeicher.
+Future<({Process prozess, String adresse})> _starteAuthServer() async {
+  final adresse = await _freieAdresse();
+  final prozess = await Process.start(
+    'dart',
+    ['run', 'bin/auth_server.dart'],
+    workingDirectory: '../server',
+    environment: {
+      'PLANER_AUTH_TOKEN': _token,
+      'PLANER_AUTH_DIENST_TICKET': _ticket,
+      'PLANER_AUTH_LISTEN': adresse,
+      'PLANER_AUTH_HEALTH_LISTEN': await _freieAdresse(),
+    },
+  );
+  final bereit = Completer<void>();
+  prozess.stdout.transform(utf8.decoder).listen((zeile) {
+    if (zeile.contains('Auth-Server bereit') && !bereit.isCompleted) {
+      bereit.complete();
+    }
+  });
+  unawaited(prozess.stderr.drain<void>());
+  // Großzügig: `dart run` übersetzt den Auth-Server erst, und flutter test
+  // läuft mit mehreren Testdateien gleichzeitig.
+  await bereit.future.timeout(const Duration(minutes: 4));
+  final verwaltung = await MitarbeiterWerkzeug.verbinde({
+    'PLANER_AUTH_ADRESSE': adresse,
+    'PLANER_AUTH_DIENST_TICKET': _ticket,
+  });
+  final zugang = await MitarbeiterZugang.ableiten(
+    authId: _email,
+    passwort: _passwort,
+    iterationen: 1,
+    speicher: 64,
+  );
+  await verwaltung.rufe(MitarbeiterVerwaltung.anlegen, [zugang.alsJson()]);
+  await verwaltung.schliesse();
+  return (prozess: prozess, adresse: adresse);
 }
 
 /// Konfigurationsspeicher im Arbeitsspeicher: Die App-Tests laufen ohne die
@@ -260,13 +394,17 @@ final class _Speicher implements KonfigurationsSpeicher {
   }
 
   @override
-  Uint8List lies(KonfigurationsStand stand, {bool ohnePruefcode = false}) {
+  Uint8List lies(KonfigurationsStand stand) {
     final liste = _versionen[stand.kennung.wert] ?? const [];
     if (stand.version > liste.length) {
       throw KonfigurationUnbekannt(stand.nummer, stand.version);
     }
     return liste[stand.version - 1];
   }
+
+  @override
+  Konfigurationskennung kennung(Konfigurationsnummer nummer) =>
+      Konfigurationskennung(nummer, const Pruefcode('K7QXM'));
 
   @override
   void merkeEntwurf(

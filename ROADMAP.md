@@ -465,7 +465,8 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/10
 - [ ] **M9-09 Warenkorb im Shop** ([#82](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/82)) – `feature/m9-09-warenkorb-im-shop`
   - Materialliste als Warenkorb an shop.robinienwelt.de übergeben.
   - Abnahme: Warenkorb enthält alle Shop-Artikel mit Mengen
-- [ ] **M9-10 Mitarbeiter-Anmeldung** ([#83](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/83)) – `feature/m9-10-mitarbeiter-anmeldung`
+- [x] **M9-10 Mitarbeiter-Anmeldung** ([#83](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/83)) – `feature/m9-10-mitarbeiter-anmeldung`
+  - Ergebnis: ANMELDEN/ABMELDEN in der Kopfzeile, Dialog „Login“ (E-Mail, Passwort), „Angemeldet als …“ in der Statuszeile; WAMP-SCRAM mit Argon2id über den Auth-Server, danach eine Sitzung mit Rolle `mitarbeiter` (kein Passwort, kein Token im Browser). Mitarbeiter laden ohne Prüfcode und ändern Mengen der Materialliste (`disclose_caller`, Rolle vom Router; `PlanungsDienst.darfMengenAendern` angebunden). Konten in ObjectBox des Auth-Servers, Verwaltung mit `bin/mitarbeiter.dart` über WAMP (anlegen, passwort, sperren, entsperren, liste; Passwort über stdin), auf dem Server `planer-mitarbeiter`. Sperre nach 5 Fehlversuchen für 15 Minuten. Mitarbeiter-Datei entfällt. Doku: `docs/betrieb/mitarbeiter.md`, `docs/erkenntnisse/mitarbeiter-anmeldung.md`; Smoke-Test Anmelden → Laden ohne Code → Abmelden.
   - Anmeldung für Mitarbeiter (Funktion im alten Planer vorhanden); Umfang in M1-01 klären.
   - Abnahme: Umfang dokumentiert und umgesetzt
 

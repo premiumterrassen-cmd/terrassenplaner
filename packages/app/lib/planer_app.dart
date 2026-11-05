@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
+import 'src/anmeldung/mitarbeiter_anmeldung.dart';
 import 'src/design/darstellung.dart';
 import 'src/design/planer_design.dart';
 import 'src/export/grandtotal_export.dart';
@@ -31,6 +32,7 @@ class PlanerApp extends StatefulWidget {
     this.exportGrandTotal,
     this.sprache,
     this.darstellung,
+    this.anmeldung,
   });
 
   final ProjektInfo info;
@@ -64,6 +66,9 @@ class PlanerApp extends StatefulWidget {
   /// Darstellung aus den lokalen Einstellungen (M3-09); ohne Vorgabe wie
   /// das System.
   final DarstellungSteuerung? darstellung;
+
+  /// ANMELDEN für Mitarbeiter (M9-10).
+  final MitarbeiterAnmeldung? anmeldung;
 
   @override
   State<PlanerApp> createState() => _PlanerAppState();
@@ -110,6 +115,7 @@ class _PlanerAppState extends State<PlanerApp> {
           exportGrandTotal: widget.exportGrandTotal,
           sprache: _sprache,
           darstellung: _darstellung,
+          anmeldung: widget.anmeldung,
         ),
       ),
     ),

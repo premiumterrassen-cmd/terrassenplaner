@@ -211,8 +211,9 @@ void main() {
         ..physicalSize = const Size(1440, 900)
         ..devicePixelRatio = 1;
       addTearDown(tester.view.reset);
-      final mitarbeiter = ValueNotifier(true);
-      addTearDown(mitarbeiter.dispose);
+      // angemeldeter Mitarbeiter (M9-10)
+      final anmeldung = TestAnmeldung()
+        ..angemeldetAls.value = 'anna@example.test';
       final konfiguration = KonfigurationsSteuerung(
         ablage: TestAblage(),
         gedaechtnis: testGedaechtnis(),
@@ -231,7 +232,7 @@ void main() {
               status: const Text('Status'),
               berechne: _berechne,
               konfiguration: mit,
-              mitarbeiter: mitarbeiter,
+              anmeldung: anmeldung,
               exportGrandTotal: export.anfordern,
               dateiAnbieten: export.anbieten,
               adresse: adresse,
@@ -266,7 +267,7 @@ void main() {
           home: PlanerRahmen(
             status: const Text('Status'),
             berechne: _berechne,
-            mitarbeiter: mitarbeiter,
+            anmeldung: anmeldung,
           ),
         ),
       );

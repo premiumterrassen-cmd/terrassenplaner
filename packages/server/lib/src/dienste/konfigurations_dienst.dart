@@ -5,6 +5,7 @@ import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 import '../datenhaltung/konfigurationen.dart';
 import '../router/planer_router.dart';
+import '../zugriff/rollen.dart';
 
 /// Konfigurationsdienst (M9-05): SPEICHERN, LADEN und automatisches
 /// Zwischenspeichern über WAMP. Nur er greift auf die gespeicherten
@@ -16,7 +17,9 @@ import '../router/planer_router.dart';
 /// nur die fortlaufende Nummer kennt, kann sie weder laden noch fortführen.
 ///
 /// - speichern `[inhalt]` oder `[inhalt, kennung]` → `[kennung, version]`
-/// - laden `[kennung, version]` → `[inhalt]`
+/// - laden `[kennung, version]` → `[inhalt, kennung]`; angemeldete
+///   Mitarbeiter (M9-10) auch mit Nummer ohne Prüfcode – die Antwort
+///   bringt dann die vollständige Kennung mit
 /// - Entwurf speichern `[schluessel, inhalt]` oder
 ///   `[schluessel, inhalt, kennung, version]` → `[]`
 /// - Entwurf laden `[schluessel]` → `[inhalt]` oder `[inhalt, kennung, version]`
@@ -37,8 +40,11 @@ class KonfigurationsDienst {
       (WampNamen.entwurfSpeichern, dienst._entwurfSpeichern),
       (WampNamen.entwurfLaden, dienst._entwurfLaden),
     ]) {
-      (await sitzung.register(prozedur))
-          .onInvoke((aufruf) => _antworte(aufruf, arbeit));
+      (await sitzung.register(
+        prozedur,
+        // Die Rolle des Aufrufers entscheidet beim Laden (M9-10).
+        options: RegisterOptions(discloseCaller: true),
+      )).onInvoke((aufruf) => _antworte(aufruf, arbeit));
     }
     return dienst;
   }
@@ -68,16 +74,16 @@ class KonfigurationsDienst {
     return [stand.kennung.wert, stand.version];
   }
 
-  List<Object?> _laden(List<Object?> argumente, Invocation aufruf) =>
-      switch (argumente) {
-        [final String kennung, final int version] => [
-          _ablage.lies(
-            KonfigurationsStand(_kennungZumLaden(kennung, version), version),
-            ohnePruefcode: darfOhnePruefcodeLaden(aufruf),
-          ),
-        ],
-        _ => throw _ungueltig(argumente),
-      };
+  List<Object?> _laden(List<Object?> argumente, Invocation aufruf) {
+    final (text, version) = switch (argumente) {
+      [final String text, final int version] => (text, version),
+      _ => throw _ungueltig(argumente),
+    };
+    final kennung = darfOhnePruefcodeLaden(aufruf)
+        ? _ablage.kennung(_nummer(text))
+        : _kennungZumLaden(text, version);
+    return [_ablage.lies(KonfigurationsStand(kennung, version)), kennung.wert];
+  }
 
   /// Fehlender oder falsch geschriebener Prüfcode beim Laden: wie eine
   /// unbekannte Konfiguration (M9-05b).
@@ -89,12 +95,21 @@ class KonfigurationsDienst {
     }
   }
 
-  /// **Stelle für die Mitarbeiter-Anmeldung (M9-10):** Hier sollen später
-  /// angemeldete Mitarbeiter (Rolle `mitarbeiter` aus den Aufrufdetails)
-  /// Konfigurationen auch ohne passenden Prüfcode laden dürfen. Bis es die
-  /// Anmeldung gibt, verlangt LADEN von jedem Aufrufer Nummer **und**
-  /// Prüfcode.
-  static bool darfOhnePruefcodeLaden(Invocation aufruf) => false;
+  /// Nummer aus einer Kennung mit, ohne oder mit falschem Prüfcode.
+  static Konfigurationsnummer _nummer(String text) {
+    try {
+      return Konfigurationskennung.lies(text).nummer;
+    } on PruefcodeUngueltig catch (fehler) {
+      return fehler.nummer;
+    }
+  }
+
+  /// Angemeldete Mitarbeiter (M9-10) laden Konfigurationen auch ohne
+  /// Prüfcode. Die Rolle stammt vom Router (`caller_authrole`, die
+  /// Prozedur ist mit `disclose_caller` registriert) – ein Aufrufer kann sie
+  /// nicht selbst angeben.
+  static bool darfOhnePruefcodeLaden(Invocation aufruf) =>
+      aufruf.details.custom['caller_authrole'] == Rollen.mitarbeiter;
 
   List<Object?> _entwurfSpeichern(List<Object?> argumente, Invocation _) {
     switch (argumente) {

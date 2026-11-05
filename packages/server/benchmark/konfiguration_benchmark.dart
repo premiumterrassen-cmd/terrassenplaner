@@ -79,7 +79,7 @@ class KonfigurationBenchmark extends AsyncBenchmarkBase {
       WampNamen.konfigurationLaden,
       arguments: [kennung, version],
     );
-    if ((geladen.arguments!.single! as Uint8List).length != inhalt.length) {
+    if ((geladen.arguments!.first! as Uint8List).length != inhalt.length) {
       throw StateError('geladen ≠ gespeichert');
     }
   }
