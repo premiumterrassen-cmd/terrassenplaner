@@ -372,7 +372,7 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/7
   - Lage der UK-Hölzer, Stöße, Randabstand, Längsverbinder, Farbkennzeichnung im Plan, Stückliste.
   - Abnahme: UK-Stückliste je Referenzfall entspricht der Planungsunterlage; Benchmark: große Fläche mit Gefälle
   - Holzvolumen (m³, Dielen und UK) in den Kennzahlen; Abnahme: Volumen stimmt mit den Referenzfällen (M1-02) überein (aus M4-13 verschoben, Alexander 28.10.2026)
-  - Ergebnis: `ukVerlegung`: Hölzer quer zu den Dielen im Abstand der Feldbreite, äußere bündig am Rand (B-096), doppelte UK an den Stößen der Dielen, Abschnitte ohne leere Ausschnitte, Stückelung wie Dielenreihen (R-B10, 1000 cm → 600 rot + 400 blau), erzwungene UK-Länge, Längsverbinder je Stoß aus dem Regelwerk, Drehung (B-034). Stück- und Materialliste, Zeichnung (Ebene UK, Farben M9-04), Befestigung auf den echten Hölzern (`befestigungspunkteAufUk`), Querstreben zwischen ihnen. UK-Stücklisten wie in den Referenzfällen 2810, 1275, 1823, 347, 4381 (2794: 29 statt 31 Linien, alter Planer enger als 40 cm). Holzvolumen Dielen + UK in Lieferlängen (F28-UK 0,269 m³ wie alt; F01 0,427 statt 0,435 m³ wegen 21 statt 22 mm, B-032). Benchmark `domain.UkVerlegung.ukVerlegung` ≈ 5,9 ms.
+  - Ergebnis: `ukVerlegung`: Hölzer quer zu den Dielen im Abstand der Feldbreite, äußere bündig am Rand (B-096), doppelte UK an den Stößen der Dielen, Abschnitte ohne leere Ausschnitte, Stückelung wie Dielenreihen (R-B10, 1000 cm → 600 rot + 400 blau), erzwungene UK-Länge, Längsverbinder je Stoß aus dem Regelwerk, Drehung (B-034). Stück- und Materialliste, Zeichnung (Ebene UK, Farben M9-04), Befestigung auf den echten Hölzern (`befestigungspunkteAufUk`), Querstreben zwischen ihnen. UK-Stücklisten wie in den Referenzfällen 2810, 1275, 1823, 347, 4381 (2794: 29 statt 31 Linien, alter Planer enger als 40 cm). Holzvolumen Dielen (samt Freidielen, M8-04) + UK in Lieferlängen (F28-UK 0,269 m³ wie alt; F01 0,434 statt 0,435 m³ wegen 21 statt 22 mm, B-032). Zubehör (M8-02) auf der echten UK: Gummiband über die Länge der Hölzer (F01/F02/F09/F20 wie alt), Clips/Schrauben aus den echten Kreuzungen, nur einmal in der Materialliste. Benchmark `domain.UkVerlegung.ukVerlegung` ≈ 5,9 ms.
 - [x] **M6-11 Berechnung Stelzfüße/Pads mit Höhenzuordnung** ([#64](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/64)) – `feature/m6-11-berechnung-stelzfuesse-pads-mit-hoehenzu` · Benchmark
   - Anzahl und Höhe je Stelzfuß aus Höhenpunkten, Tabelle der Höhenzuordnung.
   - Abnahme: Höhen je Stelzfuß nachvollziehbar und getestet
@@ -414,16 +414,16 @@ Die acht Zubehörgruppen mit automatischer Mengenermittlung und Pflichtzubehör.
 
 GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/9
 
-- [ ] **M8-01 Zubehör-Bereich mit acht Gruppen** ([#70](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/70)) – `feature/m8-01-zubehoer-bereich-mit-acht-gruppen`
+- [x] **M8-01 Zubehör-Bereich mit acht Gruppen** ([#70](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/70)) – `feature/m8-01-zubehoer-bereich-mit-acht-gruppen`
   - Allgemein, Anlieferung, Clips & Schrauben, Höhenausgleich, Pads & EPDM-Bänder, Rhombusleisten, Terrassenfliesen, Terrassenöl RIBOL.
   - Abnahme: Gruppen aus den Artikeldaten, Reihenfolge wie im alten Planer
-- [ ] **M8-02 Automatische Mengen** ([#71](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/71)) – `feature/m8-02-automatische-mengen` · Benchmark
+- [x] **M8-02 Automatische Mengen** ([#71](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/71)) – `feature/m8-02-automatische-mengen` · Benchmark
   - Mengen für Clips/Schrauben, Pads/EPDM, Öl (nach Deckfläche) usw. aus Belag, UK und Fläche; manuelle Anpassung möglich.
   - Abnahme: Mengen entsprechen den Referenzfällen
-- [ ] **M8-03 Pflichtzubehör** ([#72](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/72)) – `feature/m8-03-pflichtzubehoer`
+- [x] **M8-03 Pflichtzubehör** ([#72](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/72)) – `feature/m8-03-pflichtzubehoer`
   - Benötigtes Zubehör mit fester Anzahl je Artikel automatisch ergänzen.
   - Abnahme: Pflichtartikel nicht abwählbar
-- [ ] **M8-04 Freidielen** ([#73](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/73)) – `feature/m8-04-freidielen`
+- [x] **M8-04 Freidielen** ([#73](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/73)) – `feature/m8-04-freidielen`
   - Feste Regel im Planer: ab 25 Dielen kostenlose Freidielen als eigene Position mit Preis 0 (B-079).
   - Abnahme: Regel getestet, Position im Export
 
