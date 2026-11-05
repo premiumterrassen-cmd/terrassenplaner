@@ -324,6 +324,76 @@ void main() {
   });
 
   group('Import', () {
+    test('Zubehörgruppe (M8-01): aus der Spalte, reines Zubehör ohne '
+        'Gruppe ist „Allgemein“, unbekannte Gruppe nur ein Hinweis', () {
+      final ergebnis = _import([
+        _zeile(),
+        _zeile(
+          nummer: '568-250',
+          titel: 'RIBOL Holzschutz-Öl ROBINIE, 2,5 Liter',
+          typ: 'Zubehoer',
+          gruppe: 'Terrassenöl RIBOL',
+          vpe: 'Stück',
+          breite: null,
+          staerke: null,
+          laenge: null,
+          befestigung: '',
+        ),
+        _zeile(
+          nummer: '50-80-006',
+          titel: 'Schutz-Vlies, 1,1m Breite, pro Laufmeter',
+          typ: 'Zubehoer',
+          vpe: 'lfm',
+          breite: null,
+          staerke: null,
+          laenge: null,
+          befestigung: '',
+        ),
+        _zeile(
+          nummer: '50-60-999',
+          titel: 'Band',
+          typ: 'EPDM-Band,Zubehoer',
+          gruppe: 'Gartenbedarf',
+          vpe: 'Stück',
+          breite: null,
+          staerke: null,
+          laenge: null,
+          befestigung: '',
+        ),
+      ]);
+      expect(ergebnis.erfolgreich, isTrue);
+      final gruppen = {
+        for (final e in ergebnis.datei!.eintraege)
+          e.artikel.nummer.wert: e.artikel.zubehoergruppe,
+      };
+      expect(gruppen, {
+        ...gruppen,
+        '10-10-073-R': null,
+        '568-250': Zubehoergruppe.terrassenoel,
+        '50-80-006': Zubehoergruppe.allgemein,
+        '50-60-999': null,
+      });
+      expect(ergebnis.befunde.map((b) => '$b'), [
+        'Hinweis Zeile 5, Zubehoergruppe: unbekannt: „Gartenbedarf“ – nicht '
+            'im Schritt Zubehör',
+      ]);
+    });
+
+    test('Zubehörgruppe je Artikeltyp (M8-01)', () {
+      expect(zubehoergruppeFuer('Zubehoer', ''), Zubehoergruppe.allgemein);
+      expect(zubehoergruppeFuer('_Zubehoer', ' '), Zubehoergruppe.allgemein);
+      expect(zubehoergruppeFuer('Deckbelag', ''), isNull);
+      expect(zubehoergruppeFuer('Bodenanker', ''), isNull);
+      expect(
+        zubehoergruppeFuer('Zubehoer', 'Anlieferung'),
+        Zubehoergruppe.anlieferung,
+      );
+      expect(
+        zubehoergruppeFuer('Stellfuss,Zubehoer', 'Höhenausgleich'),
+        Zubehoergruppe.hoehenausgleich,
+      );
+    });
+
     test('Diele vollständig, ohne Hersteller und Einkaufsdaten', () {
       final ergebnis = _import([_zeile()]);
       expect(ergebnis.befunde, isEmpty);
