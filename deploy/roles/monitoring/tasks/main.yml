@@ -19,7 +19,7 @@
     dest: /etc/default/prometheus-node-exporter
     content: |
       # Verwaltet von Ansible (Terrassenplaner)
-      ARGS="--web.listen-address=127.0.0.1:9100"
+      ARGS="--web.listen-address=127.0.0.1:9100 --collector.textfile.directory={{ planer_textdatei_metriken }}"
     mode: "0644"
   notify: Node-Exporter neu starten
 
