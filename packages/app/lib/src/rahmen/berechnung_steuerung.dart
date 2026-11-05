@@ -66,6 +66,9 @@ class BerechnungsSteuerung extends ChangeNotifier {
         for (final s in b.anschluss.seiten)
           (Offset(s.von.x, s.von.y), Offset(s.bis.x, s.bis.y), s.rolle),
       ],
+      ablaeufe: [
+        for (final p in b.anschluss.hoehenpunkte) Offset(p.ort.x, p.ort.y),
+      ],
       ausgangspunkt: switch (b.ausgangspunkt) {
         final p? => Offset(p.x, p.y),
         null => null,

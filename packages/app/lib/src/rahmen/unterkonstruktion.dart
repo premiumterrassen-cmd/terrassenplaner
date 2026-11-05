@@ -4,6 +4,7 @@ import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import '../design/planer_design.dart';
 import '../sprache/sprache.dart';
 import 'berechnung_steuerung.dart';
+import 'hoehenpunkte.dart';
 import 'steuerung.dart';
 import 'zeichnung.dart';
 
@@ -87,14 +88,19 @@ class TerrassenartWahl extends StatelessWidget {
 /// Unterpunkt „Höhenpunkte“ (Fachkonzept 3.2, M6-02): ohne Gefälle eine
 /// Höhe für alle Eckpunkte, mit Gefälle je Eckpunkt A, B … – gemessen von
 /// Oberkante Belag bis Boden, Vorgabe die Höhe der Terrassenart. Prüfung,
-/// Aufbauhöhe und Hinweise kommen vom Server (`pruefeHoehen`).
+/// Aufbauhöhe und Hinweise kommen vom Server (`pruefeHoehen`). Mit Gefälle
+/// lassen sich weitere Höhenreferenzpunkte einplanen (M7-04).
 class HoehenpunkteWahl extends StatelessWidget {
   const HoehenpunkteWahl({
     required this.planung,
     required this.onGeaendert,
     this.berechnung,
+    this.weitere,
     super.key,
   });
+
+  /// Bedienung der weiteren Höhenreferenzpunkte; ohne sie keine.
+  final HoehenpunktBedienung? weitere;
 
   final PlanungsSteuerung planung;
 
@@ -157,6 +163,11 @@ class HoehenpunkteWahl extends StatelessWidget {
               fehler: t.hoeheUngueltig,
               onGeaendert: (mm) => _setze(planung.aktuell.mitHoehe(mm)),
             ),
+          // offene Freiform: noch keine Fläche für weitere Punkte
+          if (weitere case final w?
+              when stand.gefaelle &&
+                  (stand.seitenzahl > 0 || stand.grundriss is KreisGrundriss))
+            HoehenpunktEingabe(bedienung: w),
           if (punkte?.aufbauhoehe case final a?)
             Padding(
               padding: const EdgeInsets.only(top: PlanerAbstand.klein),

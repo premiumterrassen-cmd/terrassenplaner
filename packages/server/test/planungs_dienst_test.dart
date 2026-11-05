@@ -1989,6 +1989,61 @@ void main() {
       expect(ohne.anschluss.meldungen, [Anschlussmeldung.ohneRinnenartikel]);
       expect(ohne.flaecheQuadratmeter, closeTo(14.832, 1e-9));
     });
+
+    test('Höhenreferenzpunkt (M7-04): geprüft, in der Zeichnung und in der '
+        'Höhe der Auflager; ohne Gefälle ohne Wirkung', () {
+      final uk = Artikel(
+        nummer: const Artikelnummer('10-10-031'),
+        titel: 'UK',
+        art: Artikelart.unterkonstruktion,
+        einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+        abmessungen: Abmessungen(
+          breite: const Millimeter(40),
+          staerke: const Millimeter(60),
+        ),
+        holzart: robinie,
+        serie: basic,
+      );
+      final regelwerk = Regelwerk(
+        Artikeldatei(
+          quelle: 'test',
+          version: '1',
+          eintraege: [
+            Artikeleintrag(artikel: diele),
+            Artikeleintrag(artikel: uk),
+          ],
+        ),
+      );
+      Berechnung mit(Planungsstand stand) => Berechnung.ausBytes(
+        PlanungsDienst.berechnePlanung(
+          Planung.start.mitStand(stand),
+          (_) => diele,
+          regelwerk,
+          false,
+          (_) => uk,
+        ).zuBytes(),
+      );
+      final hoch = Planungsstand.start.mitHoehe(const Millimeter(200));
+      final ablauf = hoch.mitNeuemHoehenpunkt().mitHoehenpunkt(0, (
+        x: const Millimeter(2400),
+        y: const Millimeter(1545),
+        hoehe: const Millimeter(10),
+      ));
+      final b = mit(ablauf);
+      // unter der Mindesthöhe korrigiert
+      expect(b.hoehenpunkte.hoehen, hasLength(5));
+      expect(b.hoehenpunkte.korrigiert, isTrue);
+      expect(b.anschluss.hoehenpunkte, [
+        (ort: const Punkt(2400, 1545), hoehe: b.hoehenpunkte.hoehen.last),
+      ]);
+      int tiefster(Berechnung b) =>
+          [for (final p in b.unterbau.auflagerpunkte) p.spalt.mm]
+              .reduce((a, c) => a < c ? a : c);
+      expect(tiefster(b), lessThan(tiefster(mit(hoch))));
+      final ohneGefaelle = mit(ablauf.mitGefaelle(false));
+      expect(ohneGefaelle.anschluss.hoehenpunkte, isEmpty);
+      expect(ohneGefaelle.hoehenpunkte.hoehen, hasLength(4));
+    });
   });
 
   test('ungültige Maße sind ein Fehler', () async {

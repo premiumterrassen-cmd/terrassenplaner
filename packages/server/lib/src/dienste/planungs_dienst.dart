@@ -126,13 +126,14 @@ class PlanungsDienst {
     );
   }
 
-  /// Geprüfte Höhenpunkte (M6-02) mit Belag und UK.
+  /// Geprüfte Höhenpunkte (M6-02) mit Belag und UK: die Ecken, dann die
+  /// weiteren Höhenreferenzpunkte (M7-04, nur mit Gefälle).
   static Hoehenpunkte _hoehen(
     Planungsstand stand,
     Artikel? belag,
     Artikel? unterkonstruktion,
   ) => pruefeHoehen(
-    stand.hoehen,
+    [...stand.hoehen, for (final p in stand.wirksameHoehenpunkte) p.hoehe],
     art: stand.terrassenart,
     doppelteUk: stand.doppelteUk,
     dielenstaerke: belag?.abmessungen.staerke,
@@ -203,6 +204,7 @@ class PlanungsDienst {
       anschluss: anschlussergebnis(
         stand,
         meldungen: anschluss?.meldungen ?? const [],
+        hoehen: hoehen.hoehen,
       ),
     );
   }
@@ -482,7 +484,9 @@ class PlanungsDienst {
         stand,
         daten?.abstaende(artikel.nummer).stelzfuesse,
       ),
-      flaeche: Hoehenflaeche(stand.grundriss.ecken, hoehen.hoehen),
+      flaeche: Hoehenflaeche(stand.grundriss.ecken, hoehen.hoehen, [
+        for (final p in stand.wirksameHoehenpunkte) stand.ortVon(p),
+      ]),
       aufbauhoehe: aufbau,
       bereiche: daten == null
           ? const []

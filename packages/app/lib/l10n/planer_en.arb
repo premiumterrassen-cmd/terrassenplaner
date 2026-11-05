@@ -404,5 +404,14 @@
   "rinnenlageAusserhalbElement": "Outside the floor-level element",
   "rinnenlageVorElement": "Only in front of the floor-level element",
   "rinnenHinweis": "Position and floor-level element are defined by the item; the position selects the channel. The substructure extends up to the side.",
-  "meldungOhneRinnenartikel": "No drainage channel is set up for this decking."
+  "meldungOhneRinnenartikel": "No drainage channel is set up for this decking.",
+  "hoehenpunktName": "Height reference point {nummer}",
+  "@hoehenpunktName": {"placeholders": {"nummer": {"type": "int"}}},
+  "hoehenpunktHinzufuegen": "Plan another height reference point",
+  "hoehenpunktEntfernen": "Remove height reference point",
+  "hoehenpunktWaagerecht": "Horizontal from A",
+  "hoehenpunktSenkrecht": "Vertical from A",
+  "hoehenpunktHoehe": "Height",
+  "hoehenpunktLageUngueltig": "Please enter a number from −30000 to 30000 cm",
+  "hoehenpunktHilfe": "For example a drain: position from point A (to the right and downwards, negative allowed), movable in the drawing."
 }

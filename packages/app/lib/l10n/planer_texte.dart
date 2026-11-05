@@ -2433,6 +2433,54 @@ abstract class PlanerTexte {
   /// In de, this message translates to:
   /// **'Zu diesem Belag ist keine Entwässerungsrinne hinterlegt.'**
   String get meldungOhneRinnenartikel;
+
+  /// No description provided for @hoehenpunktName.
+  ///
+  /// In de, this message translates to:
+  /// **'Höhenreferenzpunkt {nummer}'**
+  String hoehenpunktName(int nummer);
+
+  /// No description provided for @hoehenpunktHinzufuegen.
+  ///
+  /// In de, this message translates to:
+  /// **'Weiteren Höhenreferenzpunkt einplanen'**
+  String get hoehenpunktHinzufuegen;
+
+  /// No description provided for @hoehenpunktEntfernen.
+  ///
+  /// In de, this message translates to:
+  /// **'Höhenreferenzpunkt entfernen'**
+  String get hoehenpunktEntfernen;
+
+  /// No description provided for @hoehenpunktWaagerecht.
+  ///
+  /// In de, this message translates to:
+  /// **'Waagerecht ab A'**
+  String get hoehenpunktWaagerecht;
+
+  /// No description provided for @hoehenpunktSenkrecht.
+  ///
+  /// In de, this message translates to:
+  /// **'Senkrecht ab A'**
+  String get hoehenpunktSenkrecht;
+
+  /// No description provided for @hoehenpunktHoehe.
+  ///
+  /// In de, this message translates to:
+  /// **'Höhe'**
+  String get hoehenpunktHoehe;
+
+  /// No description provided for @hoehenpunktLageUngueltig.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte eine Zahl von −30000 bis 30000 cm eingeben'**
+  String get hoehenpunktLageUngueltig;
+
+  /// No description provided for @hoehenpunktHilfe.
+  ///
+  /// In de, this message translates to:
+  /// **'Zum Beispiel ein Ablauf: Lage ab Punkt A (nach rechts und nach unten, auch negativ), in der Zeichnung verschiebbar.'**
+  String get hoehenpunktHilfe;
 }
 
 class _PlanerTexteDelegate extends LocalizationsDelegate<PlanerTexte> {

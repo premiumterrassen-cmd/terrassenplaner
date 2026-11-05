@@ -266,6 +266,27 @@ void main() {
     }
     await _imMenue(tester, ohneRinne);
     expect(ohneRinne, findsOneWidget);
+    // M7-04: weiterer Höhenreferenzpunkt unter 3.2 (mit Gefälle), Lage per
+    // Eingabe; der Server zeichnet ihn als Ablauf mit Griff
+    await tester.tap(find.byKey(const ValueKey('station-unterkonstruktion')));
+    await tester.pumpAndSettle();
+    await _waehle(tester, 'gefaelle-mit');
+    await _waehle(tester, 'hoehenpunkt-hinzufuegen');
+    final waagerecht = find.descendant(
+      of: find.byKey(const ValueKey('hoehenpunkt-0-x')),
+      matching: find.byType(TextField),
+    );
+    await _imMenue(tester, waagerecht);
+    await tester.enterText(waagerecht, '-50');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(tester.widget<TextField>(waagerecht).decoration!.hintText, '-50');
+    final griff = find.byKey(const ValueKey('hoehenpunkt-griff-0'));
+    for (var i = 0; i < 50 && griff.evaluate().isEmpty; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    }
+    expect(griff, findsOneWidget);
   });
 }
 

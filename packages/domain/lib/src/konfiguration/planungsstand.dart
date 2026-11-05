@@ -19,6 +19,12 @@ import 'untergrund.dart';
 import 'verlegeart.dart';
 import 'verlegerichtung.dart';
 
+/// Weiterer Höhenreferenzpunkt (M7-04, Fachkonzept 3.2), z. B. ein Ablauf:
+/// Lage ab Punkt A waagerecht ([x], nach rechts) und senkrecht ([y], nach
+/// unten wie in der Zeichnung) – negative Werte erlaubt – und die Höhe dort
+/// von Oberkante Belag bis Boden.
+typedef Hoehenreferenzpunkt = ({Millimeter x, Millimeter y, Millimeter hoehe});
+
 /// Eingaben einer Planung zu einem Zeitpunkt (M3-03) – unveränderlich, damit
 /// Rückgängig exakt auf einen früheren Stand springen kann. Seit M4-02 mit
 /// Grundriss, seit M4-06 mit Ausschnitten, seit M5-01 mit Belag, seit M5-02
@@ -29,7 +35,8 @@ import 'verlegerichtung.dart';
 /// Unterkonstruktion und UK-Länge, seit M6-04 mit Untergrund, seit M6-05
 /// mit Art der Terrassennutzung, seit M6-06 mit Querstreben, seit M6-07
 /// mit privater oder gewerblicher Nutzung, seit M6-08 mit Auflagen, seit
-/// M6-09 mit maximaler Feldbreite, seit M7-01 mit dem Terrassenanschluss;
+/// M6-09 mit maximaler Feldbreite, seit M7-01 mit dem Terrassenanschluss,
+/// seit M7-04 mit weiteren Höhenreferenzpunkten;
 /// Unterkonstruktion usw. folgen als weitere Felder. Berechnet wird daraus
 /// auf dem Server.
 final class Planungsstand {
@@ -62,6 +69,7 @@ final class Planungsstand {
     this.auflagen = Auflagen.stelzfuesseUndPads,
     this.feldbreite,
     this.anschluss = Anschluss.keiner,
+    this.hoehenpunkte = const [],
   });
 
   /// Liest einen Planungsstand aus dem Transportformat ([zuBytes]).
@@ -257,8 +265,22 @@ final class Planungsstand {
         final ort? => Anschluss.lies(puffer, ort),
         null => Anschluss.keiner,
       },
+      hoehenpunkte: _liesHoehenpunkte(
+        const fb.ListReader<int>(fb.Int32Reader())
+            .vTableGet(puffer, wurzel, _versatz(_hoehenpunktePlatz), const []),
+      ),
     );
   }
+
+  static List<Hoehenreferenzpunkt> _liesHoehenpunkte(List<int> werte) =>
+      List.unmodifiable([
+        for (var i = 0; i < werte.length ~/ 3; i++)
+          (
+            x: Millimeter(werte[3 * i]),
+            y: Millimeter(werte[3 * i + 1]),
+            hoehe: Millimeter(werte[3 * i + 2]),
+          ),
+      ]);
 
   static Millimeter _mm(fb.BufferContext puffer, int wurzel, int platz) =>
       Millimeter(
@@ -386,6 +408,67 @@ final class Planungsstand {
   /// Grundriss mit anderer Eckenzahl beginnt er neu.
   final Anschluss anschluss;
 
+  /// Weitere Höhenreferenzpunkte (M7-04, Fachkonzept 3.2 „Weiteren
+  /// Höhenreferenzpunkt einplanen“), z. B. Abläufe. Sie wirken nur mit
+  /// Gefälle ([wirksameHoehenpunkte]) und bleiben beim Ausschalten und bei
+  /// neuen Maßen erhalten – ihre Lage zählt ab Punkt A.
+  final List<Hoehenreferenzpunkt> hoehenpunkte;
+
+  /// Höhenreferenzpunkte, die gelten: nur mit Gefälle.
+  List<Hoehenreferenzpunkt> get wirksameHoehenpunkte =>
+      gefaelle ? hoehenpunkte : const [];
+
+  /// Bezugspunkt der Höhenreferenzpunkte: Punkt A, beim Kreis der Anfang
+  /// der Kontur.
+  Punkt get punktA => switch (grundriss.ecken) {
+    [] => kontur.punkte.first,
+    final ecken => ecken.first,
+  };
+
+  /// Ort des Höhenreferenzpunkts [p] in Planungskoordinaten.
+  Punkt ortVon(Hoehenreferenzpunkt p) =>
+      punktA + Punkt(p.x.mm.toDouble(), p.y.mm.toDouble());
+
+  /// Ob [lage] als Lage ab Punkt A gilt: −300 bis 300 m nach jeder Seite.
+  static bool hoehenpunktLageGueltig(Millimeter lage) =>
+      lage.mm.abs() <= 300000;
+
+  /// Mit einem weiteren Höhenreferenzpunkt in der Mitte der Fläche, so hoch
+  /// wie Punkt A (M7-04); schaltet das Gefälle ein.
+  Planungsstand mitNeuemHoehenpunkt() {
+    final mitte = kontur.huellrechteck.mitte - punktA;
+    return _mit(
+      gefaelle: true,
+      hoehenpunkte: List.unmodifiable([
+        ...hoehenpunkte,
+        (
+          x: Millimeter(mitte.x.round()),
+          y: Millimeter(mitte.y.round()),
+          hoehe: hoehen.first,
+        ),
+      ]),
+    );
+  }
+
+  /// Kopie, in der der Höhenreferenzpunkt [index] durch [punkt] ersetzt ist
+  /// (`hoehenpunktLageGueltig`, `hoeheGueltig`).
+  Planungsstand mitHoehenpunkt(int index, Hoehenreferenzpunkt punkt) {
+    RangeError.checkValidIndex(index, hoehenpunkte, 'index');
+    for (final lage in [punkt.x, punkt.y]) {
+      if (!hoehenpunktLageGueltig(lage)) {
+        throw ArgumentError.value(lage.mm, 'punkt', 'Lage außerhalb ±300 m');
+      }
+    }
+    _pruefeHoehe(punkt.hoehe);
+    return _mit(
+      hoehenpunkte: List.unmodifiable([...hoehenpunkte]..[index] = punkt),
+    );
+  }
+
+  /// Ohne den Höhenreferenzpunkt [index].
+  Planungsstand ohneHoehenpunkt(int index) =>
+      _mit(hoehenpunkte: List.unmodifiable([...hoehenpunkte]..removeAt(index)));
+
   /// Seiten des Grundrisses für den Terrassenanschluss: Seite `i` läuft von
   /// Ecke `i` zur nächsten. Der Kreis hat keine Seiten, die offene Freiform
   /// auch nicht.
@@ -511,6 +594,7 @@ final class Planungsstand {
     Auflagen? auflagen,
     ({Millimeter? wert})? feldbreite,
     Anschluss? anschluss,
+    List<Hoehenreferenzpunkt>? hoehenpunkte,
   }) {
     final neu = grundriss ?? this.grundriss;
     final ecke = ausgangsecke ?? this.ausgangsecke;
@@ -552,6 +636,7 @@ final class Planungsstand {
       anschluss: _seitenzahl(neu) == seitenzahl
           ? anschluss ?? this.anschluss
           : Anschluss.keiner,
+      hoehenpunkte: hoehenpunkte ?? this.hoehenpunkte,
     );
   }
 
@@ -773,7 +858,8 @@ final class Planungsstand {
   /// 84: gewerblich (bool) (M6-07), 100: auflagen (uint8; fehlt =
   /// Stelzfüße und Pads) (M6-08), 101: feldbreite (int32 mm; fehlt =
   /// automatisch) (M6-09), 140: anschluss (Tabelle, `Anschluss.schreibe`;
-  /// fehlt ohne Rollen) (M7) }`. Plätze
+  /// fehlt ohne Rollen) (M7), 141: hoehenpunkte ([int32] x, y, Höhe in mm je
+  /// Punkt, M7-04) }`. Plätze
   /// 14–19 gehören der Dielenverlegung (M5-08), 40–49 dem Zubehör (M8),
   /// 80–89 der Unterkonstruktion ab M6-04, 100–109 Auflagen, Feldbreite und
   /// UK-Verlegung (M6-08 bis M6-11), 140–149 dem Anschluss, den
@@ -803,8 +889,11 @@ final class Planungsstand {
       null => null,
     };
     final anschlussOrt = anschluss.leer ? null : anschluss.schreibe(fbb);
+    final hoehenpunkteOrt = fbb.writeListInt32([
+      for (final p in hoehenpunkte) ...[p.x.mm, p.y.mm, p.hoehe.mm],
+    ]);
     fbb
-      ..startTable(_anschlussPlatz + 1)
+      ..startTable(_hoehenpunktePlatz + 1)
       ..addUint16(_schemaPlatz, schema)
       ..addOffset(_grundrissPlatz, grundrissOrt)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
@@ -833,7 +922,8 @@ final class Planungsstand {
       ..addBool(_gewerblichPlatz, gewerblich)
       ..addUint8(_auflagenPlatz, auflagen.nummer)
       ..addInt32(_feldbreitePlatz, feldbreite?.mm)
-      ..addOffset(_anschlussPlatz, anschlussOrt);
+      ..addOffset(_anschlussPlatz, anschlussOrt)
+      ..addOffset(_hoehenpunktePlatz, hoehenpunkteOrt);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
   }
@@ -883,6 +973,7 @@ final class Planungsstand {
   static const _auflagenPlatz = 100;
   static const _feldbreitePlatz = 101;
   static const _anschlussPlatz = 140;
+  static const _hoehenpunktePlatz = 141;
 
   @override
   bool operator ==(Object other) {
@@ -913,6 +1004,7 @@ final class Planungsstand {
         other.auflagen != auflagen ||
         other.feldbreite != feldbreite ||
         other.anschluss != anschluss ||
+        other.hoehenpunkte.length != hoehenpunkte.length ||
         other.eckhoehen.length != eckhoehen.length ||
         other.ausschnitte.length != ausschnitte.length) {
       return false;
@@ -922,6 +1014,9 @@ final class Planungsstand {
     }
     for (var i = 0; i < eckhoehen.length; i++) {
       if (other.eckhoehen[i] != eckhoehen[i]) return false;
+    }
+    for (var i = 0; i < hoehenpunkte.length; i++) {
+      if (other.hoehenpunkte[i] != hoehenpunkte[i]) return false;
     }
     return true;
   }
@@ -957,6 +1052,7 @@ final class Planungsstand {
       auflagen,
       feldbreite,
       anschluss,
+      Object.hashAll(hoehenpunkte),
     ),
   );
 }

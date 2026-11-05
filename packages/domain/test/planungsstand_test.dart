@@ -1103,6 +1103,7 @@ void main() {
             Auflagen.stelzfuesseUndPads,
             null,
             Anschluss.keiner,
+            Object.hashAll(const []),
           ),
         ),
       );

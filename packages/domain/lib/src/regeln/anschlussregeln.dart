@@ -2,6 +2,7 @@
 /// welche Rolle hat und was daraus für Zeichnung und Material folgt.
 library;
 
+import '../artikel/einheiten.dart';
 import '../geometrie/punkt.dart';
 import '../konfiguration/anschlussergebnis.dart';
 import '../konfiguration/grundriss.dart';
@@ -18,9 +19,14 @@ import '../konfiguration/planungsstand.dart';
 /// angrenzende Seiten grau (M7-01, 4.1), verblendete gelb (M7-02, 4.2) –
 /// beim Kreis („Fläche verblenden“) der ganze Umriss als Sehnenzug –,
 /// Seiten mit Rinne blau (M7-03, 4.3).
+///
+/// Mit den geprüften [hoehen] (Ecken, dann die weiteren Höhenreferenzpunkte,
+/// `pruefeHoehen`) kommen die wirksamen Höhenreferenzpunkte mit Ort und
+/// Höhe dazu (M7-04).
 Anschlussergebnis anschlussergebnis(
   Planungsstand stand, {
   List<Anschlussmeldung> meldungen = const [],
+  List<Millimeter> hoehen = const [],
 }) {
   Iterable<Seitenlinie> linien(List<int> seiten, Seitenrolle rolle) sync* {
     for (final seite in seiten) {
@@ -49,5 +55,12 @@ Anschlussergebnis anschlussergebnis(
       ], Seitenrolle.rinne),
     ],
     meldungen: meldungen,
+    hoehenpunkte: [
+      for (final (i, p) in stand.wirksameHoehenpunkte.indexed)
+        (
+          ort: stand.ortVon(p),
+          hoehe: hoehen.elementAtOrNull(stand.hoehen.length + i) ?? p.hoehe,
+        ),
+    ],
   );
 }

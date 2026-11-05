@@ -400,9 +400,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/8
   - Rinnen je Seite; bodentiefe Elemente mit Optionen (gesamte Seite innen/außen, im/außerhalb des Elements, nur vor dem Element).
   - Abnahme: Alle Optionen mit Material
   - Ergebnis: Unterpunkt 4.3 mit Schalter je Seite (auch am Bauelement, nicht an verblendeten) und vier Lagen; die Lage wählt die Variante aus „moeglicheDrainage“ (R-D01). Belag und Fläche um die Rinnenbreite ausgespart, UK bis an die Seite (F38: 14,256 m², 46 Dielen, 13 × 4000 mm UK, 4 Rinnen, 6 Auflagerprofile); blau in der Zeichnung; Hinweis ohne Rinnenartikel.
-- [ ] **M7-04 Abläufe / Höhenreferenzpunkte** ([#68](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/68)) – `feature/m7-04-ablaeufe-hoehenreferenzpunkte`
+- [x] **M7-04 Abläufe / Höhenreferenzpunkte** ([#68](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/68)) – `feature/m7-04-ablaeufe-hoehenreferenzpunkte`
   - Weitere Höhenreferenzpunkte setzen (Position waagerecht/senkrecht, ab Punkt A, negative Werte möglich).
   - Abnahme: Punkte per Maus und Eingabe
+  - Ergebnis: Unter 3.2 (mit Gefälle) „Weiteren Höhenreferenzpunkt einplanen“ mit Waagerecht/Senkrecht ab A (negativ erlaubt) und Höhe, Griff zum Ziehen in der Zeichnung; Planungsstand Platz 141. Server prüft die Höhen mit, zeichnet die Punkte als Abläufe und teilt die Höhenfläche an ihnen (Auflagerhöhen M6-11).
 - [ ] **M7-05 Treppen** ([#69](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/69)) – `feature/m7-05-treppen`
   - Treppe an einer Seite: Startpunkt, Maße L × B × H, Anzahl Stufen, individuelle Stufenmaße (Höhe, Tiefe).
   - Abnahme: Treppe in Zeichnung und Material

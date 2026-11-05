@@ -1345,4 +1345,32 @@ class PlanerTexteEn extends PlanerTexte {
   @override
   String get meldungOhneRinnenartikel =>
       'No drainage channel is set up for this decking.';
+
+  @override
+  String hoehenpunktName(int nummer) {
+    return 'Height reference point $nummer';
+  }
+
+  @override
+  String get hoehenpunktHinzufuegen => 'Plan another height reference point';
+
+  @override
+  String get hoehenpunktEntfernen => 'Remove height reference point';
+
+  @override
+  String get hoehenpunktWaagerecht => 'Horizontal from A';
+
+  @override
+  String get hoehenpunktSenkrecht => 'Vertical from A';
+
+  @override
+  String get hoehenpunktHoehe => 'Height';
+
+  @override
+  String get hoehenpunktLageUngueltig =>
+      'Please enter a number from −30000 to 30000 cm';
+
+  @override
+  String get hoehenpunktHilfe =>
+      'For example a drain: position from point A (to the right and downwards, negative allowed), movable in the drawing.';
 }

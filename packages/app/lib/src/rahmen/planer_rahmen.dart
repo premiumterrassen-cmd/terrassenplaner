@@ -21,6 +21,7 @@ import 'dielenliste.dart';
 import 'flaechen.dart';
 import 'freiform.dart';
 import 'grundriss_eingabe.dart';
+import 'hoehenpunkte.dart';
 import 'materialliste.dart';
 import 'planer_schritt.dart';
 import 'rahmen_zustand.dart';
@@ -130,6 +131,11 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
     planung: _planung,
     berechnung: _berechnung,
     onGeaendert: () => _zustand.markiereGeaendert(PlanerSchritt.terrassenbelag),
+  );
+  late final _hoehenpunkte = HoehenpunktBedienung(
+    planung: _planung,
+    onGeaendert: () =>
+        _zustand.markiereGeaendert(PlanerSchritt.unterkonstruktion),
   );
   late final BelagQuelle? _belaege = switch (widget.belaege) {
     final lade? => BelagQuelle(lade),
@@ -290,6 +296,7 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
             berechnung: _berechnung,
             belaege: _belaege,
             unterkonstruktionen: _uk,
+            hoehenpunkte: _hoehenpunkte,
           );
           return Column(
             children: [
@@ -335,6 +342,11 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
                               ausgangspunkt:
                                   _zustand.aktiv == PlanerSchritt.terrassenbelag
                                   ? _ausgangspunkt
+                                  : null,
+                              hoehenpunkte:
+                                  _zustand.aktiv ==
+                                      PlanerSchritt.unterkonstruktion
+                                  ? _hoehenpunkte
                                   : null,
                               zeichnung:
                                   widget.zeichnung ??
@@ -654,6 +666,7 @@ class Bearbeitungsmenue extends StatelessWidget {
     this.berechnung,
     this.belaege,
     this.unterkonstruktionen,
+    this.hoehenpunkte,
   });
 
   final RahmenZustand zustand;
@@ -665,6 +678,9 @@ class Bearbeitungsmenue extends StatelessWidget {
 
   /// Unterkonstruktionen zum Belag (M6-03); ohne Quelle keine Auswahl.
   final UkQuelle? unterkonstruktionen;
+
+  /// Weitere Höhenreferenzpunkte (M7-04); ohne Bedienung keine Eingabe.
+  final HoehenpunktBedienung? hoehenpunkte;
 
   /// Ausgangspunkt des Belags (M5-07); ohne Bedienung keine Eingabe.
   final AusgangspunktBedienung? ausgangspunkt;
@@ -735,6 +751,7 @@ class Bearbeitungsmenue extends StatelessWidget {
     (PlanerSchritt.unterkonstruktion, 1) => HoehenpunkteWahl(
       planung: planung,
       berechnung: berechnung,
+      weitere: hoehenpunkte,
       onGeaendert: () => zustand.markiereGeaendert(schritt),
     ),
     (PlanerSchritt.unterkonstruktion, 2) when unterkonstruktionen != null =>

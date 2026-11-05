@@ -1348,4 +1348,32 @@ class PlanerTexteDe extends PlanerTexte {
   @override
   String get meldungOhneRinnenartikel =>
       'Zu diesem Belag ist keine Entwässerungsrinne hinterlegt.';
+
+  @override
+  String hoehenpunktName(int nummer) {
+    return 'Höhenreferenzpunkt $nummer';
+  }
+
+  @override
+  String get hoehenpunktHinzufuegen => 'Weiteren Höhenreferenzpunkt einplanen';
+
+  @override
+  String get hoehenpunktEntfernen => 'Höhenreferenzpunkt entfernen';
+
+  @override
+  String get hoehenpunktWaagerecht => 'Waagerecht ab A';
+
+  @override
+  String get hoehenpunktSenkrecht => 'Senkrecht ab A';
+
+  @override
+  String get hoehenpunktHoehe => 'Höhe';
+
+  @override
+  String get hoehenpunktLageUngueltig =>
+      'Bitte eine Zahl von −30000 bis 30000 cm eingeben';
+
+  @override
+  String get hoehenpunktHilfe =>
+      'Zum Beispiel ein Ablauf: Lage ab Punkt A (nach rechts und nach unten, auch negativ), in der Zeichnung verschiebbar.';
 }

@@ -1,5 +1,6 @@
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 
+import '../artikel/einheiten.dart';
 import '../geometrie/punkt.dart';
 
 /// Rolle einer Seite im Terrassenanschluss (Fachkonzept 04) – bestimmt ihre
@@ -62,6 +63,10 @@ enum Anschlussmeldung {
 /// Strecke von Ecke zu Ecke in mm.
 typedef Seitenlinie = ({int seite, Seitenrolle rolle, Punkt von, Punkt bis});
 
+/// Weiterer Höhenreferenzpunkt für die Zeichnung (M7-04): Ort in
+/// Planungskoordinaten und geprüfte Höhe.
+typedef Hoehenpunktort = ({Punkt ort, Millimeter hoehe});
+
 /// Was der Server zum Terrassenanschluss der bearbeiteten Fläche rechnet
 /// (M7): die Seiten mit Rolle für die Zeichnung (M7-01, M7-02) und die
 /// Hinweise.
@@ -69,8 +74,10 @@ final class Anschlussergebnis {
   Anschlussergebnis({
     List<Seitenlinie> seiten = const [],
     List<Anschlussmeldung> meldungen = const [],
+    List<Hoehenpunktort> hoehenpunkte = const [],
   }) : seiten = List.unmodifiable(seiten),
-       meldungen = List.unmodifiable(meldungen);
+       meldungen = List.unmodifiable(meldungen),
+       hoehenpunkte = List.unmodifiable(hoehenpunkte);
 
   /// Liest die Tabelle am Ort [ort] ([schreibe]).
   factory Anschlussergebnis.lies(fb.BufferContext puffer, int ort) {
@@ -80,6 +87,10 @@ final class Anschlussergebnis {
         .vTableGet(puffer, ort, _versatz(_rollenPlatz), const []);
     final punkte = const fb.ListReader<double>(fb.Float64Reader())
         .vTableGet(puffer, ort, _versatz(_linienPlatz), const []);
+    final orte = const fb.ListReader<double>(fb.Float64Reader())
+        .vTableGet(puffer, ort, _versatz(_punkteOrtePlatz), const []);
+    final hoehen = const fb.ListReader<int>(fb.Int32Reader())
+        .vTableGet(puffer, ort, _versatz(_punkteHoehenPlatz), const []);
     return Anschlussergebnis(
       seiten: [
         for (var i = 0; i < nummern.length; i++)
@@ -96,6 +107,13 @@ final class Anschlussergebnis {
         ).vTableGet(puffer, ort, _versatz(_meldungenPlatz), const []))
           Anschlussmeldung.ausNummer(n),
       ],
+      hoehenpunkte: [
+        for (var i = 0; i < hoehen.length; i++)
+          (
+            ort: Punkt(orte[2 * i], orte[2 * i + 1]),
+            hoehe: Millimeter(hoehen[i]),
+          ),
+      ],
     );
   }
 
@@ -108,10 +126,14 @@ final class Anschlussergebnis {
   /// Hinweise zum Anschluss der bearbeiteten Fläche.
   final List<Anschlussmeldung> meldungen;
 
+  /// Weitere Höhenreferenzpunkte (Abläufe) für die Zeichnung (M7-04).
+  final List<Hoehenpunktort> hoehenpunkte;
+
   /// Schreibt die Tabelle `{ 0: seiten ([uint16]), 1: rollen ([uint8]),
   /// 2: linien ([float64] von x, y, bis x, y je Seite), 3: meldungen
-  /// ([uint8], M7-02) }` und gibt ihren Ort zurück. Neue Felder nur
-  /// anhängen.
+  /// ([uint8], M7-02), 4: Orte der Höhenreferenzpunkte ([float64] x, y),
+  /// 5: ihre Höhen ([int32] mm) (M7-04) }` und gibt ihren Ort zurück. Neue
+  /// Felder nur anhängen.
   int schreibe(fb.Builder fbb) {
     final seitenOrt = fbb.writeListUint16([for (final s in seiten) s.seite]);
     final rollenOrt = fbb.writeListUint8([
@@ -123,12 +145,20 @@ final class Anschlussergebnis {
     final meldungenOrt = fbb.writeListUint8([
       for (final m in meldungen) m.nummer,
     ]);
+    final orteOrt = fbb.writeListFloat64([
+      for (final p in hoehenpunkte) ...[p.ort.x, p.ort.y],
+    ]);
+    final hoehenOrt = fbb.writeListInt32([
+      for (final p in hoehenpunkte) p.hoehe.mm,
+    ]);
     fbb
-      ..startTable(_meldungenPlatz + 1)
+      ..startTable(_punkteHoehenPlatz + 1)
       ..addOffset(_seitenPlatz, seitenOrt)
       ..addOffset(_rollenPlatz, rollenOrt)
       ..addOffset(_linienPlatz, linienOrt)
-      ..addOffset(_meldungenPlatz, meldungenOrt);
+      ..addOffset(_meldungenPlatz, meldungenOrt)
+      ..addOffset(_punkteOrtePlatz, orteOrt)
+      ..addOffset(_punkteHoehenPlatz, hoehenOrt);
     return fbb.endTable();
   }
 
@@ -136,6 +166,8 @@ final class Anschlussergebnis {
   static const _rollenPlatz = 1;
   static const _linienPlatz = 2;
   static const _meldungenPlatz = 3;
+  static const _punkteOrtePlatz = 4;
+  static const _punkteHoehenPlatz = 5;
 }
 
 int _versatz(int platz) => 4 + 2 * platz;
