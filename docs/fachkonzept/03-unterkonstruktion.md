@@ -99,3 +99,9 @@ Neuer Planer (M6-06):
 ## 3.8 Nutzung privat oder gewerblich
 
 private Nutzung (Vorgabe) | gewerbliche Nutzung. Gewerblich: mehr Auflager (KOPPLEX-3 59,42 → 89,13 €), Summe 2.096,28 €.
+
+Neuer Planer (M6-07):
+
+- Unterpunkt 3.8 (bei Hochterrasse und vorhandener UK 3.7) mit privater (Vorgabe, F01) und gewerblicher Nutzung als Chips. Planungsstand-Feld `gewerblich` (Platz 84, fehlt = privat); jede Wahl ist ein Schritt für Rückgängig/Wiederherstellen.
+- **Stellfußauswahl folgt dem Regelwerk** (Abnahme): Der Server liefert die Stellfüße, auf die die gewählte UK in den Artikeldaten verweist – Spalte „möglicher Stellfuß privat“ bzw. „gewerblich“, in Datenreihenfolge (`Regelwerk.stellfuesse`, Berechnung Platz 92). Die App zeigt sie unter „Passende Stellfüße:“; ohne UK oder ohne Verweise: „Für die gewählte Unterkonstruktion sind keine Stellfüße hinterlegt.“ Nichts ist im Code fest verdrahtet (B-122: die Artikeldaten sind die Quelle).
+- **Belastung:** Wie im alten Planer ändert gewerbliche Nutzung den UK-Abstand nicht, sondern nur die Menge Gummiband unter der UK (F35: KOPPLEX-3 2 → 3 Rollen, R-C09); „UK zwingend versteift, nur PREMIUM SELECT“ ist zurückgestellt. Die Mengen der Auflager und Pads (samt diesem Zuschlag) und welcher Stellfuß in welcher Höhe gesetzt wird, rechnen M6-08/M6-11; bis dahin bringt die gewerbliche Nutzung nur die Stellfußauswahl.

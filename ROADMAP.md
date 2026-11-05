@@ -356,9 +356,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/7
   - Querstreben hinzufügen, Anzahl der Quertraversen manuell ändern.
   - Abnahme: Mengen und Zeichnung passen sich an
   - Ergebnis: Unterpunkt 3.7 mit Nein/Ja, „Automatisch“ und Feld „Anzahl der Quertraversen“ (1–99); Planungsstand-Felder `querstreben`/`querstrebenReihen` (Plätze 82/83). Automatisch Reihen höchstens 60 cm auseinander (R-C03; F01: 5 Reihen à 12 Streben); sie ersetzen die Reihen der Versteifung. Streben in Material- und Stückliste (grün) und als Linien in der Zeichnung (Ebene UK; Berechnung Plätze 90/91). Einzelne Streben von Hand: M6-12.
-- [ ] **M6-07 Private oder gewerbliche Nutzung** ([#60](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/60)) – `feature/m6-07-private-oder-gewerbliche-nutzung`
+- [x] **M6-07 Private oder gewerbliche Nutzung** ([#60](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/60)) – `feature/m6-07-private-oder-gewerbliche-nutzung`
   - Steuert Stellfüße (privat/gewerblich) und Belastung.
   - Abnahme: Stellfußauswahl folgt dem Regelwerk
+  - Ergebnis: Unterpunkt 3.8 mit privater (Vorgabe) und gewerblicher Nutzung; Planungsstand-Feld `gewerblich` (Platz 84). Der Server liefert die Stellfüße der gewählten UK aus den Verweisspalten privat/gewerblich der Artikeldaten (`Regelwerk.stellfuesse`, Berechnung Platz 92), die App zeigt sie bzw. den Hinweis, dass keine hinterlegt sind. Belastung wie im alten Planer nur über mehr Gummiband (F35, R-C09) – die Mengen rechnen M6-08/M6-11.
 - [ ] **M6-08 Auflagen: Stelzfüße und Pads** ([#61](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/61)) – `feature/m6-08-auflagen-stelzfuesse-und-pads`
   - Mit Stelzfüßen / mit Stelzfüßen und Pads; Abstände, Min-/Max-Höhe mit Meldungen.
   - Abnahme: Höhengrenzen mit Meldung; Abstände aus dem Regelwerk

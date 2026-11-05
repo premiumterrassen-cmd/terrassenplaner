@@ -193,6 +193,14 @@ void main() {
       await tester.pumpAndSettle();
     }
     expect(_gewaehlt(tester, 'querstreben-nein'), isTrue);
+    // M6-07: private oder gewerbliche Nutzung unter 3.8; ohne Artikeldatei
+    // kennt der Smoke-Server keine Stellfüße
+    await _waehle(tester, 'nutzung-gewerblich');
+    expect(_gewaehlt(tester, 'nutzung-gewerblich'), isTrue);
+    expect(find.text(de.stellfuesseKeine), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('rueckgaengig')));
+    await tester.pumpAndSettle();
+    expect(_gewaehlt(tester, 'nutzung-privat'), isTrue);
   });
 }
 

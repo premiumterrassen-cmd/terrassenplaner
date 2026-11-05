@@ -1049,6 +1049,19 @@ class PlanerTexteEn extends PlanerTexte {
       'Please enter a whole number from 1 to 99';
 
   @override
+  String get nutzungPrivat => 'Private use';
+
+  @override
+  String get nutzungGewerblich => 'Commercial use';
+
+  @override
+  String get stellfuesse => 'Suitable adjustable feet:';
+
+  @override
+  String get stellfuesseKeine =>
+      'No adjustable feet are listed for the selected substructure.';
+
+  @override
   String get automatisch => 'Automatic';
 
   @override

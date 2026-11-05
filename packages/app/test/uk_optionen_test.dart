@@ -370,6 +370,117 @@ void main() {
     );
   });
 
+  group('Nutzung privat oder gewerblich (M6-07)', () {
+    /// Antwort wie vom Server: Stellfüße je Nutzung laut Regelwerk.
+    Future<Berechnung> server(Planung planung) async => Berechnung(
+      umriss: const [],
+      flaeche: 1,
+      stellfuesse: [
+        if (planung.aktuell.gewerblich)
+          (nummer: const Artikelnummer('70-10-002'), titel: 'Stellfuß G'),
+        (nummer: const Artikelnummer('70-10-001'), titel: 'Stellfuß P'),
+      ],
+    );
+
+    Future<({PlanungsSteuerung planung, List<int> aenderungen})> zeige(
+      WidgetTester tester, {
+      Locale sprache = const Locale('de'),
+      bool mitServer = true,
+    }) async {
+      final planung = PlanungsSteuerung();
+      final berechnung = BerechnungsSteuerung(
+        planung: planung,
+        berechne: server,
+      );
+      addTearDown(() {
+        berechnung.dispose();
+        planung.dispose();
+      });
+      final aenderungen = <int>[];
+      await tester.pumpWidget(
+        testApp(
+          sprache: sprache,
+          home: Scaffold(
+            body: GewerblichWahl(
+              planung: planung,
+              berechnung: mitServer ? berechnung : null,
+              onGeaendert: () => aenderungen.add(aenderungen.length),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      return (planung: planung, aenderungen: aenderungen);
+    }
+
+    ChoiceChip chip(WidgetTester tester, String name) =>
+        tester.widget(find.byKey(ValueKey('nutzung-$name')));
+
+    testWidgets('Vorgabe privat; gewerblich wählt die Stellfüße des '
+        'Regelwerks; Rückgängig', (tester) async {
+      final s = await zeige(tester);
+      expect(find.text(de.nutzungPrivat), findsOneWidget);
+      expect(find.text(de.nutzungGewerblich), findsOneWidget);
+      expect(chip(tester, 'privat').selected, isTrue);
+      expect(find.text(de.stellfuesse), findsOneWidget);
+      expect(find.text('• Stellfuß P'), findsOneWidget);
+      expect(find.byKey(const ValueKey('stellfuss-70-10-002')), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('nutzung-gewerblich')));
+      await tester.pump();
+      await tester.pump();
+      expect(s.planung.aktuell.gewerblich, isTrue);
+      expect(chip(tester, 'gewerblich').selected, isTrue);
+      expect(chip(tester, 'privat').selected, isFalse);
+      expect(find.text('• Stellfuß G'), findsOneWidget);
+      expect(s.aenderungen, [0]);
+      await tester.tap(find.byKey(const ValueKey('nutzung-gewerblich')));
+      await tester.pump();
+      expect(s.aenderungen, [0]);
+      s.planung.rueckgaengig();
+      await tester.pump();
+      expect(chip(tester, 'privat').selected, isTrue);
+    });
+
+    testWidgets('ohne Stellfüße ein Hinweis; englische Texte', (tester) async {
+      await zeige(tester, sprache: const Locale('en'), mitServer: false);
+      expect(find.text('Commercial use'), findsOneWidget);
+      expect(
+        find.text(
+          'No adjustable feet are listed for the selected substructure.',
+        ),
+        findsOneWidget,
+      );
+    });
+  });
+
+  testWidgets('Menü: 3.8 Nutzung privat oder gewerblich', (tester) async {
+    tester.view.physicalSize = const Size(1440, 2400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final zustand = RahmenZustand()..waehle(PlanerSchritt.unterkonstruktion);
+    final planung = PlanungsSteuerung();
+    addTearDown(planung.dispose);
+    await tester.pumpWidget(
+      testApp(
+        home: PlanerRahmen(
+          status: const SizedBox(),
+          zustand: zustand,
+          planung: planung,
+        ),
+      ),
+    );
+    expect(find.text('3.8 ${de.unterkonstruktion8}'), findsOneWidget);
+    final gewerblich = find.byKey(const ValueKey('nutzung-gewerblich'));
+    await tester.ensureVisible(gewerblich);
+    await tester.tap(gewerblich);
+    await tester.pump();
+    expect(planung.aktuell.gewerblich, isTrue);
+    expect(
+      zustand.unveraendert,
+      isNot(contains(PlanerSchritt.unterkonstruktion)),
+    );
+  });
+
   testWidgets('Menü: 3.5 Untergrund mit Auswahl', (tester) async {
     tester.view.physicalSize = const Size(1440, 2400);
     tester.view.devicePixelRatio = 1;

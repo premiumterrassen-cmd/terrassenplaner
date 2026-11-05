@@ -438,6 +438,72 @@ class _AnzahlFeldState extends State<AnzahlFeld> {
   );
 }
 
+/// Unterpunkt „Nutzung privat oder gewerblich“ (Fachkonzept 3.8, M6-07):
+/// private Nutzung (Vorgabe) oder gewerbliche Nutzung; darunter die
+/// Stellfüße, die das Regelwerk der Artikeldaten für die gewählte UK und
+/// Nutzung vorsieht (Server, `Regelwerk.stellfuesse`). Jede Wahl ist ein
+/// Schritt für Rückgängig/Wiederherstellen.
+class GewerblichWahl extends StatelessWidget {
+  const GewerblichWahl({
+    required this.planung,
+    required this.onGeaendert,
+    this.berechnung,
+    super.key,
+  });
+
+  final PlanungsSteuerung planung;
+
+  /// Berechnung des Servers mit den Stellfüßen; ohne sie keine Liste.
+  final BerechnungsSteuerung? berechnung;
+
+  /// Meldet eine Änderung (Standardwert-Hinweis, M3-05).
+  final VoidCallback onGeaendert;
+
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: Listenable.merge([planung, berechnung]),
+    builder: (context, _) {
+      final t = context.texte;
+      final gewerblich = planung.aktuell.gewerblich;
+      final fuesse = berechnung?.ergebnis?.stellfuesse ?? const <Stellfuss>[];
+      return Column(
+        key: const ValueKey('nutzung'),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: PlanerAbstand.klein,
+            children: [
+              for (final (name, wert, text) in [
+                ('privat', false, t.nutzungPrivat),
+                ('gewerblich', true, t.nutzungGewerblich),
+              ])
+                ChoiceChip(
+                  key: ValueKey('nutzung-$name'),
+                  label: Text(text),
+                  selected: gewerblich == wert,
+                  onSelected: (an) {
+                    if (an) {
+                      planung.setze(planung.aktuell.mitGewerblich(wert));
+                      onGeaendert();
+                    }
+                  },
+                ),
+            ],
+          ),
+          const SizedBox(height: PlanerAbstand.klein),
+          if (fuesse.isEmpty)
+            Text(t.stellfuesseKeine, key: const ValueKey('stellfuesse-keine'))
+          else ...[
+            Text(t.stellfuesse),
+            for (final f in fuesse)
+              Text('• ${f.titel}', key: ValueKey('stellfuss-${f.nummer.wert}')),
+          ],
+        ],
+      );
+    },
+  );
+}
+
 /// Hinweis mit Symbol; als [warnung] in der Fehlerfarbe.
 class _Hinweis extends StatelessWidget {
   const _Hinweis({required this.text, this.warnung = false, super.key});

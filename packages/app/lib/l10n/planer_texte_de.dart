@@ -1051,6 +1051,19 @@ class PlanerTexteDe extends PlanerTexte {
       'Bitte eine ganze Zahl von 1 bis 99 eingeben';
 
   @override
+  String get nutzungPrivat => 'private Nutzung';
+
+  @override
+  String get nutzungGewerblich => 'gewerbliche Nutzung';
+
+  @override
+  String get stellfuesse => 'Passende Stellfüße:';
+
+  @override
+  String get stellfuesseKeine =>
+      'Für die gewählte Unterkonstruktion sind keine Stellfüße hinterlegt.';
+
+  @override
   String get automatisch => 'Automatisch';
 
   @override

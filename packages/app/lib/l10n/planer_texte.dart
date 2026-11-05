@@ -1942,6 +1942,30 @@ abstract class PlanerTexte {
   /// **'Bitte eine ganze Zahl von 1 bis 99 eingeben'**
   String get querstrebenAnzahlUngueltig;
 
+  /// No description provided for @nutzungPrivat.
+  ///
+  /// In de, this message translates to:
+  /// **'private Nutzung'**
+  String get nutzungPrivat;
+
+  /// No description provided for @nutzungGewerblich.
+  ///
+  /// In de, this message translates to:
+  /// **'gewerbliche Nutzung'**
+  String get nutzungGewerblich;
+
+  /// No description provided for @stellfuesse.
+  ///
+  /// In de, this message translates to:
+  /// **'Passende Stellfüße:'**
+  String get stellfuesse;
+
+  /// No description provided for @stellfuesseKeine.
+  ///
+  /// In de, this message translates to:
+  /// **'Für die gewählte Unterkonstruktion sind keine Stellfüße hinterlegt.'**
+  String get stellfuesseKeine;
+
   /// No description provided for @automatisch.
   ///
   /// In de, this message translates to:
