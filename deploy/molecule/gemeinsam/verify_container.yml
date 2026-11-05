@@ -187,4 +187,4 @@
 
     # --- Statistik und Datenschutz (M10-05) ---
     - name: Gemeinsame Prüfungen Datenschutz
-      ansible.builtin.include_tasks: verify_datenschutz.yml
+      ansible.builtin.include_tasks: tasks/datenschutz.yml
