@@ -6,8 +6,8 @@ import 'dart:typed_data';
 
 import 'package:connectanum_client/connectanum.dart';
 import 'package:connectanum_router/connectanum_router.dart'
-    as router
-    show Invocation;
+    as wamp_router
+    show Invocation, InvocationDetails;
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import 'package:terrassenplaner_server/terrassenplaner_server.dart';
 import 'package:test/test.dart';
@@ -101,14 +101,16 @@ void main() {
         [_erste, 2],
       );
       final v1 = await rufe(WampNamen.konfigurationLaden, [_erste, 1]);
-      expect(v1, [_planung(4000)]);
+      // mit der vollständigen Kennung (M9-10)
+      expect(v1, [_planung(4000), _erste]);
       expect(
-        Planung.ausBytes(v1.single! as Uint8List),
+        Planung.ausBytes(v1.first! as Uint8List),
         Planung.ausBytes(_planung(4000)),
       );
-      expect(await rufe(WampNamen.konfigurationLaden, [_erste, 2]), [
-        _planung(5000),
-      ]);
+      expect(
+        await rufe(WampNamen.konfigurationLaden, ['2026-11-04-0001-abcde', 2]),
+        [_planung(5000), _erste],
+      );
     },
   );
 
@@ -167,8 +169,48 @@ void main() {
     expect(db.store.box<Zwischenstand>().count(), 0);
   });
 
-  test('Mitarbeiter ohne Prüfcode: noch nicht freigeschaltet (M9-10)', () {
-    expect(KonfigurationsDienst.darfOhnePruefcodeLaden(_KeinAufruf()), isFalse);
+  test('ohne Prüfcode nur mit der Rolle mitarbeiter vom Router (M9-10)', () {
+    wamp_router.Invocation aufruf(Map<String, Object?> custom) =>
+        wamp_router.Invocation(
+          1,
+          2,
+          wamp_router.InvocationDetails(null, null, false),
+        )..details.custom.addAll(custom);
+    expect(
+      KonfigurationsDienst.darfOhnePruefcodeLaden(
+        aufruf({'caller_authrole': Rollen.mitarbeiter}),
+      ),
+      isTrue,
+    );
+    for (final custom in [
+      <String, Object?>{},
+      {'caller_authrole': Rollen.kunde},
+      {'caller_authrole': Rollen.dienst},
+      {'caller_authid': Rollen.mitarbeiter},
+    ]) {
+      expect(
+        KonfigurationsDienst.darfOhnePruefcodeLaden(aufruf(custom)),
+        isFalse,
+        reason: '$custom',
+      );
+    }
+  });
+
+  test('Kunde gibt sich nicht selbst als Mitarbeiter aus', () async {
+    await rufe(WampNamen.konfigurationSpeichern, [_planung(4000)]);
+    await expectLater(
+      kunde
+          .callSingle(
+            WampNamen.konfigurationLaden,
+            arguments: ['2026-11-04-0001', 1],
+            options: CallOptions(
+              discloseMe: true,
+              custom: {'caller_authrole': Rollen.mitarbeiter},
+            ),
+          )
+          .timeout(const Duration(seconds: 5)),
+      fehler(WampNamen.konfigurationUnbekannt, ['2026-11-04-0001', 1]),
+    );
   });
 
   test('ungültige Aufrufe', () async {
@@ -259,11 +301,4 @@ void main() {
     ]);
     expect(db.store.box<Zwischenstand>().count(), 1);
   });
-}
-
-/// Für die Stelle ohne Prüfcode genügt irgendein Aufruf – sie fragt ihn
-/// (noch) nicht.
-final class _KeinAufruf implements router.Invocation {
-  @override
-  dynamic noSuchMethod(_) => throw UnimplementedError();
 }

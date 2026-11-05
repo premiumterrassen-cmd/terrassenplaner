@@ -36,4 +36,16 @@ api:
   dashboard: false
 log:
   level: INFO
-accessLog: {}
+# Zugriffsprotokoll ohne personenbezogene Felder (M10-05, docs/betrieb/datenschutz.md):
+# keine IP-Adresse, kein Port, kein Benutzername; Kopfzeilen (auch Referer und
+# Browserkennung) werden nicht protokolliert. JSON, weil nur dort jedes Feld einzeln gilt.
+accessLog:
+  format: json
+  fields:
+    names:
+      ClientAddr: drop
+      ClientHost: drop
+      ClientPort: drop
+      ClientUsername: drop
+    headers:
+      defaultMode: drop

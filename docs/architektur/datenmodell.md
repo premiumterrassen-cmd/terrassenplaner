@@ -31,7 +31,7 @@ Entitäten, die über WAMP laufen, haben **ein** Layout für Leitung und Datenba
 | `Artikel` | M2-01/02 | `artikelnummer` (fachlich, eindeutig) + `uid` | `global` | Verkaufsdaten aus „Import Terrassenplaner“ (nie EK, B-020), Maße in mm, Einheit, VPE, Preis (Anzeige, B-055), Artikeltyp, Bilder |
 | `Artikelregel` | M2-04 | `uid`; fachlich `(artikelnummer, regelart, zielartikelnummer)` | `global` | Abhängigkeiten: Befestigung, Stellfüße privat/gewerblich, Pads, Verbinder, Verblendung, Drainage, Pflichtzubehör mit Anzahl, Abstände, Min-/Max-Höhe |
 | `Datenstand` | M2-06 | `version` (fortlaufend je Import) + `uid` | `global` | Zeitpunkt, Quelle (Master-Version), Prüfbericht – App lädt Artikel passend zum Datenstand |
-| `Benutzer` (Mitarbeiter) | M0-08, M9-10 | `authid` | `global` | Rolle, Anmeldeverfahren-Daten (nur abgeleitete Schlüssel, nie Klartext-Passwörter) |
+| `Benutzer` (Mitarbeiter) | M0-08, M9-10 | `authid` (E-Mail-Adresse, klein) | `global` | Rolle, Anmeldeverfahren-Daten (SCRAM: Salt, Argon2id-Kosten, StoredKey/ServerKey – nie Klartext-Passwörter), Sperre; Schema 2 |
 
 ### Bewegungsdaten – partitioniert nach Konfiguration
 

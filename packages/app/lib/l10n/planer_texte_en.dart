@@ -893,6 +893,47 @@ class PlanerTexteEn extends PlanerTexte {
   String get gewaehlt => 'Selected';
 
   @override
+  String get anmelden => 'LOG IN';
+
+  @override
+  String get abmelden => 'LOG OUT';
+
+  @override
+  String angemeldetAls(String email) {
+    return 'Logged in as $email';
+  }
+
+  @override
+  String get anmeldenTitel => 'Login';
+
+  @override
+  String get anmeldenHinweis => 'For ALTO HOLZ staff only.';
+
+  @override
+  String get emailFeld => 'Email address';
+
+  @override
+  String get passwortFeld => 'Password';
+
+  @override
+  String get anmeldenKnopf => 'Log in';
+
+  @override
+  String get anmeldungAbgelehnt =>
+      'Login not possible. Please check email address and password – after several failed attempts the account is locked for 15 minutes.';
+
+  @override
+  String get anmeldungFehler =>
+      'Login is not possible – the server cannot be reached.';
+
+  @override
+  String get abgemeldetMeldung => 'You are logged out.';
+
+  @override
+  String get nummerHinweisMitarbeiter =>
+      'As a staff member the configuration number is enough – the check code may be omitted.';
+
+  @override
   String get terrassenartNormal => 'Normal terrace';
 
   @override

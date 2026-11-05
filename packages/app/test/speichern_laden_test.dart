@@ -258,6 +258,6 @@ void main() {
       'note the number including the check code (the last five characters) '
       '– only with it can the configuration be loaded again.',
     );
-    expect(Kopfzeile.textAb, 1680);
+    expect(Kopfzeile.textAb, 1800);
   });
 }

@@ -196,19 +196,22 @@ void main() {
       expect(ablage.lies(v1), isNotEmpty);
     });
 
-    test('ohne Prüfcode (Stelle für Mitarbeiter, M9-10): nur die Nummer', () {
-      ablage.speichere(_inhalt(4000));
-      final falsch = _stand('2026-11-04-0001-FGHJK', 1);
-      expect(ablage.lies(falsch, ohnePruefcode: true), _inhalt(4000));
-      for (final stand in [
-        _stand('2026-11-04-0001-FGHJK', 2),
-        _stand('2026-11-04-0002-FGHJK', 1),
-      ]) {
-        expect(
-          () => ablage.lies(stand, ohnePruefcode: true),
-          throwsA(isA<KonfigurationUnbekannt>()),
-        );
-      }
+    test('Kennung zur Nummer (für Mitarbeiter, M9-10)', () {
+      final v1 = ablage.speichere(_inhalt(4000));
+      expect(ablage.kennung(v1.nummer), v1.kennung);
+      expect(
+        () => ablage.kennung(const Konfigurationsnummer('2026-11-04-0002')),
+        throwsA(
+          isA<KonfigurationUnbekannt>()
+              .having((e) => e.nummer.wert, 'nummer', '2026-11-04-0002')
+              .having((e) => e.version, 'version', isNull),
+        ),
+      );
+      ablage.speichere(_inhalt(5000));
+      expect(
+        ablage.kennung(const Konfigurationsnummer('2026-11-04-0002')).wert,
+        '2026-11-04-0002-FGHJK',
+      );
     });
 
     test('Grabsteine gelten als unbekannt', () {
@@ -218,6 +221,10 @@ void main() {
       db.loesche(db.store.box<Konfiguration>().getAll().single);
       expect(
         () => ablage.speichere(_inhalt(1000), kennung: v1.kennung),
+        throwsA(isA<KonfigurationUnbekannt>()),
+      );
+      expect(
+        () => ablage.kennung(v1.nummer),
         throwsA(isA<KonfigurationUnbekannt>()),
       );
     });

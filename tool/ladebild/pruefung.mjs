@@ -568,18 +568,32 @@ const server = await starteServer();
 const adresse = `http://127.0.0.1:${server.address().port}/`;
 let fehlgeschlagen = 0;
 
+/** Höchstdauer eines Falls; normal dauert der längste („langsam“) gut 30 s. */
+const FALL_FRIST_MS = 120_000;
+
+class Zeitueberschreitung extends Error {}
+
+/** [versprechen] oder Zeitueberschreitung nach [ms]. */
+function mitFrist(versprechen, ms) {
+  let uhr;
+  const frist = new Promise((_, fehler) => {
+    uhr = setTimeout(() => fehler(new Zeitueberschreitung(`keine Antwort nach ${ms / 1000} s`)), ms);
+  });
+  return Promise.race([versprechen, frist]).finally(() => clearTimeout(uhr));
+}
+
 /** Startet Chrome mit den Schaltern der Umgebung und führt [arbeit] aus. */
 async function mitChrome(umgebung, arbeit) {
-  const chrome = await starteChrome(umgebung.schalter);
+  const chrome = await mitFrist(starteChrome(umgebung.schalter), FALL_FRIST_MS);
   const protokoll = new Protokoll(chrome.adresse);
-  await protokoll.bereit();
+  await mitFrist(protokoll.bereit(), FALL_FRIST_MS);
   try {
     await arbeit(protokoll);
   } finally {
     protokoll.socket.close();
     const beendet = new Promise((r) => chrome.prozess.once('exit', r));
     chrome.prozess.kill();
-    await beendet;
+    await mitFrist(beendet, 10_000).catch(() => chrome.prozess.kill('SIGKILL'));
     rmSync(chrome.profil, { recursive: true, force: true });
   }
 }
@@ -603,18 +617,33 @@ try {
   } else {
     for (const umgebung of UMGEBUNGEN) {
       console.log(`== ${umgebung.name}`);
-      await mitChrome(umgebung, async (protokoll) => {
-        for (const [name, fall] of Object.entries(FAELLE)) {
-          if (umgebung.nur && !umgebung.nur.some((n) => name.includes(n))) continue;
-          if (process.env.LADEBILD_FALL && !name.includes(process.env.LADEBILD_FALL)) continue;
-          try {
-            console.log(`ok      ${name} – ${await fall(protokoll, adresse, umgebung)}`);
-          } catch (fehler) {
-            fehlgeschlagen++;
-            console.log(`FEHLER  ${name} – ${fehler.message}`);
+      const faelle = Object.entries(FAELLE).filter(([name]) =>
+        (!umgebung.nur || umgebung.nur.some((n) => name.includes(n))) &&
+        (!process.env.LADEBILD_FALL || name.includes(process.env.LADEBILD_FALL)));
+      // Ein hängender Fall (Chrome/DevTools antwortet nicht mehr) darf die
+      // Build-Chain nicht bis zum Job-Timeout blockieren: Frist je Fall, danach
+      // frisches Chrome und ein zweiter Versuch für genau diesen Fall.
+      let naechster = 0;
+      const versuche = new Map();
+      while (naechster < faelle.length) {
+        await mitChrome(umgebung, async (protokoll) => {
+          while (naechster < faelle.length) {
+            const [name, fall] = faelle[naechster];
+            try {
+              console.log(`ok      ${name} – ${await mitFrist(fall(protokoll, adresse, umgebung), FALL_FRIST_MS)}`);
+            } catch (fehler) {
+              if (fehler instanceof Zeitueberschreitung && !versuche.has(name)) {
+                versuche.set(name, 1);
+                console.log(`WIEDER  ${name} – keine Antwort nach ${FALL_FRIST_MS / 1000} s, neuer Versuch mit frischem Chrome`);
+                return;
+              }
+              fehlgeschlagen++;
+              console.log(`FEHLER  ${name} – ${fehler.message}`);
+            }
+            naechster++;
           }
-        }
-      });
+        });
+      }
     }
   }
 } finally {

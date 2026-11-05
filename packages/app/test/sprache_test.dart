@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:terrassenplaner_app/planer_app.dart';
+import 'package:terrassenplaner_app/src/anmeldung/mitarbeiter_anmeldung.dart';
 import 'package:terrassenplaner_app/src/rahmen/ansichtsoptionen.dart';
 import 'package:terrassenplaner_app/src/rahmen/planer_rahmen.dart';
 import 'package:terrassenplaner_app/src/rahmen/planer_schritt.dart';
@@ -29,7 +30,11 @@ Set<String> _platzhalter(String text) => {
   for (final m in RegExp(r'\{(\w+)\}').allMatches(text)) m[1]!,
 };
 
-Future<SprachSteuerung> _zeigeApp(WidgetTester tester, Size groesse) async {
+Future<SprachSteuerung> _zeigeApp(
+  WidgetTester tester,
+  Size groesse, {
+  MitarbeiterAnmeldung? anmeldung,
+}) async {
   tester.view
     ..physicalSize = groesse
     ..devicePixelRatio = 1;
@@ -42,6 +47,7 @@ Future<SprachSteuerung> _zeigeApp(WidgetTester tester, Size groesse) async {
       ablage: TestAblage(),
       gedaechtnis: testGedaechtnis(),
       sprache: sprache,
+      anmeldung: anmeldung,
     ),
   );
   await tester.pumpAndSettle();
@@ -215,34 +221,46 @@ void main() {
       1024.0,
       1280.0,
       1440.0,
-      1679.0,
-      1680.0,
+      1799.0,
+      1800.0,
       1920.0,
     ]) {
-      testWidgets('beide Sprachen ohne Überlauf bei $breite px', (
-        tester,
-      ) async {
-        final sprache = await _zeigeApp(tester, Size(breite, 900));
-        for (final t in [de, en]) {
-          sprache.value = Locale(t.localeName);
-          await tester.pumpAndSettle();
-          // Unter 1680 px nur Symbole mit Tooltip (Kopfzeile.textAb).
-          final mitText = breite >= Kopfzeile.textAb;
-          expect(
-            find.text(t.videoberatung),
-            mitText ? findsOneWidget : findsNothing,
+      for (final email in [null, 'sehr.langer.name@robinienwelt.de']) {
+        testWidgets('beide Sprachen ohne Überlauf bei $breite px, '
+            '${email == null ? 'abgemeldet' : 'angemeldet'}', (tester) async {
+          final anmeldung = TestAnmeldung();
+          anmeldung.angemeldetAls.value = email;
+          final sprache = await _zeigeApp(
+            tester,
+            Size(breite, 900),
+            anmeldung: anmeldung,
           );
-          expect(
-            find.byTooltip(t.videoberatung),
-            mitText ? findsNothing : findsOneWidget,
-          );
-          expect(
-            find.text(mitText ? t.anfordern : t.anfordernKurz),
-            findsOneWidget,
-          );
-          expect(tester.takeException(), isNull, reason: t.localeName);
-        }
-      });
+          for (final t in [de, en]) {
+            sprache.value = Locale(t.localeName);
+            await tester.pumpAndSettle();
+            // Unter 1800 px nur Symbole mit Tooltip (Kopfzeile.textAb).
+            final mitText = breite >= Kopfzeile.textAb;
+            expect(
+              find.text(t.videoberatung),
+              mitText ? findsOneWidget : findsNothing,
+            );
+            expect(
+              find.byTooltip(t.videoberatung),
+              mitText ? findsNothing : findsOneWidget,
+            );
+            expect(
+              find.text(mitText ? t.anfordern : t.anfordernKurz),
+              findsOneWidget,
+            );
+            final knopf = email == null ? t.anmelden : t.abmelden;
+            expect(find.text(knopf), mitText ? findsOneWidget : findsNothing);
+            if (email != null) {
+              expect(find.text(t.angemeldetAls(email)), findsOneWidget);
+            }
+            expect(tester.takeException(), isNull, reason: t.localeName);
+          }
+        });
+      }
     }
 
     testWidgets('ohne Sprachsteuerung keine Auswahl im Rahmen', (tester) async {

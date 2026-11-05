@@ -973,17 +973,63 @@ void main() {
           ).materialliste.positionen.first.anzahl,
           48,
         );
-        // über den Router: bis zur Anmeldung für niemanden
+        // über den Router: ein Kunde kann sich nicht als Mitarbeiter ausgeben
         await dienst.stoppe();
         dienst = await PlanungsDienst.starte(
           router,
           belag: (_) => diele,
           regelwerk: () => regelwerk,
         );
-        final antwort = await rufe(planung.zuBytes());
+        final antwort = await kunde
+            .callSingleLazyPayloadView(
+              WampNamen.planungBerechnen,
+              payload: PlanungsDienst.verpacke(planung.zuBytes()),
+              options: CallOptions(
+                pptScheme: WampNamen.pptSchema,
+                pptSerializer: WampNamen.pptSerializer,
+                discloseMe: true,
+                custom: {'caller_authrole': Rollen.mitarbeiter},
+              ),
+            )
+            .timeout(const Duration(seconds: 5));
         final b = Berechnung.ausBytes(antwort.payload.packedPayloadBytes!);
         expect(zeilen(b.materialliste)[('10-10-073-R', 5000)], 48);
         expect(b.materialliste.positionen.first.berechnet, isNull);
+        // die Rolle aus den Aufrufdetails des Routers entscheidet
+        LazyInvocationPayload aufruf(Map<String, dynamic>? details) =>
+            LazyInvocationPayload(
+              requestId: 1,
+              registrationId: 2,
+              receiveProgress: false,
+              respondWith: ({
+                arguments,
+                argumentsKeywords,
+                isError = false,
+                errorUri,
+                lazyPayload,
+                options,
+              }) {},
+              isResponseClosed: () => false,
+              payload: PlanungsDienst.verpacke(planung.zuBytes()),
+              customDetails: details,
+            );
+        expect(
+          PlanungsDienst.darfMengenAendern(
+            aufruf({'caller_authrole': Rollen.mitarbeiter}),
+          ),
+          isTrue,
+        );
+        for (final details in [
+          null,
+          <String, dynamic>{'caller_authrole': Rollen.kunde},
+          <String, dynamic>{'caller_authid': Rollen.mitarbeiter},
+        ]) {
+          expect(
+            PlanungsDienst.darfMengenAendern(aufruf(details)),
+            isFalse,
+            reason: '$details',
+          );
+        }
       });
     });
   });
