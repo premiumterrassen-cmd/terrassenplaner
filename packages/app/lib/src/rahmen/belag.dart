@@ -4,39 +4,15 @@ import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import '../artikel/artikelbild_widget.dart';
 import '../design/planer_design.dart';
 import '../sprache/sprache.dart';
+import 'lade_quelle.dart';
 import 'steuerung.dart';
 
 /// Lädt die Belagauswahl vom Server (M5-01); in Tests austauschbar.
 typedef BelaegeLaden = Future<Belagauswahl> Function();
 
-/// Hält die Beläge des Servers mit ihren Preisen (M5-01). Die App rechnet
-/// nichts selbst und merkt sich nichts dauerhaft.
-class BelagQuelle extends ChangeNotifier {
-  BelagQuelle(this.lade) {
-    ladeNeu();
-  }
-
-  final BelaegeLaden lade;
-
-  Belagauswahl? _auswahl;
-  Object? _fehler;
-
-  /// Geladene Beläge; `null`, solange nichts geladen ist.
-  Belagauswahl? get auswahl => _auswahl;
-
-  /// Fehler des letzten Ladens; `null`, wenn es gelang.
-  Object? get fehler => _fehler;
-
-  Future<void> ladeNeu() async {
-    _fehler = null;
-    notifyListeners();
-    try {
-      _auswahl = await lade();
-    } on Object catch (fehler) {
-      _fehler = fehler;
-    }
-    notifyListeners();
-  }
+/// Hält die Beläge des Servers mit ihren Preisen (M5-01).
+class BelagQuelle extends LadeQuelle<Belagauswahl> {
+  BelagQuelle(super.lade);
 }
 
 /// Maße eines Artikels in mm: Länge(n) × Breite × Stärke.
