@@ -7,7 +7,9 @@ import 'package:test/test.dart';
 Benutzer _benutzer(String authId) => Benutzer(
   authId: authId,
   salt: 's',
+  kdf: 'argon2id13',
   iterationen: 1,
+  speicher: 8,
   storedKey: 'a',
   serverKey: 'b',
 );

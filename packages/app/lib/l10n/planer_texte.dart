@@ -1672,6 +1672,78 @@ abstract class PlanerTexte {
   /// **'Gewählt'**
   String get gewaehlt;
 
+  /// No description provided for @anmelden.
+  ///
+  /// In de, this message translates to:
+  /// **'ANMELDEN'**
+  String get anmelden;
+
+  /// No description provided for @abmelden.
+  ///
+  /// In de, this message translates to:
+  /// **'ABMELDEN'**
+  String get abmelden;
+
+  /// No description provided for @angemeldetAls.
+  ///
+  /// In de, this message translates to:
+  /// **'Angemeldet als {email}'**
+  String angemeldetAls(String email);
+
+  /// No description provided for @anmeldenTitel.
+  ///
+  /// In de, this message translates to:
+  /// **'Login'**
+  String get anmeldenTitel;
+
+  /// No description provided for @anmeldenHinweis.
+  ///
+  /// In de, this message translates to:
+  /// **'Nur für Mitarbeiter von ALTO HOLZ.'**
+  String get anmeldenHinweis;
+
+  /// No description provided for @emailFeld.
+  ///
+  /// In de, this message translates to:
+  /// **'E-Mail-Adresse'**
+  String get emailFeld;
+
+  /// No description provided for @passwortFeld.
+  ///
+  /// In de, this message translates to:
+  /// **'Passwort'**
+  String get passwortFeld;
+
+  /// No description provided for @anmeldenKnopf.
+  ///
+  /// In de, this message translates to:
+  /// **'Anmelden'**
+  String get anmeldenKnopf;
+
+  /// No description provided for @anmeldungAbgelehnt.
+  ///
+  /// In de, this message translates to:
+  /// **'Anmeldung nicht möglich. Bitte prüfen Sie E-Mail-Adresse und Passwort – nach mehreren Fehlversuchen ist das Konto für 15 Minuten gesperrt.'**
+  String get anmeldungAbgelehnt;
+
+  /// No description provided for @anmeldungFehler.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Anmeldung ist nicht möglich – der Server ist nicht erreichbar.'**
+  String get anmeldungFehler;
+
+  /// No description provided for @abgemeldetMeldung.
+  ///
+  /// In de, this message translates to:
+  /// **'Sie sind abgemeldet.'**
+  String get abgemeldetMeldung;
+
+  /// No description provided for @nummerHinweisMitarbeiter.
+  ///
+  /// In de, this message translates to:
+  /// **'Als Mitarbeiter genügt die Konfigurationsnummer – der Prüfcode darf fehlen.'**
+  String get nummerHinweisMitarbeiter;
+
   /// No description provided for @terrassenartNormal.
   ///
   /// In de, this message translates to:

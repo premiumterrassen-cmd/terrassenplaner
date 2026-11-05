@@ -9,7 +9,9 @@ import 'package:test/test.dart';
 Benutzer _anna() => Benutzer(
   authId: 'anna',
   salt: 's',
+  kdf: 'argon2id13',
   iterationen: 1,
+  speicher: 8,
   storedKey: 'a',
   serverKey: 'b',
 );
@@ -48,9 +50,10 @@ void main() {
     expect(anna.hlc, '0000000001000-0000-knoten-a');
     expect(anna.knoten, 'knoten-a');
     expect(anna.partition, 'global');
-    expect(anna.schema, 1);
+    expect(anna.schema, 2);
     expect(anna.geloeschtAm, isNull);
     expect(anna.rolle, 'mitarbeiter');
+    expect(anna.gesperrt, isFalse);
 
     final protokoll = db.aenderungenSeit(0);
     expect(protokoll, hasLength(1));

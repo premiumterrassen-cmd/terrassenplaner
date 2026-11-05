@@ -66,6 +66,10 @@
       ansible.builtin.command: docker exec terrassenplaner-auth-1 test -f /daten/datenbank/data.mdb
       changed_when: false
 
+    - name: Werkzeug für Mitarbeiter-Konten im Auth-Container (M9-10)
+      ansible.builtin.command: docker exec terrassenplaner-auth-1 /app/bin/mitarbeiter liste
+      changed_when: false
+
     - name: ObjectBox-Datenbank der Konfigurationen im Router-Container angelegt (M9-05)
       ansible.builtin.command: docker exec terrassenplaner-router-1 test -f /daten/datenbank/data.mdb
       changed_when: false

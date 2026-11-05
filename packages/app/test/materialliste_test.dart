@@ -338,8 +338,7 @@ void main() {
       ..devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     final zustand = RahmenZustand();
-    final mitarbeiter = ValueNotifier(false);
-    addTearDown(mitarbeiter.dispose);
+    final anmeldung = TestAnmeldung();
     await tester.pumpWidget(
       testApp(
         theme: planerThema(),
@@ -347,7 +346,7 @@ void main() {
           status: const Text('Status'),
           zustand: zustand,
           berechne: _berechne,
-          mitarbeiter: mitarbeiter,
+          anmeldung: anmeldung,
         ),
       ),
     );
@@ -373,7 +372,7 @@ void main() {
     );
     expect(felder, findsNothing);
     // Anmeldung als Mitarbeiter (M9-10) schaltet die Mengen frei
-    mitarbeiter.value = true;
+    anmeldung.angemeldetAls.value = 'anna@example.test';
     await tester.pumpAndSettle();
     expect(felder, findsNWidgets(3));
     await tester.tap(find.byKey(const ValueKey('materialliste-schliessen')));

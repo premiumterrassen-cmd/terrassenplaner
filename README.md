@@ -67,7 +67,7 @@ export PLANER_AUTH_TOKEN=… PLANER_AUTH_DIENST_TICKET=…
 ```
 
 - Router: `PLANER_HOST` (127.0.0.1), `PLANER_PORT` (8080), `PLANER_WS_PFAD` (/ws), `PLANER_REALM`, `PLANER_HEALTH_LISTEN` (127.0.0.1:8081), `PLANER_AUTH_ADRESSE` (127.0.0.1:8082).
-- Auth-Server: `PLANER_AUTH_LISTEN` (127.0.0.1:8082), `PLANER_AUTH_HEALTH_LISTEN` (127.0.0.1:8083), `PLANER_REALM`, `PLANER_MITARBEITER_DATEI` (JSON-Liste; Eintrag erzeugen mit `dart run bin/mitarbeiter_zugang.dart <authid>`).
+- Auth-Server: `PLANER_AUTH_LISTEN` (127.0.0.1:8082), `PLANER_AUTH_HEALTH_LISTEN` (127.0.0.1:8083), `PLANER_REALM`, `PLANER_DATENVERZEICHNIS` (Mitarbeiter-Konten; ohne: nur im Arbeitsspeicher). Konten verwalten: `dart run bin/mitarbeiter.dart anlegen|passwort|sperren|entsperren <email>` bzw. `liste` (`docs/betrieb/mitarbeiter.md`).
 - Rollen und Rechte: [docs/erkenntnisse/authentifizierung.md](docs/erkenntnisse/authentifizierung.md). Health-Prüfung: `curl http://127.0.0.1:8081/healthz`.
 
 ## connectanum-Versionen
