@@ -56,7 +56,7 @@ Laden und Suche nach einer zwischengespeicherten Konfiguration sind Funktionen, 
 ## Rechtliche Links und Knöpfe (M3-06)
 
 - **Fußbereich** (`Statuszeile`): links der Serverstatus, rechts **AGB · Datenschutz · Impressum** – die Seiten des Shops (`PlanerLinks`, Vorgabe Alexander 26.10.2026): `shop.robinienwelt.de/policies/terms-of-service`, `/privacy-policy`, `/legal-notice`. Der alte Planer verlinkte www.robinienwelt.de und eine AGB-PDF von 2022.
-- **Kopfzeile:** „Video-Beratung buchen“ (Shop-Produkt `products/online-videoberatung-buchen`), „ZURÜCKSETZEN“, „PDF“ und „KONFIGURATION ANFORDERN“ (grün). PDF und Anfordern zeigen zuerst den Standardwert-Hinweis (M3-05); bis M9 meldet der Planer „Diese Funktion folgt in Kürze.“ Unter 1280 px (`Kopfzeile.textAb`) nur Symbole mit Tooltip, unter 1024 px zusätzlich ohne Titel.
+- **Kopfzeile:** „Video-Beratung buchen“ (Shop-Produkt `products/online-videoberatung-buchen`), „ZURÜCKSETZEN“, „PDF“ und „KONFIGURATION ANFORDERN“ (grün). PDF und Anfordern zeigen zuerst den Standardwert-Hinweis (M3-05). PDF speichert und lädt die Planungsunterlagen vom Server herunter (M9-06); für Anfordern meldet der Planer bis M9-07 „Diese Funktion folgt in Kürze.“ Unter 1280 px (`Kopfzeile.textAb`) nur Symbole mit Tooltip, unter 1024 px zusätzlich ohne Titel.
 - **Montageanleitung:** entfällt vorerst, bis es eine Seite oder PDF gibt (Alexander 26.10.2026) – dann nur einen Link in `PlanerLinks` ergänzen.
 - Links öffnen in einem neuen Tab (`url_launcher`, `oeffneImBrowser`); in Tests wird der Öffner ersetzt.
 

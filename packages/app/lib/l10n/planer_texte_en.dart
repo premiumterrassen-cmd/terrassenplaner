@@ -496,6 +496,15 @@ class PlanerTexteEn extends PlanerTexte {
       'Saving is not possible – the server cannot be reached. Your planning is kept, please save again later.';
 
   @override
+  String pdfErstellt(String nummer, int version) {
+    return 'Planning documents for configuration number $nummer, version $version created.';
+  }
+
+  @override
+  String get pdfFehler =>
+      'PDF not possible – the server cannot be reached. Your planning is kept, please try again later.';
+
+  @override
   String get modell3dTitel => '3D preview (prototype): terrace 4 x 3 m';
 
   @override

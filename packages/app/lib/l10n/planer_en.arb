@@ -155,6 +155,8 @@
   "gefundenEntwurf": "We found an unsaved configuration. Would you like to continue planning with it?",
   "gespeichertMeldung": "Saved: configuration number {nummer}, version {version}. Please note the number including the check code (the last five characters) – only with it can the configuration be loaded again.",
   "speichernFehler": "Saving is not possible – the server cannot be reached. Your planning is kept, please save again later.",
+  "pdfErstellt": "Planning documents for configuration number {nummer}, version {version} created.",
+  "pdfFehler": "PDF not possible – the server cannot be reached. Your planning is kept, please try again later.",
 
   "modell3dTitel": "3D preview (prototype): terrace 4 x 3 m",
   "modell3dLaedt": "Loading 3D model …",
