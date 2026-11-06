@@ -102,3 +102,30 @@ Nach der Mitarbeiter-Anmeldung zeigt die Materialliste je Artikel die **Menge** 
 - **Zuschnittliste** – Zuschnittplan für Deckbelag und Unterkonstruktion. Spalten: Bezeichnung (interne Produktionsbezeichnung, z. B. „… - FJ 2 CLIP BOMBIERT“), Ausgangslänge (cm), Menge, danach je Spalte ein Schnittmaß (cm).
 - Freidielen (B-228, früher B-079) stehen mit Preis 0 in der Materialliste, aber nicht in der Zuschnittliste; Verblendungsdielen ebenfalls nur in der Materialliste.
 - Für Fremdartikel steht in der Spalte Artikelnummer die EAN – im neuen Planer gilt die Artikelnummer aus der Master-Artikelliste (B-122); EANs gehören nicht ins öffentliche Repository (B-023).
+
+## Export für GrandTotal
+
+Neuer Planer (M9-08) – der „CSV-Download“ als Importdatei für GrandTotal:
+
+- **Knopf „Export für GrandTotal“** in der Mitarbeiter-Ansicht der Materialliste (rechts über der Tabelle). Die App fordert die Datei beim Server an (`mitarbeiter.export.grandtotal`, Exportdienst) und bietet sie zum Speichern an; sie rechnet nichts selbst. Die Prozedur steht nur angemeldeten Mitarbeitern offen (M9-10) – Aufrufe aus einer Kundensitzung lehnt der Router ab. Dateiname `GrandTotal_Import_<Nummer>_v<Version>.csv` der gespeicherten Konfiguration (ohne Prüfcode), sonst `GrandTotal_Import.csv`. Erfolg und Fehler als Hinweis.
+- **Inhalt = Materialliste** (M9-03) der ganzen Planung in ihrer Reihenfolge, eine Zeile je Artikel, Länge und Zusatz – mit Unterkonstruktion und Auflagern (M6), Zubehör samt Pflichtzubehör und Freidielen (M8); abgewählte Positionen (Menge 0) entfallen. Es gelten die vom Mitarbeiter geänderten Mengen (`Planung.mengen`); die Rolle prüft der Dienst aus den Aufrufdetails des Routers (`disclose_caller`, `ExportDienst.darfMengenAendern`).
+- **Format** wie die bisherigen Importdateien: Text in UTF-8, Trenner `;`, Zeilenende CRLF, Felder mit `;`, `"` oder Zeilenumbruch in Anführungszeichen; Zahlen mit Punkt. Spalten in dieser Reihenfolge:
+
+| Spalte | Inhalt |
+|---|---|
+| Bezeichnung | Titel wie im Shop (B-152); bei Ware mit Länge „ - Länge: 5000 mm“, bei Freidielen zusätzlich „ - Freidiele“ |
+| Nomenklatur | Titel wie im Shop – keine Werks- oder Produktionsbezeichnung (B-021) |
+| Body HTML | leer, solange die Artikeldaten keinen Beschreibungstext führen |
+| Anzahl | Stück (Dielen, UK) bzw. Verkaufseinheiten |
+| Breite, Stärke, Länge | in mm aus den Artikeldaten; Länge = Lieferlänge |
+| Artikelnummer | wie im Shop (B-152) |
+| Nettopreis, Bruttopreis | je Einheit der Zeile, bei Ware mit Länge je lfm; netto = brutto ÷ 1,19 auf 4, brutto auf 2 Nachkommastellen; Freidielen 0 (B-079); ohne Preis leer |
+| Link zum Bild | erstes Artikelbild neben der Web-App (`…/artikelbilder/<Name>.webp`) |
+| Volumen, Quadratmeter | je Stück (Breite × Stärke × Länge bzw. Breite × Länge) |
+| Gewicht | ganze Zeile in kg: Holz aus Querschnitt, Länge und Rohdichte (R-A12), sonst Gewicht je Verkaufseinheit × Anzahl |
+| Gesamtlaufmeter | Anzahl × Länge |
+| Artikeltyp | Warengruppe: Deckbelag, Deckbelag,Zubehoer (Holzfliesen), Unterkonstruktion, Verbinder,Zubehoer, BefestigungDeck,Zubehoer, Stellfuss,Zubehoer, Unterlegpads,Zubehoer, Bodenanker, Verblendung,Zubehoer, Drainage, DrainageZubehoer, EPDM-Band,Zubehoer, Dienstleistung, sonst Zubehoer |
+| Einheit | „lfm“ bei Ware mit Länge, sonst die Verkaufseinheit (Stück, VPE, Karton …) |
+
+- **Einlesen in GrandTotal:** Das Plugin „ImportZuLaufmeter“ erkennt Holz an Warengruppe (Deckbelag, Unterkonstruktion), Breite und Stärke, rechnet Stück × Länge in lfm um und übernimmt die Katalogpreise der Artikelnummer – GrandTotal bleibt führend (B-055); fehlt der Artikel im Katalog, bleibt der Planer-Preis je lfm.
+- **Nicht übernommen:** die Werks-Nomenklatur und EANs des alten Exports (B-020, B-021, B-023) und die Endung `.xlsx` (der neue Export ist echte CSV-Datei). Die Zuschnittliste folgt mit M9-02.

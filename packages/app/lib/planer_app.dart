@@ -4,6 +4,7 @@ import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import 'src/anmeldung/mitarbeiter_anmeldung.dart';
 import 'src/design/darstellung.dart';
 import 'src/design/planer_design.dart';
+import 'src/export/grandtotal_export.dart';
 import 'src/konfiguration/konfigurations_steuerung.dart';
 import 'src/konfiguration/planungsunterlagen.dart';
 import 'src/rahmen/belag.dart';
@@ -30,6 +31,7 @@ class PlanerApp extends StatefulWidget {
     this.unterkonstruktionen,
     this.unterlagen,
     this.zubehoer,
+    this.exportGrandTotal,
     this.sprache,
     this.darstellung,
     this.anmeldung,
@@ -58,6 +60,9 @@ class PlanerApp extends StatefulWidget {
 
   /// Zubehör vom Server (M8-01).
   final ZubehoerLaden? zubehoer;
+
+  /// Export für GrandTotal vom Server (M9-08, Mitarbeiter-Ansicht).
+  final GrandTotalAnfordern? exportGrandTotal;
 
   /// Sprache aus den lokalen Einstellungen (M3-09); ohne Vorgabe Deutsch
   /// (M3-07).
@@ -113,6 +118,7 @@ class _PlanerAppState extends State<PlanerApp> {
           unterkonstruktionen: widget.unterkonstruktionen,
           unterlagen: widget.unterlagen,
           zubehoer: widget.zubehoer,
+          exportGrandTotal: widget.exportGrandTotal,
           sprache: _sprache,
           darstellung: _darstellung,
           anmeldung: widget.anmeldung,

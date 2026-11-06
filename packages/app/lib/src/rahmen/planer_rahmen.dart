@@ -6,6 +6,8 @@ import '../anmeldung/anmelde_dialog.dart';
 import '../anmeldung/mitarbeiter_anmeldung.dart';
 import '../design/darstellung.dart';
 import '../design/planer_design.dart';
+import '../export/datei_angebot.dart';
+import '../export/grandtotal_export.dart';
 import '../konfiguration/konfigurations_steuerung.dart';
 import '../konfiguration/planungsunterlagen.dart';
 import '../sprache/sprache.dart';
@@ -58,6 +60,9 @@ class PlanerRahmen extends StatefulWidget {
     this.sprache,
     this.darstellung,
     this.anmeldung,
+    this.exportGrandTotal,
+    this.dateiAnbieten = bieteDateiAn,
+    this.adresse,
   });
 
   /// Inhalt der Statuszeile (z. B. Verbindung zum Server).
@@ -106,6 +111,16 @@ class PlanerRahmen extends StatefulWidget {
   /// ANMELDEN für Mitarbeiter (M9-10); ohne sie kein Knopf. Angemeldet
   /// zeigt die Materialliste die Mitarbeiter-Ansicht (Fachkonzept 08).
   final MitarbeiterAnmeldung? anmeldung;
+
+  /// Export für GrandTotal vom Server (M9-08, Mitarbeiter-Ansicht der
+  /// Materialliste); ohne ihn gibt es den Knopf nicht.
+  final GrandTotalAnfordern? exportGrandTotal;
+
+  /// Bietet die Importdatei zum Speichern an (im Browser ein Download).
+  final TextdateiAnbieten dateiAnbieten;
+
+  /// Adresse der Web-App für die Bild-Links im Export; `null` = `Uri.base`.
+  final Uri? adresse;
 
   @override
   State<PlanerRahmen> createState() => _PlanerRahmenState();
@@ -243,6 +258,15 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
         berechnung: berechnung,
         planung: _planung,
         mitarbeiter: _mitarbeiter,
+        export: switch (widget.exportGrandTotal) {
+          final anfordern? => GrandTotalExport(
+            anfordern: anfordern,
+            adresse: widget.adresse ?? Uri.base,
+            anbieten: widget.dateiAnbieten,
+            stand: () => widget.konfiguration?.stand,
+          ),
+          null => null,
+        },
       ),
     );
   }
