@@ -135,6 +135,8 @@ void main() {
       expect(planer.auth.optionsFor('wamp-scram'), {
         'authenticator': 'mitarbeiter-remote',
       });
+      // Fehlversuche bremsen (M9-10)
+      expect(planer.limits, same(RouterEinstellungen.anmeldeGrenzen));
       expect(planer.roles.map((r) => r.name), [
         Rollen.kunde,
         Rollen.mitarbeiter,
@@ -245,10 +247,23 @@ void main() {
       expect(client.uri, 'authenticate.');
       expect(client.matchPolicy, PermissionMatchPolicy.prefix);
       expect(client.allow, ['call']);
-      final dienst = rollen['auth-dienst']!.permissions.single;
-      expect(dienst.uri, 'authenticate.');
-      expect(dienst.matchPolicy, PermissionMatchPolicy.prefix);
-      expect(dienst.allow, ['register', 'unregister']);
+      final dienst = rollen['auth-dienst']!.permissions;
+      expect(dienst.map((r) => r.uri), [
+        'authenticate.',
+        'verwaltung.mitarbeiter.',
+      ]);
+      for (final r in dienst) {
+        expect(r.matchPolicy, PermissionMatchPolicy.prefix);
+        expect(r.allow, ['register', 'unregister']);
+      }
+      // Verwaltungswerkzeug (M9-10): nur die Verwaltung aufrufen
+      expect(AuthServerEinstellungen.verwaltungId, 'verwaltung');
+      expect(AuthServerEinstellungen.verwaltungRolle, 'verwaltung');
+      final verwaltung = rollen['verwaltung']!.permissions.single;
+      expect(verwaltung.uri, MitarbeiterVerwaltung.uriBasis);
+      expect(verwaltung.matchPolicy, PermissionMatchPolicy.prefix);
+      expect(verwaltung.allow, ['call']);
+      expect(rollen.keys, ['auth-client', 'verwaltung', 'auth-dienst']);
       expect(realms.keys, contains('connectanum.metrics'));
       expect(settings.internalRealms.single.name, 'connectanum.metrics');
       expect(settings.metrics!.openMetrics!.listen, '127.0.0.1:9101');
@@ -267,6 +282,7 @@ void main() {
       expect(ticket.type, 'ticket');
       expect(ticket.options['secrets'], {
         'router': {'ticket': 'ticket', 'role': 'auth-client'},
+        'verwaltung': {'ticket': 'ticket', 'role': 'verwaltung'},
       });
     });
 

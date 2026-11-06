@@ -66,6 +66,10 @@
       ansible.builtin.command: docker exec terrassenplaner-auth-1 test -f /daten/datenbank/data.mdb
       changed_when: false
 
+    - name: Werkzeug für Mitarbeiter-Konten im Auth-Container (M9-10)
+      ansible.builtin.command: docker exec terrassenplaner-auth-1 /app/bin/mitarbeiter liste
+      changed_when: false
+
     - name: ObjectBox-Datenbank der Konfigurationen im Router-Container angelegt (M9-05)
       ansible.builtin.command: docker exec terrassenplaner-router-1 test -f /daten/datenbank/data.mdb
       changed_when: false
@@ -78,7 +82,7 @@
       delay: 5
       until: >-
         planer_test_ziele.rc == 0
-        and ((planer_test_ziele.stdout | from_json).data.activeTargets | length) >= 6
+        and ((planer_test_ziele.stdout | from_json).data.activeTargets | length) >= 7
         and ((planer_test_ziele.stdout | from_json).data.activeTargets | rejectattr('health', 'equalto', 'up') | list | length) == 0
 
     - name: Grafana über Traefik nur mit Anmeldung (Container)
@@ -129,3 +133,58 @@
     - name: Sicherungs-Timer aktiv  # noqa: command-instead-of-module
       ansible.builtin.command: systemctl is-enabled planer-sicherung.timer
       changed_when: false
+
+    # --- Produktivbetrieb (M10-03) ---
+    - name: Gemeinsame Prüfungen (Härtung, Log-Rotation, ObjectBox-Sicherung)
+      ansible.builtin.include_tasks: tasks/betrieb.yml
+
+    - name: Härtung der Dart-Container (keine Rechte, Wurzel nur lesbar, Log-Rotation)
+      ansible.builtin.command: >-
+        docker inspect -f '{{ "{{" }} .HostConfig.ReadonlyRootfs {{ "}}" }} {{ "{{" }} .HostConfig.CapDrop {{ "}}" }}
+        {{ "{{" }} .HostConfig.SecurityOpt {{ "}}" }} {{ "{{" }} .HostConfig.LogConfig.Config {{ "}}" }}' {{ item }}
+      register: planer_test_haertung
+      changed_when: false
+      failed_when: >-
+        planer_test_haertung.stdout
+        != 'true [ALL] [no-new-privileges:true] map[max-file:5 max-size:10m]'
+      loop: [terrassenplaner-auth-1, terrassenplaner-router-1]
+
+    - name: Datenbank-Kennzahlen vor der Wiederherstellung
+      ansible.builtin.command: docker exec {{ item }} curl -fs http://127.0.0.1:8084/metrics
+      register: planer_test_vorher
+      changed_when: false
+      loop: [terrassenplaner-router-1, terrassenplaner-auth-1]
+
+    - name: Wiederherstellung von Auth-Server und Router aus der jüngsten Sicherung
+      ansible.builtin.shell: >-
+        set -o pipefail;
+        planer-wiederherstellung {{ item }}
+        "$(ls -1t /var/backups/terrassenplaner/objectbox-{{ item }}-*.mdb.gz | head -1)"
+      args: {executable: /bin/bash}
+      changed_when: true
+      loop: [auth, router]
+
+    - name: Nach der Wiederherstellung gesund, Sequenz und Datensätze wie vorher
+      ansible.builtin.command: docker exec {{ item.item }} curl -fs http://127.0.0.1:8084/metrics
+      register: planer_test_nachher
+      changed_when: false
+      failed_when: >-
+        planer_test_nachher.stdout | regex_findall('planer_datenbank_(?:sequenz|datensaetze)[^ ]* [0-9]+')
+        != item.stdout | regex_findall('planer_datenbank_(?:sequenz|datensaetze)[^ ]* [0-9]+')
+      loop: "{{ planer_test_vorher.results }}"
+      loop_control: {label: "{{ item.item }}"}
+
+    - name: Bisheriger Stand bleibt neben der wiederhergestellten Datenbank liegen
+      ansible.builtin.shell: >-
+        set -o pipefail;
+        ls "$(docker volume inspect -f '{{ "{{" }} .Mountpoint {{ "}}" }}' terrassenplaner_{{ item }}-daten)/datenbank"
+        | grep -c '^data.mdb.vor-wiederherstellung-'
+      args: {executable: /bin/bash}
+      register: planer_test_alt
+      changed_when: false
+      failed_when: planer_test_alt.stdout != '1'
+      loop: [auth, router]
+
+    # --- Statistik und Datenschutz (M10-05) ---
+    - name: Gemeinsame Prüfungen Datenschutz
+      ansible.builtin.include_tasks: tasks/datenschutz.yml

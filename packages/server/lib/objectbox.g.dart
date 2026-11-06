@@ -87,7 +87,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(2, 5391721831752821817),
     name: 'Benutzer',
-    lastPropertyId: const obx_int.IdUid(13, 1673270093877694242),
+    lastPropertyId: const obx_int.IdUid(16, 6605175008620025534),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -168,6 +168,24 @@ final _entities = <obx_int.ModelEntity>[
         id: const obx_int.IdUid(13, 1673270093877694242),
         name: 'rolle',
         type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(14, 4728234030184071694),
+        name: 'kdf',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(15, 1273774148229176668),
+        name: 'speicher',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(16, 6605175008620025534),
+        name: 'gesperrt',
+        type: 1,
         flags: 0,
       ),
     ],
@@ -571,7 +589,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final storedKeyOffset = fbb.writeString(object.storedKey);
         final serverKeyOffset = fbb.writeString(object.serverKey);
         final rolleOffset = fbb.writeString(object.rolle);
-        fbb.startTable(14);
+        final kdfOffset = fbb.writeString(object.kdf);
+        fbb.startTable(17);
         fbb.addInt64(0, object.id);
         fbb.addOffset(1, uidOffset);
         fbb.addOffset(2, partitionOffset);
@@ -585,6 +604,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addOffset(10, storedKeyOffset);
         fbb.addOffset(11, serverKeyOffset);
         fbb.addOffset(12, rolleOffset);
+        fbb.addOffset(13, kdfOffset);
+        fbb.addInt64(14, object.speicher);
+        fbb.addBool(15, object.gesperrt);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -595,10 +617,18 @@ obx_int.ModelDefinition getObjectBoxModel() {
             .vTableGet(buffer, rootOffset, 18, '');
         final saltParam = const fb.StringReader(asciiOptimization: true)
             .vTableGet(buffer, rootOffset, 20, '');
+        final kdfParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 30, '');
         final iterationenParam = const fb.Int64Reader().vTableGet(
           buffer,
           rootOffset,
           22,
+          0,
+        );
+        final speicherParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          32,
           0,
         );
         final storedKeyParam = const fb.StringReader(asciiOptimization: true)
@@ -611,7 +641,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
             Benutzer(
                 authId: authIdParam,
                 salt: saltParam,
+                kdf: kdfParam,
                 iterationen: iterationenParam,
+                speicher: speicherParam,
                 storedKey: storedKeyParam,
                 serverKey: serverKeyParam,
                 rolle: rolleParam,
@@ -635,6 +667,12 @@ obx_int.ModelDefinition getObjectBoxModel() {
                 rootOffset,
                 16,
                 0,
+              )
+              ..gesperrt = const fb.BoolReader().vTableGet(
+                buffer,
+                rootOffset,
+                34,
+                false,
               );
 
         return object;
@@ -1002,6 +1040,21 @@ class Benutzer_ {
   /// See [Benutzer.rolle].
   static final rolle = obx.QueryStringProperty<Benutzer>(
     _entities[1].properties[12],
+  );
+
+  /// See [Benutzer.kdf].
+  static final kdf = obx.QueryStringProperty<Benutzer>(
+    _entities[1].properties[13],
+  );
+
+  /// See [Benutzer.speicher].
+  static final speicher = obx.QueryIntegerProperty<Benutzer>(
+    _entities[1].properties[14],
+  );
+
+  /// See [Benutzer.gesperrt].
+  static final gesperrt = obx.QueryBooleanProperty<Benutzer>(
+    _entities[1].properties[15],
   );
 }
 

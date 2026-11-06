@@ -469,7 +469,8 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/10
 - [ ] **M9-09 Warenkorb im Shop** ([#82](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/82)) – `feature/m9-09-warenkorb-im-shop`
   - Materialliste als Warenkorb an shop.robinienwelt.de übergeben.
   - Abnahme: Warenkorb enthält alle Shop-Artikel mit Mengen
-- [ ] **M9-10 Mitarbeiter-Anmeldung** ([#83](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/83)) – `feature/m9-10-mitarbeiter-anmeldung`
+- [x] **M9-10 Mitarbeiter-Anmeldung** ([#83](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/83)) – `feature/m9-10-mitarbeiter-anmeldung`
+  - Ergebnis: ANMELDEN/ABMELDEN in der Kopfzeile, Dialog „Login“ (E-Mail, Passwort), „Angemeldet als …“ in der Statuszeile; WAMP-SCRAM mit Argon2id über den Auth-Server, danach eine Sitzung mit Rolle `mitarbeiter` (kein Passwort, kein Token im Browser). Mitarbeiter laden ohne Prüfcode und ändern Mengen der Materialliste (`disclose_caller`, Rolle vom Router; `PlanungsDienst.darfMengenAendern` angebunden). Konten in ObjectBox des Auth-Servers, Verwaltung mit `bin/mitarbeiter.dart` über WAMP (anlegen, passwort, sperren, entsperren, liste; Passwort über stdin), auf dem Server `planer-mitarbeiter`. Sperre nach 5 Fehlversuchen für 15 Minuten. Mitarbeiter-Datei entfällt. Doku: `docs/betrieb/mitarbeiter.md`, `docs/erkenntnisse/mitarbeiter-anmeldung.md`; Smoke-Test Anmelden → Laden ohne Code → Abmelden.
   - Anmeldung für Mitarbeiter (Funktion im alten Planer vorhanden); Umfang in M1-01 klären.
   - Abnahme: Umfang dokumentiert und umgesetzt
 
@@ -485,15 +486,17 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/11
 - [ ] **M10-02 Last- und Leistungstest** ([#85](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/85)) – `feature/m10-02-last-und-leistungstest` · Benchmark
   - Gleichzeitige Nutzer, große Projekte, Router-Durchsatz.
   - Abnahme: Zielwerte festgelegt und erreicht
-- [ ] **M10-03 Produktivbetrieb** ([#86](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/86)) – `feature/m10-03-produktivbetrieb`
+- [x] **M10-03 Produktivbetrieb** ([#86](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/86)) – `feature/m10-03-produktivbetrieb`
   - Produktiv-Deployment auf dem Root-Server, Domain, Let's-Encrypt-Produktivzertifikat über Traefik, Überwachung, Sicherung der Konfigurationen.
   - Abnahme: Wiederherstellung aus Sicherung getestet
+  - Ergebnis: tägliche Online-Sicherung der ObjectBox-Datenbanken von Router (Konfigurationen) und Auth-Server – der Dienst kopiert auf SIGUSR1 selbst und öffnet die Kopie zur Probe (`Sicherungsdienst`) –, 14 Tage + 12 Wochensicherungen, `planer-wiederherstellung` in Molecule für beide Zielarten getestet; Router-Datenbank-Kennzahlen; sieben neue Alarme (Sicherung veraltet/unvollständig, Speicher, CPU, Platten-Prognose, DB-Größe, 5xx-Quote); Härtung (systemd-Sandbox, Container ohne Rechte/nur lesbar, sysctl, SSH); Log-Rotation (Journal 1 GB/14 Tage, Container 5 × 10 MB, logrotate); `docs/betrieb/betriebshandbuch.md`. Offen bei Alexander: Branch-Schutz/PR-Pflicht, externe Sicherungskopie (Vault).
 - [ ] **M10-04 Umstellung vom alten Planer** ([#87](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/87)) – `feature/m10-04-umstellung-vom-alten-planer`
   - Links in Shop und Webseite umstellen, alter Planer aus (Vertrag mit Agentur beachten).
   - Abnahme: Neue Adresse live, alte leitet um
-- [ ] **M10-05 Statistik und Datenschutz** ([#88](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/88)) – `feature/m10-05-statistik-und-datenschutz`
+- [x] **M10-05 Statistik und Datenschutz** ([#88](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/88)) – `feature/m10-05-statistik-und-datenschutz`
   - Entscheidung zu Webanalyse und Cookie-Hinweis (alter Planer nutzt eine Analyse des Agenturanbieters).
   - Abnahme: Entscheidung Alexander umgesetzt
+  - Ergebnis: Entscheidungsvorlage und Bestandsaufnahme `docs/betrieb/datenschutz.md` (Entwurf, Texte nicht verbindlich); umgesetzt ist die Empfehlung „keine Webanalyse, kein Cookie, kein Banner“: Statistik nur aus Summen im Grafana-Dashboard „Nutzung“ (Sitzungen, gespeicherte Konfigurationen/Versionen je Tag, RPC, Web-Anfragen); Traefik-Zugriffsprotokoll ohne IP/Port/Benutzer (JSON), Ersatzschriften nicht mehr von fonts.gstatic.com (`fontFallbackBaseUrl`, 404 vom eigenen Server); in Molecule geprüft. Offen bei Alexander: Bestätigung Weg A, Freigabe der Texte, Speicherdauer der Konfigurationen/Anfragen, AV-Vertrag Server.
 
 ## M11 Verteilte Datenhaltung (bei Bedarf)
 

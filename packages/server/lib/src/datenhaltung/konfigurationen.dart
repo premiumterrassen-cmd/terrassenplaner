@@ -39,9 +39,13 @@ abstract interface class KonfigurationsSpeicher {
   });
 
   /// Inhalt der Version [stand]; unbekannt oder Prüfcode falsch:
-  /// [KonfigurationUnbekannt]. Nur mit [ohnePruefcode] zählt allein die
-  /// Nummer (später für angemeldete Mitarbeiter, M9-10).
-  Uint8List lies(KonfigurationsStand stand, {bool ohnePruefcode = false});
+  /// [KonfigurationUnbekannt].
+  Uint8List lies(KonfigurationsStand stand);
+
+  /// Vollständige Kennung (mit Prüfcode) zu [nummer] – nur für angemeldete
+  /// Mitarbeiter, die ohne Prüfcode laden dürfen (M9-10); unbekannt:
+  /// [KonfigurationUnbekannt].
+  Konfigurationskennung kennung(Konfigurationsnummer nummer);
 
   /// Merkt [inhalt] als Entwurf der Sitzung [schluessel]; ein [bezug] mit
   /// falschem Prüfcode: [KonfigurationUnbekannt].
@@ -111,12 +115,19 @@ final class Konfigurationsablage implements KonfigurationsSpeicher {
 
   /// Inhalt der Version [stand] – unverändert, wie gespeichert.
   @override
-  Uint8List lies(KonfigurationsStand stand, {bool ohnePruefcode = false}) {
-    final kopf = _kopfMit(stand.kennung, ohnePruefcode: ohnePruefcode);
+  Uint8List lies(KonfigurationsStand stand) {
+    final kopf = _kopfMit(stand.kennung);
     return (kopf == null ? null : _version(kopf.nummer, stand.version))
             ?.inhalt ??
         (throw KonfigurationUnbekannt(stand.nummer, stand.version));
   }
+
+  @override
+  Konfigurationskennung kennung(Konfigurationsnummer nummer) =>
+      switch (_kopf(nummer)) {
+        final kopf? => _kennung(kopf),
+        null => throw KonfigurationUnbekannt(nummer),
+      };
 
   /// Merkt [inhalt] als Entwurf von [schluessel] und verlängert die Frist.
   /// Unverändert (gleicher Inhalt und Bezug) wird nichts geschrieben.
@@ -187,16 +198,11 @@ final class Konfigurationsablage implements KonfigurationsSpeicher {
   }
 
   /// Kopf zu [kennung], wenn der Prüfcode passt (Vergleich in konstanter
-  /// Zeit); [ohnePruefcode] lässt die Prüfung aus.
-  Konfiguration? _kopfMit(
-    Konfigurationskennung kennung, {
-    bool ohnePruefcode = false,
-  }) {
+  /// Zeit).
+  Konfiguration? _kopfMit(Konfigurationskennung kennung) {
     final kopf = _kopf(kennung.nummer);
     if (kopf == null) return null;
-    return ohnePruefcode || Pruefcode(kopf.pruefcode).gleicht(kennung.pruefcode)
-        ? kopf
-        : null;
+    return Pruefcode(kopf.pruefcode).gleicht(kennung.pruefcode) ? kopf : null;
   }
 
   Konfiguration? _kopf(Konfigurationsnummer nummer) => _erster(
@@ -233,12 +239,12 @@ final class Konfigurationsablage implements KonfigurationsSpeicher {
   }
 
   static KonfigurationsStand _stand(Konfiguration kopf, int version) =>
-      KonfigurationsStand(
-        Konfigurationskennung(
-          Konfigurationsnummer(kopf.nummer),
-          Pruefcode(kopf.pruefcode),
-        ),
-        version,
+      KonfigurationsStand(_kennung(kopf), version);
+
+  static Konfigurationskennung _kennung(Konfiguration kopf) =>
+      Konfigurationskennung(
+        Konfigurationsnummer(kopf.nummer),
+        Pruefcode(kopf.pruefcode),
       );
 
   static bool _gleich(Uint8List a, Uint8List b) {

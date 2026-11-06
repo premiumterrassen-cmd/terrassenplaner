@@ -1,0 +1,301 @@
+{
+  "uid": "terrassenplaner-nutzung",
+  "title": "Terrassenplaner – Nutzung",
+  "description": "Statistik ohne Personenbezug (M10-05): nur Summen über alle Nutzer, keine Kennung über Sitzungen hinweg. Aufbewahrung wie Prometheus (30 Tage).",
+  "tags": [
+    "terrassenplaner"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5m",
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Gespeicherte Konfigurationen (Bestand)",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "planer_datenbank_datensaetze{dienst=\"planer-router\",entitaet=\"Konfiguration\"}",
+          "legendFormat": "",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Gespeicherte Versionen (Bestand)",
+      "gridPos": {
+        "x": 8,
+        "y": 0,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "planer_datenbank_datensaetze{dienst=\"planer-router\",entitaet=\"KonfigurationsVersion\"}",
+          "legendFormat": "",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Planer-Sitzungen jetzt",
+      "gridPos": {
+        "x": 16,
+        "y": 0,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(connectanum_router_sessions{dienst=\"planer-router\"})",
+          "legendFormat": "",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Neue Konfigurationen je Tag",
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max(delta(planer_datenbank_datensaetze{dienst=\"planer-router\",entitaet=\"Konfiguration\"}[1d]))",
+          "legendFormat": "Konfigurationen",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "interval": "1d"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Neue Versionen je Tag",
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max(delta(planer_datenbank_datensaetze{dienst=\"planer-router\",entitaet=\"KonfigurationsVersion\"}[1d]))",
+          "legendFormat": "Versionen",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "interval": "1d"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Gleichzeitige Planer-Sitzungen",
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(connectanum_router_sessions{dienst=\"planer-router\"})",
+          "legendFormat": "Sitzungen",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Höchstwert gleichzeitiger Sitzungen je Tag",
+      "gridPos": {
+        "x": 12,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max_over_time(sum(connectanum_router_sessions{dienst=\"planer-router\"})[1d:5m])",
+          "legendFormat": "Höchstwert",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "interval": "1d"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Dienstaufrufe (RPC) je Minute",
+      "gridPos": {
+        "x": 0,
+        "y": 24,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "60 * sum(rate(connectanum_router_total_invocations_dispatched_total{dienst=\"planer-router\"}[5m]))",
+          "legendFormat": "Aufrufe/min",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "HTTP-Anfragen an die Web-App je Tag (alle Dateien)",
+      "gridPos": {
+        "x": 12,
+        "y": 24,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(traefik_service_requests_total{service=~\"planer-web.*\"}[1d]))",
+          "legendFormat": "Anfragen",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "interval": "1d"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {}
+    }
+  ]
+}

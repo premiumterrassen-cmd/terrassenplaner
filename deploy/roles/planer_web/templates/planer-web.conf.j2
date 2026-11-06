@@ -23,6 +23,11 @@ server {
     alias {{ planer_daten }}/artikelbilder/;
     add_header Cache-Control "public, max-age=86400";
   }
+  # Ersatzschriften (M10-05): bewusst leer, damit Flutter nicht bei
+  # fonts.gstatic.com nachlädt und kein index.html als Schrift ankommt.
+  location /schriften-ersatz/ {
+    return 404;
+  }
   location / {
     try_files $uri $uri/ /index.html;
   }

@@ -48,6 +48,14 @@ class RouterEinstellungen {
 
   static const standardRealm = WampNamen.realm;
 
+  /// Fehlversuche bremsen (M9-10): nach [RealmLimitSettings.maxFailedAuth]
+  /// gescheiterten Anmeldungen ist ein Konto [RealmLimitSettings.lockoutMs]
+  /// lang gesperrt – connectanum zählt je authid im Router.
+  static const anmeldeGrenzen = RealmLimitSettings(
+    maxFailedAuth: 5,
+    lockoutMs: 15 * 60 * 1000,
+  );
+
   /// Interner Realm des Routers für Gesundheits- und Metrik-Abfragen.
   static const metrikRealm = 'connectanum.metrics';
 
@@ -74,6 +82,7 @@ class RouterEinstellungen {
   /// per `wamp-scram` über den Auth-Server), WebSocket-Listener, Health.
   RouterSettings alsRouterSettings() {
     final planerRealm = RealmSettingsBuilder(realm)
+      ..setLimits(anmeldeGrenzen)
       ..addAuthMethod('anonymous')
       // Der connectanum-Client meldet SCRAM als „wamp-scram“.
       ..addAuthMethod(

@@ -4,6 +4,7 @@ import 'package:connectanum_router/connectanum_router.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 import '../router/planer_router.dart';
+import '../zugriff/rollen.dart';
 
 /// Belag zur Artikelnummer des Planungsstands; `null` = Vorgabe (M5-05).
 typedef Belagsuche = Artikel? Function(Artikelnummer? nummer);
@@ -45,7 +46,11 @@ class PlanungsDienst {
     Unterkonstruktionssuche unterkonstruktion = _ohneUnterkonstruktion,
   }) async {
     final sitzung = await router.dienstSitzung(sitzungId);
-    (await sitzung.register(WampNamen.planungBerechnen)).onLazyInvokePayload(
+    (await sitzung.register(
+      WampNamen.planungBerechnen,
+      // Die Rolle des Aufrufers entscheidet über geänderte Mengen (M9-10).
+      options: RegisterOptions(discloseCaller: true),
+    )).onLazyInvokePayload(
       (aufruf) => _berechne(aufruf, belag, regelwerk, unterkonstruktion),
     );
     return PlanungsDienst._(sitzung);
@@ -635,12 +640,12 @@ class PlanungsDienst {
     ukStuecke: [for (final s in v?.stuecke ?? const <Planstueck>[]) s.laenge],
   );
 
-  /// **Stelle für die Mitarbeiter-Anmeldung (M9-10):** Geänderte Mengen der
-  /// Materialliste (Mitarbeiter-Ansicht, Fachkonzept 08) übernimmt der
-  /// Server nur von angemeldeten Mitarbeitern (Rolle `mitarbeiter` aus den
-  /// Aufrufdetails). Bis es die Anmeldung gibt, rechnet er für jeden
-  /// Aufrufer mit den berechneten Mengen.
-  static bool darfMengenAendern(LazyInvocationPayload aufruf) => false;
+  /// Geänderte Mengen der Materialliste (Mitarbeiter-Ansicht,
+  /// Fachkonzept 08) übernimmt der Server nur von angemeldeten Mitarbeitern
+  /// (M9-10). Die Rolle setzt der Router (`caller_authrole`, registriert mit
+  /// `disclose_caller`) – ein Aufrufer kann sie nicht selbst angeben.
+  static bool darfMengenAendern(LazyInvocationPayload aufruf) =>
+      aufruf.customDetails?['caller_authrole'] == Rollen.mitarbeiter;
 
   static void _berechne(
     LazyInvocationPayload aufruf,

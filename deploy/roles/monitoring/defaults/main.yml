@@ -45,3 +45,63 @@ monitoring_alarme:
     dauer: 10m
     schwere: warnung
     text: "{% raw %}{{ $labels.dienst }}: {{ humanize $values.A.Value }} Sitzungen.{% endraw %}"
+  # Produktivbetrieb (M10-03): Sicherung, Ressourcen, Datenbank, Fehlerquote.
+  - uid: sicherung-veraltet
+    titel: Sicherung veraltet
+    abfrage: max(time() - planer_sicherung_erfolg_zeitstempel_sekunden) / 3600
+    vergleich: gt
+    schwelle: 26
+    dauer: 15m
+    schwere: kritisch
+    ohne_daten: Alerting
+    text: "{% raw %}Letzte vollständige Sicherung vor {{ humanize $values.A.Value }} Stunden.{% endraw %}"
+  - uid: sicherung-unvollstaendig
+    titel: Sicherung unvollständig
+    abfrage: count(planer_sicherung_erfolg_zeitstempel_sekunden)
+    vergleich: lt
+    schwelle: 3
+    dauer: 15m
+    schwere: kritisch
+    ohne_daten: Alerting
+    text: "{% raw %}Nur {{ humanize $values.A.Value }} von 3 Datenbeständen (Grafana, Router, Auth-Server) gesichert.{% endraw %}"
+  - uid: speicher-knapp
+    titel: Arbeitsspeicher knapp
+    abfrage: 100 * node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes
+    vergleich: lt
+    schwelle: 10
+    dauer: 10m
+    schwere: warnung
+    text: "{% raw %}Nur noch {{ humanize $values.A.Value }} % Arbeitsspeicher frei.{% endraw %}"
+  - uid: cpu-dauerlast
+    titel: Prozessor dauerhaft ausgelastet
+    abfrage: 100 * (1 - avg(rate(node_cpu_seconds_total{mode=\"idle\"}[5m])))
+    vergleich: gt
+    schwelle: 90
+    dauer: 15m
+    schwere: warnung
+    text: "{% raw %}Prozessorlast {{ humanize $values.A.Value }} %.{% endraw %}"
+  - uid: platte-voll-prognose
+    titel: Platte läuft voll
+    abfrage: predict_linear(node_filesystem_avail_bytes{mountpoint=\"/\"}[6h], 86400) / 1073741824
+    vergleich: lt
+    schwelle: 0
+    dauer: 30m
+    schwere: warnung
+    text: "Bei gleichem Verbrauch ist die Platte in weniger als 24 Stunden voll."
+  - uid: datenbank-gross
+    titel: Datenbank nahe der Größengrenze
+    # ObjectBox-Standardgrenze 1 GB je Datenbank.
+    abfrage: max by (dienst) (planer_datenbank_groesse_bytes) / 1048576
+    vergleich: gt
+    schwelle: 768
+    dauer: 30m
+    schwere: warnung
+    text: "{% raw %}Datenbank {{ $labels.dienst }}: {{ humanize $values.A.Value }} MB von 1024 MB.{% endraw %}"
+  - uid: http-fehlerquote
+    titel: Viele Serverfehler
+    abfrage: 100 * sum(rate(traefik_service_requests_total{code=~\"5..\"}[5m])) / sum(rate(traefik_service_requests_total[5m]))
+    vergleich: gt
+    schwelle: 5
+    dauer: 10m
+    schwere: warnung
+    text: "{% raw %}{{ humanize $values.A.Value }} % der Anfragen enden mit einem Serverfehler.{% endraw %}"

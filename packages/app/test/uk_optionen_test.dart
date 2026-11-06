@@ -450,6 +450,7 @@ void main() {
         ),
         findsOneWidget,
       );
+      expect(find.byKey(const ValueKey('stellfuesse-keine')), findsOneWidget);
     });
   });
 
@@ -530,6 +531,7 @@ void main() {
       expect(chip(tester, Auflagen.stelzfuesseUndPads).selected, isTrue);
       expect(chip(tester, Auflagen.stelzfuesse).selected, isFalse);
       expect(find.text(de.auflagerAbstand('60')), findsOneWidget);
+      expect(find.byKey(const ValueKey('auflager-abstand')), findsOneWidget);
       expect(find.text(de.auflagerListe), findsOneWidget);
       expect(find.text('• ${de.auflagerPad('Unterleger', 5)}'), findsOneWidget);
       expect(
@@ -731,6 +733,7 @@ void main() {
       await tester.pump();
       await tester.pump();
       expect(find.text(de.feldbreiteBegrenzt('40')), findsOneWidget);
+      expect(find.byKey(const ValueKey('feldbreite-begrenzt')), findsOneWidget);
     });
 
     testWidgets('ohne Belag: Hinweis; englische Texte', (tester) async {
@@ -743,6 +746,7 @@ void main() {
         findsOneWidget,
       );
       expect(find.byType(ChoiceChip), findsNothing);
+      expect(find.byKey(const ValueKey('feldbreite-leer')), findsOneWidget);
     });
   });
 

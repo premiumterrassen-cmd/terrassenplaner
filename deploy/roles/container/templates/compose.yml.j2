@@ -2,10 +2,23 @@
 # Traefik (öffentlich), Router und Web hinter Traefik, Auth-Server nur im internen Netz.
 name: terrassenplaner
 
+# Log-Rotation (M10-03): je Container höchstens {{ container_log_dateien }} × {{ container_log_groesse }}.
+x-protokoll: &protokoll
+  driver: json-file
+  options: {max-size: "{{ container_log_groesse }}", max-file: "{{ container_log_dateien }}"}
+
+# Härtung der Dart-Dienste (M10-03): keine Rechte, Wurzeldateisystem nur lesbar.
+x-haertung: &haertung
+  security_opt: ["no-new-privileges:true"]
+  cap_drop: [ALL]
+  read_only: true
+  tmpfs: [/tmp]
+
 services:
   traefik:
     image: {{ container_traefik_bild }}
     restart: unless-stopped
+    logging: *protokoll
     command:
       - --entrypoints.web.address=:80
       - --entrypoints.web.http.redirections.entrypoint.to=websecure
@@ -30,11 +43,13 @@ services:
       interval: 10s
 
   auth:
+    <<: *haertung
     build:
       context: .
       dockerfile: Dockerfile.dienst
       args: {PROGRAMM: auth_server}
     restart: unless-stopped
+    logging: *protokoll
     env_file: geheim.env
     environment:
       PLANER_AUTH_LISTEN: 0.0.0.0:8082
@@ -42,6 +57,7 @@ services:
       PLANER_REALM: {{ planer_realm }}
       PLANER_DATENVERZEICHNIS: /daten/datenbank
       PLANER_DATENBANK_METRIKEN: 0.0.0.0:8084
+      PLANER_SICHERUNG_ZIEL: /daten/{{ planer_sicherung_unterordner }}
       PLANER_KNOTEN: {{ inventory_hostname }}
     volumes: [auth-daten:/daten]
     networks: [intern, monitoring]
@@ -50,11 +66,13 @@ services:
       interval: 10s
 
   router:
+    <<: *haertung
     build:
       context: .
       dockerfile: Dockerfile.dienst
       args: {PROGRAMM: server}
     restart: unless-stopped
+    logging: *protokoll
     env_file: geheim.env
     environment:
       PLANER_HOST: 0.0.0.0
@@ -66,6 +84,8 @@ services:
       PLANER_ARTIKELDATEI: /daten/artikel.json
       # Konfigurationen (M9-05): eigene ObjectBox-Datenbank im Volume router-daten
       PLANER_DATENVERZEICHNIS: /daten/datenbank
+      PLANER_DATENBANK_METRIKEN: 0.0.0.0:8084
+      PLANER_SICHERUNG_ZIEL: /daten/{{ planer_sicherung_unterordner }}
       PLANER_KNOTEN: {{ inventory_hostname }}
     volumes: [router-daten:/daten]
     networks: [intern, proxy, monitoring]
@@ -84,6 +104,7 @@ services:
   web:
     image: {{ container_nginx_bild }}
     restart: unless-stopped
+    logging: *protokoll
     volumes:
       - ./web:/usr/share/nginx/html:ro
       - ./web.conf:/etc/nginx/conf.d/default.conf:ro
@@ -99,6 +120,7 @@ services:
   prometheus:
     image: {{ container_prometheus_bild }}
     restart: unless-stopped
+    logging: *protokoll
     command:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.retention.time=30d
@@ -112,7 +134,9 @@ services:
   node-exporter:
     image: {{ container_node_exporter_bild }}
     restart: unless-stopped
-    command: [--path.rootfs=/host]
+    logging: *protokoll
+    # Textdateien (Sicherungszeitpunkte, M10-03) liegen auf dem Wirt.
+    command: [--path.rootfs=/host, "--collector.textfile.directory=/host{{ planer_textdatei_metriken }}"]
     pid: host
     volumes: ["/:/host:{{ container_wurzel_einbindung }}"]
     networks: [monitoring]
@@ -120,6 +144,7 @@ services:
   grafana:
     image: {{ container_grafana_bild }}
     restart: unless-stopped
+    logging: *protokoll
     env_file: grafana.env
     environment:
       GF_SERVER_ROOT_URL: https://{{ monitoring_domain | default('metrics.terrassenplaner.eu') }}/
