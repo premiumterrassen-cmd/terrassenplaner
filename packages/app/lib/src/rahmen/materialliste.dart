@@ -177,9 +177,14 @@ class MateriallisteAnsicht extends StatelessWidget {
         Text(p.titel, maxLines: 2, overflow: TextOverflow.ellipsis),
         if (p.laenge case final l?)
           Text(t.materialLaenge(l.mm), style: const TextStyle(fontSize: 12)),
-        if (p.zusatz == Materialzusatz.freidiele)
+        if (switch (p.zusatz) {
+              Materialzusatz.freidiele => t.materialFreidiele,
+              Materialzusatz.verblendung => t.materialVerblendung,
+              null => null,
+            }
+            case final zusatz?)
           Text(
-            t.materialFreidiele,
+            zusatz,
             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
           ),
       ],

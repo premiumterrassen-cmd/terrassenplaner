@@ -10,6 +10,7 @@ import 'ansichtsoptionen.dart';
 import 'ausgangspunkt.dart';
 import 'ausschnitte.dart';
 import 'freiform.dart';
+import 'hoehenpunkte.dart';
 import 'rundung.dart';
 import 'steuerung.dart';
 import 'vorschau.dart';
@@ -28,6 +29,7 @@ class Zeichenflaeche extends StatelessWidget {
     this.rundung,
     this.ausschnitte,
     this.ausgangspunkt,
+    this.hoehenpunkte,
   });
 
   final PlanungsSteuerung planung;
@@ -48,6 +50,10 @@ class Zeichenflaeche extends StatelessWidget {
   /// Erste ganze Diele verschieben (M5-07): ein Griff am Ausgangspunkt der
   /// Verlegung, solange der Schritt Terrassenbelag offen ist.
   final AusgangspunktBedienung? ausgangspunkt;
+
+  /// Weitere Höhenreferenzpunkte verschieben (M7-04): ein Griff je Punkt
+  /// (Ablauf), solange der Schritt Unterkonstruktion offen ist.
+  final HoehenpunktBedienung? hoehenpunkte;
 
   /// So weit (Bildschirmpunkte) fangen Zeichnungshilfe und Einrastfunktion
   /// beim Zeichnen (#128) – unabhängig vom Zoom gleich stark.
@@ -72,6 +78,32 @@ class Zeichenflaeche extends StatelessWidget {
       ..._eckenGriffe(),
       ..._ausschnittGriffe(),
       ..._ausgangspunktGriff(),
+      ..._hoehenpunktGriffe(),
+    ];
+  }
+
+  /// Griff je weiterem Höhenreferenzpunkt (M7-04).
+  List<Widget> _hoehenpunktGriffe() {
+    final bedienung = hoehenpunkte;
+    if (bedienung == null || zeichnung.ablaeufe.isEmpty) return const [];
+    return [
+      Positioned.fill(
+        child: ListenableBuilder(
+          listenable: ansicht,
+          builder: (context, _) => Stack(
+            children: [
+              for (final (i, a) in zeichnung.ablaeufe.indexed)
+                Griff(
+                  key: ValueKey('hoehenpunkt-griff-$i'),
+                  mitte: ansicht.verschiebung + a * (pixelJeMm * ansicht.zoom),
+                  zoom: ansicht.zoom,
+                  onZiehen: (versatz, {required beginn}) =>
+                      bedienung.ziehe(i, versatz, beginn: beginn),
+                ),
+            ],
+          ),
+        ),
+      ),
     ];
   }
 

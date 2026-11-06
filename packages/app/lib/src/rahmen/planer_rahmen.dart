@@ -13,6 +13,7 @@ import '../konfiguration/planungsunterlagen.dart';
 import '../sprache/sprache.dart';
 import '../start/eingangsdialog.dart';
 import 'aktionen.dart';
+import 'anschluss.dart';
 import 'ansichtsoptionen.dart';
 import 'ausgangspunkt.dart';
 import 'ausschnitte.dart';
@@ -24,12 +25,14 @@ import 'dielenliste.dart';
 import 'flaechen.dart';
 import 'freiform.dart';
 import 'grundriss_eingabe.dart';
+import 'hoehenpunkte.dart';
 import 'materialliste.dart';
 import 'planer_schritt.dart';
 import 'rahmen_zustand.dart';
 import 'rundung.dart';
 import 'standardwert_hinweis.dart';
 import 'steuerung.dart';
+import 'treppen.dart';
 import 'uk_auswahl.dart';
 import 'unterkonstruktion.dart';
 import 'zeichenflaeche.dart';
@@ -155,6 +158,11 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
     planung: _planung,
     berechnung: _berechnung,
     onGeaendert: () => _zustand.markiereGeaendert(PlanerSchritt.terrassenbelag),
+  );
+  late final _hoehenpunkte = HoehenpunktBedienung(
+    planung: _planung,
+    onGeaendert: () =>
+        _zustand.markiereGeaendert(PlanerSchritt.unterkonstruktion),
   );
   late final BelagQuelle? _belaege = switch (widget.belaege) {
     final lade? => BelagQuelle(lade),
@@ -387,6 +395,7 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
             berechnung: _berechnung,
             belaege: _belaege,
             unterkonstruktionen: _uk,
+            hoehenpunkte: _hoehenpunkte,
             zubehoer: _zubehoer,
           );
           return Column(
@@ -450,6 +459,11 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
                               ausgangspunkt:
                                   _zustand.aktiv == PlanerSchritt.terrassenbelag
                                   ? _ausgangspunkt
+                                  : null,
+                              hoehenpunkte:
+                                  _zustand.aktiv ==
+                                      PlanerSchritt.unterkonstruktion
+                                  ? _hoehenpunkte
                                   : null,
                               zeichnung:
                                   widget.zeichnung ??
@@ -803,6 +817,7 @@ class Bearbeitungsmenue extends StatelessWidget {
     this.berechnung,
     this.belaege,
     this.unterkonstruktionen,
+    this.hoehenpunkte,
     this.zubehoer,
   });
 
@@ -815,6 +830,9 @@ class Bearbeitungsmenue extends StatelessWidget {
 
   /// Unterkonstruktionen zum Belag (M6-03); ohne Quelle keine Auswahl.
   final UkQuelle? unterkonstruktionen;
+
+  /// Weitere Höhenreferenzpunkte (M7-04); ohne Bedienung keine Eingabe.
+  final HoehenpunktBedienung? hoehenpunkte;
 
   /// Zubehör der acht Gruppen (M8-01).
   final ZubehoerQuelle? zubehoer;
@@ -888,6 +906,7 @@ class Bearbeitungsmenue extends StatelessWidget {
     (PlanerSchritt.unterkonstruktion, 1) => HoehenpunkteWahl(
       planung: planung,
       berechnung: berechnung,
+      weitere: hoehenpunkte,
       onGeaendert: () => zustand.markiereGeaendert(schritt),
     ),
     (PlanerSchritt.unterkonstruktion, 2) when unterkonstruktionen != null =>
@@ -926,6 +945,25 @@ class Bearbeitungsmenue extends StatelessWidget {
       onGeaendert: () => zustand.markiereGeaendert(schritt),
     ),
     (PlanerSchritt.unterkonstruktion, 9) => FeldbreiteWahl(
+      planung: planung,
+      berechnung: berechnung,
+      onGeaendert: () => zustand.markiereGeaendert(schritt),
+    ),
+    (PlanerSchritt.terrassenanschluss, 0) => AngrenzendWahl(
+      planung: planung,
+      onGeaendert: () => zustand.markiereGeaendert(schritt),
+    ),
+    (PlanerSchritt.terrassenanschluss, 1) => VerblendungWahl(
+      planung: planung,
+      berechnung: berechnung,
+      onGeaendert: () => zustand.markiereGeaendert(schritt),
+    ),
+    (PlanerSchritt.terrassenanschluss, 2) => RinnenWahl(
+      planung: planung,
+      berechnung: berechnung,
+      onGeaendert: () => zustand.markiereGeaendert(schritt),
+    ),
+    (PlanerSchritt.treppen, 0) => TreppenWahl(
       planung: planung,
       berechnung: berechnung,
       onGeaendert: () => zustand.markiereGeaendert(schritt),

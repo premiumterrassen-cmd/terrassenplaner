@@ -1378,4 +1378,179 @@ class PlanerTexteDe extends PlanerTexte {
   @override
   String get stuecklisteHinweis =>
       'Stücke der bearbeiteten Fläche; die Farbe zeigt das Stück in der Zeichnung.';
+
+  @override
+  String get angrenzendFrage =>
+      'Welche Seiten grenzen an bestehende Bauelemente? (wird in der Konfiguration grau dargestellt)';
+
+  @override
+  String get ohneSeiten => 'Diese Form hat keine Seiten zur Auswahl.';
+
+  @override
+  String get verblendungFrage =>
+      'Welche Seiten sollen verblendet werden? (wird in der Konfiguration gelb dargestellt)';
+
+  @override
+  String get flaecheVerblenden => 'Fläche verblenden';
+
+  @override
+  String get verblendungHinweis =>
+      'Verblendet wird nur bei einer Belagstärke von 19 bis 23 mm.';
+
+  @override
+  String get meldungUnterlueftung =>
+      'Achtung: Bitte beachten Sie, dass eine Unterlüftung der Terrasse gewährleistet sein muss!';
+
+  @override
+  String get meldungKeinHoehenunterschied =>
+      'Ohne Höhenunterschied zum Boden ist an dieser Seite keine Verblendung möglich.';
+
+  @override
+  String get meldungBelagstaerke =>
+      'Eine Verblendung ist nur bei einer Belagstärke von 19 bis 23 mm möglich – es wird keine gerechnet.';
+
+  @override
+  String get meldungOhneVerblendungsartikel =>
+      'Zu diesem Belag ist keine Verblendung hinterlegt.';
+
+  @override
+  String get materialVerblendung => 'Verblendung';
+
+  @override
+  String get rinnenFrage =>
+      'An welchen Seiten sollen Entwässerungsrinnen geplant werden?';
+
+  @override
+  String rinnenLage(String seite) {
+    return 'Lage der Rinne an $seite';
+  }
+
+  @override
+  String get rinnenlageGesamteSeite => 'Gesamte Seite (innen)';
+
+  @override
+  String get rinnenlageImElement => 'Im bodentiefen Element';
+
+  @override
+  String get rinnenlageAusserhalbElement =>
+      'Außerhalb des bodentiefen Elements';
+
+  @override
+  String get rinnenlageVorElement => 'Nur vor dem bodentiefen Element';
+
+  @override
+  String get rinnenHinweis =>
+      'Lage und bodentiefes Element sind im Artikel festgelegt; die Lage wählt die Rinne. Die Unterkonstruktion reicht bis an die Seite.';
+
+  @override
+  String get meldungOhneRinnenartikel =>
+      'Zu diesem Belag ist keine Entwässerungsrinne hinterlegt.';
+
+  @override
+  String hoehenpunktName(int nummer) {
+    return 'Höhenreferenzpunkt $nummer';
+  }
+
+  @override
+  String get hoehenpunktHinzufuegen => 'Weiteren Höhenreferenzpunkt einplanen';
+
+  @override
+  String get hoehenpunktEntfernen => 'Höhenreferenzpunkt entfernen';
+
+  @override
+  String get hoehenpunktWaagerecht => 'Waagerecht ab A';
+
+  @override
+  String get hoehenpunktSenkrecht => 'Senkrecht ab A';
+
+  @override
+  String get hoehenpunktHoehe => 'Höhe';
+
+  @override
+  String get hoehenpunktLageUngueltig =>
+      'Bitte eine Zahl von −30000 bis 30000 cm eingeben';
+
+  @override
+  String get hoehenpunktHilfe =>
+      'Zum Beispiel ein Ablauf: Lage ab Punkt A (nach rechts und nach unten, auch negativ), in der Zeichnung verschiebbar.';
+
+  @override
+  String get treppenFrage => 'An welchen Seiten sollen Treppen geplant werden?';
+
+  @override
+  String get treppeHinzufuegen => 'Treppe hinzufügen';
+
+  @override
+  String treppeName(int nummer) {
+    return 'Treppe $nummer';
+  }
+
+  @override
+  String get treppeEntfernen => 'Treppe entfernen';
+
+  @override
+  String get treppeStart => 'Start';
+
+  @override
+  String get treppeAbstand => 'Seite (Abstand vom Startpunkt)';
+
+  @override
+  String get treppeBreite => 'Breite';
+
+  @override
+  String get treppeKonstruktionsart => 'Konstruktionsart';
+
+  @override
+  String get treppeKonstruktion => 'Konstruktion';
+
+  @override
+  String get treppeFundament => 'Fundament';
+
+  @override
+  String get treppeArt => 'Treppenart';
+
+  @override
+  String get treppeRegulaer => 'Reguläre Treppe';
+
+  @override
+  String get treppeZweiteilig => '2-teilige Fächertreppe';
+
+  @override
+  String get treppeDreiteilig => '3-teilige Fächertreppe';
+
+  @override
+  String get treppeIndividuell => 'Individuelle Stufenmaße?';
+
+  @override
+  String get treppeAnzahl => 'Anzahl der Stufen';
+
+  @override
+  String get treppeStufenmasse => 'Stufenmaße';
+
+  @override
+  String treppeStufe(int nummer) {
+    return 'Stufe $nummer';
+  }
+
+  @override
+  String get treppeTiefe => 'Tiefe';
+
+  @override
+  String get treppeHoehe => 'Höhe';
+
+  @override
+  String get treppePodest => 'Podestmaße';
+
+  @override
+  String treppeMasse(String laenge, String breite, String hoehe) {
+    return 'Treppenmaße in cm (L x B x H): $laenge x $breite x $hoehe';
+  }
+
+  @override
+  String get treppeUngueltig =>
+      'Bitte einen Wert im erlaubten Bereich eingeben';
+
+  @override
+  String get meldungTreppeNichtFrei =>
+      'Eine Treppe liegt an einer Seite am Bauelement oder mit Rinne – sie wird nicht gerechnet.';
 }

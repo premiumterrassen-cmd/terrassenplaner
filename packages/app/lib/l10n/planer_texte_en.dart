@@ -1376,4 +1376,178 @@ class PlanerTexteEn extends PlanerTexte {
   @override
   String get stuecklisteHinweis =>
       'Pieces of the area being edited; the colour marks the piece in the drawing.';
+
+  @override
+  String get angrenzendFrage =>
+      'Which sides adjoin existing building elements? (shown in grey in the configuration)';
+
+  @override
+  String get ohneSeiten => 'This shape has no sides to choose from.';
+
+  @override
+  String get verblendungFrage =>
+      'Which sides should be clad? (shown in yellow in the configuration)';
+
+  @override
+  String get flaecheVerblenden => 'Clad the area';
+
+  @override
+  String get verblendungHinweis =>
+      'Cladding is only planned for decking 19 to 23 mm thick.';
+
+  @override
+  String get meldungUnterlueftung =>
+      'Attention: please make sure the decking is ventilated from below!';
+
+  @override
+  String get meldungKeinHoehenunterschied =>
+      'Without a height difference to the ground, this side cannot be clad.';
+
+  @override
+  String get meldungBelagstaerke =>
+      'Cladding is only possible for decking 19 to 23 mm thick – none is planned.';
+
+  @override
+  String get meldungOhneVerblendungsartikel =>
+      'No cladding is set up for this decking.';
+
+  @override
+  String get materialVerblendung => 'Cladding';
+
+  @override
+  String get rinnenFrage =>
+      'On which sides should drainage channels be planned?';
+
+  @override
+  String rinnenLage(String seite) {
+    return 'Position of the channel at $seite';
+  }
+
+  @override
+  String get rinnenlageGesamteSeite => 'Entire side (inside)';
+
+  @override
+  String get rinnenlageImElement => 'In the floor-level element';
+
+  @override
+  String get rinnenlageAusserhalbElement => 'Outside the floor-level element';
+
+  @override
+  String get rinnenlageVorElement => 'Only in front of the floor-level element';
+
+  @override
+  String get rinnenHinweis =>
+      'Position and floor-level element are defined by the item; the position selects the channel. The substructure extends up to the side.';
+
+  @override
+  String get meldungOhneRinnenartikel =>
+      'No drainage channel is set up for this decking.';
+
+  @override
+  String hoehenpunktName(int nummer) {
+    return 'Height reference point $nummer';
+  }
+
+  @override
+  String get hoehenpunktHinzufuegen => 'Plan another height reference point';
+
+  @override
+  String get hoehenpunktEntfernen => 'Remove height reference point';
+
+  @override
+  String get hoehenpunktWaagerecht => 'Horizontal from A';
+
+  @override
+  String get hoehenpunktSenkrecht => 'Vertical from A';
+
+  @override
+  String get hoehenpunktHoehe => 'Height';
+
+  @override
+  String get hoehenpunktLageUngueltig =>
+      'Please enter a number from −30000 to 30000 cm';
+
+  @override
+  String get hoehenpunktHilfe =>
+      'For example a drain: position from point A (to the right and downwards, negative allowed), movable in the drawing.';
+
+  @override
+  String get treppenFrage => 'On which sides should stairs be planned?';
+
+  @override
+  String get treppeHinzufuegen => 'Add stairs';
+
+  @override
+  String treppeName(int nummer) {
+    return 'Stairs $nummer';
+  }
+
+  @override
+  String get treppeEntfernen => 'Remove stairs';
+
+  @override
+  String get treppeStart => 'Start';
+
+  @override
+  String get treppeAbstand => 'Side (distance from the start point)';
+
+  @override
+  String get treppeBreite => 'Width';
+
+  @override
+  String get treppeKonstruktionsart => 'Type of construction';
+
+  @override
+  String get treppeKonstruktion => 'Construction';
+
+  @override
+  String get treppeFundament => 'Foundation';
+
+  @override
+  String get treppeArt => 'Type of stairs';
+
+  @override
+  String get treppeRegulaer => 'Regular stairs';
+
+  @override
+  String get treppeZweiteilig => '2-part fan stairs';
+
+  @override
+  String get treppeDreiteilig => '3-part fan stairs';
+
+  @override
+  String get treppeIndividuell => 'Individual step dimensions?';
+
+  @override
+  String get treppeAnzahl => 'Number of steps';
+
+  @override
+  String get treppeStufenmasse => 'Step dimensions';
+
+  @override
+  String treppeStufe(int nummer) {
+    return 'Step $nummer';
+  }
+
+  @override
+  String get treppeTiefe => 'Depth';
+
+  @override
+  String get treppeHoehe => 'Height';
+
+  @override
+  String get treppePodest => 'Landing dimensions';
+
+  @override
+  String treppeMasse(String laenge, String breite, String hoehe) {
+    return 'Stair dimensions in cm (L x W x H): $laenge x $breite x $hoehe';
+  }
+
+  @override
+  String get treppeUngueltig =>
+      'Please enter a value within the permitted range';
+
+  @override
+  String get meldungTreppeNichtFrei =>
+      'A staircase lies on a side at a building element or with a channel – it is not calculated.';
 }

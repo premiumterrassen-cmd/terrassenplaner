@@ -240,6 +240,98 @@ void main() {
     expect(find.byIcon(Icons.expand_less), findsWidgets);
     expect(leer, findsOneWidget);
   });
+
+  testWidgets('Terrassenanschluss (M7)', (tester) async {
+    await starteApp(tester);
+    await tester.tap(find.byKey(const ValueKey('neu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('station-terrassenanschluss')));
+    await tester.pumpAndSettle();
+    // M7-01: angrenzende Seiten unter 4.1, je Seite ein Schalter
+    await _waehle(tester, 'angrenzend-0');
+    expect(await _an(tester, 'angrenzend-0'), isTrue);
+    await tester.tap(find.byKey(const ValueKey('rueckgaengig')));
+    await tester.pumpAndSettle();
+    expect(await _an(tester, 'angrenzend-0'), isFalse);
+    // M7-02: Verblendung unter 4.2; F37 – A — B am Bauelement, die übrigen
+    // Seiten verblendet: der Server warnt vor fehlender Unterlüftung
+    await _waehle(tester, 'angrenzend-0');
+    expect(find.byKey(const ValueKey('verblendet-0')), findsNothing);
+    for (final seite in [1, 2, 3]) {
+      await _waehle(tester, 'verblendet-$seite');
+      expect(await _an(tester, 'verblendet-$seite'), isTrue);
+    }
+    final warnung = find.byKey(const ValueKey('anschluss-unterlueftung'));
+    for (var i = 0; i < 50 && warnung.evaluate().isEmpty; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    }
+    await _imMenue(tester, warnung);
+    expect(warnung, findsOneWidget);
+    // M7-03: Rinne an A — B (Bauelement) unter 4.3 mit Lage; ohne
+    // Artikeldatei hat der Smoke-Server keine Rinne, also der Hinweis
+    await _waehle(tester, 'rinne-0');
+    await _waehle(tester, 'rinne-0-imElement');
+    expect(await _gewaehlt(tester, 'rinne-0-imElement'), isTrue);
+    expect(find.byKey(const ValueKey('rinne-1')), findsNothing);
+    final ohneRinne = find.byKey(const ValueKey('anschluss-ohneRinnenartikel'));
+    for (var i = 0; i < 50 && ohneRinne.evaluate().isEmpty; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    }
+    await _imMenue(tester, ohneRinne);
+    expect(ohneRinne, findsOneWidget);
+    // M7-04: weiterer Höhenreferenzpunkt unter 3.2 (mit Gefälle), Lage per
+    // Eingabe; der Server zeichnet ihn als Ablauf mit Griff
+    await tester.tap(find.byKey(const ValueKey('station-unterkonstruktion')));
+    await tester.pumpAndSettle();
+    await _waehle(tester, 'gefaelle-mit');
+    await _waehle(tester, 'hoehenpunkt-hinzufuegen');
+    final waagerecht = find.descendant(
+      of: find.byKey(const ValueKey('hoehenpunkt-0-x')),
+      matching: find.byType(TextField),
+    );
+    await _imMenue(tester, waagerecht);
+    await tester.enterText(waagerecht, '-50');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(tester.widget<TextField>(waagerecht).decoration!.hintText, '-50');
+    final griff = find.byKey(const ValueKey('hoehenpunkt-griff-0'));
+    for (var i = 0; i < 50 && griff.evaluate().isEmpty; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    }
+    expect(griff, findsOneWidget);
+    // M7-05: Treppe unter 5.1; die Treppenmaße rechnet der Server
+    await tester.tap(find.byKey(const ValueKey('station-treppen')));
+    await tester.pumpAndSettle();
+    await _waehle(tester, 'treppe-hinzufuegen');
+    Future<void> masse(String text) async {
+      final f = find.text(text);
+      for (var i = 0; i < 50 && f.evaluate().isEmpty; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+        await _imMenue(tester, find.byKey(const ValueKey('treppe-0')));
+      }
+      await _imMenue(tester, f);
+      expect(f, findsOneWidget);
+    }
+
+    await masse(de.treppeMasse('100', '54', '31,2'));
+    await _waehle(tester, 'treppe-0-art-Treppenart.zweiteilig');
+    expect(
+      await _gewaehlt(tester, 'treppe-0-art-Treppenart.zweiteilig'),
+      isTrue,
+    );
+    await masse(de.treppeMasse('104', '108', '46,8'));
+  });
+}
+
+/// Ob der Schalter-Chip [schluessel] an ist; scrollt vorher zu ihm.
+Future<bool> _an(WidgetTester tester, String schluessel) async {
+  final chip = find.byKey(ValueKey(schluessel));
+  await _imMenue(tester, chip);
+  return tester.widget<FilterChip>(chip).selected;
 }
 
 /// Zeigt [finder] im Bearbeitungsmenü: Die Liste baut nur die sichtbaren
