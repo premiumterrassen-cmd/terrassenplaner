@@ -114,7 +114,7 @@ class PlanerRahmen extends StatefulWidget {
   final GrandTotalAnfordern? exportGrandTotal;
 
   /// Bietet die Importdatei zum Speichern an (im Browser ein Download).
-  final DateiAnbieten dateiAnbieten;
+  final TextdateiAnbieten dateiAnbieten;
 
   /// Adresse der Web-App für die Bild-Links im Export; `null` = `Uri.base`.
   final Uri? adresse;

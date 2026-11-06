@@ -26,7 +26,7 @@ final class GrandTotalExport {
 
   /// Adresse der Web-App; neben ihr liegen die Artikelbilder (M2-07).
   final Uri adresse;
-  final DateiAnbieten anbieten;
+  final TextdateiAnbieten anbieten;
 
   /// Gespeicherter Stand der Konfiguration für den Dateinamen; `null` oder
   /// ohne Ergebnis: noch nicht gespeichert.
