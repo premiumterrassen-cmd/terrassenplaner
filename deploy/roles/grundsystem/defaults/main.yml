@@ -3,6 +3,32 @@ grundsystem_pakete:
   - curl
   - nftables
   - unattended-upgrades
+  - logrotate
 # Passwort-Anmeldung per SSH abschalten (nur nachdem der Schlüsselzugang geprüft ist).
 grundsystem_ssh_nur_schluessel: true
 grundsystem_offene_ports: [22, 80, 443]
+
+# Härtung des Kernels (M10-03). Auf echten Servern sofort angewandt, in
+# Testcontainern (Molecule) nur abgelegt – dort gehört der Kernel dem Wirt.
+grundsystem_sysctl:
+  kernel.kptr_restrict: 2
+  kernel.dmesg_restrict: 1
+  kernel.unprivileged_bpf_disabled: 1
+  net.core.bpf_jit_harden: 2
+  fs.protected_fifos: 2
+  fs.protected_regular: 2
+  net.ipv4.tcp_syncookies: 1
+  net.ipv4.icmp_echo_ignore_broadcasts: 1
+  net.ipv4.conf.all.accept_redirects: 0
+  net.ipv4.conf.default.accept_redirects: 0
+  net.ipv4.conf.all.send_redirects: 0
+  net.ipv4.conf.default.send_redirects: 0
+  net.ipv4.conf.all.accept_source_route: 0
+  net.ipv6.conf.all.accept_redirects: 0
+  net.ipv6.conf.default.accept_redirects: 0
+grundsystem_virtualisierung_ohne_sysctl: [docker, container, podman, lxc, openvz]
+
+# Log-Rotation des Journals (M10-03): Größe begrenzt, Aufbewahrung 14 Tage
+# (Zugriffsprotokolle von Traefik enthalten sonst lange personenbezogene Daten).
+grundsystem_journal_groesse: 1G
+grundsystem_journal_aufbewahrung: 14day

@@ -1,18 +1,93 @@
 #!/bin/sh
-# Verwaltet von Ansible (Terrassenplaner) – tägliche Sicherung (M0-17).
-# Wiederherstellung: docs/betrieb/sicherung.md
-set -eu
+# Verwaltet von Ansible (Terrassenplaner) – tägliche Sicherung (M0-17, M10-03):
+# Grafana-Datenbank und die ObjectBox-Datenbanken von Router und Auth-Server.
+# Wiederherstellung: docs/betrieb/sicherung.md, Skript planer-wiederherstellung.
+set -u
+umask 077
 
 ziel={{ sicherung_verzeichnis }}
+woche="$ziel/woche"
+metriken={{ planer_textdatei_metriken }}
 stempel=$(date +%Y%m%d-%H%M%S)
-{% if planer_betriebsart == 'container' %}
-quelle="$(docker volume inspect -f '{% raw %}{{ .Mountpoint }}{% endraw %}' {{ sicherung_grafana_volume }})/grafana.db"
-{% else %}
-quelle={{ sicherung_grafana_systemd }}
-{% endif %}
+fehler=0
+mkdir -p "$woche" "$metriken"
 
-# .backup liefert eine konsistente Kopie, auch während Grafana schreibt.
-sqlite3 "$quelle" ".backup '$ziel/grafana-$stempel.db'"
-chmod 600 "$ziel/grafana-$stempel.db"
-find "$ziel" -name 'grafana-*.db' -mtime +{{ sicherung_aufbewahrung_tage }} -delete
-echo "Sicherung $ziel/grafana-$stempel.db"
+# Meldet eine gelungene Sicherung an Prometheus (Textdatei des Node-Exporters):
+# Bleibt sie aus, löst Grafana den Alarm „Sicherung veraltet“ aus.
+melde_erfolg() { # $1 Kurzname, $2 Sicherungsdatei
+  tmp="$metriken/.planer_sicherung_$1.$$"
+  {
+    echo '# HELP planer_sicherung_erfolg_zeitstempel_sekunden Zeitpunkt der letzten gelungenen Sicherung.'
+    echo '# TYPE planer_sicherung_erfolg_zeitstempel_sekunden gauge'
+    echo "planer_sicherung_erfolg_zeitstempel_sekunden{daten=\"$1\"} $(date +%s)"
+    echo '# HELP planer_sicherung_groesse_bytes Größe der letzten Sicherung.'
+    echo '# TYPE planer_sicherung_groesse_bytes gauge'
+    echo "planer_sicherung_groesse_bytes{daten=\"$1\"} $(stat -c %s "$2")"
+  } >"$tmp"
+  chmod 644 "$tmp"
+  mv "$tmp" "$metriken/planer_sicherung_$1.prom"
+  # Sonntags zusätzlich eine Wochensicherung (harter Link, kein Mehrplatz).
+  if [ "$(date +%u)" = 7 ]; then
+    ln -f "$2" "$woche/"
+  fi
+  echo "Sicherung $2"
+}
+
+sichere_grafana() {
+{% if planer_betriebsart == 'container' %}
+  quelle="$(docker volume inspect -f '{% raw %}{{ .Mountpoint }}{% endraw %}' {{ sicherung_grafana_volume }})/grafana.db"
+{% else %}
+  quelle={{ sicherung_grafana_systemd }}
+{% endif %}
+  datei="$ziel/grafana-$stempel.db"
+  # .backup liefert eine konsistente Kopie, auch während Grafana schreibt.
+  sqlite3 "$quelle" ".backup '$datei'" || return 1
+  melde_erfolg grafana "$datei"
+}
+
+# ObjectBox erlaubt nur einen Prozess je Datenbank: Der laufende Dienst legt
+# die Kopie auf SIGUSR1 selbst an, prüft sie (Probe-Wiederherstellung) und
+# meldet sie mit der Datei „stand“ fertig (Sicherungsdienst, M10-03).
+sichere_objectbox() { # $1 Kurzname, $2 Ablage des Dienstes, $3… Signal-Befehl
+  name=$1
+  quelle=$2
+  shift 2
+  rm -f "$quelle/stand"
+  "$@" || return 1
+  i=0
+  while [ ! -f "$quelle/stand" ]; do
+    i=$((i + 1))
+    if [ "$i" -gt {{ sicherung_wartezeit }} ]; then
+      echo "Keine Kopie von $name nach {{ sicherung_wartezeit }} s (Journal des Dienstes prüfen)" >&2
+      return 1
+    fi
+    sleep 1
+  done
+  datei="$ziel/objectbox-$name-$stempel.mdb.gz"
+  gzip -c "$quelle/data.mdb" >"$datei.tmp" || return 1
+  mv "$datei.tmp" "$datei"
+  echo "$name: Stand $(cat "$quelle/stand")"
+  rm -f "$quelle/data.mdb"
+  melde_erfolg "$name" "$datei"
+}
+
+sichere_grafana || { echo "Sicherung Grafana fehlgeschlagen" >&2; fehler=1; }
+{% for db in sicherung_objectbox %}
+{% if planer_betriebsart == 'container' %}
+sichere_objectbox {{ db.name }} \
+  "$(docker volume inspect -f '{% raw %}{{ .Mountpoint }}{% endraw %}' {{ db.volume }})/{{ planer_sicherung_unterordner }}" \
+  docker kill -s SIGUSR1 {{ db.container }} \
+  || { echo "Sicherung {{ db.name }} fehlgeschlagen" >&2; fehler=1; }
+{% else %}
+sichere_objectbox {{ db.name }} {{ planer_daten }}/{{ db.dienst }}/{{ planer_sicherung_unterordner }} \
+  systemctl kill --kill-whom=main -s SIGUSR1 {{ db.dienst }}.service \
+  || { echo "Sicherung {{ db.name }} fehlgeschlagen" >&2; fehler=1; }
+{% endif %}
+{% endfor %}
+
+# Aufbewahrung: tägliche Sicherungen {{ sicherung_aufbewahrung_tage }} Tage, Wochensicherungen {{ sicherung_aufbewahrung_wochen }} Wochen.
+find "$ziel" -maxdepth 1 -type f \( -name 'grafana-*.db' -o -name 'objectbox-*.mdb.gz' \) \
+  -mtime +{{ sicherung_aufbewahrung_tage }} -delete
+find "$ziel" -maxdepth 1 -type f -name '*.tmp' -delete
+find "$woche" -maxdepth 1 -type f -mtime +{{ sicherung_aufbewahrung_wochen * 7 }} -delete
+exit "$fehler"

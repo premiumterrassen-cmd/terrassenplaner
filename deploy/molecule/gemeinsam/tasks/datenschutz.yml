@@ -1,0 +1,31 @@
+# Prüfungen zu Statistik und Datenschutz (M10-05), gleich für beide Betriebsarten.
+- name: Ersatzschriften kommen nicht als index.html, sondern als 404 (kein Abruf bei Google)
+  ansible.builtin.uri:
+    url: https://127.0.0.1/schriften-ersatz/roboto/v32/test.ttf
+    headers: {Host: "{{ planer_domain }}"}
+    validate_certs: false
+    status_code: 404
+
+- name: Web-App lädt Ersatzschriften vom eigenen Server
+  ansible.builtin.uri:
+    url: https://127.0.0.1/flutter_bootstrap.js
+    headers: {Host: "{{ planer_domain }}"}
+    validate_certs: false
+    return_content: true
+  register: planer_test_bootstrap
+  failed_when: planer_test_bootstrap.content is not search('fontFallbackBaseUrl. *.schriften-ersatz/')
+
+- name: Dashboard „Nutzung“ (Statistik ohne Personenbezug) vorhanden
+  ansible.builtin.uri:
+    url: https://127.0.0.1/api/dashboards/uid/terrassenplaner-nutzung
+    headers: {Host: metrics.terrassenplaner.eu}
+    validate_certs: false
+    url_username: admin
+    url_password: "{{ planer_grafana_admin_passwort }}"
+    force_basic_auth: true
+    return_content: true
+  register: planer_test_nutzung
+  retries: 10
+  delay: 3
+  until: planer_test_nutzung.status == 200
+  no_log: true

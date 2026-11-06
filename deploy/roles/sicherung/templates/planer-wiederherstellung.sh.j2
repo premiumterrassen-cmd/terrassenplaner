@@ -1,0 +1,67 @@
+#!/bin/sh
+# Verwaltet von Ansible (Terrassenplaner) – Wiederherstellung einer
+# ObjectBox-Sicherung (M10-03). Anleitung: docs/betrieb/sicherung.md
+# Aufruf: planer-wiederherstellung <{{ sicherung_objectbox | map(attribute='name') | join('|') }}> <sicherung.mdb.gz>
+set -eu
+umask 077
+
+if [ $# -ne 2 ]; then
+  echo "Aufruf: $0 <{{ sicherung_objectbox | map(attribute='name') | join('|') }}> <sicherung.mdb.gz>" >&2
+  exit 64
+fi
+name=$1
+datei=$2
+
+case "$name" in
+{% for db in sicherung_objectbox %}
+  {{ db.name }})
+{% if planer_betriebsart == 'container' %}
+    container={{ db.container }}
+    daten="$(docker volume inspect -f '{% raw %}{{ .Mountpoint }}{% endraw %}' {{ db.volume }})/datenbank"
+{% else %}
+    dienst={{ db.dienst }}.service
+    health={{ db.health }}
+    daten={{ planer_daten }}/{{ db.dienst }}/datenbank
+{% endif %}
+    ;;
+{% endfor %}
+  *)
+    echo "Unbekannte Datenbank: $name" >&2
+    exit 64
+    ;;
+esac
+
+{% if planer_betriebsart == 'container' %}
+stoppe() { docker stop "$container" >/dev/null; }
+starte() { docker start "$container" >/dev/null; }
+gesund() { [ "$(docker inspect -f '{% raw %}{{ .State.Health.Status }}{% endraw %}' "$container")" = healthy ]; }
+{% else %}
+stoppe() { systemctl stop "$dienst"; }
+starte() { systemctl start "$dienst"; }
+gesund() { curl -fs "http://$health/healthz" >/dev/null; }
+{% endif %}
+
+# Erst die Sicherung prüfen, dann den Dienst anhalten.
+gzip -t "$datei"
+stempel=$(date +%Y%m%d-%H%M%S)
+stoppe
+if [ -f "$daten/data.mdb" ]; then
+  # Der bisherige Stand bleibt liegen, bis die Wiederherstellung geprüft ist.
+  mv "$daten/data.mdb" "$daten/data.mdb.vor-wiederherstellung-$stempel"
+fi
+gunzip -c "$datei" >"$daten/data.mdb.neu"
+chown --reference="$daten" "$daten/data.mdb.neu"
+mv "$daten/data.mdb.neu" "$daten/data.mdb"
+rm -f "$daten/lock.mdb"
+starte
+
+i=0
+until gesund; do
+  i=$((i + 1))
+  if [ "$i" -gt 60 ]; then
+    echo "$name startet nicht – bisheriger Stand: $daten/data.mdb.vor-wiederherstellung-$stempel" >&2
+    exit 1
+  fi
+  sleep 2
+done
+echo "$name aus $datei wiederhergestellt"

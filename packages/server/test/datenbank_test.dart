@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import 'package:terrassenplaner_server/terrassenplaner_server.dart';
@@ -128,13 +129,35 @@ void main() {
     final k = db.kennzahlen();
     expect(k.dateigroesse, greaterThan(0));
     expect(k.letzteSequenz, 1);
-    expect(k.anzahl, {'Benutzer': 1, 'Aenderung': 1});
+    expect(k.anzahl, {
+      'Benutzer': 1,
+      'Aenderung': 1,
+      'Konfiguration': 0,
+      'KonfigurationsVersion': 0,
+    });
+    db
+      ..speichere(
+        Konfiguration(nummer: '2026-11-05-0001', tag: 't', laufend: 1),
+      )
+      ..speichere(
+        KonfigurationsVersion(
+          nummer: '2026-11-05-0001',
+          version: 1,
+          inhalt: Uint8List(1),
+        ),
+      );
+    expect(db.kennzahlen().anzahl, {
+      'Benutzer': 1,
+      'Aenderung': 3,
+      'Konfiguration': 1,
+      'KonfigurationsVersion': 1,
+    });
   });
 
   test('Sicherung lässt sich als eigene Datenbank öffnen', () {
     db.speichere(_anna());
     final ziel = '${ordner.path}/sicherung';
-    db.sichere(ziel);
+    expect(db.sichere(ziel), 1);
     final kopie = Datenbank.oeffne(ziel, knoten: 'knoten-a');
     addTearDown(kopie.schliesse);
     expect(kopie.benutzer('anna')!.authId, 'anna');
