@@ -219,6 +219,17 @@ class PlanerVerbindung implements KonfigurationsAblage, MitarbeiterAnmeldung {
         return antwort.arguments!.single! as String;
       });
 
+  /// Planungsunterlagen der gespeicherten Version [stand] als PDF in der
+  /// [sprache] (`de`, `en`) vom Unterlagendienst (M9-06).
+  Future<Uint8List> unterlagen(KonfigurationsStand stand, String sprache) =>
+      _mitSitzung((sitzung) async {
+        final antwort = await sitzung.callSingle(
+          WampNamen.planungsunterlagenPdf,
+          arguments: [stand.kennung.wert, stand.version, sprache],
+        );
+        return antwort.arguments!.single! as Uint8List;
+      });
+
   /// Zum Belag passende Unterkonstruktionen vom Artikeldienst (M6-03);
   /// ohne [belag] die zum Vorgabe-Belag.
   Future<Ukauswahl> unterkonstruktionen(Artikelnummer? belag) =>

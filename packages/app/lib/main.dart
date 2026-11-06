@@ -4,6 +4,7 @@ import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import 'planer_app.dart';
 import 'src/einstellungen/einstellungs_speicher.dart';
 import 'src/einstellungen/lokale_einstellungen.dart';
+import 'src/konfiguration/planungsunterlagen.dart';
 import 'src/modell3d/modell3d_seite.dart';
 import 'src/sprache/sprache.dart';
 import 'src/verbindung/planer_verbindung.dart';
@@ -41,6 +42,9 @@ void main() {
       berechne: verbindung.berechne,
       belaege: verbindung.belaege,
       unterkonstruktionen: verbindung.unterkonstruktionen,
+      // Planungsunterlagen erzeugt der Server, der Browser lädt sie nur
+      // herunter (M9-06).
+      unterlagen: Unterlagenabruf(verbindung.unterlagen),
       zubehoer: verbindung.zubehoer,
       // Export für GrandTotal (M9-08): nur für angemeldete Mitarbeiter.
       exportGrandTotal: verbindung.exportGrandTotal,

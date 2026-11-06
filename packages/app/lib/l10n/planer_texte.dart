@@ -970,6 +970,18 @@ abstract class PlanerTexte {
   /// **'Speichern nicht möglich – der Server ist nicht erreichbar. Ihre Planung bleibt erhalten, bitte später erneut speichern.'**
   String get speichernFehler;
 
+  /// No description provided for @pdfErstellt.
+  ///
+  /// In de, this message translates to:
+  /// **'Planungsunterlagen zu Konfigurationsnummer {nummer}, Version {version} erstellt.'**
+  String pdfErstellt(String nummer, int version);
+
+  /// No description provided for @pdfFehler.
+  ///
+  /// In de, this message translates to:
+  /// **'PDF nicht möglich – der Server ist nicht erreichbar. Ihre Planung bleibt erhalten, bitte später erneut versuchen.'**
+  String get pdfFehler;
+
   /// No description provided for @modell3dTitel.
   ///
   /// In de, this message translates to:

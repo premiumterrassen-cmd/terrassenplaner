@@ -9,6 +9,7 @@ import '../design/planer_design.dart';
 import '../export/datei_angebot.dart';
 import '../export/grandtotal_export.dart';
 import '../konfiguration/konfigurations_steuerung.dart';
+import '../konfiguration/planungsunterlagen.dart';
 import '../sprache/sprache.dart';
 import '../start/eingangsdialog.dart';
 import 'aktionen.dart';
@@ -52,6 +53,7 @@ class PlanerRahmen extends StatefulWidget {
     this.unterkonstruktionen,
     this.zubehoer,
     this.aktionen = const RahmenAktionen(),
+    this.unterlagen,
     this.sprache,
     this.darstellung,
     this.anmeldung,
@@ -91,6 +93,10 @@ class PlanerRahmen extends StatefulWidget {
 
   /// Links und Ergebnis-Knöpfe (M3-06).
   final RahmenAktionen aktionen;
+
+  /// Planungsunterlagen als PDF vom Server (M9-06); mit [konfiguration]
+  /// der PDF-Knopf, sofern [aktionen] keinen eigenen bringt.
+  final Unterlagenabruf? unterlagen;
 
   /// Sprachauswahl in der Kopfzeile (M3-07); ohne Steuerung keine Auswahl.
   final SprachSteuerung? sprache;
@@ -289,6 +295,29 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
     messenger.showSnackBar(SnackBar(content: Text(meldung)));
   }
 
+  /// PDF (M9-06): erst SPEICHERN (eine neue Version nur bei Änderungen),
+  /// dann die Unterlagen genau dieser Version vom Server holen und
+  /// anbieten – so steht im PDF immer eine Nummer, unter der sich die
+  /// Planung wieder laden lässt.
+  Future<void> _pdf(
+    KonfigurationsSteuerung konfiguration,
+    Unterlagenabruf unterlagen,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final t = context.texte;
+    final sprache = Localizations.localeOf(context).languageCode;
+    final String meldung;
+    try {
+      final stand = await konfiguration.speichere();
+      await unterlagen.hole(stand, sprache);
+      meldung = t.pdfErstellt(stand.kennung.wert, stand.version);
+    } on Object {
+      messenger.showSnackBar(SnackBar(content: Text(t.pdfFehler)));
+      return;
+    }
+    messenger.showSnackBar(SnackBar(content: Text(meldung)));
+  }
+
   /// LADEN: „Konfiguration laden“ mit der geöffneten Konfiguration
   /// vorbelegt; angemeldete Mitarbeiter laden auch ohne Prüfcode (M9-10).
   Future<void> _lade(KonfigurationsSteuerung konfiguration) async {
@@ -386,7 +415,15 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
                 },
                 onVideoberatung: () =>
                     widget.aktionen.oeffne(PlanerLinks.videoberatung),
-                onPdf: () => _zumErgebnis(widget.aktionen.pdf),
+                onPdf: () => _zumErgebnis(switch ((
+                  widget.aktionen.pdf,
+                  widget.konfiguration,
+                  widget.unterlagen,
+                )) {
+                  (final pdf?, _, _) => pdf,
+                  (null, final k?, final u?) => () => _pdf(k, u),
+                  _ => null,
+                }),
                 onAnfordern: () => _zumErgebnis(widget.aktionen.anfordern),
               ),
               Schrittleiste(zustand: _zustand),
