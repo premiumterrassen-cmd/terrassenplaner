@@ -123,8 +123,12 @@ void main() {
         ),
       );
       addTearDown(router.stoppe);
-      final dienst = await KonfigurationsDienst.starte(router, _Speicher());
+      final speicher = _Speicher();
+      final dienst = await KonfigurationsDienst.starte(router, speicher);
       addTearDown(dienst.stoppe);
+      // M9-06: Planungsunterlagen aus derselben Ablage
+      final unterlagen = await UnterlagenDienst.starte(router, speicher);
+      addTearDown(unterlagen.stoppe);
       final verbindung = PlanerVerbindung(
         Uri.parse('ws://127.0.0.1:${router.webSocketPort}/ws'),
       );
@@ -209,6 +213,14 @@ void main() {
         bezug: v2,
       ));
       await expectLater(verbindung.entwurf('kein'), throwsA(anything));
+
+      // M9-06: PDF der gespeicherten Version
+      final pdf = await verbindung.unterlagen(v1, 'en');
+      expect(String.fromCharCodes(pdf.take(4)), '%PDF');
+      await expectLater(
+        verbindung.unterlagen(KonfigurationsStand(v1.kennung, 9), 'de'),
+        throwsA(anything),
+      );
     },
   );
 

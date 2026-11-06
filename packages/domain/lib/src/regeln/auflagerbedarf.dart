@@ -70,16 +70,27 @@ final class Auflagerbedarf {
 /// der Ecken (Ohrenschnitt) – eine geneigte Ebene (F30) wird exakt
 /// wiedergegeben, an jedem Eckpunkt gilt seine Höhe. Ohne Gefälle, mit nur
 /// einem Punkt (Kreis) oder ohne passende Ecken überall die erste Höhe.
+///
+/// Weitere Höhenreferenzpunkte (M7-04, [weitere], ihre Höhen folgen in
+/// [hoehen] auf die der Ecken) teilen die Dreiecke, in denen sie liegen –
+/// auch auf einer Kante –, in Dreiecke zu ihnen; dort gilt ihre Höhe (ein
+/// Ablauf als tiefster Punkt). Punkte außerhalb der Fläche wirken nicht.
 final class Hoehenflaeche {
-  Hoehenflaeche(List<Punkt> ecken, List<Millimeter> hoehen)
-    : _ecken = ecken,
-      _hoehen = [for (final h in hoehen) h.mm.toDouble()],
-      _dreiecke =
-          ecken.length >= 3 &&
-              ecken.length == hoehen.length &&
-              hoehen.toSet().length > 1
-          ? _ohrenschnitt(ecken)
-          : const [];
+  Hoehenflaeche(
+    List<Punkt> ecken,
+    List<Millimeter> hoehen, [
+    List<Punkt> weitere = const [],
+  ]) : _ecken = [...ecken, ...weitere],
+       _hoehen = [for (final h in hoehen) h.mm.toDouble()],
+       _dreiecke =
+           ecken.length >= 3 &&
+               ecken.length + weitere.length == hoehen.length &&
+               hoehen.toSet().length > 1
+           ? _mitPunkten(_ohrenschnitt(ecken), [
+               ...ecken,
+               ...weitere,
+             ], ecken.length)
+           : const [];
 
   final List<Punkt> _ecken;
   final List<double> _hoehen;
@@ -93,7 +104,7 @@ final class Hoehenflaeche {
     var guete = double.negativeInfinity;
     (int, int, int)? wahl;
     for (final d in _dreiecke) {
-      final g = _gewichte(p, d);
+      final g = _gewichte(_ecken, p, d);
       final kleinstes = math.min(g.$1, math.min(g.$2, g.$3));
       if (kleinstes > guete) {
         guete = kleinstes;
@@ -107,18 +118,57 @@ final class Hoehenflaeche {
       (g1 * _hoehen[i] + g2 * _hoehen[j] + g3 * _hoehen[k]).round(),
     );
   }
-
-  /// Baryzentrische Gewichte von [p] im Dreieck [d].
-  (double, double, double) _gewichte(Punkt p, (int, int, int) d) {
-    final (a, b, c) = (_ecken[d.$1], _ecken[d.$2], _ecken[d.$3]);
-    final flaeche = (b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y);
-    final wb =
-        ((p.x - a.x) * (c.y - a.y) - (c.x - a.x) * (p.y - a.y)) / flaeche;
-    final wc =
-        ((b.x - a.x) * (p.y - a.y) - (p.x - a.x) * (b.y - a.y)) / flaeche;
-    return (1 - wb - wc, wb, wc);
-  }
 }
+
+/// Baryzentrische Gewichte von [p] im Dreieck [d] der [punkte].
+(double, double, double) _gewichte(
+  List<Punkt> punkte,
+  Punkt p,
+  (int, int, int) d,
+) {
+  final (a, b, c) = (punkte[d.$1], punkte[d.$2], punkte[d.$3]);
+  final flaeche = (b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y);
+  final wb = ((p.x - a.x) * (c.y - a.y) - (c.x - a.x) * (p.y - a.y)) / flaeche;
+  final wc = ((b.x - a.x) * (p.y - a.y) - (p.x - a.x) * (b.y - a.y)) / flaeche;
+  return (1 - wb - wc, wb, wc);
+}
+
+/// [dreiecke] der [punkte], geteilt an jedem Punkt ab [ab] (M7-04): ein
+/// Dreieck, in dem oder auf dessen Rand der Punkt liegt, wird zu drei
+/// Dreiecken mit dem Punkt als Spitze; flache Dreiecke (Punkt auf einer
+/// Kante) fallen weg.
+List<(int, int, int)> _mitPunkten(
+  List<(int, int, int)> dreiecke,
+  List<Punkt> punkte,
+  int ab,
+) {
+  var ergebnis = dreiecke;
+  for (var m = ab; m < punkte.length; m++) {
+    ergebnis = [for (final d in ergebnis) ..._geteilt(punkte, d, m)];
+  }
+  return ergebnis;
+}
+
+/// Das Dreieck [d] geteilt am Punkt [m], wenn er in ihm oder auf seinem
+/// Rand liegt (ohne flache Teile); sonst [d] selbst.
+List<(int, int, int)> _geteilt(List<Punkt> punkte, (int, int, int) d, int m) {
+  final (g1, g2, g3) = _gewichte(punkte, punkte[m], d);
+  if (math.min(g1, math.min(g2, g3)) < -_rand) return [d];
+  return [
+    for (final t in [(d.$1, d.$2, m), (d.$2, d.$3, m), (d.$3, d.$1, m)])
+      if (_doppelteFlaeche(punkte, t).abs() > _flach) t,
+  ];
+}
+
+/// Toleranz der Gewichte für Punkte auf dem Rand eines Dreiecks.
+const _rand = 1e-9;
+
+/// Dreiecke mit weniger doppelter Fläche (mm²) gelten als flach.
+const _flach = 1e-6;
+
+double _doppelteFlaeche(List<Punkt> p, (int, int, int) d) =>
+    (p[d.$2].x - p[d.$1].x) * (p[d.$3].y - p[d.$1].y) -
+    (p[d.$3].x - p[d.$1].x) * (p[d.$2].y - p[d.$1].y);
 
 /// Zerlegt das einfache Vieleck [p] in Dreiecke (Ohrenschnitt); die Ecken
 /// werden dazu gegen den Uhrzeigersinn umlaufen (positive Fläche).

@@ -46,6 +46,11 @@ abstract final class WampNamen {
   static const entwurfSpeichern = '${kunde}konfiguration.entwurf_speichern';
   static const entwurfLaden = '${kunde}konfiguration.entwurf_laden';
 
+  /// Unterlagendienst (M9-06): Planungsunterlagen einer gespeicherten
+  /// Konfiguration (Kennung und Version, optional Sprache und Kundendaten)
+  /// als PDF.
+  static const planungsunterlagenPdf = '${kunde}konfiguration.pdf';
+
   /// Fehler-URI für eine unbekannte Konfigurationsnummer oder Version – auch
   /// bei falschem oder fehlendem Prüfcode (keine Auskunft, ob es die Nummer
   /// gibt).

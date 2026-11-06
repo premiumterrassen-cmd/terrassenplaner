@@ -58,6 +58,29 @@ Neuer Planer (M9-02):
 - **Abgleich Belag** (Tests): Bei allen 14 vergleichbaren Referenzkonfigurationen (F01, F02, F06–F13, F20, F21, F23, F24) und den 8 Referenzfällen mit gleichen Lieferlängen stimmt der Zuschnitt Deckbelag Zeile für Zeile mit dem alten Planer, wenn man dessen einseitig genutete Anfangsdielen (FJ 1, B-033) zu den übrigen zählt – auch die gemischten Schnitte von F21 (19 × 500: 360 + 140, 19 × 500: 360 + 100). Abweichend F22 (3000 mm gibt es nicht mehr, R-A06).
 - **Abgleich UK** (Tests): F01 13 × 400: 309, F06 14, F07 15, F09 22, F11 24 wie im alten Planer; F02 9 × 500: 480 (alt 5 × 479 + 4 × 481 – Rundung seiner Lage); F10 24 statt 25 Hölzer (Lage der UK-Linien, M6-10, nicht Zuschnitt); F20 10 × 400: 400 wie alt, dessen zwei zusätzliche Stücke à 353 cm gehören zu keinem Holz der Verlegung; F13 nutzt alt 650 cm (Fehler B-035).
 
+## Planungsunterlagen (PDF)
+
+Im alten Planer: „Planungsunterlagen“ mit Name/Adresse/Ort/Telefon/E-Mail, Projektbezeichnung, Konfigurationsnummer und Version auf jeder Seite, „Ihre konfigurierte Terrasse“ (Fläche, Volumen, Belag, Verlegerichtung, Ausgangspunkt, UK, Verblendung), Materialliste mit Preisen, Lieferhinweis und Unterschriftszeile (Angebot), Zeichnung, „TERRASSENGEOMETRIE“ mit Aufbauhöhe und Winkel je Eckpunkt, „UNTERKONSTRUKTION“ mit Plan, Stückliste (Farbe im Plan) und Zuschnittsplan, „TERRASSENBELAG“ mit Verlegeplan, „Dielen/Platten nach Nummer“ und Zuschnittsplan, „Rechtliche Hinweise“ und Grußtext; „Seite x von y“ (Referenzfälle M1-02).
+
+Neuer Planer (M9-06):
+
+- **Erzeugt der Server**, die App fordert nur an (Frontend bleibt „doof“): Knopf **PDF** in der Kopfzeile → Standardwert-Hinweis (M3-05) → **SPEICHERN** (eine neue Version nur bei Änderungen, M9-05) → Unterlagendienst `kunde.konfiguration.pdf` mit Kennung, Version und Sprache → der Browser bietet die Datei `Planungsunterlagen_<Nummer>_V<Version>.pdf` zum Speichern/Öffnen an, Hinweis „Planungsunterlagen zu Konfigurationsnummer … erstellt“. Ohne Server: Hinweis, die Planung bleibt.
+- **Aus gespeicherter Version und aktuellem Datenstand** (Datenmodell: „PDF … aus Version + Datenstand“), nie aus einer Planung der App: Im PDF steht immer eine Kennung mit Prüfcode, unter der sich genau diese Planung wieder laden lässt („1a. Konfigurationsnummer aus der PDF eingeben“). Falscher Prüfcode und unbekannte Nummer geben denselben Fehler wie LADEN (M9-05b).
+- **Kapitel** (Domäne `planungsunterlagen`, Satz auf dem Server `planungsunterlagenPdf`, A4):
+  1. **Deckblatt** mit Briefkopf: „Ihre Angaben“ (Kundendaten, nur wenn übergeben – kommen mit der Anfrage M9-07, werden nur gedruckt, nie gespeichert), Konfigurationsnummer, Version, Stand (Datum), „Ihre konfigurierte Terrasse“: Terrassenfläche aller Flächen mal Häufigkeit, Anzahl der Flächen, Volumen, Verschnitt, Summe Materialliste.
+  2. Je Fläche **Terrasse** („Ihre Terrasse“, bei mehreren „Terrasse 1, 2 …“): Fläche, Anzahl gleicher Flächen, Belag, Verlegerichtung, Verlegeart, Ausgangspunkt (Ecke und Verschiebung), Befestigung, Art der Terrasse, UK, Untergrund, Art der Terrassennutzung, Nutzung, Auflagen, Feldbreite; **Terrassengeometrie** (Umriss, Ausschnitte grau, Eckpunkte A …, Kantenmaße in m); **Eckpunkthöhen** mit Aufbauhöhe und Innenwinkel (90°/270°, unabhängig vom Umlaufsinn – die verschobene Winkeltabelle des alten Planers wird nicht übernommen).
+  3. **Unterkonstruktion**: Plan mit den UK-Hölzern in ihrer Farbe (rot/blau/grün wie Zeichnung und Stückliste, M9-04), Querstreben, Auflagern; **Stückliste** ohne den Belag.
+  4. **Höhenzuordnung der Auflager** (M6-11): Abstand, je Auflager Spaltbereich und Anzahl – das sind die Stelzfußhöhen.
+  5. **Terrassenbelag**: Verlegeplan mit der Nummer in jedem Stück, „Dielen/Platten nach Nummer“ (Nr., Artikel, Maße, Stück), „Benötigte Dielen“ je Lieferlänge; **Zuschnittsplan Belag** (Ausgangslänge, Menge, Schnittmaße; gleiche Lieferdielen zusammengefasst).
+  6. **Materialliste** wie der Dialog (M9-03) – mit Zubehör (M8-02/03) und der Freidiele als eigener Position mit 0 € (M8-04, B-079) – mit €/lfm, €/Stück, € gesamt, „Summe gesamt“, „enthaltene 19 % MwSt.“ und dem Hinweis, dass nur das Angebot verbindlich ist (B-055).
+  7. **Hinweise zur Planung**: die Meldungen jeder Fläche (Belag M5-10, UK gedreht, Höhe korrigiert M6-02, Höhengrenzen der Auflager M6-08) – fehlt im alten Planer.
+  8. **Rechtliche Hinweise** wie im alten Planer und Grußtext „Es grüßt Sie das RobinienWelt TEAM“ mit E-Mail und Shop.
+- Das Holzvolumen auf dem Deckblatt enthält die Freidiele wie die Kennzahl (M8-04). Geänderte Mengen der Mitarbeiter-Ansicht gelten im PDF wie in der Berechnung nur für angemeldete Mitarbeiter (Rolle vom Router, M9-10).
+- Kopf jeder Folgeseite: Konfigurationsnummer und Version; Fuß: „Seite x von y“. Texte Deutsch und Englisch (Sprache der App).
+- **Schrift:** die Standardschrift des PDF (Helvetica) ohne eingebettete Datei; sie kennt nur Latin-1, deshalb stehen Beträge als „2.066,57 EUR“ und typografische Anführungszeichen/Gedankenstriche als einfache Zeichen.
+- **Nicht enthalten (Folge-Issues):** Zuschnittsplan der UK (seit M9-02 liefert die Berechnung ihn als `zuschnittUk`, Platz 168 – im PDF noch einzubinden), Verblendung (M7), Angebotsteil mit Lieferhinweis und Unterschrift (M9-07, Angebots-PDF), Projektbezeichnung (gibt es im Planungsstand noch nicht).
+- **Abnahme:** Für 31 Referenzfälle (alle Rechtecke, L- und T-Formen mit vollständigen Kantenmaßen) entstehen alle Kapitel und ein PDF (`packages/server/test/referenzunterlagen_test.dart`, mit `PLANER_PDF_AUSGABE=<ordner>` zum Ansehen).
+
 ## Angebot anfordern
 
 Knopf „Jetzt Angebot anfordern“ (Materialliste) öffnet „Angebot anfordern“:

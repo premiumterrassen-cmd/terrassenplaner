@@ -13,6 +13,7 @@ import '../regeln/belagmeldungen.dart';
 import '../regeln/hoehenpunkte.dart';
 import '../regeln/uk_zusatz.dart';
 import '../regeln/zubehoerbedarf.dart';
+import 'anschlussergebnis.dart';
 import 'befestigungsart.dart';
 import 'unterbau.dart';
 
@@ -25,8 +26,9 @@ import 'unterbau.dart';
 /// Höhenpunkte, seit M9-03 die Materialliste der ganzen Planung, seit M9-04
 /// Stückliste und Farbe je Dielenstück, seit M8-02 die Mengen im Zubehör,
 /// seit M6-08 die Unterkonstruktion ([unterbau]), seit M6-10 das
-/// Holzvolumen der ganzen Planung, seit M9-01 die Verschnittvarianten mit
-/// der gewählten, seit M9-02 die Zuschnittpläne.
+/// Holzvolumen der ganzen Planung, seit M7 der Terrassenanschluss
+/// ([anschluss]), seit M9-01 die Verschnittvarianten mit der gewählten,
+/// seit M9-02 die Zuschnittpläne.
 final class Berechnung {
   Berechnung({
     required List<Punkt> umriss,
@@ -59,7 +61,9 @@ final class Berechnung {
     this.verschnittvariante,
     Zuschnittplan? zuschnittBelag,
     Zuschnittplan? zuschnittUk,
-  }) : unterbau = unterbau ?? Unterbau.leer,
+    Anschlussergebnis? anschluss,
+  }) : anschluss = anschluss ?? Anschlussergebnis.leer,
+       unterbau = unterbau ?? Unterbau.leer,
        zuschnittBelag = zuschnittBelag ?? Zuschnittplan.leer,
        zuschnittUk = zuschnittUk ?? Zuschnittplan.leer,
        verschnittvarianten = List.unmodifiable([
@@ -258,6 +262,14 @@ final class Berechnung {
         wurzel,
         _versatz(_volumenPlatz),
       ),
+      anschluss: switch (const _Tabellenort().vTableGetNullable(
+        puffer,
+        wurzel,
+        _versatz(_anschlussPlatz),
+      )) {
+        final ort? => Anschlussergebnis.lies(puffer, ort),
+        null => null,
+      },
     );
   }
 
@@ -495,6 +507,9 @@ final class Berechnung {
   /// der UK-Verlegung, zusätzliches Holz und Stützen.
   final Zuschnittplan zuschnittUk;
 
+  /// Terrassenanschluss der bearbeiteten Fläche (M7): Seiten mit Rolle.
+  final Anschlussergebnis anschluss;
+
   /// Kopie mit den Werten der ganzen Planung (M4-14, M5-08, M9-01, M9-02).
   Berechnung mitPlanung(
     double gesamtflaeche, {
@@ -537,6 +552,7 @@ final class Berechnung {
     verschnittvariante: verschnittvariante,
     zuschnittBelag: zuschnittBelag,
     zuschnittUk: zuschnittUk,
+    anschluss: anschluss,
   );
 
   /// FlatBuffer für den Weg zur App (#110):
@@ -564,13 +580,16 @@ final class Berechnung {
   /// 91: querstrebenReihen (uint16; fehlt ohne) (M6-06), 92: stellfuesse
   /// ([{ 0: nummer (string), 1: titel (string) }]) (M6-07), 110: unterbau
   /// (Tabelle, `Unterbau.schreibe`, M6-08 bis M6-11), 111: volumen (float64
-  /// m³; fehlt ohne Holz, M6-10), 165: verschnittvarianten ([{ 0: verschnitt
-  /// (float64), 1: dielen (wie dielenliste) }]), 166: verschnittvariante
-  /// (uint8; fehlt = nicht optimiert) (M9-01), 167: zuschnittBelag,
-  /// 168: zuschnittUk (Tabellen, `Zuschnittplan.schreibe`, M9-02) }`. Die
-  /// Plätze 18–34 sind für die Unterkonstruktion (M6) frei gehalten, 50–59
-  /// für das Zubehör (M8), 60–69 für die Ergebnisse (M9), 110–119 für die
-  /// UK ab M6-08.
+  /// m³; fehlt ohne Holz, M6-10), 150: anschluss (Tabelle,
+  /// `Anschlussergebnis.schreibe`, M7), 165: verschnittvarianten ([{ 0:
+  /// verschnitt (float64), 1: dielen (wie dielenliste) }]), 166:
+  /// verschnittvariante (uint8; fehlt = nicht optimiert) (M9-01),
+  /// 167: zuschnittBelag, 168: zuschnittUk (Tabellen,
+  /// `Zuschnittplan.schreibe`, M9-02) }`. Die Plätze 18–34 sind für die
+  /// Unterkonstruktion (M6) frei gehalten, 50–59 für das Zubehör (M8),
+  /// 60–69 für die Ergebnisse (M9), 110–119 für die UK ab M6-08, 150–159
+  /// für den Anschluss, die Höhenreferenzpunkte und die Treppen (M7),
+  /// 165–169 für Verschnittoptimierung und Zuschnittpläne (M9).
   Uint8List zuBytes() {
     final fbb = fb.Builder();
     final umrissOrt = _schreibe(fbb, umriss);
@@ -616,6 +635,7 @@ final class Berechnung {
       for (final f in stellfuesse) _stellfuss(fbb, f),
     ]);
     final unterbauOrt = unterbau.schreibe(fbb);
+    final anschlussOrt = anschluss.schreibe(fbb);
     final variantenOrt = fbb.writeList([
       for (final v in verschnittvarianten) _verschnittangebot(fbb, v),
     ]);
@@ -654,6 +674,7 @@ final class Berechnung {
       ..addUint16(_querstrebenReihenPlatz, querstrebenReihen)
       ..addOffset(_stellfuessePlatz, fuesseOrt)
       ..addOffset(_unterbauPlatz, unterbauOrt)
+      ..addOffset(_anschlussPlatz, anschlussOrt)
       ..addOffset(_verschnittvariantenPlatz, variantenOrt)
       ..addUint8(_verschnittvariantePlatz, verschnittvariante)
       ..addOffset(_zuschnittBelagPlatz, belagOrt)
@@ -785,6 +806,7 @@ final class Berechnung {
   static const _stellfuessePlatz = 92;
   static const _unterbauPlatz = 110;
   static const _volumenPlatz = 111;
+  static const _anschlussPlatz = 150;
   static const _verschnittvariantenPlatz = 165;
   static const _verschnittvariantePlatz = 166;
   static const _zuschnittBelagPlatz = 167;

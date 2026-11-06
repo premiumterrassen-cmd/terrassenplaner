@@ -26,9 +26,8 @@ typedef Unterkonstruktionssuche = Artikel? Function(Planungsstand stand);
 /// Abstand, Höhenbereichen und Meldungen (M6-08), die Feldbreite (M6-09),
 /// die UK-Verlegung mit Hölzern, Stücken und Holzvolumen (M6-10), die
 /// Auflager mit Höhenzuordnung und Mengen (M6-11), die Mengen im Zubehör
-/// (M8-02, M8-03) samt Freidielen (M8-04), die
-/// Materialliste
-/// (M9-03) mit der gewählten Verschnittvariante (M9-01)
+/// (M8-02, M8-03) samt Freidielen (M8-04), den Terrassenanschluss (M7),
+/// die Materialliste (M9-03) mit der gewählten Verschnittvariante (M9-01)
 /// und die Stückliste mit den Farben im Plan (M9-04)
 /// – die App rechnet nichts selbst (Frontend bleibt „doof“). Hin- und
 /// Rückweg als typisierte FlatBuffers (Packed PPT, #110).
@@ -135,13 +134,14 @@ class PlanungsDienst {
     );
   }
 
-  /// Geprüfte Höhenpunkte (M6-02) mit Belag und UK.
+  /// Geprüfte Höhenpunkte (M6-02) mit Belag und UK: die Ecken, dann die
+  /// weiteren Höhenreferenzpunkte (M7-04, nur mit Gefälle).
   static Hoehenpunkte _hoehen(
     Planungsstand stand,
     Artikel? belag,
     Artikel? unterkonstruktion,
   ) => pruefeHoehen(
-    stand.hoehen,
+    [...stand.hoehen, for (final p in stand.wirksameHoehenpunkte) p.hoehe],
     art: stand.terrassenart,
     doppelteUk: stand.doppelteUk,
     dielenstaerke: belag?.abmessungen.staerke,
@@ -179,6 +179,8 @@ class PlanungsDienst {
     Hoehenpunkte? hoehenpunkte,
     UkVerlegung? uk,
     Auflagerbedarf? auflager,
+    Anschlussbedarf? anschluss,
+    Planungsstand? belagstand,
   ]) {
     // offene Freiform (M4-08): nur der gezeichnete Linienzug
     if (stand.grundriss case FreiformGrundriss(
@@ -193,7 +195,8 @@ class PlanungsDienst {
       // Bögen (Kreis) als Sehnenzug für die Zeichnung, Ecken für die Namen
       umriss: kontur.vieleck(),
       ecken: stand.grundriss.ecken,
-      flaeche: kontur.flaeche,
+      // eine Rinne verkleinert die Fläche (F38, M7-03)
+      flaeche: (belagstand ?? stand).kontur.flaeche,
       ausschnitte: [for (final a in stand.ausschnitte) a.kontur.punkte],
       hoehenpunkte: hoehen,
       stellfuesse: _stellfuesse(stand, regelwerk, unterkonstruktion),
@@ -205,6 +208,11 @@ class PlanungsDienst {
         uk: unterkonstruktion,
         verlegung: uk,
         auflager: auflager,
+      ),
+      anschluss: anschlussergebnis(
+        stand,
+        meldungen: anschluss?.meldungen ?? const [],
+        hoehen: hoehen.hoehen,
       ),
     );
   }
@@ -248,6 +256,7 @@ class PlanungsDienst {
     Ukzusatz? zusatz,
     UkVerlegung? uk,
     Auflagerbedarf? auflager,
+    Anschlussbedarf? anschluss,
   ]) {
     final meldungen = belagmeldungen(stand, belag, v, regelwerk: regelwerk);
     if (v == null) {
@@ -261,6 +270,7 @@ class PlanungsDienst {
         hoehenpunkte: flaeche.hoehenpunkte,
         stellfuesse: flaeche.stellfuesse,
         unterbau: flaeche.unterbau,
+        anschluss: flaeche.anschluss,
         zubehoer: zubehoer,
       );
     }
@@ -280,6 +290,7 @@ class PlanungsDienst {
       ...?uk?.stuecke,
       ...?zusatz?.stuecke,
       ...?auflager?.stuecke,
+      ...?anschluss?.stuecke,
     ];
     return Berechnung(
       umriss: flaeche.umriss,
@@ -296,6 +307,7 @@ class PlanungsDienst {
       hoehenpunkte: flaeche.hoehenpunkte,
       stellfuesse: flaeche.stellfuesse,
       unterbau: flaeche.unterbau,
+      anschluss: flaeche.anschluss,
       befestigung: befestigung,
       stueckliste: Stueckliste.aus([...planstuecke, ...ukStuecke]),
       stueckfarben: [for (final p in planstuecke) p.farbe],
@@ -416,7 +428,9 @@ class PlanungsDienst {
     late Berechnung aktuell;
     for (final (i, f) in planung.flaechen.indexed) {
       final artikel = belag(f.stand.belag);
-      final verlegung = verlegeBelag(f.stand, artikel);
+      // Rinnen sparen den Belag an ihrer Seite aus (M7-03, R-C08)
+      final belagstand = rinnenstand(f.stand, artikel, regelwerk);
+      final verlegung = verlegeBelag(belagstand, artikel);
       final uk = unterkonstruktion(f.stand);
       final hoehen = _hoehen(f.stand, artikel, uk);
       final ukv = _ukVerlegung(
@@ -444,6 +458,14 @@ class PlanungsDienst {
       );
       final zusatz = _ukZusatz(f.stand, artikel, regelwerk, uk, verlegung, ukv);
       final auflager = _auflager(f.stand, regelwerk, uk, ukv, hoehen);
+      final anschluss = _anschluss(
+        f.stand,
+        artikel,
+        regelwerk,
+        uk,
+        ukv,
+        hoehen,
+      );
       final bearbeitet = i == planung.aktiv;
       // Höhenpunkte nur für die bearbeitete Fläche (M6-02)
       final grund = bearbeitet
@@ -455,8 +477,20 @@ class PlanungsDienst {
               hoehen,
               ukv,
               auflager,
+              anschluss,
+              belagstand,
             )
-          : _grundflaeche(f.stand);
+          : _grundflaeche(
+              f.stand,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              belagstand,
+            );
       gesamt += grund.flaeche * f.haeufigkeit;
       if (verlegung != null) {
         // verlegt wird nur mit Belag
@@ -499,6 +533,7 @@ class PlanungsDienst {
             ...?ukv?.bedarf,
             ...zusatz.bedarf,
             ...?auflager?.bedarf,
+            ...anschluss.bedarf,
           ])
             b * f.haeufigkeit,
         ]);
@@ -519,6 +554,7 @@ class PlanungsDienst {
           zusatz,
           ukv,
           auflager,
+          anschluss,
         );
       }
     }
@@ -633,7 +669,9 @@ class PlanungsDienst {
         stand,
         daten?.abstaende(artikel.nummer).stelzfuesse,
       ),
-      flaeche: Hoehenflaeche(stand.grundriss.ecken, hoehen.hoehen),
+      flaeche: Hoehenflaeche(stand.grundriss.ecken, hoehen.hoehen, [
+        for (final p in stand.wirksameHoehenpunkte) stand.ortVon(p),
+      ]),
       aufbauhoehe: aufbau,
       bereiche: daten == null
           ? const []
@@ -646,6 +684,33 @@ class PlanungsDienst {
       regelwerk: daten,
     );
   }
+
+  /// Terrassenanschluss der Fläche (M7): Verblendung (M7-02) mit
+  /// Blendenhaltern im UK-Achsabstand aus den Resten der UK-Verlegung (ohne
+  /// UK-Verlegung keine Blendenhalter), Entwässerungsrinnen (M7-03) und
+  /// Treppen (M7-05).
+  static Anschlussbedarf _anschluss(
+    Planungsstand stand,
+    Artikel? belag,
+    Regelwerk? regelwerk,
+    Artikel? uk,
+    UkVerlegung? v,
+    Hoehenpunkte hoehen,
+  ) => anschlussbedarf(
+    stand,
+    hoehen: hoehen.hoehen,
+    belag: belag,
+    regelwerk: regelwerk,
+    uk: uk,
+    // mit UK-Verlegung gibt es immer eine Feldbreite
+    ukAbstand: v == null
+        ? null
+        : wirksameFeldbreite(
+            stand.feldbreite,
+            belagFeldbreite(belag, regelwerk)!,
+          ),
+    ukStuecke: [for (final s in v?.stuecke ?? const <Planstueck>[]) s.laenge],
+  );
 
   /// Geänderte Mengen der Materialliste (Mitarbeiter-Ansicht,
   /// Fachkonzept 08) übernimmt der Server nur von angemeldeten Mitarbeitern

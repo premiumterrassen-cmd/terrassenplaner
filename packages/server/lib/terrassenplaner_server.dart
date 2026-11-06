@@ -14,6 +14,8 @@ export 'src/dienste/konfigurations_dienst.dart';
 export 'src/dienste/mitarbeiter_verwaltung.dart';
 export 'src/dienste/modell3d_dienst.dart';
 export 'src/dienste/planungs_dienst.dart';
+export 'src/dienste/unterlagen_dienst.dart';
+export 'src/ergebnisse/planungsunterlagen_pdf.dart';
 export 'src/import/artikel_import.dart';
 export 'src/import/artikelbilder.dart';
 export 'src/import/datenpruefung.dart';

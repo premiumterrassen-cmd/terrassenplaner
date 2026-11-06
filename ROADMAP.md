@@ -388,21 +388,26 @@ Angrenzende Seiten, Verblendung, Entwässerungsrinnen, bodentiefe Elemente, Abl�
 
 GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/8
 
-- [ ] **M7-01 Angrenzende Seiten** ([#65](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/65)) – `feature/m7-01-angrenzende-seiten`
+- [x] **M7-01 Angrenzende Seiten** ([#65](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/65)) – `feature/m7-01-angrenzende-seiten`
   - Seiten, die an Bauelemente grenzen, auswählen (grau dargestellt).
   - Abnahme: Auswirkung auf Verblendung/Rinnen
-- [ ] **M7-02 Verblendung** ([#66](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/66)) – `feature/m7-02-verblendung`
+  - Ergebnis: Unterpunkt 4.1 mit einem Schalter je Seite (A — B …), Planungsstand `Anschluss` (Platz 140), Seiten mit Rolle vom Server (`Anschlussergebnis`, Platz 150) grau in der Zeichnung. F36 = F01 (kein Material). Kreis/offene Freiform ohne Seiten; neue Eckenzahl setzt den Anschluss zurück. Wirkung auf Verblendung (M7-02), Rinne (M7-03) und Treppe (M7-05) dort.
+- [x] **M7-02 Verblendung** ([#66](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/66)) – `feature/m7-02-verblendung`
   - Seiten verblenden (gelb dargestellt), bei Kreis „Fläche verblenden“; nur bei Belagstärke 19–23 mm; Warnungen (Unterlüftung, keine Verblendung ohne Höhenunterschied).
   - Abnahme: Regeln und Warnungen wie beschrieben; Verblendungsmaterial in der Materialliste
-- [ ] **M7-03 Entwässerungsrinnen und bodentiefe Elemente** ([#67](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/67)) – `feature/m7-03-entwaesserungsrinnen-und-bodentiefe-elem`
+  - Ergebnis: Unterpunkt 4.2 (Kreis: „Fläche verblenden“), eine Rolle je Seite, gelb in der Zeichnung. `verblendungsbedarf`: Verblendungsdielen aus „moeglicheVerblendung“ in Reihen nach Blendenhöhe (F37: 2 × 4000 + 1 × 5000 mm, Zusatz „Verblendung“, nur Materialliste), 31 Blendenhalter à 8,6 cm aus den Resten der UK (F37 ohne weitere UK), Hinweise Unterlüftung/Belagstärke/Höhenunterschied/Artikel (`Anschlussmeldung`).
+- [x] **M7-03 Entwässerungsrinnen und bodentiefe Elemente** ([#67](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/67)) – `feature/m7-03-entwaesserungsrinnen-und-bodentiefe-elem`
   - Rinnen je Seite; bodentiefe Elemente mit Optionen (gesamte Seite innen/außen, im/außerhalb des Elements, nur vor dem Element).
   - Abnahme: Alle Optionen mit Material
-- [ ] **M7-04 Abläufe / Höhenreferenzpunkte** ([#68](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/68)) – `feature/m7-04-ablaeufe-hoehenreferenzpunkte`
+  - Ergebnis: Unterpunkt 4.3 mit Schalter je Seite (auch am Bauelement, nicht an verblendeten) und vier Lagen; die Lage wählt die Variante aus „moeglicheDrainage“ (R-D01). Belag und Fläche um die Rinnenbreite ausgespart, UK bis an die Seite (F38: 14,256 m², 46 Dielen, 13 × 4000 mm UK, 4 Rinnen, 6 Auflagerprofile); blau in der Zeichnung; Hinweis ohne Rinnenartikel.
+- [x] **M7-04 Abläufe / Höhenreferenzpunkte** ([#68](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/68)) – `feature/m7-04-ablaeufe-hoehenreferenzpunkte`
   - Weitere Höhenreferenzpunkte setzen (Position waagerecht/senkrecht, ab Punkt A, negative Werte möglich).
   - Abnahme: Punkte per Maus und Eingabe
-- [ ] **M7-05 Treppen** ([#69](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/69)) – `feature/m7-05-treppen`
+  - Ergebnis: Unter 3.2 (mit Gefälle) „Weiteren Höhenreferenzpunkt einplanen“ mit Waagerecht/Senkrecht ab A (negativ erlaubt) und Höhe, Griff zum Ziehen in der Zeichnung; Planungsstand Platz 141. Server prüft die Höhen mit, zeichnet die Punkte als Abläufe und teilt die Höhenfläche an ihnen (Auflagerhöhen M6-11).
+- [x] **M7-05 Treppen** ([#69](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/69)) – `feature/m7-05-treppen`
   - Treppe an einer Seite: Startpunkt, Maße L × B × H, Anzahl Stufen, individuelle Stufenmaße (Höhe, Tiefe).
   - Abnahme: Treppe in Zeichnung und Material
+  - Ergebnis: Unterpunkt 5.1 mit Treppenblöcken (Start nur an freien Seiten, Abstand, Breite, Fundament/Konstruktion, regulär/2-/3-teilige Fächertreppe, Stufen ±, individuelle Stufenmaße, Podest), Planungsstand Platz 142. Server: Treppenmaße (F39 100 × 54 × 31,2, F41 104 × 108 × 46,8, F42 158 × 108 × 46,8), Umrisse je Stufe für die Zeichnung, Dielen (F39 16 × 100 cm) in Stück- und Materialliste, UK unter den Auftritten und – nur bei Konstruktion – Stützen (R-D02), aus den Resten der UK. Abweichung zu F39 (UK-Menge) begründet im Fachkonzept 5.
 - [ ] **M7-06 Drainageroste** ([#119](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/119)) – `feature/m7-06-drainageroste`
   - Drainageroste in der Fläche platzieren (Position, Länge); Belag und UK werden ausgespart, Material ergänzt.
   - Abnahme: Rost platzieren, verschieben, löschen; Aussparung in Belag und UK, Material in der Liste
@@ -454,9 +459,10 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/10
   - Abnahme: Gespeicherte Konfiguration lädt identisch; Versionen bleiben erhalten
   - Ergebnis: Konfigurationsdienst im Router (`konfiguration.speichern`/`.laden`/`.entwurf_speichern`/`.entwurf_laden`) mit eigener ObjectBox-Datenbank: `Konfiguration` (Kopf, laufende Nummer je Tag), `KonfigurationsVersion` (append-only, Inhalt = `Planung.zuBytes`), `Zwischenstand` (Entwurf je Sitzungsschlüssel, 30 Tage); Kopf und Version samt Änderungsprotokoll in einer Transaktion, unveränderte Planung ergibt keine neue Version. App: SPEICHERN und LADEN in der Kopfzeile, „Konfiguration laden“ mit „Konfiguration Speichern“, eigene Meldungen für unbekannte Nummer/Version und fehlenden Server. Automatisches Zwischenspeichern 5 s nach der letzten Änderung als Entwurf (keine Versionsflut), „Weiterplanen“ setzt ihn fort. Ansible: Datenverzeichnis des Routers (systemd und Container) mit Molecule-Prüfung. Smoke-Test Speichern → Laden in Chrome. Benchmark `server.Konfiguration.speichernLaden`. Erkenntnis: `docs/erkenntnisse/speichern-und-laden.md`.
   - Nachtrag M9-05b Prüfcode (`feature/m9-05b-pruefcode`, Alexander 04.11.2026): Kennung `JJJJ-MM-TT-NNNN-XXXXX` mit 5-stelligem Zufallscode (`Random.secure()`, ohne 0/O/1/I/L) im Kopf `Konfiguration`; Laden und Fortführen nur mit Nummer und Code, falscher oder fehlender Code = „unbekannt“, Vergleich in konstanter Zeit; Stelle für Mitarbeiter ohne Code (M9-10) im Dienst vorbereitet.
-- [ ] **M9-06 Planungsunterlagen-PDF** ([#79](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/79)) – `feature/m9-06-planungsunterlagen-pdf` · Benchmark
+- [x] **M9-06 Planungsunterlagen-PDF** ([#79](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/79)) – `feature/m9-06-planungsunterlagen-pdf` · Benchmark
   - Deckblatt (Briefpapier), Kundendaten, Konfigurationsnummer, Zusammenfassung, Terrasse, Eckpunkthöhen, UK mit Stückliste, Zuschnitt UK, Belag mit Dielenliste, Zuschnitt Belag, Materialliste mit Preistabelle, Stelzfußhöhen, rechtliche Hinweise, Grußtext.
   - Abnahme: Alle Kapitel wie in den Planungsunterlagen; PDF für Referenzfälle erzeugt
+  - Ergebnis: Knopf PDF speichert (neue Version nur bei Änderung) und holt beim Unterlagendienst (`kunde.konfiguration.pdf`, Kennung + Version + Sprache, optional Kundendaten) das PDF aus gespeicherter Version und aktuellem Datenstand; der Browser bietet es zum Download an. Domäne `planungsunterlagen` (Kapitel und Texte DE/EN), Satz auf dem Server mit `pdf` (A4, Briefkopf, Kopfzeile mit Nummer, „Seite x von y“): Deckblatt mit Kundendaten, Nummer und Zusammenfassung; je Fläche Terrasse mit Geometrie, Eckpunkthöhen und Winkeln, UK-Plan mit Stückliste (Farben M9-04), Höhenzuordnung der Auflager (Stelzfußhöhen), Verlegeplan mit Nummern, Dielen nach Nummer, Lieferung und Zuschnittsplan Belag; Materialliste mit Preisen samt Zubehör und Freidiele (B-055, M8; Mitarbeiter-Mengen nur für Mitarbeiter, M9-10), Hinweise zur Planung, rechtliche Hinweise und Grußtext. PDF für 31 Referenzfälle erzeugt. Offen: UK-Zuschnitt (M9-02), Verblendung (M7), Angebotsteil (M9-07). Smoke-Test in Chrome. Benchmark `server.Planungsunterlagen.pdf` ≈ 10 ms. Fachkonzept 08 „Planungsunterlagen (PDF)“.
 - [ ] **M9-07 Angebot anfordern und E-Mail** ([#80](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/80)) – `feature/m9-07-angebot-anfordern-und-e-mail`
   - Formular: Name, PLZ, Ort, Telefon, E-Mail (Pflicht), Notiz, Konfigurationsnummer, Kopie an mich, Einverständnis zur Weitergabe; Versand an anfrage@robinienwelt.de mit PDF und Export.
   - Abnahme: Pflichtfelder geprüft; Mail mit Anhängen kommt an (Testumgebung)

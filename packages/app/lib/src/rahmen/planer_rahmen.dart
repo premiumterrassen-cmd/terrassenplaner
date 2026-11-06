@@ -7,9 +7,11 @@ import '../anmeldung/mitarbeiter_anmeldung.dart';
 import '../design/darstellung.dart';
 import '../design/planer_design.dart';
 import '../konfiguration/konfigurations_steuerung.dart';
+import '../konfiguration/planungsunterlagen.dart';
 import '../sprache/sprache.dart';
 import '../start/eingangsdialog.dart';
 import 'aktionen.dart';
+import 'anschluss.dart';
 import 'ansichtsoptionen.dart';
 import 'ausgangspunkt.dart';
 import 'ausschnitte.dart';
@@ -21,12 +23,14 @@ import 'dielenliste.dart';
 import 'flaechen.dart';
 import 'freiform.dart';
 import 'grundriss_eingabe.dart';
+import 'hoehenpunkte.dart';
 import 'materialliste.dart';
 import 'planer_schritt.dart';
 import 'rahmen_zustand.dart';
 import 'rundung.dart';
 import 'standardwert_hinweis.dart';
 import 'steuerung.dart';
+import 'treppen.dart';
 import 'uk_auswahl.dart';
 import 'unterkonstruktion.dart';
 import 'zeichenflaeche.dart';
@@ -50,6 +54,7 @@ class PlanerRahmen extends StatefulWidget {
     this.unterkonstruktionen,
     this.zubehoer,
     this.aktionen = const RahmenAktionen(),
+    this.unterlagen,
     this.sprache,
     this.darstellung,
     this.anmeldung,
@@ -86,6 +91,10 @@ class PlanerRahmen extends StatefulWidget {
 
   /// Links und Ergebnis-Knöpfe (M3-06).
   final RahmenAktionen aktionen;
+
+  /// Planungsunterlagen als PDF vom Server (M9-06); mit [konfiguration]
+  /// der PDF-Knopf, sofern [aktionen] keinen eigenen bringt.
+  final Unterlagenabruf? unterlagen;
 
   /// Sprachauswahl in der Kopfzeile (M3-07); ohne Steuerung keine Auswahl.
   final SprachSteuerung? sprache;
@@ -134,6 +143,11 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
     planung: _planung,
     berechnung: _berechnung,
     onGeaendert: () => _zustand.markiereGeaendert(PlanerSchritt.terrassenbelag),
+  );
+  late final _hoehenpunkte = HoehenpunktBedienung(
+    planung: _planung,
+    onGeaendert: () =>
+        _zustand.markiereGeaendert(PlanerSchritt.unterkonstruktion),
   );
   late final BelagQuelle? _belaege = switch (widget.belaege) {
     final lade? => BelagQuelle(lade),
@@ -265,6 +279,29 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
     messenger.showSnackBar(SnackBar(content: Text(meldung)));
   }
 
+  /// PDF (M9-06): erst SPEICHERN (eine neue Version nur bei Änderungen),
+  /// dann die Unterlagen genau dieser Version vom Server holen und
+  /// anbieten – so steht im PDF immer eine Nummer, unter der sich die
+  /// Planung wieder laden lässt.
+  Future<void> _pdf(
+    KonfigurationsSteuerung konfiguration,
+    Unterlagenabruf unterlagen,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final t = context.texte;
+    final sprache = Localizations.localeOf(context).languageCode;
+    final String meldung;
+    try {
+      final stand = await konfiguration.speichere();
+      await unterlagen.hole(stand, sprache);
+      meldung = t.pdfErstellt(stand.kennung.wert, stand.version);
+    } on Object {
+      messenger.showSnackBar(SnackBar(content: Text(t.pdfFehler)));
+      return;
+    }
+    messenger.showSnackBar(SnackBar(content: Text(meldung)));
+  }
+
   /// LADEN: „Konfiguration laden“ mit der geöffneten Konfiguration
   /// vorbelegt; angemeldete Mitarbeiter laden auch ohne Prüfcode (M9-10).
   Future<void> _lade(KonfigurationsSteuerung konfiguration) async {
@@ -334,6 +371,7 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
             berechnung: _berechnung,
             belaege: _belaege,
             unterkonstruktionen: _uk,
+            hoehenpunkte: _hoehenpunkte,
             zubehoer: _zubehoer,
           );
           return Column(
@@ -362,7 +400,15 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
                 },
                 onVideoberatung: () =>
                     widget.aktionen.oeffne(PlanerLinks.videoberatung),
-                onPdf: () => _zumErgebnis(widget.aktionen.pdf),
+                onPdf: () => _zumErgebnis(switch ((
+                  widget.aktionen.pdf,
+                  widget.konfiguration,
+                  widget.unterlagen,
+                )) {
+                  (final pdf?, _, _) => pdf,
+                  (null, final k?, final u?) => () => _pdf(k, u),
+                  _ => null,
+                }),
                 onAnfordern: () => _zumErgebnis(widget.aktionen.anfordern),
               ),
               Schrittleiste(zustand: _zustand),
@@ -389,6 +435,11 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
                               ausgangspunkt:
                                   _zustand.aktiv == PlanerSchritt.terrassenbelag
                                   ? _ausgangspunkt
+                                  : null,
+                              hoehenpunkte:
+                                  _zustand.aktiv ==
+                                      PlanerSchritt.unterkonstruktion
+                                  ? _hoehenpunkte
                                   : null,
                               zeichnung:
                                   widget.zeichnung ??
@@ -742,6 +793,7 @@ class Bearbeitungsmenue extends StatelessWidget {
     this.berechnung,
     this.belaege,
     this.unterkonstruktionen,
+    this.hoehenpunkte,
     this.zubehoer,
   });
 
@@ -754,6 +806,9 @@ class Bearbeitungsmenue extends StatelessWidget {
 
   /// Unterkonstruktionen zum Belag (M6-03); ohne Quelle keine Auswahl.
   final UkQuelle? unterkonstruktionen;
+
+  /// Weitere Höhenreferenzpunkte (M7-04); ohne Bedienung keine Eingabe.
+  final HoehenpunktBedienung? hoehenpunkte;
 
   /// Zubehör der acht Gruppen (M8-01).
   final ZubehoerQuelle? zubehoer;
@@ -827,6 +882,7 @@ class Bearbeitungsmenue extends StatelessWidget {
     (PlanerSchritt.unterkonstruktion, 1) => HoehenpunkteWahl(
       planung: planung,
       berechnung: berechnung,
+      weitere: hoehenpunkte,
       onGeaendert: () => zustand.markiereGeaendert(schritt),
     ),
     (PlanerSchritt.unterkonstruktion, 2) when unterkonstruktionen != null =>
@@ -865,6 +921,25 @@ class Bearbeitungsmenue extends StatelessWidget {
       onGeaendert: () => zustand.markiereGeaendert(schritt),
     ),
     (PlanerSchritt.unterkonstruktion, 9) => FeldbreiteWahl(
+      planung: planung,
+      berechnung: berechnung,
+      onGeaendert: () => zustand.markiereGeaendert(schritt),
+    ),
+    (PlanerSchritt.terrassenanschluss, 0) => AngrenzendWahl(
+      planung: planung,
+      onGeaendert: () => zustand.markiereGeaendert(schritt),
+    ),
+    (PlanerSchritt.terrassenanschluss, 1) => VerblendungWahl(
+      planung: planung,
+      berechnung: berechnung,
+      onGeaendert: () => zustand.markiereGeaendert(schritt),
+    ),
+    (PlanerSchritt.terrassenanschluss, 2) => RinnenWahl(
+      planung: planung,
+      berechnung: berechnung,
+      onGeaendert: () => zustand.markiereGeaendert(schritt),
+    ),
+    (PlanerSchritt.treppen, 0) => TreppenWahl(
       planung: planung,
       berechnung: berechnung,
       onGeaendert: () => zustand.markiereGeaendert(schritt),

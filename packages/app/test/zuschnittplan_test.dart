@@ -132,6 +132,14 @@ void main() {
     ]);
     expect(find.byKey(const ValueKey('zuschnitt-belag')), findsOneWidget);
     expect(find.byKey(const ValueKey('zuschnitt-uk')), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.text(de.zuschnittHinweis)).style?.fontSize,
+      12,
+    );
+    expect(
+      tester.widget<Text>(find.text('Zuschnitt Belag')).style?.fontWeight,
+      FontWeight.w700,
+    );
   });
 
   testWidgets('nur Belag: ohne UK-Tabelle; leer: Hinweis', (tester) async {
@@ -158,6 +166,7 @@ void main() {
       find.text('The cutting plan appears as soon as decking has been laid.'),
       findsOneWidget,
     );
+    expect(find.byKey(const ValueKey('zuschnittplan-leer')), findsOneWidget);
   });
 
   testWidgets('im Dialog umschaltbar auf „Zuschnitt“', (tester) async {
@@ -172,6 +181,7 @@ void main() {
       ),
     );
     await tester.pump();
+    expect(find.byKey(const ValueKey('ergebnisliste-wahl')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('zum-zuschnitt')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('zuschnittplan')), findsOneWidget);

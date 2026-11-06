@@ -102,6 +102,7 @@ void main() {
     );
     await tester.pump();
     expect(find.text('Noch keine Dielen verlegt.'), findsOneWidget);
+    expect(find.byKey(const ValueKey('dielenliste-leer')), findsOneWidget);
 
     final eine = _steuerung(_berechne);
     await tester.pumpWidget(
@@ -242,6 +243,10 @@ void main() {
     await tester.pump();
     expect(b.planung.planung.verschnittvariante, 2);
     expect(find.text(de.verschnittauswahlGeaendert), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('verschnittauswahl-geaendert')),
+      findsOneWidget,
+    );
     expect(find.text('SCHLIESSEN'), findsOneWidget);
     expect(rand(2).width, 3);
     await tester.tap(find.byKey(const ValueKey('optimierung-zuruecksetzen')));
@@ -265,6 +270,7 @@ void main() {
     );
     await tester.pump();
     expect(find.text('No boards laid yet.'), findsOneWidget);
+    expect(find.byKey(const ValueKey('dielenliste-leer')), findsOneWidget);
     expect(find.text('RESET OPTIMISATION'), findsOneWidget);
     expect(find.byType(Card), findsNothing);
   });

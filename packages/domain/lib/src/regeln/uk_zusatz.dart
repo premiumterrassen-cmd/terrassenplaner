@@ -172,6 +172,15 @@ List<Materialbedarf> ukBedarf(Artikel uk, List<Lieferdiele> zuschnitt) => [
     Materialbedarf([uk], anzahl, laenge: laenge),
 ];
 
+/// Lieferstücke für die Zuschnitte [stuecke] aus den Lieferlängen
+/// [laengen] (aufsteigend), Anzahl je Länge aufsteigend – gezählt aus
+/// [lieferhoelzer] (Treppen, Verblendung und Rest-Hölzer, M7).
+Map<Millimeter, int> lieferstuecke(
+  List<Millimeter> stuecke,
+  List<Millimeter> laengen, {
+  Millimeter? fest,
+}) => Dielenliste.aus(lieferhoelzer(stuecke, laengen, fest: fest)).anzahl;
+
 /// Welche Lieferhölzer für die Zuschnitte [stuecke] aus den Lieferlängen
 /// [laengen] (aufsteigend) geschnitten werden (M9-02, UK-Zuschnittplan):
 ///
@@ -232,6 +241,36 @@ List<Lieferdiele> lieferhoelzer(
     ...hoelzer,
     for (final h in offen) Lieferdiele(Millimeter(h.laenge), h.schnitte),
   ];
+}
+
+/// Lieferstücke für weitere kurze Zuschnitte [kurz] (z. B. Blendenhalter,
+/// M7-02), die zuerst aus den Resten der Hölzer schon verlegter Zuschnitte
+/// [vorhanden] geschnitten werden (R-B11, F37: 31 Blendenhalter à 8,6 cm
+/// aus den Resten von 13 × 4000 mm für 309 cm). Reste haben nur lange
+/// Zuschnitte mit eigenem Holz (`lieferstuecke`); was nicht hineinpasst,
+/// bekommt neue Hölzer wie bei `lieferstuecke`.
+Map<Millimeter, int> zusaetzlicheLieferstuecke(
+  List<Millimeter> kurz,
+  List<Millimeter> vorhanden,
+  List<Millimeter> laengen, {
+  Millimeter? fest,
+}) {
+  final moeglich = laengen.contains(fest) ? [fest!] : laengen;
+  final reste = [
+    for (final s in vorhanden)
+      if (moeglich.isNotEmpty && s.mm >= moeglich.first.mm / 2)
+        if (lieferlaengenFuer(s, moeglich) case [final holz]) holz.mm - s.mm,
+  ];
+  final uebrig = <Millimeter>[];
+  for (final s in [...kurz]..sort((a, b) => b.mm.compareTo(a.mm))) {
+    final i = reste.indexWhere((r) => r >= s.mm);
+    if (i >= 0) {
+      reste[i] -= s.mm;
+    } else {
+      uebrig.add(s);
+    }
+  }
+  return lieferstuecke(uebrig, laengen, fest: fest);
 }
 
 /// UK-Achsabstand für einen Belag der [holzart]: der des Belags laut
