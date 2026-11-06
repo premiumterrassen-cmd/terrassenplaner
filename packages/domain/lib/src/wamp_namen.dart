@@ -35,6 +35,13 @@ abstract final class WampNamen {
   /// Kennzahlen; beides als typisierte FlatBuffers (Packed PPT, #110).
   static const planungBerechnen = '${kunde}planung.berechnen';
 
+  /// Export für GrandTotal (M9-08): Argumente die Planung im
+  /// Transportformat (`Planung.zuBytes`) und optional die Adresse der
+  /// Web-App (für die Bild-Links); Antwort die Importdatei als Text. Nur für
+  /// angemeldete Mitarbeiter (Fachkonzept 08, Mitarbeiter-Ansicht, M9-10) –
+  /// der Router lehnt Kunden ab.
+  static const exportGrandTotal = '${mitarbeiter}export.grandtotal';
+
   /// Konfigurationsdienst (M9-05): SPEICHERN vergibt beim ersten Mal eine
   /// Konfigurationsnummer und legt danach je Speichern eine neue Version an;
   /// LADEN liefert eine Version unverändert zurück. Der Entwurf ist der

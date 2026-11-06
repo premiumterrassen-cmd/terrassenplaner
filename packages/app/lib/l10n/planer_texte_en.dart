@@ -1332,6 +1332,18 @@ class PlanerTexteEn extends PlanerTexte {
   String get materialMitarbeiter => 'Staff view: quantities editable';
 
   @override
+  String get exportGrandTotal => 'Export for GrandTotal';
+
+  @override
+  String exportGrandTotalFertig(String datei) {
+    return 'Import file $datei created.';
+  }
+
+  @override
+  String get exportGrandTotalFehler =>
+      'The export for GrandTotal failed. Please try again.';
+
+  @override
   String get einheitStueck => 'pcs';
 
   @override

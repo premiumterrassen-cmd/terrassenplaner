@@ -4,6 +4,7 @@
 # der auf der Dart-VM nicht läuft und per Smoke-Test in Chrome geprüft wird
 # (modell3d_ansicht_web.dart → integration_test/modell3d_test.dart,
 # browser_speicher_web.dart → integration_test/einstellungen_test.dart,
+# datei_angebot_web.dart → integration_test/export_test.dart,
 # datei_web.dart → integration_test/planungsunterlagen_test.dart), und von
 # `flutter gen-l10n` erzeugte Übersetzungen (M3-07, `// coverage:ignore-file`;
 # ihr Inhalt wird in packages/app/test/sprache_test.dart geprüft).
@@ -19,6 +20,7 @@ packages/server/bin/artikel_importieren.dart
 packages/server/bin/artikelbilder_aufbereiten.dart
 packages/app/lib/src/modell3d/modell3d_ansicht_web.dart
 packages/app/lib/src/einstellungen/browser_speicher_web.dart
+packages/app/lib/src/export/datei_angebot_web.dart
 packages/app/lib/src/konfiguration/datei_web.dart
 packages/app/lib/l10n/planer_texte.dart
 packages/app/lib/l10n/planer_texte_de.dart
