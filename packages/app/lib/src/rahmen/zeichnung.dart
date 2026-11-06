@@ -27,8 +27,12 @@ final class Zeichnung {
     List<(Offset, Offset, Color)> ukHoelzer = const [],
     this.ukBreite = 0,
     List<(Offset, Millimeter, bool)> auflager = const [],
+    List<(Offset, Offset, Seitenrolle)> seiten = const [],
+    List<List<Offset>> treppen = const [],
     this.ausgangspunkt,
   }) : umriss = List.unmodifiable(umriss),
+       treppen = List.unmodifiable(treppen),
+       seiten = List.unmodifiable(seiten),
        auflager = List.unmodifiable(auflager),
        ukHoelzer = List.unmodifiable(ukHoelzer),
        querstreben = List.unmodifiable(querstreben),
@@ -89,6 +93,12 @@ final class Zeichnung {
   /// Auflager in mm (M6-11) mit dem Spalt unter der UK und ob ein passendes
   /// Auflager gefunden wurde.
   final List<(Offset, Millimeter, bool)> auflager;
+
+  /// Seiten mit Rolle im Terrassenanschluss (M7) in mm: von, bis, Rolle.
+  final List<(Offset, Offset, Seitenrolle)> seiten;
+
+  /// Teile der Treppen (Podest, Stufen) in mm (M7-05).
+  final List<List<Offset>> treppen;
 
   /// Ausgangspunkt der Verlegung in mm (M5-07): Ecke plus Verschiebung, dort
   /// liegt der Griff der ersten ganzen Diele; `null` ohne Dielen.
@@ -196,6 +206,40 @@ class ZeichnungsMaler extends CustomPainter {
               : null,
         ),
   ];
+
+  /// Seiten mit Rolle auf dem Bildschirm in ihrer Farbe (M7): an
+  /// Bauelementen grau, verblendet gelb, mit Rinne blau. Unabhängig von den Ebenen – sie gehören zum Umriss.
+  List<(Offset, Offset, Color)> seitenlinien() => [
+    for (final (von, bis, rolle) in zeichnung.seiten)
+      (bildschirm(von), bildschirm(bis), seitenfarbe(rolle)),
+  ];
+
+  /// Farbe einer Seite nach ihrer Rolle (Fachkonzept 04).
+  static Color seitenfarbe(Seitenrolle rolle) => switch (rolle) {
+    Seitenrolle.bauelement => bauelementFarbe,
+    Seitenrolle.verblendung => verblendungFarbe,
+    Seitenrolle.rinne => rinnenFarbe,
+  };
+
+  /// Blau der Seiten mit Entwässerungsrinne (Fachkonzept 4.3).
+  static const rinnenFarbe = Color(0xFF1E88E5);
+
+  /// Gelb der verblendeten Seiten (Fachkonzept 4.2).
+  static const verblendungFarbe = Color(0xFFF2C200);
+
+  /// Teile der Treppen auf dem Bildschirm (M7-05), wenn die Ebene Belag
+  /// sichtbar ist – sie sind mit Dielen belegt.
+  List<Path> treppenpfade() => [
+    if (optionen.zeigt(Ebene.belag))
+      for (final t in zeichnung.treppen)
+        Path()..addPolygon([for (final p in t) bildschirm(p)], true),
+  ];
+
+  /// Grau der Seiten an Bauelementen (Fachkonzept 4.1).
+  static const bauelementFarbe = Color(0xFF9E9E9E);
+
+  /// Strichbreite der Seiten mit Rolle in Pixeln.
+  static const seitenBreite = 8.0;
 
   /// Farbe der Auflager; ohne passendes Auflager rot wie ganze Stücke.
   static const auflagerFarbe = Color(0xFF424242);
@@ -518,11 +562,25 @@ class ZeichnungsMaler extends CustomPainter {
     for (final (von, bis) in strebenlinien()) {
       canvas.drawLine(von, bis, strebe);
     }
-    final umriss = [for (final p in zeichnung.umriss) bildschirm(p)];
     final linie = Paint()
       ..color = strich
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
+    for (final pfad in treppenpfade()) {
+      canvas
+        ..drawPath(pfad, Paint()..color = belagFarbe)
+        ..drawPath(pfad, linie);
+    }
+    for (final (von, bis, farbe) in seitenlinien()) {
+      canvas.drawLine(
+        von,
+        bis,
+        Paint()
+          ..color = farbe
+          ..strokeWidth = seitenBreite,
+      );
+    }
+    final umriss = [for (final p in zeichnung.umriss) bildschirm(p)];
     if (umriss.isNotEmpty) {
       canvas.drawPath(Path()..addPolygon(umriss, zeichnung.geschlossen), linie);
     }

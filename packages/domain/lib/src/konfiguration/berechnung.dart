@@ -12,6 +12,7 @@ import '../regeln/belagmeldungen.dart';
 import '../regeln/hoehenpunkte.dart';
 import '../regeln/uk_zusatz.dart';
 import '../regeln/zubehoerbedarf.dart';
+import 'anschlussergebnis.dart';
 import 'befestigungsart.dart';
 import 'unterbau.dart';
 
@@ -24,7 +25,8 @@ import 'unterbau.dart';
 /// Höhenpunkte, seit M9-03 die Materialliste der ganzen Planung, seit M9-04
 /// Stückliste und Farbe je Dielenstück, seit M8-02 die Mengen im Zubehör,
 /// seit M6-08 die Unterkonstruktion ([unterbau]), seit M6-10 das
-/// Holzvolumen der ganzen Planung.
+/// Holzvolumen der ganzen Planung, seit M7 der Terrassenanschluss
+/// ([anschluss]).
 final class Berechnung {
   Berechnung({
     required List<Punkt> umriss,
@@ -53,7 +55,9 @@ final class Berechnung {
     List<Stellfuss> stellfuesse = const [],
     Unterbau? unterbau,
     this.volumen,
-  }) : unterbau = unterbau ?? Unterbau.leer,
+    Anschlussergebnis? anschluss,
+  }) : anschluss = anschluss ?? Anschlussergebnis.leer,
+       unterbau = unterbau ?? Unterbau.leer,
        zubehoer = List.unmodifiable(zubehoer),
        querstreben = List.unmodifiable(querstreben),
        stellfuesse = List.unmodifiable(stellfuesse),
@@ -235,6 +239,14 @@ final class Berechnung {
         wurzel,
         _versatz(_volumenPlatz),
       ),
+      anschluss: switch (const _Tabellenort().vTableGetNullable(
+        puffer,
+        wurzel,
+        _versatz(_anschlussPlatz),
+      )) {
+        final ort? => Anschlussergebnis.lies(puffer, ort),
+        null => null,
+      },
     );
   }
 
@@ -424,6 +436,9 @@ final class Berechnung {
   /// Häufigkeit (`holzvolumen`); `null` ohne Holz.
   final double? volumen;
 
+  /// Terrassenanschluss der bearbeiteten Fläche (M7): Seiten mit Rolle.
+  final Anschlussergebnis anschluss;
+
   /// Kopie mit den Werten der ganzen Planung (M4-14, M5-08).
   Berechnung mitPlanung(
     double gesamtflaeche, {
@@ -458,6 +473,7 @@ final class Berechnung {
     stellfuesse: stellfuesse,
     unterbau: unterbau,
     volumen: volumen,
+    anschluss: anschluss,
   );
 
   /// FlatBuffer für den Weg zur App (#110):
@@ -485,9 +501,11 @@ final class Berechnung {
   /// 91: querstrebenReihen (uint16; fehlt ohne) (M6-06), 92: stellfuesse
   /// ([{ 0: nummer (string), 1: titel (string) }]) (M6-07), 110: unterbau
   /// (Tabelle, `Unterbau.schreibe`, M6-08 bis M6-11), 111: volumen (float64
-  /// m³; fehlt ohne Holz, M6-10) }`. Die Plätze 18–34 sind für die
+  /// m³; fehlt ohne Holz, M6-10), 150: anschluss (Tabelle,
+  /// `Anschlussergebnis.schreibe`, M7) }`. Die Plätze 18–34 sind für die
   /// Unterkonstruktion (M6) frei gehalten, 50–59 für das Zubehör (M8),
-  /// 60–69 für die Ergebnisse (M9), 110–119 für die UK ab M6-08.
+  /// 60–69 für die Ergebnisse (M9), 110–119 für die UK ab M6-08, 150–159
+  /// für den Anschluss, die Höhenreferenzpunkte und die Treppen (M7).
   Uint8List zuBytes() {
     final fbb = fb.Builder();
     final umrissOrt = _schreibe(fbb, umriss);
@@ -533,8 +551,9 @@ final class Berechnung {
       for (final f in stellfuesse) _stellfuss(fbb, f),
     ]);
     final unterbauOrt = unterbau.schreibe(fbb);
+    final anschlussOrt = anschluss.schreibe(fbb);
     fbb
-      ..startTable(_volumenPlatz + 1)
+      ..startTable(_anschlussPlatz + 1)
       ..addOffset(_umrissPlatz, umrissOrt)
       ..addFloat64(_flaechePlatz, flaeche)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
@@ -565,7 +584,8 @@ final class Berechnung {
       ..addOffset(_querstrebenPlatz, strebenOrt)
       ..addUint16(_querstrebenReihenPlatz, querstrebenReihen)
       ..addOffset(_stellfuessePlatz, fuesseOrt)
-      ..addOffset(_unterbauPlatz, unterbauOrt);
+      ..addOffset(_unterbauPlatz, unterbauOrt)
+      ..addOffset(_anschlussPlatz, anschlussOrt);
     if (verschnitt case final v?) fbb.addFloat64(_verschnittPlatz, v);
     if (volumen case final v?) fbb.addFloat64(_volumenPlatz, v);
     fbb.finish(fbb.endTable());
@@ -682,6 +702,7 @@ final class Berechnung {
   static const _stellfuessePlatz = 92;
   static const _unterbauPlatz = 110;
   static const _volumenPlatz = 111;
+  static const _anschlussPlatz = 150;
 
   static int _versatz(int platz) => 4 + 2 * platz;
 }

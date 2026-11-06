@@ -2463,6 +2463,306 @@ abstract class PlanerTexte {
   /// In de, this message translates to:
   /// **'Stücke der bearbeiteten Fläche; die Farbe zeigt das Stück in der Zeichnung.'**
   String get stuecklisteHinweis;
+
+  /// No description provided for @angrenzendFrage.
+  ///
+  /// In de, this message translates to:
+  /// **'Welche Seiten grenzen an bestehende Bauelemente? (wird in der Konfiguration grau dargestellt)'**
+  String get angrenzendFrage;
+
+  /// No description provided for @ohneSeiten.
+  ///
+  /// In de, this message translates to:
+  /// **'Diese Form hat keine Seiten zur Auswahl.'**
+  String get ohneSeiten;
+
+  /// No description provided for @verblendungFrage.
+  ///
+  /// In de, this message translates to:
+  /// **'Welche Seiten sollen verblendet werden? (wird in der Konfiguration gelb dargestellt)'**
+  String get verblendungFrage;
+
+  /// No description provided for @flaecheVerblenden.
+  ///
+  /// In de, this message translates to:
+  /// **'Fläche verblenden'**
+  String get flaecheVerblenden;
+
+  /// No description provided for @verblendungHinweis.
+  ///
+  /// In de, this message translates to:
+  /// **'Verblendet wird nur bei einer Belagstärke von 19 bis 23 mm.'**
+  String get verblendungHinweis;
+
+  /// No description provided for @meldungUnterlueftung.
+  ///
+  /// In de, this message translates to:
+  /// **'Achtung: Bitte beachten Sie, dass eine Unterlüftung der Terrasse gewährleistet sein muss!'**
+  String get meldungUnterlueftung;
+
+  /// No description provided for @meldungKeinHoehenunterschied.
+  ///
+  /// In de, this message translates to:
+  /// **'Ohne Höhenunterschied zum Boden ist an dieser Seite keine Verblendung möglich.'**
+  String get meldungKeinHoehenunterschied;
+
+  /// No description provided for @meldungBelagstaerke.
+  ///
+  /// In de, this message translates to:
+  /// **'Eine Verblendung ist nur bei einer Belagstärke von 19 bis 23 mm möglich – es wird keine gerechnet.'**
+  String get meldungBelagstaerke;
+
+  /// No description provided for @meldungOhneVerblendungsartikel.
+  ///
+  /// In de, this message translates to:
+  /// **'Zu diesem Belag ist keine Verblendung hinterlegt.'**
+  String get meldungOhneVerblendungsartikel;
+
+  /// No description provided for @materialVerblendung.
+  ///
+  /// In de, this message translates to:
+  /// **'Verblendung'**
+  String get materialVerblendung;
+
+  /// No description provided for @rinnenFrage.
+  ///
+  /// In de, this message translates to:
+  /// **'An welchen Seiten sollen Entwässerungsrinnen geplant werden?'**
+  String get rinnenFrage;
+
+  /// No description provided for @rinnenLage.
+  ///
+  /// In de, this message translates to:
+  /// **'Lage der Rinne an {seite}'**
+  String rinnenLage(String seite);
+
+  /// No description provided for @rinnenlageGesamteSeite.
+  ///
+  /// In de, this message translates to:
+  /// **'Gesamte Seite (innen)'**
+  String get rinnenlageGesamteSeite;
+
+  /// No description provided for @rinnenlageImElement.
+  ///
+  /// In de, this message translates to:
+  /// **'Im bodentiefen Element'**
+  String get rinnenlageImElement;
+
+  /// No description provided for @rinnenlageAusserhalbElement.
+  ///
+  /// In de, this message translates to:
+  /// **'Außerhalb des bodentiefen Elements'**
+  String get rinnenlageAusserhalbElement;
+
+  /// No description provided for @rinnenlageVorElement.
+  ///
+  /// In de, this message translates to:
+  /// **'Nur vor dem bodentiefen Element'**
+  String get rinnenlageVorElement;
+
+  /// No description provided for @rinnenHinweis.
+  ///
+  /// In de, this message translates to:
+  /// **'Lage und bodentiefes Element sind im Artikel festgelegt; die Lage wählt die Rinne. Die Unterkonstruktion reicht bis an die Seite.'**
+  String get rinnenHinweis;
+
+  /// No description provided for @meldungOhneRinnenartikel.
+  ///
+  /// In de, this message translates to:
+  /// **'Zu diesem Belag ist keine Entwässerungsrinne hinterlegt.'**
+  String get meldungOhneRinnenartikel;
+
+  /// No description provided for @hoehenpunktName.
+  ///
+  /// In de, this message translates to:
+  /// **'Höhenreferenzpunkt {nummer}'**
+  String hoehenpunktName(int nummer);
+
+  /// No description provided for @hoehenpunktHinzufuegen.
+  ///
+  /// In de, this message translates to:
+  /// **'Weiteren Höhenreferenzpunkt einplanen'**
+  String get hoehenpunktHinzufuegen;
+
+  /// No description provided for @hoehenpunktEntfernen.
+  ///
+  /// In de, this message translates to:
+  /// **'Höhenreferenzpunkt entfernen'**
+  String get hoehenpunktEntfernen;
+
+  /// No description provided for @hoehenpunktWaagerecht.
+  ///
+  /// In de, this message translates to:
+  /// **'Waagerecht ab A'**
+  String get hoehenpunktWaagerecht;
+
+  /// No description provided for @hoehenpunktSenkrecht.
+  ///
+  /// In de, this message translates to:
+  /// **'Senkrecht ab A'**
+  String get hoehenpunktSenkrecht;
+
+  /// No description provided for @hoehenpunktHoehe.
+  ///
+  /// In de, this message translates to:
+  /// **'Höhe'**
+  String get hoehenpunktHoehe;
+
+  /// No description provided for @hoehenpunktLageUngueltig.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte eine Zahl von −30000 bis 30000 cm eingeben'**
+  String get hoehenpunktLageUngueltig;
+
+  /// No description provided for @hoehenpunktHilfe.
+  ///
+  /// In de, this message translates to:
+  /// **'Zum Beispiel ein Ablauf: Lage ab Punkt A (nach rechts und nach unten, auch negativ), in der Zeichnung verschiebbar.'**
+  String get hoehenpunktHilfe;
+
+  /// No description provided for @treppenFrage.
+  ///
+  /// In de, this message translates to:
+  /// **'An welchen Seiten sollen Treppen geplant werden?'**
+  String get treppenFrage;
+
+  /// No description provided for @treppeHinzufuegen.
+  ///
+  /// In de, this message translates to:
+  /// **'Treppe hinzufügen'**
+  String get treppeHinzufuegen;
+
+  /// No description provided for @treppeName.
+  ///
+  /// In de, this message translates to:
+  /// **'Treppe {nummer}'**
+  String treppeName(int nummer);
+
+  /// No description provided for @treppeEntfernen.
+  ///
+  /// In de, this message translates to:
+  /// **'Treppe entfernen'**
+  String get treppeEntfernen;
+
+  /// No description provided for @treppeStart.
+  ///
+  /// In de, this message translates to:
+  /// **'Start'**
+  String get treppeStart;
+
+  /// No description provided for @treppeAbstand.
+  ///
+  /// In de, this message translates to:
+  /// **'Seite (Abstand vom Startpunkt)'**
+  String get treppeAbstand;
+
+  /// No description provided for @treppeBreite.
+  ///
+  /// In de, this message translates to:
+  /// **'Breite'**
+  String get treppeBreite;
+
+  /// No description provided for @treppeKonstruktionsart.
+  ///
+  /// In de, this message translates to:
+  /// **'Konstruktionsart'**
+  String get treppeKonstruktionsart;
+
+  /// No description provided for @treppeKonstruktion.
+  ///
+  /// In de, this message translates to:
+  /// **'Konstruktion'**
+  String get treppeKonstruktion;
+
+  /// No description provided for @treppeFundament.
+  ///
+  /// In de, this message translates to:
+  /// **'Fundament'**
+  String get treppeFundament;
+
+  /// No description provided for @treppeArt.
+  ///
+  /// In de, this message translates to:
+  /// **'Treppenart'**
+  String get treppeArt;
+
+  /// No description provided for @treppeRegulaer.
+  ///
+  /// In de, this message translates to:
+  /// **'Reguläre Treppe'**
+  String get treppeRegulaer;
+
+  /// No description provided for @treppeZweiteilig.
+  ///
+  /// In de, this message translates to:
+  /// **'2-teilige Fächertreppe'**
+  String get treppeZweiteilig;
+
+  /// No description provided for @treppeDreiteilig.
+  ///
+  /// In de, this message translates to:
+  /// **'3-teilige Fächertreppe'**
+  String get treppeDreiteilig;
+
+  /// No description provided for @treppeIndividuell.
+  ///
+  /// In de, this message translates to:
+  /// **'Individuelle Stufenmaße?'**
+  String get treppeIndividuell;
+
+  /// No description provided for @treppeAnzahl.
+  ///
+  /// In de, this message translates to:
+  /// **'Anzahl der Stufen'**
+  String get treppeAnzahl;
+
+  /// No description provided for @treppeStufenmasse.
+  ///
+  /// In de, this message translates to:
+  /// **'Stufenmaße'**
+  String get treppeStufenmasse;
+
+  /// No description provided for @treppeStufe.
+  ///
+  /// In de, this message translates to:
+  /// **'Stufe {nummer}'**
+  String treppeStufe(int nummer);
+
+  /// No description provided for @treppeTiefe.
+  ///
+  /// In de, this message translates to:
+  /// **'Tiefe'**
+  String get treppeTiefe;
+
+  /// No description provided for @treppeHoehe.
+  ///
+  /// In de, this message translates to:
+  /// **'Höhe'**
+  String get treppeHoehe;
+
+  /// No description provided for @treppePodest.
+  ///
+  /// In de, this message translates to:
+  /// **'Podestmaße'**
+  String get treppePodest;
+
+  /// No description provided for @treppeMasse.
+  ///
+  /// In de, this message translates to:
+  /// **'Treppenmaße in cm (L x B x H): {laenge} x {breite} x {hoehe}'**
+  String treppeMasse(String laenge, String breite, String hoehe);
+
+  /// No description provided for @treppeUngueltig.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte einen Wert im erlaubten Bereich eingeben'**
+  String get treppeUngueltig;
+
+  /// No description provided for @meldungTreppeNichtFrei.
+  ///
+  /// In de, this message translates to:
+  /// **'Eine Treppe liegt an einer Seite am Bauelement oder mit Rinne – sie wird nicht gerechnet.'**
+  String get meldungTreppeNichtFrei;
 }
 
 class _PlanerTexteDelegate extends LocalizationsDelegate<PlanerTexte> {

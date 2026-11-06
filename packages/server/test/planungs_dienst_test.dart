@@ -2070,6 +2070,393 @@ void main() {
     });
   });
 
+  group('Terrassenanschluss (M7)', () {
+    final diele = Artikel(
+      nummer: const Artikelnummer('10-10-073'),
+      titel: 'Diele',
+      art: Artikelart.diele,
+      einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+      abmessungen: Abmessungen(
+        breite: const Millimeter(60),
+        staerke: const Millimeter(21),
+        laengen: const [Millimeter(5000)],
+      ),
+      holzart: robinie,
+      serie: basic,
+      profil: Profil.genutet,
+    );
+    Berechnung rechne(Planungsstand stand, {Artikel? belag}) =>
+        Berechnung.ausBytes(
+          PlanungsDienst.berechnePlanung(
+            Planung.start.mitStand(stand),
+            (_) => belag,
+          ).zuBytes(),
+        );
+
+    test('angrenzende Seiten (M7-01): grau in der Zeichnung, mit und ohne '
+        'Dielen; F36 ohne Wirkung auf Material und Fläche', () {
+      final f36 = Planungsstand.start.mitAngrenzend(0, an: true);
+      for (final belag in [null, diele]) {
+        final b = rechne(f36, belag: belag);
+        expect(b.anschluss.seiten, [
+          (
+            seite: 0,
+            rolle: Seitenrolle.bauelement,
+            von: Punkt.ursprung,
+            bis: const Punkt(4800, 0),
+          ),
+        ]);
+        final f01 = rechne(Planungsstand.start, belag: belag);
+        expect(f01.anschluss.seiten, isEmpty);
+        expect(b.flaeche, f01.flaeche);
+        expect(b.materialliste, f01.materialliste);
+      }
+      expect(
+        PlanungsDienst.berechne(f36, diele).anschluss.seiten,
+        hasLength(1),
+      );
+    });
+
+    test('Verblendung (M7-02): F37 mit Dielen, Blendenhaltern aus den Resten '
+        'der UK und Unterlüftungs-Warnung; ohne UK-Verlegung keine Halter', () {
+      final clip = Artikel(
+        nummer: const Artikelnummer('80-10-001-250'),
+        titel: 'Clip',
+        art: Artikelart.clip,
+        einheit: Verkaufseinheit(Mengeneinheit.verpackungseinheit, inhalt: 250),
+      );
+      final blende = Artikel(
+        nummer: const Artikelnummer('10-10-044'),
+        titel: 'Blende 80',
+        art: Artikelart.diele,
+        einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+        abmessungen: Abmessungen(
+          breite: const Millimeter(80),
+          staerke: const Millimeter(21),
+          laengen: const [Millimeter(4000), Millimeter(5000)],
+        ),
+        holzart: robinie,
+        serie: basic,
+        profil: Profil.glattkant,
+      );
+      final uk = Artikel(
+        nummer: const Artikelnummer('10-10-031'),
+        titel: 'UK',
+        art: Artikelart.unterkonstruktion,
+        einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+        abmessungen: Abmessungen(
+          breite: const Millimeter(40),
+          staerke: const Millimeter(60),
+        ),
+        holzart: robinie,
+        serie: basic,
+      );
+      final regelwerk = Regelwerk(
+        Artikeldatei(
+          quelle: 'test',
+          version: '1',
+          eintraege: [
+            Artikeleintrag(
+              artikel: diele,
+              verweise: {
+                Beziehung.befestigung.spalte: [clip.nummer],
+                Beziehung.verblendung.spalte: [blende.nummer],
+              },
+            ),
+            Artikeleintrag(artikel: clip),
+            Artikeleintrag(artikel: blende),
+            Artikeleintrag(artikel: uk),
+          ],
+        ),
+      );
+      Berechnung mit(Planungsstand stand, {Artikel? ukArtikel}) =>
+          Berechnung.ausBytes(
+            PlanungsDienst.berechnePlanung(
+              Planung.start.mitStand(stand),
+              (_) => diele,
+              regelwerk,
+              false,
+              (_) => ukArtikel,
+            ).zuBytes(),
+          );
+      int? anzahl(Berechnung b, Artikelnummer nummer, int laenge) => b
+          .materialliste
+          .positionen
+          .where((p) => p.nummer == nummer && p.laenge?.mm == laenge)
+          .firstOrNull
+          ?.anzahl;
+      final f37 = Planungsstand.start
+          .mitAngrenzend(0, an: true)
+          .mitVerblendet(1, an: true)
+          .mitVerblendet(2, an: true)
+          .mitVerblendet(3, an: true);
+      final b = mit(f37, ukArtikel: uk);
+      final f36 = mit(
+        Planungsstand.start.mitAngrenzend(0, an: true),
+        ukArtikel: uk,
+      );
+      expect(anzahl(b, blende.nummer, 4000), 2);
+      expect(anzahl(b, blende.nummer, 5000), 1);
+      expect(
+        b.materialliste.positionen
+            .where((p) => p.nummer == blende.nummer)
+            .every((p) => p.zusatz == Materialzusatz.verblendung),
+        isTrue,
+      );
+      expect(anzahl(b, uk.nummer, 4000), 13);
+      expect(
+        b.stueckliste.zeilen
+            .where((z) => z.laenge == const Millimeter(86))
+            .single
+            .stueck,
+        31,
+      );
+      expect(b.anschluss.meldungen, [Anschlussmeldung.unterlueftung]);
+      expect(b.volumen! - f36.volumen!, closeTo(13 * 0.08 * 0.021, 1e-9));
+      // ohne UK: Verblendung ja, Halter nein
+      final ohneUk = mit(f37);
+      expect(anzahl(ohneUk, blende.nummer, 4000), 2);
+      expect(
+        ohneUk.stueckliste.zeilen.where((z) => z.nummer == uk.nummer),
+        isEmpty,
+      );
+      // ohne Belag nur die Warnung
+      expect(rechne(f37).anschluss.meldungen, [Anschlussmeldung.unterlueftung]);
+      // Häufigkeit zählt mit
+      final zwei = Berechnung.ausBytes(
+        PlanungsDienst.berechnePlanung(
+          Planung.start.mitStand(f37).mitHaeufigkeit(2),
+          (_) => diele,
+          regelwerk,
+          false,
+          (_) => uk,
+        ).zuBytes(),
+      );
+      expect(anzahl(zwei, blende.nummer, 4000), 4);
+    });
+
+    test('Rinne (M7-03): F38 – Fläche 14,256 m², Belag ausgespart, UK bis '
+        'an die Seite, Rinnen und Zubehör in der Materialliste', () {
+      final rinne = Artikel(
+        nummer: const Artikelnummer('50-30-002'),
+        titel: 'Ventilationsprofil',
+        art: Artikelart.rinne,
+        einheit: Verkaufseinheit(Mengeneinheit.stueck),
+        abmessungen: Abmessungen(
+          breite: const Millimeter(120),
+          laengen: const [Millimeter(1200)],
+        ),
+      );
+      final auflage = Artikel(
+        nummer: const Artikelnummer('50-30-004'),
+        titel: 'Auflagerprofil',
+        art: Artikelart.rinnenzubehoer,
+        einheit: Verkaufseinheit(Mengeneinheit.stueck),
+      );
+      final uk = Artikel(
+        nummer: const Artikelnummer('10-10-031'),
+        titel: 'UK',
+        art: Artikelart.unterkonstruktion,
+        einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+        abmessungen: Abmessungen(
+          breite: const Millimeter(40),
+          staerke: const Millimeter(60),
+        ),
+        holzart: robinie,
+        serie: basic,
+      );
+      final regelwerk = Regelwerk(
+        Artikeldatei(
+          quelle: 'test',
+          version: '1',
+          eintraege: [
+            Artikeleintrag(
+              artikel: diele,
+              verweise: {
+                Beziehung.drainage.spalte: [rinne.nummer],
+              },
+            ),
+            Artikeleintrag(
+              artikel: rinne,
+              benoetigt: {auflage.nummer: 1},
+              angaben: const {'Abstand_Stelzfuesse': 1000},
+            ),
+            Artikeleintrag(artikel: auflage),
+            Artikeleintrag(artikel: uk),
+          ],
+        ),
+      );
+      Berechnung mit(Planung planung) => Berechnung.ausBytes(
+        PlanungsDienst.berechnePlanung(
+          planung,
+          (_) => diele,
+          regelwerk,
+          false,
+          (_) => uk,
+        ).zuBytes(),
+      );
+      int? anzahl(Berechnung b, Artikelnummer nummer, [int? laenge]) => b
+          .materialliste
+          .positionen
+          .where((p) => p.nummer == nummer && p.laenge?.mm == laenge)
+          .firstOrNull
+          ?.anzahl;
+      final f38 = Planungsstand.start
+          .mitAngrenzend(0, an: true)
+          .mitRinne(0, Rinnenlage.gesamteSeite);
+      final b = mit(Planung.start.mitStand(f38));
+      final f01 = mit(Planung.start);
+      expect(b.flaecheQuadratmeter, closeTo(14.256, 1e-9));
+      expect(anzahl(f01, diele.nummer, 5000), 48);
+      expect(anzahl(b, diele.nummer, 5000), 46);
+      expect(anzahl(b, uk.nummer, 4000), 13);
+      expect(anzahl(b, rinne.nummer, 1200), 4);
+      expect(anzahl(b, auflage.nummer), 6);
+      expect(b.anschluss.seiten.last.rolle, Seitenrolle.rinne);
+      // zweite Fläche zählt mit ihrer verkleinerten Fläche
+      final zwei = mit(
+        Planung.start.mitStand(f38).mitNeuerFlaeche().mitStand(f38),
+      );
+      expect(zwei.gesamtflaecheQuadratmeter, closeTo(2 * 14.256, 1e-9));
+      // ohne Artikel: Hinweis, ganze Fläche
+      final ohne = rechne(f38, belag: diele);
+      expect(ohne.anschluss.meldungen, [Anschlussmeldung.ohneRinnenartikel]);
+      expect(ohne.flaecheQuadratmeter, closeTo(14.832, 1e-9));
+    });
+
+    test('Höhenreferenzpunkt (M7-04): geprüft, in der Zeichnung und in der '
+        'Höhe der Auflager; ohne Gefälle ohne Wirkung', () {
+      final uk = Artikel(
+        nummer: const Artikelnummer('10-10-031'),
+        titel: 'UK',
+        art: Artikelart.unterkonstruktion,
+        einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+        abmessungen: Abmessungen(
+          breite: const Millimeter(40),
+          staerke: const Millimeter(60),
+        ),
+        holzart: robinie,
+        serie: basic,
+      );
+      final regelwerk = Regelwerk(
+        Artikeldatei(
+          quelle: 'test',
+          version: '1',
+          eintraege: [
+            Artikeleintrag(artikel: diele),
+            Artikeleintrag(artikel: uk),
+          ],
+        ),
+      );
+      Berechnung mit(Planungsstand stand) => Berechnung.ausBytes(
+        PlanungsDienst.berechnePlanung(
+          Planung.start.mitStand(stand),
+          (_) => diele,
+          regelwerk,
+          false,
+          (_) => uk,
+        ).zuBytes(),
+      );
+      final hoch = Planungsstand.start.mitHoehe(const Millimeter(200));
+      final ablauf = hoch.mitNeuemHoehenpunkt().mitHoehenpunkt(0, (
+        x: const Millimeter(2400),
+        y: const Millimeter(1545),
+        hoehe: const Millimeter(10),
+      ));
+      final b = mit(ablauf);
+      // unter der Mindesthöhe korrigiert
+      expect(b.hoehenpunkte.hoehen, hasLength(5));
+      expect(b.hoehenpunkte.korrigiert, isTrue);
+      expect(b.anschluss.hoehenpunkte, [
+        (ort: const Punkt(2400, 1545), hoehe: b.hoehenpunkte.hoehen.last),
+      ]);
+      int tiefster(Berechnung b) =>
+          [for (final p in b.unterbau.auflagerpunkte) p.spalt.mm]
+              .reduce((a, c) => a < c ? a : c);
+      expect(tiefster(b), lessThan(tiefster(mit(hoch))));
+      final ohneGefaelle = mit(ablauf.mitGefaelle(false));
+      expect(ohneGefaelle.anschluss.hoehenpunkte, isEmpty);
+      expect(ohneGefaelle.hoehenpunkte.hoehen, hasLength(4));
+    });
+
+    test('Treppe (M7-05): F39 – Zeichnung mit Maßen, Dielen in Stück- und '
+        'Materialliste, UK aus den Resten; an belegter Seite Hinweis', () {
+      final uk = Artikel(
+        nummer: const Artikelnummer('10-10-031'),
+        titel: 'UK',
+        art: Artikelart.unterkonstruktion,
+        einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+        abmessungen: Abmessungen(
+          breite: const Millimeter(40),
+          staerke: const Millimeter(60),
+        ),
+        holzart: robinie,
+        serie: basic,
+      );
+      final regelwerk = Regelwerk(
+        Artikeldatei(
+          quelle: 'test',
+          version: '1',
+          eintraege: [
+            Artikeleintrag(artikel: diele),
+            Artikeleintrag(artikel: uk),
+          ],
+        ),
+      );
+      Berechnung mit(Planungsstand stand) => Berechnung.ausBytes(
+        PlanungsDienst.berechnePlanung(
+          Planung.start.mitStand(stand),
+          (_) => diele,
+          regelwerk,
+          false,
+          (_) => uk,
+        ).zuBytes(),
+      );
+      int? anzahl(Berechnung b, Artikelnummer nummer, int laenge) => b
+          .materialliste
+          .positionen
+          .where((p) => p.nummer == nummer && p.laenge?.mm == laenge)
+          .firstOrNull
+          ?.anzahl;
+      final f39 = Planungsstand.start.mitNeuerTreppe().mitTreppe(
+        0,
+        const Treppe(seite: 2),
+      );
+      final b = mit(f39);
+      final f01 = mit(Planungsstand.start);
+      final treppe = b.anschluss.treppen.single;
+      expect(treppe.frei, isTrue);
+      expect(treppe.masse, (
+        laenge: const Millimeter(1000),
+        breite: const Millimeter(540),
+        hoehe: const Millimeter(312),
+      ));
+      expect(treppe.teile, hasLength(2));
+      expect(
+        b.stueckliste.zeilen
+            .where(
+              (z) =>
+                  z.nummer == diele.nummer &&
+                  z.laenge == const Millimeter(1000),
+            )
+            .single
+            .stueck,
+        16,
+      );
+      // 16 × 100 cm aus 5000 mm: 4 Dielen mehr
+      expect(
+        anzahl(b, diele.nummer, 5000),
+        anzahl(f01, diele.nummer, 5000)! + 4,
+      );
+      expect(anzahl(b, uk.nummer, 4000), anzahl(f01, uk.nummer, 4000));
+      expect(b.volumen, greaterThan(f01.volumen!));
+      final belegt = mit(f39.mitAngrenzend(2, an: true));
+      expect(belegt.anschluss.treppen.single.frei, isFalse);
+      expect(belegt.anschluss.meldungen, [Anschlussmeldung.treppeNichtFrei]);
+      expect(belegt.materialliste, f01.materialliste);
+    });
+  });
+
   test('ungültige Maße sind ein Fehler', () async {
     final fbb = fb.Builder();
     final masse = fbb.writeListInt32([4800, 100]);
