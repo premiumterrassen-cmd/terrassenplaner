@@ -4,7 +4,7 @@ Description=Terrassenplaner – Sicherung
 {% if planer_betriebsart == 'container' %}
 After=docker.service
 {% else %}
-After=grafana-server.service
+After=grafana-server.service {{ sicherung_objectbox | map(attribute='dienst') | map('regex_replace', '$', '.service') | join(' ') }}
 {% endif %}
 
 [Service]

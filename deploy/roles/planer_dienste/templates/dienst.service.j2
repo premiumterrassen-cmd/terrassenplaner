@@ -19,6 +19,25 @@ NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=true
 ReadWritePaths={{ planer_daten }}/{{ item.name }}
+# Weitere Härtung (M10-03): keine Rechte, kein Zugriff auf Kernel und Geräte;
+# neue Dateien (Datenbank, Sicherung) nur für den Dienstbenutzer lesbar.
+CapabilityBoundingSet=
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+RestrictNamespaces=true
+LockPersonality=true
+SystemCallArchitectures=native
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX AF_NETLINK
+UMask=0077
+# Viele gleichzeitige WebSocket-Verbindungen (Router).
+LimitNOFILE=65536
 
 [Install]
 WantedBy=multi-user.target

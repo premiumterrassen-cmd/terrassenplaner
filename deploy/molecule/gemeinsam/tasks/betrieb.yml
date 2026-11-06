@@ -1,0 +1,40 @@
+# Prüfungen zum Produktivbetrieb (M10-03), gleich für beide Betriebsarten.
+- name: Kernel-Härtung abgelegt
+  ansible.builtin.command: grep -c '^kernel.kptr_restrict = 2$' /etc/sysctl.d/90-planer.conf
+  changed_when: false
+
+- name: Journal begrenzt (Log-Rotation)
+  ansible.builtin.command: grep -c '^MaxRetentionSec=14day$' /etc/systemd/journald.conf.d/90-planer.conf
+  changed_when: false
+
+- name: Paketliste lesen
+  ansible.builtin.package_facts:
+
+- name: Logrotate vorhanden
+  ansible.builtin.assert:
+    that: "'logrotate' in ansible_facts.packages"
+
+- name: ObjectBox-Sicherungen von Router und Auth-Server vorhanden und lesbar
+  ansible.builtin.shell: >-
+    set -o pipefail;
+    datei=$(ls -1t /var/backups/terrassenplaner/objectbox-{{ item }}-*.mdb.gz | head -1)
+    && gzip -t "$datei" && stat -c '%a' "$datei"
+  args: {executable: /bin/bash}
+  register: planer_test_objectbox
+  changed_when: false
+  failed_when: planer_test_objectbox.rc != 0 or planer_test_objectbox.stdout != '600'
+  loop: [router, auth]
+
+- name: Sicherungsmeldungen für Prometheus geschrieben
+  ansible.builtin.find:
+    paths: /var/lib/prometheus/node-exporter
+    patterns: planer_sicherung_*.prom
+  register: planer_test_meldungen
+  failed_when: planer_test_meldungen.matched != 3
+
+- name: Wiederherstellung lehnt unbekannte Datenbank und kaputte Datei ab
+  ansible.builtin.command: "planer-wiederherstellung {{ item }}"
+  register: planer_test_falsch
+  changed_when: false
+  failed_when: planer_test_falsch.rc == 0
+  loop: ["gibt-es-nicht /dev/null", "router /etc/hostname"]

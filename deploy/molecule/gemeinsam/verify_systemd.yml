@@ -1,6 +1,8 @@
 - name: Deployment prüfen (systemd)
   hosts: all
   become: true
+  vars_files:
+    - ../../roles/monitoring/defaults/main.yml
   tasks:
     - name: Dienststatus lesen
       ansible.builtin.service_facts:
@@ -81,7 +83,7 @@
       failed_when: planer_test_ws.stdout != '101'
 
     - name: Interne Dienste lauschen nur auf 127.0.0.1
-      ansible.builtin.shell: set -o pipefail && ss -tlnH | awk '{print $4}' | grep -E ':(8080|8081|8082|8083|8084|8090|8092|9090|9100|3000)$'
+      ansible.builtin.shell: set -o pipefail && ss -tlnH | awk '{print $4}' | grep -E ':(8080|8081|8082|8083|8084|8085|8090|8092|9090|9100|3000)$'
       args: {executable: /bin/bash}
       register: planer_test_ports
       changed_when: false
@@ -97,7 +99,10 @@
       ansible.builtin.command: sshd -T
       register: planer_test_sshd
       changed_when: false
-      failed_when: "'passwordauthentication no' not in planer_test_sshd.stdout"
+      failed_when: >-
+        'passwordauthentication no' not in planer_test_sshd.stdout
+        or 'x11forwarding no' not in planer_test_sshd.stdout
+        or 'permitemptypasswords no' not in planer_test_sshd.stdout
 
     - name: Geheimnisse nur für root lesbar
       ansible.builtin.stat:
@@ -137,7 +142,7 @@
       delay: 5
       until: >-
         planer_test_ziele.json is defined
-        and (planer_test_ziele.json.data.activeTargets | length) >= 6
+        and (planer_test_ziele.json.data.activeTargets | length) >= 7
         and (planer_test_ziele.json.data.activeTargets | rejectattr('health', 'equalto', 'up') | list | length) == 0
 
     - name: Grafana über Traefik nur mit Anmeldung
@@ -182,7 +187,8 @@
       register: planer_test_regeln
       failed_when: >-
         (planer_test_regeln.json | map(attribute='uid') | list | sort)
-        != ['dienst-nicht-erreichbar', 'platte-fast-voll', 'wamp-sitzungen-hoch', 'zertifikat-laeuft-ab']
+        != (monitoring_alarme | map(attribute='uid') | list | sort)
+        or (planer_test_regeln.json | length) != 11
       no_log: true
 
     - name: Alarmtexte enthalten Grafana-Platzhalter, keine Jinja-Reste
@@ -218,3 +224,81 @@
     - name: Sicherungs-Timer aktiv  # noqa: command-instead-of-module
       ansible.builtin.command: systemctl is-enabled planer-sicherung.timer
       changed_when: false
+
+    # --- Produktivbetrieb (M10-03) ---
+    - name: Gemeinsame Prüfungen (Härtung, Log-Rotation, ObjectBox-Sicherung)
+      ansible.builtin.include_tasks: tasks/betrieb.yml
+
+    - name: Härtung der Dart-Dienste aktiv  # noqa: command-instead-of-module
+      ansible.builtin.command: >-
+        systemctl show {{ item }} --value
+        -p ProtectKernelTunables -p RestrictNamespaces -p UMask -p NoNewPrivileges
+      register: planer_test_haertung
+      changed_when: false
+      failed_when: >-
+        (planer_test_haertung.stdout_lines | sort) != ['0077', 'yes', 'yes', 'yes']
+      loop: [planer-auth, planer-router]
+
+    - name: Datenbank-Kennzahlen des Routers (Konfigurationen)
+      ansible.builtin.uri:
+        url: http://127.0.0.1:8085/metrics
+        return_content: true
+      register: planer_test_router_metriken
+      failed_when: planer_test_router_metriken.content is not search('entitaet="Konfiguration"')
+
+    - name: Node-Exporter liest die Sicherungsmeldungen
+      ansible.builtin.uri:
+        url: http://127.0.0.1:9100/metrics
+        return_content: true
+      register: planer_test_node
+      failed_when: >-
+        planer_test_node.content
+        | regex_findall('planer_sicherung_erfolg_zeitstempel_sekunden.daten="[a-z]+"')
+        | length != 3
+
+    - name: Datenbank-Kennzahlen vor der Wiederherstellung
+      ansible.builtin.uri:
+        url: "http://{{ item }}/metrics"
+        return_content: true
+      register: planer_test_vorher
+      loop: [127.0.0.1:8085, 127.0.0.1:8084]
+
+    - name: Wiederherstellung von Auth-Server und Router aus der jüngsten Sicherung
+      ansible.builtin.shell: >-
+        set -o pipefail;
+        planer-wiederherstellung {{ item }}
+        "$(ls -1t /var/backups/terrassenplaner/objectbox-{{ item }}-*.mdb.gz | head -1)"
+      args: {executable: /bin/bash}
+      changed_when: true
+      loop: [auth, router]
+
+    - name: Nach der Wiederherstellung gesund, Sequenz und Datensätze wie vorher
+      ansible.builtin.uri:
+        url: "http://{{ item.item }}/metrics"
+        return_content: true
+      register: planer_test_nachher
+      failed_when: >-
+        planer_test_nachher.content | regex_findall('planer_datenbank_(?:sequenz|datensaetze)[^ ]* [0-9]+')
+        != item.content | regex_findall('planer_datenbank_(?:sequenz|datensaetze)[^ ]* [0-9]+')
+      loop: "{{ planer_test_vorher.results }}"
+      loop_control: {label: "{{ item.item }}"}
+
+    - name: Bisheriger Stand bleibt neben der wiederhergestellten Datenbank liegen
+      ansible.builtin.find:
+        paths: "/var/lib/terrassenplaner/{{ item }}/datenbank"
+        patterns: data.mdb.vor-wiederherstellung-*
+      register: planer_test_alt
+      failed_when: planer_test_alt.matched != 1
+      loop: [planer-auth, planer-router]
+
+    # --- Statistik und Datenschutz (M10-05) ---
+    - name: Gemeinsame Prüfungen Datenschutz
+      ansible.builtin.include_tasks: tasks/datenschutz.yml
+
+    - name: Zugriffsprotokoll von Traefik ohne IP-Adresse
+      ansible.builtin.command: journalctl -u traefik -o cat --no-pager
+      register: planer_test_zugriffe
+      changed_when: false
+      failed_when: >-
+        (planer_test_zugriffe.stdout_lines | select('search', '"RequestPath"') | list | length) == 0
+        or (planer_test_zugriffe.stdout_lines | select('search', '"Client(Addr|Host|Port|Username)"') | list | length) > 0

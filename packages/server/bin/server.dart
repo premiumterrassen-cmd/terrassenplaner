@@ -38,6 +38,28 @@ Future<void> main() async {
     verzeichnis ?? 'memory:terrassenplaner',
     knoten: Platform.environment['PLANER_KNOTEN'] ?? Platform.localHostname,
   );
+  // Betrieb (M10-03): Datenbank-Kennzahlen für Prometheus (nur lokal) und
+  // Sicherung im laufenden Betrieb auf SIGUSR1 (Rolle `sicherung`).
+  final umgebung = Platform.environment;
+  final metrikAdresse = umgebung['PLANER_DATENBANK_METRIKEN'];
+  final metriken = verzeichnis == null || metrikAdresse == null
+      ? null
+      : await MetrikServer.starte(
+          metrikAdresse,
+          () => datenbankMetriken(
+            datenbank.kennzahlen(),
+            dienst: 'planer-router',
+          ),
+        );
+  final sicherungsZiel = umgebung['PLANER_SICHERUNG_ZIEL'];
+  final sicherung = verzeichnis == null || sicherungsZiel == null
+      ? null
+      : Sicherungsdienst.starte(
+          datenbank,
+          sicherungsZiel,
+          ProcessSignal.sigusr1.watch(),
+          protokoll: stdout.writeln,
+        );
   final konfiguration = await KonfigurationsDienst.starte(
     router,
     Konfigurationsablage(datenbank),
@@ -67,6 +89,8 @@ Future<void> main() async {
   await planung.stoppe();
   await export.stoppe();
   await konfiguration.stoppe();
+  await sicherung?.stoppe();
+  await metriken?.stoppe();
   datenbank.schliesse();
   await modell3d.stoppe();
   await hallo.stoppe();
