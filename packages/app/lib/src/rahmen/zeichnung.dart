@@ -23,8 +23,15 @@ final class Zeichnung {
     List<List<Offset>> dielen = const [],
     List<int> nummern = const [],
     List<Color> dielenfarben = const [],
+    List<(Offset, Offset)> querstreben = const [],
+    List<(Offset, Offset, Color)> ukHoelzer = const [],
+    this.ukBreite = 0,
+    List<(Offset, Millimeter, bool)> auflager = const [],
     this.ausgangspunkt,
   }) : umriss = List.unmodifiable(umriss),
+       auflager = List.unmodifiable(auflager),
+       ukHoelzer = List.unmodifiable(ukHoelzer),
+       querstreben = List.unmodifiable(querstreben),
        dielenfarben = List.unmodifiable(dielenfarben),
        dielen = List.unmodifiable(dielen),
        nummern = List.unmodifiable(nummern),
@@ -68,6 +75,20 @@ final class Zeichnung {
   /// Farbe je Dielenstück wie in der Stückliste (M9-04), parallel zu
   /// [dielen]; fehlt eine, bekommt das Stück die normale Fuge.
   final List<Color> dielenfarben;
+
+  /// Querstreben in mm (M6-05/M6-06), je Strebe Anfang und Ende.
+  final List<(Offset, Offset)> querstreben;
+
+  /// UK-Hölzer in mm (M6-10): Achse von, bis und Farbe wie in der
+  /// Stückliste (rot ganze Lieferlänge, blau zugeschnitten).
+  final List<(Offset, Offset, Color)> ukHoelzer;
+
+  /// Breite der UK-Hölzer in der Draufsicht in mm.
+  final double ukBreite;
+
+  /// Auflager in mm (M6-11) mit dem Spalt unter der UK und ob ein passendes
+  /// Auflager gefunden wurde.
+  final List<(Offset, Millimeter, bool)> auflager;
 
   /// Ausgangspunkt der Verlegung in mm (M5-07): Ecke plus Verschiebung, dort
   /// liegt der Griff der ersten ganzen Diele; `null` ohne Dielen.
@@ -138,6 +159,59 @@ class ZeichnungsMaler extends CustomPainter {
       for (final d in zeichnung.dielen)
         Path()..addPolygon([for (final p in d) bildschirm(p)], true),
   ];
+
+  /// Querstreben auf dem Bildschirm, wenn die Ebene UK sichtbar ist; sie
+  /// liegen über dem Belag, damit man sie bei beiden Ebenen sieht.
+  List<(Offset, Offset)> strebenlinien() => [
+    if (optionen.zeigt(Ebene.unterkonstruktion))
+      for (final (von, bis) in zeichnung.querstreben)
+        (bildschirm(von), bildschirm(bis)),
+  ];
+
+  /// UK-Hölzer auf dem Bildschirm mit Farbe und Strichbreite (M6-10), wenn
+  /// die Ebene UK sichtbar ist; halb durchsichtig über dem Belag, damit
+  /// man sie bei beiden Ebenen sieht. Mindestens 1 Pixel breit.
+  List<(Offset, Offset, Color, double)> holzlinien() => [
+    if (optionen.zeigt(Ebene.unterkonstruktion))
+      for (final (von, bis, farbe) in zeichnung.ukHoelzer)
+        (
+          bildschirm(von),
+          bildschirm(bis),
+          farbe.withValues(alpha: holzDeckkraft),
+          math.max(1, zeichnung.ukBreite * pixelJeMm * ansicht.zoom),
+        ),
+  ];
+
+  /// Auflager auf dem Bildschirm (M6-11), wenn die Ebene UK sichtbar ist:
+  /// Mitte, Farbe (rot ohne passendes Auflager) und – ab [hoeheAbZoom] –
+  /// der Spalt in cm als Beschriftung.
+  List<(Offset, Color, String?)> auflagerpunkte() => [
+    if (optionen.zeigt(Ebene.unterkonstruktion))
+      for (final (ort, spalt, passt) in zeichnung.auflager)
+        (
+          bildschirm(ort),
+          passt ? auflagerFarbe : ohneFarbe,
+          ansicht.zoom >= hoeheAbZoom
+              ? zahlText(sprache, spalt.cm, '0.#')
+              : null,
+        ),
+  ];
+
+  /// Farbe der Auflager; ohne passendes Auflager rot wie ganze Stücke.
+  static const auflagerFarbe = Color(0xFF424242);
+  static final ohneFarbe = Color(Stueckfarbe.rot.argb);
+
+  /// Ab diesem Zoom steht der Spalt an jedem Auflager.
+  static const hoeheAbZoom = 1.5;
+
+  /// Kantenlänge eines Auflagers in Pixeln.
+  static const auflagerGroesse = 6.0;
+
+  /// Deckkraft der UK-Hölzer über dem Belag.
+  static const holzDeckkraft = 0.6;
+
+  /// Farbe der Querstreben: grün wie Querstücke in der Stückliste (M9-04).
+  static final strebenFarbe = Color(Stueckfarbe.gruen.argb);
 
   /// Rand des Dielenstücks [index] in der Farbe der Stückliste (M9-04);
   /// `null` = normale Fuge.
@@ -408,6 +482,41 @@ class ZeichnungsMaler extends CustomPainter {
         ..rotate(winkel);
       maler.paint(canvas, textLage(Offset.zero, Offset.zero, maler.size));
       canvas.restore();
+    }
+    for (final (von, bis, farbe, breite) in holzlinien()) {
+      canvas.drawLine(
+        von,
+        bis,
+        Paint()
+          ..color = farbe
+          ..strokeWidth = breite,
+      );
+    }
+    for (final (ort, farbe, text) in auflagerpunkte()) {
+      canvas.drawRect(
+        Rect.fromCenter(
+          center: ort,
+          width: auflagerGroesse,
+          height: auflagerGroesse,
+        ),
+        Paint()..color = farbe,
+      );
+      if (text != null) {
+        final maler = TextPainter(
+          text: TextSpan(
+            text: text,
+            style: TextStyle(fontSize: nummerGroesse, color: strich),
+          ),
+          textDirection: TextDirection.ltr,
+        )..layout();
+        maler.paint(canvas, ort + const Offset(auflagerGroesse, 0));
+      }
+    }
+    final strebe = Paint()
+      ..color = strebenFarbe
+      ..strokeWidth = 3;
+    for (final (von, bis) in strebenlinien()) {
+      canvas.drawLine(von, bis, strebe);
     }
     final umriss = [for (final p in zeichnung.umriss) bildschirm(p)];
     final linie = Paint()

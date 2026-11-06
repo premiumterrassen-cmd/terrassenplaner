@@ -172,6 +172,19 @@ List<Dielenstueck> _verlegt({
   laengste: const Millimeter(6000),
 );
 
+final _uk = Artikel(
+  nummer: const Artikelnummer('10-10-031'),
+  titel: 'UK',
+  art: Artikelart.unterkonstruktion,
+  einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+  abmessungen: Abmessungen(
+    breite: const Millimeter(40),
+    staerke: const Millimeter(60),
+  ),
+  holzart: robinie,
+  serie: basic,
+);
+
 Map<String, int> _mengen(Map<Artikelnummer, int> m) => {
   for (final MapEntry(:key, :value) in m.entries) key.wert: value,
 };
@@ -578,7 +591,74 @@ void main() {
         );
         expect(_mengen(m)['50-60-001'], alt);
       });
+
+      test(
+        '$id: Gummiband auf der UK-Verlegung (M6-10) wie im alten Planer',
+        () {
+          final alt = (_fall(id)['materialliste']! as List<Object?>)
+              .cast<Map<String, Object?>>()
+              .where(
+                (m) => (m['bezeichnung']! as String).startsWith('KOPPLEX-1'),
+              )
+              .single['anzahl'];
+          final stand = Planungsstand.start
+              .mitGrundriss(
+                RechteckGrundriss(Millimeter(laenge), Millimeter(breite)),
+              )
+              .mitVerlegerichtung(
+                winkel == 0
+                    ? Verlegerichtung.waagrecht
+                    : Verlegerichtung.senkrecht,
+              );
+          final stuecke = _verlegt(
+            laenge: laenge,
+            breite: breite,
+            winkel: winkel,
+          );
+          final uk = ukVerlegung(
+            stand,
+            _uk,
+            abstand: const Millimeter(400),
+            dielen: stuecke,
+          );
+          final m = berechnetesZubehoer(
+            _regelwerk,
+            _glatt,
+            Befestigungsbedarf.keiner,
+            stuecke,
+            winkel: winkel,
+            uk: uk,
+          );
+          expect(_mengen(m)['50-60-001'], alt);
+        },
+      );
     }
+
+    test('Gummiband: UK-Verlegung statt Übergangs-UK, Feldbreite (M6-09)', () {
+      final stuecke = _verlegt();
+      int rollen({UkVerlegung? uk, Millimeter? feldbreite}) => _mengen(
+        berechnetesZubehoer(
+          _regelwerk,
+          _glatt,
+          Befestigungsbedarf.keiner,
+          stuecke,
+          winkel: 0,
+          uk: uk,
+          feldbreite: feldbreite,
+        ),
+      )['50-60-001']!;
+      // F01: 13 × 309 cm = 40,17 m → 5 Rollen; mit 30 cm 17 × 309 → 6
+      expect(rollen(), 5);
+      expect(rollen(feldbreite: const Millimeter(300)), 6);
+      // eine kurze UK-Verlegung (eine Linie à 309 cm): 1 Rolle
+      final eine = UkVerlegung(
+        linien: const [
+          (x: 20, abschnitte: [(0.0, 3090.0)], stoesse: <double>[]),
+        ],
+      );
+      expect(eine.laenge, 3090);
+      expect(rollen(uk: eine), 1);
+    });
 
     test('F24 verschraubt: ein Bit, F01 mit Clips: keines', () {
       bool bit(String id) => (_fall(id)['materialliste']! as List<Object?>)

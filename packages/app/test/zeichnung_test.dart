@@ -328,6 +328,122 @@ void main() {
       expect(fuge.color.a, closeTo(0.3, 0.01));
     });
 
+    test('Querstreben (M6-06): grün über dem Belag, nur mit der Ebene UK', () {
+      final z = Zeichnung(
+        dielen: const [
+          [Offset(0, 0), Offset(1000, 0), Offset(1000, 65)],
+        ],
+        querstreben: const [(Offset(20, 500), Offset(380, 500))],
+      );
+      expect(
+        () => z.querstreben.add((Offset.zero, Offset.zero)),
+        throwsUnsupportedError,
+      );
+      final o = AnsichtsOptionen();
+      final a = AnsichtSteuerung();
+      final m = _maler(z, o, a);
+      expect(m.strebenlinien(), [
+        (
+          a.verschiebung + const Offset(2, 50),
+          a.verschiebung + const Offset(38, 50),
+        ),
+      ]);
+      final aufnahme = PictureRecorder();
+      final leinwand = _ZaehlendeLeinwand(Canvas(aufnahme));
+      m.paint(leinwand, const Size(800, 600));
+      aufnahme.endRecording();
+      final strebe = leinwand.linienStifte.singleWhere(
+        (p) => p.strokeWidth == 3,
+      );
+      expect(strebe.color.toARGB32(), ZeichnungsMaler.strebenFarbe.toARGB32());
+      expect(ZeichnungsMaler.strebenFarbe.toARGB32(), Stueckfarbe.gruen.argb);
+      o.setzeEbenen({Ebene.belag});
+      expect(m.strebenlinien(), isEmpty);
+    });
+
+    test('UK-Hölzer (M6-10): in der Farbe der Stückliste, so breit wie die '
+        'UK, halb durchsichtig über dem Belag, nur mit der Ebene UK', () {
+      final rot = Color(Stueckfarbe.rot.argb);
+      final z = Zeichnung(
+        ukHoelzer: [(const Offset(20, 0), const Offset(20, 3090), rot)],
+        ukBreite: 40,
+      );
+      expect(
+        () => z.ukHoelzer.add((Offset.zero, Offset.zero, rot)),
+        throwsUnsupportedError,
+      );
+      final o = AnsichtsOptionen();
+      final a = AnsichtSteuerung();
+      final m = _maler(z, o, a);
+      final [(von, bis, farbe, breite)] = m.holzlinien();
+      expect(von, a.verschiebung + const Offset(2, 0));
+      expect(bis, a.verschiebung + const Offset(2, 309));
+      expect(farbe.toARGB32(), rot.withValues(alpha: 0.6).toARGB32());
+      expect(ZeichnungsMaler.holzDeckkraft, 0.6);
+      expect(breite, 4);
+      final aufnahme = PictureRecorder();
+      final leinwand = _ZaehlendeLeinwand(Canvas(aufnahme));
+      m.paint(leinwand, const Size(800, 600));
+      aufnahme.endRecording();
+      expect(
+        leinwand.linienStifte.where((p) => p.strokeWidth == 4),
+        hasLength(1),
+      );
+      // weit herausgezoomt mindestens 1 Pixel
+      a.zoomeAuf(AnsichtSteuerung.kleinsterZoom);
+      final schmal = _maler(
+        Zeichnung(
+          ukHoelzer: [(const Offset(20, 0), const Offset(20, 3090), rot)],
+          ukBreite: 20,
+        ),
+        o,
+        a,
+      );
+      expect(schmal.holzlinien().single.$4, 1);
+      expect(m.holzlinien().single.$4, 1);
+      expect(Zeichnung.leer.ukBreite, 0);
+      o.setzeEbenen({Ebene.belag});
+      expect(m.holzlinien(), isEmpty);
+    });
+
+    test('Auflager (M6-11): Quadrate, rot ohne passendes Auflager, Spalt ab '
+        '150 % Zoom, nur mit der Ebene UK', () {
+      final z = Zeichnung(
+        auflager: const [
+          (Offset(20, 0), Millimeter(45), true),
+          (Offset(20, 515), Millimeter(300), false),
+        ],
+      );
+      expect(
+        () => z.auflager.add((Offset.zero, const Millimeter(0), true)),
+        throwsUnsupportedError,
+      );
+      final o = AnsichtsOptionen();
+      final a = AnsichtSteuerung();
+      final m = _maler(z, o, a);
+      final [(ort, farbe, text), (_, rot, _)] = m.auflagerpunkte();
+      expect(ort, a.verschiebung + const Offset(2, 0));
+      expect(farbe, ZeichnungsMaler.auflagerFarbe);
+      expect(rot.toARGB32(), Stueckfarbe.rot.argb);
+      expect(ZeichnungsMaler.ohneFarbe.toARGB32(), Stueckfarbe.rot.argb);
+      expect(text, isNull);
+      expect(ZeichnungsMaler.hoeheAbZoom, 1.5);
+      expect(ZeichnungsMaler.auflagerGroesse, 6);
+      a.zoomeAuf(1.5);
+      expect(m.auflagerpunkte().first.$3, '4,5');
+      expect(m.auflagerpunkte().last.$3, '30');
+      final aufnahme = PictureRecorder();
+      final leinwand = _ZaehlendeLeinwand(Canvas(aufnahme));
+      m.paint(leinwand, const Size(800, 600));
+      aufnahme.endRecording();
+      a.zoomeAuf(1);
+      final ohneText = PictureRecorder();
+      m.paint(_ZaehlendeLeinwand(Canvas(ohneText)), const Size(800, 600));
+      ohneText.endRecording();
+      o.setzeEbenen({Ebene.belag});
+      expect(m.auflagerpunkte(), isEmpty);
+    });
+
     test('Dielennummern (M5-08): nur wo sie ins Stück passen, längs '
         'gedreht, nie auf dem Kopf', () {
       final z = Zeichnung(
@@ -634,6 +750,7 @@ class _ZaehlendeLeinwand implements Canvas {
   final aufrufe = <String, int>{};
   final stifte = <Paint>[];
   final pfadStifte = <Paint>[];
+  final linienStifte = <Paint>[];
   final textOrte = <Offset>[];
 
   void _zaehle(String name) => aufrufe[name] = (aufrufe[name] ?? 0) + 1;
@@ -650,6 +767,13 @@ class _ZaehlendeLeinwand implements Canvas {
     _zaehle('drawPath');
     pfadStifte.add(paint);
     _ziel.drawPath(path, paint);
+  }
+
+  @override
+  void drawLine(Offset p1, Offset p2, Paint paint) {
+    _zaehle('drawLine');
+    linienStifte.add(paint);
+    _ziel.drawLine(p1, p2, paint);
   }
 
   @override

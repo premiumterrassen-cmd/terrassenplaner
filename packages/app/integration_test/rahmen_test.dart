@@ -97,18 +97,18 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('station-unterkonstruktion')));
     await tester.pumpAndSettle();
     expect(find.text('3.6 ${de.unterkonstruktion6}'), findsOneWidget);
-    await tester.ensureVisible(
+    await _imMenue(
+      tester,
       find.byKey(const ValueKey('terrassenart-hochterrasse')),
     );
-    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('terrassenart-hochterrasse')));
     await tester.pumpAndSettle();
     expect(find.text('Vorgabehöhe: 54,2 cm'), findsOneWidget);
     expect(find.text('3.6 ${de.unterkonstruktion7}'), findsOneWidget);
-    await tester.ensureVisible(
+    await _imMenue(
+      tester,
       find.byKey(const ValueKey('terrassenart-vorhandeneUk')),
     );
-    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('terrassenart-vorhandeneUk')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('spannweite')), findsOneWidget);
@@ -126,16 +126,14 @@ void main() {
     // M6-02: Höhenpunkte mit Gefälle, Höhe an A eingeben; ohne Artikel
     // prüft der Smoke-Server nichts, also keine Aufbauhöhe
     final mit = find.byKey(const ValueKey('gefaelle-mit'));
-    await tester.ensureVisible(mit);
-    await tester.pumpAndSettle();
+    await _imMenue(tester, mit);
     await tester.tap(mit);
     await tester.pumpAndSettle();
     final a = find.descendant(
       of: find.byKey(const ValueKey('hoehe-0')),
       matching: find.byType(TextField),
     );
-    await tester.ensureVisible(a);
-    await tester.pumpAndSettle();
+    await _imMenue(tester, a);
     await tester.enterText(a, '15');
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
@@ -156,19 +154,76 @@ void main() {
     // M6-03: UK-Auswahl und UK-Länge vom Artikeldienst; der Smoke-Server
     // hat keine Artikeldatei, also keine passende UK
     final keineUk = find.text(de.ukKeine);
-    await tester.scrollUntilVisible(
-      keineUk,
-      200,
-      scrollable: find
-          .descendant(
-            of: find.byKey(const ValueKey('bearbeitungsmenue')),
-            matching: find.byType(Scrollable),
-          )
-          .first,
-    );
-    await tester.pumpAndSettle();
+    await _imMenue(tester, keineUk);
     expect(keineUk, findsOneWidget);
     expect(find.text(de.ukLaengeOhneUk), findsOneWidget);
+    // M6-04: Untergrund unter 3.5, nur Information; Rückgängig wie bei den
+    // anderen Eingaben
+    await _waehle(tester, 'untergrund-beton');
+    expect(await _gewaehlt(tester, 'untergrund-beton'), isTrue);
+    expect(find.text(de.untergrundHinweis), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('rueckgaengig')));
+    await tester.pumpAndSettle();
+    expect(await _gewaehlt(tester, 'untergrund-schotter'), isTrue);
+    // M6-05: Art der Terrassennutzung unter 3.6; schwimmend mit Warnung
+    // zur Verwindung, Rahmen ohne – Rückgängig stellt sie wieder her
+    await _imMenue(tester, find.text(de.nutzungsartVerwindung));
+    await _waehle(tester, 'nutzungsart-rahmen');
+    expect(await _gewaehlt(tester, 'nutzungsart-rahmen'), isTrue);
+    expect(find.text(de.nutzungsartVerwindung), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('rueckgaengig')));
+    await tester.pumpAndSettle();
+    expect(find.text(de.nutzungsartVerwindung), findsOneWidget);
+    // M6-06: zusätzliche Querstreben unter 3.7 mit fester Anzahl der
+    // Quertraversen; Rückgängig nimmt beides zurück
+    await _waehle(tester, 'querstreben-ja');
+    expect(find.text(de.querstrebenAbstand), findsOneWidget);
+    final anzahl = find.descendant(
+      of: find.byKey(const ValueKey('querstreben-anzahl')),
+      matching: find.byType(TextField),
+    );
+    await _imMenue(tester, anzahl);
+    await tester.enterText(anzahl, '4');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(tester.widget<TextField>(anzahl).decoration!.hintText, '4');
+    expect(await _gewaehlt(tester, 'querstreben-automatisch'), isFalse);
+    for (var i = 0; i < 2; i++) {
+      await tester.tap(find.byKey(const ValueKey('rueckgaengig')));
+      await tester.pumpAndSettle();
+    }
+    expect(await _gewaehlt(tester, 'querstreben-nein'), isTrue);
+    // M6-07: private oder gewerbliche Nutzung unter 3.8; ohne Artikeldatei
+    // kennt der Smoke-Server keine Stellfüße
+    await _waehle(tester, 'nutzung-gewerblich');
+    expect(await _gewaehlt(tester, 'nutzung-gewerblich'), isTrue);
+    expect(find.text(de.stellfuesseKeine), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('rueckgaengig')));
+    await tester.pumpAndSettle();
+    expect(await _gewaehlt(tester, 'nutzung-privat'), isTrue);
+    // M6-08: Auflagen unter 3.9; ohne Artikeldatei keine Auflager mit
+    // Höhenangaben, die Wahl ist ein Schritt für Rückgängig
+    await _waehle(tester, 'auflagen-stelzfuesse');
+    expect(await _gewaehlt(tester, 'auflagen-stelzfuesse'), isTrue);
+    final ohneAuflager = find.text(de.auflagerKeine);
+    await _imMenue(tester, ohneAuflager);
+    expect(ohneAuflager, findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('rueckgaengig')));
+    await tester.pumpAndSettle();
+    expect(await _gewaehlt(tester, 'auflagen-stelzfuesseUndPads'), isTrue);
+    // M6-09: maximale Feldbreite unter 3.10; ohne Artikeldatei kein Belag
+    // aus Holz, also nur der Hinweis
+    final feldbreite = find.text(de.feldbreiteOhneBelag);
+    await _imMenue(tester, feldbreite);
+    expect(feldbreite, findsOneWidget);
+    expect(find.text(de.feldbreiteHinweis), findsOneWidget);
+    // M6-10: das Holzvolumen steht in den Kennzahlen; ohne Belag und UK
+    // gibt es noch keins
+    expect(find.text(de.volumen('– m³')), findsOneWidget);
+    // M6-11: ohne UK keine Auflager, also keine Höhenzuordnung unter 3.9
+    await _imMenue(tester, find.byKey(const ValueKey('auflagen')));
+    expect(find.byKey(const ValueKey('hoehenzuordnung')), findsNothing);
+    expect(find.byKey(const ValueKey('auflager-ohne-hoehe')), findsNothing);
     // M8-01: Zubehör in acht Gruppen vom Artikeldienst; der Smoke-Server
     // hat keine Artikeldaten, also leere Gruppen. Eine andere Gruppe öffnen
     // schließt die erste.
@@ -185,4 +240,40 @@ void main() {
     expect(find.byIcon(Icons.expand_less), findsWidgets);
     expect(leer, findsOneWidget);
   });
+}
+
+/// Zeigt [finder] im Bearbeitungsmenü: Die Liste baut nur die sichtbaren
+/// Unterpunkte, deshalb erst nach oben und dann abwärts bis zum Ziel
+/// scrollen – unabhängig von der Fenstergröße des Browsers.
+Future<void> _imMenue(WidgetTester tester, Finder finder) async {
+  final liste = find
+      .descendant(
+        of: find.descendant(
+          of: find.byKey(const ValueKey('bearbeitungsmenue')),
+          matching: find.byType(ListView),
+        ),
+        matching: find.byType(Scrollable),
+      )
+      .first;
+  await tester.drag(liste, const Offset(0, 100000));
+  await tester.pumpAndSettle();
+  await tester.scrollUntilVisible(finder, 200, scrollable: liste);
+  await tester.pumpAndSettle();
+}
+
+/// Tippt den Auswahl-Chip [schluessel] im Bearbeitungsmenü an.
+Future<void> _waehle(WidgetTester tester, String schluessel) async {
+  final chip = find.byKey(ValueKey(schluessel));
+  await _imMenue(tester, chip);
+  await tester.tap(chip);
+  await tester.pumpAndSettle();
+}
+
+/// Ob der Auswahl-Chip [schluessel] gewählt ist; scrollt vorher zu ihm,
+/// weil das Menü nur die sichtbaren Unterpunkte baut (in kleinen Fenstern
+/// der Build-Chain z. B. nach Rückgängig).
+Future<bool> _gewaehlt(WidgetTester tester, String schluessel) async {
+  final chip = find.byKey(ValueKey(schluessel));
+  await _imMenue(tester, chip);
+  return tester.widget<ChoiceChip>(chip).selected;
 }

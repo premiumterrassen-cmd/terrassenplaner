@@ -406,6 +406,7 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
                                   flaeche: _berechnung?.flaeche,
                                   gesamtflaeche: _berechnung?.gesamtflaeche,
                                   verschnitt: _berechnung?.verschnitt,
+                                  volumen: _berechnung?.volumen,
                                 ),
                                 if (_berechnung case final b?) ...[
                                   const SizedBox(height: PlanerAbstand.klein),
@@ -840,6 +841,34 @@ class Bearbeitungsmenue extends StatelessWidget {
         planung: planung,
         onGeaendert: () => zustand.markiereGeaendert(schritt),
       ),
+    (PlanerSchritt.unterkonstruktion, 4) => UntergrundWahl(
+      planung: planung,
+      onGeaendert: () => zustand.markiereGeaendert(schritt),
+    ),
+    (PlanerSchritt.unterkonstruktion, 5) => NutzungsartWahl(
+      planung: planung,
+      onGeaendert: () => zustand.markiereGeaendert(schritt),
+    ),
+    (PlanerSchritt.unterkonstruktion, 6) => QuerstrebenWahl(
+      planung: planung,
+      berechnung: berechnung,
+      onGeaendert: () => zustand.markiereGeaendert(schritt),
+    ),
+    (PlanerSchritt.unterkonstruktion, 7) => GewerblichWahl(
+      planung: planung,
+      berechnung: berechnung,
+      onGeaendert: () => zustand.markiereGeaendert(schritt),
+    ),
+    (PlanerSchritt.unterkonstruktion, 8) => AuflagenWahl(
+      planung: planung,
+      berechnung: berechnung,
+      onGeaendert: () => zustand.markiereGeaendert(schritt),
+    ),
+    (PlanerSchritt.unterkonstruktion, 9) => FeldbreiteWahl(
+      planung: planung,
+      berechnung: berechnung,
+      onGeaendert: () => zustand.markiereGeaendert(schritt),
+    ),
     (PlanerSchritt.verschnittoptimierung, 0) when berechnung != null =>
       DielenlisteAnzeige(berechnung: berechnung!),
     _ => null,

@@ -19,9 +19,16 @@ typedef Unterkonstruktionssuche = Artikel? Function(Planungsstand stand);
 /// Kennzahlen der bearbeiteten Fläche, die Gesamtfläche (M4-14), die
 /// Dielenstücke (M5-05) mit Nummern, Dielenliste und Verschnitt (M5-08),
 /// den Ausgangspunkt der Verlegung (M5-07), die Befestigung (M5-09), die
-/// geprüften Höhenpunkte (M6-02), die Meldungen zum Belag (M5-10), die
-/// Mengen im Zubehör (M8-02, M8-03), die
-/// Materialliste (M9-03) und die Stückliste mit den Farben im Plan (M9-04)
+/// geprüften Höhenpunkte (M6-02), die Meldungen zum Belag (M5-10), das
+/// zusätzliche UK-Holz der Nutzungsart (M6-05) samt Querstreben für die
+/// Zeichnung (M6-06), die Stellfüße zur Nutzung (M6-07), die Auflager mit
+/// Abstand, Höhenbereichen und Meldungen (M6-08), die Feldbreite (M6-09),
+/// die UK-Verlegung mit Hölzern, Stücken und Holzvolumen (M6-10), die
+/// Auflager mit Höhenzuordnung und Mengen (M6-11), die Mengen im Zubehör
+/// (M8-02, M8-03) samt Freidielen (M8-04), die
+/// Materialliste
+/// (M9-03)
+/// und die Stückliste mit den Farben im Plan (M9-04)
 /// – die App rechnet nichts selbst (Frontend bleibt „doof“). Hin- und
 /// Rückweg als typisierte FlatBuffers (Packed PPT, #110).
 class PlanungsDienst {
@@ -79,15 +86,26 @@ class PlanungsDienst {
     Artikel? unterkonstruktion,
   ]) {
     final verlegung = verlegeBelag(stand, belag);
-    final befestigung = _befestigung(stand, belag, regelwerk, verlegung);
+    final hoehen = _hoehen(stand, belag, unterkonstruktion);
+    final uk = _ukVerlegung(
+      stand,
+      belag,
+      regelwerk,
+      unterkonstruktion,
+      verlegung,
+      hoehen,
+    );
+    final befestigung = _befestigung(stand, belag, regelwerk, verlegung, uk);
     return _mitVerlegung(
-      _grundflaeche(stand, belag, unterkonstruktion),
+      _grundflaeche(stand, belag, unterkonstruktion, null, hoehen, uk),
       stand,
       belag,
       regelwerk,
       verlegung,
       befestigung,
-      _zubehoer(stand, belag, regelwerk, verlegung, befestigung),
+      _zubehoer(stand, belag, regelwerk, verlegung, befestigung, uk),
+      null,
+      uk,
     );
   }
 
@@ -98,21 +116,68 @@ class PlanungsDienst {
     Planungsstand stand,
     Artikel? belag,
     Regelwerk? regelwerk,
-    Belagverlegung? v,
-  ) {
+    Belagverlegung? v, [
+    UkVerlegung? uk,
+  ]) {
     if (v == null) return null;
     // verlegt wird nur mit Belag
     final artikel = belag!;
     if (regelwerk?.datei[artikel.nummer] == null) return null;
-    return befestigungsbedarf(regelwerk!, artikel, stand.befestigungsart, [
-      for (final t in v.teile) ...t.stuecke,
-    ], winkel: stand.dielenwinkel.toDouble());
+    return befestigungsbedarf(
+      regelwerk!,
+      artikel,
+      stand.befestigungsart,
+      [for (final t in v.teile) ...t.stuecke],
+      winkel: stand.dielenwinkel.toDouble(),
+      feldbreite: stand.feldbreite,
+      uk: uk,
+    );
+  }
+
+  /// Geprüfte Höhenpunkte (M6-02) mit Belag und UK.
+  static Hoehenpunkte _hoehen(
+    Planungsstand stand,
+    Artikel? belag,
+    Artikel? unterkonstruktion,
+  ) => pruefeHoehen(
+    stand.hoehen,
+    art: stand.terrassenart,
+    doppelteUk: stand.doppelteUk,
+    dielenstaerke: belag?.abmessungen.staerke,
+    uk: ukMasse(unterkonstruktion),
+  );
+
+  /// UK-Verlegung (M6-10) – nur mit verlegtem Belag aus Holz und bekannter
+  /// [uk]; Abstand ist die wirksame Feldbreite (M6-09), die Lage folgt der
+  /// Drehung der UK aus den Höhenpunkten (M6-02, B-034).
+  static UkVerlegung? _ukVerlegung(
+    Planungsstand stand,
+    Artikel? belag,
+    Regelwerk? regelwerk,
+    Artikel? uk,
+    Belagverlegung? v,
+    Hoehenpunkte hoehen,
+  ) {
+    final hoechste = belagFeldbreite(belag, regelwerk);
+    if (v == null || uk == null || hoechste == null) return null;
+    return ukVerlegung(
+      stand,
+      uk,
+      abstand: wirksameFeldbreite(stand.feldbreite, hoechste),
+      dielen: [for (final t in v.teile) ...t.stuecke],
+      gedreht: hoehen.gedreht,
+      regelwerk: regelwerk,
+    );
   }
 
   static Berechnung _grundflaeche(
     Planungsstand stand, [
     Artikel? belag,
     Artikel? unterkonstruktion,
+    Regelwerk? regelwerk,
+    Hoehenpunkte? hoehenpunkte,
+    UkVerlegung? uk,
+    Auflagerbedarf? auflager,
   ]) {
     // offene Freiform (M4-08): nur der gezeichnete Linienzug
     if (stand.grundriss case FreiformGrundriss(
@@ -122,19 +187,42 @@ class PlanungsDienst {
       return Berechnung(umriss: punkte, flaeche: 0, geschlossen: false);
     }
     final kontur = stand.kontur;
+    final hoehen = hoehenpunkte ?? _hoehen(stand, belag, unterkonstruktion);
     return Berechnung(
       // Bögen (Kreis) als Sehnenzug für die Zeichnung, Ecken für die Namen
       umriss: kontur.vieleck(),
       ecken: stand.grundriss.ecken,
       flaeche: kontur.flaeche,
       ausschnitte: [for (final a in stand.ausschnitte) a.kontur.punkte],
-      hoehenpunkte: pruefeHoehen(
-        stand.hoehen,
-        art: stand.terrassenart,
-        dielenstaerke: belag?.abmessungen.staerke,
-        uk: ukMasse(unterkonstruktion),
+      hoehenpunkte: hoehen,
+      stellfuesse: _stellfuesse(stand, regelwerk, unterkonstruktion),
+      unterbau: unterbauFuer(
+        stand,
+        hoehen: hoehen,
+        regelwerk: regelwerk,
+        belag: belag,
+        uk: unterkonstruktion,
+        verlegung: uk,
+        auflager: auflager,
       ),
     );
+  }
+
+  /// Stellfüße der [uk] für die Nutzung privat oder gewerblich (M6-07) aus
+  /// dem Regelwerk; ohne UK oder wenn das Regelwerk sie nicht kennt: keine.
+  static List<Stellfuss> _stellfuesse(
+    Planungsstand stand,
+    Regelwerk? regelwerk,
+    Artikel? uk,
+  ) {
+    if (uk == null || regelwerk?.datei[uk.nummer] == null) return const [];
+    return [
+      for (final f in regelwerk!.stellfuesse(
+        uk.nummer,
+        gewerblich: stand.gewerblich,
+      ))
+        (nummer: f.nummer, titel: f.titel),
+    ];
   }
 
   /// Breite und Stärke einer UK; `null`, wenn eins fehlt (z. B. Alu-UK
@@ -155,8 +243,11 @@ class PlanungsDienst {
     Regelwerk? regelwerk,
     Belagverlegung? v,
     Befestigungsbedarf? befestigung,
-    List<Zubehoerposition> zubehoer,
-  ) {
+    List<Zubehoerposition> zubehoer, [
+    Ukzusatz? zusatz,
+    UkVerlegung? uk,
+    Auflagerbedarf? auflager,
+  ]) {
     final meldungen = belagmeldungen(stand, belag, v, regelwerk: regelwerk);
     if (v == null) {
       return Berechnung(
@@ -167,6 +258,8 @@ class PlanungsDienst {
         ausschnitte: flaeche.ausschnitte,
         belagmeldungen: meldungen,
         hoehenpunkte: flaeche.hoehenpunkte,
+        stellfuesse: flaeche.stellfuesse,
+        unterbau: flaeche.unterbau,
         zubehoer: zubehoer,
       );
     }
@@ -182,6 +275,11 @@ class PlanungsDienst {
           ganzeLaenge: v.laengste,
         ),
     ];
+    final ukStuecke = [
+      ...?uk?.stuecke,
+      ...?zusatz?.stuecke,
+      ...?auflager?.stuecke,
+    ];
     return Berechnung(
       umriss: flaeche.umriss,
       ecken: flaeche.ecken,
@@ -195,29 +293,45 @@ class PlanungsDienst {
       grenzeObenUnten: v.grenzen.y,
       kurzeZuschnitte: v.kurzeZuschnitte,
       hoehenpunkte: flaeche.hoehenpunkte,
+      stellfuesse: flaeche.stellfuesse,
+      unterbau: flaeche.unterbau,
       befestigung: befestigung,
-      stueckliste: Stueckliste.aus(planstuecke),
+      stueckliste: Stueckliste.aus([...planstuecke, ...ukStuecke]),
       stueckfarben: [for (final p in planstuecke) p.farbe],
       zubehoer: zubehoer,
+      querstreben: zusatz?.streben ?? const [],
+      querstrebenReihen: switch (zusatz?.reihen) {
+        final reihen? when reihen > 0 => reihen,
+        _ => null,
+      },
     );
   }
 
   /// Zeilen im Zubehör der Fläche [stand] (M8-02) samt Pflichtzubehör
   /// (M8-03): was der Belag (je Diele), die Befestigung, das berechnete und
-  /// das eingegebene Zubehör laut Artikeldaten benötigen. Ohne Verlegung
-  /// oder Befestigung nur die Eingaben und deren Pflichtzubehör.
+  /// das eingegebene Zubehör laut Artikeldaten benötigen. Das Gummiband
+  /// liegt auf der UK-Verlegung [uk] (M6-10), ohne sie auf der Übergangs-UK
+  /// im Abstand der Feldbreite (M6-09). Ohne Verlegung oder Befestigung nur
+  /// die Eingaben und deren Pflichtzubehör.
   static List<Zubehoerposition> _zubehoer(
     Planungsstand stand,
     Artikel? belag,
     Regelwerk? regelwerk,
     Belagverlegung? v,
     Befestigungsbedarf? befestigung,
+    UkVerlegung? uk,
   ) {
     final berechnet = befestigung == null
         ? const <Artikelnummer, int>{}
-        : berechnetesZubehoer(regelwerk!, belag!, befestigung, [
-            for (final t in v!.teile) ...t.stuecke,
-          ], winkel: stand.dielenwinkel.toDouble());
+        : berechnetesZubehoer(
+            regelwerk!,
+            belag!,
+            befestigung,
+            [for (final t in v!.teile) ...t.stuecke],
+            winkel: stand.dielenwinkel.toDouble(),
+            feldbreite: stand.feldbreite,
+            uk: uk,
+          );
     final verwendet = <Artikelnummer, int>{
       if ((belag, v) case (final b?, final verlegung?))
         b.nummer: verlegung.dielenliste.anzahl.values.fold(0, (a, n) => a + n),
@@ -236,9 +350,9 @@ class PlanungsDienst {
   /// Bedarf der Materialliste (M9-03) aus Befestigung und Zubehör einer
   /// Fläche: Die Befestigung geht in Stück ein (verpackt wird die Summe der
   /// Planung), das übrige Zubehör mit seiner Menge „Tatsächlich“ in
-  /// Verkaufseinheiten – Werkzeug einmal je Planung. Hat der Kunde im
-  /// Zubehör eine Menge der Befestigung geändert, gelten für die Fläche die
-  /// Zubehörmengen auch für die Befestigung.
+  /// Verkaufseinheiten – Werkzeug einmal je Planung. Clips und Schrauben
+  /// stehen nur einmal darin: aus der Befestigung oder – hat der Kunde im
+  /// Zubehör eine Menge der Befestigung geändert – mit den Zubehörmengen.
   static List<Materialbedarf> _bedarf(
     Planungsstand stand,
     Regelwerk? regelwerk,
@@ -270,8 +384,10 @@ class PlanungsDienst {
   ///
   /// Die Materialliste (M9-03) sammelt den Bedarf aller Flächen mal ihrer
   /// Häufigkeit: Dielen je Lieferlänge, die Befestigung in Stück (erst
-  /// die Summe wird verpackt) und das Zubehör (M8-02, M8-03); dazu die
-  /// Freidielen der ganzen Planung (M8-04). Geänderte Mengen der Planung gelten nur
+  /// die Summe wird verpackt) und das zusätzliche UK-Holz der Nutzungsart
+  /// (M6-05, `ukZusatz`), die UK-Verlegung (M6-10) und die Auflager (M6-11)
+  /// mit der UK der Fläche, das Zubehör (M8-02, M8-03) und die Freidielen der
+  /// ganzen Planung (M8-04). Geänderte Mengen der Planung gelten nur
   /// [mitMengen] – vom Server nur für Mitarbeiter gesetzt
   /// ([darfMengenAendern]).
   static Berechnung berechnePlanung(
@@ -289,18 +405,45 @@ class PlanungsDienst {
     for (final (i, f) in planung.flaechen.indexed) {
       final artikel = belag(f.stand.belag);
       final verlegung = verlegeBelag(f.stand, artikel);
-      final befestigung = _befestigung(f.stand, artikel, regelwerk, verlegung);
+      final uk = unterkonstruktion(f.stand);
+      final hoehen = _hoehen(f.stand, artikel, uk);
+      final ukv = _ukVerlegung(
+        f.stand,
+        artikel,
+        regelwerk,
+        uk,
+        verlegung,
+        hoehen,
+      );
+      final befestigung = _befestigung(
+        f.stand,
+        artikel,
+        regelwerk,
+        verlegung,
+        ukv,
+      );
       final zubehoer = _zubehoer(
         f.stand,
         artikel,
         regelwerk,
         verlegung,
         befestigung,
+        ukv,
       );
+      final zusatz = _ukZusatz(f.stand, artikel, regelwerk, uk, verlegung, ukv);
+      final auflager = _auflager(f.stand, regelwerk, uk, ukv, hoehen);
       final bearbeitet = i == planung.aktiv;
       // Höhenpunkte nur für die bearbeitete Fläche (M6-02)
       final grund = bearbeitet
-          ? _grundflaeche(f.stand, artikel, unterkonstruktion(f.stand))
+          ? _grundflaeche(
+              f.stand,
+              artikel,
+              uk,
+              regelwerk,
+              hoehen,
+              ukv,
+              auflager,
+            )
           : _grundflaeche(f.stand);
       gesamt += grund.flaeche * f.haeufigkeit;
       if (verlegung != null) {
@@ -311,6 +454,12 @@ class PlanungsDienst {
           for (final MapEntry(key: laenge, value: anzahl)
               in liste.anzahl.entries)
             Materialbedarf([artikel], anzahl, laenge: laenge),
+          for (final b in [
+            ...?ukv?.bedarf,
+            ...zusatz.bedarf,
+            ...?auflager?.bedarf,
+          ])
+            b * f.haeufigkeit,
         ]);
       }
       bedarfe.addAll([
@@ -326,6 +475,9 @@ class PlanungsDienst {
           verlegung,
           befestigung,
           zubehoer,
+          zusatz,
+          ukv,
+          auflager,
         );
       }
     }
@@ -336,25 +488,89 @@ class PlanungsDienst {
           (belag: nummer, laenge: laenge, anzahl: anzahl),
     ];
     // Freidielen der ganzen Planung (M8-04, R-B09, B-228): eigene Position
-    // mit Preis 0, einmal je Planung
+    // mit Preis 0, einmal je Planung – auch im Holzvolumen (M6-10)
     final frei = freidielenposition(
       dielenliste,
       istDiele: (n) => belaege[n]!.art == Artikelart.diele,
     );
+    final alle = [
+      ...bedarfe,
+      if (frei != null)
+        Materialbedarf(
+          [belaege[frei.belag]!],
+          frei.anzahl,
+          laenge: frei.laenge,
+          zusatz: Materialzusatz.freidiele,
+        ),
+    ];
     return aktuell.mitPlanung(
       gesamt,
       verschnitt: listen.isEmpty ? null : summe.verschnitt,
       dielenliste: dielenliste,
-      materialliste: Materialliste.aus([
-        ...bedarfe,
-        if (frei != null)
-          Materialbedarf(
-            [belaege[frei.belag]!],
-            frei.anzahl,
-            laenge: frei.laenge,
-            zusatz: Materialzusatz.freidiele,
-          ),
-      ], mengen: mitMengen ? planung.mengen : const {}),
+      materialliste: Materialliste.aus(
+        alle,
+        mengen: mitMengen ? planung.mengen : const {},
+      ),
+      volumen: holzvolumen(alle),
+    );
+  }
+
+  /// Zusätzliches UK-Holz der Nutzungsart (M6-05) – nur mit verlegtem Belag
+  /// aus Holz und bekannter [uk]; der UK-Achsabstand kommt wie bei der
+  /// Befestigung aus Belag und Holzart (R-C01), höchstens die gewählte
+  /// Feldbreite (M6-09).
+  static Ukzusatz _ukZusatz(
+    Planungsstand stand,
+    Artikel? belag,
+    Regelwerk? regelwerk,
+    Artikel? uk,
+    Belagverlegung? v,
+    UkVerlegung? verlegung,
+  ) {
+    final hoechste = belagFeldbreite(belag, regelwerk);
+    if (v == null || uk == null || hoechste == null) return Ukzusatz.keiner;
+    return ukZusatz(
+      stand,
+      uk,
+      ukAbstand: wirksameFeldbreite(stand.feldbreite, hoechste),
+      linien: verlegung?.lagen,
+    );
+  }
+
+  /// Auflager der UK-Verlegung [v] (M6-11, `auflagerbedarf`): Abstand aus
+  /// dem Regelwerk der UK (M6-08), Höhe aus den geprüften Höhenpunkten,
+  /// Bereiche der Stelzfüße und Pads; ohne Verlegung oder Aufbauhöhe keine.
+  static Auflagerbedarf? _auflager(
+    Planungsstand stand,
+    Regelwerk? regelwerk,
+    Artikel? uk,
+    UkVerlegung? v,
+    Hoehenpunkte hoehen,
+  ) {
+    final aufbau = hoehen.aufbauhoehe;
+    if (v == null || aufbau == null) return null;
+    // mit Verlegung gibt es immer eine UK
+    final artikel = uk!;
+    final daten = regelwerk?.datei[artikel.nummer] == null ? null : regelwerk;
+    return auflagerbedarf(
+      stand,
+      v,
+      uk: artikel,
+      abstand: auflagerabstand(
+        stand,
+        daten?.abstaende(artikel.nummer).stelzfuesse,
+      ),
+      flaeche: Hoehenflaeche(stand.grundriss.ecken, hoehen.hoehen),
+      aufbauhoehe: aufbau,
+      bereiche: daten == null
+          ? const []
+          : auflagerbereiche(
+              daten,
+              artikel,
+              gewerblich: stand.gewerblich,
+              auflagen: stand.auflagen,
+            ),
+      regelwerk: daten,
     );
   }
 

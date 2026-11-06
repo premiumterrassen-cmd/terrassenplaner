@@ -12,7 +12,10 @@ import '../holzart/holzart.dart';
 import '../konfiguration/befestigungsart.dart';
 import '../konfiguration/dielenverlegung.dart';
 import 'belagmeldungen.dart';
+import 'feldbreite.dart';
 import 'regelwerk.dart';
+import 'uk_verlegung.dart';
+import 'uk_zusatz.dart';
 
 /// Eine Position der Befestigung: Artikel und Anzahl Verkaufseinheiten
 /// (z. B. 2 × CLIP-FIXX VPE 250).
@@ -48,7 +51,8 @@ typedef Befestigungspunkte = ({int punkte, int randpunkte});
 /// Verlegerichtung, von [unten] bis [oben] quer dazu (mm).
 typedef Uklage = ({double anfang, double ende, double unten, double oben});
 
-/// Übergangs-Unterkonstruktion, solange die Unterkonstruktion fehlt (M6):
+/// Übergangs-Unterkonstruktion, solange keine UK verlegt ist (ohne UK-Artikel;
+/// mit UK rechnet M6-10 `ukVerlegung`):
 /// Die UK-Linien liegen quer zur Verlegerichtung gleichmäßig über die
 /// Ausdehnung der Verlegung, höchstens [ukAbstand] auseinander, die äußeren
 /// am Rand (keine Überstände, B-096) – 480 cm mit 40 cm: 13 Linien wie in
@@ -106,6 +110,44 @@ Befestigungspunkte befestigungspunkte(
     final anfang = lagen[i].anfang + _toleranz;
     final ende = lagen[i].ende - _toleranz;
     final auflagen = 2 + linien.where((x) => x > anfang && x < ende).length;
+    punkte += auflagen;
+    if (s.reihe == randreihe) randpunkte += auflagen;
+  }
+  return (punkte: punkte, randpunkte: randpunkte);
+}
+
+/// Befestigungspunkte der [stuecke] auf der UK-Verlegung [uk] (M6-10):
+/// jede Kreuzung eines Dielenstücks mit einem UK-Holz – die Achse liegt
+/// höchstens eine halbe UK-Breite vor oder hinter dem Stück, und die Mitte
+/// des Stücks quer liegt in einem Abschnitt der Linie. Am Stoß der Dielen
+/// liegt jedes Ende auf seinem Holz der doppelten UK; F01: 48 Reihen × 13
+/// Hölzer = 624 wie mit den gleichmäßigen Linien (M5-09).
+Befestigungspunkte befestigungspunkteAufUk(
+  List<Dielenstueck> stuecke,
+  UkVerlegung uk,
+) {
+  if (stuecke.isEmpty) return (punkte: 0, randpunkte: 0);
+  final drehung = -uk.winkel * math.pi / 180;
+  final halbe = uk.breite.mm / 2;
+  final randreihe = stuecke.map((s) => s.reihe).reduce(math.max);
+  var punkte = 0;
+  var randpunkte = 0;
+  for (final s in stuecke) {
+    final p = [for (final q in s.umriss) q.gedreht(drehung)];
+    final anfang = p.map((q) => q.x).reduce(math.min);
+    final ende = p.map((q) => q.x).reduce(math.max);
+    final ys = [for (final q in p) q.y];
+    final mitte = (ys.reduce(math.min) + ys.reduce(math.max)) / 2;
+    final auflagen = uk.linien
+        .where(
+          (l) =>
+              l.x > anfang - halbe &&
+              l.x < ende + halbe &&
+              l.abschnitte.any(
+                (a) => a.$1 - _toleranz <= mitte && mitte <= a.$2 + _toleranz,
+              ),
+        )
+        .length;
     punkte += auflagen;
     if (s.reihe == randreihe) randpunkte += auflagen;
   }
@@ -207,13 +249,18 @@ final class Befestigungsbedarf {
 ///
 /// Die Artikel kommen aus den Befestigungsverweisen des Belags; Preise und
 /// Verkaufseinheiten unverändert aus den Artikeldaten (B-153). Abstand der
-/// UK: der des Belags laut Artikeldaten, höchstens der der Holzart (R-C01).
+/// UK: der des Belags laut Artikeldaten, höchstens der der Holzart (R-C01),
+/// und höchstens die gewählte [feldbreite] (M6-09, `wirksameFeldbreite`).
+/// Mit der UK-Verlegung [uk] (M6-10) zählen die Kreuzungen mit den echten
+/// UK-Hölzern (`befestigungspunkteAufUk`).
 Befestigungsbedarf befestigungsbedarf(
   Regelwerk regelwerk,
   Artikel belag,
   Befestigungsart gewaehlt,
   List<Dielenstueck> stuecke, {
   required double winkel,
+  Millimeter? feldbreite,
+  UkVerlegung? uk,
 }) {
   final (holzart, serie, profil, breite) = (
     belag.holzart,
@@ -229,11 +276,13 @@ Befestigungsbedarf befestigungsbedarf(
       art == null) {
     return Befestigungsbedarf.keiner;
   }
-  final (:punkte, :randpunkte) = befestigungspunkte(
-    stuecke,
-    winkel: winkel,
-    ukAbstand: ukAbstandFuer(regelwerk, belag, holzart),
+  final ukAbstand = wirksameFeldbreite(
+    feldbreite,
+    ukAbstandFuer(holzart, regelwerk.abstaende(belag.nummer).uk),
   );
+  final (:punkte, :randpunkte) = uk == null
+      ? befestigungspunkte(stuecke, winkel: winkel, ukAbstand: ukAbstand)
+      : befestigungspunkteAufUk(stuecke, uk);
   final moeglich = regelwerk.moeglich(belag.nummer, Beziehung.befestigung);
   final bedarf = [
     for (final (einheiten, stueck, jePlanung) in switch (art) {
@@ -268,15 +317,6 @@ Befestigungsbedarf befestigungsbedarf(
     ],
     bedarf: bedarf,
   );
-}
-
-/// UK-Achsabstand für den [belag]: der Abstand laut Artikeldaten, höchstens
-/// der der [holzart] (R-C01).
-Millimeter ukAbstandFuer(Regelwerk regelwerk, Artikel belag, Holzart holzart) {
-  final ukArtikel = regelwerk.abstaende(belag.nummer).uk;
-  return ukArtikel != null && ukArtikel < holzart.ukAchsabstandMax
-      ? ukArtikel
-      : holzart.ukAchsabstandMax;
 }
 
 /// Meldungen zur Befestigung des [belag] mit der gewählten Art [gewaehlt]

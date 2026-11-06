@@ -413,6 +413,55 @@ void main() {
       },
     );
 
+    test('auf der UK-Verlegung (M6-10): Kreuzungen mit den echten Hölzern', () {
+      final uk = Artikel(
+        nummer: const Artikelnummer('10-10-031'),
+        titel: 'UK',
+        art: Artikelart.unterkonstruktion,
+        einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+        abmessungen: Abmessungen(
+          breite: const Millimeter(40),
+          staerke: const Millimeter(60),
+        ),
+        holzart: robinie,
+        serie: basic,
+      );
+      final dielen = _verlegt();
+      final eng = ukVerlegung(
+        Planungsstand.start,
+        uk,
+        abstand: const Millimeter(300),
+        dielen: dielen,
+      );
+      final b = befestigungsbedarf(
+        regelwerk,
+        _genutet60,
+        Befestigungsart.clips,
+        dielen,
+        winkel: 0,
+        uk: eng,
+      );
+      // 17 Hölzer (30 cm), die Feldbreite des Aufrufs gilt dann nicht
+      expect(b.punkte, 48 * 17);
+    });
+
+    test('Feldbreite (M6-09): 30 cm statt 40 cm – mehr UK-Linien, mehr '
+        'Clips; über der Firmenregel gilt 40 cm (R-C01)', () {
+      int punkte(int? feldbreite) => befestigungsbedarf(
+        regelwerk,
+        _genutet60,
+        Befestigungsart.clips,
+        _verlegt(),
+        winkel: 0,
+        feldbreite: feldbreite == null ? null : Millimeter(feldbreite),
+      ).punkte;
+      // 480 cm: 13 Linien mit 40 cm, 17 mit 30 cm – je 48 Reihen
+      expect(punkte(null), 624);
+      expect(punkte(300), 48 * 17);
+      expect(punkte(400), 624);
+      expect(punkte(600), 624);
+    });
+
     test('PREMIUM SELECT genutet ab 100 mm: DUO-CLIP-FIXX (Abnahme, B-094, '
         'B-150)', () {
       final b = befestigungsbedarf(

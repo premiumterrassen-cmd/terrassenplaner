@@ -1174,6 +1174,18 @@ abstract class PlanerTexte {
   /// **'Nutzung privat oder gewerblich'**
   String get unterkonstruktion8;
 
+  /// No description provided for @unterkonstruktion9.
+  ///
+  /// In de, this message translates to:
+  /// **'Auflagen'**
+  String get unterkonstruktion9;
+
+  /// No description provided for @unterkonstruktion10.
+  ///
+  /// In de, this message translates to:
+  /// **'Maximale Feldbreite'**
+  String get unterkonstruktion10;
+
   /// No description provided for @terrassenanschluss1.
   ///
   /// In de, this message translates to:
@@ -1977,6 +1989,234 @@ abstract class PlanerTexte {
   /// In de, this message translates to:
   /// **'Die Länge ergibt sich, sobald eine Unterkonstruktion gewählt ist.'**
   String get ukLaengeOhneUk;
+
+  /// No description provided for @untergrundFrage.
+  ///
+  /// In de, this message translates to:
+  /// **'Auf welchem Untergrund wird die Terrasse aufgebaut?'**
+  String get untergrundFrage;
+
+  /// No description provided for @untergrundSchotter.
+  ///
+  /// In de, this message translates to:
+  /// **'Schotter (verdichtet)'**
+  String get untergrundSchotter;
+
+  /// No description provided for @untergrundBeton.
+  ///
+  /// In de, this message translates to:
+  /// **'Beton'**
+  String get untergrundBeton;
+
+  /// No description provided for @untergrundBitumen.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitumenabdichtung'**
+  String get untergrundBitumen;
+
+  /// No description provided for @untergrundHinweis.
+  ///
+  /// In de, this message translates to:
+  /// **'Der Untergrund hilft uns bei den Hinweisen zum Unterbau; die Materialliste ändert er nicht.'**
+  String get untergrundHinweis;
+
+  /// No description provided for @nutzungsartSchwimmend.
+  ///
+  /// In de, this message translates to:
+  /// **'schwimmende Verlegung'**
+  String get nutzungsartSchwimmend;
+
+  /// No description provided for @nutzungsartVersteifungOhneRahmen.
+  ///
+  /// In de, this message translates to:
+  /// **'Versteifung ohne Rahmen'**
+  String get nutzungsartVersteifungOhneRahmen;
+
+  /// No description provided for @nutzungsartRahmen.
+  ///
+  /// In de, this message translates to:
+  /// **'Rahmen'**
+  String get nutzungsartRahmen;
+
+  /// No description provided for @nutzungsartVersteifungMitRahmen.
+  ///
+  /// In de, this message translates to:
+  /// **'Versteifung mit Rahmen'**
+  String get nutzungsartVersteifungMitRahmen;
+
+  /// No description provided for @nutzungsartDoppelteUk.
+  ///
+  /// In de, this message translates to:
+  /// **'doppelte Unterkonstruktion'**
+  String get nutzungsartDoppelteUk;
+
+  /// No description provided for @nutzungsartVerwindung.
+  ///
+  /// In de, this message translates to:
+  /// **'Achtung: Ohne Bodenbefestigung kann sich eine schwimmend verlegte Unterkonstruktion verwinden. Eine Versteifung oder ein Rahmen hält sie in Form.'**
+  String get nutzungsartVerwindung;
+
+  /// No description provided for @querstrebenFrage.
+  ///
+  /// In de, this message translates to:
+  /// **'Möchten Sie zusätzliche Querstreben hinzufügen?'**
+  String get querstrebenFrage;
+
+  /// No description provided for @querstrebenAbstand.
+  ///
+  /// In de, this message translates to:
+  /// **'Querstreben kommen als Leiterverband zwischen die UK-Hölzer; automatisch alle 60 cm.'**
+  String get querstrebenAbstand;
+
+  /// No description provided for @querstrebenAnzahl.
+  ///
+  /// In de, this message translates to:
+  /// **'Anzahl der Quertraversen'**
+  String get querstrebenAnzahl;
+
+  /// No description provided for @querstrebenAnzahlUngueltig.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte eine ganze Zahl von 1 bis 99 eingeben'**
+  String get querstrebenAnzahlUngueltig;
+
+  /// No description provided for @nutzungPrivat.
+  ///
+  /// In de, this message translates to:
+  /// **'private Nutzung'**
+  String get nutzungPrivat;
+
+  /// No description provided for @nutzungGewerblich.
+  ///
+  /// In de, this message translates to:
+  /// **'gewerbliche Nutzung'**
+  String get nutzungGewerblich;
+
+  /// No description provided for @stellfuesse.
+  ///
+  /// In de, this message translates to:
+  /// **'Passende Stellfüße:'**
+  String get stellfuesse;
+
+  /// No description provided for @stellfuesseKeine.
+  ///
+  /// In de, this message translates to:
+  /// **'Für die gewählte Unterkonstruktion sind keine Stellfüße hinterlegt.'**
+  String get stellfuesseKeine;
+
+  /// No description provided for @auflagenStelzfuesse.
+  ///
+  /// In de, this message translates to:
+  /// **'Mit Stelzfüßen'**
+  String get auflagenStelzfuesse;
+
+  /// No description provided for @auflagenStelzfuesseUndPads.
+  ///
+  /// In de, this message translates to:
+  /// **'Mit Stelzfüßen und Pads'**
+  String get auflagenStelzfuesseUndPads;
+
+  /// No description provided for @auflagerAbstand.
+  ///
+  /// In de, this message translates to:
+  /// **'Abstand der Auflager längs der Unterkonstruktion: höchstens {cm} cm'**
+  String auflagerAbstand(String cm);
+
+  /// No description provided for @auflagerListe.
+  ///
+  /// In de, this message translates to:
+  /// **'Auflager laut Artikeldaten:'**
+  String get auflagerListe;
+
+  /// No description provided for @auflagerBereich.
+  ///
+  /// In de, this message translates to:
+  /// **'{titel}: {von} bis {bis} mm'**
+  String auflagerBereich(String titel, int von, int bis);
+
+  /// No description provided for @auflagerPad.
+  ///
+  /// In de, this message translates to:
+  /// **'{titel}: {dicke} mm'**
+  String auflagerPad(String titel, int dicke);
+
+  /// No description provided for @auflagerHoehen.
+  ///
+  /// In de, this message translates to:
+  /// **'Mögliche Höhe (Oberkante Belag bis Boden): {von} bis {bis} cm'**
+  String auflagerHoehen(String von, String bis);
+
+  /// No description provided for @auflagerUnter.
+  ///
+  /// In de, this message translates to:
+  /// **'Ein Höhenpunkt liegt unter der Mindesthöhe von {cm} cm mit Stelzfüßen. Wählen Sie Stelzfüße und Pads oder einen höheren Höhenpunkt.'**
+  String auflagerUnter(String cm);
+
+  /// No description provided for @auflagerUeber.
+  ///
+  /// In de, this message translates to:
+  /// **'Ein Höhenpunkt liegt über der Höchsthöhe von {cm} cm mit Stelzfüßen. Wählen Sie die Hochterrasse oder einen niedrigeren Höhenpunkt.'**
+  String auflagerUeber(String cm);
+
+  /// No description provided for @auflagerKeine.
+  ///
+  /// In de, this message translates to:
+  /// **'Für die gewählte Unterkonstruktion sind keine Auflager mit Höhenangaben hinterlegt.'**
+  String get auflagerKeine;
+
+  /// No description provided for @auflagerHochterrasse.
+  ///
+  /// In de, this message translates to:
+  /// **'Bei der Hochterrasse steht die Unterkonstruktion auf Stützen aus UK-Holz mit Bodenankern.'**
+  String get auflagerHochterrasse;
+
+  /// No description provided for @auflagerVorhandeneUk.
+  ///
+  /// In de, this message translates to:
+  /// **'Bei vorhandener Unterkonstruktion wird die neue UK mit Bodenankern auf den vorhandenen Trägern befestigt; der Abstand ist die Spannweite.'**
+  String get auflagerVorhandeneUk;
+
+  /// No description provided for @hoehenzuordnung.
+  ///
+  /// In de, this message translates to:
+  /// **'Höhenzuordnung der Auflager (Spalt unter der UK):'**
+  String get hoehenzuordnung;
+
+  /// No description provided for @hoehenzuordnungZeile.
+  ///
+  /// In de, this message translates to:
+  /// **'{titel}: {anzahl} Stück für {von} bis {bis} mm'**
+  String hoehenzuordnungZeile(String titel, int anzahl, int von, int bis);
+
+  /// No description provided for @auflagerOhneHoehe.
+  ///
+  /// In de, this message translates to:
+  /// **'{anzahl} Auflager ohne passendes Höhenmaß'**
+  String auflagerOhneHoehe(int anzahl);
+
+  /// No description provided for @feldbreiteHinweis.
+  ///
+  /// In de, this message translates to:
+  /// **'Höchster Abstand der UK-Hölzer (Achsabstand). Firmenregel: höchstens 40 cm, sicherer unter 35 cm.'**
+  String get feldbreiteHinweis;
+
+  /// No description provided for @feldbreiteCm.
+  ///
+  /// In de, this message translates to:
+  /// **'{cm} cm'**
+  String feldbreiteCm(String cm);
+
+  /// No description provided for @feldbreiteBegrenzt.
+  ///
+  /// In de, this message translates to:
+  /// **'Die gewählte Feldbreite überschreitet die Firmenregel; gerechnet wird mit {cm} cm.'**
+  String feldbreiteBegrenzt(String cm);
+
+  /// No description provided for @feldbreiteOhneBelag.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Feldbreite hängt vom Belag ab: Wählen Sie zuerst einen Belag aus Holz.'**
+  String get feldbreiteOhneBelag;
 
   /// No description provided for @automatisch.
   ///

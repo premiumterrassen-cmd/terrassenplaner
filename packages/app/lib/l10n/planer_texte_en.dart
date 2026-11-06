@@ -598,6 +598,12 @@ class PlanerTexteEn extends PlanerTexte {
   String get unterkonstruktion8 => 'Private or commercial use';
 
   @override
+  String get unterkonstruktion9 => 'Supports';
+
+  @override
+  String get unterkonstruktion10 => 'Maximum field width';
+
+  @override
   String get terrassenanschluss1 => 'Adjacent building elements';
 
   @override
@@ -1073,6 +1079,152 @@ class PlanerTexteEn extends PlanerTexte {
   @override
   String get ukLaengeOhneUk =>
       'The length follows as soon as a substructure is selected.';
+
+  @override
+  String get untergrundFrage => 'What surface will the terrace be built on?';
+
+  @override
+  String get untergrundSchotter => 'Gravel (compacted)';
+
+  @override
+  String get untergrundBeton => 'Concrete';
+
+  @override
+  String get untergrundBitumen => 'Bitumen sealing';
+
+  @override
+  String get untergrundHinweis =>
+      'The surface helps us give the right advice on the base; it does not change the material list.';
+
+  @override
+  String get nutzungsartSchwimmend => 'Floating installation';
+
+  @override
+  String get nutzungsartVersteifungOhneRahmen => 'Bracing without frame';
+
+  @override
+  String get nutzungsartRahmen => 'Frame';
+
+  @override
+  String get nutzungsartVersteifungMitRahmen => 'Bracing with frame';
+
+  @override
+  String get nutzungsartDoppelteUk => 'Double substructure';
+
+  @override
+  String get nutzungsartVerwindung =>
+      'Note: without anchoring to the ground, a floating substructure can twist. Bracing or a frame keeps it in shape.';
+
+  @override
+  String get querstrebenFrage =>
+      'Would you like to add additional cross braces?';
+
+  @override
+  String get querstrebenAbstand =>
+      'Cross braces form a ladder between the substructure joists; automatically every 60 cm.';
+
+  @override
+  String get querstrebenAnzahl => 'Number of cross brace rows';
+
+  @override
+  String get querstrebenAnzahlUngueltig =>
+      'Please enter a whole number from 1 to 99';
+
+  @override
+  String get nutzungPrivat => 'Private use';
+
+  @override
+  String get nutzungGewerblich => 'Commercial use';
+
+  @override
+  String get stellfuesse => 'Suitable adjustable feet:';
+
+  @override
+  String get stellfuesseKeine =>
+      'No adjustable feet are listed for the selected substructure.';
+
+  @override
+  String get auflagenStelzfuesse => 'With adjustable feet';
+
+  @override
+  String get auflagenStelzfuesseUndPads => 'With adjustable feet and pads';
+
+  @override
+  String auflagerAbstand(String cm) {
+    return 'Spacing of the supports along the substructure: at most $cm cm';
+  }
+
+  @override
+  String get auflagerListe => 'Supports according to the article data:';
+
+  @override
+  String auflagerBereich(String titel, int von, int bis) {
+    return '$titel: $von to $bis mm';
+  }
+
+  @override
+  String auflagerPad(String titel, int dicke) {
+    return '$titel: $dicke mm';
+  }
+
+  @override
+  String auflagerHoehen(String von, String bis) {
+    return 'Possible height (top of decking to ground): $von to $bis cm';
+  }
+
+  @override
+  String auflagerUnter(String cm) {
+    return 'A height point lies below the minimum height of $cm cm with adjustable feet. Choose feet and pads or a higher height point.';
+  }
+
+  @override
+  String auflagerUeber(String cm) {
+    return 'A height point lies above the maximum height of $cm cm with adjustable feet. Choose the raised terrace or a lower height point.';
+  }
+
+  @override
+  String get auflagerKeine =>
+      'No supports with heights are listed for the selected substructure.';
+
+  @override
+  String get auflagerHochterrasse =>
+      'For a raised terrace the substructure stands on posts made of substructure timber with ground anchors.';
+
+  @override
+  String get auflagerVorhandeneUk =>
+      'With an existing substructure the new one is fixed to the existing joists with ground anchors; the spacing is the span.';
+
+  @override
+  String get hoehenzuordnung =>
+      'Height assignment of the supports (gap below the substructure):';
+
+  @override
+  String hoehenzuordnungZeile(String titel, int anzahl, int von, int bis) {
+    return '$titel: $anzahl pcs for $von to $bis mm';
+  }
+
+  @override
+  String auflagerOhneHoehe(int anzahl) {
+    return '$anzahl supports without a matching height';
+  }
+
+  @override
+  String get feldbreiteHinweis =>
+      'Largest spacing of the substructure joists (centre to centre). Company rule: at most 40 cm, safer below 35 cm.';
+
+  @override
+  String feldbreiteCm(String cm) {
+    return '$cm cm';
+  }
+
+  @override
+  String feldbreiteBegrenzt(String cm) {
+    return 'The chosen field width exceeds the company rule; $cm cm is used.';
+  }
+
+  @override
+  String get feldbreiteOhneBelag =>
+      'The field width depends on the decking: choose a timber decking first.';
 
   @override
   String get automatisch => 'Automatic';

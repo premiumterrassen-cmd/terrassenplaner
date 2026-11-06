@@ -8,6 +8,18 @@ import '../artikel/einheiten.dart';
 /// Abstand der Querstreben (Leiterverband) (R-C03, Alexander).
 const querstrebenAbstand = Millimeter(600);
 
+/// Höchster Abstand der Querstreben-Reihen bei der Nutzungsart Versteifung
+/// (Leiterverband, M6-05). Annahme aus den Referenzkonfigurationen F31/F33:
+/// der alte Planer setzt bei 309 cm UK-Länge zwei Reihen – das ergibt
+/// höchstens der doppelte Querstreben-Abstand.
+const versteifungsAbstand = Millimeter(1200);
+
+/// Abstand der Auflager längs der UK, wenn die Artikeldaten der UK keinen
+/// nennen (M6-08): 60 cm wie `Abstand_Stelzfuesse` der Robinien-UK ab
+/// 40 × 60 mm; mit ihm stehen in F28 je UK-Linie à 309 cm sieben Auflager
+/// (13 × 7 = 91 Bodenanker wie im alten Planer).
+const auflagerAbstandVorgabe = Millimeter(600);
+
 /// Fuge zwischen zwei Dielen (R-B06, Alexander).
 const fuge = Millimeter(5);
 

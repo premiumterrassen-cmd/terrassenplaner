@@ -1231,6 +1231,845 @@ void main() {
     });
   });
 
+  group('Art der Terrassennutzung (M6-05)', () {
+    Artikel holz(String nummer, Artikelart art, int breite, int staerke) =>
+        Artikel(
+          nummer: Artikelnummer(nummer),
+          titel: nummer,
+          art: art,
+          einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+          abmessungen: Abmessungen(
+            breite: Millimeter(breite),
+            staerke: Millimeter(staerke),
+            laengen: const [Millimeter(4000), Millimeter(5000)],
+          ),
+          holzart: robinie,
+          serie: basic,
+          profil: art == Artikelart.diele ? Profil.genutet : null,
+        );
+    final diele = holz('10-10-073', Artikelart.diele, 60, 21);
+    final uk = holz('10-10-031', Artikelart.unterkonstruktion, 40, 60);
+    Map<(String, int?), int> zeilen(Materialliste m) => {
+      for (final p in m.positionen) (p.nummer.wert, p.laenge?.mm): p.anzahl,
+    };
+    Berechnung rechne(
+      Planung planung, {
+      Artikel? mitUk,
+      Regelwerk? regelwerk,
+      Artikel? belag,
+    }) => PlanungsDienst.berechnePlanung(
+      planung,
+      (_) => belag ?? diele,
+      regelwerk,
+      false,
+      (_) => mitUk,
+    );
+
+    test('Rahmen: 2 × 5000 mm in Material- und Stückliste (F32)', () {
+      final stand = Planungsstand.start.mitNutzungsart(Nutzungsart.rahmen);
+      final b = rechne(Planung.start.mitStand(stand), mitUk: uk);
+      expect(zeilen(b.materialliste)[('10-10-031', 5000)], 2);
+      // dazu die UK-Verlegung (M6-10): 13 Hölzer à 309 cm aus 4000 mm
+      expect(zeilen(b.materialliste)[('10-10-031', 4000)], 13);
+      expect(b.stueckliste.zeilen.where((z) => z.nummer == uk.nummer), [
+        const Stuecklistenzeile(
+          nummer: Artikelnummer('10-10-031'),
+          titel: '10-10-031',
+          laenge: Millimeter(4800),
+          stueck: 2,
+          farbe: Stueckfarbe.blau,
+        ),
+        const Stuecklistenzeile(
+          nummer: Artikelnummer('10-10-031'),
+          titel: '10-10-031',
+          laenge: Millimeter(3090),
+          stueck: 13,
+          farbe: Stueckfarbe.blau,
+        ),
+      ]);
+      // die Farben im Plan bleiben die der Dielen
+      expect(b.stueckfarben, hasLength(b.dielen.length));
+      // schwimmend (F01): nur die UK-Hölzer, kein zusätzliches Holz
+      final f01 = rechne(Planung.start, mitUk: uk);
+      expect(
+        zeilen(f01.materialliste).keys
+            .where((k) => k.$1 == '10-10-031')
+            .toList(),
+        [('10-10-031', 4000)],
+      );
+    });
+
+    test('alle Flächen mal Häufigkeit; ohne UK, ohne Holzbelag oder ohne '
+        'Dielen keins', () {
+      final stand = Planungsstand.start.mitNutzungsart(Nutzungsart.rahmen);
+      final planung = Planung.start
+          .mitStand(stand)
+          .mitHaeufigkeit(2)
+          .mitNeuerFlaeche()
+          .mitStand(stand);
+      expect(
+        zeilen(rechne(planung, mitUk: uk).materialliste)[('10-10-031', 5000)],
+        6,
+      );
+      expect(
+        zeilen(rechne(planung).materialliste).keys.map((k) => k.$1),
+        isNot(contains('10-10-031')),
+      );
+      final fliese = Artikel(
+        nummer: const Artikelnummer('10-20-001'),
+        titel: 'Fliese',
+        art: Artikelart.holzfliese,
+        einheit: Verkaufseinheit(Mengeneinheit.stueck),
+        abmessungen: Abmessungen(staerke: const Millimeter(40)),
+      );
+      expect(
+        rechne(planung, mitUk: uk, belag: fliese).materialliste.istLeer,
+        isTrue,
+      );
+      final offen = Planung.start.mitStand(
+        Planungsstand(
+          grundriss: FreiformGrundriss(const [Punkt(0, 0), Punkt(1000, 0)]),
+        ).mitNutzungsart(Nutzungsart.rahmen),
+      );
+      expect(rechne(offen, mitUk: uk).materialliste.istLeer, isTrue);
+    });
+
+    test('Querstreben (M6-06): Zeichnung, Anzahl und Mengen der '
+        'bearbeiteten Fläche', () {
+      final stand = Planungsstand.start.mitQuerstreben(true);
+      final b = rechne(Planung.start.mitStand(stand), mitUk: uk);
+      expect(b.querstreben, hasLength(60));
+      // zwischen den UK-Hölzern der Verlegung (M6-10): Achsen 20 mm vom Rand,
+      // 4760 / 12 = 396,7 mm auseinander, Strebe 356,7 mm
+      expect(b.querstreben.first.von, const Punkt(40, 515));
+      expect(b.querstrebenReihen, 5);
+      expect(
+        b.stueckliste.zeilen.singleWhere((z) => z.farbe == Stueckfarbe.gruen),
+        const Stuecklistenzeile(
+          nummer: Artikelnummer('10-10-031'),
+          titel: '10-10-031',
+          laenge: Millimeter(357),
+          stueck: 60,
+          farbe: Stueckfarbe.gruen,
+        ),
+      );
+      final drei = rechne(
+        Planung.start.mitStand(stand.mitQuerstrebenReihen(3)),
+        mitUk: uk,
+      );
+      expect(drei.querstreben, hasLength(36));
+      expect(drei.querstrebenReihen, 3);
+      // ohne Querstreben und ohne Rahmen keine; mit Rahmen keine Reihen
+      final ohne = rechne(Planung.start, mitUk: uk);
+      expect(ohne.querstreben, isEmpty);
+      expect(ohne.querstrebenReihen, isNull);
+      final rahmen = rechne(
+        Planung.start.mitStand(
+          Planungsstand.start.mitNutzungsart(Nutzungsart.rahmen),
+        ),
+        mitUk: uk,
+      );
+      expect(rahmen.querstrebenReihen, isNull);
+      // im Transportformat zur App
+      expect(Berechnung.ausBytes(b.zuBytes()).querstreben, b.querstreben);
+    });
+
+    test('doppelte UK im Achsabstand des Belags (Regelwerk) und mit zwei '
+        'Lagen in der Höhenprüfung', () {
+      final stand = Planungsstand.start.mitNutzungsart(Nutzungsart.doppelteUk);
+      // ohne Regelwerk: Achsabstand der Holzart, 9 Lagen à 480 cm (F34)
+      expect(
+        zeilen(rechne(Planung.start.mitStand(stand), mitUk: uk).materialliste)[(
+          '10-10-031',
+          5000,
+        )],
+        9,
+      );
+      final regelwerk = Regelwerk(
+        Artikeldatei(
+          quelle: 'test',
+          version: '1',
+          eintraege: [
+            Artikeleintrag(artikel: diele, angaben: const {'Abstand_UK': 350}),
+          ],
+        ),
+      );
+      final b = rechne(
+        Planung.start.mitStand(stand),
+        mitUk: uk,
+        regelwerk: regelwerk,
+      );
+      // 309 cm mit 35 cm: 9 Felder, 10 Lagen
+      expect(zeilen(b.materialliste)[('10-10-031', 5000)], 10);
+      // Belag 21 mm + 2 × 40 mm: 8,6 cm wird auf 10,1 cm korrigiert
+      expect(b.hoehenpunkte.mindesthoehe, const Millimeter(101));
+      expect(b.hoehenpunkte.korrigiert, isTrue);
+      // ein Regelwerk, das den Belag nicht kennt: Achsabstand der Holzart
+      final fremd = Regelwerk(
+        Artikeldatei(quelle: 't', version: '2', eintraege: const []),
+      );
+      expect(
+        zeilen(
+          rechne(
+            Planung.start.mitStand(stand),
+            mitUk: uk,
+            regelwerk: fremd,
+          ).materialliste,
+        )[('10-10-031', 5000)],
+        9,
+      );
+    });
+  });
+
+  group('Nutzung privat oder gewerblich (M6-07)', () {
+    Artikel artikel(String nummer, Artikelart art) => Artikel(
+      nummer: Artikelnummer(nummer),
+      titel: 'Artikel $nummer',
+      art: art,
+      einheit: Verkaufseinheit(Mengeneinheit.stueck),
+    );
+    final uk = Artikel(
+      nummer: const Artikelnummer('10-10-031'),
+      titel: 'UK',
+      art: Artikelart.unterkonstruktion,
+      einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+      abmessungen: Abmessungen(
+        breite: const Millimeter(40),
+        staerke: const Millimeter(60),
+      ),
+      holzart: robinie,
+      serie: basic,
+    );
+    final privat = artikel('70-10-001', Artikelart.stellfuss);
+    final gewerblich = artikel('70-10-002', Artikelart.stellfuss);
+    final regelwerk = Regelwerk(
+      Artikeldatei(
+        quelle: 'test',
+        version: '1',
+        eintraege: [
+          Artikeleintrag(
+            artikel: uk,
+            verweise: {
+              Beziehung.stellfussPrivat.spalte: [privat.nummer],
+              Beziehung.stellfussGewerblich.spalte: [
+                gewerblich.nummer,
+                privat.nummer,
+              ],
+            },
+          ),
+          Artikeleintrag(artikel: privat),
+          Artikeleintrag(artikel: gewerblich),
+        ],
+      ),
+    );
+    List<String> fuesse(Planungsstand stand, {Regelwerk? mit, Artikel? zu}) => [
+      for (final f in PlanungsDienst.berechnePlanung(
+        Planung.start.mitStand(stand),
+        (_) => null,
+        mit,
+        false,
+        (_) => zu,
+      ).stellfuesse)
+        f.nummer.wert,
+    ];
+
+    test('Stellfußauswahl folgt dem Regelwerk der UK', () {
+      expect(fuesse(Planungsstand.start, mit: regelwerk, zu: uk), [
+        '70-10-001',
+      ]);
+      expect(
+        fuesse(Planungsstand.start.mitGewerblich(true), mit: regelwerk, zu: uk),
+        ['70-10-002', '70-10-001'],
+      );
+      final b = PlanungsDienst.berechnePlanung(
+        Planung.start,
+        (_) => null,
+        regelwerk,
+        false,
+        (_) => uk,
+      );
+      expect(b.stellfuesse.single.titel, 'Artikel 70-10-001');
+      expect(Berechnung.ausBytes(b.zuBytes()).stellfuesse, b.stellfuesse);
+    });
+
+    test('mit Belag und Dielen ebenso; ohne UK oder unbekannt: keine', () {
+      final diele = Artikel(
+        nummer: const Artikelnummer('10-10-073'),
+        titel: 'Diele',
+        art: Artikelart.diele,
+        einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+        abmessungen: Abmessungen(
+          breite: const Millimeter(60),
+          staerke: const Millimeter(21),
+          laengen: const [Millimeter(5000)],
+        ),
+        holzart: robinie,
+        serie: basic,
+        profil: Profil.genutet,
+      );
+      final mitDielen = PlanungsDienst.berechnePlanung(
+        Planung.start,
+        (_) => diele,
+        regelwerk,
+        false,
+        (_) => uk,
+      );
+      expect(mitDielen.dielen, isNotEmpty);
+      expect(mitDielen.stellfuesse, hasLength(1));
+      expect(fuesse(Planungsstand.start, mit: regelwerk), isEmpty);
+      expect(fuesse(Planungsstand.start, zu: uk), isEmpty);
+      final fremd = Regelwerk(
+        Artikeldatei(quelle: 't', version: '2', eintraege: const []),
+      );
+      expect(fuesse(Planungsstand.start, mit: fremd, zu: uk), isEmpty);
+    });
+  });
+
+  group('Auflagen: Stelzfüße und Pads (M6-08)', () {
+    Artikel artikel(String nummer, Artikelart art) => Artikel(
+      nummer: Artikelnummer(nummer),
+      titel: 'Artikel $nummer',
+      art: art,
+      einheit: Verkaufseinheit(Mengeneinheit.stueck),
+    );
+    final uk = Artikel(
+      nummer: const Artikelnummer('10-10-031'),
+      titel: 'UK',
+      art: Artikelart.unterkonstruktion,
+      einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+      abmessungen: Abmessungen(
+        breite: const Millimeter(40),
+        staerke: const Millimeter(60),
+      ),
+      holzart: robinie,
+      serie: basic,
+    );
+    final diele = Artikel(
+      nummer: const Artikelnummer('10-10-073'),
+      titel: 'Diele',
+      art: Artikelart.diele,
+      einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+      abmessungen: Abmessungen(
+        breite: const Millimeter(60),
+        staerke: const Millimeter(21),
+        laengen: const [Millimeter(5000)],
+      ),
+      holzart: robinie,
+      serie: basic,
+      profil: Profil.genutet,
+    );
+    final pad = artikel('50-60-005', Artikelart.pad);
+    final fuss = artikel('60-55-110', Artikelart.stellfuss);
+    final regelwerk = Regelwerk(
+      Artikeldatei(
+        quelle: 'test',
+        version: '1',
+        eintraege: [
+          Artikeleintrag(
+            artikel: uk,
+            verweise: {
+              Beziehung.stellfussPrivat.spalte: [fuss.nummer],
+              Beziehung.unterlegpads.spalte: [pad.nummer],
+            },
+            angaben: const {'Abstand_Stelzfuesse': 500},
+          ),
+          Artikeleintrag(
+            artikel: pad,
+            angaben: const {'MinHoehe': 5, 'MaxHoehe': 5},
+          ),
+          Artikeleintrag(
+            artikel: fuss,
+            angaben: const {'MinHoehe': 35, 'MaxHoehe': 55},
+          ),
+        ],
+      ),
+    );
+    Unterbau unterbau(Planungsstand stand, {Artikel? belag}) =>
+        Berechnung.ausBytes(
+          PlanungsDienst.berechnePlanung(
+            Planung.start.mitStand(stand),
+            (_) => belag,
+            regelwerk,
+            false,
+            (_) => uk,
+          ).zuBytes(),
+        ).unterbau;
+
+    test('Abstand und Höhenbereiche aus dem Regelwerk der UK', () {
+      final u = unterbau(Planungsstand.start, belag: diele);
+      expect(u.auflagerabstand, const Millimeter(500));
+      expect(
+        [for (final a in u.auflager) a.titel],
+        ['Artikel 50-60-005', 'Artikel 60-55-110'],
+      );
+      // Belag 21 mm + UK 60 mm = 81 mm; Pads ab 0, Füße bis 55 mm
+      expect(u.hoeheVon, const Millimeter(81));
+      expect(u.hoeheBis, const Millimeter(136));
+      expect(u.meldungen, isEmpty);
+    });
+
+    test('Höhengrenzen mit Meldung: ohne Pads zu niedrig, zu hoch', () {
+      final nurFuesse = Planungsstand.start.mitAuflagen(Auflagen.stelzfuesse);
+      expect(unterbau(nurFuesse, belag: diele).meldungen, [
+        Auflagermeldung.unterMindesthoehe,
+      ]);
+      expect(
+        unterbau(
+          Planungsstand.start.mitHoehe(const Millimeter(200)),
+          belag: diele,
+        ).meldungen,
+        [Auflagermeldung.ueberHoechsthoehe],
+      );
+      // ohne Belag ungeprüft: keine Grenzen, keine Meldung
+      final ohne = unterbau(nurFuesse);
+      expect(ohne.auflager, hasLength(1));
+      expect(ohne.hoeheVon, isNull);
+      expect(ohne.meldungen, isEmpty);
+    });
+  });
+
+  group('Maximale Feldbreite (M6-09)', () {
+    final clip = Artikel(
+      nummer: const Artikelnummer('80-10-001-250'),
+      titel: 'CLIP-FIXX - VPE 250',
+      art: Artikelart.clip,
+      einheit: Verkaufseinheit(Mengeneinheit.verpackungseinheit, inhalt: 250),
+    );
+    final diele = Artikel(
+      nummer: const Artikelnummer('10-10-073'),
+      titel: 'Diele',
+      art: Artikelart.diele,
+      einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+      abmessungen: Abmessungen(
+        breite: const Millimeter(60),
+        staerke: const Millimeter(21),
+        laengen: const [Millimeter(5000)],
+      ),
+      holzart: robinie,
+      serie: basic,
+      profil: Profil.genutet,
+    );
+    final uk = Artikel(
+      nummer: const Artikelnummer('10-10-031'),
+      titel: 'UK',
+      art: Artikelart.unterkonstruktion,
+      einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+      abmessungen: Abmessungen(
+        breite: const Millimeter(40),
+        staerke: const Millimeter(60),
+      ),
+      holzart: robinie,
+      serie: basic,
+    );
+    final regelwerk = Regelwerk(
+      Artikeldatei(
+        quelle: 'test',
+        version: '1',
+        eintraege: [
+          Artikeleintrag(
+            artikel: diele,
+            verweise: {
+              Beziehung.befestigung.spalte: [clip.nummer],
+            },
+          ),
+          Artikeleintrag(artikel: clip),
+          Artikeleintrag(artikel: uk),
+        ],
+      ),
+    );
+    Berechnung rechne(Planungsstand stand) => Berechnung.ausBytes(
+      PlanungsDienst.berechnePlanung(
+        Planung.start.mitStand(stand),
+        (_) => diele,
+        regelwerk,
+        false,
+        (_) => uk,
+      ).zuBytes(),
+    );
+
+    test('Auswahl und wirksame Feldbreite; 30 cm: mehr UK-Linien für '
+        'Befestigung und zusätzliches UK-Holz', () {
+      final auto = rechne(
+        Planungsstand.start.mitNutzungsart(Nutzungsart.doppelteUk),
+      );
+      expect(auto.unterbau.feldbreiten, const [
+        Millimeter(300),
+        Millimeter(350),
+        Millimeter(400),
+      ]);
+      expect(auto.unterbau.feldbreite, const Millimeter(400));
+      expect(auto.befestigung.punkte, 624);
+      final eng = rechne(
+        Planungsstand.start
+            .mitNutzungsart(Nutzungsart.doppelteUk)
+            .mitFeldbreite(const Millimeter(300)),
+      );
+      expect(eng.unterbau.feldbreite, const Millimeter(300));
+      expect(eng.unterbau.feldbreiteBegrenzt, isFalse);
+      expect(eng.befestigung.punkte, 48 * 17);
+      int laengs(Berechnung b) =>
+          b.stueckliste.zeilen.fold(0, (n, z) => n + z.stueck);
+      // UK-Verlegung 17 statt 13 Hölzer (M6-10), zweite Lage: 309 cm mit
+      // 30 cm → 12 statt 9 Hölzer
+      expect(laengs(eng) - laengs(auto), 4 + 3);
+      final zuBreit = rechne(
+        Planungsstand.start.mitFeldbreite(const Millimeter(600)),
+      );
+      expect(zuBreit.unterbau.feldbreite, const Millimeter(400));
+      expect(zuBreit.unterbau.feldbreiteBegrenzt, isTrue);
+      expect(zuBreit.befestigung.punkte, 624);
+    });
+  });
+
+  group('UK-Verlegung (M6-10)', () {
+    final clip = Artikel(
+      nummer: const Artikelnummer('80-10-001-250'),
+      titel: 'CLIP-FIXX - VPE 250',
+      art: Artikelart.clip,
+      einheit: Verkaufseinheit(Mengeneinheit.verpackungseinheit, inhalt: 250),
+    );
+    final diele = Artikel(
+      nummer: const Artikelnummer('10-10-073'),
+      titel: 'Diele',
+      art: Artikelart.diele,
+      einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+      abmessungen: Abmessungen(
+        breite: const Millimeter(60),
+        staerke: const Millimeter(21),
+        laengen: const [Millimeter(5000)],
+      ),
+      holzart: robinie,
+      serie: basic,
+      profil: Profil.genutet,
+    );
+    final uk = Artikel(
+      nummer: const Artikelnummer('10-10-031'),
+      titel: 'UK',
+      art: Artikelart.unterkonstruktion,
+      einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+      abmessungen: Abmessungen(
+        breite: const Millimeter(40),
+        staerke: const Millimeter(60),
+      ),
+      holzart: robinie,
+      serie: basic,
+    );
+    final regelwerk = Regelwerk(
+      Artikeldatei(
+        quelle: 'test',
+        version: '1',
+        eintraege: [
+          Artikeleintrag(
+            artikel: diele,
+            verweise: {
+              Beziehung.befestigung.spalte: [clip.nummer],
+            },
+          ),
+          Artikeleintrag(artikel: clip),
+          Artikeleintrag(artikel: uk),
+        ],
+      ),
+    );
+    Berechnung rechne(Planung planung, {Artikel? mitUk}) => Berechnung.ausBytes(
+      PlanungsDienst.berechnePlanung(
+        planung,
+        (_) => diele,
+        regelwerk,
+        false,
+        (_) => mitUk,
+      ).zuBytes(),
+    );
+    int? anzahl(Berechnung b, String nummer, int laenge) => b
+        .materialliste
+        .positionen
+        .where((p) => p.nummer.wert == nummer && p.laenge?.mm == laenge)
+        .firstOrNull
+        ?.anzahl;
+
+    test('F01: 13 × 4000 mm in Material- und Stückliste, Hölzer in der '
+        'Zeichnung, Befestigung auf den Hölzern, Holzvolumen', () {
+      final b = rechne(Planung.start, mitUk: uk);
+      expect(anzahl(b, '10-10-031', 4000), 13);
+      expect(b.stueckliste.zeilen.where((z) => z.nummer == uk.nummer), [
+        const Stuecklistenzeile(
+          nummer: Artikelnummer('10-10-031'),
+          titel: 'UK',
+          laenge: Millimeter(3090),
+          stueck: 13,
+          farbe: Stueckfarbe.blau,
+        ),
+      ]);
+      expect(b.unterbau.hoelzer, hasLength(13));
+      expect(b.unterbau.holzbreite, const Millimeter(40));
+      expect(b.befestigung.punkte, 624);
+      // 48 Dielen à 5 m 60 × 21 + Freidiele (M8-04) + 13 UK à 4 m 40 × 60
+      expect(b.volumen, closeTo(0.3024 + 0.0063 + 0.1248, 1e-9));
+      // ohne UK: Dielen allein, Befestigung auf gleichmäßigen Linien
+      final ohne = rechne(Planung.start);
+      expect(ohne.volumen, closeTo(0.3024 + 0.0063, 1e-9));
+      expect(ohne.unterbau.hoelzer, isEmpty);
+      expect(ohne.befestigung.punkte, 624);
+      // ohne Grundriss mit Fläche kein Volumen
+      final offen = rechne(
+        Planung.start.mitStand(
+          Planungsstand(
+            grundriss: FreiformGrundriss(const [Punkt(0, 0), Punkt(1000, 0)]),
+          ),
+        ),
+        mitUk: uk,
+      );
+      expect(offen.volumen, isNull);
+    });
+
+    test('alle Flächen mal Häufigkeit; die UK dreht mit (M6-02, B-034)', () {
+      final planung = Planung.start.mitHaeufigkeit(2);
+      final b = rechne(planung, mitUk: uk);
+      expect(anzahl(b, '10-10-031', 4000), 26);
+      // 96 Dielen: zwei Freidielen (B-079)
+      expect(b.volumen, closeTo(2 * (0.3024 + 0.0063 + 0.1248), 1e-9));
+      // 7 cm: UK flach, in der Draufsicht 60 mm breit
+      final flach = rechne(
+        Planung.start.mitStand(
+          Planungsstand.start.mitHoehe(const Millimeter(70)),
+        ),
+        mitUk: uk,
+      );
+      expect(flach.unterbau.holzbreite, const Millimeter(60));
+    });
+
+    test('Zubehör (M8-02) auf der UK-Verlegung: Gummiband über die Länge der '
+        'Hölzer, Clips nur einmal in der Materialliste', () {
+      final band = Artikel(
+        nummer: const Artikelnummer('50-60-001'),
+        titel: 'Gummiband 10m-Rolle 75 mm',
+        art: Artikelart.gummiband,
+        einheit: Verkaufseinheit(Mengeneinheit.stueck),
+        abmessungen: Abmessungen(laengen: const [Millimeter(10000)]),
+      );
+      final mitBand = Regelwerk(
+        Artikeldatei(
+          quelle: 'test',
+          version: '2',
+          eintraege: [
+            Artikeleintrag(
+              artikel: diele,
+              verweise: {
+                Beziehung.befestigung.spalte: [clip.nummer],
+                Beziehung.zubehoer.spalte: [band.nummer],
+              },
+            ),
+            Artikeleintrag(artikel: clip),
+            Artikeleintrag(artikel: band),
+            Artikeleintrag(artikel: uk),
+          ],
+        ),
+      );
+      Berechnung mit(Planungsstand stand) => PlanungsDienst.berechnePlanung(
+        Planung.start.mitStand(stand),
+        (_) => diele,
+        mitBand,
+        false,
+        (_) => uk,
+      );
+      int? menge(Berechnung b, Artikel a) =>
+          b.zubehoer.where((z) => z.nummer == a.nummer).firstOrNull?.menge;
+      int clips(Berechnung b) => b.materialliste.positionen
+          .where((p) => p.nummer == clip.nummer)
+          .fold(0, (n, p) => n + p.anzahl);
+      // F01: 13 Hölzer à 309 cm = 40,17 m → 5 Rollen wie im alten Planer
+      final f01 = mit(Planungsstand.start);
+      expect(menge(f01, band), 5);
+      // 624 + 13 Randpunkte = 637 Clips → 3 VPE 250, einmal
+      expect(menge(f01, clip), 3);
+      expect(clips(f01), 3);
+      // Feldbreite 30 cm: 17 Hölzer → 6 Rollen, mehr Clips
+      final eng = mit(Planungsstand.start.mitFeldbreite(const Millimeter(300)));
+      expect(menge(eng, band), 6);
+      expect(clips(eng), 4);
+      // im Zubehör geänderte Clips gelten statt der Befestigung (M8-01)
+      final geaendert = mit(
+        Planungsstand.start.mitZubehoermenge(clip.nummer, 5),
+      );
+      expect(clips(geaendert), 5);
+    });
+
+    test('einzelne Fläche (berechne) mit UK-Verlegung', () {
+      final b = PlanungsDienst.berechne(
+        Planungsstand.start,
+        diele,
+        regelwerk,
+        uk,
+      );
+      expect(b.unterbau.hoelzer, hasLength(13));
+      expect(b.befestigung.punkte, 624);
+      expect(
+        b.stueckliste.zeilen.where((z) => z.nummer == uk.nummer),
+        hasLength(1),
+      );
+    });
+  });
+
+  group('Stelzfüße und Pads mit Höhenzuordnung (M6-11)', () {
+    Artikel artikel(String nummer, Artikelart art, {int inhalt = 1}) => Artikel(
+      nummer: Artikelnummer(nummer),
+      titel: 'Artikel $nummer',
+      art: art,
+      einheit: Verkaufseinheit(Mengeneinheit.karton, inhalt: inhalt),
+    );
+    final diele = Artikel(
+      nummer: const Artikelnummer('10-10-073'),
+      titel: 'Diele',
+      art: Artikelart.diele,
+      einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+      abmessungen: Abmessungen(
+        breite: const Millimeter(60),
+        staerke: const Millimeter(21),
+        laengen: const [Millimeter(5000)],
+      ),
+      holzart: robinie,
+      serie: basic,
+      profil: Profil.genutet,
+    );
+    final uk = Artikel(
+      nummer: const Artikelnummer('10-10-031'),
+      titel: 'UK',
+      art: Artikelart.unterkonstruktion,
+      einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+      abmessungen: Abmessungen(
+        breite: const Millimeter(40),
+        staerke: const Millimeter(60),
+      ),
+      holzart: robinie,
+      serie: basic,
+    );
+    final pad = artikel('50-60-005', Artikelart.pad, inhalt: 70);
+    final fuss = artikel('60-55-136', Artikelart.stellfuss, inhalt: 20);
+    final anker = artikel('70-20-001', Artikelart.bodenanker);
+    final regelwerk = Regelwerk(
+      Artikeldatei(
+        quelle: 'test',
+        version: '1',
+        eintraege: [
+          Artikeleintrag(artikel: diele),
+          Artikeleintrag(
+            artikel: uk,
+            verweise: {
+              Beziehung.stellfussPrivat.spalte: [fuss.nummer],
+              Beziehung.unterlegpads.spalte: [pad.nummer],
+            },
+            angaben: const {'Abstand_Stelzfuesse': 600},
+          ),
+          Artikeleintrag(
+            artikel: pad,
+            angaben: const {'MinHoehe': 5, 'MaxHoehe': 5},
+          ),
+          Artikeleintrag(
+            artikel: fuss,
+            angaben: const {'MinHoehe': 55, 'MaxHoehe': 95},
+          ),
+          Artikeleintrag(artikel: anker),
+        ],
+      ),
+    );
+    Berechnung rechne(Planung planung, {Regelwerk? mit}) => Berechnung.ausBytes(
+      PlanungsDienst.berechnePlanung(
+        planung,
+        (_) => diele,
+        mit ?? regelwerk,
+        false,
+        (_) => uk,
+      ).zuBytes(),
+    );
+    int? anzahl(Berechnung b, Artikel a) => b.materialliste.positionen
+        .where((p) => p.nummer == a.nummer)
+        .firstOrNull
+        ?.anzahl;
+
+    test('F01: 91 Auflager mit Pad, Höhenzuordnung, Materialliste verpackt '
+        'über alle Flächen', () {
+      final b = rechne(Planung.start);
+      expect(b.unterbau.auflagerpunkte, hasLength(91));
+      // 86 − 21 − 60 = 5 mm
+      expect(b.unterbau.auflagerpunkte.first.spalt, const Millimeter(5));
+      expect(b.unterbau.zuordnung.single.titel, 'Artikel 50-60-005');
+      expect(b.unterbau.zuordnung.single.anzahl, 91);
+      expect(anzahl(b, pad), 2);
+      final doppelt = rechne(Planung.start.mitHaeufigkeit(2));
+      expect(anzahl(doppelt, pad), 3);
+    });
+
+    test('Gefälle: Höhe je Auflager, hohe Seite auf Füßen; zu hoch ohne '
+        'Auflager', () {
+      final stand = Planungsstand.start
+          .mitGefaelle(true)
+          .mitEckhoehe(0, const Millimeter(150))
+          .mitEckhoehe(1, const Millimeter(150));
+      final b = rechne(Planung.start.mitStand(stand));
+      final titel = {for (final z in b.unterbau.zuordnung) z.titel: z.anzahl};
+      // Spalt je Holz 69, 58, 48, 37, 26, 16, 5 mm: 55–95 mm passt für die
+      // ersten beiden, 48 und 37 liegen näher am Fuß, 26 und 16 näher am
+      // Pad (Lücke: der nächste Bereich, M6-08), 5 mm ist das Pad
+      expect(
+        [for (final p in b.unterbau.auflagerpunkte.take(7)) p.spalt.mm],
+        [69, 58, 48, 37, 26, 16, 5],
+      );
+      expect(titel, {'Artikel 50-60-005': 39, 'Artikel 60-55-136': 52});
+      expect(b.unterbau.auflagerpunkte.every((p) => p.zeile != null), isTrue);
+      // zu hoch (über 95 mm Spalt): ohne Auflager
+      final hoch = rechne(
+        Planung.start.mitStand(stand.mitEckhoehe(0, const Millimeter(200))),
+      );
+      expect(
+        hoch.unterbau.auflagerpunkte.where((p) => p.zeile == null),
+        isNotEmpty,
+      );
+      expect(anzahl(b, fuss), 3);
+    });
+
+    test('Hochterrasse: Stützen in der Stückliste, Bodenanker; vorhandene '
+        'UK: Bodenanker; ohne Belag keine Auflager', () {
+      final hoch = rechne(
+        Planung.start.mitStand(
+          Planungsstand.start.mitTerrassenart(Terrassenart.hochterrasse),
+        ),
+      );
+      expect(anzahl(hoch, anker), 91);
+      expect(
+        hoch.stueckliste.zeilen.where((z) => z.farbe == Stueckfarbe.gruen),
+        isNotEmpty,
+      );
+      final vorhanden = rechne(
+        Planung.start.mitStand(
+          Planungsstand.start.mitTerrassenart(Terrassenart.vorhandeneUk),
+        ),
+      );
+      expect(anzahl(vorhanden, anker), 65);
+      final ohneBelag = Berechnung.ausBytes(
+        PlanungsDienst.berechnePlanung(
+          Planung.start,
+          (_) => null,
+          regelwerk,
+          false,
+          (_) => uk,
+        ).zuBytes(),
+      );
+      expect(ohneBelag.unterbau.auflagerpunkte, isEmpty);
+      // Regelwerk kennt die UK nicht: Auflager ohne Zuordnung
+      final fremd = rechne(
+        Planung.start,
+        mit: Regelwerk(
+          Artikeldatei(
+            quelle: 't',
+            version: '2',
+            eintraege: [Artikeleintrag(artikel: diele)],
+          ),
+        ),
+      );
+      expect(fremd.unterbau.auflagerpunkte, hasLength(91));
+      expect(fremd.unterbau.zuordnung, isEmpty);
+    });
+  });
+
   test('ungültige Maße sind ein Fehler', () async {
     final fbb = fb.Builder();
     final masse = fbb.writeListInt32([4800, 100]);

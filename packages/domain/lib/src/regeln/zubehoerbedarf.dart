@@ -12,8 +12,11 @@ import '../artikel/einheiten.dart';
 import '../konfiguration/befestigungsart.dart';
 import '../konfiguration/dielenverlegung.dart';
 import 'befestigungsbedarf.dart';
+import 'feldbreite.dart';
 import 'planungsregeln.dart';
 import 'regelwerk.dart';
+import 'uk_verlegung.dart';
+import 'uk_zusatz.dart';
 
 /// Eine Zeile im Schritt „Zubehör“: vom Planer berechnete Menge und die
 /// Menge „Tatsächlich“ – eingegeben oder, ohne Eingabe, die berechnete
@@ -66,21 +69,25 @@ final class Zubehoerposition {
 /// - **Bit TX25** (Allgemein): eines bei Verschraubung, wie im alten Planer
 ///   (F24); bei Clips nicht (F01).
 /// - **Gummiband** (Pads & EPDM-Bänder, R-C04, B-039): das erste Band aus
-///   dem Zubehör des Belags für die ganze Länge der Unterkonstruktion
-///   ([ukLaenge]); die Rollen eines Kartons stehen im Titel („10 Rollen à
+///   dem Zubehör des Belags für die ganze Länge der Unterkonstruktion: die
+///   Hölzer der UK-Verlegung [uk] (M6-10, `UkVerlegung.laenge`), ohne sie
+///   die Übergangs-UK ([ukLaenge]) im Abstand der wirksamen [feldbreite]
+///   (M6-09); die Rollen eines Kartons stehen im Titel („10 Rollen à
 ///   10 m“).
 /// - **Terrassenöl** (RIBOL): die erste Sorte aus dem Zubehör des Belags,
 ///   [oelJeQuadratmeter] je m² Belagfläche der [stuecke] (R-D05), in ihren
 ///   Gebinden mit möglichst wenig Überhang ([verpackt]).
 ///
-/// Solange die Unterkonstruktion fehlt (M6), liegt sie wie bei der
-/// Befestigung gleichmäßig im Abstand der Artikeldaten (`uebergangsUk`).
+/// Clips und Schrauben zählt die Befestigung auf denselben UK-Hölzern
+/// (`befestigungspunkteAufUk`).
 Map<Artikelnummer, int> berechnetesZubehoer(
   Regelwerk regelwerk,
   Artikel belag,
   Befestigungsbedarf befestigung,
   List<Dielenstueck> stuecke, {
   required double winkel,
+  Millimeter? feldbreite,
+  UkVerlegung? uk,
 }) {
   final zubehoer = regelwerk.moeglich(belag.nummer, Beziehung.zubehoer);
   final verschraubt =
@@ -99,11 +106,18 @@ Map<Artikelnummer, int> berechnetesZubehoer(
     if ((band, holzart) case ((final a, final je)?, final h?)
         when stuecke.isNotEmpty)
       a.nummer:
-          (ukLaenge(
-                    stuecke,
-                    winkel: winkel,
-                    ukAbstand: ukAbstandFuer(regelwerk, belag, h),
-                  ) /
+          ((uk?.laenge ??
+                      ukLaenge(
+                        stuecke,
+                        winkel: winkel,
+                        ukAbstand: wirksameFeldbreite(
+                          feldbreite,
+                          ukAbstandFuer(
+                            h,
+                            regelwerk.abstaende(belag.nummer).uk,
+                          ),
+                        ),
+                      )) /
                   je)
               .ceil(),
     for (final (a, anzahl) in _oel(zubehoer, belagflaeche(stuecke)))

@@ -48,14 +48,16 @@ final class Hoehenpunkte {
 Hoehenpunkte pruefeHoehen(
   List<Millimeter> hoehen, {
   required Terrassenart art,
+  bool doppelteUk = false,
   Millimeter? dielenstaerke,
   UkMasse? uk,
 }) {
   if (dielenstaerke == null || uk == null) return Hoehenpunkte(hoehen: hoehen);
+  final lagen = doppelteUk ? 2 : art.ukLagen;
   final hochkant = Millimeter(math.max(uk.a.mm, uk.b.mm));
   final flach = Millimeter(math.min(uk.a.mm, uk.b.mm));
-  final stehend = dielenstaerke + hochkant * art.ukLagen;
-  final liegend = dielenstaerke + flach * art.ukLagen;
+  final stehend = dielenstaerke + hochkant * lagen;
+  final liegend = dielenstaerke + flach * lagen;
   final gedreht = flach < hochkant && hoehen.any((h) => h < stehend);
   return Hoehenpunkte(
     hoehen: [for (final h in hoehen) h < liegend ? liegend : h],

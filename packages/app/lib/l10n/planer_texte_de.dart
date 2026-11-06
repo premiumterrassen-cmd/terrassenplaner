@@ -598,6 +598,12 @@ class PlanerTexteDe extends PlanerTexte {
   String get unterkonstruktion8 => 'Nutzung privat oder gewerblich';
 
   @override
+  String get unterkonstruktion9 => 'Auflagen';
+
+  @override
+  String get unterkonstruktion10 => 'Maximale Feldbreite';
+
+  @override
   String get terrassenanschluss1 => 'Angrenzende Bauelemente';
 
   @override
@@ -1074,6 +1080,153 @@ class PlanerTexteDe extends PlanerTexte {
   @override
   String get ukLaengeOhneUk =>
       'Die Länge ergibt sich, sobald eine Unterkonstruktion gewählt ist.';
+
+  @override
+  String get untergrundFrage =>
+      'Auf welchem Untergrund wird die Terrasse aufgebaut?';
+
+  @override
+  String get untergrundSchotter => 'Schotter (verdichtet)';
+
+  @override
+  String get untergrundBeton => 'Beton';
+
+  @override
+  String get untergrundBitumen => 'Bitumenabdichtung';
+
+  @override
+  String get untergrundHinweis =>
+      'Der Untergrund hilft uns bei den Hinweisen zum Unterbau; die Materialliste ändert er nicht.';
+
+  @override
+  String get nutzungsartSchwimmend => 'schwimmende Verlegung';
+
+  @override
+  String get nutzungsartVersteifungOhneRahmen => 'Versteifung ohne Rahmen';
+
+  @override
+  String get nutzungsartRahmen => 'Rahmen';
+
+  @override
+  String get nutzungsartVersteifungMitRahmen => 'Versteifung mit Rahmen';
+
+  @override
+  String get nutzungsartDoppelteUk => 'doppelte Unterkonstruktion';
+
+  @override
+  String get nutzungsartVerwindung =>
+      'Achtung: Ohne Bodenbefestigung kann sich eine schwimmend verlegte Unterkonstruktion verwinden. Eine Versteifung oder ein Rahmen hält sie in Form.';
+
+  @override
+  String get querstrebenFrage =>
+      'Möchten Sie zusätzliche Querstreben hinzufügen?';
+
+  @override
+  String get querstrebenAbstand =>
+      'Querstreben kommen als Leiterverband zwischen die UK-Hölzer; automatisch alle 60 cm.';
+
+  @override
+  String get querstrebenAnzahl => 'Anzahl der Quertraversen';
+
+  @override
+  String get querstrebenAnzahlUngueltig =>
+      'Bitte eine ganze Zahl von 1 bis 99 eingeben';
+
+  @override
+  String get nutzungPrivat => 'private Nutzung';
+
+  @override
+  String get nutzungGewerblich => 'gewerbliche Nutzung';
+
+  @override
+  String get stellfuesse => 'Passende Stellfüße:';
+
+  @override
+  String get stellfuesseKeine =>
+      'Für die gewählte Unterkonstruktion sind keine Stellfüße hinterlegt.';
+
+  @override
+  String get auflagenStelzfuesse => 'Mit Stelzfüßen';
+
+  @override
+  String get auflagenStelzfuesseUndPads => 'Mit Stelzfüßen und Pads';
+
+  @override
+  String auflagerAbstand(String cm) {
+    return 'Abstand der Auflager längs der Unterkonstruktion: höchstens $cm cm';
+  }
+
+  @override
+  String get auflagerListe => 'Auflager laut Artikeldaten:';
+
+  @override
+  String auflagerBereich(String titel, int von, int bis) {
+    return '$titel: $von bis $bis mm';
+  }
+
+  @override
+  String auflagerPad(String titel, int dicke) {
+    return '$titel: $dicke mm';
+  }
+
+  @override
+  String auflagerHoehen(String von, String bis) {
+    return 'Mögliche Höhe (Oberkante Belag bis Boden): $von bis $bis cm';
+  }
+
+  @override
+  String auflagerUnter(String cm) {
+    return 'Ein Höhenpunkt liegt unter der Mindesthöhe von $cm cm mit Stelzfüßen. Wählen Sie Stelzfüße und Pads oder einen höheren Höhenpunkt.';
+  }
+
+  @override
+  String auflagerUeber(String cm) {
+    return 'Ein Höhenpunkt liegt über der Höchsthöhe von $cm cm mit Stelzfüßen. Wählen Sie die Hochterrasse oder einen niedrigeren Höhenpunkt.';
+  }
+
+  @override
+  String get auflagerKeine =>
+      'Für die gewählte Unterkonstruktion sind keine Auflager mit Höhenangaben hinterlegt.';
+
+  @override
+  String get auflagerHochterrasse =>
+      'Bei der Hochterrasse steht die Unterkonstruktion auf Stützen aus UK-Holz mit Bodenankern.';
+
+  @override
+  String get auflagerVorhandeneUk =>
+      'Bei vorhandener Unterkonstruktion wird die neue UK mit Bodenankern auf den vorhandenen Trägern befestigt; der Abstand ist die Spannweite.';
+
+  @override
+  String get hoehenzuordnung =>
+      'Höhenzuordnung der Auflager (Spalt unter der UK):';
+
+  @override
+  String hoehenzuordnungZeile(String titel, int anzahl, int von, int bis) {
+    return '$titel: $anzahl Stück für $von bis $bis mm';
+  }
+
+  @override
+  String auflagerOhneHoehe(int anzahl) {
+    return '$anzahl Auflager ohne passendes Höhenmaß';
+  }
+
+  @override
+  String get feldbreiteHinweis =>
+      'Höchster Abstand der UK-Hölzer (Achsabstand). Firmenregel: höchstens 40 cm, sicherer unter 35 cm.';
+
+  @override
+  String feldbreiteCm(String cm) {
+    return '$cm cm';
+  }
+
+  @override
+  String feldbreiteBegrenzt(String cm) {
+    return 'Die gewählte Feldbreite überschreitet die Firmenregel; gerechnet wird mit $cm cm.';
+  }
+
+  @override
+  String get feldbreiteOhneBelag =>
+      'Die Feldbreite hängt vom Belag ab: Wählen Sie zuerst einen Belag aus Holz.';
 
   @override
   String get automatisch => 'Automatisch';
