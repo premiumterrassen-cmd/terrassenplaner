@@ -4,7 +4,7 @@
 
 - **Fachmodul:** `UuidV7` (RFC 9562, zeitlich sortierbare globale IDs) und `Hlc`/`HlcUhr` (Hybrid Logical Clock, Text `MMMMMMMMMMMMM-ZZZZ-knoten`, lexikografisch sortierbar).
 - **Server** `lib/src/datenhaltung/`: `Basisdatensatz` (uid, partition, hlc, knoten, geloeschtAm, schema – ObjectBox-`id` bleibt intern), Entitäten `Aenderung` (Änderungsprotokoll, `knoten:seq` eindeutig) und `Benutzer` (Mitarbeiter-Zugang, Partition `global`). `Datenbank`: speichern/löschen (Grabstein) mit Protokolleintrag in **derselben Transaktion**, lückenlose Sequenz je Knoten, `aenderungenSeit`, Kennzahlen (Dateigröße, Sequenz, Anzahl), konsistente Sicherung (Kopie der Datenbankdatei in einer Schreibtransaktion).
-- **Auth-Server:** Mitarbeiter-Zugänge aus ObjectBox (`PLANER_DATENVERZEICHNIS`, `PLANER_KNOTEN`); `PLANER_MITARBEITER_DATEI` wird beim Start übernommen (neu/geändert schreiben, gleich überspringen).
+- **Auth-Server:** Mitarbeiter-Konten in ObjectBox (`PLANER_DATENVERZEICHNIS`, `PLANER_KNOTEN`), verwaltet über WAMP-Prozeduren des Auth-Servers mit `bin/mitarbeiter.dart` (M9-10, `docs/betrieb/mitarbeiter.md`); die frühere Mitarbeiter-Datei entfällt.
 - **Code-Erzeugung:** `objectbox_generator` + `build_runner` → `lib/objectbox.g.dart` und `lib/objectbox-model.json` (**beide committen** – die Modell-Datei hält die festen IDs des Schemas). Nach Änderungen an Entitäten: `cd packages/server && dart run build_runner build --delete-conflicting-outputs`.
 
 ## Native Bibliothek
@@ -14,5 +14,4 @@
 
 ## Offen
 
-- Geplante Sicherung auf dem Server (Zeitplan, Aufbewahrung, Ablage außerhalb des Servers) – mit M0-14/M10-03.
-- ObjectBox erlaubt einen Prozess je Datenbank: Verwaltung von Mitarbeitern künftig über WAMP-Prozeduren des Auth-Servers statt über Dateien.
+- Ablage der Sicherungen außerhalb des Servers (braucht Ziel und Zugangsdaten von Alexander). Die geplante Sicherung selbst gibt es seit M10-03: Der Dienst kopiert seine Datenbank auf SIGUSR1 im laufenden Betrieb und öffnet die Kopie zur Probe (`Sicherungsdienst`), weil ObjectBox nur einen Prozess je Datenbank erlaubt – Ablauf in `docs/betrieb/sicherung.md`.

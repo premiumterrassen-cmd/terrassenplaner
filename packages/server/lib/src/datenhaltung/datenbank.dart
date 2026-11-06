@@ -141,17 +141,22 @@ class Datenbank {
     anzahl: {
       'Benutzer': store.box<Benutzer>().count(),
       'Aenderung': store.box<Aenderung>().count(),
+      // Konfigurationen des Routers (M9-05).
+      'Konfiguration': store.box<Konfiguration>().count(),
+      'KonfigurationsVersion': store.box<KonfigurationsVersion>().count(),
     },
   );
 
   /// Konsistente Sicherung: kopiert die Datenbankdatei innerhalb einer
   /// Schreibtransaktion nach [zielVerzeichnis] – andere Schreiber warten so
-  /// lange, die Kopie ist damit in sich stimmig.
-  void sichere(String zielVerzeichnis) {
+  /// lange, die Kopie ist damit in sich stimmig. Liefert die letzte
+  /// Sequenznummer, die in der Kopie steckt.
+  int sichere(String zielVerzeichnis) {
     Directory(zielVerzeichnis).createSync(recursive: true);
-    store.runInTransaction(TxMode.write, () {
+    return store.runInTransaction(TxMode.write, () {
       File(p.join(verzeichnis, 'data.mdb'))
           .copySync(p.join(zielVerzeichnis, 'data.mdb'));
+      return letzteSequenz;
     });
   }
 

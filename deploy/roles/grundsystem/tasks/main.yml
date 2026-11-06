@@ -40,6 +40,10 @@
       PasswordAuthentication no
       KbdInteractiveAuthentication no
       PermitRootLogin prohibit-password
+      # Härtung (M10-03)
+      PermitEmptyPasswords no
+      X11Forwarding no
+      LoginGraceTime 30
     mode: "0644"
     # Ausschnitt allein prüfen (Standardwerte für alles Übrige).
     validate: /usr/sbin/sshd -t -f %s
@@ -52,5 +56,39 @@
 - name: Datenverzeichnis anlegen
   ansible.builtin.file:
     path: "{{ planer_daten }}"
+    state: directory
+    mode: "0755"
+
+- name: Kernel-Härtung (sysctl)
+  ansible.builtin.copy:
+    dest: /etc/sysctl.d/90-planer.conf
+    content: |
+      # Verwaltet von Ansible (Terrassenplaner) – Härtung (M10-03)
+      {% for name, wert in grundsystem_sysctl.items() %}
+      {{ name }} = {{ wert }}
+      {% endfor %}
+    mode: "0644"
+  notify: Kernel-Einstellungen anwenden
+
+- name: Verzeichnis für Journal-Einstellungen
+  ansible.builtin.file:
+    path: /etc/systemd/journald.conf.d
+    state: directory
+    mode: "0755"
+
+- name: Journal begrenzen (Log-Rotation)
+  ansible.builtin.copy:
+    dest: /etc/systemd/journald.conf.d/90-planer.conf
+    content: |
+      # Verwaltet von Ansible (Terrassenplaner) – Log-Rotation (M10-03)
+      [Journal]
+      SystemMaxUse={{ grundsystem_journal_groesse }}
+      MaxRetentionSec={{ grundsystem_journal_aufbewahrung }}
+    mode: "0644"
+  notify: Journal neu starten
+
+- name: Verzeichnis für Textdatei-Metriken des Node-Exporters
+  ansible.builtin.file:
+    path: "{{ planer_textdatei_metriken }}"
     state: directory
     mode: "0755"

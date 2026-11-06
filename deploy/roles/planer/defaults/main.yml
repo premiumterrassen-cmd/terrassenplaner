@@ -9,6 +9,11 @@ planer_router_health: 127.0.0.1:8081
 planer_auth_listen: 127.0.0.1:8082
 planer_auth_health: 127.0.0.1:8083
 planer_datenbank_metriken: 127.0.0.1:8084
+# Datenbank-Kennzahlen des Routers (Konfigurationen, M10-03)
+planer_router_datenbank_metriken: 127.0.0.1:8085
+# Ablage der Sicherungskopie je Dienst (SIGUSR1, M10-03) und Textdateien des Node-Exporters
+planer_sicherung_unterordner: sicherung
+planer_textdatei_metriken: /var/lib/prometheus/node-exporter
 planer_web_port: 8090
 planer_ws_pfad: /ws
 planer_realm: de.robinienwelt.terrassenplaner

@@ -8,7 +8,13 @@
   _flutter.loader.load({
     // Renderer (CanvasKit/Skwasm) vom eigenen Server statt von gstatic.com:
     // keine Anfragen an Google beim Start und messbarer Ladefortschritt.
-    config: { canvasKitBaseUrl: 'canvaskit/' },
+    // Ersatzschriften für Zeichen außerhalb von Roboto ebenfalls nicht von
+    // fonts.gstatic.com (M10-05, Datenschutz): Der Pfad ist bewusst leer (404),
+    // solche Zeichen erscheinen als Ersatzkästchen.
+    config: {
+      canvasKitBaseUrl: 'canvaskit/',
+      fontFallbackBaseUrl: 'schriften-ersatz/'
+    },
     onEntrypointLoaded: async function (engineInitializer) {
       try {
         ladebild.phase('initialisieren');

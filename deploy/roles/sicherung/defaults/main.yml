@@ -1,8 +1,26 @@
-# Tägliche Sicherung (M0-17): zunächst die Grafana-Daten (SQLite).
-# Die ObjectBox-Sicherung kommt mit M10-03 hinzu.
+# Tägliche Sicherung: Grafana-Daten (M0-17) und die ObjectBox-Datenbanken
+# von Router (Konfigurationen) und Auth-Server (Mitarbeiter) (M10-03).
 sicherung_verzeichnis: /var/backups/terrassenplaner
 sicherung_aufbewahrung_tage: 14
+# Sonntags zusätzlich eine Wochensicherung, die länger bleibt.
+sicherung_aufbewahrung_wochen: 12
 sicherung_zeitpunkt: "*-*-* 03:15:00"
+# Wartezeit auf die Kopie des Dienstes (Sekunden).
+sicherung_wartezeit: 120
 # Grafana-Datenbank je Betriebsart; im Container liegt sie im Volume „grafana-daten“.
 sicherung_grafana_systemd: /var/lib/grafana/grafana.db
 sicherung_grafana_volume: terrassenplaner_grafana-daten
+# ObjectBox-Datenbanken: Kurzname, systemd-Dienst, Container, Volume.
+sicherung_objectbox:
+  - name: router
+    dienst: planer-router
+    container: terrassenplaner-router-1
+    compose_dienst: router
+    volume: terrassenplaner_router-daten
+    health: "{{ planer_router_health }}"
+  - name: auth
+    dienst: planer-auth
+    container: terrassenplaner-auth-1
+    compose_dienst: auth
+    volume: terrassenplaner_auth-daten
+    health: "{{ planer_auth_health }}"

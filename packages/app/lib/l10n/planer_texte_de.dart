@@ -916,6 +916,47 @@ class PlanerTexteDe extends PlanerTexte {
   String get gewaehlt => 'Gewählt';
 
   @override
+  String get anmelden => 'ANMELDEN';
+
+  @override
+  String get abmelden => 'ABMELDEN';
+
+  @override
+  String angemeldetAls(String email) {
+    return 'Angemeldet als $email';
+  }
+
+  @override
+  String get anmeldenTitel => 'Login';
+
+  @override
+  String get anmeldenHinweis => 'Nur für Mitarbeiter von ALTO HOLZ.';
+
+  @override
+  String get emailFeld => 'E-Mail-Adresse';
+
+  @override
+  String get passwortFeld => 'Passwort';
+
+  @override
+  String get anmeldenKnopf => 'Anmelden';
+
+  @override
+  String get anmeldungAbgelehnt =>
+      'Anmeldung nicht möglich. Bitte prüfen Sie E-Mail-Adresse und Passwort – nach mehreren Fehlversuchen ist das Konto für 15 Minuten gesperrt.';
+
+  @override
+  String get anmeldungFehler =>
+      'Die Anmeldung ist nicht möglich – der Server ist nicht erreichbar.';
+
+  @override
+  String get abgemeldetMeldung => 'Sie sind abgemeldet.';
+
+  @override
+  String get nummerHinweisMitarbeiter =>
+      'Als Mitarbeiter genügt die Konfigurationsnummer – der Prüfcode darf fehlen.';
+
+  @override
   String get terrassenartNormal => 'Normale Terrasse';
 
   @override

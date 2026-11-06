@@ -56,10 +56,31 @@ jobs:
           path: coverage/
           if-no-files-found: ignore
 
-  mutation-tests:
-    name: Mutation-Tests (≥ 95 %)
+  # Nur geänderte Dateien, aufgeteilt auf parallele Teile: große Änderungen
+  # (z. B. M6-04–11) sprengten in einem Job das 6-Stunden-Limit von GitHub.
+  # Die Schwelle (95 % je Paket) prüft die Summe aller Teile im Job darunter.
+  mutation-teil:
+    name: Mutation ${{ matrix.paket }} (${{ matrix.teil }}/${{ matrix.von }})
     needs: unit-tests
     runs-on: ubuntu-latest
+    # Unter dem GitHub-Limit, damit die Summe den Teil sicher als fehlend meldet.
+    timeout-minutes: 345
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { paket: domain, teil: 1, von: 4 }
+          - { paket: domain, teil: 2, von: 4 }
+          - { paket: domain, teil: 3, von: 4 }
+          - { paket: domain, teil: 4, von: 4 }
+          - { paket: server, teil: 1, von: 2 }
+          - { paket: server, teil: 2, von: 2 }
+          - { paket: app, teil: 1, von: 6 }
+          - { paket: app, teil: 2, von: 6 }
+          - { paket: app, teil: 3, von: 6 }
+          - { paket: app, teil: 4, von: 6 }
+          - { paket: app, teil: 5, von: 6 }
+          - { paket: app, teil: 6, von: 6 }
     steps:
       - uses: actions/checkout@v7
         with:
@@ -72,17 +93,33 @@ jobs:
           cache: true
       - run: flutter pub get
       - run: tool/objectbox_bibliothek.sh
-      - run: tool/mutation.sh
+      - run: tool/mutation.sh ${{ matrix.paket }}
         env:
-          # Nur geänderte Dateien: Feature-Branches gegenüber main, main gegenüber dem
-          # Stand vor dem Push. Den Vollauf übernimmt nachts mutation-vollauf.yml.
+          # Feature-Branches gegenüber main, main gegenüber dem Stand vor dem
+          # Push. Den Vollauf übernimmt nachts mutation-vollauf.yml.
           MUTATION_BASIS: ${{ github.ref != 'refs/heads/main' && 'origin/main' || github.event.before || 'HEAD^' }}
+          MUTATION_TEIL: ${{ matrix.teil }}/${{ matrix.von }}
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: mutation-tests
+          name: mutation-teil-${{ matrix.paket }}-${{ matrix.teil }}-von-${{ matrix.von }}
           path: mutation-test-report/
           if-no-files-found: ignore
+
+  mutation-tests:
+    name: Mutation-Tests (≥ 95 %)
+    needs: mutation-teil
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: mutation-teil-*
+          path: berichte
+      - run: tool/mutation_summe.sh berichte
+      - name: Alle Teile vollständig gelaufen
+        run: test "${{ needs.mutation-teil.result }}" = success
 
   smoke-tests:
     name: Frontend-Smoke-Tests (headless Chrome)
@@ -165,11 +202,15 @@ jobs:
         run: |
           dart build cli --target=bin/server.dart --output=build/server
           dart build cli --target=bin/auth_server.dart --output=build/auth_server
+          dart build cli --target=bin/mitarbeiter.dart --output=build/mitarbeiter
       - name: Artefakte zusammenstellen
         run: |
           mkdir -p artefakte
           cp -r packages/server/build/server/bundle artefakte/server
           cp -r packages/server/build/auth_server/bundle artefakte/auth_server
+          # Werkzeug für Mitarbeiter-Konten (M9-10) ins Bündel des Auth-Servers
+          cp packages/server/build/mitarbeiter/bundle/bin/mitarbeiter artefakte/auth_server/bin/
+          if [ -d packages/server/build/mitarbeiter/bundle/lib ]; then cp -rn packages/server/build/mitarbeiter/bundle/lib/. artefakte/auth_server/lib/; fi
           cp -r packages/app/build/web artefakte/web
           # native ObjectBox-Bibliothek in beide Bündel (LD_LIBRARY_PATH zeigt auf lib/)
           tool/objectbox_bibliothek.sh artefakte/auth_server/lib

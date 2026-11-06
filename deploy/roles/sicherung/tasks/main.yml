@@ -11,11 +11,12 @@
     group: root
     mode: "0700"
 
-- name: Sicherungsskript
+- name: Sicherungs- und Wiederherstellungsskript
   ansible.builtin.template:
-    src: planer-sicherung.sh.j2
-    dest: /usr/local/sbin/planer-sicherung
+    src: "{{ item }}.sh.j2"
+    dest: "/usr/local/sbin/{{ item }}"
     mode: "0755"
+  loop: [planer-sicherung, planer-wiederherstellung]
 
 - name: Sicherungsdienst und Timer
   ansible.builtin.template:
@@ -31,3 +32,17 @@
     enabled: true
     state: started
     daemon_reload: true
+
+# Erste Sicherung gleich beim Ausrollen: Ohne sie meldet der Alarm
+# „Sicherung veraltet“ bis zum ersten nächtlichen Lauf fehlende Daten.
+- name: Bisherige Sicherungsmeldungen
+  ansible.builtin.find:
+    paths: "{{ planer_textdatei_metriken }}"
+    patterns: "planer_sicherung_*.prom"
+  register: sicherung_meldungen
+
+- name: Erste Sicherung ausführen
+  ansible.builtin.systemd_service:
+    name: planer-sicherung.service
+    state: started
+  when: (sicherung_meldungen.files | length) < (sicherung_objectbox | length) + 1

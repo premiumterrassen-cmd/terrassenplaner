@@ -4,42 +4,41 @@ import 'dart:io';
 import 'package:terrassenplaner_server/terrassenplaner_server.dart';
 
 /// Auth-Server (connectanum_auth_server) als eigener Prozess.
-/// Mitarbeiter-Zugänge liegen in ObjectBox (`PLANER_DATENVERZEICHNIS`);
-/// `PLANER_MITARBEITER_DATEI` (JSON) wird beim Start übernommen.
+/// Mitarbeiter-Konten liegen in ObjectBox (`PLANER_DATENVERZEICHNIS`) und
+/// werden mit `bin/mitarbeiter.dart` verwaltet (M9-10); ohne Verzeichnis
+/// (Entwicklung, Smoke-Tests) nur im Arbeitsspeicher.
 Future<void> main() async {
   final umgebung = Platform.environment;
   final einstellungen = AuthServerEinstellungen.ausUmgebung(umgebung);
   final verzeichnis = umgebung['PLANER_DATENVERZEICHNIS'];
-  final datei = umgebung['PLANER_MITARBEITER_DATEI'];
-  final datenbank = verzeichnis == null
-      ? null
-      : Datenbank.oeffne(
-          verzeichnis,
-          knoten: umgebung['PLANER_KNOTEN'] ?? Platform.localHostname,
-        );
-  final MitarbeiterQuelle mitarbeiter;
-  if (datenbank != null) {
-    final quelle = DatenbankMitarbeiter(datenbank);
-    if (datei != null) {
-      quelle.uebernimm(MitarbeiterVerzeichnis.ausDatei(datei).alle);
-    }
-    mitarbeiter = quelle;
-  } else {
-    mitarbeiter = datei == null
-        ? MitarbeiterVerzeichnis.leer()
-        : MitarbeiterVerzeichnis.ausDatei(datei);
+  if (verzeichnis == null) {
+    stderr.writeln('WARNUNG: Mitarbeiter-Konten nur im Arbeitsspeicher');
   }
+  final datenbank = Datenbank.oeffne(
+    verzeichnis ?? 'memory:planer-auth',
+    knoten: umgebung['PLANER_KNOTEN'] ?? Platform.localHostname,
+  );
   // Datenbank-Kennzahlen für Prometheus (M0-14), nur lokal.
-  final metriken = datenbank == null
+  final metriken = verzeichnis == null
       ? null
       : await MetrikServer.starte(
           umgebung['PLANER_DATENBANK_METRIKEN'] ?? '127.0.0.1:8084',
           () =>
               datenbankMetriken(datenbank.kennzahlen(), dienst: 'planer-auth'),
         );
+  // Sicherung im laufenden Betrieb auf SIGUSR1 (M10-03, Rolle `sicherung`).
+  final sicherungsZiel = umgebung['PLANER_SICHERUNG_ZIEL'];
+  final sicherung = verzeichnis == null || sicherungsZiel == null
+      ? null
+      : Sicherungsdienst.starte(
+          datenbank,
+          sicherungsZiel,
+          ProcessSignal.sigusr1.watch(),
+          protokoll: stdout.writeln,
+        );
   final auth = await AuthServerProzess.starte(
     einstellungen,
-    mitarbeiter: mitarbeiter,
+    konten: Mitarbeiterkonten(datenbank),
   );
   stdout.writeln(
     'Auth-Server bereit – ${einstellungen.listen}, '
@@ -48,7 +47,8 @@ Future<void> main() async {
   await _warteAufStoppsignal();
   await auth.stoppe();
   await metriken?.stoppe();
-  datenbank?.schliesse();
+  await sicherung?.stoppe();
+  datenbank.schliesse();
   stdout.writeln('Auth-Server beendet');
 }
 
