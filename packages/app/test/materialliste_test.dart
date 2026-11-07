@@ -264,6 +264,42 @@ void main() {
     );
   });
 
+  testWidgets('Erinnerung, falls nicht optimiert (M9-01)', (tester) async {
+    tester.view
+      ..physicalSize = const Size(1440, 900)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final (:planung, :berechnung) = _steuerung(
+      (p) async => (await _berechne(p)).mitPlanung(
+        1,
+        materialliste: _liste(p),
+        dielenliste: const [
+          (belag: Artikelnummer('10-10-073-R'), laenge: _m5, anzahl: 48),
+        ],
+      ),
+    );
+    await tester.pumpWidget(
+      testApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: MateriallisteAnsicht(
+              berechnung: berechnung,
+              planung: planung,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    final hinweis = find.byKey(const ValueKey('materialliste-nicht-optimiert'));
+    expect(hinweis, findsOneWidget);
+    expect(tester.widget<Text>(hinweis).data, de.materialNichtOptimiert);
+    planung.setzePlanung(planung.planung.mitVerschnittvariante(1));
+    await tester.pump();
+    await tester.pump();
+    expect(hinweis, findsNothing);
+  });
+
   testWidgets('Artikel ohne Preis: Hinweis unter der Summe', (tester) async {
     tester.view
       ..physicalSize = const Size(1440, 900)
@@ -317,6 +353,12 @@ void main() {
     );
     await tester.pump();
     expect(find.text('Mitarbeiter-Ansicht: Mengen änderbar'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('materialliste-mitarbeiter')),
+      findsOneWidget,
+    );
+    // das Feld trägt Position und Menge im Schlüssel: neue Menge, neues Feld
+    expect(find.byKey(const ValueKey('menge-1-48')), findsOneWidget);
     final eingabe = find.byKey(const ValueKey('menge-eingabe-1'));
     expect(tester.widget<TextField>(eingabe).controller!.text, '48');
     expect(find.byKey(const ValueKey('menge-berechnet-1')), findsNothing);
@@ -337,6 +379,8 @@ void main() {
     await tester.pump();
     expect(find.text('berechnet: 48'), findsOneWidget);
     expect(find.text('3.225,00 €'), findsOneWidget);
+    expect(find.byKey(const ValueKey('menge-1-50')), findsOneWidget);
+    expect(find.byKey(const ValueKey('menge-1-48')), findsNothing);
     expect(
       tester
           .widget<TextField>(find.byKey(const ValueKey('menge-eingabe-1')))

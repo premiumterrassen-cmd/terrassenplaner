@@ -841,7 +841,7 @@ class Bearbeitungsmenue extends StatelessWidget {
   final AusgangspunktBedienung? ausgangspunkt;
 
   /// Berechnung des Servers für die Befestigung (M5-09) und die
-  /// Dielenliste unter 7.1 (M5-08).
+  /// Dielenliste und Verschnittoptimierung unter 7.1 (M5-08, M9-01).
   final BerechnungsSteuerung? berechnung;
 
   /// Eingaben unter einem Unterpunkt (Schritt, Index ab 0).
@@ -969,7 +969,7 @@ class Bearbeitungsmenue extends StatelessWidget {
       onGeaendert: () => zustand.markiereGeaendert(schritt),
     ),
     (PlanerSchritt.verschnittoptimierung, 0) when berechnung != null =>
-      DielenlisteAnzeige(berechnung: berechnung!),
+      DielenlisteAnzeige(berechnung: berechnung!, planung: planung),
     _ => null,
   };
 

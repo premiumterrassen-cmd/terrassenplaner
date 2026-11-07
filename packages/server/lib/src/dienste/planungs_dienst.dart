@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:connectanum_router/connectanum_router.dart';
@@ -26,8 +27,7 @@ typedef Unterkonstruktionssuche = Artikel? Function(Planungsstand stand);
 /// die UK-Verlegung mit Hölzern, Stücken und Holzvolumen (M6-10), die
 /// Auflager mit Höhenzuordnung und Mengen (M6-11), die Mengen im Zubehör
 /// (M8-02, M8-03) samt Freidielen (M8-04), den Terrassenanschluss (M7),
-/// die Materialliste
-/// (M9-03)
+/// die Materialliste (M9-03) mit der gewählten Verschnittvariante (M9-01)
 /// und die Stückliste mit den Farben im Plan (M9-04)
 /// – die App rechnet nichts selbst (Frontend bleibt „doof“). Hin- und
 /// Rückweg als typisierte FlatBuffers (Packed PPT, #110).
@@ -392,8 +392,15 @@ class PlanungsDienst {
 
   /// Berechnung der bearbeiteten Fläche mit den Werten der ganzen Planung
   /// (M4-14): Gesamtfläche = Summe Fläche × Häufigkeit; Dielenliste je Belag
-  /// und Verschnitt über alle Flächen (M5-08) – jede Fläche wird für sich
-  /// zugeschnitten und mal ihrer Häufigkeit gezählt.
+  /// und Verschnitt über alle Flächen (M5-08) – ohne Optimierung wird jede
+  /// Fläche für sich zugeschnitten und mal ihrer Häufigkeit gezählt. Ist
+  /// eine Verschnittvariante gewählt (M9-01), schneidet der Server alle
+  /// Stücke eines Belags über alle Flächen gemeinsam zu
+  /// (`verschnittvarianten`), liefert die Varianten mit und rechnet Dielen-
+  /// und Materialliste mit der gewählten.
+  /// Die Zuschnittpläne (M9-02) fassen
+  /// die Lieferstücke von Belag und UK aller Flächen mal Häufigkeit
+  /// zusammen.
   ///
   /// Die Materialliste (M9-03) sammelt den Bedarf aller Flächen mal ihrer
   /// Häufigkeit: Dielen je Lieferlänge, die Befestigung in Stück (erst
@@ -414,6 +421,10 @@ class PlanungsDienst {
     final listen = <Artikelnummer, Dielenliste>{};
     final belaege = <Artikelnummer, Artikel>{};
     final bedarfe = <Materialbedarf>[];
+    final optimieren = planung.verschnittvariante > 0;
+    final gruppen = <(Artikelnummer, String), Belagstuecke>{};
+    final zuschnittBelag = <Lieferzuschnitt>[];
+    final zuschnittUk = <Lieferzuschnitt>[];
     late Berechnung aktuell;
     for (final (i, f) in planung.flaechen.indexed) {
       final artikel = belag(f.stand.belag);
@@ -482,13 +493,42 @@ class PlanungsDienst {
             );
       gesamt += grund.flaeche * f.haeufigkeit;
       if (verlegung != null) {
-        final liste = verlegung.dielenliste * f.haeufigkeit;
-        listen.update(artikel!.nummer, (l) => l + liste, ifAbsent: () => liste);
-        belaege[artikel.nummer] = artikel;
+        // verlegt wird nur mit Belag
+        final nummer = artikel!.nummer;
+        belaege[nummer] = artikel;
+        if (optimieren) {
+          final gruppe = gruppen.putIfAbsent(
+            (nummer, verlegung.lieferlaengen.join(',')),
+            () => (
+              belag: nummer,
+              laengen: verlegung.lieferlaengen,
+              stuecke: <Millimeter>[],
+            ),
+          );
+          for (var k = 0; k < f.haeufigkeit; k++) {
+            for (final t in verlegung.teile) {
+              gruppe.stuecke.addAll([for (final s in t.stuecke) s.laenge]);
+            }
+          }
+        } else {
+          final liste = verlegung.dielenliste * f.haeufigkeit;
+          listen.update(nummer, (l) => l + liste, ifAbsent: () => liste);
+          zuschnittBelag.addAll([
+            for (final t in verlegung.teile)
+              for (final d in t.zuschnitt)
+                (artikel: artikel, stueck: d, anzahl: f.haeufigkeit),
+          ]);
+        }
+        zuschnittUk.addAll([
+          for (final d in [
+            ...?ukv?.zuschnitt,
+            ...zusatz.zuschnitt,
+            ...?auflager?.zuschnitt,
+          ])
+            // UK-Holz gibt es nur mit UK
+            (artikel: uk!, stueck: d, anzahl: f.haeufigkeit),
+        ]);
         bedarfe.addAll([
-          for (final MapEntry(key: laenge, value: anzahl)
-              in liste.anzahl.entries)
-            Materialbedarf([artikel], anzahl, laenge: laenge),
           for (final b in [
             ...?ukv?.bedarf,
             ...zusatz.bedarf,
@@ -518,12 +558,28 @@ class PlanungsDienst {
         );
       }
     }
-    final summe = listen.values.fold(Dielenliste.leer, (a, b) => a + b);
-    final dielenliste = [
-      for (final MapEntry(key: nummer, value: liste) in listen.entries)
+    final varianten = verschnittvarianten(gruppen.values.toList());
+    final gewaehlt = varianten.isEmpty
+        ? null
+        : math.min(planung.verschnittvariante, varianten.length);
+    if (gewaehlt != null) {
+      final variante = varianten[gewaehlt - 1];
+      listen.addAll(variante.dielenlisten);
+      zuschnittBelag.addAll([
+        for (final MapEntry(key: nummer, value: dielen)
+            in variante.zuschnitt.entries)
+          for (final d in dielen)
+            (artikel: belaege[nummer]!, stueck: d, anzahl: 1),
+      ]);
+    }
+    for (final MapEntry(key: nummer, value: liste) in listen.entries) {
+      bedarfe.addAll([
         for (final MapEntry(key: laenge, value: anzahl) in liste.anzahl.entries)
-          (belag: nummer, laenge: laenge, anzahl: anzahl),
-    ];
+          Materialbedarf([belaege[nummer]!], anzahl, laenge: laenge),
+      ]);
+    }
+    final summe = listen.values.fold(Dielenliste.leer, (a, b) => a + b);
+    final dielenliste = _positionen(listen);
     // Freidielen der ganzen Planung (M8-04, R-B09, B-228): eigene Position
     // mit Preis 0, einmal je Planung – auch im Holzvolumen (M6-10)
     final frei = freidielenposition(
@@ -549,8 +605,24 @@ class PlanungsDienst {
         mengen: mitMengen ? planung.mengen : const {},
       ),
       volumen: holzvolumen(alle),
+      verschnittvarianten: [
+        for (final v in varianten)
+          (verschnitt: v.summe.verschnitt, dielen: _positionen(v.dielenlisten)),
+      ],
+      verschnittvariante: gewaehlt,
+      zuschnittBelag: Zuschnittplan.aus(zuschnittBelag),
+      zuschnittUk: Zuschnittplan.aus(zuschnittUk),
     );
   }
+
+  /// Zeilen der Dielenliste je Belag und Lieferlänge.
+  static List<Lieferposition> _positionen(
+    Map<Artikelnummer, Dielenliste> listen,
+  ) => [
+    for (final MapEntry(key: nummer, value: liste) in listen.entries)
+      for (final MapEntry(key: laenge, value: anzahl) in liste.anzahl.entries)
+        (belag: nummer, laenge: laenge, anzahl: anzahl),
+  ];
 
   /// Zusätzliches UK-Holz der Nutzungsart (M6-05) – nur mit verlegtem Belag
   /// aus Holz und bekannter [uk]; der UK-Achsabstand kommt wie bei der

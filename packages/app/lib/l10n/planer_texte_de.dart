@@ -126,6 +126,29 @@ class PlanerTexteDe extends PlanerTexte {
   String get keineDielen => 'Noch keine Dielen verlegt.';
 
   @override
+  String get verschnittNichtOptimiert =>
+      'Der Verschnitt ist noch nicht optimiert – die Optimierung verteilt die Stücke über alle Flächen und verringert oft den Bedarf an Dielen.';
+
+  @override
+  String get optimierungErstellen => 'OPTIMIERUNG ERSTELLEN';
+
+  @override
+  String get optimierungZuruecksetzen => 'OPTIMIERUNG ZURÜCKSETZEN';
+
+  @override
+  String get verschnittauswahlGeaendert =>
+      'Die Verschnittauswahl wurde geändert!';
+
+  @override
+  String get materialNichtOptimiert =>
+      'Hinweis: Der Verschnitt ist noch nicht optimiert. Unter „7. Verschnittoptimierung“ lässt sich der Bedarf an Dielen oft verringern.';
+
+  @override
+  String verschnittvariante(int nummer) {
+    return 'Variante $nummer';
+  }
+
+  @override
   String massPlatzhalter(String kante) {
     return '$kante: cm';
   }
@@ -1378,6 +1401,32 @@ class PlanerTexteDe extends PlanerTexte {
   @override
   String get stuecklisteHinweis =>
       'Stücke der bearbeiteten Fläche; die Farbe zeigt das Stück in der Zeichnung.';
+
+  @override
+  String get zuschnitt => 'Zuschnitt';
+
+  @override
+  String get zuschnittLeer =>
+      'Der Zuschnittplan entsteht, sobald ein Belag verlegt ist.';
+
+  @override
+  String get zuschnittBelag => 'Zuschnitt Belag';
+
+  @override
+  String get zuschnittUk => 'Zuschnitt Unterkonstruktion';
+
+  @override
+  String get zuschnittSpalteAusgangslaenge => 'Ausgangslänge (cm)';
+
+  @override
+  String get zuschnittSpalteMenge => 'Menge';
+
+  @override
+  String get zuschnittSpalteSchnitte => 'Schnittmaße (cm)';
+
+  @override
+  String get zuschnittHinweis =>
+      'Alle Flächen mal Häufigkeit; je Zeile werden aus jedem Stück der Ausgangslänge die Schnittmaße gesägt, ohne Zugabe.';
 
   @override
   String get angrenzendFrage =>

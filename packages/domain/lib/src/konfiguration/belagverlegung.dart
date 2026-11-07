@@ -245,9 +245,10 @@ final class Belagverlegung {
   Belagverlegung._(
     this.ausgangspunkt,
     this.grenzen,
-    this.laengste,
+    List<Millimeter> lieferlaengen,
     List<Teilverlegung> teile,
-  ) : teile = List.unmodifiable(teile);
+  ) : lieferlaengen = List.unmodifiable(lieferlaengen),
+      teile = List.unmodifiable(teile);
 
   /// Gewählte Ecke plus (begrenzte) Verschiebung.
   final Punkt ausgangspunkt;
@@ -255,10 +256,15 @@ final class Belagverlegung {
   /// Größte Verschiebung je Bildschirmachse (`verschiebungsgrenzen`).
   final ({Millimeter x, Millimeter y}) grenzen;
 
+  /// Lieferlängen, aus denen zugeschnitten wird: die erzwungene Länge oder
+  /// alle des Belags (aufsteigend) – auch für die Verschnittoptimierung
+  /// (M9-01).
+  final List<Millimeter> lieferlaengen;
+
   /// Längste Lieferlänge, in der verlegt wird (erzwungene Länge oder die
   /// längste des Belags): ein Stück dieser Länge ist ungeschnitten
   /// (Stückliste, M9-04).
-  final Millimeter laengste;
+  Millimeter get laengste => lieferlaengen.last;
   final List<Teilverlegung> teile;
 
   /// Dielenliste aller Teilflächen.
@@ -340,7 +346,7 @@ Belagverlegung? verlegeBelag(Planungsstand stand, Artikel? belag) {
     lieferlaengen: lieferlaengen,
     bezeichnung: bezeichnung,
   );
-  return Belagverlegung._(ausgangspunkt, grenzen, laengste, [
+  return Belagverlegung._(ausgangspunkt, grenzen, lieferlaengen, [
     teil(
       kontur,
       ausgangspunkt,

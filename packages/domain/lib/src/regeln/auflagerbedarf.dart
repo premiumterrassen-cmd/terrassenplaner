@@ -11,6 +11,7 @@ import '../artikel/ukauswahl.dart';
 import '../ergebnisse/materialliste.dart';
 import '../ergebnisse/stueckliste.dart';
 import '../geometrie/punkt.dart';
+import '../konfiguration/belagverlegung.dart';
 import '../konfiguration/planungsstand.dart';
 import '../konfiguration/terrassenart.dart';
 import 'auflager.dart';
@@ -38,7 +39,9 @@ final class Auflagerbedarf {
     List<Auflagerzeile> zeilen = const [],
     List<Materialbedarf> bedarf = const [],
     List<Planstueck> stuecke = const [],
+    List<Lieferdiele> zuschnitt = const [],
   }) : punkte = List.unmodifiable(punkte),
+       zuschnitt = List.unmodifiable(zuschnitt),
        zeilen = List.unmodifiable(zeilen),
        bedarf = List.unmodifiable(bedarf),
        stuecke = List.unmodifiable(stuecke);
@@ -57,6 +60,9 @@ final class Auflagerbedarf {
 
   /// Stützen aus UK-Holz für die Stückliste (Hochterrasse, grün).
   final List<Planstueck> stuecke;
+
+  /// Aus welchem Lieferholz die Stützen geschnitten werden (M9-02).
+  final List<Lieferdiele> zuschnitt;
 }
 
 /// Höhe von Oberkante Belag bis Boden über der Fläche aus den Höhenpunkten
@@ -350,7 +356,13 @@ Auflagerbedarf _stuetzen(
           lage: Stuecklage.quer,
         ),
   ];
+  final zuschnitt = lieferhoelzer(
+    [for (final s in stuecke) s.laenge],
+    laengen,
+    fest: stand.ukLaenge,
+  );
   return Auflagerbedarf(
+    zuschnitt: zuschnitt,
     punkte: [
       for (final (i, o) in orte.indexed) (ort: o, spalt: spalte[i], zeile: 0),
     ],
@@ -370,12 +382,7 @@ Auflagerbedarf _stuetzen(
         ),
     ],
     bedarf: [
-      for (final MapEntry(key: laenge, value: anzahl) in lieferstuecke(
-        [for (final s in stuecke) s.laenge],
-        laengen,
-        fest: stand.ukLaenge,
-      ).entries)
-        Materialbedarf([uk], anzahl, laenge: laenge),
+      ...ukBedarf(uk, zuschnitt),
       if (anker != null) Materialbedarf([anker], orte.length),
     ],
     stuecke: stuecke,

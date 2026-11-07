@@ -126,6 +126,28 @@ class PlanerTexteEn extends PlanerTexte {
   String get keineDielen => 'No boards laid yet.';
 
   @override
+  String get verschnittNichtOptimiert =>
+      'Waste has not been optimised yet – the optimisation spreads the pieces over all areas and often reduces the number of boards needed.';
+
+  @override
+  String get optimierungErstellen => 'CREATE OPTIMISATION';
+
+  @override
+  String get optimierungZuruecksetzen => 'RESET OPTIMISATION';
+
+  @override
+  String get verschnittauswahlGeaendert => 'The waste option has been changed!';
+
+  @override
+  String get materialNichtOptimiert =>
+      'Note: Waste has not been optimised yet. Under “7. Waste optimisation” the number of boards needed can often be reduced.';
+
+  @override
+  String verschnittvariante(int nummer) {
+    return 'Option $nummer';
+  }
+
+  @override
   String massPlatzhalter(String kante) {
     return '$kante: cm';
   }
@@ -1376,6 +1398,32 @@ class PlanerTexteEn extends PlanerTexte {
   @override
   String get stuecklisteHinweis =>
       'Pieces of the area being edited; the colour marks the piece in the drawing.';
+
+  @override
+  String get zuschnitt => 'Cutting plan';
+
+  @override
+  String get zuschnittLeer =>
+      'The cutting plan appears as soon as decking has been laid.';
+
+  @override
+  String get zuschnittBelag => 'Cutting plan decking';
+
+  @override
+  String get zuschnittUk => 'Cutting plan substructure';
+
+  @override
+  String get zuschnittSpalteAusgangslaenge => 'Stock length (cm)';
+
+  @override
+  String get zuschnittSpalteMenge => 'Quantity';
+
+  @override
+  String get zuschnittSpalteSchnitte => 'Cuts (cm)';
+
+  @override
+  String get zuschnittHinweis =>
+      'All areas times their frequency; per row, the cuts are sawn from each piece of the stock length, without allowance.';
 
   @override
   String get angrenzendFrage =>

@@ -304,6 +304,78 @@ void main() {
     });
   });
 
+  group('Verschnittvariante (M9-01)', () {
+    test('Start nicht optimiert; 0 bis 3', () {
+      expect(Planung.start.verschnittvariante, 0);
+      expect(Planung.start.mitVerschnittvariante(3).verschnittvariante, 3);
+      for (final falsch in [-1, 4]) {
+        expect(
+          () => Planung.start.mitVerschnittvariante(falsch),
+          throwsA(
+            isA<RangeError>()
+                .having((e) => e.name, 'name', 'verschnittvariante')
+                .having((e) => e.start, 'start', 0)
+                .having((e) => e.end, 'end', 3),
+          ),
+        );
+      }
+    });
+
+    test('bleibt bei allen Änderungen der Planung erhalten', () {
+      final p = Planung.start.mitVerschnittvariante(2);
+      final zwei = p.mitNeuerFlaeche();
+      for (final q in [
+        zwei,
+        zwei.gewaehlt(0),
+        zwei.ohneFlaeche(1),
+        p.mitHaeufigkeit(3),
+        p.mitStand(Planungsstand.start.mitVerlegeart(Verlegeart.halbverband)),
+        p.mitMenge((
+          nummer: const Artikelnummer('x'),
+          laenge: null,
+          zusatz: null,
+        ), 1),
+      ]) {
+        expect(q.verschnittvariante, 2);
+      }
+      expect(p.mitVerschnittvariante(1).flaechen, p.flaechen);
+      final m = Planung.start
+          .mitNeuerFlaeche()
+          .mitMenge((
+            nummer: const Artikelnummer('x'),
+            laenge: null,
+            zusatz: null,
+          ), 1)
+          .mitVerschnittvariante(1);
+      expect(m.aktiv, 1);
+      expect(m.mengen, hasLength(1));
+    });
+
+    test('Gleichheit und Transport auf Platz 160, 0 ohne Feld', () {
+      final p = Planung.start.mitVerschnittvariante(3);
+      expect(p, Planung.start.mitVerschnittvariante(3));
+      expect(p.hashCode, Planung.start.mitVerschnittvariante(3).hashCode);
+      expect(p, isNot(Planung.start));
+      expect(p.hashCode, isNot(Planung.start.hashCode));
+      expect(Planung.ausBytes(p.zuBytes()), p);
+      expect(Planung.ausBytes(p.zuBytes()).verschnittvariante, 3);
+      expect(Planung.ausBytes(Planung.start.zuBytes()).verschnittvariante, 0);
+      final fbb = fb.Builder();
+      final stand = fbb.writeListUint8(Planungsstand.start.zuBytes());
+      fbb
+        ..startTable(2)
+        ..addOffset(0, stand);
+      final flaeche = fbb.endTable();
+      final flaechen = fbb.writeList([flaeche]);
+      fbb
+        ..startTable(161)
+        ..addOffset(1, flaechen)
+        ..addUint8(160, 2);
+      fbb.finish(fbb.endTable());
+      expect(Planung.ausBytes(fbb.buffer).verschnittvariante, 2);
+    });
+  });
+
   group('Berechnung mit Gesamtfläche (M4-14)', () {
     const umriss = [Punkt(0, 0), Punkt(1000, 0), Punkt(0, 1000)];
 

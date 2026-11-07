@@ -10,6 +10,7 @@ import '../sprache/sprache.dart';
 import 'berechnung_steuerung.dart';
 import 'steuerung.dart';
 import 'stueckliste.dart';
+import 'zuschnittplan.dart';
 
 /// Materialliste der ganzen Planung (M9-03, Fachkonzept 08), wie der
 /// Server sie rechnet: Position, Bild, Artikel, Menge, Einzelpreis, Preis
@@ -63,7 +64,7 @@ class MateriallisteAnsicht extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
-    listenable: berechnung,
+    listenable: Listenable.merge([berechnung, planung]),
     builder: (context, _) => _liste(context, berechnung.materialliste),
   );
 
@@ -163,6 +164,14 @@ class MateriallisteAnsicht extends StatelessWidget {
           ),
         const SizedBox(height: PlanerAbstand.klein),
         Text(t.materialPreishinweis, style: const TextStyle(fontSize: 12)),
+        // Erinnerung, falls nicht optimiert (M9-01, Fachkonzept 7.1)
+        if (planung.planung.verschnittvariante == 0 &&
+            berechnung.dielenliste.isNotEmpty)
+          Text(
+            key: const ValueKey('materialliste-nicht-optimiert'),
+            t.materialNichtOptimiert,
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
       ],
     );
   }
@@ -304,7 +313,8 @@ class _MengenfeldState extends State<Mengenfeld> {
   }
 }
 
-/// Dialog mit Materialliste (M9-03) und Stückliste (M9-04), umschaltbar;
+/// Dialog mit Materialliste (M9-03), Stückliste (M9-04) und Zuschnittplänen
+/// (M9-02), umschaltbar;
 /// [mitarbeiter] schaltet die Mitarbeiter-Ansicht der Materialliste frei
 /// (Rollenprüfung, angeschlossen mit M9-10) samt Export für GrandTotal
 /// ([export], M9-08).
@@ -331,7 +341,7 @@ class MateriallisteDialog extends StatefulWidget {
 }
 
 /// Welche Liste der Dialog zeigt.
-enum Ergebnisliste { material, stueck }
+enum Ergebnisliste { material, stueck, zuschnitt }
 
 class _MateriallisteDialogState extends State<MateriallisteDialog> {
   static final _keinMitarbeiter = ValueNotifier(false);
@@ -355,6 +365,10 @@ class _MateriallisteDialogState extends State<MateriallisteDialog> {
             value: Ergebnisliste.stueck,
             label: Text(key: const ValueKey('zur-stueckliste'), t.stueckliste),
           ),
+          ButtonSegment(
+            value: Ergebnisliste.zuschnitt,
+            label: Text(key: const ValueKey('zum-zuschnitt'), t.zuschnitt),
+          ),
         ],
         selected: {_liste},
         onSelectionChanged: (wahl) => setState(() => _liste = wahl.single),
@@ -373,6 +387,9 @@ class _MateriallisteDialogState extends State<MateriallisteDialog> {
               ),
             ),
             Ergebnisliste.stueck => StuecklisteAnsicht(
+              berechnung: widget.berechnung,
+            ),
+            Ergebnisliste.zuschnitt => ZuschnittplanAnsicht(
               berechnung: widget.berechnung,
             ),
           },

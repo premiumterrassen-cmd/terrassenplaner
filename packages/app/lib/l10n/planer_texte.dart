@@ -304,6 +304,42 @@ abstract class PlanerTexte {
   /// **'Noch keine Dielen verlegt.'**
   String get keineDielen;
 
+  /// No description provided for @verschnittNichtOptimiert.
+  ///
+  /// In de, this message translates to:
+  /// **'Der Verschnitt ist noch nicht optimiert – die Optimierung verteilt die Stücke über alle Flächen und verringert oft den Bedarf an Dielen.'**
+  String get verschnittNichtOptimiert;
+
+  /// No description provided for @optimierungErstellen.
+  ///
+  /// In de, this message translates to:
+  /// **'OPTIMIERUNG ERSTELLEN'**
+  String get optimierungErstellen;
+
+  /// No description provided for @optimierungZuruecksetzen.
+  ///
+  /// In de, this message translates to:
+  /// **'OPTIMIERUNG ZURÜCKSETZEN'**
+  String get optimierungZuruecksetzen;
+
+  /// No description provided for @verschnittauswahlGeaendert.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Verschnittauswahl wurde geändert!'**
+  String get verschnittauswahlGeaendert;
+
+  /// No description provided for @materialNichtOptimiert.
+  ///
+  /// In de, this message translates to:
+  /// **'Hinweis: Der Verschnitt ist noch nicht optimiert. Unter „7. Verschnittoptimierung“ lässt sich der Bedarf an Dielen oft verringern.'**
+  String get materialNichtOptimiert;
+
+  /// No description provided for @verschnittvariante.
+  ///
+  /// In de, this message translates to:
+  /// **'Variante {nummer}'**
+  String verschnittvariante(int nummer);
+
   /// No description provided for @massPlatzhalter.
   ///
   /// In de, this message translates to:
@@ -2481,6 +2517,54 @@ abstract class PlanerTexte {
   /// In de, this message translates to:
   /// **'Stücke der bearbeiteten Fläche; die Farbe zeigt das Stück in der Zeichnung.'**
   String get stuecklisteHinweis;
+
+  /// No description provided for @zuschnitt.
+  ///
+  /// In de, this message translates to:
+  /// **'Zuschnitt'**
+  String get zuschnitt;
+
+  /// No description provided for @zuschnittLeer.
+  ///
+  /// In de, this message translates to:
+  /// **'Der Zuschnittplan entsteht, sobald ein Belag verlegt ist.'**
+  String get zuschnittLeer;
+
+  /// No description provided for @zuschnittBelag.
+  ///
+  /// In de, this message translates to:
+  /// **'Zuschnitt Belag'**
+  String get zuschnittBelag;
+
+  /// No description provided for @zuschnittUk.
+  ///
+  /// In de, this message translates to:
+  /// **'Zuschnitt Unterkonstruktion'**
+  String get zuschnittUk;
+
+  /// No description provided for @zuschnittSpalteAusgangslaenge.
+  ///
+  /// In de, this message translates to:
+  /// **'Ausgangslänge (cm)'**
+  String get zuschnittSpalteAusgangslaenge;
+
+  /// No description provided for @zuschnittSpalteMenge.
+  ///
+  /// In de, this message translates to:
+  /// **'Menge'**
+  String get zuschnittSpalteMenge;
+
+  /// No description provided for @zuschnittSpalteSchnitte.
+  ///
+  /// In de, this message translates to:
+  /// **'Schnittmaße (cm)'**
+  String get zuschnittSpalteSchnitte;
+
+  /// No description provided for @zuschnittHinweis.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle Flächen mal Häufigkeit; je Zeile werden aus jedem Stück der Ausgangslänge die Schnittmaße gesägt, ohne Zugabe.'**
+  String get zuschnittHinweis;
 
   /// No description provided for @angrenzendFrage.
   ///

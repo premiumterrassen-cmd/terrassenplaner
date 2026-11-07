@@ -24,6 +24,7 @@
     "domain.Ukzusatz.ukZusatz(RunTime)": 1795.832,
     "domain.UkVerlegung.ukVerlegung(RunTime)": 5863.31043956044,
     "domain.Auflager.auflagerbedarf(RunTime)": 1961.2383808095951,
+    "domain.Verschnittoptimierung.verschnittvarianten(RunTime)": 613853.75,
     "server.Planungsunterlagen.pdf": 10381.725388601037,
     "domain.Zubehoer.berechnetesZubehoer": 14356.227272727272
   }

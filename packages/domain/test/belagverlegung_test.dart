@@ -63,6 +63,36 @@ List<String> _sorten(Belagverlegung v) => [
     for (final s in t.sorten) '${s.laenge.cm}x${s.breite.cm}:${s.stueck}',
 ]..sort();
 
+/// Was die Verschnittoptimierung (M9-01) für alle Stücke einer Verlegung
+/// liefert (mm).
+int _optimiert(Belagverlegung v) => optimiereZuschnitt([
+  for (final t in v.teile)
+    for (final s in t.stuecke) s.laenge,
+], v.lieferlaengen).fold(0, (summe, d) => summe + d.laenge.mm);
+
+/// Zuschnittplan (M9-02) als „Ausgangslänge cm: Schnitte cm“ → Menge;
+/// Schnitte sortiert, Artikel zusammengefasst.
+Map<String, int> _plan(Iterable<(double, List<double>, int)> zeilen) {
+  final plan = <String, int>{};
+  for (final (laenge, schnitte, menge) in zeilen) {
+    final schluessel =
+        '$laenge: ${([...schnitte]..sort((a, b) => b.compareTo(a))).join(' + ')}';
+    plan.update(schluessel, (n) => n + menge, ifAbsent: () => menge);
+  }
+  return plan;
+}
+
+Map<String, int> _neuerPlan(Belagverlegung v) => _plan([
+  for (final z in Zuschnittplan.aus([
+    for (final t in v.teile)
+      for (final d in t.zuschnitt) (artikel: _diele(60), stueck: d, anzahl: 1),
+  ]).zeilen)
+    (z.ausgangslaenge.cm, [for (final s in z.schnitte) s.cm], z.menge),
+]);
+
+int _summe(Map<int, int> anzahl) =>
+    anzahl.entries.fold(0, (summe, e) => summe + e.key * e.value);
+
 void main() {
   group('zuschneiden', () {
     List<String> zuschnitt(
@@ -548,6 +578,39 @@ void _referenzkonfigurationen() {
       expect(fall('F21').verschnittProzent, 4.36);
     });
 
+    test('M9-01: optimiert nie mehr Dielen als der alte Planer – F22 '
+        'spart 6 m (Reste der Teilfläche A1 in der Hauptfläche)', () {
+      for (final id in [
+        'F01', 'F02', 'F06', 'F07', 'F08', 'F09', 'F10', 'F11', 'F12', //
+        'F13', 'F20', 'F21', 'F22', 'F23', 'F24', 'F25',
+      ]) {
+        final f = fall(id);
+        expect(
+          _optimiert(verlege(f)),
+          lessThanOrEqualTo(_summe(alt(f))),
+          reason: id,
+        );
+      }
+      expect(_optimiert(verlege(fall('F22'))), 231000);
+      expect(_summe(alt(fall('F22'))), 237000);
+    });
+
+    test('M9-02: Zuschnitt Deckbelag wie im alten Planer (Anfangsdielen '
+        'zusammengefasst, B-033)', () {
+      for (final id in [
+        'F01', 'F02', 'F06', 'F07', 'F08', 'F09', 'F10', 'F11', 'F12', //
+        'F13', 'F20', 'F21', 'F23', 'F24',
+      ]) {
+        final f = fall(id);
+        final alt = _plan([
+          for (final z in f.zuschnitt)
+            if (z.artikel.startsWith('Terrassendiele'))
+              (z.ausgangslaengeCm, z.schnitteCm, z.menge),
+        ]);
+        expect(_neuerPlan(verlege(f)), alt, reason: id);
+      }
+    });
+
     test('F22: Teilfläche A1 in 4 × 6000 + 4000 statt 3000 mm (R-A06)', () {
       final f = fall('F22');
       final erwartet = alt(f)
@@ -658,6 +721,14 @@ void _referenzfaelle() {
         final v = verlege(id, richtung: richtung);
         expect(_sorten(v), alt(id));
         expect(_anzahl(v.dielenliste), altLieferung(id));
+        // M9-02: Zuschnitt Deckbelag wie in der Unterlage
+        expect(
+          _neuerPlan(v),
+          _plan([
+            for (final z in faelle[id]!.$1.zuschnittDeckbelag)
+              (z.ausgangslaengeCm, z.schnitteCm, z.menge),
+          ]),
+        );
       });
     }
 
@@ -688,6 +759,69 @@ void _referenzfaelle() {
         );
       });
     }
+
+    test('M9-01: optimiert nie mehr Dielen als der alte Planer – mit seinen '
+        'Zwischenlängen 3,0/4,5/5,5 m; ohne sie (R-A06) mehr, wo ein Stück '
+        'genau in eine Zwischenlänge passt', () {
+      const zwischen = [
+        Millimeter(3000),
+        _m4,
+        Millimeter(4500),
+        _m5,
+        Millimeter(5500),
+        _m6,
+      ];
+      const mehr = {
+        '2026-04-28-4413-v11': 22000, // 44 × 440 cm: 500 statt 450 cm
+        '2026-04-28-859-v5': 10500,
+        '2026-05-03-4381-v2': 9500, // 404 cm im Drittelverband
+        '2026-06-11-3389-v3': 15000, // 30 × 550 statt 600 cm
+        '2026-07-07-2794-v2': 77000, // 154 × 450 statt 500 cm
+        '2026-08-26-1067-v2': 1000, // 111 × 300 cm: ein Rest in 400 cm
+      };
+      for (final (id, richtung, art) in [
+        ('2025-08-26-719-v2', null, Verlegeart.fugenschnitt),
+        ('2026-04-29-2412-v5', null, Verlegeart.fugenschnitt),
+        (
+          '2026-05-03-347-v4',
+          Verlegerichtung.senkrecht,
+          Verlegeart.fugenschnitt,
+        ),
+        ('2026-05-12-1823-v4', null, Verlegeart.fugenschnitt),
+        ('2026-05-28-4655-v2', null, Verlegeart.fugenschnitt),
+        (
+          '2026-06-30-2295-v5',
+          Verlegerichtung.senkrecht,
+          Verlegeart.fugenschnitt,
+        ),
+        ('2026-08-06-2810-v3', null, Verlegeart.fugenschnitt),
+        ('2026-08-17-1838-v2', null, Verlegeart.fugenschnitt),
+        ('2026-04-28-4413-v11', null, Verlegeart.fugenschnitt),
+        ('2026-04-28-859-v5', null, Verlegeart.fugenschnitt),
+        ('2026-05-03-4381-v2', null, Verlegeart.drittelverband),
+        ('2026-05-19-3958-v4', null, Verlegeart.fugenschnitt),
+        ('2026-06-07-4340-v4', null, Verlegeart.fugenschnitt),
+        ('2026-06-11-3389-v3', null, Verlegeart.fugenschnitt),
+        ('2026-06-25-1275-v3', null, Verlegeart.fugenschnitt),
+        ('2026-07-07-2794-v2', null, Verlegeart.fugenschnitt),
+        ('2026-07-31-3374-v3', null, Verlegeart.fugenschnitt),
+        ('2026-08-26-1067-v2', null, Verlegeart.fugenschnitt),
+      ]) {
+        final alt = _summe(altLieferung(id));
+        final neu = _optimiert(verlege(id, richtung: richtung, art: art));
+        expect(neu - alt, lessThanOrEqualTo(mehr[id] ?? 0), reason: id);
+        if (mehr[id] case final m?) expect(neu - alt, m, reason: id);
+        // Holzfliesen haben nur 606 mm
+        if (id == '2026-08-17-1838-v2') continue;
+        expect(
+          _optimiert(
+            verlege(id, richtung: richtung, art: art, laengen: zwischen),
+          ),
+          lessThanOrEqualTo(alt),
+          reason: '$id mit Zwischenlängen',
+        );
+      }
+    });
 
     test('Fehler des alten Planers: 7000 mm für Dielen mit 4/5/6 m (F14, '
         'B-035) – mit 7 m stimmen die Stücke, mit 6 m nicht', () {

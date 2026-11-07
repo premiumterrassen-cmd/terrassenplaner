@@ -467,6 +467,96 @@ void main() {
       );
     });
 
+    test('Verschnittoptimierung über alle Flächen (M9-01)', () {
+      Planungsstand rechteck(int ab) => Planungsstand(
+        grundriss: RechteckGrundriss(Millimeter(ab), const Millimeter(3090)),
+      );
+      // 48 Reihen à 380 cm und 48 à 220 cm: je Fläche 48 × 4000 und
+      // 24 × 5000 mm, gemeinsam 48 × 6000 mm ohne Verschnitt
+      final planung = Planung([
+        Terrassenflaeche(rechteck(3800)),
+        Terrassenflaeche(rechteck(2200)),
+      ]);
+      Map<int, int> liste(Berechnung b) => {
+        for (final p in b.dielenliste) p.laenge.mm: p.anzahl,
+      };
+      final ohne = PlanungsDienst.berechnePlanung(planung, (_) => diele);
+      expect(liste(ohne), {4000: 48, 5000: 24});
+      expect(ohne.verschnittvarianten, isEmpty);
+      expect(ohne.verschnittvariante, isNull);
+
+      final b = PlanungsDienst.berechnePlanung(
+        planung.mitVerschnittvariante(1),
+        (_) => diele,
+      );
+      expect(liste(b), {6000: 48});
+      expect(b.verschnitt, 0);
+      expect(b.verschnittvariante, 1);
+      expect(
+        [
+          for (final v in b.verschnittvarianten)
+            {for (final p in v.dielen) p.laenge.mm: p.anzahl},
+        ],
+        [
+          {6000: 48},
+          {5000: 72},
+          {4000: 96},
+        ],
+      );
+      expect(b.verschnittvarianten.first.verschnitt, 0);
+      expect(
+        b.verschnittvarianten[1].verschnitt,
+        closeTo(1 - 288000 / 360000, 1e-12),
+      );
+      expect(b.verschnittvarianten.first.dielen.first.belag, diele.nummer);
+      // die Wahl gilt für Dielen- und Materialliste
+      final dritte = PlanungsDienst.berechnePlanung(
+        planung.mitVerschnittvariante(3),
+        (_) => diele,
+      );
+      expect(liste(dritte), {4000: 96});
+      expect(dritte.verschnittvariante, 3);
+      expect(
+        {
+          for (final p in dritte.materialliste.positionen)
+            if (p.zusatz == null) p.laenge?.mm: p.anzahl,
+        },
+        {4000: 96},
+      );
+      // Freidielen (M8-04) folgen der gewählten Variante
+      Millimeter? frei(Berechnung x) => x.materialliste.positionen
+          .singleWhere((p) => p.zusatz == Materialzusatz.freidiele)
+          .laenge;
+      expect(frei(dritte), const Millimeter(4000));
+      expect(frei(b), const Millimeter(6000));
+      // Häufigkeit: alle Stücke zusammen
+      final doppelt = PlanungsDienst.berechnePlanung(
+        planung
+            .mitHaeufigkeit(2)
+            .gewaehlt(1)
+            .mitHaeufigkeit(2)
+            .mitVerschnittvariante(1),
+        (_) => diele,
+      );
+      expect(liste(doppelt), {6000: 96});
+      // weniger Varianten als gewählt: die letzte (F01: 5000 und 6000 mm)
+      final f01 = PlanungsDienst.berechnePlanung(
+        Planung.start.mitVerschnittvariante(3),
+        (_) => diele,
+      );
+      expect(f01.verschnittvarianten, hasLength(2));
+      expect(f01.verschnittvariante, 2);
+      expect(liste(f01), {6000: 48});
+      expect(f01.verschnitt, closeTo(0.2, 1e-12));
+      // ohne Dielen keine Varianten
+      final leer = PlanungsDienst.berechnePlanung(
+        Planung.start.mitVerschnittvariante(1),
+      );
+      expect(leer.verschnittvarianten, isEmpty);
+      expect(leer.verschnittvariante, isNull);
+      expect(leer.verschnitt, isNull);
+    });
+
     test('Stückliste und Farben im Plan (M9-04)', () {
       // F01: 48 Stücke à 4800 mm aus 5000 mm, längste Lieferlänge 6000 mm
       final f01 = PlanungsDienst.berechne(Planungsstand.start, diele);
@@ -2024,6 +2114,78 @@ void main() {
         isNotEmpty,
       );
       expect(anzahl(b, fuss), 3);
+    });
+
+    test('Zuschnittpläne (M9-02): Belag und alle UK-Hölzer – Verlegung, '
+        'zweite Lage und Stützen – jede Fläche mal Häufigkeit', () {
+      final stand = Planungsstand.start.mitTerrassenart(
+        Terrassenart.hochterrasse,
+      );
+      final b = rechne(Planung.start.mitStand(stand).mitHaeufigkeit(2));
+      expect(
+        [for (final z in b.zuschnittBelag.zeilen) '$z'],
+        ['96 × 5000: 4800 (10-10-073)'],
+      );
+      // jedes Lieferholz der Materialliste steht im Zuschnittplan
+      final ukZeilen = b.zuschnittUk.zeilen;
+      expect(ukZeilen.every((z) => z.nummer == uk.nummer), isTrue);
+      expect(
+        ukZeilen.fold(0, (n, z) => n + z.menge),
+        b.materialliste.positionen
+            .where((p) => p.nummer == uk.nummer)
+            .fold(0, (n, p) => n + p.anzahl),
+      );
+      // und jedes UK-Stück der Stückliste (bearbeitete Fläche) zweimal
+      int summe(Iterable<int> werte) => werte.fold(0, (a, b) => a + b);
+      expect(
+        summe([
+          for (final z in ukZeilen)
+            for (final s in z.schnitte) s.mm * z.menge,
+        ]),
+        2 *
+            summe([
+              for (final z in b.stueckliste.zeilen)
+                if (z.nummer == uk.nummer) z.laenge.mm * z.stueck,
+            ]),
+      );
+      // je Fläche: 13 Hölzer à 309 cm, zweite Lage 9 × 480 cm, 91 Stützen
+      // à 40,1 cm aus gemeinsamen Hölzern
+      expect(
+        [
+          for (final z in ukZeilen)
+            '${z.menge} × ${z.ausgangslaenge.mm}: '
+                '${z.schnitte.length} × ${z.schnitte.first.mm}',
+        ],
+        [
+          '12 × 6000: 14 × 401',
+          '18 × 5000: 1 × 4800',
+          '26 × 4000: 1 × 3090',
+          '2 × 4000: 7 × 401',
+        ],
+      );
+      // ohne UK kein UK-Zuschnitt, mit Optimierung der Belag gemeinsam
+      final ohneUk = Berechnung.ausBytes(
+        PlanungsDienst.berechnePlanung(
+          Planung.start.mitVerschnittvariante(1),
+          (_) => diele,
+          regelwerk,
+        ).zuBytes(),
+      );
+      expect(ohneUk.zuschnittUk.istLeer, isTrue);
+      expect(
+        [for (final z in ohneUk.zuschnittBelag.zeilen) '$z'],
+        ['48 × 5000: 4800 (10-10-073)'],
+      );
+      expect(
+        rechne(
+          Planung.start.mitStand(
+            Planungsstand(
+              grundriss: FreiformGrundriss(const [Punkt(0, 0), Punkt(1000, 0)]),
+            ),
+          ),
+        ).zuschnittBelag.istLeer,
+        isTrue,
+      );
     });
 
     test('Hochterrasse: Stützen in der Stückliste, Bodenanker; vorhandene '

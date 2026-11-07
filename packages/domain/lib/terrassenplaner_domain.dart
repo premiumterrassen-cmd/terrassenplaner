@@ -20,6 +20,8 @@ export 'src/ergebnisse/materialliste.dart';
 export 'src/ergebnisse/planungsunterlagen.dart';
 export 'src/ergebnisse/stueckliste.dart';
 export 'src/ergebnisse/unterlagentexte.dart';
+export 'src/ergebnisse/verschnittoptimierung.dart';
+export 'src/ergebnisse/zuschnittplan.dart';
 export 'src/geometrie/flaeche.dart';
 export 'src/geometrie/kontur.dart';
 export 'src/geometrie/mengen.dart';
