@@ -2,8 +2,8 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:terrassenplaner_app/src/datei/datei_angebot.dart';
 import 'package:terrassenplaner_app/src/design/planer_design.dart';
-import 'package:terrassenplaner_app/src/konfiguration/datei_stub.dart';
 import 'package:terrassenplaner_app/src/konfiguration/konfigurations_steuerung.dart';
 import 'package:terrassenplaner_app/src/konfiguration/planungsunterlagen.dart';
 import 'package:terrassenplaner_app/src/rahmen/aktionen.dart';
@@ -20,12 +20,12 @@ final _pdf = Uint8List.fromList([0x25, 0x50, 0x44, 0x46]);
 /// Aufrufe der Unterlagen und angebotene Dateien.
 final class _Aufrufe {
   final geladen = <(KonfigurationsStand, String)>[];
-  final angeboten = <(Uint8List, String)>[];
+  final angeboten = <(Uint8List, String, String)>[];
 
   Unterlagenabruf abruf() => Unterlagenabruf((stand, sprache) async {
     geladen.add((stand, sprache));
     return _pdf;
-  }, anbieten: (inhalt, name) => angeboten.add((inhalt, name)));
+  }, anbieten: (name, inhalt, typ) => angeboten.add((inhalt, name, typ)));
 }
 
 Future<KonfigurationsSteuerung> _zeige(
@@ -82,13 +82,16 @@ void main() {
     await aufrufe.abruf().hole(_v1, 'en');
     expect(aufrufe.geladen, [(_v1, 'en')]);
     expect(aufrufe.angeboten, [
-      (_pdf, 'Planungsunterlagen_2026-11-04-0001_V1.pdf'),
+      (_pdf, 'Planungsunterlagen_2026-11-04-0001_V1.pdf', 'application/pdf'),
     ]);
   });
 
   test('außerhalb des Browsers kein Download', () {
-    expect(() => dateiAnbieten(_pdf, 'x.pdf'), throwsUnsupportedError);
-    expect(Unterlagenabruf((_, _) async => _pdf).anbieten, dateiAnbieten);
+    expect(
+      () => bieteDateiAn('x.pdf', _pdf, 'application/pdf'),
+      throwsUnsupportedError,
+    );
+    expect(Unterlagenabruf((_, _) async => _pdf).anbieten, bieteDateiAn);
   });
 
   testWidgets('PDF: erst speichern, dann die Unterlagen dieser Version', (
