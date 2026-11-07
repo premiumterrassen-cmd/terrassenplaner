@@ -1,9 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
+import '../datei/datei_angebot.dart';
 import '../rahmen/steuerung.dart';
 import '../sprache/sprache.dart';
-import 'datei_angebot.dart';
 
 /// Fordert die Importdatei für GrandTotal zur [planung] beim Server an
 /// (M9-08); [adresse] ist die Adresse der Web-App für die Bild-Links.
@@ -26,7 +28,7 @@ final class GrandTotalExport {
 
   /// Adresse der Web-App; neben ihr liegen die Artikelbilder (M2-07).
   final Uri adresse;
-  final TextdateiAnbieten anbieten;
+  final DateiAnbieten anbieten;
 
   /// Gespeicherter Stand der Konfiguration für den Dateinamen; `null` oder
   /// ohne Ergebnis: noch nicht gespeichert.
@@ -65,7 +67,7 @@ class _GrandTotalExportKnopfState extends State<GrandTotalExportKnopf> {
         export.adresse,
       );
       final name = grandTotalDateiname(export.stand?.call());
-      export.anbieten(name, inhalt);
+      export.anbieten(name, utf8.encode(inhalt), 'text/csv;charset=utf-8');
       meldung = t.exportGrandTotalFertig(name);
     } on Object {
       meldung = t.exportGrandTotalFehler;
