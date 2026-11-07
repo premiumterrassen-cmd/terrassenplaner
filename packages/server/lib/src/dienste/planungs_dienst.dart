@@ -519,12 +519,16 @@ class PlanungsDienst {
                 (artikel: artikel, stueck: d, anzahl: f.haeufigkeit),
           ]);
         }
+        final hoelzer = _ukHoelzer(
+          f.stand,
+          uk,
+          ukv,
+          zusatz,
+          auflager,
+          anschluss,
+        );
         zuschnittUk.addAll([
-          for (final d in [
-            ...?ukv?.zuschnitt,
-            ...zusatz.zuschnitt,
-            ...?auflager?.zuschnitt,
-          ])
+          for (final d in hoelzer)
             // UK-Holz gibt es nur mit UK
             (artikel: uk!, stueck: d, anzahl: f.haeufigkeit),
         ]);
@@ -535,7 +539,10 @@ class PlanungsDienst {
             ...?auflager?.bedarf,
             ...anschluss.bedarf,
           ])
-            b * f.haeufigkeit,
+            // das UK-Holz kommt aus dem gemeinsamen Zuschnitt
+            if (!_istUkHolz(b, uk)) b * f.haeufigkeit,
+          if (uk != null)
+            for (final b in ukBedarf(uk, hoelzer)) b * f.haeufigkeit,
         ]);
       }
       bedarfe.addAll([
@@ -623,6 +630,41 @@ class PlanungsDienst {
       for (final MapEntry(key: laenge, value: anzahl) in liste.anzahl.entries)
         (belag: nummer, laenge: laenge, anzahl: anzahl),
   ];
+
+  /// Lieferhölzer der UK einer Fläche aus einem gemeinsamen Zuschnitt
+  /// (M10-01, Paritätsnachweis): UK-Verlegung, zusätzliches Holz der
+  /// Nutzungsart, Stützen der Hochterrasse und die UK-Stücke des
+  /// Anschlusses (Blendenhalter, Treppe). Kurze Stücke kommen so zuerst in
+  /// die Reste der langen (`lieferhoelzer`) – wie im alten Planer (F28: 13
+  /// × 400 cm für 309 + 39,9 + 39,9 cm) statt je Quelle eigene Hölzer.
+  static List<Lieferdiele> _ukHoelzer(
+    Planungsstand stand,
+    Artikel? uk,
+    UkVerlegung? ukv,
+    Ukzusatz zusatz,
+    Auflagerbedarf? auflager,
+    Anschlussbedarf anschluss,
+  ) {
+    if (uk == null) return const [];
+    return lieferhoelzer(
+      [
+        for (final d in [
+          ...?ukv?.zuschnitt,
+          ...zusatz.zuschnitt,
+          ...?auflager?.zuschnitt,
+        ])
+          ...d.schnitte,
+        for (final s in anschluss.stuecke)
+          if (s.nummer == uk.nummer) s.laenge,
+      ],
+      ukLieferlaengen(uk),
+      fest: stand.ukLaenge,
+    );
+  }
+
+  /// Ob [b] Lieferholz der UK [uk] ist (mit Länge).
+  static bool _istUkHolz(Materialbedarf b, Artikel? uk) =>
+      b.laenge != null && b.einheiten.single.nummer == uk?.nummer;
 
   /// Zusätzliches UK-Holz der Nutzungsart (M6-05) – nur mit verlegtem Belag
   /// aus Holz und bekannter [uk]; der UK-Achsabstand kommt wie bei der

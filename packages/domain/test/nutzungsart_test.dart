@@ -490,12 +490,18 @@ void main() {
     });
 
     test('Zuschnitt je Lieferholz (M9-02): lange einzeln, über der '
-        'längsten gestückelt, kurze gemeinsam', () {
+        'längsten gestückelt, kurze zuerst in die Reste der langen '
+        '(M10-01), dann gemeinsam', () {
       expect(hoelzer([8000, 3090, 1900, 1900, 300]), [
         '6000: 6000',
-        '4000: 2000',
-        '4000: 3090',
-        '5000: 1900 + 1900 + 300',
+        '4000: 2000 + 1900',
+        '4000: 3090 + 300',
+        '4000: 1900',
+      ]);
+      // F28: zwei Stützen à 39,9 cm im Rest von 400 cm für 309 cm
+      expect(hoelzer([3090, 399, 399, 399]), [
+        '4000: 3090 + 399 + 399',
+        '4000: 399',
       ]);
       expect(hoelzer([13000]), ['6000: 6000', '6000: 6000', '4000: 1000']);
     });
