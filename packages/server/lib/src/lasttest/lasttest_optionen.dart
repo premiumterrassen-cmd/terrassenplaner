@@ -33,7 +33,7 @@ final class Lauf extends LasttestOptionen {
   const Lauf({
     required this.url,
     this.pid,
-    this.dauer = const Duration(seconds: 60),
+    this.dauer = standardDauer,
     this.faktor = 1,
     this.szenarien = const [],
     this.ausgabe,
@@ -43,7 +43,7 @@ final class Lauf extends LasttestOptionen {
     if (rest.length.isOdd) throw const FormatException(LasttestOptionen.hilfe);
     String? url;
     int? pid;
-    var dauer = const Duration(seconds: 60);
+    var dauer = standardDauer;
     var faktor = 1.0;
     final szenarien = <String>[];
     String? ausgabe;
@@ -76,6 +76,9 @@ final class Lauf extends LasttestOptionen {
       ausgabe: ausgabe,
     );
   }
+
+  /// Dauer je Szenario ohne `--dauer`.
+  static const standardDauer = Duration(seconds: 60);
 
   final String url;
 

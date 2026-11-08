@@ -148,8 +148,8 @@ abstract final class Lasttest {
     Verbindung verbinde, {
     Messung? messe,
     Messung? messeLast,
-    Duration takt = const Duration(milliseconds: 250),
-    Duration zeitlimit = const Duration(seconds: 60),
+    Duration takt = abtastTakt,
+    Duration zeitlimit = Lastlauf.standardZeitlimit,
   }) async {
     final vorher = await messe?.call();
     final lastVorher = await messeLast?.call();
@@ -193,7 +193,7 @@ abstract final class Lasttest {
     Messung? messe,
     Messung? messeLast,
     void Function(String zeile) melde = _still,
-    Duration zeitlimit = const Duration(seconds: 60),
+    Duration zeitlimit = Lastlauf.standardZeitlimit,
   }) async {
     final auswahl = [
       for (final s in szenarien(dauer: lauf.dauer, faktor: lauf.faktor))
@@ -211,11 +211,7 @@ abstract final class Lasttest {
       );
       ergebnisse.add(e);
       for (final p in e.ergebnisse) {
-        melde(
-          '   ${p.profil.name}: ${p.aufrufe} Aufrufe, ${p.fehlerSumme} Fehler, '
-          '${p.durchsatz.toStringAsFixed(1)}/s'
-          '${p.ersterFehler == null ? '' : ' (${p.ersterFehler})'}',
-        );
+        melde(zeile(p));
         for (final MapEntry(:key, :value) in p.statistik.entries) {
           melde(
             '     ${key.name}: p50 ${Latenzstatistik.ms(value.p50)} ms, '
@@ -241,6 +237,16 @@ abstract final class Lasttest {
   }
 
   static void _still(String _) {}
+
+  /// Abstand der Speichermessungen am Server.
+  static const abtastTakt = Duration(milliseconds: 250);
+
+  /// Zusammenfassung eines Profils: Aufrufe, Fehler, Durchsatz und der
+  /// erste Fehler.
+  static String zeile(Lastergebnis p) =>
+      '   ${p.profil.name}: ${p.aufrufe} Aufrufe, ${p.fehlerSumme} Fehler, '
+      '${p.durchsatz.toStringAsFixed(1)}/s'
+      '${p.ersterFehler == null ? '' : ' (${p.ersterFehler})'}';
 
   /// Belegte Kerne: [cpu] Zeit in [laufzeit], zwei Nachkommastellen.
   static double kerne(Duration cpu, Duration laufzeit) =>

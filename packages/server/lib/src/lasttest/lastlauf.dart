@@ -117,10 +117,13 @@ abstract final class Lastlauf {
     pptSerializer: WampNamen.pptSerializer,
   );
 
+  /// Höchste Wartezeit je Aufruf; danach zählt er als Fehler.
+  static const standardZeitlimit = Duration(seconds: 60);
+
   static Future<Lastergebnis> fahre(
     Lastprofil profil,
     Verbindung verbinde, {
-    Duration zeitlimit = const Duration(seconds: 60),
+    Duration zeitlimit = standardZeitlimit,
   }) async {
     final sitzungen = await Future.wait([
       for (var i = 0; i < profil.sitzungen; i++) verbinde(),

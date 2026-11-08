@@ -59,8 +59,16 @@ void main() {
       expect(Latenzstatistik.perzentil(werte, 50), _ms(1));
       expect(Latenzstatistik.perzentil(werte, 50.1), _ms(2));
       expect(Latenzstatistik.perzentil(werte, 0.1), _ms(1));
-      expect(() => Latenzstatistik.perzentil(werte, 0), throwsRangeError);
-      expect(() => Latenzstatistik.perzentil(werte, 100.5), throwsRangeError);
+      Matcher bereich(num wert) => throwsA(
+        isA<RangeError>()
+            .having((e) => e.name, 'name', 'prozent')
+            .having((e) => e.start, 'start', 0)
+            .having((e) => e.end, 'end', 100)
+            .having((e) => e.invalidValue, 'wert', wert),
+      );
+      expect(() => Latenzstatistik.perzentil(werte, 0), bereich(0));
+      expect(() => Latenzstatistik.perzentil(werte, -1), bereich(-1));
+      expect(() => Latenzstatistik.perzentil(werte, 100.5), bereich(100.5));
       expect(
         () => Latenzstatistik.perzentil(const [], 50),
         throwsArgumentError,

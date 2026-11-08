@@ -56,6 +56,7 @@ void main() {
       expect(z(5, 10).erreicht, isTrue);
       expect(z(5, 10.1).erreicht, isFalse);
       expect(z(5, 10, mindestens: true).erreicht, isTrue);
+      expect(z(5, 11, mindestens: true).erreicht, isTrue);
       expect(z(5, 9.9, mindestens: true).erreicht, isFalse);
       expect(z(-1, -1).erreicht, isFalse);
       expect(z(0, 0).erreicht, isTrue);
@@ -107,6 +108,9 @@ void main() {
     expect(z['nutzer.berechnen']!.beschreibung, 'p95 berechnen');
     expect(z['nutzer.speichern']!.erreicht, isFalse);
     expect(z['nutzer.laden']!.zielserver, 100);
+    expect(z['nutzer.berechnen']!.grenze, 250);
+    expect(z['nutzer.speichern']!.grenze, 250);
+    expect(z['nutzer.laden']!.grenze, 250);
     expect(z['nutzer.cpu']!.zielserver, 1);
     expect(z['nutzer.cpu']!.erreicht, isTrue);
   });

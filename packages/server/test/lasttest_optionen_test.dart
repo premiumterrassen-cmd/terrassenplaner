@@ -70,6 +70,13 @@ void main() {
       () => LasttestOptionen.lies(['lauf', '--url', 'u', '--pid', 'x']),
       throwsFormatException,
     );
-    expect(LasttestOptionen.hilfe, startsWith('Aufruf: lasttest.dart'));
+    expect(
+      LasttestOptionen.hilfe,
+      'Aufruf: lasttest.dart artikeldatei <pfad>\n'
+      '       lasttest.dart lauf --url <ws-url> [--pid <server-pid>] '
+      '[--dauer <s>] [--faktor <x>] [--szenario <name>]… [--ausgabe <datei>]',
+    );
+    expect(Lauf.standardDauer, const Duration(seconds: 60));
+    expect(const Lauf(url: 'u').dauer, Lauf.standardDauer);
   });
 }

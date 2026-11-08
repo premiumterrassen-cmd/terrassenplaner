@@ -53,6 +53,36 @@ void main() {
     });
   });
 
+  test('Lastdaten sind fest (wiederholbare Messungen)', () {
+    expect(Lastdaten.diele.nummer.wert, '10-10-073');
+    expect(Lastdaten.diele.titel, 'Terrassendiele Robinie 60 x 21 mm, genutet');
+    expect(Lastdaten.diele.preisBrutto, const Cent(449));
+    expect(Lastdaten.unterkonstruktion.nummer.wert, '10-10-031');
+    expect(
+      Lastdaten.unterkonstruktion.titel,
+      'Unterkonstruktionsholz Robinie 45 x 60 mm',
+    );
+    expect(Lastdaten.unterkonstruktion.preisBrutto, const Cent(979));
+    final eintraege = Lastdaten.artikeldatei.eintraege;
+    expect(
+      [for (final e in eintraege) e.artikel.nummer.wert],
+      ['10-10-073', '10-10-031', '50-60-005', '60-55-136'],
+    );
+    expect(
+      [for (final e in eintraege) e.artikel.preisBrutto],
+      [const Cent(449), const Cent(979), const Cent(2500), const Cent(2500)],
+    );
+    expect(eintraege[1].angaben, {'Abstand_Stelzfuesse': 600});
+    expect(eintraege[2].angaben, {'MinHoehe': 5, 'MaxHoehe': 5});
+    expect(eintraege[3].angaben, {'MinHoehe': 55, 'MaxHoehe': 95});
+    expect(eintraege[2].artikel.titel, 'Artikel 50-60-005');
+    expect(
+      (Lastdaten.typisch().flaechen.last.stand.grundriss as RechteckGrundriss)
+          .bc,
+      const Millimeter(3000),
+    );
+  });
+
   group('Lastprofil und Szenarien', () {
     test('Pausen streuen um die Denkzeit, Versatz bis zu einer Denkzeit', () {
       const p = Lastprofil(
@@ -127,7 +157,7 @@ void main() {
       expect(s[0].beschreibung, startsWith('50 gleichzeitig'));
       expect(s[1].beschreibung, startsWith('100 verbundene'));
       expect(s[2].beschreibung, startsWith('2 Sitzungen'));
-      expect(s[2].beschreibung, contains('20 Nutzer'));
+      expect(s[2].beschreibung, contains(', 20 Nutzer'));
       expect(s[3].beschreibung, startsWith('100 Sitzungen'));
       final klein = Lasttest.szenarien(
         dauer: const Duration(seconds: 3),
@@ -149,6 +179,33 @@ void main() {
         Vorgang.speichern,
         Vorgang.laden,
       ]);
+    });
+
+    test('Vorgaben und Zusammenfassung je Profil', () {
+      expect(Lastlauf.standardZeitlimit, const Duration(seconds: 60));
+      expect(Lasttest.abtastTakt, const Duration(milliseconds: 250));
+      Lastergebnis ergebnis(String? fehler) => Lastergebnis(
+        profil: const Lastprofil(
+          name: 'p',
+          sitzungen: 1,
+          dauer: Duration.zero,
+          schritte: [Vorgang.hallo],
+        ),
+        laufzeit: const Duration(seconds: 2),
+        zeiten: {
+          Vorgang.hallo: const [Duration.zero, Duration.zero, Duration.zero],
+        },
+        fehler: const {Vorgang.hallo: 1},
+        ersterFehler: fehler,
+      );
+      expect(
+        Lasttest.zeile(ergebnis('hallo: weg')),
+        '   p: 3 Aufrufe, 1 Fehler, 1.5/s (hallo: weg)',
+      );
+      expect(
+        Lasttest.zeile(ergebnis(null)),
+        '   p: 3 Aufrufe, 1 Fehler, 1.5/s',
+      );
     });
 
     test('Kerne und Durchsatz', () {
@@ -367,6 +424,27 @@ void main() {
           erstellt: DateTime(2026, 11, 7),
         ).alsJson()['erstellt'],
         '2026-11-07T00:00:00.000',
+      );
+    });
+
+    test('Bedienschritte rufen die Dienste richtig auf', () async {
+      await starteDienste();
+      final e = await Lastlauf.fahre(
+        const Lastprofil(
+          name: 'schritte',
+          sitzungen: 1,
+          dauer: Duration(milliseconds: 1),
+          // LADEN ohne gespeicherte Version speichert zuerst
+          schritte: [Vorgang.laden, Vorgang.entwurf, Vorgang.speichern],
+        ),
+        verbinde,
+        zeitlimit: const Duration(seconds: 10),
+      );
+      expect(e.ersterFehler, isNull);
+      expect(e.fehlerSumme, 0);
+      expect(
+        [for (final v in e.profil.schritte) e.statistik[v]!.anzahl],
+        [1, 1, 1],
       );
     });
 

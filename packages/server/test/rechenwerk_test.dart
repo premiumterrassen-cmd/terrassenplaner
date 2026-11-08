@@ -107,6 +107,30 @@ void main() {
     );
   });
 
+  test('das abgebrochene Isolate rechnet nicht weiter', () async {
+    final ordner = Directory.systemTemp.createTempSync('rechenwerk-');
+    final datei = File('${ordner.path}/takt');
+    final pfad = datei.path;
+    final werk = Rechenwerk(
+      parallel: 1,
+      hoechstdauer: const Duration(milliseconds: 200),
+    );
+    await expectLater(
+      werk.rechne(() {
+        for (var i = 0; ; i++) {
+          File(pfad).writeAsStringSync('$i');
+          sleep(const Duration(milliseconds: 5));
+        }
+      }),
+      throwsA(isA<RechenzeitUeberschritten>()),
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    final stand = datei.readAsStringSync();
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+    expect(datei.readAsStringSync(), stand);
+    ordner.deleteSync(recursive: true);
+  });
+
   test(
     'höchstens [parallel] gleichzeitig, weitere warten der Reihe nach',
     () async {
