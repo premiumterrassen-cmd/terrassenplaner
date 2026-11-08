@@ -59,7 +59,7 @@ Der Ausschluss `[\s]for[\s]*\(.*?\)[\s]*{` in `tool/mutation/*.xml` greift nur b
 **Lösung:**
 
 - **Push auf `main`:** `MUTATION_BASIS` ist der Stand vor dem Push (`github.event.before`, bei `workflow_dispatch` `HEAD^`). Es laufen nur die Änderungen dieses Pushes, das Deployment hängt nicht mehr am Vollauf.
-- **Vollauf:** Workflow `.github/workflows/mutation-vollauf.yml`, nachts um 23:00 UTC und von Hand (`gh workflow run mutation-vollauf.yml`). Zehn Jobs: `domain`, `server` und `app` in acht Teilen (`MUTATION_TEIL=<nummer>/<anzahl>`, Dateien nach Größe sortiert reihum verteilt).
+- **Vollauf:** Workflow `.github/workflows/mutation-vollauf.yml`, nachts um 23:00 UTC und von Hand (`gh workflow run mutation-vollauf.yml`). Seit 08.11.2026 vierzehn Jobs: `domain` in vier, `server` in zwei und `app` in acht Teilen (`MUTATION_TEIL=<nummer>/<anzahl>`, Dateien nach Größe sortiert reihum verteilt).
 - **Schwelle:** Die Teile laufen ohne Schwelle, `tool/mutation_summe.sh` summiert die xunit-Berichte und prüft 95 % **je Paket** wie bisher. Sonst würde ein einzelner schwacher Teil ein Paket rot machen, das insgesamt besteht. Die Rechnung folgt `mutation_test`: Timeouts und nicht abgedeckte Zeilen zählen als unerkannt. Ein fehlender Teil zählt als Fehler.
 - **Roter Vollauf:** legt ein Issue mit Label `mutation-vollauf` an (oder kommentiert das offene). **Er stoppt das Deployment nicht** – eine Lücke außerhalb der geänderten Dateien erreicht Produktion also höchstens bis zum Ende der folgenden Nacht unerkannt. Das ist der Preis dafür, dass ein Deployment nicht an einem Lauf von 1 h 42 min hängt.
 - **`--fail-fast`** nun auch in `app.xml` und `domain.xml`: Ein erkannter Mutant muss die Suite nicht zu Ende laufen (lokal `flutter test` 11 s → 6 s, gleicher Exit-Code).
@@ -99,3 +99,9 @@ Die Frist allein reichte nicht: Der nächste Lauf brach wieder in `dielenverlegu
 **Befund:** Lokal liefen parallel mehrere Mutationsläufe anderer Sitzungen (Last ≈ 19 auf dem Mac, dazu Ruhezustand). Testläufe, die sonst 7 s (domain) bzw. 25 s (server) brauchen, überschritten die Frist von `mutation_test` (300 s bzw. 120 s; gemessen bis 1963 s). `mutation_test` zählt eine Zeitüberschreitung als **unerkannt** – `uk_zusatz.dart` stand dadurch bei 84,8 % (12 Zeitüberschreitungen), `planungs_dienst.dart` bei 89,3 % (7).
 
 **Vorgehen:** Die Mutanten mit Zeitüberschreitung stehen in `mutation-test-report/<paket>/mutation-test.junit.xml` (`type="timeout"`). Einzeln nachgeprüft (Mutant einsetzen, `dart test --fail-fast`, Datei zurück) wurden alle erkannt. Echte Überlebende blieben nur zwei gleichwertige Mutanten (`math.min(a, b)` → `math.min(b, a)`). Damit: domain 111/112, server 74/75. Für belastbare Zahlen lokal nicht neben anderen Mutationsläufen messen; die Build-Chain misst auf eigenen Runnern.
+
+## Vollauf: domain und server ebenfalls in Teilen (08.11.2026)
+
+**Anlass:** Der nächtliche Vollauf war ab 06.11.2026 rot (Issue #132): `domain` lief als ein Job und wurde nach 5 h 45 min am Limit abgebrochen (Run 42436256055), `server` brauchte 5 h 22 min. Die gemessenen Werte selbst waren gut (server 99,22 %, app 96,88 %).
+
+**Lösung:** In `.github/workflows/mutation-vollauf.yml` läuft `domain` in vier und `server` in zwei Teilen, wie in der Build-Chain. Die Auswertung (`tool/mutation_summe.sh`) prüft die 95 % weiter je Paket über alle Teile.

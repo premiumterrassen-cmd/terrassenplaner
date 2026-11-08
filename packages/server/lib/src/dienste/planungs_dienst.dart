@@ -6,6 +6,7 @@ import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 import '../router/planer_router.dart';
 import '../zugriff/rollen.dart';
+import 'rechenwerk.dart';
 
 /// Belag zur Artikelnummer des Planungsstands; `null` = Vorgabe (M5-05).
 typedef Belagsuche = Artikel? Function(Artikelnummer? nummer);
@@ -38,20 +39,23 @@ class PlanungsDienst {
   /// (oder ohne Artikeldatei) rechnet der Dienst ohne Dielen. [regelwerk]
   /// liefert die Befestigungsartikel; ohne es keine Befestigung.
   /// [unterkonstruktion] liefert die UK für die Prüfung der Höhenpunkte;
-  /// ohne sie bleiben die Höhen ungeprüft.
+  /// ohne sie bleiben die Höhen ungeprüft. Gerechnet wird im [rechenwerk]
+  /// (M10-02), nicht im Router-Isolate.
   static Future<PlanungsDienst> starte(
     PlanerRouter router, {
     Belagsuche belag = _ohneBelag,
     Regelwerksuche regelwerk = _ohneRegelwerk,
     Unterkonstruktionssuche unterkonstruktion = _ohneUnterkonstruktion,
+    Rechenwerk? rechenwerk,
   }) async {
+    final werk = rechenwerk ?? Rechenwerk();
     final sitzung = await router.dienstSitzung(sitzungId);
     (await sitzung.register(
       WampNamen.planungBerechnen,
       // Die Rolle des Aufrufers entscheidet über geänderte Mengen (M9-10).
       options: RegisterOptions(discloseCaller: true),
     )).onLazyInvokePayload(
-      (aufruf) => _berechne(aufruf, belag, regelwerk, unterkonstruktion),
+      (aufruf) => _berechne(aufruf, werk, belag, regelwerk, unterkonstruktion),
     );
     return PlanungsDienst._(sitzung);
   }
@@ -761,25 +765,33 @@ class PlanungsDienst {
   static bool darfMengenAendern(LazyInvocationPayload aufruf) =>
       aufruf.customDetails?['caller_authrole'] == Rollen.mitarbeiter;
 
-  static void _berechne(
+  static Future<void> _berechne(
     LazyInvocationPayload aufruf,
+    Rechenwerk werk,
     Belagsuche belag,
     Regelwerksuche regelwerk,
     Unterkonstruktionssuche unterkonstruktion,
-  ) {
+  ) async {
     try {
       final planung = Planung.ausBytes(_bytes(aufruf));
-      aufruf.respondWith(
-        lazyPayload: verpacke(
-          berechnePlanung(
-            planung,
-            belag,
-            regelwerk(),
-            darfMengenAendern(aufruf),
-            unterkonstruktion,
-          ).zuBytes(),
+      final ergebnis = await werk.rechne(
+        rechenauftrag(
+          planung,
+          {
+            for (final f in planung.flaechen)
+              f.stand.belag: belag(f.stand.belag),
+          },
+          [for (final f in planung.flaechen) unterkonstruktion(f.stand)],
+          regelwerk(),
+          mitMengen: darfMengenAendern(aufruf),
         ),
-        options: ppt,
+      );
+      aufruf.respondWith(lazyPayload: verpacke(ergebnis), options: ppt);
+    } on RechenzeitUeberschritten catch (fehler) {
+      aufruf.respondWith(
+        isError: true,
+        errorUri: WampNamen.planungZuAufwendig,
+        arguments: ['$fehler'],
       );
     } on Object catch (fehler) {
       aufruf.respondWith(
@@ -789,6 +801,26 @@ class PlanungsDienst {
       );
     }
   }
+
+  /// Berechnung der [planung] als Auftrag für das [Rechenwerk]: Belag und
+  /// UK sind schon im Router-Isolate nachgeschlagen ([belaege] je
+  /// Artikelnummer, [uks] je Fläche), damit der Auftrag nur versendbare
+  /// Werte einschließt (die Suchfunktionen hängen an Dienst-Sitzungen).
+  static Uint8List Function() rechenauftrag(
+    Planung planung,
+    Map<Artikelnummer?, Artikel?> belaege,
+    List<Artikel?> uks,
+    Regelwerk? regelwerk, {
+    required bool mitMengen,
+  }) =>
+      () => berechnePlanung(
+        planung,
+        (nummer) => belaege[nummer],
+        regelwerk,
+        mitMengen,
+        (stand) =>
+            uks[planung.flaechen.indexWhere((f) => identical(f.stand, stand))],
+      ).zuBytes();
 
   static Uint8List _bytes(LazyInvocationPayload aufruf) {
     if (aufruf.pptScheme != WampNamen.pptSchema) {

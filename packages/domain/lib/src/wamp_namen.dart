@@ -78,6 +78,10 @@ abstract final class WampNamen {
   /// berechnen lässt (z. B. Maße außerhalb der Grenzen).
   static const planungUngueltig = '${kunde}fehler.planung_ungueltig';
 
+  /// Fehler-URI, wenn die Berechnung einer Planung länger als erlaubt
+  /// dauert (M10-02, Rechenwerk) – Schutz vor extremen Eingaben.
+  static const planungZuAufwendig = '${kunde}fehler.planung_zu_aufwendig';
+
   /// Fehler-URI für unbekannte Artikelnummern.
   static const artikelUnbekannt = '${kunde}fehler.artikel_unbekannt';
 

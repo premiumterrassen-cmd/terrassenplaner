@@ -2653,4 +2653,84 @@ void main() {
       fehler('keine typisierte Planung'),
     );
   });
+
+  group('Rechenwerk (M10-02)', () {
+    test('rechnet außerhalb des Router-Isolates wie berechnePlanung', () {
+      final planung = Planung([
+        Terrassenflaeche(Planungsstand.start),
+        Terrassenflaeche(Planungsstand.start.mitForm(Terrassenform.lForm)),
+      ]);
+      final uks = [Lastdaten.unterkonstruktion, null];
+      final auftrag = PlanungsDienst.rechenauftrag(
+        planung,
+        {null: Lastdaten.diele},
+        uks,
+        Regelwerk(Lastdaten.artikeldatei),
+        mitMengen: false,
+      );
+      expect(
+        auftrag(),
+        PlanungsDienst.berechnePlanung(
+          planung,
+          (_) => Lastdaten.diele,
+          Regelwerk(Lastdaten.artikeldatei),
+          false,
+          (stand) => identical(stand, planung.flaechen.first.stand)
+              ? Lastdaten.unterkonstruktion
+              : null,
+        ).zuBytes(),
+      );
+    });
+
+    test('zu aufwendige Planungen brechen mit eigenem Fehler ab', () async {
+      // eine Transportschicht je Prozess: denselben Router, neuer Dienst
+      await dienst.stoppe();
+      dienst = await PlanungsDienst.starte(
+        router,
+        belag: (_) => Lastdaten.diele,
+        regelwerk: () => Regelwerk(Lastdaten.artikeldatei),
+        unterkonstruktion: (_) => Lastdaten.unterkonstruktion,
+        rechenwerk: Rechenwerk(
+          parallel: 1,
+          hoechstdauer: const Duration(milliseconds: 50),
+        ),
+      );
+      await expectLater(
+        kunde
+            .callSingleLazyPayloadView(
+              WampNamen.planungBerechnen,
+              payload: PlanungsDienst.verpacke(Lastdaten.gross().zuBytes()),
+              options: ppt,
+            )
+            .timeout(const Duration(seconds: 10)),
+        throwsA(
+          isA<Object>()
+              .having(
+                (e) => (e as dynamic).error,
+                'error',
+                WampNamen.planungZuAufwendig,
+              )
+              .having(
+                (e) => ((e as dynamic).arguments as List).single,
+                'arguments',
+                contains('zu aufwendig'),
+              ),
+        ),
+      );
+      // kleine Planungen rechnet derselbe Dienst weiter
+      final antwort = await kunde
+          .callSingleLazyPayloadView(
+            WampNamen.planungBerechnen,
+            payload: PlanungsDienst.verpacke(
+              Planung([Terrassenflaeche.start]).zuBytes(),
+            ),
+            options: ppt,
+          )
+          .timeout(const Duration(seconds: 10));
+      expect(
+        Berechnung.ausBytes(antwort.payload.packedPayloadBytes!).flaeche,
+        greaterThan(0),
+      );
+    });
+  });
 }

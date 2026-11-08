@@ -1,8 +1,9 @@
+import 'dart:convert';
 import 'dart:js_interop';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:terrassenplaner_app/src/export/datei_angebot.dart';
+import 'package:terrassenplaner_app/src/datei/datei_angebot.dart';
 import 'package:terrassenplaner_app/src/verbindung/planer_verbindung.dart';
 import 'package:terrassenplaner_app/src/verbindung/wamp_adresse.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
@@ -52,7 +53,11 @@ void main() {
     web.document.addEventListener('click', mitschnitt);
     addTearDown(() => web.document.removeEventListener('click', mitschnitt));
 
-    bieteDateiAn('GrandTotal_Import.csv', 'Bezeichnung;Anzahl\r\n');
+    bieteDateiAn(
+      'GrandTotal_Import.csv',
+      utf8.encode('Bezeichnung;Anzahl\r\n'),
+      'text/csv;charset=utf-8',
+    );
 
     expect(links, hasLength(1));
     expect(links.single.download, 'GrandTotal_Import.csv');

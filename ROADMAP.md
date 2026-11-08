@@ -7,7 +7,7 @@ Führend ist GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/mil
 
 - Nachbau des Terrassenkonfigurators https://terrassenkonfigurator.robinienwelt.de/ als **funktionale und inhaltliche 1:1-Kopie**, Schritt für Schritt.
 - **Keine technische Kopie:** kein Code, keine Architektur, keine Datenstrukturen, keine Programmierkonzepte der alten Seite. Fachliche Quellen sind nur die Bedienung, die sichtbaren Texte/Optionen und die Ergebnisse (Planungsunterlagen, Exporte).
-- Technik: Flutter (Web), Dart-Server mit `connectanum_router` und `connectanum_auth_server`, Client `connectanum_client` (alle 3.0.0-beta.8, auf 3.0.0 umstellen, sobald stabil).
+- Technik: Flutter (Web), Dart-Server mit `connectanum_router` und `connectanum_auth_server`, Client `connectanum_client` (alle 3.0.0-beta.9, auf 3.0.0 umstellen, sobald stabil).
 - **Ziel-Funktionsumfang = neue Planer-Version** https://terrassenplaner.terrassen-montagesysteme.de/de (Vorgabe Alexander 19.10.2026), nur Funktionen – nicht deren Sortiment. Auswahl: zum Go-Live u. a. mehrere Flächen, Rahmendielen, wechselnde Breiten, Designverlegung, UK von Hand, Drainageroste; danach M12 (3D, AR, KI, Podest, Sicherung, Sonderbauteile). Siehe `docs/fachkonzept/13-neue-planer-version.md`.
 - Fehler des alten Planers werden nicht übernommen; seine Artikel sind veraltet – Sortiment nur Robinie (später Kastanie) aus der Master-Artikelliste.
 
@@ -491,6 +491,7 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/11
 - [ ] **M10-02 Last- und Leistungstest** ([#85](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/85)) – `feature/m10-02-last-und-leistungstest` · Benchmark
   - Gleichzeitige Nutzer, große Projekte, Router-Durchsatz.
   - Abnahme: Zielwerte festgelegt und erreicht
+  - Stand (08.11.2026, Branch): Lastwerkzeug `bin/lasttest.dart` + `tool/lasttest.sh` (langer Lauf, echter Router, 4 Szenarien: 50 Nutzer, 100 Sitzungen, große Projekte, Durchsatz; Speicher/CPU per `ps`, Zielwerte mit Faktor 2 auf den Zielserver umgerechnet), kurzer Benchmark `server.Lasttest.*` in der Build-Chain, Bericht `docs/abnahme/lasttest.md`. Engpass behoben: Planungsdienst rechnet im `Rechenwerk` (eigenes Isolate je Berechnung, Abbruch nach 20 s → `planung_zu_aufwendig`; vorher legte eine extreme Planung den Server minutenlang lahm). Leistungs-Zielwerte in Läufen ohne Stau erreicht (p95 Berechnen 68 ms, Speichern 76 ms umgerechnet; 2 763 Aufrufe/s; < 120 MiB). **Offen:** zwei connectanum-Befunde (Stau aller Aufrufe ohne CPU-Last ab ≈ 50 Sitzungen; Aufrufe an eine interne Dienst-Sitzung nur nacheinander) – an Alexander gemeldet; danach Nachmessung und Abschluss.
 - [x] **M10-03 Produktivbetrieb** ([#86](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/86)) – `feature/m10-03-produktivbetrieb`
   - Produktiv-Deployment auf dem Root-Server, Domain, Let's-Encrypt-Produktivzertifikat über Traefik, Überwachung, Sicherung der Konfigurationen.
   - Abnahme: Wiederherstellung aus Sicherung getestet

@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:terrassenplaner_app/src/datei/datei_angebot.dart';
 import 'package:terrassenplaner_app/src/design/planer_design.dart';
-import 'package:terrassenplaner_app/src/export/datei_angebot.dart';
 import 'package:terrassenplaner_app/src/export/grandtotal_export.dart';
 import 'package:terrassenplaner_app/src/konfiguration/konfigurations_steuerung.dart';
 import 'package:terrassenplaner_app/src/rahmen/berechnung_steuerung.dart';
@@ -46,7 +48,11 @@ final class _Export {
     return antwort.future;
   }
 
-  void anbieten(String name, String inhalt) => dateien.add((name, inhalt));
+  /// Die Importdatei ist immer CSV in UTF-8.
+  void anbieten(String name, Uint8List inhalt, String typ) {
+    expect(typ, 'text/csv;charset=utf-8');
+    dateien.add((name, utf8.decode(inhalt)));
+  }
 }
 
 Finder get _knopf => find.byKey(const ValueKey('export-grandtotal'));
@@ -57,7 +63,11 @@ bool _gesperrt(WidgetTester tester) =>
 void main() {
   test('außerhalb des Browsers kein Download', () {
     expect(
-      () => bieteDateiAn('GrandTotal_Import.csv', 'x'),
+      () => bieteDateiAn(
+        'GrandTotal_Import.csv',
+        utf8.encode('x'),
+        'text/csv;charset=utf-8',
+      ),
       throwsA(
         isA<UnsupportedError>().having(
           (e) => e.message,

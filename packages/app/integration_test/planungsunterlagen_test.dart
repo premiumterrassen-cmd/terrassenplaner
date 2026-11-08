@@ -6,7 +6,7 @@ import 'start.dart';
 
 /// Ende-zu-Ende (M9-06): PDF speichert die Planung, der Server erzeugt die
 /// Planungsunterlagen dieser Version, der Browser bietet sie zum Download
-/// an (`datei_web.dart`).
+/// an (`datei_angebot_web.dart`).
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 

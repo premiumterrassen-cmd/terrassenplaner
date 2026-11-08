@@ -1,0 +1,408 @@
+{
+  "erstellt": "2026-11-08T09:47:06.932206",
+  "messrechner": {
+    "betriebssystem": "Version 26.6.2 (Build 25G83)",
+    "kerne": 10,
+    "dart": "3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on \"macos_arm64\""
+  },
+  "faktor_zielserver": 2.0,
+  "zielwerte_erreicht": false,
+  "zielwerte": [
+    {
+      "kennung": "nutzer.fehler",
+      "beschreibung": "gescheiterte Aufrufe",
+      "grenze": 0.0,
+      "einheit": "Aufrufe",
+      "gemessen": 0.0,
+      "zielserver": 0.0,
+      "erreicht": true
+    },
+    {
+      "kennung": "nutzer.speicher",
+      "beschreibung": "Speicher des Routers (Spitze)",
+      "grenze": 1024.0,
+      "einheit": "MiB",
+      "gemessen": 82.6,
+      "zielserver": 82.6,
+      "erreicht": true
+    },
+    {
+      "kennung": "nutzer.berechnen",
+      "beschreibung": "p95 berechnen",
+      "grenze": 250.0,
+      "einheit": "ms",
+      "gemessen": 96.1,
+      "zielserver": 192.2,
+      "erreicht": true
+    },
+    {
+      "kennung": "nutzer.speichern",
+      "beschreibung": "p95 speichern",
+      "grenze": 250.0,
+      "einheit": "ms",
+      "gemessen": 109.2,
+      "zielserver": 218.5,
+      "erreicht": true
+    },
+    {
+      "kennung": "nutzer.laden",
+      "beschreibung": "p95 laden",
+      "grenze": 250.0,
+      "einheit": "ms",
+      "gemessen": 90.1,
+      "zielserver": 180.2,
+      "erreicht": true
+    },
+    {
+      "kennung": "nutzer.cpu",
+      "beschreibung": "CPU-Bedarf des Routers",
+      "grenze": 1.0,
+      "einheit": "Kerne",
+      "gemessen": 0.48,
+      "zielserver": 0.96,
+      "erreicht": true
+    },
+    {
+      "kennung": "sitzungen.fehler",
+      "beschreibung": "gescheiterte Aufrufe",
+      "grenze": 0.0,
+      "einheit": "Aufrufe",
+      "gemessen": 0.0,
+      "zielserver": 0.0,
+      "erreicht": true
+    },
+    {
+      "kennung": "sitzungen.speicher",
+      "beschreibung": "Speicher des Routers (Spitze)",
+      "grenze": 1024.0,
+      "einheit": "MiB",
+      "gemessen": 89.5,
+      "zielserver": 89.5,
+      "erreicht": true
+    },
+    {
+      "kennung": "sitzungen.berechnen",
+      "beschreibung": "p95 berechnen",
+      "grenze": 500.0,
+      "einheit": "ms",
+      "gemessen": 316.9,
+      "zielserver": 633.7,
+      "erreicht": false
+    },
+    {
+      "kennung": "sitzungen.speichern",
+      "beschreibung": "p95 speichern",
+      "grenze": 500.0,
+      "einheit": "ms",
+      "gemessen": 477.0,
+      "zielserver": 954.1,
+      "erreicht": false
+    },
+    {
+      "kennung": "gross.fehler",
+      "beschreibung": "gescheiterte Aufrufe",
+      "grenze": 0.0,
+      "einheit": "Aufrufe",
+      "gemessen": 22.0,
+      "zielserver": 22.0,
+      "erreicht": false
+    },
+    {
+      "kennung": "gross.speicher",
+      "beschreibung": "Speicher des Routers (Spitze)",
+      "grenze": 1024.0,
+      "einheit": "MiB",
+      "gemessen": 96.9,
+      "zielserver": 96.9,
+      "erreicht": true
+    },
+    {
+      "kennung": "gross.berechnenGross",
+      "beschreibung": "p95 berechnenGross",
+      "grenze": 5000.0,
+      "einheit": "ms",
+      "gemessen": 2238.1,
+      "zielserver": 4476.2,
+      "erreicht": true
+    },
+    {
+      "kennung": "gross.nebenher.berechnen",
+      "beschreibung": "p95 berechnen",
+      "grenze": 500.0,
+      "einheit": "ms",
+      "gemessen": 2239.7,
+      "zielserver": 4479.3,
+      "erreicht": false
+    },
+    {
+      "kennung": "gross.nebenher.speichern",
+      "beschreibung": "p95 speichern",
+      "grenze": 500.0,
+      "einheit": "ms",
+      "gemessen": 1898.9,
+      "zielserver": 3797.7,
+      "erreicht": false
+    },
+    {
+      "kennung": "durchsatz.fehler",
+      "beschreibung": "gescheiterte Aufrufe",
+      "grenze": 0.0,
+      "einheit": "Aufrufe",
+      "gemessen": 0.0,
+      "zielserver": 0.0,
+      "erreicht": true
+    },
+    {
+      "kennung": "durchsatz.speicher",
+      "beschreibung": "Speicher des Routers (Spitze)",
+      "grenze": 1024.0,
+      "einheit": "MiB",
+      "gemessen": 93.9,
+      "zielserver": 93.9,
+      "erreicht": true
+    },
+    {
+      "kennung": "durchsatz.aufrufe",
+      "beschreibung": "Aufrufe je Sekunde über den Router",
+      "grenze": 2000.0,
+      "einheit": "1/s",
+      "gemessen": 4760.7,
+      "zielserver": 2380.4,
+      "erreicht": true
+    },
+    {
+      "kennung": "durchsatz.hallo",
+      "beschreibung": "p95 hallo",
+      "grenze": 100.0,
+      "einheit": "ms",
+      "gemessen": 18.6,
+      "zielserver": 37.1,
+      "erreicht": true
+    }
+  ],
+  "szenarien": [
+    {
+      "szenario": "nutzer",
+      "beschreibung": "50 gleichzeitig arbeitende Nutzer (Bedienrunde, 1 s Denkzeit)",
+      "speicher_vorher_mb": 31.7,
+      "speicher_spitze_mb": 82.6,
+      "cpu_kerne": 0.48,
+      "lastwerkzeug_cpu_kerne": 0.04,
+      "profile": [
+        {
+          "profil": "nutzer",
+          "sitzungen": 50,
+          "denkzeit_ms": 1000,
+          "laufzeit_s": 61.528400000000005,
+          "aufrufe": 14142,
+          "fehler": 0,
+          "durchsatz_je_s": 229.8,
+          "vorgaenge": {
+            "berechnen": {
+              "anzahl": 7071,
+              "mittel_ms": 37.8,
+              "p50_ms": 14.9,
+              "p95_ms": 96.1,
+              "p99_ms": 196.1,
+              "max_ms": 5346.6,
+              "fehler": 0
+            },
+            "entwurf": {
+              "anzahl": 2357,
+              "mittel_ms": 43.0,
+              "p50_ms": 19.0,
+              "p95_ms": 119.5,
+              "p99_ms": 182.6,
+              "max_ms": 5352.3,
+              "fehler": 0
+            },
+            "speichern": {
+              "anzahl": 2357,
+              "mittel_ms": 42.1,
+              "p50_ms": 19.4,
+              "p95_ms": 109.2,
+              "p99_ms": 179.9,
+              "max_ms": 5344.8,
+              "fehler": 0
+            },
+            "laden": {
+              "anzahl": 2357,
+              "mittel_ms": 33.9,
+              "p50_ms": 15.1,
+              "p95_ms": 90.1,
+              "p99_ms": 159.7,
+              "max_ms": 5341.2,
+              "fehler": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "szenario": "sitzungen",
+      "beschreibung": "100 verbundene Sitzungen, je eine Bedienrunde alle 5 s",
+      "speicher_vorher_mb": 82.7,
+      "speicher_spitze_mb": 89.5,
+      "cpu_kerne": 0.18,
+      "lastwerkzeug_cpu_kerne": 0.02,
+      "profile": [
+        {
+          "profil": "sitzungen",
+          "sitzungen": 100,
+          "denkzeit_ms": 5000,
+          "laufzeit_s": 66.4611,
+          "aufrufe": 4584,
+          "fehler": 0,
+          "durchsatz_je_s": 69.0,
+          "vorgaenge": {
+            "berechnen": {
+              "anzahl": 2292,
+              "mittel_ms": 58.1,
+              "p50_ms": 6.8,
+              "p95_ms": 316.9,
+              "p99_ms": 428.8,
+              "max_ms": 22592.8,
+              "fehler": 0
+            },
+            "entwurf": {
+              "anzahl": 764,
+              "mittel_ms": 55.5,
+              "p50_ms": 8.4,
+              "p95_ms": 372.2,
+              "p99_ms": 409.9,
+              "max_ms": 418.0,
+              "fehler": 0
+            },
+            "speichern": {
+              "anzahl": 764,
+              "mittel_ms": 98.0,
+              "p50_ms": 9.1,
+              "p95_ms": 477.0,
+              "p99_ms": 498.1,
+              "max_ms": 22548.0,
+              "fehler": 0
+            },
+            "laden": {
+              "anzahl": 764,
+              "mittel_ms": 38.2,
+              "p50_ms": 3.9,
+              "p95_ms": 316.7,
+              "p99_ms": 465.0,
+              "max_ms": 498.4,
+              "fehler": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "szenario": "gross",
+      "beschreibung": "2 Sitzungen rechnen ohne Pause große Projekte, 20 Nutzer arbeiten nebenher",
+      "speicher_vorher_mb": 89.4,
+      "speicher_spitze_mb": 96.9,
+      "cpu_kerne": 0.08,
+      "lastwerkzeug_cpu_kerne": 0.0,
+      "profile": [
+        {
+          "profil": "gross",
+          "sitzungen": 2,
+          "denkzeit_ms": 0,
+          "laufzeit_s": 135.5076,
+          "aufrufe": 10,
+          "fehler": 2,
+          "durchsatz_je_s": 0.1,
+          "vorgaenge": {
+            "berechnenGross": {
+              "anzahl": 10,
+              "mittel_ms": 1858.8,
+              "p50_ms": 1856.9,
+              "p95_ms": 2238.1,
+              "p99_ms": 2238.1,
+              "max_ms": 2238.1,
+              "fehler": 2
+            }
+          },
+          "erster_fehler": "berechnenGross: TimeoutException after 0:01:00.000000: Future not completed"
+        },
+        {
+          "profil": "nebenher",
+          "sitzungen": 20,
+          "denkzeit_ms": 1000,
+          "laufzeit_s": 136.9856,
+          "aufrufe": 100,
+          "fehler": 20,
+          "durchsatz_je_s": 0.7,
+          "vorgaenge": {
+            "berechnen": {
+              "anzahl": 60,
+              "mittel_ms": 1867.4,
+              "p50_ms": 1858.9,
+              "p95_ms": 2239.7,
+              "p99_ms": 2240.0,
+              "max_ms": 2240.0,
+              "fehler": 0
+            },
+            "entwurf": {
+              "anzahl": 20,
+              "mittel_ms": 1793.7,
+              "p50_ms": 1793.1,
+              "p95_ms": 1799.2,
+              "p99_ms": 1823.8,
+              "max_ms": 1823.8,
+              "fehler": 0
+            },
+            "speichern": {
+              "anzahl": 20,
+              "mittel_ms": 1876.6,
+              "p50_ms": 1878.0,
+              "p95_ms": 1898.9,
+              "p99_ms": 1899.7,
+              "max_ms": 1899.7,
+              "fehler": 0
+            },
+            "laden": {
+              "anzahl": 0,
+              "mittel_ms": 0.0,
+              "p50_ms": 0.0,
+              "p95_ms": 0.0,
+              "p99_ms": 0.0,
+              "max_ms": 0.0,
+              "fehler": 20
+            }
+          },
+          "erster_fehler": "laden: TimeoutException after 0:01:00.000000: Future not completed"
+        }
+      ]
+    },
+    {
+      "szenario": "durchsatz",
+      "beschreibung": "100 Sitzungen rufen ohne Pause die kleinste Prozedur auf",
+      "speicher_vorher_mb": 93.2,
+      "speicher_spitze_mb": 93.9,
+      "cpu_kerne": 1.04,
+      "lastwerkzeug_cpu_kerne": 0.29,
+      "profile": [
+        {
+          "profil": "durchsatz",
+          "sitzungen": 100,
+          "denkzeit_ms": 0,
+          "laufzeit_s": 61.3471,
+          "aufrufe": 292058,
+          "fehler": 0,
+          "durchsatz_je_s": 4760.7,
+          "vorgaenge": {
+            "hallo": {
+              "anzahl": 292058,
+              "mittel_ms": 21.0,
+              "p50_ms": 14.9,
+              "p95_ms": 18.6,
+              "p99_ms": 23.7,
+              "max_ms": 15948.0,
+              "fehler": 0
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

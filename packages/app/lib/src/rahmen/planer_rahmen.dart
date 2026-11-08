@@ -4,9 +4,9 @@ import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 import '../anmeldung/anmelde_dialog.dart';
 import '../anmeldung/mitarbeiter_anmeldung.dart';
+import '../datei/datei_angebot.dart';
 import '../design/darstellung.dart';
 import '../design/planer_design.dart';
-import '../export/datei_angebot.dart';
 import '../export/grandtotal_export.dart';
 import '../konfiguration/konfigurations_steuerung.dart';
 import '../konfiguration/planungsunterlagen.dart';
@@ -117,7 +117,7 @@ class PlanerRahmen extends StatefulWidget {
   final GrandTotalAnfordern? exportGrandTotal;
 
   /// Bietet die Importdatei zum Speichern an (im Browser ein Download).
-  final TextdateiAnbieten dateiAnbieten;
+  final DateiAnbieten dateiAnbieten;
 
   /// Adresse der Web-App für die Bild-Links im Export; `null` = `Uri.base`.
   final Uri? adresse;
