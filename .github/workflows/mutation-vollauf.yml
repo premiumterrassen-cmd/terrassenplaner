@@ -29,8 +29,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { paket: domain, teil: 1, von: 1 }
-          - { paket: server, teil: 1, von: 1 }
+          # domain und server in Teilen: als ein Job reichten 6 h nicht mehr
+          # (domain abgebrochen, server 5 h 22 min am 08.11.2026)
+          - { paket: domain, teil: 1, von: 4 }
+          - { paket: domain, teil: 2, von: 4 }
+          - { paket: domain, teil: 3, von: 4 }
+          - { paket: domain, teil: 4, von: 4 }
+          - { paket: server, teil: 1, von: 2 }
+          - { paket: server, teil: 2, von: 2 }
           - { paket: app, teil: 1, von: 8 }
           - { paket: app, teil: 2, von: 8 }
           - { paket: app, teil: 3, von: 8 }

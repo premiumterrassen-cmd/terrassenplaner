@@ -59,7 +59,7 @@ Der Ausschluss `[\s]for[\s]*\(.*?\)[\s]*{` in `tool/mutation/*.xml` greift nur b
 **Lösung:**
 
 - **Push auf `main`:** `MUTATION_BASIS` ist der Stand vor dem Push (`github.event.before`, bei `workflow_dispatch` `HEAD^`). Es laufen nur die Änderungen dieses Pushes, das Deployment hängt nicht mehr am Vollauf.
-- **Vollauf:** Workflow `.github/workflows/mutation-vollauf.yml`, nachts um 23:00 UTC und von Hand (`gh workflow run mutation-vollauf.yml`). Zehn Jobs: `domain`, `server` und `app` in acht Teilen (`MUTATION_TEIL=<nummer>/<anzahl>`, Dateien nach Größe sortiert reihum verteilt).
+- **Vollauf:** Workflow `.github/workflows/mutation-vollauf.yml`, nachts um 23:00 UTC und von Hand (`gh workflow run mutation-vollauf.yml`). Seit 08.11.2026 vierzehn Jobs: `domain` in vier, `server` in zwei und `app` in acht Teilen (`MUTATION_TEIL=<nummer>/<anzahl>`, Dateien nach Größe sortiert reihum verteilt).
 - **Schwelle:** Die Teile laufen ohne Schwelle, `tool/mutation_summe.sh` summiert die xunit-Berichte und prüft 95 % **je Paket** wie bisher. Sonst würde ein einzelner schwacher Teil ein Paket rot machen, das insgesamt besteht. Die Rechnung folgt `mutation_test`: Timeouts und nicht abgedeckte Zeilen zählen als unerkannt. Ein fehlender Teil zählt als Fehler.
 - **Roter Vollauf:** legt ein Issue mit Label `mutation-vollauf` an (oder kommentiert das offene). **Er stoppt das Deployment nicht** – eine Lücke außerhalb der geänderten Dateien erreicht Produktion also höchstens bis zum Ende der folgenden Nacht unerkannt. Das ist der Preis dafür, dass ein Deployment nicht an einem Lauf von 1 h 42 min hängt.
 - **`--fail-fast`** nun auch in `app.xml` und `domain.xml`: Ein erkannter Mutant muss die Suite nicht zu Ende laufen (lokal `flutter test` 11 s → 6 s, gleicher Exit-Code).
@@ -93,3 +93,10 @@ Die Frist allein reichte nicht: Der nächste Lauf brach wieder in `dielenverlegu
 **Lösung:** Der Job `mutation-teil` läuft als Matrix (domain 4, server 2, app 6 Teile). `tool/mutation.sh` erlaubt dafür `MUTATION_TEIL` zusammen mit `MUTATION_BASIS`: Die geänderten Dateien werden wie im Vollauf nach Größe reihum verteilt, jeder Teil läuft ohne Schwelle. Ein Teil ohne Dateien legt einen leeren Bericht ab. Der Job `mutation-tests` (Name unverändert, Abhängigkeit von Build und Deployment bleibt) summiert mit `tool/mutation_summe.sh` und prüft die 95 % je Paket; fehlt ein Teil, ist er rot. Geprüft in `tool/mutation_auswahl_test.sh`.
 
 **Ladebild-Prüfung:** Im selben Lauf hing `tool/ladebild/pruefung.mjs` nach dem Start der WebAssembly-Umgebung 32 Minuten ohne Ausgabe, bis der Smoke-Job nach 40 Minuten abbrach (alle Flutter-Smoke-Tests waren grün). Jeder Fall, der Chrome-Start und die DevTools-Verbindung haben jetzt eine Frist von 120 s; nach einer Zeitüberschreitung startet ein frisches Chrome und der Fall wird einmal wiederholt („WIEDER“). Hängt er erneut, ist er rot statt endlos.
+
+## Vollauf: domain und server ebenfalls in Teilen (08.11.2026)
+
+**Anlass:** Der nächtliche Vollauf war ab 06.11.2026 rot (Issue #132): `domain` lief als ein Job und wurde nach 5 h 45 min am Limit abgebrochen (Run 42436256055), `server` brauchte 5 h 22 min. Die gemessenen Werte selbst waren gut (server 99,22 %, app 96,88 %).
+
+**Lösung:** In `.github/workflows/mutation-vollauf.yml` läuft `domain` in vier und `server` in zwei Teilen, wie in der Build-Chain. Die Auswertung (`tool/mutation_summe.sh`) prüft die 95 % weiter je Paket über alle Teile.
+
