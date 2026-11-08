@@ -18,6 +18,7 @@ packages/server/bin/schema_erzeugen.dart
 packages/server/lib/src/schema/transport_schema.dart
 packages/server/bin/artikel_importieren.dart
 packages/server/bin/artikelbilder_aufbereiten.dart
+packages/server/bin/lasttest.dart
 packages/app/lib/src/modell3d/modell3d_ansicht_web.dart
 packages/app/lib/src/einstellungen/browser_speicher_web.dart
 packages/app/lib/src/datei/datei_angebot_web.dart

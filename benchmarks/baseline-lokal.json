@@ -26,6 +26,8 @@
     "domain.Auflager.auflagerbedarf(RunTime)": 1961.2383808095951,
     "domain.Verschnittoptimierung.verschnittvarianten(RunTime)": 613853.75,
     "server.Planungsunterlagen.pdf": 10381.725388601037,
-    "domain.Zubehoer.berechnetesZubehoer": 14356.227272727272
+    "domain.Zubehoer.berechnetesZubehoer": 14356.227272727272,
+    "server.Lasttest.gleichzeitig20": 462196.0,
+    "server.Lasttest.grossesProjekt": 743981.3
   }
 }

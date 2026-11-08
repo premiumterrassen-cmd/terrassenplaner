@@ -47,3 +47,11 @@
 Ohne Last gemessen (30 s, Debian 13, 2 Kerne): `planer-router` ≈ 6,3 % und `planer-auth` ≈ 6,8 % eines Kerns, Traefik 0 %. Zusammen rund 13 % eines Kerns ohne einzige Verbindung – deutet auf aktives Abfragen (Polling) in der Transportschicht/den Worker-Isolates. An Alexander (Maintainer) gemeldet; für M10-02 (Last- und Leistungstest) und das Monitoring (M0-14) beobachten.
 
 Nachmessung mit beta.8 (10.10.2026, 30 s ohne Last): `planer-router` ≈ 4 %, `planer-auth` ≈ 5 % eines Kerns – etwas weniger, aber weiterhin aktives Abfragen im Leerlauf.
+
+## Last- und Leistungstest (08.11.2026, beta.8, M10-02)
+
+Details und Messreihen in `docs/abnahme/lasttest.md`. Zwei Befunde, an Alexander gemeldet (nicht im Projekt umgangen):
+
+- **Stau unter Last:** Zeitweise bleiben alle Aufrufe unbeantwortet, Router und Client ohne CPU-Last; manche Läufe erholen sich nach 10–30 s, andere nicht innerhalb von 60 s. Mit 50 bis 500 Sitzungen, JSON und FlatBuffers, Router und Client im selben oder in getrennten Prozessen (fünf Lastprozesse stauen gleichzeitig), auch auf `origin/main`.
+- **Aufrufe an eine interne Dienst-Sitzung laufen nacheinander:** Die nächste INVOCATION kommt erst nach der Antwort auf die vorige an, obwohl der Handler asynchron ist (`connectanum_core` wartet den Handler nicht ab, die Serialisierung liegt davor). Ein großes Projekt hält damit alle Berechnungen derselben Prozedur an; das Rechenwerk (eigene Isolates) kann erst parallel rechnen, wenn das behoben ist.
+- Leerlauf-CPU des Routers lokal (macOS, AOT) ≈ 0 – das Polling aus dem Abschnitt oben zeigt sich hier nicht.
