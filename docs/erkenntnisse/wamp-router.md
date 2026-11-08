@@ -35,6 +35,13 @@
 - ObjectBox-Anbindung ist laut connectanum-Doku **nicht** Teil von core, sondern eines eigenen Pakets `connectanum_objectbox_adapter` (Stand 10.10.2026 nicht auf pub.dev).
 - **Benchmark (A/B auf derselben Maschine, je 3 Läufe):** `server.Router.rpcRundlauf` beta.7 2,94–3,02 ms, beta.8 2,98–3,01 ms → **kein Unterschied**. Der gespeicherte Vorwert 2,62 ms (beta.6) stammt aus einem anderen Maschinenzustand; die gemeldete beta.7-Verschlechterung ist damit nicht belastbar. Der Benchmark nutzt weiter JSON – FlatBuffers wird erst mit dem eigenen Issue gemessen.
 
+## Upgrade auf 3.0.0-beta.9 (08.11.2026, #133)
+
+- Alle connectanum-Pakete gemeinsam auf beta.9 (client, router, auth_server, core; mcp kommt transitiv mit); ohne Codeänderung lauffähig, Analyse ohne Befund, alle Tests grün (domain 1167, server 313, app 460).
+- Neu laut Changelog: MQTT 5/3.1.1 QoS 0 in Client und Router mit optionalem, je Realm autorisiertem MQTT↔WAMP-Gateway (für den Planer nicht genutzt); im Router begrenzte Policy-Warteschlangen, Abbruch und Abbau; im Client Wiederaufnahme-Rückstände in begrenzten asynchronen Stapeln. Keine Breaking Changes.
+- **Benchmark (A/B auf derselben Maschine, je 3 Läufe):** `server.Router.rpcRundlauf` beta.8 2,88–3,01 ms, beta.9 2,68–2,98 ms; FlatBuffers klein beta.8 2,75–2,82 ms, beta.9 2,69–2,74 ms → **kein belastbarer Unterschied**.
+- Ob die begrenzten Warteschlangen den Stau unter Last aus M10-02 (`docs/abnahme/lasttest.md`) beheben, prüft ein neuer Lauf von `tool/lasttest.sh` nach dem Merge von M10-02.
+
 ## Leerlauf-CPU auf dem Server (06.10.2026, beta.7)
 
 Ohne Last gemessen (30 s, Debian 13, 2 Kerne): `planer-router` ≈ 6,3 % und `planer-auth` ≈ 6,8 % eines Kerns, Traefik 0 %. Zusammen rund 13 % eines Kerns ohne einzige Verbindung – deutet auf aktives Abfragen (Polling) in der Transportschicht/den Worker-Isolates. An Alexander (Maintainer) gemeldet; für M10-02 (Last- und Leistungstest) und das Monitoring (M0-14) beobachten.

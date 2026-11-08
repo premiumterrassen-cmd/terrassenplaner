@@ -7,7 +7,7 @@ Führend ist GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/mil
 
 - Nachbau des Terrassenkonfigurators https://terrassenkonfigurator.robinienwelt.de/ als **funktionale und inhaltliche 1:1-Kopie**, Schritt für Schritt.
 - **Keine technische Kopie:** kein Code, keine Architektur, keine Datenstrukturen, keine Programmierkonzepte der alten Seite. Fachliche Quellen sind nur die Bedienung, die sichtbaren Texte/Optionen und die Ergebnisse (Planungsunterlagen, Exporte).
-- Technik: Flutter (Web), Dart-Server mit `connectanum_router` und `connectanum_auth_server`, Client `connectanum_client` (alle 3.0.0-beta.8, auf 3.0.0 umstellen, sobald stabil).
+- Technik: Flutter (Web), Dart-Server mit `connectanum_router` und `connectanum_auth_server`, Client `connectanum_client` (alle 3.0.0-beta.9, auf 3.0.0 umstellen, sobald stabil).
 - **Ziel-Funktionsumfang = neue Planer-Version** https://terrassenplaner.terrassen-montagesysteme.de/de (Vorgabe Alexander 19.10.2026), nur Funktionen – nicht deren Sortiment. Auswahl: zum Go-Live u. a. mehrere Flächen, Rahmendielen, wechselnde Breiten, Designverlegung, UK von Hand, Drainageroste; danach M12 (3D, AR, KI, Podest, Sicherung, Sonderbauteile). Siehe `docs/fachkonzept/13-neue-planer-version.md`.
 - Fehler des alten Planers werden nicht übernommen; seine Artikel sind veraltet – Sortiment nur Robinie (später Kastanie) aus der Master-Artikelliste.
 
