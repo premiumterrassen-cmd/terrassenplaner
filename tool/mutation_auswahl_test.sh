@@ -164,4 +164,14 @@ pruefe "Summe: fehlender Teil → rot" nicht summe
 rm -r "$BERICHTE/mutation-teil-app-2-von-2"
 pruefe "Summe: fehlendes Paket → rot" nicht summe
 
+# Frist: beendet die ganze Prozessgruppe, auch vom Befehl gestartete Prozesse
+FRIST="$ROOT/tool/mutation/frist.sh"
+enkel_weg() { sleep 0.5; ! kill -0 "$(cat "$1")" 2>/dev/null; }
+(bash "$FRIST" 1 bash -c "sleep 60 & echo \$! >'$REPO/enkel1'; wait") || true
+pruefe "Frist: Enkelprozess nach Ablauf beendet" enkel_weg "$REPO/enkel1"
+bash "$FRIST" 30 bash -c "sleep 60 & echo \$! >'$REPO/enkel2'"
+pruefe "Frist: Reste nach normalem Ende beendet" enkel_weg "$REPO/enkel2"
+pruefe "Frist: Exit-Code des Befehls" bash -c "bash '$FRIST' 30 bash -c 'exit 3'; test \$? -eq 3"
+pruefe "Frist: Ablauf zählt als Abbruch" bash -c "! bash '$FRIST' 1 sleep 60"
+
 exit "$fehler"

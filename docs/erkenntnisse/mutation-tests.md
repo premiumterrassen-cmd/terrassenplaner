@@ -93,3 +93,10 @@ Die Frist allein reichte nicht: Der nächste Lauf brach wieder in `dielenverlegu
 **Lösung:** Der Job `mutation-teil` läuft als Matrix (domain 4, server 2, app 6 Teile). `tool/mutation.sh` erlaubt dafür `MUTATION_TEIL` zusammen mit `MUTATION_BASIS`: Die geänderten Dateien werden wie im Vollauf nach Größe reihum verteilt, jeder Teil läuft ohne Schwelle. Ein Teil ohne Dateien legt einen leeren Bericht ab. Der Job `mutation-tests` (Name unverändert, Abhängigkeit von Build und Deployment bleibt) summiert mit `tool/mutation_summe.sh` und prüft die 95 % je Paket; fehlt ein Teil, ist er rot. Geprüft in `tool/mutation_auswahl_test.sh`.
 
 **Ladebild-Prüfung:** Im selben Lauf hing `tool/ladebild/pruefung.mjs` nach dem Start der WebAssembly-Umgebung 32 Minuten ohne Ausgabe, bis der Smoke-Job nach 40 Minuten abbrach (alle Flutter-Smoke-Tests waren grün). Jeder Fall, der Chrome-Start und die DevTools-Verbindung haben jetzt eine Frist von 120 s; nach einer Zeitüberschreitung startet ein frisches Chrome und der Fall wird einmal wiederholt („WIEDER“). Hängt er erneut, ist er rot statt endlos.
+
+## Frist beendet die ganze Prozessgruppe (08.11.2026, #135)
+
+**Anlass:** Lokal liefen 108 verwaiste Dart-Prozesse (85 × `bin/auth_server.dart`, 23 Test-Runner) mit je rund 5 % CPU, Last ~16; Tests liefen dadurch in Zeitüberschreitungen. Sie stammten aus Mutationsläufen: `frist.sh` beendete nach Ablauf nur `dart test`, nicht dessen Test-Runner und die von Tests gestarteten Server.
+
+**Lösung:** `frist.sh` startet den Befehl mit `set -m` in einer eigenen Prozessgruppe und beendet bei Ablauf, bei SIGTERM von `mutation_test` und nach dem Ende des Befehls die ganze Gruppe. Geprüft in `tool/mutation_auswahl_test.sh`.
+
