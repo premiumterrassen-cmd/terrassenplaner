@@ -35,8 +35,23 @@
 - ObjectBox-Anbindung ist laut connectanum-Doku **nicht** Teil von core, sondern eines eigenen Pakets `connectanum_objectbox_adapter` (Stand 10.10.2026 nicht auf pub.dev).
 - **Benchmark (A/B auf derselben Maschine, je 3 Läufe):** `server.Router.rpcRundlauf` beta.7 2,94–3,02 ms, beta.8 2,98–3,01 ms → **kein Unterschied**. Der gespeicherte Vorwert 2,62 ms (beta.6) stammt aus einem anderen Maschinenzustand; die gemeldete beta.7-Verschlechterung ist damit nicht belastbar. Der Benchmark nutzt weiter JSON – FlatBuffers wird erst mit dem eigenen Issue gemessen.
 
+## Upgrade auf 3.0.0-beta.9 (08.11.2026, #133)
+
+- Alle connectanum-Pakete gemeinsam auf beta.9 (client, router, auth_server, core; mcp kommt transitiv mit); ohne Codeänderung lauffähig, Analyse ohne Befund, alle Tests grün (domain 1167, server 313, app 460).
+- Neu laut Changelog: MQTT 5/3.1.1 QoS 0 in Client und Router mit optionalem, je Realm autorisiertem MQTT↔WAMP-Gateway (für den Planer nicht genutzt); im Router begrenzte Policy-Warteschlangen, Abbruch und Abbau; im Client Wiederaufnahme-Rückstände in begrenzten asynchronen Stapeln. Keine Breaking Changes.
+- **Benchmark (A/B auf derselben Maschine, je 3 Läufe):** `server.Router.rpcRundlauf` beta.8 2,88–3,01 ms, beta.9 2,68–2,98 ms; FlatBuffers klein beta.8 2,75–2,82 ms, beta.9 2,69–2,74 ms → **kein belastbarer Unterschied**.
+- Ob die begrenzten Warteschlangen den Stau unter Last aus M10-02 (`docs/abnahme/lasttest.md`) beheben, prüft ein neuer Lauf von `tool/lasttest.sh` nach dem Merge von M10-02.
+
 ## Leerlauf-CPU auf dem Server (06.10.2026, beta.7)
 
 Ohne Last gemessen (30 s, Debian 13, 2 Kerne): `planer-router` ≈ 6,3 % und `planer-auth` ≈ 6,8 % eines Kerns, Traefik 0 %. Zusammen rund 13 % eines Kerns ohne einzige Verbindung – deutet auf aktives Abfragen (Polling) in der Transportschicht/den Worker-Isolates. An Alexander (Maintainer) gemeldet; für M10-02 (Last- und Leistungstest) und das Monitoring (M0-14) beobachten.
 
 Nachmessung mit beta.8 (10.10.2026, 30 s ohne Last): `planer-router` ≈ 4 %, `planer-auth` ≈ 5 % eines Kerns – etwas weniger, aber weiterhin aktives Abfragen im Leerlauf.
+
+## Last- und Leistungstest (08.11.2026, beta.8, M10-02)
+
+Details und Messreihen in `docs/abnahme/lasttest.md`. Zwei Befunde, an Alexander gemeldet (nicht im Projekt umgangen):
+
+- **Stau unter Last:** Zeitweise bleiben alle Aufrufe unbeantwortet, Router und Client ohne CPU-Last; manche Läufe erholen sich nach 10–30 s, andere nicht innerhalb von 60 s. Mit 50 bis 500 Sitzungen, JSON und FlatBuffers, Router und Client im selben oder in getrennten Prozessen (fünf Lastprozesse stauen gleichzeitig), auch auf `origin/main`.
+- **Aufrufe an eine interne Dienst-Sitzung laufen nacheinander:** Die nächste INVOCATION kommt erst nach der Antwort auf die vorige an, obwohl der Handler asynchron ist (`connectanum_core` wartet den Handler nicht ab, die Serialisierung liegt davor). Ein großes Projekt hält damit alle Berechnungen derselben Prozedur an; das Rechenwerk (eigene Isolates) kann erst parallel rechnen, wenn das behoben ist.
+- Leerlauf-CPU des Routers lokal (macOS, AOT) ≈ 0 – das Polling aus dem Abschnitt oben zeigt sich hier nicht.
