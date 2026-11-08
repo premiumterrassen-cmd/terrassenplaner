@@ -100,3 +100,9 @@ Die Frist allein reichte nicht: Der nächste Lauf brach wieder in `dielenverlegu
 
 **Lösung:** In `.github/workflows/mutation-vollauf.yml` läuft `domain` in vier und `server` in zwei Teilen, wie in der Build-Chain. Die Auswertung (`tool/mutation_summe.sh`) prüft die 95 % weiter je Paket über alle Teile.
 
+## Frist beendet die ganze Prozessgruppe (08.11.2026, #135)
+
+**Anlass:** Lokal liefen 108 verwaiste Dart-Prozesse (85 × `bin/auth_server.dart`, 23 Test-Runner) mit je rund 5 % CPU, Last ~16; Tests liefen dadurch in Zeitüberschreitungen. Sie stammten aus Mutationsläufen: `frist.sh` beendete nach Ablauf nur `dart test`, nicht dessen Test-Runner und die von Tests gestarteten Server.
+
+**Lösung:** `frist.sh` startet den Befehl mit `set -m` in einer eigenen Prozessgruppe und beendet bei Ablauf, bei SIGTERM von `mutation_test` und nach dem Ende des Befehls die ganze Gruppe. Geprüft in `tool/mutation_auswahl_test.sh`.
+
