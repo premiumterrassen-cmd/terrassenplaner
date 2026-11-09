@@ -14,11 +14,15 @@ Future<void> main() async {
   final artikel = await ArtikelDienst.starte(router, ArtikeldateiQuelle.leer);
   Artikel? unterkonstruktion(Planungsstand stand) =>
       artikel.unterkonstruktion(stand.belag, stand.unterkonstruktion);
+  // Ein Rechenwerk (M10-02) für Berechnung, Export und Unterlagen: höchstens
+  // so viele Berechnungen gleichzeitig wie Kerne, über alle Dienste.
+  final rechenwerk = Rechenwerk();
   final planung = await PlanungsDienst.starte(
     router,
     belag: artikel.belag,
     regelwerk: () => artikel.regelwerk,
     unterkonstruktion: unterkonstruktion,
+    rechenwerk: rechenwerk,
   );
   // Export für GrandTotal (M9-08) aus der Materialliste.
   final export = await ExportDienst.starte(
@@ -26,6 +30,7 @@ Future<void> main() async {
     belag: artikel.belag,
     regelwerk: () => artikel.regelwerk,
     unterkonstruktion: unterkonstruktion,
+    rechenwerk: rechenwerk,
   );
   // Konfigurationen (M9-05) in einer eigenen ObjectBox-Datenbank – ObjectBox
   // erlaubt einen Prozess je Datenbank, der Auth-Server hat seine eigene.
@@ -71,8 +76,8 @@ Future<void> main() async {
     Konfigurationsablage(datenbank),
     belag: artikel.belag,
     regelwerk: () => artikel.regelwerk,
-    unterkonstruktion: (stand) =>
-        artikel.unterkonstruktion(stand.belag, stand.unterkonstruktion),
+    unterkonstruktion: unterkonstruktion,
+    rechenwerk: rechenwerk,
   );
   final quelle = ArtikeldateiQuelle(
     Platform.environment[ArtikeldateiQuelle.umgebungsvariable] ??

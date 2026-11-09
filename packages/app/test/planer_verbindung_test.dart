@@ -261,13 +261,13 @@ void main() {
       addTearDown(router.stoppe);
       final dienst = await KonfigurationsDienst.starte(router, _Speicher());
       addTearDown(dienst.stoppe);
-      final export = await ExportDienst.starte(
+      var export = await ExportDienst.starte(
         router,
         belag: (_) => null,
         regelwerk: () => null,
         unterkonstruktion: (_) => null,
       );
-      addTearDown(export.stoppe);
+      addTearDown(() => export.stoppe());
       final verbindung = PlanerVerbindung(
         Uri.parse('ws://127.0.0.1:${router.webSocketPort}/ws'),
       );
@@ -297,6 +297,28 @@ void main() {
           Uri.parse('https://planer.example/'),
         ),
         grandTotalCsv(const []),
+      );
+      // M10-02: zu aufwendige Planung als eigener Fehler, andere bleiben
+      await export.stoppe();
+      export = await ExportDienst.starte(
+        router,
+        belag: (_) => Lastdaten.diele,
+        regelwerk: () => Regelwerk(Lastdaten.artikeldatei),
+        unterkonstruktion: (_) => Lastdaten.unterkonstruktion,
+        rechenwerk: Rechenwerk(
+          parallel: 1,
+          hoechstdauer: const Duration(milliseconds: 50),
+        ),
+      );
+      final adresse = Uri.parse('https://planer.example/');
+      await expectLater(
+        verbindung.exportGrandTotal(Lastdaten.gross(), adresse),
+        throwsA(isA<PlanungZuAufwendig>()),
+      );
+      await export.stoppe();
+      await expectLater(
+        verbindung.exportGrandTotal(Planung.start, adresse),
+        throwsA(isA<wamp.Error>()),
       );
       // erneut anmelden ersetzt die Sitzung
       await verbindung.anmelden(_email, _passwort);
@@ -367,6 +389,38 @@ void main() {
       await expectLater(
         verbindung.berechne(Lastdaten.gross()),
         throwsA(isA<PlanungZuAufwendig>()),
+      );
+      // Planungsunterlagen (M9-06) übersetzen denselben Fehler
+      final speicher = _Speicher();
+      final konfiguration = await KonfigurationsDienst.starte(router, speicher);
+      addTearDown(konfiguration.stoppe);
+      final unterlagen = await UnterlagenDienst.starte(
+        router,
+        speicher,
+        belag: (_) => Lastdaten.diele,
+        regelwerk: () => Regelwerk(Lastdaten.artikeldatei),
+        unterkonstruktion: (_) => Lastdaten.unterkonstruktion,
+        rechenwerk: Rechenwerk(
+          parallel: 1,
+          hoechstdauer: const Duration(milliseconds: 50),
+        ),
+      );
+      addTearDown(unterlagen.stoppe);
+      final gross = await verbindung.speichere(Lastdaten.gross());
+      await expectLater(
+        verbindung.unterlagen(gross, 'de'),
+        throwsA(isA<PlanungZuAufwendig>()),
+      );
+      // andere Fehler bleiben
+      await expectLater(
+        verbindung.unterlagen(KonfigurationsStand(gross.kennung, 9), 'de'),
+        throwsA(
+          isA<wamp.Error>().having(
+            (e) => e.error,
+            'error',
+            WampNamen.konfigurationUnbekannt,
+          ),
+        ),
       );
     },
   );
