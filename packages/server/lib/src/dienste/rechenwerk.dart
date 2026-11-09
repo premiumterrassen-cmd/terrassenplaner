@@ -62,8 +62,10 @@ final class Rechenwerk {
 
   /// Führt [arbeit] in einem eigenen Isolate aus und liefert ihr Ergebnis.
   /// [arbeit] darf nur versendbare Werte einschließen (keine Ports,
-  /// Sitzungen oder Sockets); ihr Ergebnis muss versendbar sein.
-  Future<R> rechne<R>(R Function() arbeit) async {
+  /// Sitzungen oder Sockets); ihr Ergebnis muss versendbar sein. Asynchrone
+  /// Arbeit (z. B. das PDF der Planungsunterlagen) zählt bis zu ihrem
+  /// Ergebnis – die [hoechstdauer] gilt für alles zusammen.
+  Future<R> rechne<R>(FutureOr<R> Function() arbeit) async {
     await _platz();
     try {
       return await _imIsolate(arbeit);
@@ -91,7 +93,7 @@ final class Rechenwerk {
     }
   }
 
-  Future<R> _imIsolate<R>(R Function() arbeit) async {
+  Future<R> _imIsolate<R>(FutureOr<R> Function() arbeit) async {
     final antwort = ReceivePort();
     try {
       final isolate = await Isolate.spawn(
@@ -117,10 +119,12 @@ final class Rechenwerk {
     }
   }
 
-  static void _lauf<R>((R Function(), SendPort) auftrag) {
+  static Future<void> _lauf<R>(
+    (FutureOr<R> Function(), SendPort) auftrag,
+  ) async {
     final (arbeit, antwort) = auftrag;
     try {
-      antwort.send((true, arbeit()));
+      antwort.send((true, await arbeit()));
     } on Object catch (fehler) {
       antwort.send((false, '$fehler'));
     }

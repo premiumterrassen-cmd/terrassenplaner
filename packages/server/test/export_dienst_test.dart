@@ -84,13 +84,13 @@ String _export(
   List<Object?> argumente, {
   Regelwerk? regelwerk,
   bool mitMengen = false,
-}) => ExportDienst.grandTotal(
+}) => ExportDienst.grandTotalAuftrag(
   argumente,
   belag: (_) => _diele,
   regelwerk: regelwerk,
   unterkonstruktion: (_) => null,
   mitMengen: mitMengen,
-);
+)();
 
 const _dielen =
     'Terrassendiele Robinie PREMIUM SELECT 60 x 23 mm, genutet - Länge: '
@@ -178,6 +178,32 @@ void main() {
         ),
       );
       expect(() => _export([Uint8List(8)]), throwsA(anything));
+    });
+
+    test('im Rechenwerk mit vorab nachgeschlagener UK (M10-02)', () async {
+      final regelwerk = Regelwerk(Lastdaten.artikeldatei);
+      final zwei = Planung([
+        Terrassenflaeche(Planungsstand.start),
+        Terrassenflaeche(Planungsstand.start.mitForm(Terrassenform.lForm)),
+      ]);
+      // UK nur für die zweite Fläche: das Nachschlagen je Stand zählt
+      Artikel? nurZweite(Planungsstand s) =>
+          s == zwei.flaechen.last.stand ? Lastdaten.unterkonstruktion : null;
+      String Function() auftrag(Unterkonstruktionssuche uk) =>
+          ExportDienst.grandTotalAuftrag(
+            [zwei.zuBytes()],
+            belag: (n) => n == null ? Lastdaten.diele : null,
+            regelwerk: regelwerk,
+            unterkonstruktion: uk,
+          );
+      final csv = await Rechenwerk(parallel: 1).rechne(auftrag(nurZweite));
+      expect(csv, contains(Lastdaten.unterkonstruktion.titel));
+      expect(csv, contains(Lastdaten.diele.titel));
+      expect(csv, isNot(auftrag((_) => Lastdaten.unterkonstruktion)()));
+      expect(
+        auftrag((_) => null)(),
+        isNot(contains(Lastdaten.unterkonstruktion.titel)),
+      );
     });
 
     test('geänderte Mengen nur mit der Rolle mitarbeiter vom Router', () {
@@ -282,6 +308,47 @@ void main() {
         );
         // ohne Argumente ebenso
         await expectLater(rufe(const []), throwsA(anything));
+      });
+
+      test('zu aufwendige Planung: Fehler planung_zu_aufwendig', () async {
+        await dienst.stoppe();
+        dienst = await ExportDienst.starte(
+          router,
+          belag: (_) => Lastdaten.diele,
+          regelwerk: () => Regelwerk(Lastdaten.artikeldatei),
+          unterkonstruktion: (_) => Lastdaten.unterkonstruktion,
+          rechenwerk: Rechenwerk(
+            parallel: 1,
+            hoechstdauer: const Duration(milliseconds: 50),
+          ),
+        );
+        await expectLater(
+          rufe([Lastdaten.gross().zuBytes()]),
+          throwsA(
+            isA<Object>()
+                .having(
+                  (e) => (e as dynamic).error,
+                  'error',
+                  WampNamen.planungZuAufwendig,
+                )
+                .having(
+                  (e) => ((e as dynamic).arguments as List).single,
+                  'arguments',
+                  contains('zu aufwendig'),
+                ),
+          ),
+        );
+        // falsche Argumente bleiben planung_ungueltig
+        await expectLater(
+          rufe(['keine Planung']),
+          throwsA(
+            isA<Object>().having(
+              (e) => (e as dynamic).error,
+              'error',
+              WampNamen.planungUngueltig,
+            ),
+          ),
+        );
       });
 
       test('Kunden dürfen nicht exportieren', () async {

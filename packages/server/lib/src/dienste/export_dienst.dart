@@ -6,6 +6,7 @@ import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import '../router/planer_router.dart';
 import '../zugriff/rollen.dart';
 import 'planungs_dienst.dart';
+import 'rechenwerk.dart';
 
 /// Exportdienst (M9-08): erzeugt aus einer Planung die Importdatei für
 /// GrandTotal. Er rechnet die Materialliste wie der Planungsdienst
@@ -20,6 +21,10 @@ import 'planungs_dienst.dart';
 /// Mitarbeiter-Ansicht (Fachkonzept 08), der Router lehnt Kunden ab. Die
 /// Datei enthält die Materialliste mit Zubehör und Freidielen (M8) und den
 /// vom Mitarbeiter geänderten Mengen (`Planung.mengen`, [darfMengenAendern]).
+///
+/// Gerechnet wird wie im Planungsdienst im [Rechenwerk] (M10-02), nicht im
+/// Router-Isolate; dauert es zu lange, antwortet der Dienst mit
+/// `planung_zu_aufwendig`.
 class ExportDienst {
   ExportDienst._(this._sitzung);
 
@@ -31,33 +36,20 @@ class ExportDienst {
     required Belagsuche belag,
     required Regelwerksuche regelwerk,
     required Unterkonstruktionssuche unterkonstruktion,
+    Rechenwerk? rechenwerk,
   }) async {
+    final werk = rechenwerk ?? Rechenwerk();
     final sitzung = await router.dienstSitzung(sitzungId);
     (await sitzung.register(
       WampNamen.exportGrandTotal,
       // Die Rolle des Aufrufers entscheidet über geänderte Mengen (M9-10).
       options: RegisterOptions(discloseCaller: true),
     )).onInvoke(
-      (aufruf) => _exportiere(aufruf, belag, regelwerk, unterkonstruktion),
+      (aufruf) =>
+          _exportiere(aufruf, werk, belag, regelwerk, unterkonstruktion),
     );
     return ExportDienst._(sitzung);
   }
-
-  static void _exportiere(
-    Invocation aufruf,
-    Belagsuche belag,
-    Regelwerksuche regelwerk,
-    Unterkonstruktionssuche unterkonstruktion,
-  ) => _antworte(
-    aufruf,
-    (argumente) => grandTotal(
-      argumente,
-      belag: belag,
-      regelwerk: regelwerk(),
-      unterkonstruktion: unterkonstruktion,
-      mitMengen: darfMengenAendern(aufruf),
-    ),
-  );
 
   /// authid der internen Dienst-Sitzung.
   static const sitzungId = 'export-dienst';
@@ -73,10 +65,13 @@ class ExportDienst {
   static bool darfMengenAendern(Invocation aufruf) =>
       aufruf.details.custom['caller_authrole'] == Rollen.mitarbeiter;
 
-  /// Importdatei zu den [argumente]n `[planung]` oder `[planung, adresse]`;
-  /// geänderte Mengen der Planung gelten nur [mitMengen]. Wirft bei anderen
-  /// Argumenten oder unlesbarer Planung.
-  static String grandTotal(
+  /// Importdatei zu den [argumente]n `[planung]` oder `[planung, adresse]`
+  /// als Auftrag für das [Rechenwerk]; geänderte Mengen der Planung gelten
+  /// nur [mitMengen]. Argumente, Planung, Belag und UK prüft bzw. schlägt
+  /// der Dienst sofort nach (im Router-Isolate, wirft bei anderen Argumenten
+  /// oder unlesbarer Planung), damit der Auftrag nur versendbare Werte
+  /// einschließt – Muster `PlanungsDienst.rechenauftrag`.
+  static String Function() grandTotalAuftrag(
     List<Object?> argumente, {
     required Belagsuche belag,
     required Regelwerk? regelwerk,
@@ -94,29 +89,51 @@ class ExportDienst {
     if (inhalt.length > groessterInhalt) {
       throw ArgumentError.value(inhalt.length, 'planung', 'zu groß');
     }
-    final berechnung = PlanungsDienst.berechnePlanung(
-      Planung.ausBytes(inhalt),
-      belag,
-      regelwerk,
-      mitMengen,
-      unterkonstruktion,
-    );
-    return grandTotalCsv(
+    final planung = Planung.ausBytes(inhalt);
+    final belaege = {
+      for (final f in planung.flaechen) f.stand.belag: belag(f.stand.belag),
+    };
+    final uks = {
+      for (final f in planung.flaechen) f.stand: unterkonstruktion(f.stand),
+    };
+    return () => grandTotalCsv(
       grandTotalZeilen(
-        berechnung.materialliste,
+        PlanungsDienst.berechnePlanung(
+          planung,
+          (nummer) => belaege[nummer],
+          regelwerk,
+          mitMengen,
+          (stand) => uks[stand],
+        ).materialliste,
         (nummer) => regelwerk?.datei[nummer]?.artikel,
         bilder: adresse,
       ),
     );
   }
 
-  static void _antworte(
+  static Future<void> _exportiere(
     Invocation aufruf,
-    String Function(List<Object?> argumente) arbeit,
-  ) {
+    Rechenwerk werk,
+    Belagsuche belag,
+    Regelwerksuche regelwerk,
+    Unterkonstruktionssuche unterkonstruktion,
+  ) async {
     try {
+      final datei = await werk.rechne(
+        grandTotalAuftrag(
+          aufruf.arguments ?? const <Object?>[],
+          belag: belag,
+          regelwerk: regelwerk(),
+          unterkonstruktion: unterkonstruktion,
+          mitMengen: darfMengenAendern(aufruf),
+        ),
+      );
+      aufruf.respondWith(arguments: [datei]);
+    } on RechenzeitUeberschritten catch (fehler) {
       aufruf.respondWith(
-        arguments: [arbeit(aufruf.arguments ?? const <Object?>[])],
+        isError: true,
+        errorUri: WampNamen.planungZuAufwendig,
+        arguments: ['$fehler'],
       );
     } on Object catch (fehler) {
       aufruf.respondWith(

@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:connectanum_router/connectanum_router.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
@@ -6,6 +8,7 @@ import '../ergebnisse/planungsunterlagen_pdf.dart';
 import '../router/planer_router.dart';
 import '../zugriff/rollen.dart';
 import 'planungs_dienst.dart';
+import 'rechenwerk.dart';
 
 /// Unterlagendienst (M9-06): erzeugt die Planungsunterlagen einer
 /// gespeicherten Konfiguration als PDF – aus Version und aktuellem
@@ -20,6 +23,10 @@ import 'planungs_dienst.dart';
 ///
 /// Falscher Prüfcode und unbekannte Nummer geben denselben Fehler wie beim
 /// Laden (M9-05b).
+///
+/// Berechnungen und PDF entstehen wie im Planungsdienst im [Rechenwerk]
+/// (M10-02), nicht im Router-Isolate; dauert beides zu lange, antwortet der
+/// Dienst mit `planung_zu_aufwendig`.
 class UnterlagenDienst {
   UnterlagenDienst._(this._sitzung);
 
@@ -30,7 +37,9 @@ class UnterlagenDienst {
     Regelwerksuche regelwerk = _ohneRegelwerk,
     Unterkonstruktionssuche unterkonstruktion = _ohneUnterkonstruktion,
     DateTime Function() uhr = DateTime.now,
+    Rechenwerk? rechenwerk,
   }) async {
+    final werk = rechenwerk ?? Rechenwerk();
     final sitzung = await router.dienstSitzung(sitzungId);
     (await sitzung.register(
       WampNamen.planungsunterlagenPdf,
@@ -42,6 +51,7 @@ class UnterlagenDienst {
         (argumente) => _pdf(
           argumente,
           ablage,
+          werk,
           belag,
           regelwerk,
           unterkonstruktion,
@@ -130,9 +140,50 @@ class UnterlagenDienst {
     );
   }
 
+  /// PDF der Planungsunterlagen als Auftrag für das [Rechenwerk] (Muster
+  /// `PlanungsDienst.rechenauftrag`): Belag und UK schlägt der Dienst schon
+  /// im Router-Isolate nach – je Artikelnummer und je Planungsstand (gleiche
+  /// Stände haben dieselbe UK) –, damit der Auftrag nur versendbare Werte
+  /// einschließt (die Suchfunktionen hängen an Dienst-Sitzungen).
+  /// [komprimiert] wie bei `planungsunterlagenPdf`.
+  static Future<Uint8List> Function() pdfauftrag(
+    Planung planung, {
+    required DateTime datum,
+    Belagsuche belag = _ohneBelag,
+    Regelwerk? regelwerk,
+    Unterkonstruktionssuche unterkonstruktion = _ohneUnterkonstruktion,
+    KonfigurationsStand? stand,
+    Kundendaten? kunde,
+    Unterlagensprache sprache = Unterlagensprache.deutsch,
+    bool mitMengen = false,
+    bool komprimiert = true,
+  }) {
+    final belaege = {
+      for (final f in planung.flaechen) f.stand.belag: belag(f.stand.belag),
+    };
+    final uks = {
+      for (final f in planung.flaechen) f.stand: unterkonstruktion(f.stand),
+    };
+    return () => planungsunterlagenPdf(
+      unterlagen(
+        planung,
+        datum: datum,
+        belag: (nummer) => belaege[nummer],
+        regelwerk: regelwerk,
+        unterkonstruktion: (s) => uks[s],
+        stand: stand,
+        kunde: kunde,
+        sprache: sprache,
+        mitMengen: mitMengen,
+      ),
+      komprimiert: komprimiert,
+    );
+  }
+
   static Future<List<Object?>> _pdf(
     List<Object?> argumente,
     KonfigurationsSpeicher ablage,
+    Rechenwerk werk,
     Belagsuche belag,
     Regelwerksuche regelwerk,
     Unterkonstruktionssuche unterkonstruktion,
@@ -153,18 +204,21 @@ class UnterlagenDienst {
     };
     final stand = KonfigurationsStand(_kennung(kennung, version), version);
     final planung = Planung.ausBytes(ablage.lies(stand));
-    final unterlagen = UnterlagenDienst.unterlagen(
-      planung,
-      datum: uhr(),
-      belag: belag,
-      regelwerk: regelwerk(),
-      unterkonstruktion: unterkonstruktion,
-      stand: stand,
-      kunde: kunde,
-      sprache: Unterlagensprache.ausCode(sprache),
-      mitMengen: mitMengen,
-    );
-    return [await planungsunterlagenPdf(unterlagen)];
+    return [
+      await werk.rechne(
+        pdfauftrag(
+          planung,
+          datum: uhr(),
+          belag: belag,
+          regelwerk: regelwerk(),
+          unterkonstruktion: unterkonstruktion,
+          stand: stand,
+          kunde: kunde,
+          sprache: Unterlagensprache.ausCode(sprache),
+          mitMengen: mitMengen,
+        ),
+      ),
+    ];
   }
 
   /// Fehlender oder falsch geschriebener Prüfcode: wie eine unbekannte
@@ -190,6 +244,12 @@ class UnterlagenDienst {
         isError: true,
         errorUri: WampNamen.konfigurationUnbekannt,
         arguments: [fehler.nummer.wert, ?fehler.version],
+      );
+    } on RechenzeitUeberschritten catch (fehler) {
+      aufruf.respondWith(
+        isError: true,
+        errorUri: WampNamen.planungZuAufwendig,
+        arguments: ['$fehler'],
       );
     } on Object catch (fehler) {
       aufruf.respondWith(

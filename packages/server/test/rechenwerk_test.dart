@@ -35,6 +35,42 @@ void main() {
     expect(werk.wartend, 0);
   });
 
+  test('asynchrone Arbeit: Ergebnis, Fehler und Höchstdauer', () async {
+    final werk = Rechenwerk(
+      parallel: 1,
+      hoechstdauer: const Duration(milliseconds: 300),
+    );
+    expect(
+      await werk.rechne(() async {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        return Isolate.current.debugName;
+      }),
+      'rechenwerk',
+    );
+    await expectLater(
+      werk.rechne<int>(() async {
+        await Future<void>.delayed(Duration.zero);
+        throw const FormatException('später kaputt');
+      }),
+      throwsA(
+        isA<Rechenfehler>().having(
+          (f) => f.text,
+          'text',
+          'FormatException: später kaputt',
+        ),
+      ),
+    );
+    // wartet die Arbeit zu lange, zählt das wie langes Rechnen
+    await expectLater(
+      werk.rechne<int>(() async {
+        await Future<void>.delayed(const Duration(minutes: 1));
+        return 1;
+      }),
+      throwsA(isA<RechenzeitUeberschritten>()),
+    );
+    expect(werk.laufend, 0);
+  });
+
   test('Standard: so viele parallel wie Kerne, 20 s je Berechnung', () {
     final werk = Rechenwerk();
     expect(werk.parallel, Platform.numberOfProcessors);

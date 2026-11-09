@@ -179,6 +179,74 @@ void main() {
       expect(material(mitMengen: true).first[2], '7 Stück');
     });
 
+    test('im Rechenwerk dasselbe PDF wie direkt (M10-02)', () async {
+      // UK nur für die erste Fläche: das Nachschlagen je Stand zählt
+      final zwei =
+          Planung([
+            Terrassenflaeche(Planungsstand.start),
+            Terrassenflaeche(Planungsstand.start.mitForm(Terrassenform.lForm)),
+          ]).mitMenge((
+            nummer: diele.nummer,
+            laenge: const Millimeter(5000),
+            zusatz: null,
+          ), 7);
+      Artikel? nurErste(Planungsstand s) =>
+          s == zwei.flaechen.first.stand ? uk : null;
+      Artikel? nurDiele(Artikelnummer? n) => n == null ? diele : null;
+      final auftrag = UnterlagenDienst.pdfauftrag(
+        zwei,
+        datum: DateTime(2026, 11, 5),
+        belag: nurDiele,
+        regelwerk: regelwerk,
+        unterkonstruktion: nurErste,
+        stand: stand,
+        kunde: Kundendaten(name: 'Max'),
+        sprache: Unterlagensprache.englisch,
+        mitMengen: true,
+        komprimiert: false,
+      );
+      // ohne Zeitstempel und Dokumentkennung (wie die Referenz-Prüfung)
+      String ohneZeit(Uint8List pdf) => latin1
+          .decode(pdf)
+          .replaceAll(RegExp(r'/CreationDate\([^)]*\)'), '')
+          .replaceAll(RegExp(r'/ID\[[^\]]*\]'), '');
+      final direkt = ohneZeit(
+        await planungsunterlagenPdf(
+          UnterlagenDienst.unterlagen(
+            zwei,
+            datum: DateTime(2026, 11, 5),
+            belag: nurDiele,
+            regelwerk: regelwerk,
+            unterkonstruktion: nurErste,
+            stand: stand,
+            kunde: Kundendaten(name: 'Max'),
+            sprache: Unterlagensprache.englisch,
+            mitMengen: true,
+          ),
+          komprimiert: false,
+        ),
+      );
+      expect(ohneZeit(await Rechenwerk(parallel: 1).rechne(auftrag)), direkt);
+      expect(direkt, contains('(Max)'));
+      // ohne Artikel ein anderes PDF, ohne Angabe komprimiert
+      final ohneArtikel = UnterlagenDienst.pdfauftrag(
+        zwei,
+        datum: DateTime(2026, 11, 5),
+      );
+      expect(latin1.decode(await ohneArtikel()), contains('/FlateDecode'));
+      expect(direkt, isNot(contains('/FlateDecode')));
+      expect(
+        ohneZeit(
+          await UnterlagenDienst.pdfauftrag(
+            zwei,
+            datum: DateTime(2026, 11, 5),
+            komprimiert: false,
+          )(),
+        ),
+        isNot(direkt),
+      );
+    });
+
     test('ohne Artikeldaten nur Geometrie', () {
       final u = UnterlagenDienst.unterlagen(
         Planung.start,
@@ -196,10 +264,25 @@ void main() {
     late UnterlagenDienst dienst;
     late Session kunde;
 
-    Future<void> starte({bool mitArtikeln = true}) async {
+    Future<void> starte({
+      bool mitArtikeln = true,
+      Duration? hoechstdauer,
+    }) async {
       router = PlanerRouter.starte(await testEinstellungen());
-      final ablage = _Ablage(stand, planung);
-      dienst = mitArtikeln
+      final ablage = _Ablage(
+        stand,
+        hoechstdauer == null ? planung : Lastdaten.gross(),
+      );
+      dienst = hoechstdauer != null
+          ? await UnterlagenDienst.starte(
+              router,
+              ablage,
+              belag: (_) => Lastdaten.diele,
+              regelwerk: () => Regelwerk(Lastdaten.artikeldatei),
+              unterkonstruktion: (_) => Lastdaten.unterkonstruktion,
+              rechenwerk: Rechenwerk(parallel: 1, hoechstdauer: hoechstdauer),
+            )
+          : mitArtikeln
           ? await UnterlagenDienst.starte(
               router,
               ablage,
@@ -266,6 +349,19 @@ void main() {
       await expectLater(
         pdf(['2026-11-05-0001', 2]),
         fehler(WampNamen.konfigurationUnbekannt, [kennung.nummer.wert, 2]),
+      );
+    });
+
+    test('zu aufwendige Planung: Fehler planung_zu_aufwendig', () async {
+      await starte(hoechstdauer: const Duration(milliseconds: 50));
+      await expectLater(
+        pdf([kennung.wert, 2]),
+        fehler(WampNamen.planungZuAufwendig, [contains('zu aufwendig')]),
+      );
+      // unbekannte Konfigurationen erkennt der Dienst weiter vorher
+      await expectLater(
+        pdf([kennung.wert, 3]),
+        fehler(WampNamen.konfigurationUnbekannt, [kennung.nummer.wert, 3]),
       );
     });
 
