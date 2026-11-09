@@ -557,9 +557,8 @@ void main() {
       var fehlschlagen = false;
       final s = await zeige(
         tester,
-        (p) => fehlschlagen
-            ? Future.error(const PlanungZuAufwendig())
-            : _wieServer(p),
+        (p) =>
+            fehlschlagen ? Future.error(PlanungZuAufwendig()) : _wieServer(p),
       );
       fehlschlagen = true;
       s.planung.setze(

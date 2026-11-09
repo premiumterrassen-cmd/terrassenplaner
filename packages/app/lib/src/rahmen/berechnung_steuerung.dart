@@ -11,9 +11,7 @@ typedef PlanungBerechnen = Future<Berechnung> Function(Planung planung);
 
 /// Der Server bricht die Berechnung ab, weil die Planung zu aufwendig ist
 /// (Rechenzeit über der Höchstdauer, M10-02) – kein Verbindungsfehler.
-final class PlanungZuAufwendig implements Exception {
-  const PlanungZuAufwendig();
-}
+final class PlanungZuAufwendig implements Exception {}
 
 /// Hält die Berechnung des Servers zum aktuellen Planungsstand (M4-02): bei
 /// jeder Änderung neu angefragt; kommt eine Antwort zu einem älteren Stand

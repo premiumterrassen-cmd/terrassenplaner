@@ -98,7 +98,7 @@ class PlanerVerbindung implements KonfigurationsAblage, MitarbeiterAnmeldung {
       return Berechnung.ausBytes(antwort.payload.packedPayloadBytes!);
     } on wamp.Error catch (fehler) {
       if (fehler.error == WampNamen.planungZuAufwendig) {
-        throw const PlanungZuAufwendig();
+        throw PlanungZuAufwendig();
       }
       rethrow;
     }
