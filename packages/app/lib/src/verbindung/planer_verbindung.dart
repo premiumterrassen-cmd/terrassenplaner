@@ -86,23 +86,24 @@ class PlanerVerbindung implements KonfigurationsAblage, MitarbeiterAnmeldung {
   /// Bricht der Server ab, weil die Planung zu aufwendig ist (M10-02):
   /// [PlanungZuAufwendig].
   Future<Berechnung> berechne(Planung planung) => _mitSitzung((sitzung) async {
-    try {
-      final antwort = await sitzung.callSingleLazyPayloadView(
-        WampNamen.planungBerechnen,
-        payload: verpacke(planung.zuBytes()),
-        options: CallOptions(
-          pptScheme: WampNamen.pptSchema,
-          pptSerializer: WampNamen.pptSerializer,
-        ),
-      );
-      return Berechnung.ausBytes(antwort.payload.packedPayloadBytes!);
-    } on wamp.Error catch (fehler) {
-      if (fehler.error == WampNamen.planungZuAufwendig) {
-        throw PlanungZuAufwendig();
-      }
-      rethrow;
-    }
-  });
+    final antwort = await sitzung.callSingleLazyPayloadView(
+      WampNamen.planungBerechnen,
+      payload: verpacke(planung.zuBytes()),
+      options: CallOptions(
+        pptScheme: WampNamen.pptSchema,
+        pptSerializer: WampNamen.pptSerializer,
+      ),
+    );
+    return Berechnung.ausBytes(antwort.payload.packedPayloadBytes!);
+  }).catchError(_zuAufwendig);
+
+  /// Der Fehler `planung_zu_aufwendig` des Servers (M10-02) als
+  /// [PlanungZuAufwendig] – bei Berechnung, Export und Unterlagen; andere
+  /// Fehler bleiben.
+  static Future<Never> _zuAufwendig(Object fehler, StackTrace stapel) =>
+      fehler is wamp.Error && fehler.error == WampNamen.planungZuAufwendig
+      ? Future.error(PlanungZuAufwendig())
+      : Future.error(fehler, stapel);
 
   /// Beläge mit Preisen vom Artikeldienst (M5-01).
   Future<Belagauswahl> belaege() => _mitSitzung((sitzung) async {
@@ -227,7 +228,7 @@ class PlanerVerbindung implements KonfigurationsAblage, MitarbeiterAnmeldung {
           arguments: [planung.zuBytes(), '$adresse'],
         );
         return antwort.arguments!.single! as String;
-      });
+      }).catchError(_zuAufwendig);
 
   /// Planungsunterlagen der gespeicherten Version [stand] als PDF in der
   /// [sprache] (`de`, `en`) vom Unterlagendienst (M9-06).
@@ -238,7 +239,7 @@ class PlanerVerbindung implements KonfigurationsAblage, MitarbeiterAnmeldung {
           arguments: [stand.kennung.wert, stand.version, sprache],
         );
         return antwort.arguments!.single! as Uint8List;
-      });
+      }).catchError(_zuAufwendig);
 
   /// Zum Belag passende Unterkonstruktionen vom Artikeldienst (M6-03);
   /// ohne [belag] die zum Vorgabe-Belag.

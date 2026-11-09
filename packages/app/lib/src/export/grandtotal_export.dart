@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 import '../datei/datei_angebot.dart';
+import '../rahmen/berechnung_steuerung.dart';
 import '../rahmen/steuerung.dart';
 import '../sprache/sprache.dart';
 
@@ -69,6 +70,9 @@ class _GrandTotalExportKnopfState extends State<GrandTotalExportKnopf> {
       final name = grandTotalDateiname(export.stand?.call());
       export.anbieten(name, utf8.encode(inhalt), 'text/csv;charset=utf-8');
       meldung = t.exportGrandTotalFertig(name);
+    } on PlanungZuAufwendig {
+      // zu aufwendige Planung (M10-02): eigener Hinweis wie beim Rechnen
+      meldung = t.planungZuAufwendig;
     } on Object {
       meldung = t.exportGrandTotalFehler;
     }

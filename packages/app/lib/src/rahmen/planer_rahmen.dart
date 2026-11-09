@@ -324,8 +324,12 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
       final stand = await konfiguration.speichere();
       await unterlagen.hole(stand, sprache);
       meldung = t.pdfErstellt(stand.kennung.wert, stand.version);
-    } on Object {
-      messenger.showSnackBar(SnackBar(content: Text(t.pdfFehler)));
+    } on Object catch (fehler) {
+      // zu aufwendige Planung (M10-02): eigener Hinweis wie beim Rechnen
+      final text = fehler is PlanungZuAufwendig
+          ? t.planungZuAufwendig
+          : t.pdfFehler;
+      messenger.showSnackBar(SnackBar(content: Text(text)));
       return;
     }
     messenger.showSnackBar(SnackBar(content: Text(meldung)));

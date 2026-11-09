@@ -156,6 +156,20 @@ void main() {
       expect(_gesperrt(tester), isFalse);
     });
 
+    testWidgets('zu aufwendige Planung: eigener Hinweis (M10-02)', (
+      tester,
+    ) async {
+      export = _Export();
+      await zeige(tester);
+      await tester.tap(_knopf);
+      export.antwort.completeError(PlanungZuAufwendig());
+      await tester.pump();
+      expect(find.text(de.planungZuAufwendig), findsOneWidget);
+      expect(find.text(de.exportGrandTotalFehler), findsNothing);
+      expect(export.dateien, isEmpty);
+      expect(_gesperrt(tester), isFalse);
+    });
+
     testWidgets('Antwort nach dem Schließen: kein Fehler', (tester) async {
       export = _Export();
       await zeige(tester);

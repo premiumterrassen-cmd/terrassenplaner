@@ -7,6 +7,7 @@ import 'package:terrassenplaner_app/src/design/planer_design.dart';
 import 'package:terrassenplaner_app/src/konfiguration/konfigurations_steuerung.dart';
 import 'package:terrassenplaner_app/src/konfiguration/planungsunterlagen.dart';
 import 'package:terrassenplaner_app/src/rahmen/aktionen.dart';
+import 'package:terrassenplaner_app/src/rahmen/berechnung_steuerung.dart';
 import 'package:terrassenplaner_app/src/rahmen/planer_rahmen.dart';
 import 'package:terrassenplaner_app/src/rahmen/planer_schritt.dart';
 import 'package:terrassenplaner_app/src/rahmen/rahmen_zustand.dart';
@@ -142,6 +143,24 @@ void main() {
     expect(find.text(de.pdfFehler), findsOneWidget);
     expect(aufrufe.angeboten, isEmpty);
     expect(en.pdfFehler, startsWith('PDF not possible'));
+  });
+
+  testWidgets('zu aufwendige Planung: eigener Hinweis (M10-02)', (
+    tester,
+  ) async {
+    final angeboten = <String>[];
+    await _zeige(
+      tester,
+      unterlagen: Unterlagenabruf(
+        (stand, sprache) async => throw PlanungZuAufwendig(),
+        anbieten: (name, inhalt, typ) => angeboten.add(name),
+      ),
+    );
+    await _tippePdf(tester);
+    expect(find.text(de.planungZuAufwendig), findsOneWidget);
+    expect(find.text(de.pdfFehler), findsNothing);
+    expect(angeboten, isEmpty);
+    await tester.pump(const Duration(seconds: 5));
   });
 
   testWidgets('eigene PDF-Aktion geht vor, ohne Unterlagen „folgt“', (
