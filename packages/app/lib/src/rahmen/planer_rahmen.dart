@@ -209,11 +209,16 @@ class _PlanerRahmenState extends State<PlanerRahmen> {
   }
 
   /// Fehler der Berechnung als Hinweis; Zeichnung und Kennzahlen behalten
-  /// den letzten gültigen Stand.
+  /// den letzten gültigen Stand. Eine zu aufwendige Planung (M10-02) ist
+  /// kein Verbindungsfehler und bekommt einen eigenen Hinweis.
   void _meldeFehler() {
-    if (_berechnung?.fehler == null) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(context.texte.berechnungFehler)));
+    final fehler = _berechnung?.fehler;
+    if (fehler == null) return;
+    final t = context.texte;
+    final text = fehler is PlanungZuAufwendig
+        ? t.planungZuAufwendig
+        : t.berechnungFehler;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
   }
 
   @override

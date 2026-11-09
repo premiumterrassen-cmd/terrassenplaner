@@ -250,6 +250,10 @@ class PlanerTexteDe extends PlanerTexte {
       'Berechnung nicht möglich – bitte Verbindung prüfen';
 
   @override
+  String get planungZuAufwendig =>
+      'Die Planung ist zu umfangreich für die Berechnung – bitte weniger oder kleinere Flächen planen oder die Verschnittoptimierung ausschalten';
+
+  @override
   String get agb => 'AGB';
 
   @override

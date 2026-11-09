@@ -7,6 +7,7 @@ import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 import '../anmeldung/mitarbeiter_anmeldung.dart';
 import '../konfiguration/konfigurations_steuerung.dart';
+import '../rahmen/berechnung_steuerung.dart';
 
 /// Verbindung der Web-App zum Planer-Router: anonym (Rolle Kunde) mit einer
 /// kurzen Sitzung je Aufruf; nach ANMELDEN (M9-10) über die eine Sitzung
@@ -82,16 +83,25 @@ class PlanerVerbindung implements KonfigurationsAblage, MitarbeiterAnmeldung {
   /// Lässt den Server Umriss und Kennzahlen der [planung] berechnen (M4-02,
   /// mehrere Flächen M4-14); beide Richtungen als typisierte FlatBuffers
   /// (Packed PPT, #110).
+  /// Bricht der Server ab, weil die Planung zu aufwendig ist (M10-02):
+  /// [PlanungZuAufwendig].
   Future<Berechnung> berechne(Planung planung) => _mitSitzung((sitzung) async {
-    final antwort = await sitzung.callSingleLazyPayloadView(
-      WampNamen.planungBerechnen,
-      payload: verpacke(planung.zuBytes()),
-      options: CallOptions(
-        pptScheme: WampNamen.pptSchema,
-        pptSerializer: WampNamen.pptSerializer,
-      ),
-    );
-    return Berechnung.ausBytes(antwort.payload.packedPayloadBytes!);
+    try {
+      final antwort = await sitzung.callSingleLazyPayloadView(
+        WampNamen.planungBerechnen,
+        payload: verpacke(planung.zuBytes()),
+        options: CallOptions(
+          pptScheme: WampNamen.pptSchema,
+          pptSerializer: WampNamen.pptSerializer,
+        ),
+      );
+      return Berechnung.ausBytes(antwort.payload.packedPayloadBytes!);
+    } on wamp.Error catch (fehler) {
+      if (fehler.error == WampNamen.planungZuAufwendig) {
+        throw PlanungZuAufwendig();
+      }
+      rethrow;
+    }
   });
 
   /// Beläge mit Preisen vom Artikeldienst (M5-01).

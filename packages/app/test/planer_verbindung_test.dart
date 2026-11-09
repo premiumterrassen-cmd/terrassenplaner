@@ -7,9 +7,11 @@ import 'dart:io';
 
 import 'dart:typed_data';
 
+import 'package:connectanum_client/connectanum.dart' as wamp show Error;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:terrassenplaner_app/src/anmeldung/mitarbeiter_anmeldung.dart';
 import 'package:terrassenplaner_app/src/konfiguration/konfigurations_steuerung.dart';
+import 'package:terrassenplaner_app/src/rahmen/berechnung_steuerung.dart';
 import 'package:terrassenplaner_app/src/verbindung/planer_verbindung.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import 'package:terrassenplaner_server/terrassenplaner_server.dart';
@@ -322,6 +324,53 @@ void main() {
     },
   );
 
+  test(
+    'zu aufwendige Planung: eigener Fehler, andere Fehler bleiben (M10-02)',
+    () async {
+      final health = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
+      final healthPort = health.port;
+      await health.close();
+      final router = PlanerRouter.starte(
+        RouterEinstellungen(
+          authToken: 't',
+          dienstTicket: 'k',
+          port: 0,
+          healthListen: '127.0.0.1:$healthPort',
+        ),
+      );
+      addTearDown(router.stoppe);
+      final verbindung = PlanerVerbindung(
+        Uri.parse('ws://127.0.0.1:${router.webSocketPort}/ws'),
+      );
+      // ohne Planungsdienst: der Fehler des Routers, kein PlanungZuAufwendig
+      await expectLater(
+        verbindung.berechne(Planung.start),
+        throwsA(
+          isA<wamp.Error>().having(
+            (e) => e.error,
+            'error',
+            isNot(WampNamen.planungZuAufwendig),
+          ),
+        ),
+      );
+      final dienst = await PlanungsDienst.starte(
+        router,
+        belag: (_) => Lastdaten.diele,
+        regelwerk: () => Regelwerk(Lastdaten.artikeldatei),
+        unterkonstruktion: (_) => Lastdaten.unterkonstruktion,
+        rechenwerk: Rechenwerk(
+          parallel: 1,
+          hoechstdauer: const Duration(milliseconds: 50),
+        ),
+      );
+      addTearDown(dienst.stoppe);
+      await expectLater(
+        verbindung.berechne(Lastdaten.gross()),
+        throwsA(isA<PlanungZuAufwendig>()),
+      );
+    },
+  );
+
   test('ohne Server: Fehler statt Hängen', () async {
     final frei = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
     final port = frei.port;
@@ -371,6 +420,15 @@ Future<({Process prozess, String adresse})> _starteAuthServer() async {
     }
   });
   unawaited(prozess.stderr.drain<void>());
+  // Endet der Prozess vor „bereit“ (z. B. ohne libobjectbox), sofort
+  // scheitern statt die volle Wartezeit abzusitzen.
+  unawaited(
+    prozess.exitCode.then((code) {
+      if (!bereit.isCompleted) {
+        bereit.completeError(StateError('Auth-Server beendet mit Code $code'));
+      }
+    }),
+  );
   // Großzügig: `dart run` übersetzt den Auth-Server erst, und flutter test
   // läuft mit mehreren Testdateien gleichzeitig.
   await bereit.future.timeout(const Duration(minutes: 4));

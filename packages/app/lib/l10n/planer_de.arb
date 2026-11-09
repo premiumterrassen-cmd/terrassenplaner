@@ -86,6 +86,7 @@
   "massUngueltig": "Bitte {min} bis {max} cm eingeben",
   "@massUngueltig": {"placeholders": {"min": {"type": "int"}, "max": {"type": "int"}}},
   "berechnungFehler": "Berechnung nicht möglich – bitte Verbindung prüfen",
+  "planungZuAufwendig": "Die Planung ist zu umfangreich für die Berechnung – bitte weniger oder kleinere Flächen planen oder die Verschnittoptimierung ausschalten",
 
   "agb": "AGB",
   "datenschutz": "Datenschutz",
