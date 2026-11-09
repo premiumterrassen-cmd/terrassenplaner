@@ -514,6 +514,12 @@ abstract class PlanerTexte {
   /// **'Berechnung nicht möglich – bitte Verbindung prüfen'**
   String get berechnungFehler;
 
+  /// No description provided for @planungZuAufwendig.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Planung ist zu umfangreich für die Berechnung – bitte weniger oder kleinere Flächen planen oder die Verschnittoptimierung ausschalten'**
+  String get planungZuAufwendig;
+
   /// No description provided for @agb.
   ///
   /// In de, this message translates to:

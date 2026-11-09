@@ -249,6 +249,10 @@ class PlanerTexteEn extends PlanerTexte {
       'Calculation not possible – please check the connection';
 
   @override
+  String get planungZuAufwendig =>
+      'The plan is too extensive to calculate – please plan fewer or smaller areas or switch off the cutting optimisation';
+
+  @override
   String get agb => 'Terms';
 
   @override

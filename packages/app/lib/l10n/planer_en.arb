@@ -72,6 +72,7 @@
   "feldBreite": "Width",
   "massUngueltig": "Please enter {min} to {max} cm",
   "berechnungFehler": "Calculation not possible – please check the connection",
+  "planungZuAufwendig": "The plan is too extensive to calculate – please plan fewer or smaller areas or switch off the cutting optimisation",
 
   "agb": "Terms",
   "datenschutz": "Privacy",

@@ -551,6 +551,28 @@ void main() {
       expect(find.text('Fläche: 14,832 m²'), findsOneWidget);
     });
 
+    testWidgets('zu aufwendige Planung: eigener Hinweis (M10-02)', (
+      tester,
+    ) async {
+      var fehlschlagen = false;
+      final s = await zeige(
+        tester,
+        (p) => fehlschlagen
+            ? Future.error(const PlanungZuAufwendig())
+            : _wieServer(p),
+      );
+      fehlschlagen = true;
+      s.planung.setze(
+        s.planung.aktuell.mitGrundriss(
+          RechteckGrundriss(const Millimeter(5400), const Millimeter(3600)),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text(de.planungZuAufwendig), findsOneWidget);
+      expect(find.text(de.berechnungFehler), findsNothing);
+      expect(find.text('Fläche: 14,832 m²'), findsOneWidget);
+    });
+
     testWidgets('ohne Berechnung: leere Kennzahlen', (tester) async {
       tester.view
         ..physicalSize = const Size(1440, 900)
@@ -572,6 +594,16 @@ void main() {
     expect(
       en.berechnungFehler,
       'Calculation not possible – please check the connection',
+    );
+    expect(
+      en.planungZuAufwendig,
+      'The plan is too extensive to calculate – please plan fewer or smaller '
+      'areas or switch off the cutting optimisation',
+    );
+    expect(
+      de.planungZuAufwendig,
+      'Die Planung ist zu umfangreich für die Berechnung – bitte weniger oder '
+      'kleinere Flächen planen oder die Verschnittoptimierung ausschalten',
     );
   });
 }
