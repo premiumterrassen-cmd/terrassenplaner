@@ -2149,18 +2149,19 @@ void main() {
             ]),
       );
       // je Fläche: 13 Hölzer à 309 cm, zweite Lage 9 × 480 cm, 91 Stützen
-      // à 40,1 cm aus gemeinsamen Hölzern
+      // à 40,1 cm – je zwei im Rest der 309-cm-Hölzer wie im alten Planer
+      // (M10-01), die übrigen aus gemeinsamen Hölzern
       expect(
         [
           for (final z in ukZeilen)
             '${z.menge} × ${z.ausgangslaenge.mm}: '
-                '${z.schnitte.length} × ${z.schnitte.first.mm}',
+                '${[for (final s in z.schnitte) s.mm].join(' + ')}',
         ],
         [
-          '12 × 6000: 14 × 401',
-          '18 × 5000: 1 × 4800',
-          '26 × 4000: 1 × 3090',
-          '2 × 4000: 7 × 401',
+          '8 × 6000: ${List.filled(14, 401).join(' + ')}',
+          '18 × 5000: 4800',
+          '26 × 4000: 3090 + 401 + 401',
+          '2 × 4000: ${List.filled(9, 401).join(' + ')}',
         ],
       );
       // ohne UK kein UK-Zuschnitt, mit Optimierung der Belag gemeinsam

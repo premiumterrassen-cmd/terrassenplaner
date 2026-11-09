@@ -447,6 +447,38 @@ void main() {
     });
   });
 
+  test('zweite Lage im Kreis: Hölzer so lang wie die Sehnen', () {
+    final z = ukZusatz(
+      Planungsstand.start
+          .mitForm(Terrassenform.kreis)
+          .mitNutzungsart(Nutzungsart.doppelteUk),
+      _uk,
+      ukAbstand: _abstand,
+    );
+    final laengen = [for (final s in z.stuecke) s.laenge.mm];
+    expect(laengen, isNotEmpty);
+    // keine Sehne länger als der Durchmesser 3600 mm, die mittleren fast
+    expect(laengen.every((l) => l > 0 && l <= 3600), isTrue);
+    expect(laengen.any((l) => l > 3500), isTrue);
+    // Trapez mit schräger Seite von (4000, 0) nach (2000, 3000): bei y ist
+    // die Lage 4000 − 2/3 · y lang
+    final trapez = ukZusatz(
+      Planungsstand(
+        grundriss: FreiformGrundriss(const [
+          Punkt(0, 0),
+          Punkt(4000, 0),
+          Punkt(2000, 3000),
+          Punkt(0, 3000),
+        ], geschlossen: true),
+      ).mitNutzungsart(Nutzungsart.doppelteUk),
+      _uk,
+      ukAbstand: _abstand,
+    );
+    final lagen = [for (final s in trapez.stuecke) s.laenge.mm];
+    expect(lagen.every((l) => l >= 2000 && l <= 4000), isTrue);
+    expect(lagen.any((l) => l < 2100), isTrue);
+  });
+
   group('Lieferstücke (M6-05)', () {
     const laengen = [Millimeter(4000), Millimeter(5000), Millimeter(6000)];
     Map<int, int> liefer(List<int> stuecke, {int? fest}) => {
@@ -490,12 +522,18 @@ void main() {
     });
 
     test('Zuschnitt je Lieferholz (M9-02): lange einzeln, über der '
-        'längsten gestückelt, kurze gemeinsam', () {
+        'längsten gestückelt, kurze zuerst in die Reste der langen '
+        '(M10-01), dann gemeinsam', () {
       expect(hoelzer([8000, 3090, 1900, 1900, 300]), [
         '6000: 6000',
-        '4000: 2000',
-        '4000: 3090',
-        '5000: 1900 + 1900 + 300',
+        '4000: 2000 + 1900',
+        '4000: 3090 + 300',
+        '4000: 1900',
+      ]);
+      // F28: zwei Stützen à 39,9 cm im Rest von 400 cm für 309 cm
+      expect(hoelzer([3090, 399, 399, 399]), [
+        '4000: 3090 + 399 + 399',
+        '4000: 399',
       ]);
       expect(hoelzer([13000]), ['6000: 6000', '6000: 6000', '4000: 1000']);
     });

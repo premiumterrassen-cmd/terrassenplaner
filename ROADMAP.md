@@ -484,9 +484,10 @@ Paritätsnachweis gegen die Referenzfälle, Produktivbetrieb, Umstellung vom alt
 
 GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/11
 
-- [ ] **M10-01 Paritätsnachweis** ([#84](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/84)) – `feature/m10-01-paritaetsnachweis`
+- [x] **M10-01 Paritätsnachweis** ([#84](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/84)) – `feature/m10-01-paritaetsnachweis`
   - Alle Referenzfälle (M1-02/M1-03) im neuen Planer durchrechnen und mit den alten Ergebnissen vergleichen; Abweichungen begründen oder beheben.
   - Abnahme: Paritätsbericht in docs/, keine unbegründete Abweichung
+  - Ergebnis: `docs/abnahme/paritaetsbericht.md`; Test `packages/server/test/paritaet_test.dart` rechnet F01–F43 und die 26 rechenbaren Referenzfälle über `PlanungsDienst.berechnePlanung` (Testsortiment, Mengen und Längen) und verlangt für jede Abweichung einen erklärten Grund (B-035 Lieferlängen, B-033 Randdielen, R-B09 Freidielen, M4-07, Fehler des alten Planers, Treppe, unvollständige Unterlagen …). 15 Konfigurationen und 6 Referenzfälle gleich. Behoben: kurze UK-Stücke (Stützen, Querstreben, Blendenhalter, Treppen-UK) zuerst aus den Resten der langen Hölzer, ein gemeinsamer UK-Zuschnitt je Fläche (F28 125 statt 137 m, F31/F33 ohne weiteres Holz). Offen bei Alexander: Frage 1 UK an schrägen Rändern, Ausschnitt-, Innen- und Bogenkanten (Diagonale F03–F05, F15–F22), Frage 2 F29 vorhandene UK 2 × 473 cm, Frage 3 Anzahl Alu-Schienen.
 - [ ] **M10-02 Last- und Leistungstest** ([#85](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/85)) – `feature/m10-02-last-und-leistungstest` · Benchmark
   - Gleichzeitige Nutzer, große Projekte, Router-Durchsatz.
   - Abnahme: Zielwerte festgelegt und erreicht

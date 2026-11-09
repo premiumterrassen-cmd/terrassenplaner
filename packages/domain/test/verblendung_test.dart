@@ -431,6 +431,16 @@ void main() {
         ),
         {const Millimeter(4000): 1},
       );
+      // ein Rest nimmt mehrere Stücke, bis er verbraucht ist: 910 mm für
+      // 400 + 400, die 300 mm bekommen ein neues Holz
+      expect(
+        zusaetzlicheLieferstuecke(
+          const [Millimeter(400), Millimeter(400), Millimeter(300)],
+          const [Millimeter(3090)],
+          laengen,
+        ),
+        {const Millimeter(4000): 1},
+      );
       // Rest genau so groß wie das Stück
       expect(
         zusaetzlicheLieferstuecke(

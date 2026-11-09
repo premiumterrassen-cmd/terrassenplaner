@@ -94,15 +94,21 @@ Die Frist allein reichte nicht: Der nächste Lauf brach wieder in `dielenverlegu
 
 **Ladebild-Prüfung:** Im selben Lauf hing `tool/ladebild/pruefung.mjs` nach dem Start der WebAssembly-Umgebung 32 Minuten ohne Ausgabe, bis der Smoke-Job nach 40 Minuten abbrach (alle Flutter-Smoke-Tests waren grün). Jeder Fall, der Chrome-Start und die DevTools-Verbindung haben jetzt eine Frist von 120 s; nach einer Zeitüberschreitung startet ein frisches Chrome und der Fall wird einmal wiederholt („WIEDER“). Hängt er erneut, ist er rot statt endlos.
 
+## Zeitüberschreitungen unter Last zählen als unerkannt (M10-01, 08.11.2026)
+
+**Befund:** Lokal liefen parallel mehrere Mutationsläufe anderer Sitzungen (Last ≈ 19 auf dem Mac, dazu Ruhezustand). Testläufe, die sonst 7 s (domain) bzw. 25 s (server) brauchen, überschritten die Frist von `mutation_test` (300 s bzw. 120 s; gemessen bis 1963 s). `mutation_test` zählt eine Zeitüberschreitung als **unerkannt** – `uk_zusatz.dart` stand dadurch bei 84,8 % (12 Zeitüberschreitungen), `planungs_dienst.dart` bei 89,3 % (7).
+
+**Vorgehen:** Die Mutanten mit Zeitüberschreitung stehen in `mutation-test-report/<paket>/mutation-test.junit.xml` (`type="timeout"`). Einzeln nachgeprüft (Mutant einsetzen, `dart test --fail-fast`, Datei zurück) wurden alle erkannt. Echte Überlebende blieben nur zwei gleichwertige Mutanten (`math.min(a, b)` → `math.min(b, a)`). Damit: domain 111/112, server 74/75. Für belastbare Zahlen lokal nicht neben anderen Mutationsläufen messen; die Build-Chain misst auf eigenen Runnern.
+
 ## Vollauf: domain und server ebenfalls in Teilen (08.11.2026)
 
 **Anlass:** Der nächtliche Vollauf war ab 06.11.2026 rot (Issue #132): `domain` lief als ein Job und wurde nach 5 h 45 min am Limit abgebrochen (Run 42436256055), `server` brauchte 5 h 22 min. Die gemessenen Werte selbst waren gut (server 99,22 %, app 96,88 %).
 
 **Lösung:** In `.github/workflows/mutation-vollauf.yml` läuft `domain` in vier und `server` in zwei Teilen, wie in der Build-Chain. Die Auswertung (`tool/mutation_summe.sh`) prüft die 95 % weiter je Paket über alle Teile.
-
 ## Frist beendet die ganze Prozessgruppe (08.11.2026, #135)
 
 **Anlass:** Lokal liefen 108 verwaiste Dart-Prozesse (85 × `bin/auth_server.dart`, 23 Test-Runner) mit je rund 5 % CPU, Last ~16; Tests liefen dadurch in Zeitüberschreitungen. Sie stammten aus Mutationsläufen: `frist.sh` beendete nach Ablauf nur `dart test`, nicht dessen Test-Runner und die von Tests gestarteten Server.
 
 **Lösung:** `frist.sh` startet den Befehl mit `set -m` in einer eigenen Prozessgruppe und beendet bei Ablauf, bei SIGTERM von `mutation_test` und nach dem Ende des Befehls die ganze Gruppe. Geprüft in `tool/mutation_auswahl_test.sh`.
+
 

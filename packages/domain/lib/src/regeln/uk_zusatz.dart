@@ -188,9 +188,11 @@ Map<Millimeter, int> lieferstuecke(
 ///   Hölzer wie eine Dielenreihe (R-B10, `lieferlaengenFuer`): 480 cm →
 ///   5000 mm; ein Stück über der längsten wird gestückelt (ganze Hölzer
 ///   und der Rest aus dem letzten).
-/// - Kurze Stücke (Querstreben) werden der Größe nach aus gemeinsamen
-///   Hölzern geschnitten: zuerst in ein angeschnittenes Holz, in das sie
-///   passen; sonst in ein neues, das so lang ist wie der Rest aller kurzen
+/// - Kurze Stücke (Querstreben, Stützen) werden der Größe nach aus
+///   gemeinsamen Hölzern geschnitten: zuerst in den Rest eines langen
+///   Stücks oder ein angeschnittenes Holz, in das sie passen (wie im alten
+///   Planer: F28 309 + 39,9 + 39,9 cm aus 400 cm; Paritätsnachweis M10-01);
+///   sonst in ein neues, das so lang ist wie der Rest aller kurzen
 ///   Stücke (höchstens die längste Lieferlänge) – so wenig Verschnitt wie
 ///   möglich (R-B11).
 ///
@@ -204,14 +206,15 @@ List<Lieferdiele> lieferhoelzer(
   final moeglich = laengen.contains(fest) ? [fest!] : laengen;
   if (moeglich.isEmpty) return const [];
   final grenze = moeglich.first.mm / 2;
-  final hoelzer = <Lieferdiele>[];
+  // lange Stücke zuerst, ihre Reste nehmen kurze auf (M10-01)
+  final offen = <({int laenge, List<Millimeter> schnitte, int rest})>[];
   for (final s in stuecke) {
     if (s.mm < grenze) continue;
     final lieferung = lieferlaengenFuer(s, moeglich);
     var rest = s;
     for (final (i, l) in lieferung.indexed) {
       final schnitt = i == lieferung.length - 1 ? rest : l;
-      hoelzer.add(Lieferdiele(l, [schnitt]));
+      offen.add((laenge: l.mm, schnitte: [schnitt], rest: l.mm - schnitt.mm));
       rest -= schnitt;
     }
   }
@@ -219,7 +222,6 @@ List<Lieferdiele> lieferhoelzer(
     for (final s in stuecke)
       if (s.mm < grenze) s.mm,
   ]..sort((a, b) => b.compareTo(a));
-  final offen = <({int laenge, List<Millimeter> schnitte, int rest})>[];
   var summe = kurz.fold(0, (a, b) => a + b);
   for (final s in kurz) {
     final i = offen.indexWhere((h) => h.rest >= s);
@@ -237,10 +239,7 @@ List<Lieferdiele> lieferhoelzer(
     }
     summe -= s;
   }
-  return [
-    ...hoelzer,
-    for (final h in offen) Lieferdiele(Millimeter(h.laenge), h.schnitte),
-  ];
+  return [for (final h in offen) Lieferdiele(Millimeter(h.laenge), h.schnitte)];
 }
 
 /// Lieferstücke für weitere kurze Zuschnitte [kurz] (z. B. Blendenhalter,

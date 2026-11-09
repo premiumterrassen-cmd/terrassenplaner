@@ -24,6 +24,12 @@ Aus M1-03 (Verdacht auf Fehler des alten Planers, siehe [09](09-nicht-teil-der-k
 17. ~~**Querstreben**~~ → beantwortet.
 18. ~~**Grenzen der Terrassenmaße** (M4-02)~~ → beantwortet.
 
+Aus dem Paritätsnachweis (M10-01, [Bericht](../abnahme/paritaetsbericht.md#offene-fragen-an-alexander)):
+
+19. **UK an schrägen Rändern, Ausschnitt-, Innen- und Bogenkanten:** Der alte Planer legt dort zusätzliche UK-Stücke (F18, F19, F21, F22, L/T/U) und bei Diagonalverlegung mehr UK (F03 ≈ 52 statt 37 m). Neu: nur der Achsabstand, äußere Hölzer bündig. Zusätzliche UK an diesen Kanten (wie alt) oder genügt der Achsabstand?
+20. **Vorhandene UK (F29):** alt zusätzlich 2 × 473 cm wie ein Rahmen – gewollt?
+21. **Alu-UK:** alt mehr Schienen (RELO 22 statt 18, ALUecofix XL 182 statt 169) – eigener, engerer Achsabstand?
+
 ## Beantwortet
 
 - **Kurze UK-Stücke 8,6 / 8,7 / 11 cm im UK-Zuschnitt** (aus M1-02): im 90°-Winkel an den Sichtseiten angesetzte UK-Stücke, an denen die Blenden befestigt werden (Alexander, 19.10.2026).

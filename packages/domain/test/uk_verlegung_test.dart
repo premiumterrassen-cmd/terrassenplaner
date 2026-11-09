@@ -620,6 +620,21 @@ void main() {
       expect(ohne.streben, hasLength(20 * ohne.reihen));
       expect(ohne.streben.first.von.x, 20);
     });
+
+    test('Strebe ab 10 cm lichtem Abstand der Hölzer (mindestStrebe)', () {
+      final s = _rechteck(1000, 3090).mitQuerstreben(true);
+      // licht 160 − 20 − 40 = 100 mm: Strebe; 260 − 160 − 40 = 60 mm: keine
+      // (doppelte UK); 980 − 260 − 40 = 680 mm: Strebe
+      final z = ukZusatz(
+        s,
+        _uk4060,
+        ukAbstand: _abstand,
+        linien: const [20, 160, 260, 980],
+      );
+      expect(z.reihen, greaterThan(0));
+      expect(z.streben, hasLength(2 * z.reihen));
+      expect({for (final st in z.streben) st.von.x}, {40.0, 280.0});
+    });
   });
 
   test('M9-02: UK-Zuschnitt wie in den Zuschnittlisten des alten Planers', () {
