@@ -501,6 +501,7 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/11
 - [ ] **M10-04 Umstellung vom alten Planer** ([#87](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/87)) – `feature/m10-04-umstellung-vom-alten-planer`
   - Links in Shop und Webseite umstellen, alter Planer aus (Vertrag mit Agentur beachten).
   - Abnahme: Neue Adresse live, alte leitet um
+  - Stand (10.11.2026, Branch): vorbereitet, Umstellung am 01.12.2026. Ansible-Variable `planer_alte_hosts` (Standard leer) – je alter Adresse Traefik-Router mit Let's-Encrypt-Zertifikat, dauerhafte Umleitung (301/308) auf `https://alto.terrassenplaner.eu/` (HTTP zuerst auf HTTPS), für Root-Server und Container, in Molecule geprüft; Checkliste mit Vorbedingungen, Prüfschritten und Rückfallplan `docs/betrieb/umstellung.md`. Im Inventory `produktion` noch nicht gesetzt – erst nachdem Alexander das DNS von `terrassenkonfigurator.robinienwelt.de` auf 62.83.40.123 gestellt hat (oder die Agentur umleitet). Offen bei Alexander: Links in Shop und Webseite, DNS/Agentur, Vertrag mit der Agentur.
 - [x] **M10-05 Statistik und Datenschutz** ([#88](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/88)) – `feature/m10-05-statistik-und-datenschutz`
   - Entscheidung zu Webanalyse und Cookie-Hinweis (alter Planer nutzt eine Analyse des Agenturanbieters).
   - Abnahme: Entscheidung Alexander umgesetzt
