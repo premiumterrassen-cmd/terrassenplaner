@@ -11,6 +11,31 @@ Stand 08.11.2026, Branch `feature/m10-02-last-und-leistungstest`. Getestet wird 
   2. **Aufrufe an eine interne Dienst-Sitzung laufen nacheinander:** Die nächste INVOCATION erreicht den Handler erst, wenn die vorige beantwortet ist – obwohl der Handler asynchron ist. Damit warten typische Berechnungen hinter einem großen Projekt, und das Rechenwerk kann (noch) nicht parallel rechnen.
 - **Abnahme:** Zielwerte festgelegt; die Leistungs-Zielwerte werden in Läufen ohne Stau erreicht, die Zielwerte „0 Fehler“ und „Nebenher-Latenz bei großen Projekten“ erst nach Behebung der beiden connectanum-Befunde. M10-02 bleibt deshalb offen.
 
+## Nachtrag 10.11.2026: connectanum 3.0.0-beta.9
+
+Langer Lauf (`tool/lasttest.sh`, 60 s je Szenario) auf `main` cfd4c1b (beta.9, Rechenwerk für Berechnung, PDF und Export), Last ≈ 6–20. Werte lokal, in Klammern umgerechnet auf den Zielserver.
+
+| Kennung | gemessen | Zielserver | Ziel | |
+|---|---|---|---|---|
+| nutzer.fehler | 0 von 17 154 | 0 | 0 | erreicht |
+| nutzer.berechnen p95 | 17,2 ms | 34 ms | ≤ 250 | erreicht |
+| nutzer.speichern p95 | 16,8 ms | 34 ms | ≤ 250 | erreicht |
+| nutzer.laden p95 | 11,1 ms | 22 ms | ≤ 250 | erreicht |
+| nutzer.cpu | 0,68 Kerne | 1,36 | ≤ 1 | **verfehlt** (Wiederholung: 0,65 → 1,30) |
+| sitzungen.fehler | 0 von 7 218 | 0 | 0 | erreicht |
+| sitzungen.berechnen p95 | 13,5 ms | 27 ms | ≤ 500 | erreicht |
+| sitzungen.speichern p95 | 15,1 ms | 30 ms | ≤ 500 | erreicht |
+| gross.fehler | 0 | 0 | 0 | erreicht |
+| gross.berechnenGross p95 | 944 ms | 1 888 ms | ≤ 5000 | erreicht |
+| gross.nebenher.berechnen p95 | 13,8 ms | 28 ms | ≤ 500 | erreicht |
+| gross.nebenher.speichern p95 | 13,8 ms | 28 ms | ≤ 500 | erreicht |
+| durchsatz.aufrufe | 8 863/s | 4 432/s | ≥ 2000 | erreicht |
+| durchsatz.hallo p95 | 13,1 ms | 26 ms | ≤ 100 | erreicht |
+| Speicher (alle Szenarien) | ≤ 124 MiB | | ≤ 1024 | erreicht |
+
+- **Beide connectanum-Befunde treten mit beta.9 nicht mehr auf:** kein Stau (Höchstwerte ≤ 89 ms statt bis zu 22 s), 0 Fehler in allen Szenarien, und typische Berechnungen warten nicht mehr hinter großen Projekten (nebenher p95 14 ms statt 2,2 s). Der Durchsatz kleiner Aufrufe hat sich fast verdoppelt.
+- **Offen bleibt nur `nutzer.cpu`.** Weil nichts mehr staut, schaffen die 50 Nutzer mehr Runden (279 statt 236 Aufrufe/s); je Aufruf braucht der Router rund 2,4 ms CPU statt 2,0 ms. Umgerechnet ergibt das 1,3 Kerne des Zielservers. Das Profil (50 Nutzer, die jede Sekunde eine volle Bedienrunde fahren) liegt weit über der erwarteten Last; bei 35 solcher Nutzer bliebe der Router unter einem Kern. Ob das Ziel so bleibt oder die CPU je Aufruf gesenkt werden muss, entscheidet Alexander.
+
 ## Messumgebung
 
 | | Messrechner | Zielserver |
