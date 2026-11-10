@@ -188,3 +188,7 @@
     # --- Statistik und Datenschutz (M10-05) ---
     - name: Gemeinsame Prüfungen Datenschutz
       ansible.builtin.include_tasks: tasks/datenschutz.yml
+
+    # --- Umstellung vom alten Planer (M10-04) ---
+    - name: Gemeinsame Prüfungen Umleitung alter Adressen
+      ansible.builtin.include_tasks: tasks/umstellung.yml

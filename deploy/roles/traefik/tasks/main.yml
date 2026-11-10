@@ -86,6 +86,19 @@
     dest: "{{ traefik_konfig }}/dynamisch/planer.yml"
     mode: "0644"
 
+- name: Umleitung alter Adressen (M10-04)
+  ansible.builtin.template:
+    src: alte-adressen.yml.j2
+    dest: "{{ traefik_konfig }}/dynamisch/alte-adressen.yml"
+    mode: "0644"
+  when: planer_alte_hosts | length > 0
+
+- name: Keine Umleitung ohne alte Adressen
+  ansible.builtin.file:
+    path: "{{ traefik_konfig }}/dynamisch/alte-adressen.yml"
+    state: absent
+  when: planer_alte_hosts | length == 0
+
 - name: Systemd-Unit
   ansible.builtin.template:
     src: traefik.service.j2

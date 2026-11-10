@@ -1,0 +1,20 @@
+# Verwaltet von Ansible (Terrassenplaner) – alte Adressen leiten dauerhaft auf
+# https://{{ planer_domain }}/ um (M10-04, docs/betrieb/umstellung.md).
+# HTTP leitet der Einstiegspunkt „web“ zuerst auf HTTPS derselben Adresse um.
+http:
+  routers:
+{% for host in planer_alte_hosts %}
+    alte-adresse-{{ loop.index }}:
+      rule: "Host(`{{ host }}`)"
+      entryPoints: [websecure]
+      middlewares: [alte-adresse-umleitung]
+      service: planer-web
+      tls:
+        certResolver: letsencrypt
+{% endfor %}
+  middlewares:
+    alte-adresse-umleitung:
+      redirectRegex:
+        regex: "^https?://[^/]+/.*"
+        replacement: "https://{{ planer_domain }}/"
+        permanent: true

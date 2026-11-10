@@ -34,6 +34,8 @@ ansible-playbook playbooks/site.yml
 
 Für Tests ohne Rate-Limit: `-e planer_letsencrypt_ca=staging`. Container-Betrieb: `-e planer_betriebsart=container`.
 
+Alte Adressen (`planer_alte_hosts`, Standard leer) leiten dauerhaft auf `https://<planer_domain>/` um – erst eintragen, wenn ihr DNS auf den Server zeigt. Ablauf der Umstellung vom alten Planer: `docs/betrieb/umstellung.md`.
+
 ## Mitarbeiter-Konten
 
 Nach dem ersten Ausrollen legt Alexander das erste Konto selbst an (Passwort verdeckt über stdin): Root-Server `planer-mitarbeiter anlegen <email>` (als root), Container `docker exec -it terrassenplaner-auth-1 /app/bin/mitarbeiter anlegen <email>`. Details: `docs/betrieb/mitarbeiter.md`. Neue Geheimnisse braucht es dafür nicht.

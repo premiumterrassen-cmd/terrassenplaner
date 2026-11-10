@@ -22,6 +22,10 @@ Daten: `/var/lib/terrassenplaner/<dienst>/datenbank` (ObjectBox), Artikeldatei `
 - **Zurückrollen:** den fehlerhaften Merge auf `main` per `git revert` rückgängig machen und pushen – die Build-Chain rollt den vorherigen Stand aus. Datenbanken bleiben dabei unberührt; nur wenn eine Änderung Daten beschädigt hat, zusätzlich eine Sicherung zurückspielen ([sicherung.md](sicherung.md)).
 - **Notfall ohne Build-Chain** (GitHub nicht erreichbar): `tool/artefakte_holen.sh` und `cd deploy && ansible-playbook playbooks/site.yml` von Alexanders Rechner (Vault-Passwort lokal) – nur mit demselben Stand wie `main`.
 
+## Umstellung vom alten Planer
+
+Checkliste für den Umstellungstag (Links in Shop und Webseite, DNS der alten Adresse, Umleitung über `planer_alte_hosts`, Prüfschritte, Rückfallplan): [umstellung.md](umstellung.md) (M10-04).
+
 ## Alarme und was zu tun ist
 
 Alarme kommen per E-Mail an `burkhardt@robinienwelt.de` (Grafana, Kontaktweg „Alarm-E-Mail“, Wiederholung alle 4 h). Regeln: `deploy/roles/monitoring/defaults/main.yml`.

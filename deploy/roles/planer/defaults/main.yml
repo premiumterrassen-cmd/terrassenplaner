@@ -28,3 +28,9 @@ planer_letsencrypt_ca_urls:
 
 # Grafana-Anmeldung (Passwort aus Ansible Vault)
 planer_grafana_admin: admin
+
+# Umstellung vom alten Planer (M10-04): alte Adressen leiten dauerhaft (301/308) auf
+# https://<planer_domain>/ um – Pfad und Abfrage entfallen. Leer = keine Umleitung aktiv.
+# Einen Host erst eintragen, wenn sein DNS auf den Server zeigt (Let's-Encrypt-Prüfung
+# über HTTP), siehe docs/betrieb/umstellung.md.
+planer_alte_hosts: []
