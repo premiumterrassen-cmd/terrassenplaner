@@ -177,7 +177,8 @@ void main() {
     final gross = {..._anna.alsJson(), 'authid': 'Dora@example.test'};
     await expectLater(
       v.rufe(MitarbeiterVerwaltung.anlegen, [gross]),
-      abgelehnt(contains('nicht normiert')),
+      // Name, Grund und Wert an der richtigen Stelle
+      abgelehnt(contains('(authid): nicht normiert: "Dora@example.test"')),
     );
     for (final (prozedur, argumente) in <(String, List<Object?>)>[
       (MitarbeiterVerwaltung.anlegen, []),
