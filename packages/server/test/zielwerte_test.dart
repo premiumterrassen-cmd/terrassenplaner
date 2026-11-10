@@ -112,6 +112,7 @@ void main() {
     expect(z['nutzer.speichern']!.grenze, 250);
     expect(z['nutzer.laden']!.grenze, 250);
     expect(z['nutzer.cpu']!.zielserver, 1);
+    expect(z['nutzer.cpu']!.grenze, 1.4);
     expect(z['nutzer.cpu']!.erreicht, isTrue);
   });
 
