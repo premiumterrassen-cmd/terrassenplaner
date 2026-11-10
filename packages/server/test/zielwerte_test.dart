@@ -112,6 +112,8 @@ void main() {
     expect(z['nutzer.speichern']!.grenze, 250);
     expect(z['nutzer.laden']!.grenze, 250);
     expect(z['nutzer.cpu']!.zielserver, 1);
+    expect(z['nutzer.cpu']!.grenze, 1.4);
+    expect(z['nutzer.cpu']!.beschreibung, 'CPU-Bedarf des Routers');
     expect(z['nutzer.cpu']!.erreicht, isTrue);
   });
 
@@ -165,6 +167,7 @@ void main() {
     expect(k['gross.nebenher.berechnen']!.grenze, 500);
     expect(k['gross.nebenher.speichern']!.zielserver, 600);
     expect(k['gross.nebenher.speichern']!.erreicht, isFalse);
+    expect(k['gross.nebenher.speichern']!.grenze, 500);
   });
 
   test('sitzungen und durchsatz', () {
@@ -191,10 +194,12 @@ void main() {
     expect(k['sitzungen.berechnen']!.erreicht, isTrue);
     expect(k['sitzungen.berechnen']!.grenze, 500);
     expect(k['sitzungen.speichern']!.erreicht, isFalse);
+    expect(k['sitzungen.speichern']!.grenze, 500);
     expect(k['durchsatz.aufrufe']!.gemessen, 4000);
     expect(k['durchsatz.aufrufe']!.zielserver, 2000);
     expect(k['durchsatz.aufrufe']!.erreicht, isTrue);
     expect(k['durchsatz.aufrufe']!.einheit, '1/s');
+    expect(k['durchsatz.aufrufe']!.grenze, 2000);
     expect(k['durchsatz.hallo']!.zielserver, 100);
     expect(k['durchsatz.hallo']!.erreicht, isTrue);
     expect(k.keys.where((n) => n.startsWith('unbekannt')), [

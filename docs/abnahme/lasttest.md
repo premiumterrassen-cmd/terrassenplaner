@@ -9,7 +9,32 @@ Stand 08.11.2026, Branch `feature/m10-02-last-und-leistungstest`. Getestet wird 
 - **Zwei connectanum-Befunde verhindern die volle Abnahme** (an Alexander gemeldet, nicht umgangen):
   1. **Stau im Router:** Unter Last bleiben zeitweise *alle* Aufrufe hängen (Antwort nie oder erst nach 10–500 s), während Router und Lastwerkzeug **keine CPU** verbrauchen. Reproduzierbar mit 50 bis 500 Sitzungen, mit JSON und FlatBuffers, mit Router und Client im selben oder in getrennten Prozessen, auch auf `origin/main` ohne die Änderungen dieses Branches.
   2. **Aufrufe an eine interne Dienst-Sitzung laufen nacheinander:** Die nächste INVOCATION erreicht den Handler erst, wenn die vorige beantwortet ist – obwohl der Handler asynchron ist. Damit warten typische Berechnungen hinter einem großen Projekt, und das Rechenwerk kann (noch) nicht parallel rechnen.
-- **Abnahme:** Zielwerte festgelegt; die Leistungs-Zielwerte werden in Läufen ohne Stau erreicht, die Zielwerte „0 Fehler“ und „Nebenher-Latenz bei großen Projekten“ erst nach Behebung der beiden connectanum-Befunde. M10-02 bleibt deshalb offen.
+- **Abnahme (10.11.2026):** Mit connectanum 3.0.0-beta.9 sind beide connectanum-Befunde behoben und alle Zielwerte erreicht (siehe Nachtrag unten; `nutzer.cpu` mit der von Alexander akzeptierten Grenze von 1,4 Kernen). M10-02 ist abgeschlossen. Bis 09.11. galt: Leistungs-Zielwerte nur in Läufen ohne Stau erreicht, „0 Fehler“ und „Nebenher-Latenz bei großen Projekten“ verfehlt.
+
+## Nachtrag 10.11.2026: connectanum 3.0.0-beta.9
+
+Langer Lauf (`tool/lasttest.sh`, 60 s je Szenario) auf `main` cfd4c1b (beta.9, Rechenwerk für Berechnung, PDF und Export), Last ≈ 6–20. Werte lokal, in Klammern umgerechnet auf den Zielserver.
+
+| Kennung | gemessen | Zielserver | Ziel | |
+|---|---|---|---|---|
+| nutzer.fehler | 0 von 17 154 | 0 | 0 | erreicht |
+| nutzer.berechnen p95 | 17,2 ms | 34 ms | ≤ 250 | erreicht |
+| nutzer.speichern p95 | 16,8 ms | 34 ms | ≤ 250 | erreicht |
+| nutzer.laden p95 | 11,1 ms | 22 ms | ≤ 250 | erreicht |
+| nutzer.cpu | 0,68 Kerne | 1,36 | ≤ 1,4 | erreicht (Wiederholung: 0,65 → 1,30; Ziel angepasst, siehe unten) |
+| sitzungen.fehler | 0 von 7 218 | 0 | 0 | erreicht |
+| sitzungen.berechnen p95 | 13,5 ms | 27 ms | ≤ 500 | erreicht |
+| sitzungen.speichern p95 | 15,1 ms | 30 ms | ≤ 500 | erreicht |
+| gross.fehler | 0 | 0 | 0 | erreicht |
+| gross.berechnenGross p95 | 944 ms | 1 888 ms | ≤ 5000 | erreicht |
+| gross.nebenher.berechnen p95 | 13,8 ms | 28 ms | ≤ 500 | erreicht |
+| gross.nebenher.speichern p95 | 13,8 ms | 28 ms | ≤ 500 | erreicht |
+| durchsatz.aufrufe | 8 863/s | 4 432/s | ≥ 2000 | erreicht |
+| durchsatz.hallo p95 | 13,1 ms | 26 ms | ≤ 100 | erreicht |
+| Speicher (alle Szenarien) | ≤ 124 MiB | | ≤ 1024 | erreicht |
+
+- **Beide connectanum-Befunde treten mit beta.9 nicht mehr auf:** kein Stau (Höchstwerte ≤ 89 ms statt bis zu 22 s), 0 Fehler in allen Szenarien, und typische Berechnungen warten nicht mehr hinter großen Projekten (nebenher p95 14 ms statt 2,2 s). Der Durchsatz kleiner Aufrufe hat sich fast verdoppelt.
+- **`nutzer.cpu`:** Weil nichts mehr staut, schaffen die 50 Nutzer mehr Runden (279 statt 236 Aufrufe/s); je Aufruf braucht der Router rund 2,4 ms CPU statt 2,0 ms. Umgerechnet ergibt das 1,3 Kerne des Zielservers. Das Profil (50 Nutzer, die jede Sekunde eine volle Bedienrunde fahren) liegt weit über der erwarteten Last; bei 35 solcher Nutzer bliebe der Router unter einem Kern. **Entscheidung Alexander (10.11.2026):** rund 1,3 Kerne für dieses Extremprofil akzeptiert; die Grenze `nutzer.cpu` steht seitdem bei 1,4 Kernen (Messstreuung 1,30–1,36). Damit sind alle Zielwerte erreicht.
 
 ## Messumgebung
 
@@ -56,7 +81,7 @@ Zur Nutzerzahl gibt es keine Messung des alten Planers; für einen Fachhandels-P
 | `*.speicher` | ≤ 1024 MiB RSS | Budget oben |
 | `nutzer.berechnen` | p95 ≤ 250 ms | Planen ist interaktiv: jede Änderung zeichnet neu; bis ≈ 250 ms wirkt das sofort |
 | `nutzer.speichern`, `nutzer.laden` | p95 ≤ 250 ms | dito |
-| `nutzer.cpu` | ≤ 1 Kern | Budget oben |
+| `nutzer.cpu` | ≤ 1,4 Kerne (bis 10.11.2026: ≤ 1) | Budget oben; Extremprofil, von Alexander akzeptiert |
 | `sitzungen.berechnen`, `sitzungen.speichern` | p95 ≤ 500 ms | doppelte Sitzungszahl darf spürbar, aber nicht störend langsamer sein |
 | `gross.berechnenGross` | p95 ≤ 5 s | großes Projekt: Wartezeit mit Ladeanzeige vertretbar |
 | `gross.nebenher.berechnen`, `gross.nebenher.speichern` | p95 ≤ 500 ms | ein großes Projekt darf andere Nutzer nicht anhalten |

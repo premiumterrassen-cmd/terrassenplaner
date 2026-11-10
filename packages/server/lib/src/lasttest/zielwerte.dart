@@ -85,7 +85,9 @@ abstract final class Zielwerte {
             Zielwert(
               kennung: 'nutzer.cpu',
               beschreibung: 'CPU-Bedarf des Routers',
-              grenze: 1,
+              // Extremprofil (50 Nutzer, jede Sekunde eine volle Runde):
+              // gemessen 1,3 Kerne, von Alexander akzeptiert (10.11.2026)
+              grenze: 1.4,
               einheit: 'Kerne',
               gemessen: kerne,
               zielserver: kerne * faktor,
