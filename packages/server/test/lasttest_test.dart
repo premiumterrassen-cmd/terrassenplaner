@@ -447,6 +447,10 @@ void main() {
         [for (final v in e.profil.schritte) e.statistik[v]!.anzahl],
         [1, 1, 1],
       );
+      // eine Sitzung, Schritte nacheinander: zusammen nicht länger als der Lauf
+      final summe = [for (final v in e.profil.schritte) e.statistik[v]!.hoechst]
+          .fold(Duration.zero, (a, b) => a + b);
+      expect(summe, lessThanOrEqualTo(e.laufzeit));
     });
 
     test('Fehler werden je Vorgang gezählt, der erste mit Text', () async {
