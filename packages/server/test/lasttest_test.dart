@@ -433,7 +433,8 @@ void main() {
         const Lastprofil(
           name: 'schritte',
           sitzungen: 1,
-          dauer: Duration(milliseconds: 1),
+          // Dauer null: genau eine Runde, unabhängig vom Takt des Rechners
+          dauer: Duration.zero,
           // LADEN ohne gespeicherte Version speichert zuerst
           schritte: [Vorgang.laden, Vorgang.entwurf, Vorgang.speichern],
         ),

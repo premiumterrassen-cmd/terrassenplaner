@@ -34,9 +34,10 @@ enum Vorgang {
 }
 
 /// Lastprofil: [sitzungen] gleichzeitige Sitzungen wiederholen [dauer] lang
-/// ihre [schritte], nach jeder Runde im Mittel [denkzeit] Pause (Bedienung
-/// der App). Damit die Sitzungen nicht im Gleichschritt rechnen, beginnt
-/// jede zufällig versetzt und streut ihre Pausen ([pause]).
+/// (mindestens einmal) ihre [schritte], nach jeder Runde im Mittel
+/// [denkzeit] Pause (Bedienung der App). Damit die Sitzungen nicht im
+/// Gleichschritt rechnen, beginnt jede zufällig versetzt und streut ihre
+/// Pausen ([pause]).
 final class Lastprofil {
   const Lastprofil({
     required this.name,
@@ -144,7 +145,8 @@ abstract final class Lastlauf {
       // je Sitzung eigener, fester Zufall: wiederholbare Läufe
       final zufall = Random(nummer);
       await Future<void>.delayed(profil.versatz(zufall));
-      while (uhr.elapsed < profil.dauer) {
+      // mindestens eine Runde, auch wenn die Dauer beim Start schon um ist
+      do {
         for (final vorgang in profil.schritte) {
           final start = uhr.elapsed;
           try {
@@ -156,7 +158,7 @@ abstract final class Lastlauf {
           }
         }
         await Future<void>.delayed(profil.pause(zufall));
-      }
+      } while (uhr.elapsed < profil.dauer);
     }
 
     await Future.wait([
