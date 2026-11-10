@@ -1,0 +1,45 @@
+# Prüfungen zur Umstellung vom alten Planer (M10-04), gleich für beide Betriebsarten:
+# Jede alte Adresse aus planer_alte_hosts leitet dauerhaft auf die neue Domain um.
+- name: Alte Adresse über HTTPS leitet dauerhaft auf die Startseite der neuen Domain um
+  ansible.builtin.uri:
+    url: https://127.0.0.1/planer/schritt-2?konfiguration=4711
+    headers: {Host: "{{ item }}"}
+    validate_certs: false
+    follow_redirects: none
+    status_code: [301, 308]
+  register: planer_test_umleitung
+  retries: 10
+  delay: 3
+  until: planer_test_umleitung.status in [301, 308]
+  failed_when: >-
+    planer_test_umleitung.status not in [301, 308]
+    or planer_test_umleitung.location != 'https://' + planer_domain + '/'
+  loop: "{{ planer_alte_hosts }}"
+
+- name: Alte Adresse über HTTP leitet dauerhaft auf HTTPS um
+  ansible.builtin.uri:
+    url: http://127.0.0.1/
+    headers: {Host: "{{ item }}"}
+    follow_redirects: none
+    status_code: [301, 308]
+  register: planer_test_umleitung_http
+  failed_when: >-
+    planer_test_umleitung_http.status not in [301, 308]
+    or planer_test_umleitung_http.location != 'https://' + item + '/'
+  loop: "{{ planer_alte_hosts }}"
+
+- name: Neue Domain leitet nicht um
+  ansible.builtin.uri:
+    url: https://127.0.0.1/
+    headers: {Host: "{{ planer_domain }}"}
+    validate_certs: false
+    follow_redirects: none
+    status_code: 200
+
+- name: Fremde Adresse wird nicht umgeleitet
+  ansible.builtin.uri:
+    url: https://127.0.0.1/
+    headers: {Host: unbekannt.planer.test}
+    validate_certs: false
+    follow_redirects: none
+    status_code: 404

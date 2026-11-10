@@ -26,6 +26,8 @@ provisioner:
       all:
         planer_betriebsart: systemd
         planer_domain: planer.test
+        # Umstellung vom alten Planer (M10-04): zwei Testadressen, die umleiten
+        planer_alte_hosts: [alt.planer.test, alt2.planer.test]
         planer_letsencrypt_email: test@example.org
         planer_letsencrypt_ca: staging
         planer_auth_token: molecule-test-token-0123456789abcdef0123456789

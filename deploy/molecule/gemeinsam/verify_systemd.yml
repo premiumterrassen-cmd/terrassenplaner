@@ -302,3 +302,7 @@
       failed_when: >-
         (planer_test_zugriffe.stdout_lines | select('search', '"RequestPath"') | list | length) == 0
         or (planer_test_zugriffe.stdout_lines | select('search', '"Client(Addr|Host|Port|Username)"') | list | length) > 0
+
+    # --- Umstellung vom alten Planer (M10-04) ---
+    - name: Gemeinsame Prüfungen Umleitung alter Adressen
+      ansible.builtin.include_tasks: tasks/umstellung.yml

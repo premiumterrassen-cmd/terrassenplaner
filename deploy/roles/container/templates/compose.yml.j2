@@ -116,6 +116,20 @@ services:
       - traefik.http.routers.planer-web.entrypoints=websecure
       - traefik.http.routers.planer-web.tls.certresolver=letsencrypt
       - traefik.http.services.planer-web.loadbalancer.server.port=80
+{% if planer_alte_hosts | length > 0 %}
+      # Alte Adressen leiten dauerhaft auf https://{{ planer_domain }}/ um (M10-04);
+      # HTTP leitet der Einstiegspunkt „web“ zuerst auf HTTPS derselben Adresse um.
+      - traefik.http.middlewares.alte-adresse-umleitung.redirectregex.regex=^https?://[^/]+/.*
+      - traefik.http.middlewares.alte-adresse-umleitung.redirectregex.replacement=https://{{ planer_domain }}/
+      - traefik.http.middlewares.alte-adresse-umleitung.redirectregex.permanent=true
+{% for host in planer_alte_hosts %}
+      - traefik.http.routers.alte-adresse-{{ loop.index }}.rule=Host(`{{ host }}`)
+      - traefik.http.routers.alte-adresse-{{ loop.index }}.entrypoints=websecure
+      - traefik.http.routers.alte-adresse-{{ loop.index }}.tls.certresolver=letsencrypt
+      - traefik.http.routers.alte-adresse-{{ loop.index }}.middlewares=alte-adresse-umleitung
+      - traefik.http.routers.alte-adresse-{{ loop.index }}.service=planer-web
+{% endfor %}
+{% endif %}
 
   prometheus:
     image: {{ container_prometheus_bild }}
