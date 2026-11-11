@@ -4,7 +4,8 @@ import 'package:test/test.dart';
 void main() {
   test('Abstände (R-C03, R-B06, R-C10)', () {
     expect(querstrebenAbstand, const Millimeter(600));
-    expect(fuge, const Millimeter(5));
+    // Planungskern v6, Entscheidung Alexander 11.11.2026 (vorher 5 mm)
+    expect(fuge, const Millimeter(6));
     expect(wandabstand, const Millimeter(20));
   });
 

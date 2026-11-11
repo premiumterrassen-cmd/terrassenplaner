@@ -34,7 +34,7 @@ Die mit ⚙ markierten Regeln sind im domain-Paket ausführbar und mit Tests bel
 | R-B03 ⚙ | Ab 80 mm Breite Bombierung empfehlen; 60 und 80 mm sind am besten geeignet. Meldung im Planer: `belagmeldungen` (M5-10, [02 · 2.8](02-terrassenbelag.md)). | Montagehinweise Regel 7 | gilt (Hinweis) |
 | R-B04 | Befestigungsmaterial wie bisher (CLIP-FIXX/DUO schwarz beschichtet), keine A4-Pflicht. | B-095 | gilt |
 | R-B05 | Verschraubung von unten ist nicht zulässig. | Merkblatt M-10, Antwort 6 | gilt (Hinweis) |
-| R-B06 | Fuge (Abstand der Dielen nebeneinander): **5 mm** im Planer; ERP-Flächenformel rechnet mit Breite + 5 mm. | Alexander (Frage 2), ERP-Plugins, Antwort 3 | gilt – 5 mm überall („auf der sicheren Seite“) |
+| R-B06 ⚙ | Fuge (Abstand der Dielen nebeneinander): **6 mm**, eine Reihe ist Dielenbreite + Fuge (Verlegung, Preis je m², Prüfung „Fläche kleiner als Belag“, 3D-Modell) – einheitlich mit R-D05 (Breite + 6). | Planungsregeln Alexander (Planungskern v6, 11.11.2026) Regel 1.2; Entscheidung Alexander 11.11.2026 | gilt – ersetzt „mit 5 mm rechnen“ vom 19.10.2026 (Antwort 3); die Paritätstests der Verlegung rechnen weiter mit den 5 mm des alten Planers |
 | R-B07 | Längsstoß (Stirnseiten) 0–2 mm, Stirnkanten fasen und paraffinieren. | Merkblatt M-06, Antwort 6 | gilt (Hinweis) |
 | R-B08 | Keine Dielenüberstände – UK bis an den Rand. | B-096 | gilt |
 | R-B09 ⚙ | Freidielen im Planer und ERP: **ab 25 Hauptdielen eine, ab 50 zwei, ab 100 je weitere 50 eine** (100 → 3, 150 → 4 …); gezählt und geliefert wird die Hauptdiele des Deckbelags (im alten Planer in der längsten Lieferlänge). | B-079, Antwort 1 | gilt · Abweichung alt: Grenzfälle und große Mengen |
@@ -78,7 +78,7 @@ Werden **nicht** übernommen (Liste in [09](09-nicht-teil-der-kopie.md)): einsei
 
 1. **Freidielen:** „bei 25 eine Diele, bei 50 zwei Dielen bis 100 und dann aller 50 Stück eine Freidiele“; sie beziehen sich immer auf die Hauptdiele des Deckbelags → R-B09.
 2. **Zwischenlängen:** gibt es nicht mehr, es gilt B-035 → R-A06.
-3. **Fuge:** überall 5 mm, „da sind wir auf der sicheren Seite“ → R-B06.
+3. **Fuge:** überall 5 mm, „da sind wir auf der sicheren Seite“ → R-B06. *Ersetzt am 11.11.2026: 6 mm (Planungskern v6, Entscheidung Alexander).*
 4. **UK-Achsabstand:** maximal 40 cm im Planer → R-C01.
 5. **Unterlüftung, Gefälle:** nur Hinweise; Wandabstand im Planer 2 cm → R-C10.
 6. **Längsstoß 0–2 mm, keine Verschraubung von unten:** beides korrekt (Hinweise) → R-B07, R-B05.

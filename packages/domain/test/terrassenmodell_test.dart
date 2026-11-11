@@ -42,25 +42,25 @@ void main() {
     expect(_mm(uk, (q) => q.x), [0, 400]);
   });
 
-  test('Dielen mit 5 mm Fuge, letzte auf Restbreite', () {
+  test('Dielen mit 6 mm Fuge, letzte auf Restbreite', () {
     final dielen = _terrasse(breite: 500)
         .where((t) => t.art == Bauteilart.diele)
         .toList();
-    // 0, 125, 250, 375 → letzte 125 mm breit verfügbar, Diele 120
-    expect(_mm(dielen, (q) => q.z), [0, 125, 250, 375]);
+    // 0, 126, 252, 378 → letzte 122 mm breit verfügbar, Diele 120
+    expect(_mm(dielen, (q) => q.z), [0, 126, 252, 378]);
     expect(_mm(dielen, (q) => q.breite), [120, 120, 120, 120]);
     final schmal = _terrasse(breite: 300)
         .where((t) => t.art == Bauteilart.diele)
         .toList();
-    expect(_mm(schmal, (q) => q.z), [0, 125, 250]);
-    expect(_mm(schmal, (q) => q.breite), [120, 120, 50]);
+    expect(_mm(schmal, (q) => q.z), [0, 126, 252]);
+    expect(_mm(schmal, (q) => q.breite), [120, 120, 48]);
     final q = dielen.first.quader;
     expect([q.x.mm, q.y.mm, q.laenge.mm, q.hoehe.mm], [0, 45, 4000, 23]);
-    expect(fuge, const Millimeter(5));
+    expect(fuge, const Millimeter(6));
   });
 
   test('genau passende Breite ohne Reststück', () {
-    final dielen = _terrasse(breite: 245)
+    final dielen = _terrasse(breite: 246)
         .where((t) => t.art == Bauteilart.diele);
     expect(_mm(dielen, (q) => q.breite), [120, 120]);
   });

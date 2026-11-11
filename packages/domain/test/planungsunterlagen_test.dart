@@ -453,11 +453,12 @@ void main() {
         '480 × 6',
         '${verlegung.teile.first.sorten.first.stueck}',
       ]);
+      // 309 cm mit 6 mm Fuge (Planungskern v6): 47 Reihen, mit 5 mm 48
       expect(baustein<Tabelle>(k, 1).zeilen, [
-        ['500', '48'],
+        ['500', '47'],
       ]);
       expect(baustein<Tabelle>(u.kapitel[5]).zeilen, [
-        ['Diele 60 x 21 mm', '500', '48', '480'],
+        ['Diele 60 x 21 mm', '500', '47', '480'],
       ]);
     });
 

@@ -4,7 +4,7 @@ Messwerte in diesem Kapitel: Rechteck 480 × 309 cm, Diele 60 × 22 genutet, son
 
 ## 2.1 Terrassenbelag auswählen
 
-- Anzeige des gewählten Belags: Bild, Name, „Maße: 600 x 6 x 2.2 cm“, „Fuge: 0.5 mm“ (richtig: **5 mm** – Anzeigefehler im alten Planer), Knopf „Produktauswahl“.
+- Anzeige des gewählten Belags: Bild, Name, „Maße: 600 x 6 x 2.2 cm“, „Fuge: 0.5 mm“ (gemeint 5 mm – Anzeigefehler im alten Planer; der neue Planer rechnet mit **6 mm**, R-B06, Planungskern v6, Entscheidung Alexander 11.11.2026), Knopf „Produktauswahl“.
 - Vorgabe: Terrassendiele Robinie 60 × 22 mm, genutet, keilgezinkt, bombiert.
 - Dialog „Terrassenbelag auswählen“:
   - Kategorien als Bildknöpfe: **Unsichtbar befestigt** (genutet) | **Sichtbar befestigt** (glattkant) | **Holzfliese**.
@@ -18,7 +18,7 @@ Messwerte in diesem Kapitel: Rechteck 480 × 309 cm, Diele 60 × 22 genutet, son
 Neuer Planer (Alexander, 29.10.2026, M5-01):
 
 - Vorgabe ist der erste Belag der Upload-Datei; die Reihenfolge steuert die Master-Artikelliste.
-- Preis je m² = Preis je lfm ÷ (Breite + Fuge 5 mm).
+- Preis je m² = Preis je lfm ÷ (Breite + Fuge 6 mm, R-B06).
 - Filter: Material (Serie), Oberseite, Breite, Stärke, Länge, dazu Suche in Titel und Artikelnummer. Einen Filter Farbe gibt es erst mit Kastanie oder vorgeölten Varianten.
 
 ## 2.2 Soll die Dielenlänge automatisch ermittelt werden?
@@ -125,7 +125,7 @@ Neuer Planer (M5-08):
 - **Zuschnitt (Reststücke verteilen):** Die Stücke einer Teilfläche werden absteigend auf Lieferdielen verteilt. Ein Stück kommt in den kleinsten passenden Rest einer angefangenen Diele; sonst beginnt eine neue in der Lieferlänge mit dem kleinsten Rest nach dem Auffüllen mit den folgenden Stücken (bei Gleichstand die kürzere); am Ende bekommt jede Diele die kürzeste Länge, die ihre Stücke aufnimmt. Gesägt wird ohne Zugabe wie im alten Planer (2 × 200 cm aus 4000 mm). Beispiele: F09 600 + 200 cm → 48 × 6000 + 24 × 4000 mm, F06 Halbverband → 48 × 5000 mm, F21 → 38 × 5000 + 5 × 4000 mm – jeweils wie der alte Planer.
 - **Dielenliste:** Anzahl je Lieferlänge über alle Teilflächen; über die Planung je Belag, jede Fläche mal ihrer Häufigkeit. Freidielen (R-B09) kommen mit dem Zubehör (M8) als eigene Position mit Preis 0 in die Materialliste (M9-03, [08](08-ergebnisse.md#materialliste)).
 - **Verschnitt** (R-B11) = (geliefert − geplant) ÷ geliefert über die Längen, für die ganze Planung; Kennzahl rechts oben zwischen Fläche und Volumen („Verschnitt: 4 %“, höchstens zwei Nachkommastellen) und unter 7.1 mit „Benötigte Dielen“. F01 4 %, F02 22,75 %, F20 10 %, F23/F24 4 %, F25 0,99 % stimmen.
-- **Holzfliesen** (606 × 606 mm) liegen wie Dielen in Reihen aus Kantenlänge plus 5 mm Fuge und werden längs ohne Fuge gestoßen (F25: 7 × 60,6 + 55,8 cm, 6 Reihen, 48 Fliesen; Referenzfall 2026-08-17-1838: Randreihe 25,1 cm, 36 Fliesen). Kurze Stücke werden bei Fliesen nie verbunden.
+- **Holzfliesen** (606 × 606 mm) liegen wie Dielen in Reihen aus Kantenlänge plus Fuge (alter Planer 5 mm, neu 6 mm – R-B06) und werden längs ohne Fuge gestoßen (F25: 7 × 60,6 + 55,8 cm, 6 Reihen, 48 Fliesen; Referenzfall 2026-08-17-1838: Randreihe 25,1 cm, 36 Fliesen). Kurze Stücke werden bei Fliesen nie verbunden.
 - **Systemdielen** (Längenmix, Endlosverlegung) werden noch nicht verlegt.
 - **Befestigung:** Die Befestigungspunkte (2.6) zählt der Server über die Stücke aller Teilflächen. Fliesenverbinder (F25: 63 Verbinder für 48 Fliesen) bleiben offen – die Regel lässt sich aus einem Fall nicht ableiten.
 - **Volumen:** bleibt „–“, bis die Unterkonstruktion gerechnet wird (M6-10); der alte Planer zeigt Belag plus UK. Hinweis aus F02: 74 × 4000 mm Dielen (0,391 m³) plus 9 × 5000 mm UK 40 × 60 (0,108 m³) ergeben die angezeigten 0,499 m³ – das Volumen rechnet mit den gelieferten Längen.
@@ -147,7 +147,7 @@ Neuer Planer (M5-10):
 | ℹ Belag ersetzt | 2.1 | Belag des Planungsstands nicht mehr in den Artikeldaten; es gilt die Vorgabe (M5-01) | „Der gewählte Belag ist nicht mehr im Sortiment. Geplant wird mit dem Vorgabebelag – wählen Sie bei Bedarf über „Produktauswahl“ einen anderen.“ |
 | ⚠ Belag ohne Maße | 2.1 | Diele oder Fliese ohne Breite oder Lieferlänge – nicht verlegt | „Für diesen Belag fehlen Breite oder Lieferlängen, er kann nicht verlegt werden. Bitte wählen Sie einen anderen Belag.“ |
 | ℹ Systemdiele | 2.1 | Längenmix/Endlosverlegung (B-036) wird noch nicht verlegt (2.7) | „Systemdielen werden im Längenmix endlos verlegt – das zeichnet der Planer noch nicht.“ |
-| ⚠ Fläche kleiner als Belag | 2.1 | Eine Teilfläche (Hauptfläche oder Ausschnitt mit anderem Belag) hat kein ganzes Stück: keine volle Reihenbreite (Breite + 5 mm Fuge, 1 mm Spielraum), bei Fliesen auch keine volle Kantenlänge 606 mm. In der Länge wird jede Diele zugeschnitten – das ist keine Grenze. | „Die Fläche oder eine Teilfläche ist kleiner als eine Diele bzw. Fliese: Es passt keine ganze Belagbreite hinein, nur ein Zuschnitt.“ |
+| ⚠ Fläche kleiner als Belag | 2.1 | Eine Teilfläche (Hauptfläche oder Ausschnitt mit anderem Belag) hat kein ganzes Stück: keine volle Reihenbreite (Breite + 6 mm Fuge, 1 mm Spielraum), bei Fliesen auch keine volle Kantenlänge 606 mm. In der Länge wird jede Diele zugeschnitten – das ist keine Grenze. | „Die Fläche oder eine Teilfläche ist kleiner als eine Diele bzw. Fliese: Es passt keine ganze Belagbreite hinein, nur ein Zuschnitt.“ |
 | ⚠ Holzfliesen mit spitzen Ecken | 2.1 | Holzfliese und eine Ecke der Fläche oder einer Teilfläche mit anderem Belag unter 90° (Grenze 89,5°; Freiform, Dreieck) | „Die Fläche hat Ecken unter 90°. Holzfliesen müssen dort schräg zugeschnitten werden – für solche Formen eignen sich Dielen besser.“ |
 | ℹ Bombierung empfohlen | 2.1 | Glatte Diele ab 80 mm Breite (R-B03) | „Ab 8 cm Breite empfehlen wir bombierte (leicht gewölbte) Dielen.“ |
 | ℹ Länge nicht lieferbar | 2.2 | Erzwungene Länge, die der Belag nicht liefert (M5-02, B-035) – es gilt die Automatik | „Die gewählte Länge von 700 cm gibt es für diesen Belag nicht. Die Dielenlänge wird automatisch ermittelt.“ |

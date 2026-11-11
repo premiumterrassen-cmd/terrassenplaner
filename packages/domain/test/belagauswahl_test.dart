@@ -71,11 +71,11 @@ void main() {
     });
   });
 
-  group('Preise je lfm und je m² (Deckbreite = Breite + 5 mm Fuge)', () {
+  group('Preise je lfm und je m² (Deckbreite = Breite + 6 mm Fuge)', () {
     test('Verkauf je lfm', () {
       expect(_genutet.preisJeLfm, const Cent(1250));
-      // 12,50 € ÷ 0,065 m
-      expect(_genutet.preisJeM2, const Cent(19231));
+      // 12,50 € ÷ 0,066 m
+      expect(_genutet.preisJeM2, const Cent(18939));
       final zwei = Belagangebot.aus(
         _diele(
           '1',
@@ -96,7 +96,7 @@ void main() {
           preis: 13500,
         ),
       );
-      expect(b.preisJeLfm, const Cent(585));
+      expect(b.preisJeLfm, const Cent(594));
       expect(b.preisJeM2, const Cent(9000));
     });
 
@@ -109,7 +109,7 @@ void main() {
         ),
       );
       expect(b.preisJeLfm, const Cent(1000));
-      expect(b.preisJeM2, const Cent(15385));
+      expect(b.preisJeM2, const Cent(15152));
     });
 
     test('ohne eindeutige Länge, Preis oder Breite keine Preise', () {
@@ -288,7 +288,7 @@ void main() {
       ]);
       expect(zurueck.belaege.map((b) => (b.preisJeLfm, b.preisJeM2)), [
         (_glattkant.preisJeLfm, _glattkant.preisJeM2),
-        (const Cent(1250), const Cent(19231)),
+        (const Cent(1250), const Cent(18939)),
         (null, const Cent(5446)),
       ]);
       expect(zurueck.belaege[1].artikel.serie, premiumSelect);

@@ -2,6 +2,8 @@ import 'package:flat_buffers/flat_buffers.dart' as fb;
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import 'package:test/test.dart';
 
+import 'altplaner.dart';
+
 Artikel _diele(int breite, int staerke) => Artikel(
   nummer: const Artikelnummer('10-10-073'),
   titel: 'Diele',
@@ -36,7 +38,8 @@ Planungsstand _rechteck(int ab, int bc) => Planungsstand.start.mitGrundriss(
 );
 
 List<Dielenstueck> _dielen(Planungsstand s, [Artikel? belag]) => [
-  for (final t in verlegeBelag(s, belag ?? _d60)!.teile) ...t.stuecke,
+  for (final t in verlegeBelag(s, belag ?? _d60, fuge: altplanerFuge)!.teile)
+    ...t.stuecke,
 ];
 
 UkVerlegung _verlege(

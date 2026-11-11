@@ -1,6 +1,8 @@
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import 'package:test/test.dart';
 
+import 'altplaner.dart';
+
 Artikel _artikel(
   String nummer,
   String titel,
@@ -158,6 +160,7 @@ List<Dielenstueck> _verlegt({
   dielenbreite: Millimeter(breite),
   verlegeart: Verlegeart.fugenschnitt,
   laengste: Millimeter(laengste),
+  fuge: altplanerFuge,
 );
 
 Map<String, int> _mittel(Befestigungsbedarf b) => {

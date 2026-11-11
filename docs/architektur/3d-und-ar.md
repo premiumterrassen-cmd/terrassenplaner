@@ -21,7 +21,7 @@
 
 ## Prototyp
 
-- `rechteckTerrasse` (domain): durchgehende Dielen mit 5 mm Fuge (R-B06), letzte auf Restbreite; Unterkonstruktion bündig an den Stirnseiten, dazwischen höchstens im Achsabstand.
+- `rechteckTerrasse` (domain): durchgehende Dielen mit 6 mm Fuge (R-B06), letzte auf Restbreite; Unterkonstruktion bündig an den Stirnseiten, dazwischen höchstens im Achsabstand.
 - `Modell3dDienst` (server): Rechteck 0,5–20 m je Seite, Beispielaufbau Diele 120 x 23 mm, UK 70 x 45 mm im empfohlenen Achsabstand der Robinie.
 - App: `…/?prototyp=3d` öffnet `Modell3dSeite` (Terrasse 4 x 3 m). Smoke-Test `integration_test/modell3d_test.dart` lädt das GLB in headless Chrome (WebAssembly) und prüft, dass model-viewer es geladen hat.
 
