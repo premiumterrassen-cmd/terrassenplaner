@@ -177,7 +177,8 @@ int _neueLaenge(
         g++
       ) {
         final groesse = gruppen.laengen[g];
-        final vorrat = gruppen.enden[g] - math.max<int>(ab, gruppen.anfaenge[g]);
+        final vorrat =
+            gruppen.enden[g] - math.max<int>(ab, gruppen.anfaenge[g]);
         rest -= groesse * math.min(vorrat, rest ~/ groesse);
       }
     }
@@ -211,12 +212,15 @@ final class Dielensorte {
 /// zugeschnitten wie im alten Planer (eigene Nummern je Ausschnitt).
 final class Teilverlegung {
   /// Nummeriert die [stuecke] in Verlegereihenfolge und schneidet sie aus
-  /// den [lieferlaengen] samt [ueberlaenge] zu ([zuschneiden]).
+  /// den [lieferlaengen] samt [ueberlaenge] zu ([zuschneiden]); die
+  /// zugeschnittene Breite ist die Breite des Stücks ohne die [fuge], mit der
+  /// verlegt wurde.
   factory Teilverlegung(
     List<Dielenstueck> stuecke, {
     required List<Millimeter> lieferlaengen,
     Millimeter ueberlaenge = const Millimeter(0),
     String? bezeichnung,
+    Millimeter fuge = fuge,
   }) {
     final index = <(int, int), int>{};
     final anzahl = <int>[];
@@ -395,9 +399,11 @@ final class Belagverlegung {
 /// Endlosverlegung) oder unvollständige Abmessungen.
 ///
 /// Dielen: Breite und Lieferlängen des Belags (erzwungene Länge, solange der
-/// Belag sie liefert, M5-02), Fuge 5 mm (R-B06), 3 cm Überlänge
-/// (`dielenUeberlaenge`, Planungsregeln Alexander (Planungskern v6,
-/// 11.11.2026)): eine Reihe bis 603 cm liegt ohne Stoß auf einer 6-m-Diele. Holzfliesen (606 × 606 mm)
+/// Belag sie liefert, M5-02), [fuge] 6 mm (R-B06, Planungsregeln Alexander
+/// (Planungskern v6, 11.11.2026) Regel 1.2; Paritätstests rechnen mit den
+/// 5 mm des alten Planers), 3 cm Überlänge (`dielenUeberlaenge`,
+/// Planungsregeln Alexander (Planungskern v6, 11.11.2026)): eine Reihe bis
+/// 603 cm liegt ohne Stoß auf einer 6-m-Diele. Holzfliesen (606 × 606 mm)
 /// liegen wie Dielen in Reihen aus Kantenlänge plus Fuge und werden längs
 /// ohne Fuge gestoßen – wie im alten Planer (F25: 7 × 60,6 + 55,8 cm je
 /// Reihe; Referenzfall 2026-08-17-1838: Randreihe 25,1 cm); kurze Stücke
@@ -407,7 +413,11 @@ final class Belagverlegung {
 /// Fachkonzept 1.4). Ein Ausschnitt mit anderem Terrassenbelag ist eine
 /// eigene Teilfläche, verlegt ab seiner Ecke oben links – bis er einen
 /// eigenen Belag bekommt, mit dem Belag der Fläche (F22).
-Belagverlegung? verlegeBelag(Planungsstand stand, Artikel? belag) {
+Belagverlegung? verlegeBelag(
+  Planungsstand stand,
+  Artikel? belag, {
+  Millimeter fuge = fuge,
+}) {
   if (stand.grundriss case FreiformGrundriss(geschlossen: false)) return null;
   final masse = belag?.abmessungen;
   final breite = masse?.breite;
@@ -436,6 +446,7 @@ Belagverlegung? verlegeBelag(Planungsstand stand, Artikel? belag) {
     dielenbreite: breite,
     laengste: laengste,
     ueberlaenge: ueberlaenge,
+    fuge: fuge,
   );
   final ausgangspunkt =
       stand.ausgangspunkt +
@@ -459,10 +470,12 @@ Belagverlegung? verlegeBelag(Planungsstand stand, Artikel? belag) {
       verbinden: verbinden,
       ueberlaenge: ueberlaenge,
       aussparungen: aussparungen,
+      fuge: fuge,
     ),
     lieferlaengen: lieferlaengen,
     ueberlaenge: ueberlaenge,
     bezeichnung: bezeichnung,
+    fuge: fuge,
   );
   return Belagverlegung._(ausgangspunkt, grenzen, lieferlaengen, ueberlaenge, [
     teil(

@@ -189,6 +189,7 @@ class MateriallisteAnsicht extends StatelessWidget {
         if (switch (p.zusatz) {
               Materialzusatz.freidiele => t.materialFreidiele,
               Materialzusatz.verblendung => t.materialVerblendung,
+              Materialzusatz.optional => t.materialOptional,
               null => null,
             }
             case final zusatz?)

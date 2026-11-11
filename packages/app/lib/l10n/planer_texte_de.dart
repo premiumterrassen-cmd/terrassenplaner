@@ -1044,6 +1044,18 @@ class PlanerTexteDe extends PlanerTexte {
       'Die Fläche hat Ecken unter 90°. Holzfliesen müssen dort schräg zugeschnitten werden – für solche Formen eignen sich Dielen besser.';
 
   @override
+  String get flaechenmeldungMasseFalsch =>
+      'Maße fehlen oder sind falsch: Die Fläche ist höchstens 0,05 m² groß. Bitte prüfen Sie die Maße.';
+
+  @override
+  String get flaechenmeldungUnplausibelGross =>
+      'Die Fläche ist unplausibel groß (über 1.000 m²). Bitte prüfen Sie die Maße.';
+
+  @override
+  String get flaechenmeldungUngewoehnlich =>
+      'Hinweis: Die Fläche liegt außerhalb der üblichen 1 bis 300 m² – bitte prüfen Sie die Maße.';
+
+  @override
   String get belagmeldungBombierung =>
       'Ab 8 cm Breite empfehlen wir bombierte (leicht gewölbte) Dielen.';
 
@@ -1312,6 +1324,9 @@ class PlanerTexteDe extends PlanerTexte {
   String get materialFreidiele => 'Freidiele';
 
   @override
+  String get materialOptional => 'Optional – nicht in der Summe';
+
+  @override
   String materialBerechnet(int anzahl) {
     return 'berechnet: $anzahl';
   }
@@ -1453,7 +1468,7 @@ class PlanerTexteDe extends PlanerTexte {
 
   @override
   String get verblendungHinweis =>
-      'Verblendet wird nur bei einer Belagstärke von 19 bis 23 mm.';
+      'Die Blende ist aus der Serie des Belags, glattkant und so stark wie die Diele. Ihre Breite richtet sich nach der Höhe (höchstens 100 mm, über ca. 13 cm zwei Blenden à 60 mm); die Ecken werden auf Gehrung geschnitten.';
 
   @override
   String get meldungUnterlueftung =>
@@ -1464,12 +1479,8 @@ class PlanerTexteDe extends PlanerTexte {
       'Ohne Höhenunterschied zum Boden ist an dieser Seite keine Verblendung möglich.';
 
   @override
-  String get meldungBelagstaerke =>
-      'Eine Verblendung ist nur bei einer Belagstärke von 19 bis 23 mm möglich – es wird keine gerechnet.';
-
-  @override
-  String get meldungOhneVerblendungsartikel =>
-      'Zu diesem Belag ist keine Verblendung hinterlegt.';
+  String get meldungBlendeFehlt =>
+      'Für die Höhe an einer verblendeten Seite gibt es in der Serie keine passende glattkante Blende – dort wird keine Blende gerechnet. Bitte sprechen Sie uns an.';
 
   @override
   String get materialVerblendung => 'Verblendung';

@@ -1,6 +1,7 @@
 /// Befestigungsartikel und Mengen des Belags (M5-09, Fachkonzept 2.6) nach
 /// dem Regelwerk der Artikeldaten und den Firmenregeln der Holzart (R-B01,
-/// R-B02: B-094, B-150, B-074, B-090).
+/// R-B02: B-094, B-150, B-074, B-090) sowie den Planungsregeln Alexander
+/// (Planungskern v6, 11.11.2026) Abschnitt 4.
 library;
 
 import 'dart:math' as math;
@@ -13,6 +14,8 @@ import '../konfiguration/befestigungsart.dart';
 import '../konfiguration/dielenverlegung.dart';
 import 'belagmeldungen.dart';
 import 'feldbreite.dart';
+import 'gegenstueck.dart';
+import 'planungsregeln.dart';
 import 'rand_uk.dart';
 import 'regelwerk.dart';
 import 'uk_verlegung.dart';
@@ -44,8 +47,9 @@ final class Befestigungsposition {
 }
 
 /// Befestigungspunkte der Verlegung: jede Kreuzung eines Dielenstücks mit
-/// einer UK-Linie ([punkte]) und davon die Punkte der äußeren Reihe
-/// ([randpunkte]), deren freie Längskante einen eigenen Clip braucht.
+/// einer UK-Linie ([punkte]) und davon die Punkte der Anfangs- und der
+/// Endreihe ([randpunkte]) – genutete Dielen werden dort sichtbar
+/// verschraubt (Planungskern v6 Regel 4.1).
 typedef Befestigungspunkte = ({int punkte, int randpunkte});
 
 /// Lage eines Dielenstücks quer gedreht: von [anfang] bis [ende] in
@@ -104,7 +108,7 @@ Befestigungspunkte befestigungspunkte(
     winkel: winkel,
     ukAbstand: ukAbstand,
   );
-  final randreihe = stuecke.map((s) => s.reihe).reduce(math.max);
+  final rand = _randreihen(stuecke);
   var punkte = 0;
   var randpunkte = 0;
   for (final (i, s) in stuecke.indexed) {
@@ -112,7 +116,7 @@ Befestigungspunkte befestigungspunkte(
     final ende = lagen[i].ende - _toleranz;
     final auflagen = 2 + linien.where((x) => x > anfang && x < ende).length;
     punkte += auflagen;
-    if (s.reihe == randreihe) randpunkte += auflagen;
+    if (rand.contains(s.reihe)) randpunkte += auflagen;
   }
   return (punkte: punkte, randpunkte: randpunkte);
 }
@@ -131,7 +135,7 @@ Befestigungspunkte befestigungspunkteAufUk(
   if (stuecke.isEmpty) return (punkte: 0, randpunkte: 0);
   final drehung = -uk.winkel * math.pi / 180;
   final halbe = uk.breite.mm / 2;
-  final randreihe = stuecke.map((s) => s.reihe).reduce(math.max);
+  final rand = _randreihen(stuecke);
   var punkte = 0;
   var randpunkte = 0;
   for (final s in stuecke) {
@@ -153,9 +157,15 @@ Befestigungspunkte befestigungspunkteAufUk(
         lagen.length +
         _randauflagen(uk.rand, anfang - halbe, ende + halbe, mitte, lagen);
     punkte += auflagen;
-    if (s.reihe == randreihe) randpunkte += auflagen;
+    if (rand.contains(s.reihe)) randpunkte += auflagen;
   }
   return (punkte: punkte, randpunkte: randpunkte);
+}
+
+/// Anfangs- und Endreihe der [stuecke] (eine, wenn es nur eine Reihe gibt).
+Set<int> _randreihen(List<Dielenstueck> stuecke) {
+  final reihen = stuecke.map((s) => s.reihe);
+  return {reihen.reduce(math.min), reihen.reduce(math.max)};
 }
 
 /// Punkte eines Dielenstücks auf der Rand-UK [rand] (Planungsregeln
@@ -235,14 +245,24 @@ final class Befestigungsbedarf {
     this.punkte = 0,
     List<Befestigungsposition> mittel = const [],
     List<Materialbedarf> bedarf = const [],
+    Map<Befestigungsart, Artikelnummer> wechsel = const {},
   }) : mittel = List.unmodifiable(mittel),
-       bedarf = List.unmodifiable(bedarf);
+       bedarf = List.unmodifiable(bedarf),
+       wechsel = Map.unmodifiable(wechsel);
 
   /// Ohne Befestigung (Holzfliese, kein Holzbelag).
   static final keiner = Befestigungsbedarf();
 
-  /// Wählbare Befestigungsarten des Belags (`Befestigungsart.fuer`).
+  /// Wählbare Befestigungsarten: die des Belags (`Befestigungsart.fuer`)
+  /// und die seines Gegenstücks ([wechsel]), in der Reihenfolge von
+  /// [Befestigungsart].
   final List<Befestigungsart> arten;
+
+  /// Arten, für die der Belag gegen sein Gegenstück derselben Serie und
+  /// Breite getauscht wird (glattkant ↔ genutet, `gegenstueck`) –
+  /// Planungsregeln Alexander (Planungskern v6, 11.11.2026) Regel 4.4. Die
+  /// App setzt bei dieser Wahl auch den Belag.
+  final Map<Befestigungsart, Artikelnummer> wechsel;
 
   /// Wirksame Befestigungsart; `null` ohne wählbare Art.
   final Befestigungsart? art;
@@ -261,14 +281,15 @@ final class Befestigungsbedarf {
 /// Befestigung des [belag] für die verlegten [stuecke] mit der gewählten
 /// Art [gewaehlt] (M5-09).
 ///
-/// - **Clips** (genutet, B-094/R-B01): ein Clip je Befestigungspunkt, dazu
-///   einer je Punkt der äußeren Reihe; CLIP-FIXX unter 100 mm, DUO-CLIP-FIXX
-///   für genutete PREMIUM SELECT ab 100 mm. Die Clipschrauben sind im
-///   Lieferumfang (B-074, B-150) und keine eigene Position.
+/// - **Clips** (genutet, B-094/R-B01): CLIP-FIXX unter 100 mm,
+///   DUO-CLIP-FIXX für genutete PREMIUM SELECT ab 100 mm; die Clipschrauben
+///   sind im Lieferumfang (B-074, B-150) und keine eigene Position. Anfangs-
+///   und Enddiele sichtbar verschraubt ([_sichtverdeckt], Planungskern v6
+///   Regel 4.1).
 /// - **Verschraubt** (glattkant, B-090/R-B02): je Punkt eine Schraube, ab
 ///   100 mm zwei; Schraubenlänge mindestens doppelte Dielenstärke.
 /// - **Mit Abstandshaltern:** zusätzlich eine Packung Montagehilfe
-///   (wiederverwendbare Abstandshalter für die Fuge von 5 mm – die Clips
+///   (wiederverwendbare Abstandshalter für die Fuge von 6 mm – die Clips
 ///   geben sie sonst selbst vor; Alexander 04.11.2026). Einweg-Abstandshalter
 ///   (4/7 mm) passen nicht zur Fuge und werden nicht gewählt.
 ///
@@ -309,15 +330,25 @@ Befestigungsbedarf befestigungsbedarf(
       ? befestigungspunkte(stuecke, winkel: winkel, ukAbstand: ukAbstand)
       : befestigungspunkteAufUk(stuecke, uk);
   final moeglich = regelwerk.moeglich(belag.nummer, Beziehung.befestigung);
+  final anderer = gegenstueck(regelwerk, belag);
+  final wechsel = {
+    for (final a in Befestigungsart.fuer(anderer?.profil)) a: anderer!.nummer,
+  };
   final bedarf = [
     for (final (einheiten, stueck, jePlanung) in switch (art) {
-      Befestigungsart.clips => [
-        (
-          _clips(moeglich, holzart.serie(serie).befestigung(profil, breite)),
-          punkte + randpunkte,
-          false,
+      Befestigungsart.clips => _sichtverdeckt(
+        regelwerk,
+        anderer,
+        _clips(moeglich, holzart.serie(serie).befestigung(profil, breite)),
+        staerke: belag.abmessungen.staerke,
+        punkte: punkte,
+        randpunkte: randpunkte,
+        schraubenJePunkt: holzart.schraubenJePunkt(
+          serie,
+          Profil.glattkant,
+          breite,
         ),
-      ],
+      ),
       _ => [
         (
           _schrauben(moeglich, belag.abmessungen.staerke),
@@ -332,7 +363,12 @@ Befestigungsbedarf befestigungsbedarf(
         Materialbedarf(einheiten, stueck, jePlanung: jePlanung),
   ];
   return Befestigungsbedarf(
-    arten: Befestigungsart.fuer(profil),
+    arten: [
+      for (final a in Befestigungsart.values)
+        if (Befestigungsart.fuer(profil).contains(a) || wechsel.containsKey(a))
+          a,
+    ],
+    wechsel: wechsel,
     art: art,
     punkte: punkte,
     mittel: [
@@ -342,6 +378,37 @@ Befestigungsbedarf befestigungsbedarf(
     ],
     bedarf: bedarf,
   );
+}
+
+/// Bedarf genuteter Dielen (Planungsregeln Alexander (Planungskern v6,
+/// 11.11.2026) Regel 4.1, Entscheidung Alexander 11.11.2026 – weicht von der
+/// bisherigen Auslegung von B-033 ab): Anfangs- und Enddiele werden sichtbar
+/// verschraubt, Schraube und Anzahl je Kreuzung wie bei der Verschraubung
+/// von oben ([schraubenJePunkt] des glattkanten Profils, Schrauben aus den
+/// Befestigungsverweisen des [gegenstueck]s). Die [clips]
+/// decken die übrigen Kreuzungen + 5 % ([clipsMitZuschlag]). Ohne
+/// Gegenstück oder ohne dessen Schrauben bekommen auch die Randreihen Clips.
+List<(List<Artikel>, int, bool)> _sichtverdeckt(
+  Regelwerk regelwerk,
+  Artikel? gegenstueck,
+  List<Artikel> clips, {
+  required Millimeter? staerke,
+  required int punkte,
+  required int randpunkte,
+  required int schraubenJePunkt,
+}) {
+  final schrauben = switch (gegenstueck) {
+    final g? => _schrauben(
+      regelwerk.moeglich(g.nummer, Beziehung.befestigung),
+      staerke,
+    ),
+    null => const <Artikel>[],
+  };
+  final verschraubt = schrauben.isEmpty ? 0 : randpunkte;
+  return [
+    (clips, clipsMitZuschlag(punkte - verschraubt), false),
+    (schrauben, verschraubt * schraubenJePunkt, false),
+  ];
 }
 
 /// Meldungen zur Befestigung des [belag] mit der gewählten Art [gewaehlt]
@@ -396,13 +463,13 @@ List<Belagmeldung> befestigungsmeldungen(
 List<Artikel> _clips(List<Artikel> moeglich, Befestigung regel) => [
   for (final a in moeglich)
     if (a.art == Artikelart.clip &&
-        _istDuoClip(a) == (regel == Befestigung.duoClipFixx))
+        istDuoClip(a) == (regel == Befestigung.duoClipFixx))
       a,
 ];
 
 /// DUO-CLIP-FIXX und CLIP-FIXX sind beide Clips; unterscheiden lassen sie
 /// sich nur am Titel, der wie im Shop lautet (B-152).
-bool _istDuoClip(Artikel a) => a.titel.contains('DUO');
+bool istDuoClip(Artikel a) => a.titel.contains('DUO');
 
 /// Schrauben einer Länge aus [moeglich]: die kürzeste, die mindestens die
 /// doppelte Dielenstärke hat (21–25 mm → 50 mm), sonst die längste.

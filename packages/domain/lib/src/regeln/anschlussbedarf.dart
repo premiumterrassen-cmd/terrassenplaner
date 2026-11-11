@@ -13,10 +13,11 @@ import 'uk_zusatz.dart';
 import 'verblendung.dart';
 
 /// Verblendung (M7-02), Entwässerungsrinnen (M7-03) und Treppen (M7-05)
-/// der Fläche [stand] zusammen. Alle Zuschnitte aus UK-Holz (Blendenhalter,
+/// der Fläche [stand] zusammen. Alle Zuschnitte aus UK-Holz (Blendenträger,
 /// Treppen-UK) werden gemeinsam zuerst aus den Resten der Hölzer der
 /// UK-Verlegung ([ukStuecke]) geschnitten (`zusaetzlicheLieferstuecke`,
-/// F37: keine weitere UK); eine erzwungene UK-Länge gilt auch hier.
+/// F37: keine weitere UK); eine erzwungene UK-Länge gilt auch hier. Ohne
+/// [ukAbstand] gibt es keine UK-Verlegung und damit keine Blendenträger.
 Anschlussbedarf anschlussbedarf(
   Planungsstand stand, {
   required List<Millimeter> hoehen,
@@ -32,8 +33,7 @@ Anschlussbedarf anschlussbedarf(
             hoehen: hoehen,
             belag: belag,
             regelwerk: regelwerk,
-            uk: uk,
-            ukAbstand: ukAbstand,
+            uk: ukAbstand == null ? null : uk,
           )
           .und(rinnenbedarf(stand, belag: belag, regelwerk: regelwerk))
           .und(

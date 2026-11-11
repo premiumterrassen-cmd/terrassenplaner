@@ -175,7 +175,7 @@ void main() {
         kunde.map((z) => z[1]),
         contains('Diele – Länge: 5000 mm – Freidiele'),
       );
-      expect(kunde.first[2], '48 Stück');
+      expect(kunde.first[2], '47 Stück');
       expect(material(mitMengen: true).first[2], '7 Stück');
     });
 

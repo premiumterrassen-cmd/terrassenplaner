@@ -1930,6 +1930,24 @@ abstract class PlanerTexte {
   /// **'Die Fläche hat Ecken unter 90°. Holzfliesen müssen dort schräg zugeschnitten werden – für solche Formen eignen sich Dielen besser.'**
   String get belagmeldungFliesenSpitzeWinkel;
 
+  /// No description provided for @flaechenmeldungMasseFalsch.
+  ///
+  /// In de, this message translates to:
+  /// **'Maße fehlen oder sind falsch: Die Fläche ist höchstens 0,05 m² groß. Bitte prüfen Sie die Maße.'**
+  String get flaechenmeldungMasseFalsch;
+
+  /// No description provided for @flaechenmeldungUnplausibelGross.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Fläche ist unplausibel groß (über 1.000 m²). Bitte prüfen Sie die Maße.'**
+  String get flaechenmeldungUnplausibelGross;
+
+  /// No description provided for @flaechenmeldungUngewoehnlich.
+  ///
+  /// In de, this message translates to:
+  /// **'Hinweis: Die Fläche liegt außerhalb der üblichen 1 bis 300 m² – bitte prüfen Sie die Maße.'**
+  String get flaechenmeldungUngewoehnlich;
+
   /// No description provided for @belagmeldungBombierung.
   ///
   /// In de, this message translates to:
@@ -2356,6 +2374,12 @@ abstract class PlanerTexte {
   /// **'Freidiele'**
   String get materialFreidiele;
 
+  /// No description provided for @materialOptional.
+  ///
+  /// In de, this message translates to:
+  /// **'Optional – nicht in der Summe'**
+  String get materialOptional;
+
   /// No description provided for @materialBerechnet.
   ///
   /// In de, this message translates to:
@@ -2605,7 +2629,7 @@ abstract class PlanerTexte {
   /// No description provided for @verblendungHinweis.
   ///
   /// In de, this message translates to:
-  /// **'Verblendet wird nur bei einer Belagstärke von 19 bis 23 mm.'**
+  /// **'Die Blende ist aus der Serie des Belags, glattkant und so stark wie die Diele. Ihre Breite richtet sich nach der Höhe (höchstens 100 mm, über ca. 13 cm zwei Blenden à 60 mm); die Ecken werden auf Gehrung geschnitten.'**
   String get verblendungHinweis;
 
   /// No description provided for @meldungUnterlueftung.
@@ -2620,17 +2644,11 @@ abstract class PlanerTexte {
   /// **'Ohne Höhenunterschied zum Boden ist an dieser Seite keine Verblendung möglich.'**
   String get meldungKeinHoehenunterschied;
 
-  /// No description provided for @meldungBelagstaerke.
+  /// No description provided for @meldungBlendeFehlt.
   ///
   /// In de, this message translates to:
-  /// **'Eine Verblendung ist nur bei einer Belagstärke von 19 bis 23 mm möglich – es wird keine gerechnet.'**
-  String get meldungBelagstaerke;
-
-  /// No description provided for @meldungOhneVerblendungsartikel.
-  ///
-  /// In de, this message translates to:
-  /// **'Zu diesem Belag ist keine Verblendung hinterlegt.'**
-  String get meldungOhneVerblendungsartikel;
+  /// **'Für die Höhe an einer verblendeten Seite gibt es in der Serie keine passende glattkante Blende – dort wird keine Blende gerechnet. Bitte sprechen Sie uns an.'**
+  String get meldungBlendeFehlt;
 
   /// No description provided for @materialVerblendung.
   ///

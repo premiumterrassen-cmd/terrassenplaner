@@ -226,15 +226,15 @@ void main() {
       }
     });
 
-    test('Fläche schmaler als eine Dielenreihe (120 mm + 5 mm Fuge)', () {
+    test('Fläche schmaler als eine Dielenreihe (120 mm + 6 mm Fuge)', () {
       final diele = _diele(
         breite: 120,
         serie: ecoSelect,
         oberseite: Oberseite.bombiert,
       );
-      // 124 mm: volle Reihe mit 1 mm Spielraum, 123 mm: nur ein Zuschnitt
-      expect(_meldungen(diele, stand: _streifen(3000, 124)), isEmpty);
-      expect(_meldungen(diele, stand: _streifen(3000, 123)), [
+      // 125 mm: volle Reihe mit 1 mm Spielraum, 124 mm: nur ein Zuschnitt
+      expect(_meldungen(diele, stand: _streifen(3000, 125)), isEmpty);
+      expect(_meldungen(diele, stand: _streifen(3000, 124)), [
         Belagmeldung.flaecheKleinerAlsBelag,
       ]);
       // in der Länge wird jede Diele zugeschnitten
@@ -277,8 +277,8 @@ void main() {
       expect(_meldungen(fliese, stand: _streifen(605, 700)), [
         Belagmeldung.flaecheKleinerAlsBelag,
       ]);
-      expect(_meldungen(fliese, stand: _streifen(3000, 610)), isEmpty);
-      expect(_meldungen(fliese, stand: _streifen(3000, 609)), [
+      expect(_meldungen(fliese, stand: _streifen(3000, 611)), isEmpty);
+      expect(_meldungen(fliese, stand: _streifen(3000, 610)), [
         Belagmeldung.flaecheKleinerAlsBelag,
       ]);
       expect(

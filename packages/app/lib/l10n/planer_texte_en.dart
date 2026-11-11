@@ -1043,6 +1043,18 @@ class PlanerTexteEn extends PlanerTexte {
       'The area has corners below 90°. Wooden tiles must be cut at an angle there – boards are better suited for such shapes.';
 
   @override
+  String get flaechenmeldungMasseFalsch =>
+      'Dimensions are missing or wrong: the area is at most 0.05 m². Please check the dimensions.';
+
+  @override
+  String get flaechenmeldungUnplausibelGross =>
+      'The area is implausibly large (over 1,000 m²). Please check the dimensions.';
+
+  @override
+  String get flaechenmeldungUngewoehnlich =>
+      'Note: the area is outside the usual 1 to 300 m² – please check the dimensions.';
+
+  @override
   String get belagmeldungBombierung =>
       'From 8 cm width we recommend crowned (slightly curved) boards.';
 
@@ -1309,6 +1321,9 @@ class PlanerTexteEn extends PlanerTexte {
   String get materialFreidiele => 'Free board';
 
   @override
+  String get materialOptional => 'Optional – not included in the total';
+
+  @override
   String materialBerechnet(int anzahl) {
     return 'calculated: $anzahl';
   }
@@ -1450,7 +1465,7 @@ class PlanerTexteEn extends PlanerTexte {
 
   @override
   String get verblendungHinweis =>
-      'Cladding is only planned for decking 19 to 23 mm thick.';
+      'The cladding board comes from the decking series, smooth-edged and as thick as the decking board. Its width depends on the height (at most 100 mm, above approx. 13 cm two boards of 60 mm); the corners are mitred.';
 
   @override
   String get meldungUnterlueftung =>
@@ -1461,12 +1476,8 @@ class PlanerTexteEn extends PlanerTexte {
       'Without a height difference to the ground, this side cannot be clad.';
 
   @override
-  String get meldungBelagstaerke =>
-      'Cladding is only possible for decking 19 to 23 mm thick – none is planned.';
-
-  @override
-  String get meldungOhneVerblendungsartikel =>
-      'No cladding is set up for this decking.';
+  String get meldungBlendeFehlt =>
+      'The series has no suitable smooth-edged cladding board for the height at a clad side – no cladding is planned there. Please contact us.';
 
   @override
   String get materialVerblendung => 'Cladding';

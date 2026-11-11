@@ -27,7 +27,8 @@ typedef Unterkonstruktionssuche = Artikel? Function(Planungsstand stand);
 /// Abstand, Höhenbereichen und Meldungen (M6-08), die Feldbreite (M6-09),
 /// die UK-Verlegung mit Hölzern, Stücken und Holzvolumen (M6-10), die
 /// Auflager mit Höhenzuordnung und Mengen (M6-11), die Mengen im Zubehör
-/// (M8-02, M8-03) samt Freidielen (M8-04), den Terrassenanschluss (M7),
+/// (M8-02, M8-03) samt Freidielen (M8-04) und optionalem Bohrsenker
+/// (Planungskern v6 Regel 4.5), den Terrassenanschluss (M7),
 /// die Materialliste (M9-03) mit der gewählten Verschnittvariante (M9-01)
 /// und die Stückliste mit den Farben im Plan (M9-04)
 /// – die App rechnet nichts selbst (Frontend bleibt „doof“). Hin- und
@@ -607,6 +608,9 @@ class PlanungsDienst {
           laenge: frei.laenge,
           zusatz: Materialzusatz.freidiele,
         ),
+      // Bohrsenker als optionale Position, nicht in der Summe (Planungskern
+      // v6 Regel 4.5)
+      ?bohrsenkerAngebot(regelwerk, bedarfe),
     ];
     return aktuell.mitPlanung(
       gesamt,
@@ -639,7 +643,7 @@ class PlanungsDienst {
   /// Lieferhölzer der UK einer Fläche aus einem gemeinsamen Zuschnitt
   /// (M10-01, Paritätsnachweis): UK-Verlegung, zusätzliches Holz der
   /// Nutzungsart, Stützen der Hochterrasse und die UK-Stücke des
-  /// Anschlusses (Blendenhalter, Treppe). Kurze Stücke kommen so zuerst in
+  /// Anschlusses (Blendenträger, Treppe). Kurze Stücke kommen so zuerst in
   /// die Reste der langen (`lieferhoelzer`) – wie im alten Planer (F28: 13
   /// × 400 cm für 309 + 39,9 + 39,9 cm) statt je Quelle eigene Hölzer.
   static List<Lieferdiele> _ukHoelzer(
@@ -732,10 +736,10 @@ class PlanungsDienst {
     );
   }
 
-  /// Terrassenanschluss der Fläche (M7): Verblendung (M7-02) mit
-  /// Blendenhaltern im UK-Achsabstand aus den Resten der UK-Verlegung (ohne
-  /// UK-Verlegung keine Blendenhalter), Entwässerungsrinnen (M7-03) und
-  /// Treppen (M7-05).
+  /// Terrassenanschluss der Fläche (M7): Seitenblende (M7-02, Planungskern
+  /// v6, 4a) mit Trägern höchstens 40 cm auseinander aus den Resten der
+  /// UK-Verlegung (ohne UK-Verlegung keine Träger), Entwässerungsrinnen
+  /// (M7-03) und Treppen (M7-05).
   static Anschlussbedarf _anschluss(
     Planungsstand stand,
     Artikel? belag,

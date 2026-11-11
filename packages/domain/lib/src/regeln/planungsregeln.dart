@@ -45,8 +45,29 @@ const auflagerEinzelnBis = Millimeter(120);
 /// plus Überlänge nötig. Holzfliesen haben keine.
 const dielenUeberlaenge = Millimeter(30);
 
-/// Fuge zwischen zwei Dielen (R-B06, Alexander).
-const fuge = Millimeter(5);
+/// Fuge zwischen zwei Dielen (R-B06): 6 mm, eine Reihe ist Dielenbreite
+/// plus Fuge – Planungsregeln Alexander (Planungskern v6, 11.11.2026),
+/// Regel 1.2; Entscheidung Alexander 11.11.2026 ersetzt die 5 mm vom
+/// 19.10.2026.
+const fuge = Millimeter(6);
+
+/// Clips zu den Kreuzungen Diele–UK: Kreuzungen + 5 %, aufgerundet auf ganze
+/// Clips – Planungsregeln Alexander (Planungskern v6, 11.11.2026) Regel 4.1.
+/// Verpackt wird danach in VPE 250/100/50 (`verpackt`).
+int clipsMitZuschlag(int kreuzungen) => (kreuzungen * 105 + 99) ~/ 100;
+
+/// Ab dieser Packungsgröße liegt CLIP-FIXX ein TX20-Bit bei (Planungskern v6
+/// Regel 4.2). Die Artikeldaten führen das nicht – die Grenze steht deshalb
+/// hier.
+const clipBitAbVpe = 100;
+
+/// Ab dieser Packungsgröße liegt DUO-CLIP-FIXX ein TX20-Bit bei
+/// (Planungskern v6 Regel 4.2).
+const duoClipBitAbVpe = 250;
+
+/// Ab dieser Packungsgröße ist ein Schraubenset mit TX25-Bit (600er-Set,
+/// Planungskern v6 Regel 4.3).
+const schraubenBitAbVpe = 600;
 
 /// Terrassenöl je m² Holzfläche (R-D05, Mengenfaktor aus realen Projekten;
 /// automatische Menge im Zubehör, M8-02).

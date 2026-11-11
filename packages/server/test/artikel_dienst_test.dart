@@ -151,7 +151,8 @@ void main() {
     ]);
     expect(auswahl.vorgabe!.artikel.nummer.wert, '10-10-073-R');
     expect(auswahl.belaege.first.preisJeLfm, const Cent(1250));
-    expect(auswahl.belaege.first.preisJeM2, const Cent(19231));
+    // 12,50 € ÷ (60 + 6 mm Fuge, Planungskern v6)
+    expect(auswahl.belaege.first.preisJeM2, const Cent(18939));
     expect(dienst.belagauswahl.belaege, hasLength(2));
   });
 

@@ -105,16 +105,18 @@ void main() {
       ], regelwerk: _regelwerk).split('\r\n');
       expect(zeilen, [
         grandTotalSpalten.join(';'),
-        '${_dielen}48;60;23;5000;10-10-073-R;10.8403;12.90;'
+        // 6 mm Fuge (Planungskern v6): 47 statt 48 Reihen
+        '${_dielen}47;60;23;5000;10-10-073-R;10.8403;12.90;'
             'https://planer.example/artikelbilder/Diele_60x23.webp;0.0069;'
-            '248.4;0.3;240;Deckbelag;lfm',
+            '243.225;0.3;235;Deckbelag;lfm',
         // Freidiele (M8-04, B-079): eigene Zeile mit Preis 0
         'Terrassendiele Robinie PREMIUM SELECT 60 x 23 mm, genutet - Länge: '
             '5000 mm - Freidiele;Terrassendiele Robinie PREMIUM SELECT 60 x '
             '23 mm, genutet;;1;60;23;5000;10-10-073-R;0.0000;0.00;'
             'https://planer.example/artikelbilder/Diele_60x23.webp;0.0069;'
             '5.175;0.3;5;Deckbelag;lfm',
-        // 637 Clips: 2 × 250 + 100 + 50 wie im alten Planer (B-094)
+        // ohne glattkantes Gegenstück auch die Randreihen mit Clips:
+        // 611 × 1,05 → 642 Clips: 2 × 250 + 100 + 50 (Planungskern v6)
         '"CLIP-FIXX® ""BLACK EDITION"" - VPE 100";"CLIP-FIXX® ""BLACK '
             'EDITION"" - VPE 100";;1;;;;80-10-001-100;63.0252;75.00;;;;;;'
             'BefestigungDeck,Zubehoer;VPE',
@@ -143,7 +145,7 @@ void main() {
       expect(zeilen[1], contains(';12.90;;0.0069;'));
       expect(
         _export([planung.zuBytes()], regelwerk: _regelwerk).split('\r\n')[1],
-        startsWith('${_dielen}48;60;23;5000;'),
+        startsWith('${_dielen}47;60;23;5000;'),
       );
     });
 
@@ -152,7 +154,7 @@ void main() {
       expect(zeilen, hasLength(4));
       expect(
         zeilen[1],
-        endsWith(';48;;;5000;10-10-073-R;10.8403;12.90;;;;;240;;lfm'),
+        endsWith(';47;;;5000;10-10-073-R;10.8403;12.90;;;;;235;;lfm'),
       );
       expect(zeilen[2], contains('- Freidiele;'));
     });
@@ -286,7 +288,7 @@ void main() {
         expect(csv, contains('artikelbilder/Diele_60x23.webp'));
         expect(zeilen, hasLength(8));
         // ein interner Dienst ist kein Mitarbeiter: berechnete Mengen
-        expect(zeilen[1], startsWith('${_dielen}48;'));
+        expect(zeilen[1], startsWith('${_dielen}47;'));
       });
 
       test('unlesbare Planung: Fehler planung_ungueltig', () async {

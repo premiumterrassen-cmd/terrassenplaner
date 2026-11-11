@@ -158,6 +158,35 @@ void main() {
     expect(de.materialVerblendung, 'Verblendung');
   });
 
+  testWidgets('optionale Position (Planungskern v6 Regel 4.5): Kennzeichen '
+      'unter dem Titel', (tester) async {
+    final (:planung, :berechnung) = _steuerung(
+      (_) async => Berechnung(
+        umriss: const [],
+        flaeche: 1,
+        materialliste: Materialliste.aus([
+          Materialbedarf([_diele], 1, zusatz: Materialzusatz.optional),
+        ]),
+      ),
+    );
+    await tester.pumpWidget(
+      testApp(
+        sprache: const Locale('en'),
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: MateriallisteAnsicht(
+              berechnung: berechnung,
+              planung: planung,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.text('Optional – not included in the total'), findsOneWidget);
+    expect(de.materialOptional, 'Optional – nicht in der Summe');
+  });
+
   testWidgets('leer, solange nichts verlegt ist', (tester) async {
     final (:planung, :berechnung) = _steuerung(_leer);
     await tester.pumpWidget(

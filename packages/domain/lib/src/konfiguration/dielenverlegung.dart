@@ -52,13 +52,14 @@ final class Dielenstueck {
 /// Fachkonzept 2.5), je Bildschirmachse in mm: Die Achse, die eher in
 /// Verlegerichtung liegt (|cos w| ≥ |sin w|), bekommt das Raster der Stöße
 /// ([stossraster]: längste oder erzwungene Länge, höchstens die Ausdehnung,
-/// mit [ueberlaenge]), die andere Dielenbreite plus Fuge.
+/// mit [ueberlaenge]), die andere Dielenbreite plus [fuge] (R-B06).
 ({Millimeter x, Millimeter y}) verschiebungsgrenzen(
   Kontur kontur, {
   required double winkel,
   required Millimeter dielenbreite,
   required Millimeter laengste,
   Millimeter ueberlaenge = const Millimeter(0),
+  Millimeter fuge = fuge,
 }) {
   final drehung = -winkel * math.pi / 180;
   final huelle = _lokal(kontur, Punkt.ursprung, drehung).huellrechteck;
@@ -88,7 +89,7 @@ Flaeche _lokal(Kontur kontur, Punkt ausgangspunkt, double drehung) => Flaeche(
 /// Verlegt Dielenreihen im Winkel [winkel] (Grad, Fachkonzept 2.4) über die
 /// [kontur] (M5-05).
 ///
-/// Die Reihen sind [dielenbreite] plus Fuge breit und beginnen am
+/// Die Reihen sind [dielenbreite] plus [fuge] (R-B06) breit und beginnen am
 /// [ausgangspunkt], auch zur anderen Seite hin. Liegt ein Teil der Fläche
 /// in einem Reihenstreifen, ist er eine Dielenreihe von seinem ersten bis zu
 /// seinem letzten Punkt in Verlegerichtung (F03: 437 + 6,5 cm bei 45°).
@@ -112,6 +113,7 @@ List<Dielenstueck> verlegeDielen(
   bool verbinden = false,
   Millimeter ueberlaenge = const Millimeter(0),
   List<Kontur> aussparungen = const [],
+  Millimeter fuge = fuge,
 }) {
   final drehung = -winkel * math.pi / 180;
   final lokal = _lokal(kontur, ausgangspunkt, drehung);
