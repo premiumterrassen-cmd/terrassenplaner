@@ -696,6 +696,14 @@ void main() {
         ),
         1,
       );
+      // endet die Rand-UK genau auf Höhe der Mitte, kreuzt sie dort
+      expect(
+        punkte(
+          [linie(20)],
+          [rand(const Punkt(1015, 0), const Punkt(1005, 30))],
+        ),
+        2,
+      );
       // Randreihe zählt mit
       expect(
         befestigungspunkteAufUk(
