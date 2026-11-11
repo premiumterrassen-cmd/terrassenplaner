@@ -158,34 +158,32 @@ Außerdem besteht weiter die offene Frage zur Treppenkonstruktion (Fachkonzept 0
 
 ## Nachtrag Planungskern v6 (11.11.2026)
 
-Grund aller Änderungen: **Planungskern v6 / Entscheidung Alexander 11.11.2026** (Planungsregeln Alexander, Abschnitte 1 und 4). Das Testsortiment führt jetzt wie die echten Artikeldaten zu jeder genuteten Diele das glattkante Gegenstück; dessen Schrauben befestigen Anfangs- und Enddiele.
+Grund aller Änderungen: **Planungskern v6 / Entscheidung Alexander 11.11.2026** (Planungsregeln Alexander, Abschnitte 1 und 4), zusammen mit der Rand-UK (Abschnitt 3, oben). Das Testsortiment führt wie die echten Artikeldaten zu jeder genuteten Diele das glattkante Gegenstück; dessen Schrauben befestigen Anfangs- und Enddiele – auch dort, wo sie auf der Rand-UK liegen. Die übrigen Kreuzungen (UK-Linien und Rand-UK) bekommen Clips + 5 %.
 
-- **Fuge 6 mm:** Wo die Dielen vorher gleich waren, steht jetzt die Abweichung „Dielen“ mit Grund „Fuge“: F01, F02, F06–F12, F20, F21, F23, F26–F38 und die Referenzfälle 2025-08-26-719, 2026-04-29-2412, -05-03-347, -05-12-1823, -05-28-4655, -06-30-2295, -08-06-2810. Die Paritätstests der Verlegung im domain-Paket (Dielenliste, Zuschnitt, Dielen nach Nummer) rechnen weiter mit den 5 mm des alten Planers (`altplanerFuge`), damit sie den Rechenweg prüfen.
-- **Befestigung:** Die Clip-Abweichungen „B-033“ von F09, F11, F12, F13 und F38 sind verschwunden – die Clip-Packungen stimmen wieder mit dem alten Planer, der die Randdielen ebenfalls verschraubte.
+- **Fuge 6 mm:** Wo die Dielen vorher gleich waren, steht jetzt die Abweichung „Dielen“ mit Grund „Fuge“: F01, F02, F06–F12, F20, F21, F23, F26–F38 und die Referenzfälle 2025-08-26-719, 2026-04-29-2412, -05-03-347, -05-12-1823, -05-28-4655, -06-30-2295, -08-06-2810. Die UK-Werte ändert die Fuge nicht. Die Paritätstests der Verlegung im domain-Paket rechnen weiter mit den 5 mm des alten Planers (`altplanerFuge`), damit sie den Rechenweg prüfen.
+- **Befestigung:** Die Clip-Abweichungen „B-033“ (F09, F11, F12, F13, F38) und „Rand-UK“ (F17, F21) sind verschwunden – die Clip-Packungen stimmen wieder mit dem alten Planer, der die Randdielen ebenfalls verschraubte.
 
-| Fall | vorher (neu, 07.11.) | jetzt (neu, 11.11.) | alter Planer |
+Werte gegenüber `main` mit Rand-UK (Stand 34d42fd):
+
+| Fall | main (5 mm, Clips + Rand) | jetzt (6 mm, Randreihen verschraubt, Clips + 5 %) | alter Planer |
 |---|---|---|---|
-| F01, F06–F08, F26–F37 | 48 × 5000 | 47 × 5000 | 48 × 5000 |
-| F02 | 74 × 4000 | 73 × 4000 | 74 × 4000 |
-| F03 | Dielen 5 × 6000 + 42 × 5000 + 2 × 4000, Verschnitt 5,75 %, 1 Freidiele | 13 × 6000 + 21 × 5000 + 16 × 4000, 6,76 %, 2 Freidielen (neu „Fuge“) | 1 Freidiele |
-| F04 | 32 × 5000 + 19 × 4000, 0,96 %, 2 Freidielen | 19 × 6000 + 12 × 5000 + 15 × 4000, 1,58 %, 1 Freidiele (Abweichung entfällt) | 1 Freidiele |
+| F01, F06–F08, F26–F37 | 48 × 5000 (gleich) | 47 × 5000 | 48 × 5000 |
+| F02 | 74 × 4000 (gleich) | 73 × 4000 | 74 × 4000 |
+| F03 | 5 × 6000 + 42 × 5000 + 2 × 4000, 5,75 %, 1 Freidiele | 13 × 6000 + 21 × 5000 + 16 × 4000, 6,76 %, 2 Freidielen (neu „Fuge“) | 1 Freidiele |
+| F04 | 32 × 5000 + 19 × 4000, 0,96 %, 2 Freidielen, Clips 850 (gleich) | 19 × 6000 + 12 × 5000 + 15 × 4000, 1,58 %, 1 Freidiele (gleich), Clips 900 (neu „Befestigung“) | 850 |
 | F05 | Verschnitt 3,76 % (gleich) | 5,55 % (neu „Fuge“) | 3,76 % |
-| F09, F12 | 48 × 6000 + 24 × 4000, Clips 1100 | 47 × 6000 + 24 × 4000, Clips 1050 (gleich) | 48 × 6000 + 24 × 4000, 1050 |
-| F10 | 24 × 6000 + 48 × 5000, Clips 1200 (gleich) | 24 × 6000 + 46 × 5000 + 4000, Clips 1150 (neu „Befestigung“) | 1200 |
-| F11 | 32 × 6000 + 48 × 4000, Clips 1200 | 32 × 6000 + 46 × 4000, Clips 1150 (gleich) | 1150 |
-| F13 | 96 × 4000, Clips 1100 | 94 × 4000, Clips 1050 (gleich) | 1050 |
-| F15 | 45 × 4000, Clips 500 (gleich) | 44 × 4000, Clips 450 (neu „Befestigung“) | 500 |
-| F16, F17 | 30 × 4000 | 29 × 4000 | – |
+| F09, F12 | Clips 1100 | 1050 (gleich), 47 × 6000 + 24 × 4000 | 1050 |
+| F10 | Clips 1200 (gleich) | 1150 (neu „Befestigung“), 24 × 6000 + 46 × 5000 + 4000 | 1200 |
+| F11 | Clips 1200 | 1150 (gleich), 32 × 6000 + 46 × 4000 | 1150 |
+| F13 | Clips 1100, 96 × 4000 | 1050 (gleich), 94 × 4000 | 1050 |
+| F15–F17 | 45 / 30 / 30 × 4000 | 44 / 29 / 29 × 4000; F17 Clips 400 → 350 (gleich) | – |
 | F18 | 37 × 5000 + 4000 | 36 × 5000 + 4000 | – |
-| F19 | 18 × 6000 + 4 × 5000 + 10 × 4000, Clips 400 | 13 × 6000 + 6 × 5000 + 15 × 4000, Clips 450 | 500 |
-| F20 | 62 × 4000 | 61 × 4000 | 62 × 4000 |
-| F21 | 38 × 5000 + 5 × 4000, 4,57 % | 38 × 5000 + 4 × 4000, 4,47 % | 4,36 % |
+| F19 | 18 × 6000 + 4 × 5000 + 10 × 4000 | 13 × 6000 + 6 × 5000 + 15 × 4000 | – |
+| F20, F23 | 62 × 4000 / 37 × 5000 (gleich) | 61 × 4000 / 36 × 5000 | wie main |
+| F21 | 38 × 5000 + 5 × 4000 (gleich), Clips 650 | 38 × 5000 + 4 × 4000, Clips 600 (gleich) | 600 |
 | F22 | 4 × 6000 + 38 × 5000 + 6 × 4000, 5,21 % | 4 × 6000 + 38 × 5000 + 4 × 4000, 4,0 % | 4,36 % |
-| F23 | 37 × 5000 | 36 × 5000 | 37 × 5000 |
 | F38 | 46 × 5000, Clips 650 | 45 × 5000, Clips 600 (gleich) | 46 × 5000, 600 |
-| F39–F42 | je 48 Dielen der Fläche | je 47 | – |
-| F43 | 48 × 6000 | 47 × 6000 | 46 × 5500 + 2 × 5000 |
-| Referenzfälle | 87, 100, 90, 54, 42, 294 + 294, 77 Dielen (719, 2412, 347, 1823, 4655, 2295, 2810) | je eine Reihe weniger: 86, 99, 89, 53, 41, 291 + 291, 76 | wie vorher |
+| F39–F43 | 48 Dielen der Fläche | 47 | – |
+| Referenzfälle | 87, 100, 90, 54, 42, 294 + 294, 77 Dielen (719, 2412, 347, 1823, 4655, 2295, 2810) | je eine Reihe weniger: 86, 99, 89, 53, 41, 291 + 291, 76 | wie main |
 
 Die übrigen Referenzfälle mit schon begründeter Abweichung „Dielen“ ändern nur die Zahlen (z. B. 2026-05-19-3958 49 → 48 × 4000, 2026-06-11-3389 30 × 6000 → 29 × 6000 + 4000).
-
