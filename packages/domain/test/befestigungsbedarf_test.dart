@@ -523,7 +523,7 @@ void main() {
       expect(b.arten, Befestigungsart.values);
       expect(b.wechsel, {Befestigungsart.clips: _genutet100.nummer});
       expect(b.art, Befestigungsart.verschraubt);
-      expect(() => b.wechsel.clear(), throwsUnsupportedError);
+      expect(b.wechsel.clear, throwsUnsupportedError);
     });
 
     test('ECO SELECT genutet 100 mm: CLIP-FIXX (B-094); ohne Gegenstück '
