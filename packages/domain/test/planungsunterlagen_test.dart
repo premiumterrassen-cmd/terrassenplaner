@@ -217,6 +217,7 @@ void main() {
       List<Belagmeldung> meldungen = const [],
       Hoehenpunkte? hoehen,
       List<Auflagermeldung> auflagermeldungen = const [],
+      List<Millimeter> randErgaenzt = const [],
     }) => Berechnung(
       umriss: rechteck,
       flaeche: 4800 * 3090,
@@ -283,6 +284,7 @@ void main() {
         hoeheVon: const Millimeter(55),
         hoeheBis: const Millimeter(950),
         meldungen: auflagermeldungen,
+        randErgaenzt: randErgaenzt,
       ),
     );
     Planungsunterlagen erzeuge(
@@ -523,6 +525,7 @@ void main() {
           gedreht: true,
         ),
         auflagermeldungen: Auflagermeldung.values,
+        randErgaenzt: const [Millimeter(2570)],
       );
       final planung = Planung([
         Terrassenflaeche(Planungsstand.start),
@@ -548,6 +551,7 @@ void main() {
         '• ${Unterlagentexte.deutsch.hoeheKorrigiert(const Millimeter(63))}',
         '• ${Unterlagentexte.deutsch.auflagermeldung(Auflagermeldung.unterMindesthoehe, const Millimeter(55))}',
         '• ${Unterlagentexte.deutsch.auflagermeldung(Auflagermeldung.ueberHoechsthoehe, const Millimeter(950))}',
+        '• ${Unterlagentexte.deutsch.randUkErgaenzt(const Millimeter(2570))}',
       ]);
       expect(baustein<Absatz>(hinweise).fett, isTrue);
       final eine = erzeuge([

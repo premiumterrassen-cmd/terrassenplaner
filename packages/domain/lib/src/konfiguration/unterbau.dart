@@ -29,7 +29,9 @@ final class Unterbau {
     this.holzbreite,
     List<Auflagerpunkt> auflagerpunkte = const [],
     List<Auflagerzeile> zuordnung = const [],
-  }) : auflagerpunkte = List.unmodifiable(auflagerpunkte),
+    List<Millimeter> randErgaenzt = const [],
+  }) : randErgaenzt = List.unmodifiable(randErgaenzt),
+       auflagerpunkte = List.unmodifiable(auflagerpunkte),
        zuordnung = List.unmodifiable(zuordnung),
        hoelzer = List.unmodifiable(hoelzer),
        feldbreiten = List.unmodifiable(feldbreiten),
@@ -87,6 +89,12 @@ final class Unterbau {
         false,
       ),
       hoelzer: _hoelzer(puffer, ort),
+      randErgaenzt: [
+        for (final mm in const fb.ListReader<int>(
+          fb.Int32Reader(),
+        ).vTableGet(puffer, ort, _versatz(_randPlatz), const []))
+          Millimeter(mm),
+      ],
       holzbreite: mm(_holzbreitePlatz),
       auflagerpunkte: _auflagerpunkte(puffer, ort),
       zuordnung: [
@@ -195,6 +203,10 @@ final class Unterbau {
   /// Tabelle der Höhenzuordnung (M6-11): je Auflager-Art Anzahl und Spalte.
   final List<Auflagerzeile> zuordnung;
 
+  /// Längen der Rand-UK, die die Selbstkontrolle ergänzt hat (Planungsregeln
+  /// Alexander (Planungskern v6, 11.11.2026), Regel 3.4) – für die Hinweise.
+  final List<Millimeter> randErgaenzt;
+
   /// Schreibt `{ 0: auflagerabstand (int32 mm; fehlt ohne UK),
   /// 1: auflager ([{ 0: titel (string), 1: von (int32 mm), 2: bis (int32
   /// mm), 3: pad (bool) }]), 2: hoeheVon, 3: hoeheBis (int32 mm; fehlen
@@ -204,7 +216,8 @@ final class Unterbau {
   /// 9: holzfarben ([uint8] je Holz), 10: holzbreite (int32 mm) (M6-10),
   /// 11: auflagerorte ([float64] x, y je Auflager), 12: spalte ([int32] mm),
   /// 13: zeilen ([int32]; −1 = kein Auflager), 14: zuordnung ([{ 0: titel
-  /// (string), 1: anzahl (uint32), 2: von, 3: bis (int32 mm) }]) (M6-11) }`.
+  /// (string), 1: anzahl (uint32), 2: von, 3: bis (int32 mm) }]) (M6-11),
+  /// 15: randErgaenzt ([int32] mm, Planungsregeln 3.4) }`.
   int schreibe(fb.Builder fbb) {
     final auflagerOrt = fbb.writeList([
       for (final a in auflager) _auflager(fbb, a),
@@ -233,8 +246,9 @@ final class Unterbau {
     final zuordnungOrt = fbb.writeList([
       for (final z in zuordnung) _zeile(fbb, z),
     ]);
+    final randOrt = fbb.writeListInt32([for (final r in randErgaenzt) r.mm]);
     fbb
-      ..startTable(_zuordnungPlatz + 1)
+      ..startTable(_randPlatz + 1)
       ..addInt32(_abstandPlatz, auflagerabstand?.mm)
       ..addOffset(_auflagerPlatz, auflagerOrt)
       ..addInt32(_hoeheVonPlatz, hoeheVon?.mm)
@@ -249,7 +263,8 @@ final class Unterbau {
       ..addOffset(_auflagerortePlatz, orteOrt)
       ..addOffset(_spaltePlatz, spalteOrt)
       ..addOffset(_zeilenPlatz, zeilenOrt)
-      ..addOffset(_zuordnungPlatz, zuordnungOrt);
+      ..addOffset(_zuordnungPlatz, zuordnungOrt)
+      ..addOffset(_randPlatz, randOrt);
     return fbb.endTable();
   }
 
@@ -290,6 +305,7 @@ final class Unterbau {
   static const _spaltePlatz = 12;
   static const _zeilenPlatz = 13;
   static const _zuordnungPlatz = 14;
+  static const _randPlatz = 15;
 
   static int _versatz(int platz) => 4 + 2 * platz;
 }

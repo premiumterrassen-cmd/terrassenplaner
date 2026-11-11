@@ -13,6 +13,7 @@ import '../konfiguration/befestigungsart.dart';
 import '../konfiguration/dielenverlegung.dart';
 import 'belagmeldungen.dart';
 import 'feldbreite.dart';
+import 'rand_uk.dart';
 import 'regelwerk.dart';
 import 'uk_verlegung.dart';
 import 'uk_zusatz.dart';
@@ -121,7 +122,8 @@ Befestigungspunkte befestigungspunkte(
 /// höchstens eine halbe UK-Breite vor oder hinter dem Stück, und die Mitte
 /// des Stücks quer liegt in einem Abschnitt der Linie. Am Stoß der Dielen
 /// liegt jedes Ende auf seinem Holz der doppelten UK; F01: 48 Reihen × 13
-/// Hölzer = 624 wie mit den gleichmäßigen Linien (M5-09).
+/// Hölzer = 624 wie mit den gleichmäßigen Linien (M5-09). Dazu jedes Ende
+/// auf einer Rand-UK (`_randauflagen`, Planungsregeln 3.3).
 Befestigungspunkte befestigungspunkteAufUk(
   List<Dielenstueck> stuecke,
   UkVerlegung uk,
@@ -138,21 +140,44 @@ Befestigungspunkte befestigungspunkteAufUk(
     final ende = p.map((q) => q.x).reduce(math.max);
     final ys = [for (final q in p) q.y];
     final mitte = (ys.reduce(math.min) + ys.reduce(math.max)) / 2;
-    final auflagen = uk.linien
-        .where(
-          (l) =>
-              l.x > anfang - halbe &&
-              l.x < ende + halbe &&
-              l.abschnitte.any(
-                (a) => a.$1 - _toleranz <= mitte && mitte <= a.$2 + _toleranz,
-              ),
-        )
-        .length;
+    final lagen = [
+      for (final l in uk.linien)
+        if (l.x > anfang - halbe &&
+            l.x < ende + halbe &&
+            l.abschnitte.any(
+              (a) => a.$1 - _toleranz <= mitte && mitte <= a.$2 + _toleranz,
+            ))
+          l.x,
+    ];
+    final auflagen =
+        lagen.length +
+        _randauflagen(uk.rand, anfang - halbe, ende + halbe, mitte, lagen);
     punkte += auflagen;
     if (s.reihe == randreihe) randpunkte += auflagen;
   }
   return (punkte: punkte, randpunkte: randpunkte);
 }
+
+/// Punkte eines Dielenstücks auf der Rand-UK [rand] (Planungsregeln
+/// Alexander (Planungskern v6, 11.11.2026), Regel 3.3): je Rand-UK, die es
+/// quer auf Höhe seiner [mitte] zwischen [von] und [bis] kreuzt – das Ende
+/// liegt dort auf. Liegt an der Kreuzung schon eine der [lagen] (höchstens
+/// `pruefToleranz` daneben), zählt sie nicht doppelt.
+int _randauflagen(
+  List<UkRand> rand,
+  double von,
+  double bis,
+  double mitte,
+  List<double> lagen,
+) => rand.where((r) {
+  final (a, b) = (r.von, r.bis);
+  // die Rand-UK reicht quer über die Mitte (sie läuft nie mit den Dielen)
+  if ((mitte - a.y) * (mitte - b.y) > 0) return false;
+  final x = a.x + (mitte - a.y) * (b.x - a.x) / (b.y - a.y);
+  return x > von &&
+      x < bis &&
+      !lagen.any((l) => (l - x).abs() <= pruefToleranz);
+}).length;
 
 /// Eine UK-Linie unter dem Ende eines Stücks zählt nicht doppelt.
 const _toleranz = 1.0;

@@ -618,4 +618,13 @@ final class Unterlagentexte {
             '${cm(mindesthoehe)} cm und wurde korrigiert.'
       : 'A height point was below the minimum height of '
             '${cm(mindesthoehe)} cm and has been corrected.';
+
+  /// Die Selbstkontrolle hat an einer Kante mit Dielenenden eine Rand-UK der
+  /// Länge [laenge] ergänzt (Planungsregeln Alexander (Planungskern v6,
+  /// 11.11.2026), Regel 3.4).
+  String randUkErgaenzt(Millimeter laenge) => _de
+      ? 'Rand-UK ${cm(laenge)} cm ergänzt: An einer Kante endeten Dielen '
+            'ohne UK darunter.'
+      : 'Edge substructure of ${cm(laenge)} cm added: boards ended at an edge '
+            'without substructure underneath.';
 }

@@ -213,6 +213,7 @@ List<(int, int, int)> _ohrenschnitt(List<Punkt> p) {
 ///   (`auflagerabstand`, M6-08) auseinander, gleichmäßig verteilt, und an
 ///   jedem Stoß der UK eins, auf dem beide Enden liegen – F01: 13 Linien à
 ///   309 cm mit 60 cm → je 7 (91; F28: 91 Bodenanker wie im alten Planer).
+///   Die Rand-UK (Planungsregeln 3.3) trägt ihre Auflager genauso.
 /// - **Höhe:** [flaeche] am Auflager minus [aufbauhoehe] ist der Spalt
 ///   zwischen UK und Boden.
 /// - **Normale Terrasse:** je Spalt das Auflager aus den [bereiche]n
@@ -236,10 +237,14 @@ Auflagerbedarf auflagerbedarf(
   Regelwerk? regelwerk,
 }) {
   final drehung = verlegung.winkel * math.pi / 180;
+  final a = abstand.mm.toDouble();
   final orte = [
     for (final l in verlegung.linien)
-      for (final y in _stellen(l, abstand.mm.toDouble()))
+      for (final y in _stellen(l.abschnitte, l.stoesse, a))
         Punkt(l.x, y).gedreht(drehung),
+    for (final r in verlegung.rand)
+      for (final s in _stellen([(0, r.von.abstand(r.bis))], r.stoesse, a))
+        (r.von + (r.bis - r.von).einheit * s).gedreht(drehung),
   ];
   if (orte.isEmpty) return Auflagerbedarf.keiner;
   final spalte = [for (final o in orte) flaeche.bei(o) - aufbauhoehe];
@@ -271,15 +276,20 @@ Auflagerbedarf auflagerbedarf(
   };
 }
 
-/// Stellen der Auflager auf der Linie [l] (y): je Holz zwischen den Enden
+/// Stellen der Auflager auf den [abschnitte]n einer Linie oder Rand-UK
+/// (y bzw. Abstand vom Anfang) mit den [stoesse]n: je Holz zwischen den Enden
 /// bzw. Stößen gleichmäßig höchstens [abstand] auseinander, gemeinsame
 /// Stellen nur einmal.
-List<double> _stellen(UkLinie l, double abstand) {
+List<double> _stellen(
+  List<(double, double)> abschnitte,
+  List<double> stoesse,
+  double abstand,
+) {
   final stellen = <double>[];
-  for (final (von, bis) in l.abschnitte) {
+  for (final (von, bis) in abschnitte) {
     final grenzen = [
       von,
-      for (final s in l.stoesse)
+      for (final s in stoesse)
         if (s > von && s < bis) s,
       bis,
     ];

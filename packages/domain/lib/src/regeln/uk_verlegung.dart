@@ -1,7 +1,7 @@
 /// Berechnung der UK-Verlegung (M6-10, Fachkonzept 3.11): Lage der
 /// UK-Hölzer quer zu den Dielen, doppelte UK an den Stößen der Dielen,
-/// Randabstand, Stöße der UK, Längsverbinder, Farben im Plan, Stückliste
-/// und Lieferstücke.
+/// Randabstand, Rand-UK an den Kanten mit Dielenenden, Stöße der UK,
+/// Längsverbinder, Farben im Plan, Stückliste und Lieferstücke.
 library;
 
 import 'dart:math' as math;
@@ -18,6 +18,7 @@ import '../konfiguration/ausschnitt.dart';
 import '../konfiguration/belagverlegung.dart';
 import '../konfiguration/dielenverlegung.dart';
 import '../konfiguration/planungsstand.dart';
+import 'rand_uk.dart';
 import 'regelwerk.dart';
 import 'uk_zusatz.dart';
 
@@ -34,10 +35,18 @@ typedef UkLinie = ({
   List<double> stoesse,
 });
 
+/// Eine Rand-UK (Planungsregeln Alexander (Planungskern v6, 11.11.2026),
+/// Regel 3.3/3.4) in der gedrehten Fläche: Achse von [von] bis [bis] – eine
+/// halbe UK-Breite innen, also bündig an der Kante –, die Stöße ihrer
+/// Hölzer ([stoesse], Abstand von [von]) und ob die Selbstkontrolle sie
+/// [ergaenzt] hat.
+typedef UkRand = ({Punkt von, Punkt bis, List<double> stoesse, bool ergaenzt});
+
 /// UK-Verlegung einer Fläche (M6-10).
 final class UkVerlegung {
   UkVerlegung({
     List<UkLinie> linien = const [],
+    List<UkRand> rand = const [],
     List<Planstueck> stuecke = const [],
     List<Materialbedarf> bedarf = const [],
     List<UkHolz> hoelzer = const [],
@@ -45,6 +54,7 @@ final class UkVerlegung {
     this.breite = const Millimeter(0),
     this.winkel = 0,
   }) : linien = List.unmodifiable(linien),
+       rand = List.unmodifiable(rand),
        zuschnitt = List.unmodifiable(zuschnitt),
        stuecke = List.unmodifiable(stuecke),
        bedarf = List.unmodifiable(bedarf),
@@ -56,6 +66,10 @@ final class UkVerlegung {
   /// Linien in der gedrehten Fläche, nach x aufsteigend.
   final List<UkLinie> linien;
 
+  /// Rand-UK an den Kanten mit Dielenenden (Regel 3.3), danach die von der
+  /// Selbstkontrolle ergänzten (Regel 3.4).
+  final List<UkRand> rand;
+
   /// Zuschnitte der UK-Hölzer für die Stückliste: rot in ganzer
   /// Lieferlänge, sonst blau.
   final List<Planstueck> stuecke;
@@ -66,7 +80,8 @@ final class UkVerlegung {
   /// Welche Stücke aus welchem Lieferholz kommen (M9-02, `lieferhoelzer`).
   final List<Lieferdiele> zuschnitt;
 
-  /// UK-Hölzer in Planungskoordinaten für die Zeichnung.
+  /// UK-Hölzer in Planungskoordinaten für die Zeichnung – Linien und
+  /// Rand-UK.
   final List<UkHolz> hoelzer;
 
   /// Breite der UK in der Draufsicht: die schmale Seite, gedreht die
@@ -81,14 +96,24 @@ final class UkVerlegung {
   List<double> get lagen => [for (final l in linien) l.x];
 
   /// Länge aller UK-Hölzer in mm – die Abschnitte der Linien, so wie die UK
-  /// unter dem Belag liegt (Gummiband, M8-02).
-  double get laenge => linien.fold(
-    0.0,
-    (summe, l) => l.abschnitte.fold(summe, (s, a) => s + a.$2 - a.$1),
+  /// unter dem Belag liegt, und die Rand-UK (Gummiband, M8-02).
+  double get laenge => rand.fold(
+    linien.fold(
+      0.0,
+      (summe, l) => l.abschnitte.fold(summe, (s, a) => s + a.$2 - a.$1),
+    ),
+    (summe, r) => summe + r.von.abstand(r.bis),
   );
 
-  /// Anzahl der Stöße aller UK-Linien.
-  int get stossanzahl => linien.fold(0, (n, l) => n + l.stoesse.length);
+  /// Anzahl der Stöße aller UK-Linien und Rand-UK.
+  int get stossanzahl => _stossanzahl(linien, rand);
+
+  /// Längen der Rand-UK, die die Selbstkontrolle ergänzt hat (Regel 3.4) –
+  /// für die Hinweise.
+  List<Millimeter> get ergaenzt => [
+    for (final r in rand)
+      if (r.ergaenzt) Millimeter(r.von.abstand(r.bis).round()),
+  ];
 }
 
 /// Legt die UK [uk] für [stand] (M6-10):
@@ -104,6 +129,12 @@ final class UkVerlegung {
 ///   Abstand) teilen sich ein Paar.
 /// - **Abschnitte:** jede Linie liegt nur, wo Belag ist – in der Fläche ohne
 ///   leere Ausschnitte (Fachkonzept 1.4).
+/// - **Rand-UK** (Planungsregeln Alexander (Planungskern v6, 11.11.2026),
+///   Regel 3.3/3.4, `randbelegung`): an jeder Kante, an der Dielen enden und
+///   keine Linie liegt – schräge Ränder, Kanten leerer Ausschnitte (auf der
+///   Terrassenseite), Innenecken, Bogenstücke, Kanten bei diagonaler
+///   Verlegung – ein Holz bündig entlang der Kante; Bögen in Sehnen, die
+///   höchstens [randBogenToleranz] vom Bogen abweichen, je Sehne eine.
 /// - **Stöße der UK und Lieferlängen:** ein Abschnitt bekommt Hölzer wie
 ///   eine Dielenreihe (`lieferlaengenFuer`, R-B10: kürzeste Länge, die ihn
 ///   abdeckt, längere gestückelt; 1000 cm → 600 + 400 cm wie 2026-07-07);
@@ -133,10 +164,7 @@ UkVerlegung ukVerlegung(
     for (final p in k.vieleck()) p.gedreht(drehung),
   ];
   final flaeche = gedrehte(stand.kontur);
-  final aussparungen = [
-    for (final s in stand.ausschnitte)
-      if (s.funktion == Ausschnittfunktion.leer) gedrehte(s.kontur),
-  ];
+  final aussparungen = [for (final s in _leere(stand)) gedrehte(s)];
   final huelle = Huellrechteck.um(flaeche);
   final w = breite.mm.toDouble();
   final lagen = _lagen(
@@ -149,57 +177,54 @@ UkVerlegung ukVerlegung(
     abstand.mm.toDouble(),
   );
   final laengen = ukLieferlaengen(uk);
+  final holz = _Holzleger(uk, laengen, stand.ukLaenge, drehung);
   final linien = <UkLinie>[];
-  final stuecke = <Planstueck>[];
-  final hoelzer = <UkHolz>[];
   for (final x in lagen) {
     final abschnitte = _ohne(_schnitte(flaeche, x), [
       for (final s in aussparungen) ..._schnitte(s, x),
     ]);
-    final stoesse = <double>[];
-    for (final (von, bis) in abschnitte) {
-      var y = von;
-      final teile = _teile(bis - von, laengen, stand.ukLaenge);
-      for (final (i, laenge) in teile.indexed) {
-        final stueck = Planstueck(
-          uk.nummer,
-          uk.titel,
-          Millimeter(laenge.round()),
-          ganzeLaenge: laengen.isEmpty
-              ? Millimeter(laenge.round())
-              : laengen.last,
-        );
-        stuecke.add(stueck);
-        hoelzer.add((
-          von: Punkt(x, y).gedreht(-drehung),
-          bis: Punkt(x, y + laenge).gedreht(-drehung),
-          farbe: stueck.farbe,
-        ));
-        y += laenge;
-        if (i < teile.length - 1) stoesse.add(y);
-      }
-    }
+    final stoesse = [
+      for (final (von, bis) in abschnitte)
+        for (final s in holz.lege(Punkt(x, von), Punkt(x, bis))) von + s,
+    ];
     linien.add((x: x, abschnitte: abschnitte, stoesse: stoesse));
   }
-  final stossanzahl = linien.fold(0, (n, l) => n + l.stoesse.length);
+  UkRand randholz(Randbelegung r) {
+    // bündig: die Achse eine halbe Breite auf der Belagseite
+    final innen = r.kante.innen * (w / 2);
+    final (von, bis) = (r.kante.von + innen, r.kante.bis + innen);
+    return (
+      von: von,
+      bis: bis,
+      stoesse: holz.lege(von, bis),
+      ergaenzt: r.ergaenzt,
+    );
+  }
+
+  final rand = [
+    for (final r in randbelegung(_randkanten(stand, drehung, w), linien))
+      randholz(r),
+  ];
+  final stossanzahl = _stossanzahl(linien, rand);
   final verbinder = regelwerk?.datei[uk.nummer] == null
       ? const <Artikel>[]
       : regelwerk!.moeglich(uk.nummer, Beziehung.laengsverbinder);
   final zuschnitt = lieferhoelzer(
-    [for (final s in stuecke) s.laenge],
+    [for (final s in holz.stuecke) s.laenge],
     laengen,
     fest: stand.ukLaenge,
   );
   return UkVerlegung(
     linien: linien,
-    stuecke: stuecke,
+    rand: rand,
+    stuecke: holz.stuecke,
     zuschnitt: zuschnitt,
     bedarf: [
       ...ukBedarf(uk, zuschnitt),
       if (verbinder.isNotEmpty && stossanzahl > 0)
         Materialbedarf(verbinder, stossanzahl),
     ],
-    hoelzer: hoelzer,
+    hoelzer: holz.hoelzer,
     breite: breite,
     winkel: winkel,
   );
@@ -209,6 +234,10 @@ UkVerlegung ukVerlegung(
 /// 100 m bei 10 cm Feldbreite.
 const hoechsteFelder = 1000;
 
+/// Bögen werden für die Rand-UK in Sehnen zerlegt, die höchstens so weit
+/// (mm) vom Bogen abweichen – je Sehne eine Rand-UK.
+const randBogenToleranz = 5.0;
+
 /// Ein Dielenende und der Anfang der nächsten Diele derselben Reihe liegen
 /// höchstens so weit (mm) auseinander: Fuge plus Rundung.
 const _stossLuecke = 10.0;
@@ -216,6 +245,77 @@ const _stossLuecke = 10.0;
 /// Abschnitte unter dieser Länge (mm) bekommen kein Holz – etwa ein
 /// Streifen zwischen Rand und Ausschnitt.
 const _mindestAbschnitt = 10.0;
+
+/// Legt die Hölzer einer UK-Linie oder Rand-UK: Zuschnitte für die
+/// Stückliste und Hölzer für die Zeichnung (in Planungskoordinaten).
+final class _Holzleger {
+  _Holzleger(this.uk, this.laengen, this.fest, this.drehung);
+
+  final Artikel uk;
+  final List<Millimeter> laengen;
+  final Millimeter? fest;
+  final double drehung;
+  final stuecke = <Planstueck>[];
+  final hoelzer = <UkHolz>[];
+
+  /// Hölzer von [von] bis [bis] (gedrehte Fläche); liefert die Stöße als
+  /// Abstand von [von].
+  List<double> lege(Punkt von, Punkt bis) {
+    final richtung = (bis - von).einheit;
+    final teile = _teile(von.abstand(bis), laengen, fest);
+    final stoesse = <double>[];
+    var s = 0.0;
+    for (final (i, laenge) in teile.indexed) {
+      final stueck = Planstueck(
+        uk.nummer,
+        uk.titel,
+        Millimeter(laenge.round()),
+        ganzeLaenge: laengen.isEmpty
+            ? Millimeter(laenge.round())
+            : laengen.last,
+      );
+      stuecke.add(stueck);
+      hoelzer.add((
+        von: (von + richtung * s).gedreht(-drehung),
+        bis: (von + richtung * (s + laenge)).gedreht(-drehung),
+        farbe: stueck.farbe,
+      ));
+      s += laenge;
+      if (i < teile.length - 1) stoesse.add(s);
+    }
+    return stoesse;
+  }
+}
+
+/// Anzahl der Stöße aller [linien] und Rand-UK [rand].
+int _stossanzahl(List<UkLinie> linien, List<UkRand> rand) => [
+  for (final l in linien) ...l.stoesse,
+  for (final r in rand) ...r.stoesse,
+].length;
+
+/// Konturen der leeren Ausschnitte von [stand] – nur dort fehlt der Belag.
+List<Kontur> _leere(Planungsstand stand) => [
+  for (final s in stand.ausschnitte)
+    if (s.funktion == Ausschnittfunktion.leer) s.kontur,
+];
+
+/// Kanten des Umrisses und der leeren Ausschnitte in der gedrehten Fläche,
+/// die an Belag grenzen (`randkanten`); Bögen als Sehnen
+/// ([randBogenToleranz]).
+List<Randkante> _randkanten(Planungsstand stand, double drehung, double w) {
+  final leere = _leere(stand);
+  return randkanten(
+    [
+      for (final kontur in [stand.kontur, ...leere])
+        [for (final q in kontur.vieleck(randBogenToleranz)) q.gedreht(drehung)],
+    ],
+    (p) {
+      final q = p.gedreht(-drehung);
+      return stand.kontur.enthaelt(q) && !leere.any((k) => k.enthaelt(q));
+    },
+    w,
+  );
+}
 
 /// Stöße der [dielen] in x der gedrehten Fläche: Mitte zwischen dem Ende
 /// eines Stücks und dem Anfang des nächsten derselben Reihe. Stöße näher
