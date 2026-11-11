@@ -10,7 +10,10 @@ import 'steuerung.dart';
 /// passenden Arten – genutet mit Clips, glattkant direkt oder mit
 /// Abstandshaltern verschraubt – und die Befestigungsartikel mit Anzahl.
 /// Was wählbar ist und was gebraucht wird, rechnet der Server (B-094,
-/// B-090); die App zeigt es nur an.
+/// B-090); die App zeigt es nur an. Nennt der Server zu einer Art ein
+/// Gegenstück (`Befestigungsbedarf.wechsel`), setzt die Wahl auch diesen
+/// Belag – von oben ↔ sichtverdeckt tauscht die Diele derselben Serie und
+/// Breite glattkant ↔ genutet (Planungskern v6 Regel 4.4).
 class BefestigungsartWahl extends StatelessWidget {
   const BefestigungsartWahl({
     required this.planung,
@@ -54,7 +57,11 @@ class BefestigungsartWahl extends StatelessWidget {
                   selected: art == bedarf.art,
                   onSelected: (an) {
                     if (an) {
-                      planung.setze(planung.aktuell.mitBefestigungsart(art));
+                      final stand = planung.aktuell.mitBefestigungsart(art);
+                      planung.setze(switch (bedarf.wechsel[art]) {
+                        final belag? => stand.mitBelag(belag),
+                        null => stand,
+                      });
                       onGeaendert();
                     }
                   },

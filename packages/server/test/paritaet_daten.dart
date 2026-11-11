@@ -138,22 +138,23 @@ Artikel? ukZuText(String? text) {
   );
 }
 
-/// Regelwerk für Belag und UK eines Falls.
+/// Regelwerk für Belag und UK eines Falls. Zu einer genuteten Diele gibt
+/// es wie in den echten Artikeldaten das glattkante Gegenstück derselben
+/// Serie und Breite – seine Schrauben befestigen Anfangs- und Enddiele
+/// (Planungskern v6 Regel 4.1).
 Regelwerk regelwerkFuer(Artikel? belag, Artikel? uk) => Regelwerk(
   Artikeldatei(
     quelle: 'paritaet',
     version: '1',
     eintraege: [
-      if (belag != null)
-        Artikeleintrag(
-          artikel: belag,
-          verweise: {
-            Beziehung.befestigung.spalte: belag.profil == Profil.glattkant
-                ? [_schraube.nummer]
-                : [for (final c in _clips) c.nummer],
-            Beziehung.drainage.spalte: [_rinne.nummer],
-          },
-        ),
+      if (belag != null) ...[
+        _belageintrag(belag),
+        if ((belag.profil, belag.abmessungen) case (
+          Profil.genutet,
+          Abmessungen(breite: final b?, staerke: final s?),
+        ))
+          _belageintrag(_diele(b.mm, s.mm, Profil.glattkant)),
+      ],
       for (final c in _clips) Artikeleintrag(artikel: c),
       Artikeleintrag(artikel: _schraube),
       if (belag != blende) Artikeleintrag(artikel: blende),
@@ -166,6 +167,16 @@ Regelwerk regelwerkFuer(Artikel? belag, Artikel? uk) => Regelwerk(
       if (uk != null) Artikeleintrag(artikel: uk),
     ],
   ),
+);
+
+Artikeleintrag _belageintrag(Artikel belag) => Artikeleintrag(
+  artikel: belag,
+  verweise: {
+    Beziehung.befestigung.spalte: belag.profil == Profil.glattkant
+        ? [_schraube.nummer]
+        : [for (final c in _clips) c.nummer],
+    Beziehung.drainage.spalte: [_rinne.nummer],
+  },
 );
 
 /// Vergleichbare Vergleichswerte eines Falls, alt und neu gleich aufbereitet.

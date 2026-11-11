@@ -29,7 +29,13 @@ enum Materialzusatz {
 
   /// Verblendung (M7-02, Fachkonzept 4.2): Dielen für die verblendeten
   /// Seiten, „– Verblendung“ wie im alten Planer, nur in der Materialliste.
-  verblendung(2);
+  verblendung(2),
+
+  /// Optionales Angebot (Planungsregeln Alexander (Planungskern v6,
+  /// 11.11.2026) Regel 4.5, z. B. der Bohrsenker): steht mit Preis in der
+  /// Materialliste, zählt aber nicht zur [Materialliste.summe]; nicht im
+  /// Warenkorb-Link.
+  optional(3);
 
   const Materialzusatz(this.nummer);
 
@@ -292,7 +298,8 @@ final class Materialliste {
       for (final (i, s) in schluessel.indexed)
         _position(i + 1, s, anzahl[s]!.$1, anzahl[s]!.$2, mengen[s]),
     ];
-    final summe = positionen.fold(
+    final fest = positionen.where((p) => p.zusatz != Materialzusatz.optional);
+    final summe = fest.fold(
       const Cent(0),
       (summe, p) => summe + (p.positionspreis ?? const Cent(0)),
     );
@@ -300,7 +307,7 @@ final class Materialliste {
       positionen,
       summe: summe,
       mehrwertsteuer: enthalteneMehrwertsteuer(summe),
-      vollstaendig: positionen.every((p) => p.positionspreis != null),
+      vollstaendig: fest.every((p) => p.positionspreis != null),
     );
   }
 
@@ -331,14 +338,15 @@ final class Materialliste {
 
   final List<Materialzeile> positionen;
 
-  /// Summe aller Positionspreise brutto.
+  /// Summe der Positionspreise brutto ohne die optionalen Positionen
+  /// ([Materialzusatz.optional]).
   final Cent summe;
 
   /// In der [summe] enthaltene Mehrwertsteuer ([mehrwertsteuerSatz]).
   final Cent mehrwertsteuer;
 
-  /// Ob jede Position einen Preis hat; sonst fehlt deren Preis in der
-  /// [summe].
+  /// Ob jede Position der [summe] einen Preis hat; sonst fehlt deren Preis
+  /// in der Summe.
   final bool vollstaendig;
 
   bool get istLeer => positionen.isEmpty;

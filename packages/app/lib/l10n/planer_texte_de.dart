@@ -1044,6 +1044,18 @@ class PlanerTexteDe extends PlanerTexte {
       'Die Fläche hat Ecken unter 90°. Holzfliesen müssen dort schräg zugeschnitten werden – für solche Formen eignen sich Dielen besser.';
 
   @override
+  String get flaechenmeldungMasseFalsch =>
+      'Maße fehlen oder sind falsch: Die Fläche ist höchstens 0,05 m² groß. Bitte prüfen Sie die Maße.';
+
+  @override
+  String get flaechenmeldungUnplausibelGross =>
+      'Die Fläche ist unplausibel groß (über 1.000 m²). Bitte prüfen Sie die Maße.';
+
+  @override
+  String get flaechenmeldungUngewoehnlich =>
+      'Hinweis: Die Fläche liegt außerhalb der üblichen 1 bis 300 m² – bitte prüfen Sie die Maße.';
+
+  @override
   String get belagmeldungBombierung =>
       'Ab 8 cm Breite empfehlen wir bombierte (leicht gewölbte) Dielen.';
 
@@ -1310,6 +1322,9 @@ class PlanerTexteDe extends PlanerTexte {
 
   @override
   String get materialFreidiele => 'Freidiele';
+
+  @override
+  String get materialOptional => 'Optional – nicht in der Summe';
 
   @override
   String materialBerechnet(int anzahl) {

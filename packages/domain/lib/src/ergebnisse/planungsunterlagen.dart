@@ -540,6 +540,7 @@ Kapitel _materialliste(Unterlagentexte t, Materialliste liste) =>
                 p.titel,
                 if (p.laenge case final l?) '${t.laenge}: ${l.mm} mm',
                 if (p.zusatz == Materialzusatz.freidiele) t.freidiele,
+                if (p.zusatz == Materialzusatz.optional) t.optional,
               ].join(' – '),
               '${p.anzahl} ${t.einheit(p.einheit)}',
               switch (p.gesamtlaenge) {
@@ -597,6 +598,7 @@ List<String> _meldungen(
   final h = b.hoehenpunkte;
   final u = b.unterbau;
   return [
+    if (b.flaechenmeldung case final m?) t.flaechenmeldung(m),
     for (final m in b.belagmeldungen) t.belagmeldung(m, stand.dielenlaenge),
     if (h.gedreht) t.ukGedreht,
     if (h.korrigiert) t.hoeheKorrigiert(h.mindesthoehe!),

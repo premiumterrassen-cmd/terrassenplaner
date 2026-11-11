@@ -199,6 +199,35 @@ void main() {
       expect(zeilen.last.netto, isNull);
     });
 
+    test('optionale Position (Planungskern v6 Regel 4.5): „Optional: …“ mit '
+        'Preis, gekennzeichnet „nicht in der Summe“', () {
+      final bohrsenker = Artikel(
+        nummer: const Artikelnummer('50-80-008'),
+        titel: 'ALTO Bohrsenker',
+        art: Artikelart.werkzeug,
+        einheit: Verkaufseinheit(Mengeneinheit.stueck),
+        preisBrutto: const Cent(2290),
+      );
+      final zeile = grandTotalZeilen(
+        Materialliste.aus([
+          Materialbedarf(
+            [bohrsenker],
+            1,
+            zusatz: Materialzusatz.optional,
+            jePlanung: true,
+          ),
+        ]),
+        (_) => bohrsenker,
+      ).single;
+      expect(
+        zeile.bezeichnung,
+        'Optional: ALTO Bohrsenker - nicht in der Summe',
+      );
+      expect(zeile.nomenklatur, 'ALTO Bohrsenker');
+      expect(zeile.brutto, const Cent(2290));
+      expect(zeile.anzahl, 1);
+    });
+
     test('ohne Adresse der App kein Bild-Link', () {
       final zeilen = grandTotalZeilen(_liste(), (n) => _alle[n]);
       expect(zeilen.map((z) => z.bildLink), everyElement(isNull));

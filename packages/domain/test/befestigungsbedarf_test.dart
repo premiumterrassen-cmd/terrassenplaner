@@ -1,6 +1,8 @@
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import 'package:test/test.dart';
 
+import 'altplaner.dart';
+
 Artikel _artikel(
   String nummer,
   String titel,
@@ -110,6 +112,11 @@ final _glatt100 = _diele(
   serie: basic,
 );
 final _glatt60 = _diele('10-10-071-R', profil: Profil.glattkant);
+final _glatt100premium = _diele(
+  '10-10-146-R',
+  profil: Profil.glattkant,
+  breite: 100,
+);
 final _glatt26 = _diele(
   '10-10-999',
   profil: Profil.glattkant,
@@ -135,6 +142,7 @@ Regelwerk _regelwerk({bool mitMontagehilfe = true}) => Regelwerk(
       _eintrag(_eco100, befestigung: [..._duos.take(1), ..._clips]),
       _eintrag(_glatt100, befestigung: [..._schrauben, _clips.first]),
       _eintrag(_glatt60, befestigung: _schrauben, ukAbstand: 500),
+      _eintrag(_glatt100premium, befestigung: _schrauben),
       _eintrag(_glatt26, befestigung: _schrauben, ukAbstand: 300),
       _eintrag(_glatt30, befestigung: _schrauben, ukAbstand: null),
       for (final a in [..._clips, ..._duos, ..._schrauben]) _eintrag(a),
@@ -158,6 +166,7 @@ List<Dielenstueck> _verlegt({
   dielenbreite: Millimeter(breite),
   verlegeart: Verlegeart.fugenschnitt,
   laengste: Millimeter(laengste),
+  fuge: altplanerFuge,
 );
 
 Map<String, int> _mittel(Befestigungsbedarf b) => {
@@ -255,13 +264,13 @@ void main() {
       );
     });
 
-    test('F01: 48 Reihen × 13 UK-Linien, äußere Reihe 13', () {
+    test('F01: 48 Reihen × 13 UK-Linien, Anfangs- und Endreihe je 13', () {
       final p = befestigungspunkte(
         _verlegt(),
         winkel: 0,
         ukAbstand: const Millimeter(400),
       );
-      expect(p, (punkte: 624, randpunkte: 13));
+      expect(p, (punkte: 624, randpunkte: 26));
     });
 
     test('F09: 800 cm mit Stoß bei 600 cm – 22 Auflagen je Reihe', () {
@@ -270,7 +279,7 @@ void main() {
         winkel: 0,
         ukAbstand: const Millimeter(400),
       );
-      expect(p, (punkte: 48 * 22, randpunkte: 22));
+      expect(p, (punkte: 48 * 22, randpunkte: 2 * 22));
     });
 
     test('Abstand, der nicht aufgeht: Felder aufgerundet', () {
@@ -301,7 +310,7 @@ void main() {
         winkel: 90,
         ukAbstand: const Millimeter(400),
       );
-      expect(p, (punkte: 74 * 9, randpunkte: 9));
+      expect(p, (punkte: 74 * 9, randpunkte: 2 * 9));
     });
 
     test('ohne Dielen keine Punkte; ein kurzes Stück liegt zweimal auf', () {
@@ -365,6 +374,20 @@ void main() {
       expect(identical(verpackt(0, e), verpackt(-1, e)), isTrue);
     });
 
+    test('gleich viele Packungen: die zuerst gefundene Zusammensetzung', () {
+      // 200 = 2 × 100 = 60 + 140: beide zwei Packungen ohne Überhang – es
+      // bleibt die über die erste Einheit gefundene
+      final e = [
+        _artikel('a', 'VPE 100', Artikelart.clip, inhalt: 100),
+        _artikel('b', 'VPE 60', Artikelart.clip, inhalt: 60),
+        _artikel('c', 'VPE 140', Artikelart.clip, inhalt: 140),
+      ];
+      expect(
+        [for (final (a, n) in verpackt(200, e)) (a.nummer.wert, n)],
+        [('a', 2)],
+      );
+    });
+
     test('nur eine Einheit: aufgerundet', () {
       expect(verpackt(390, [_abstandshalter]).single.$2, 4);
       expect(verpackt(400, [_abstandshalter]).single.$2, 4);
@@ -375,43 +398,55 @@ void main() {
   group('Befestigungsbedarf (M5-09)', () {
     final regelwerk = _regelwerk();
 
-    test(
-      'F01 genutet 60 mm: CLIP-FIXX, je Punkt ein Clip plus Rand (B-094)',
-      () {
-        final b = befestigungsbedarf(
+    test('F01 genutet 60 mm: CLIP-FIXX für die Kreuzungen ohne Anfangs- und '
+        'Endreihe + 5 %, die Randreihen sichtbar verschraubt (B-094, '
+        'Planungskern v6 Regel 4.1, Entscheidung 11.11.2026)', () {
+      final b = befestigungsbedarf(
+        regelwerk,
+        _genutet60,
+        Befestigungsart.clips,
+        _verlegt(),
+        winkel: 0,
+      );
+      // Gegenstück glattkant: „von oben“ ist wählbar und tauscht die
+      // Diele (Planungskern v6 Regel 4.4)
+      expect(b.arten, Befestigungsart.values);
+      expect(b.wechsel, {
+        Befestigungsart.verschraubt: _glatt60.nummer,
+        Befestigungsart.verschraubtMitAbstandshaltern: _glatt60.nummer,
+      });
+      expect(b.art, Befestigungsart.clips);
+      expect(b.punkte, 624);
+      // (624 − 26) × 1,05 = 627,9 → 628 Clips (vorher 624 + 13 = 637):
+      // Clipschrauben im Lieferumfang, keine eigene Position (B-074);
+      // 26 Schrauben 5,0 × 50 mm wie beim Gegenstück glattkant
+      expect(_mittel(b), {
+        '80-10-001-50': 1,
+        '80-10-001-100': 1,
+        '80-10-001-250': 2,
+        '50-50-101': 1,
+      });
+      expect(b.mittel[2].titel, 'CLIP-FIXX® "BLACK EDITION" - VPE 250');
+      // Bedarf in Stück für die Materialliste (M9-03): alle VPE eines Clips
+      expect([for (final x in b.bedarf) x.stueck], [628, 26]);
+      expect(b.bedarf.first.einheiten, _clips);
+      expect(
+        b.bedarf.last.einheiten,
+        _schrauben.where((s) => s.abmessungen.laengste == const Millimeter(50)),
+      );
+      expect(b.bedarf.every((x) => !x.jePlanung), isTrue);
+      // eine andere Wahl gilt bei genuteten Dielen nicht
+      expect(
+        befestigungsbedarf(
           regelwerk,
           _genutet60,
-          Befestigungsart.clips,
+          Befestigungsart.verschraubtMitAbstandshaltern,
           _verlegt(),
           winkel: 0,
-        );
-        expect(b.arten, [Befestigungsart.clips]);
-        expect(b.art, Befestigungsart.clips);
-        expect(b.punkte, 624);
-        // 637 Clips: Schrauben im Lieferumfang, keine eigene Position (B-074)
-        expect(_mittel(b), {
-          '80-10-001-50': 1,
-          '80-10-001-100': 1,
-          '80-10-001-250': 2,
-        });
-        expect(b.mittel.last.titel, 'CLIP-FIXX® "BLACK EDITION" - VPE 250');
-        // Bedarf in Stück für die Materialliste (M9-03): alle VPE eines Clips
-        expect(b.bedarf.single.stueck, 637);
-        expect(b.bedarf.single.einheiten, _clips);
-        expect(b.bedarf.single.jePlanung, isFalse);
-        // eine andere Wahl gilt bei genuteten Dielen nicht
-        expect(
-          befestigungsbedarf(
-            regelwerk,
-            _genutet60,
-            Befestigungsart.verschraubtMitAbstandshaltern,
-            _verlegt(),
-            winkel: 0,
-          ).art,
-          Befestigungsart.clips,
-        );
-      },
-    );
+        ).art,
+        Befestigungsart.clips,
+      );
+    });
 
     test('auf der UK-Verlegung (M6-10): Kreuzungen mit den echten Hölzern', () {
       final uk = Artikel(
@@ -471,13 +506,42 @@ void main() {
         _verlegt(breite: 100),
         winkel: 0,
       );
-      // 30 Reihen × 13 + 13 = 403 Clips → 450
+      // 30 Reihen × 13 = 390; Randreihen 2 × 13 mit je zwei Schrauben wie
+      // beim Gegenstück glattkant 100 mm (R-B02): 52; Clips (390 − 26) ×
+      // 1,05 = 382,2 → 383 → 400
       expect(b.punkte, 390);
-      expect(_mittel(b), {'80-10-002-100': 2, '80-10-002-250': 1});
-      expect(b.mittel.every((m) => m.titel.startsWith('DUO-')), isTrue);
+      expect(_mittel(b), {
+        '80-10-002-50': 1,
+        '80-10-002-100': 1,
+        '80-10-002-250': 1,
+        '50-50-101': 1,
+      });
+      expect(b.bedarf.last.stueck, 52);
+      expect(
+        b.mittel
+            .where((m) => m.nummer.wert.startsWith('80-'))
+            .map((m) => m.titel),
+        everyElement(startsWith('DUO-')),
+      );
     });
 
-    test('ECO SELECT genutet 100 mm: CLIP-FIXX (B-094)', () {
+    test('glattkant mit genutetem Gegenstück: sichtverdeckt wählbar, '
+        'tauscht die Diele (Planungskern v6 Regel 4.4)', () {
+      final b = befestigungsbedarf(
+        regelwerk,
+        _glatt100premium,
+        Befestigungsart.verschraubt,
+        _verlegt(breite: 100),
+        winkel: 0,
+      );
+      expect(b.arten, Befestigungsart.values);
+      expect(b.wechsel, {Befestigungsart.clips: _genutet100.nummer});
+      expect(b.art, Befestigungsart.verschraubt);
+      expect(b.wechsel.clear, throwsUnsupportedError);
+    });
+
+    test('ECO SELECT genutet 100 mm: CLIP-FIXX (B-094); ohne Gegenstück '
+        'auch die Randreihen mit Clips', () {
       final b = befestigungsbedarf(
         regelwerk,
         _eco100,
@@ -485,7 +549,9 @@ void main() {
         _verlegt(breite: 100),
         winkel: 0,
       );
+      // 390 × 1,05 = 409,5 → 410 → 450
       expect(_mittel(b), {'80-10-001-100': 2, '80-10-001-250': 1});
+      expect(b.bedarf.single.stueck, 410);
     });
 
     test('glattkant 100 mm: zwei Schrauben je Punkt, 50 mm (R-B02, B-090)', () {
@@ -496,10 +562,12 @@ void main() {
         _verlegt(breite: 100),
         winkel: 0,
       );
+      // kein genutetes Gegenstück (BASIC 100 mm): nur verschraubt
       expect(b.arten, [
         Befestigungsart.verschraubt,
         Befestigungsart.verschraubtMitAbstandshaltern,
       ]);
+      expect(b.wechsel, isEmpty);
       expect(b.art, Befestigungsart.verschraubt);
       expect(b.punkte, 390);
       // 780 Schrauben → 4 × 200
@@ -512,7 +580,7 @@ void main() {
         winkel: 0,
       );
       expect(mit.art, Befestigungsart.verschraubtMitAbstandshaltern);
-      // eine Packung Montagehilfe für die Fuge von 5 mm (Alexander 04.11.2026)
+      // eine Packung Montagehilfe für die Fuge (Alexander 04.11.2026)
       expect(_mittel(mit), {'50-50-102': 4, '50-80-009': 1});
       // Schrauben je Fläche, Montagehilfe einmal je Planung (M9-03)
       expect(

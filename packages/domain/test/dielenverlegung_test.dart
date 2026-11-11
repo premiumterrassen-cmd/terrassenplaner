@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import 'package:test/test.dart';
 
+import 'altplaner.dart';
+
 const _breite = Millimeter(60);
 const _m6 = Millimeter(6000);
 
@@ -27,6 +29,7 @@ List<Dielenstueck> _verlege(
   verlegeart: verlegeart,
   laengste: laengste,
   verbinden: verbinden,
+  fuge: altplanerFuge,
 );
 
 List<int> _laengen(List<Dielenstueck> stuecke) => [
@@ -204,6 +207,7 @@ void main() {
         winkel: winkel,
         dielenbreite: _breite,
         laengste: laengste,
+        fuge: altplanerFuge,
       );
       return (x: g.x.mm, y: g.y.mm);
     }

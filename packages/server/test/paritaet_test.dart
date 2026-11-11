@@ -16,9 +16,14 @@ const _gruende = {
   'B-035':
       'nur Lieferlängen 4/5/6 m; Zwischen- und Überlängen des alten '
       'Planers gibt es nicht (R-A06)',
-  'B-033':
-      'keine einseitig genuteten Randdielen – die Randreihen bekommen '
-      'Clips statt Terrassenschrauben (Fachkonzept 2.6)',
+  'Fuge':
+      'Fuge 6 mm statt 5 mm (R-B06): Reihen = Breite + 6 mm, z. B. 47 statt '
+      '48 Reihen auf 309 cm – Planungskern v6 / Entscheidung Alexander '
+      '11.11.2026',
+  'Befestigung':
+      'Anfangs- und Enddiele sichtbar verschraubt, Clips = übrige '
+      'Kreuzungen + 5 % (Fachkonzept 2.6) – Planungskern v6 / Entscheidung '
+      'Alexander 11.11.2026',
   'R-B09': 'Freidielen nach der Staffel ab 25 Dielen (B-079, B-228)',
   'M4-07': 'Kreisfläche exakt π·r² statt Vieleck',
   'Fehler': 'Fehler des alten Planers (fehlerverdacht, Fachkonzept 09)',
@@ -50,19 +55,29 @@ const _gruende = {
 
 /// Abweichungen der Referenzkonfigurationen: Fall → Größe → Grund.
 const _konfigurationen = <String, Map<String, String>>{
-  'F03': {'Verschnitt': 'B-035', 'Dielen': 'B-035', 'UK': 'Rand-UK'},
+  'F01': {'Dielen': 'Fuge'},
+  'F02': {'Dielen': 'Fuge'},
+  'F03': {
+    'Verschnitt': 'B-035',
+    'Dielen': 'B-035',
+    'Freidielen': 'Fuge',
+    'UK': 'Rand-UK',
+  },
   'F04': {
     'Verschnitt': 'B-035',
     'Dielen': 'B-035',
-    'Freidielen': 'R-B09',
     'UK': 'Rand-UK',
+    'Clips': 'Befestigung',
   },
-  'F05': {'Dielen': 'B-035', 'UK': 'Rand-UK'},
-  'F09': {'Clips': 'B-033'},
-  'F10': {'UK': 'UK-Lage'},
-  'F11': {'Clips': 'B-033'},
-  'F12': {'Clips': 'B-033'},
-  'F13': {'Freidielen': 'R-B09', 'UK': 'B-035', 'Clips': 'B-033'},
+  'F05': {'Verschnitt': 'Fuge', 'Dielen': 'B-035', 'UK': 'Rand-UK'},
+  'F06': {'Dielen': 'Fuge'},
+  'F07': {'Dielen': 'Fuge'},
+  'F08': {'Dielen': 'Fuge'},
+  'F09': {'Dielen': 'Fuge'},
+  'F10': {'Dielen': 'Fuge', 'UK': 'UK-Lage', 'Clips': 'Befestigung'},
+  'F11': {'Dielen': 'Fuge'},
+  'F12': {'Dielen': 'Fuge'},
+  'F13': {'Dielen': 'Fuge', 'Freidielen': 'R-B09', 'UK': 'B-035'},
   'F14': {
     'Verschnitt': 'Fehler',
     'Dielen': 'Fehler',
@@ -81,7 +96,6 @@ const _konfigurationen = <String, Map<String, String>>{
     'Dielen': 'B-035',
     'Freidielen': 'R-B09',
     'UK': 'Rand-UK',
-    'Clips': 'Rand-UK',
   },
   'F18': {
     'Verschnitt': 'B-035',
@@ -95,20 +109,29 @@ const _konfigurationen = <String, Map<String, String>>{
     'Dielen': 'B-035',
     'UK': 'Rand-UK',
   },
-  'F20': {'UK': 'UK-Lage'},
-  'F21': {'Verschnitt': 'Rechenweg', 'UK': 'Rand-UK', 'Clips': 'Rand-UK'},
+  'F20': {'Dielen': 'Fuge', 'UK': 'UK-Lage'},
+  'F21': {'Verschnitt': 'Rechenweg', 'Dielen': 'Fuge', 'UK': 'Rand-UK'},
   'F22': {
     'Verschnitt': 'Rechenweg',
     'Dielen': 'B-035',
     'UK': 'Rand-UK',
     'Clips': 'Rand-UK',
   },
+  'F23': {'Dielen': 'Fuge'},
   'F24': {'Freidielen': 'R-B09'},
-  'F28': {'UK': 'Stützen'},
-  'F29': {'UK': 'Frage 2'},
-  'F31': {'UK': 'Reste'},
-  'F33': {'UK': 'Reste'},
-  'F38': {'Clips': 'B-033'},
+  'F26': {'Dielen': 'Fuge'},
+  'F27': {'Dielen': 'Fuge'},
+  'F28': {'Dielen': 'Fuge', 'UK': 'Stützen'},
+  'F29': {'Dielen': 'Fuge', 'UK': 'Frage 2'},
+  'F30': {'Dielen': 'Fuge'},
+  'F31': {'Dielen': 'Fuge', 'UK': 'Reste'},
+  'F32': {'Dielen': 'Fuge'},
+  'F33': {'Dielen': 'Fuge', 'UK': 'Reste'},
+  'F34': {'Dielen': 'Fuge'},
+  'F35': {'Dielen': 'Fuge'},
+  'F36': {'Dielen': 'Fuge'},
+  'F37': {'Dielen': 'Fuge'},
+  'F38': {'Dielen': 'Fuge'},
   'F39': {'Verschnitt': 'Treppe', 'Dielen': 'Treppe', 'UK': 'Treppe'},
   'F40': {'Verschnitt': 'Fehler', 'Dielen': 'Fehler', 'UK': 'Fehler'},
   'F41': {'Verschnitt': 'Treppe', 'Dielen': 'Treppe', 'UK': 'Treppe'},
@@ -118,25 +141,26 @@ const _konfigurationen = <String, Map<String, String>>{
 
 /// Abweichungen der rechenbaren Referenzfälle: Fall → Größe → Grund.
 const _faelle = <String, Map<String, String>>{
-  '2025-08-26-719-v2': {'UK': 'Eingaben'},
+  '2025-08-26-719-v2': {'Dielen': 'Fuge', 'UK': 'Eingaben'},
   '2026-04-13-1946-v6': {'Dielen': 'Fehler', 'UK': 'Fehler'},
   '2026-04-28-4413-v11': {'Dielen': 'B-035', 'UK': 'Frage 3'},
   '2026-04-28-859-v5': {'Dielen': 'B-035', 'UK': 'Frage 3'},
   '2026-04-29-164-v4': {'Dielen': 'Fehler', 'UK': 'Fehler'},
-  '2026-04-29-2412-v5': {'UK': 'Eingaben'},
-  '2026-05-03-347-v4': {'UK': 'Eingaben'},
+  '2026-04-29-2412-v5': {'Dielen': 'Fuge', 'UK': 'Eingaben'},
+  '2026-05-03-347-v4': {'Dielen': 'Fuge', 'UK': 'Eingaben'},
   '2026-05-03-4381-v2': {'Dielen': 'B-035', 'UK': 'B-035'},
-  '2026-05-12-1823-v4': {'UK': 'Eingaben'},
+  '2026-05-12-1823-v4': {'Dielen': 'Fuge', 'UK': 'Eingaben'},
   '2026-05-19-3958-v4': {'Dielen': 'B-035'},
+  '2026-05-28-4655-v2': {'Dielen': 'Fuge'},
   '2026-06-07-4340-v4': {'Dielen': 'B-035', 'UK': 'Rand-UK'},
   '2026-06-11-3389-v3': {'Dielen': 'B-035'},
   '2026-06-15-1093-v7': {'Dielen': 'B-035', 'UK': 'Eingaben'},
   '2026-06-25-1275-v3': {'Dielen': 'B-035', 'UK': 'B-035'},
-  '2026-06-30-2295-v5': {'UK': 'Frage 3'},
+  '2026-06-30-2295-v5': {'Dielen': 'Fuge', 'UK': 'Frage 3'},
   '2026-07-07-2794-v2': {'Dielen': 'B-035', 'UK': 'UK-Lage'},
   '2026-07-31-3374-v3': {'Dielen': 'B-035', 'UK': 'Eingaben'},
   '2026-07-31-3374-v5': {'Dielen': 'B-035', 'UK': 'Eingaben'},
-  '2026-08-06-2810-v3': {'UK': 'Eingaben'},
+  '2026-08-06-2810-v3': {'Dielen': 'Fuge', 'UK': 'Eingaben'},
   '2026-08-26-1067-v2': {'Dielen': 'B-035', 'UK': 'Frage 3'},
 };
 

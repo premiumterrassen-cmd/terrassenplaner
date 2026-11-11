@@ -116,11 +116,13 @@ final class Dielensorte {
 /// zugeschnitten wie im alten Planer (eigene Nummern je Ausschnitt).
 final class Teilverlegung {
   /// Nummeriert die [stuecke] in Verlegereihenfolge und schneidet sie aus
-  /// den [lieferlaengen] zu ([zuschneiden]).
+  /// den [lieferlaengen] zu ([zuschneiden]); die zugeschnittene Breite ist
+  /// die Breite des Stücks ohne die [fuge], mit der verlegt wurde.
   factory Teilverlegung(
     List<Dielenstueck> stuecke, {
     required List<Millimeter> lieferlaengen,
     String? bezeichnung,
+    Millimeter fuge = fuge,
   }) {
     final index = <(int, int), int>{};
     final anzahl = <int>[];
@@ -283,7 +285,9 @@ final class Belagverlegung {
 /// Endlosverlegung) oder unvollständige Abmessungen.
 ///
 /// Dielen: Breite und Lieferlängen des Belags (erzwungene Länge, solange der
-/// Belag sie liefert, M5-02), Fuge 5 mm (R-B06). Holzfliesen (606 × 606 mm)
+/// Belag sie liefert, M5-02), [fuge] 6 mm (R-B06, Planungsregeln Alexander
+/// (Planungskern v6, 11.11.2026) Regel 1.2; Paritätstests rechnen mit den
+/// 5 mm des alten Planers). Holzfliesen (606 × 606 mm)
 /// liegen wie Dielen in Reihen aus Kantenlänge plus Fuge und werden längs
 /// ohne Fuge gestoßen – wie im alten Planer (F25: 7 × 60,6 + 55,8 cm je
 /// Reihe; Referenzfall 2026-08-17-1838: Randreihe 25,1 cm); kurze Stücke
@@ -293,7 +297,11 @@ final class Belagverlegung {
 /// Fachkonzept 1.4). Ein Ausschnitt mit anderem Terrassenbelag ist eine
 /// eigene Teilfläche, verlegt ab seiner Ecke oben links – bis er einen
 /// eigenen Belag bekommt, mit dem Belag der Fläche (F22).
-Belagverlegung? verlegeBelag(Planungsstand stand, Artikel? belag) {
+Belagverlegung? verlegeBelag(
+  Planungsstand stand,
+  Artikel? belag, {
+  Millimeter fuge = fuge,
+}) {
   if (stand.grundriss case FreiformGrundriss(geschlossen: false)) return null;
   final masse = belag?.abmessungen;
   final breite = masse?.breite;
@@ -320,6 +328,7 @@ Belagverlegung? verlegeBelag(Planungsstand stand, Artikel? belag) {
     winkel: winkel,
     dielenbreite: breite,
     laengste: laengste,
+    fuge: fuge,
   );
   final ausgangspunkt =
       stand.ausgangspunkt +
@@ -342,9 +351,11 @@ Belagverlegung? verlegeBelag(Planungsstand stand, Artikel? belag) {
       laengste: laengste,
       verbinden: verbinden,
       aussparungen: aussparungen,
+      fuge: fuge,
     ),
     lieferlaengen: lieferlaengen,
     bezeichnung: bezeichnung,
+    fuge: fuge,
   );
   return Belagverlegung._(ausgangspunkt, grenzen, lieferlaengen, [
     teil(

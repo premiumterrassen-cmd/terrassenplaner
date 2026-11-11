@@ -212,15 +212,17 @@ void main() {
       ),
       Materialbedarf([uk], 13, laenge: const Millimeter(4000)),
       Materialbedarf([pad], 91),
+      Materialbedarf([pad], 1, zusatz: Materialzusatz.optional),
     ]);
     Berechnung berechnung({
       List<Belagmeldung> meldungen = const [],
       Hoehenpunkte? hoehen,
       List<Auflagermeldung> auflagermeldungen = const [],
+      double flaeche = 4800 * 3090,
       List<Millimeter> randErgaenzt = const [],
     }) => Berechnung(
       umriss: rechteck,
-      flaeche: 4800 * 3090,
+      flaeche: flaeche,
       gesamtflaeche: 2 * 4800 * 3090,
       dielen: [for (final s in stuecke) s.umriss],
       nummern: [for (final t in verlegung.teile) ...t.nummern],
@@ -455,11 +457,12 @@ void main() {
         '480 × 6',
         '${verlegung.teile.first.sorten.first.stueck}',
       ]);
+      // 309 cm mit 6 mm Fuge (Planungskern v6): 47 Reihen, mit 5 mm 48
       expect(baustein<Tabelle>(k, 1).zeilen, [
-        ['500', '48'],
+        ['500', '47'],
       ]);
       expect(baustein<Tabelle>(u.kapitel[5]).zeilen, [
-        ['Diele 60 x 21 mm', '500', '48', '480'],
+        ['Diele 60 x 21 mm', '500', '47', '480'],
       ]);
     });
 
@@ -486,7 +489,8 @@ void main() {
       ]);
     });
 
-    test('Materialliste mit Länge, Freidiele, Preisen und Hinweis', () {
+    test('Materialliste mit Länge, Freidiele, optionaler Position, Preisen '
+        'und Hinweis', () {
       final k = kapitel(erzeuge([berechnung()]), 'Materialliste');
       final tabelle = baustein<Tabelle>(k);
       expect(tabelle.zeilen.first.take(4), [
@@ -503,9 +507,15 @@ void main() {
       expect(tabelle.zeilen.first.skip(4), ['4,49', '22,45', '1.077,60']);
       // UK ohne Preis: „–“; Pad ohne lfm: leer
       expect(tabelle.zeilen[2].skip(4), ['–', '–', '–']);
-      expect(tabelle.zeilen.last.skip(3), ['', '', '25,00', '50,00']);
+      expect(tabelle.zeilen[3].skip(3), ['', '', '25,00', '50,00']);
+      // optional (Planungskern v6 Regel 4.5): mit Preis, nicht in der Summe
+      expect(
+        tabelle.zeilen.last[1],
+        endsWith(' – optional – nicht in der Summe'),
+      );
+      expect(tabelle.zeilen.last.skip(5), ['25,00', '25,00']);
       expect(tabelle.rechts, {0, 2, 3, 4, 5, 6});
-      expect(texte(k).skip(6), [
+      expect(texte(k).skip(7), [
         'Summe gesamt: ${materialliste.summe.anzeige}',
         'enthaltene 19 % MwSt.: ${materialliste.mehrwertsteuer.anzeige}',
         'Alle Preise inkl. MwSt. und nur zur Information – verbindlich ist '
@@ -525,6 +535,8 @@ void main() {
           gedreht: true,
         ),
         auflagermeldungen: Auflagermeldung.values,
+        // 0,5 m²: Hinweis zur Fläche (Planungskern v6 Regel 1.7)
+        flaeche: 500000,
         randErgaenzt: const [Millimeter(2570)],
       );
       final planung = Planung([
@@ -546,6 +558,7 @@ void main() {
       expect(texte(hinweise), [
         'Hinweise zur Planung',
         'Terrasse 2',
+        '• ${Unterlagentexte.deutsch.flaechenmeldung(Flaechenmeldung.ungewoehnlich)}',
         '• ${Unterlagentexte.deutsch.belagmeldung(Belagmeldung.laengeNichtLieferbar, const Millimeter(7000))}',
         '• ${Unterlagentexte.deutsch.ukGedreht}',
         '• ${Unterlagentexte.deutsch.hoeheKorrigiert(const Millimeter(63))}',

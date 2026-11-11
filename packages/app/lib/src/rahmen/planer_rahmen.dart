@@ -23,6 +23,7 @@ import 'belagmeldungen.dart';
 import 'berechnung_steuerung.dart';
 import 'dielenliste.dart';
 import 'flaechen.dart';
+import 'flaechenmeldung.dart';
 import 'freiform.dart';
 import 'grundriss_eingabe.dart';
 import 'hoehenpunkte.dart';
@@ -1043,6 +1044,10 @@ class Bearbeitungsmenue extends StatelessWidget {
                       children: [
                         Text(punkt.text),
                         ?_eingabe(schritt, punkt.index),
+                        if (schritt == PlanerSchritt.grundriss &&
+                            punkt.index == 1 &&
+                            berechnung != null)
+                          FlaechenMeldung(berechnung: berechnung!),
                         if (schritt == PlanerSchritt.terrassenbelag &&
                             berechnung != null)
                           BelagMeldungen(

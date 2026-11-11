@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import 'package:test/test.dart';
 
+import 'altplaner.dart';
+
 const _m4 = Millimeter(4000);
 const _m5 = Millimeter(5000);
 const _m6 = Millimeter(6000);
@@ -55,7 +57,7 @@ Planungsstand _streifen(double ab, double bc) => Planungsstand(
 );
 
 Belagverlegung _verlegt(Planungsstand stand, [Artikel? belag]) =>
-    verlegeBelag(stand, belag ?? _diele(60))!;
+    verlegeBelag(stand, belag ?? _diele(60), fuge: altplanerFuge)!;
 
 /// Dielen nach Nummer als sortierbare Texte „Länge × Breite: Stück“ (cm).
 List<String> _sorten(Belagverlegung v) => [
@@ -225,11 +227,11 @@ void main() {
           Dielenstueck(0, Millimeter(laenge), const [], breite: breite);
       final teil = Teilverlegung(
         [
-          stueck(4800, 65),
-          stueck(4800, 65),
-          stueck(3000, 65),
-          stueck(4800, 35.4),
-          stueck(3000, 65),
+          stueck(4800, 66),
+          stueck(4800, 66),
+          stueck(3000, 66),
+          stueck(4800, 36.4),
+          stueck(3000, 66),
         ],
         lieferlaengen: const [_m4, _m5, _m6],
         bezeichnung: 'A1',
@@ -267,6 +269,19 @@ void main() {
       expect(v.grenzen, (x: const Millimeter(4800), y: const Millimeter(65)));
       expect(v.kurzeZuschnitte, isTrue);
       expect(v.teile.clear, throwsUnsupportedError);
+    });
+
+    test('F01 mit 6 mm Fuge (Planungskern v6, Entscheidung Alexander '
+        '11.11.2026): 47 statt 48 Reihen, Randreihe 4,8 statt 3,0 cm', () {
+      final v = verlegeBelag(
+        Planungsstand.start.mitGrundriss(
+          RechteckGrundriss(const Millimeter(4800), const Millimeter(3090)),
+        ),
+        _diele(60),
+      )!;
+      expect(_sorten(v), ['480.0x4.8:1', '480.0x6.0:46']);
+      expect(_anzahl(v.dielenliste), {5000: 47});
+      expect(v.grenzen, (x: const Millimeter(4800), y: const Millimeter(66)));
     });
 
     test('nichts zu verlegen: offene Freiform, kein Belag, Systemdiele, '

@@ -234,19 +234,20 @@ void main() {
 
     test('je Richtung, Verlegeart und Länge aus Belag und Planung', () {
       expect(PlanungsDienst.berechne(Planungsstand.start).dielen, isEmpty);
+      // 6 mm Fuge (Planungskern v6): F01 47 statt 48 Reihen
       final f01 = PlanungsDienst.berechne(Planungsstand.start, diele);
-      expect(f01.dielen, hasLength(48));
+      expect(f01.dielen, hasLength(47));
       expect(f01.dielen.first, hasLength(4));
       final f02 = PlanungsDienst.berechne(
         Planungsstand.start.mitVerlegerichtung(Verlegerichtung.senkrecht),
         diele,
       );
-      expect(f02.dielen, hasLength(74));
+      expect(f02.dielen, hasLength(73));
       final f04 = PlanungsDienst.berechne(
         Planungsstand.start.mitVerlegerichtung(Verlegerichtung.diagonal135),
         diele,
       );
-      expect(f04.dielen, hasLength(154));
+      expect(f04.dielen, hasLength(152));
       final f05 = PlanungsDienst.berechne(
         Planungsstand.start.mitVerlegerichtung(Verlegerichtung.individuell),
         diele,
@@ -256,10 +257,10 @@ void main() {
       final lang = Planungsstand.start.mitGrundriss(
         RechteckGrundriss(const Millimeter(8000), const Millimeter(3090)),
       );
-      expect(PlanungsDienst.berechne(lang, diele).dielen, hasLength(96));
+      expect(PlanungsDienst.berechne(lang, diele).dielen, hasLength(94));
       final fest = lang.mitDielenlaenge(const Millimeter(4000));
       final f13 = PlanungsDienst.berechne(fest, diele).dielen;
-      expect(f13, hasLength(96));
+      expect(f13, hasLength(94));
       expect(f13.first.map((p) => p.x).reduce(math.max), closeTo(4000, 1e-6));
       // Länge, die der Belag nicht liefert: wieder automatisch
       final fremd = lang.mitDielenlaenge(const Millimeter(4500));
@@ -277,7 +278,7 @@ void main() {
           fest.mitKurzeStueckeVerbinden(true),
           diele,
         ).dielen,
-        hasLength(96),
+        hasLength(94),
       );
     });
 
@@ -305,9 +306,9 @@ void main() {
       final start = PlanungsDienst.berechne(Planungsstand.start, diele);
       expect(start.ausgangspunkt, Punkt.ursprung);
       expect(start.grenzeLinksRechts, const Millimeter(4800));
-      expect(start.grenzeObenUnten, const Millimeter(65));
-      // 3090 = 47 × 65 + 35: die letzte Reihe ist schmaler als 5 cm
-      expect(start.kurzeZuschnitte, isTrue);
+      expect(start.grenzeObenUnten, const Millimeter(66));
+      // 3090 = 46 × 66 + 54: die letzte Reihe ist 5,4 cm breit
+      expect(start.kurzeZuschnitte, isFalse);
       Berechnung verschoben({int ecke = 0, int x = 0, int y = 0}) =>
           PlanungsDienst.berechne(
             Planungsstand.start.mitAusgangspunkt(
@@ -317,36 +318,38 @@ void main() {
             ),
             diele,
           );
-      // 50 mm nach unten: Randreihen oben und unten je 50 mm
+      // 24 mm nach unten: Randreihe oben 24 mm, schmaler als 5 cm
+      expect(verschoben(y: 24).kurzeZuschnitte, isTrue);
+      // 50 mm nach unten: Randreihen oben 50 und unten 70 mm
       final unten = verschoben(y: 50);
       expect(unten.ausgangspunkt, const Punkt(0, 50));
       expect(unten.kurzeZuschnitte, isFalse);
-      expect(unten.dielen, hasLength(48));
+      expect(unten.dielen, hasLength(47));
       // 30 mm nach rechts: Stoß bei 30 mm, Stück zu kurz
       final rechts = verschoben(y: 50, x: 30);
       expect(rechts.kurzeZuschnitte, isTrue);
-      expect(rechts.dielen, hasLength(96));
+      expect(rechts.dielen, hasLength(94));
       expect(verschoben(y: 50, x: 1000).kurzeZuschnitte, isFalse);
       // Ecke C: Reihen ab C, der schmale Rest liegt jetzt bei A–B
       final c = verschoben(ecke: 2);
       expect(c.ausgangspunkt, const Punkt(4800, 3090));
-      expect(c.dielen.last.map((p) => p.y).reduce(math.min), 3025);
+      expect(c.dielen.last.map((p) => p.y).reduce(math.min), 3024);
       expect(c.dielen.last.map((p) => p.y).reduce(math.max), 3090);
-      expect(c.dielen.first.map((p) => p.y).reduce(math.max), 35);
-      expect(c.kurzeZuschnitte, isTrue);
+      expect(c.dielen.first.map((p) => p.y).reduce(math.max), 54);
+      expect(c.kurzeZuschnitte, isFalse);
       // über die Grenze hinaus: auf die Grenze begrenzt
       final weit = verschoben(x: -9000, y: 500);
-      expect(weit.ausgangspunkt, const Punkt(-4800, 65));
+      expect(weit.ausgangspunkt, const Punkt(-4800, 66));
       expect(
         verschoben(x: 9000, y: -500).ausgangspunkt,
-        const Punkt(4800, -65),
+        const Punkt(4800, -66),
       );
       // senkrecht: links/rechts um Breite plus Fuge, oben/unten um die Länge
       final senkrecht = PlanungsDienst.berechne(
         Planungsstand.start.mitVerlegerichtung(Verlegerichtung.senkrecht),
         diele,
       );
-      expect(senkrecht.grenzeLinksRechts, const Millimeter(65));
+      expect(senkrecht.grenzeLinksRechts, const Millimeter(66));
       expect(senkrecht.grenzeObenUnten, const Millimeter(3090));
       // Kreis: nur A, der Anfang der Kontur
       final kreis = Planungsstand.start.mitForm(Terrassenform.kreis);
@@ -367,13 +370,13 @@ void main() {
         (_) => diele,
       );
       expect(planung.ausgangspunkt, const Punkt(0, 50));
-      expect(planung.grenzeObenUnten, const Millimeter(65));
+      expect(planung.grenzeObenUnten, const Millimeter(66));
       expect(planung.kurzeZuschnitte, isFalse);
     });
 
     test('Nummern, Teilflächen und Holzfliesen (M5-08)', () {
       final f01 = PlanungsDienst.berechne(Planungsstand.start, diele);
-      expect(f01.nummern, [...List.filled(47, 1), 2]);
+      expect(f01.nummern, [...List.filled(46, 1), 2]);
       final fliese = belag(
         Artikelart.holzfliese,
         breite: const Millimeter(606),
@@ -392,13 +395,10 @@ void main() {
       final ohneTeil = PlanungsDienst.berechne(anders, diele);
       final teil = PlanungsDienst.berechne(mitTeil, diele);
       final zusatz = teil.dielen.length - ohneTeil.dielen.length;
-      // 180 × 120 cm: 18 Reihen + 3 cm
-      expect(zusatz, 19);
+      // 180 × 120 cm: 18 Reihen à 6,6 cm, der Rest von 1,2 cm entfällt
+      expect(zusatz, 18);
       expect(teil.nummern, hasLength(teil.dielen.length));
-      expect(teil.nummern.skip(ohneTeil.dielen.length), [
-        ...List.filled(18, 1),
-        2,
-      ]);
+      expect(teil.nummern.skip(ohneTeil.dielen.length), List.filled(18, 1));
     });
 
     test('Dielenliste und Verschnitt der ganzen Planung (M5-08)', () {
@@ -439,12 +439,12 @@ void main() {
         (
           belag: const Artikelnummer('d'),
           laenge: const Millimeter(4000),
-          anzahl: 74,
+          anzahl: 73,
         ),
         (
           belag: const Artikelnummer('d'),
           laenge: const Millimeter(5000),
-          anzahl: 96,
+          anzahl: 94,
         ),
         (
           belag: const Artikelnummer('f'),
@@ -452,9 +452,9 @@ void main() {
           anzahl: 48,
         ),
       ]);
-      // geliefert: 2 × 48 × 5000 + 74 × 4000 + 48 × 606 mm
-      const geliefert = 2 * 48 * 5000 + 74 * 4000 + 48 * 606;
-      const geplant = 2 * 48 * 4800 + 74 * 3090 + 6 * 4800;
+      // geliefert: 2 × 47 × 5000 + 73 × 4000 + 48 × 606 mm (6 mm Fuge)
+      const geliefert = 2 * 47 * 5000 + 73 * 4000 + 48 * 606;
+      const geplant = 2 * 47 * 4800 + 73 * 3090 + 6 * 4800;
       expect(b.verschnitt, closeTo((geliefert - geplant) / geliefert, 1e-12));
       // ohne verlegte Fläche kein Verschnitt
       final ohne = PlanungsDienst.berechnePlanung(Planung.start);
@@ -468,8 +468,9 @@ void main() {
     });
 
     test('Verschnittoptimierung über alle Flächen (M9-01)', () {
+      // 48 × 66 mm (Breite + 6 mm Fuge) = 3168 mm: genau 48 Reihen
       Planungsstand rechteck(int ab) => Planungsstand(
-        grundriss: RechteckGrundriss(Millimeter(ab), const Millimeter(3090)),
+        grundriss: RechteckGrundriss(Millimeter(ab), const Millimeter(3168)),
       );
       // 48 Reihen à 380 cm und 48 à 220 cm: je Fläche 48 × 4000 und
       // 24 × 5000 mm, gemeinsam 48 × 6000 mm ohne Verschnitt
@@ -546,7 +547,7 @@ void main() {
       );
       expect(f01.verschnittvarianten, hasLength(2));
       expect(f01.verschnittvariante, 2);
-      expect(liste(f01), {6000: 48});
+      expect(liste(f01), {6000: 47});
       expect(f01.verschnitt, closeTo(0.2, 1e-12));
       // ohne Dielen keine Varianten
       final leer = PlanungsDienst.berechnePlanung(
@@ -558,18 +559,18 @@ void main() {
     });
 
     test('Stückliste und Farben im Plan (M9-04)', () {
-      // F01: 48 Stücke à 4800 mm aus 5000 mm, längste Lieferlänge 6000 mm
+      // F01: 47 Stücke à 4800 mm aus 5000 mm, längste Lieferlänge 6000 mm
       final f01 = PlanungsDienst.berechne(Planungsstand.start, diele);
       expect(f01.stueckliste.zeilen, [
         const Stuecklistenzeile(
           nummer: Artikelnummer('10-10-073-R'),
           titel: 'Diele',
           laenge: Millimeter(4800),
-          stueck: 48,
+          stueck: 47,
           farbe: Stueckfarbe.blau,
         ),
       ]);
-      expect(f01.stueckfarben, List.filled(48, Stueckfarbe.blau));
+      expect(f01.stueckfarben, List.filled(47, Stueckfarbe.blau));
       // F09 (800 cm): 600 rot in ganzer Länge, 200 blau; jede Farbe gehört
       // zu genau dem Stück der Zeichnung
       final f09 = PlanungsDienst.berechne(
@@ -583,7 +584,7 @@ void main() {
           for (final z in f09.stueckliste.zeilen)
             (z.laenge.mm, z.stueck, z.farbe),
         ],
-        [(6000, 48, Stueckfarbe.rot), (2000, 48, Stueckfarbe.blau)],
+        [(6000, 47, Stueckfarbe.rot), (2000, 47, Stueckfarbe.blau)],
       );
       expect(f09.stueckfarben, hasLength(f09.dielen.length));
       for (final (i, d) in f09.dielen.indexed) {
@@ -604,7 +605,7 @@ void main() {
         diele,
       );
       expect(f13.stueckliste.zeilen.single.farbe, Stueckfarbe.rot);
-      expect(f13.stueckliste.zeilen.single.stueck, 96);
+      expect(f13.stueckliste.zeilen.single.stueck, 94);
       // ohne Dielen keine Stückliste; über die Planung die bearbeitete Fläche
       expect(
         PlanungsDienst.berechne(Planungsstand.start).stueckliste.istLeer,
@@ -615,7 +616,7 @@ void main() {
           Planung.start.mitHaeufigkeit(3),
           (_) => diele,
         ).stueckliste.zeilen.single.stueck,
-        48,
+        47,
       );
     });
 
@@ -636,7 +637,7 @@ void main() {
       );
       final antwort = await rufe(planung.zuBytes());
       final b = Berechnung.ausBytes(antwort.payload.packedPayloadBytes!);
-      expect(b.dielen, hasLength(86));
+      expect(b.dielen, hasLength(85));
       expect(gefragt, [const Artikelnummer('10-10-073-R')]);
       expect(
         PlanungsDienst.berechnePlanung(planung, (_) => diele).dielen,
@@ -684,7 +685,10 @@ void main() {
       ),
     );
 
-    test('F01: 637 CLIP-FIXX als 2 × 250 + 100 + 50 (B-094)', () {
+    // Das Testregelwerk kennt kein glattkantes Gegenstück: auch die
+    // Randreihen bekommen Clips; mit 6 mm Fuge 47 Reihen × 13 = 611
+    // Kreuzungen + 5 % = 642 Clips (Planungskern v6 Regeln 1.2, 4.1).
+    test('F01: 642 CLIP-FIXX als 2 × 250 + 100 + 50 (B-094)', () {
       final b = PlanungsDienst.berechne(
         Planungsstand.start,
         diele,
@@ -692,7 +696,7 @@ void main() {
       ).befestigung;
       expect(b.art, Befestigungsart.clips);
       expect(b.arten, [Befestigungsart.clips]);
-      expect(b.punkte, 624);
+      expect(b.punkte, 611);
       expect(
         {for (final m in b.mittel) m.nummer.wert: m.anzahl},
         {'80-10-001-50': 1, '80-10-001-100': 1, '80-10-001-250': 2},
@@ -715,7 +719,7 @@ void main() {
           (_) => diele,
           regelwerk,
         ).befestigung.punkte,
-        624,
+        611,
       );
     });
 
@@ -792,12 +796,12 @@ void main() {
       final stand = Planungsstand.start
           .mitZubehoermenge(const Artikelnummer('vlies'), 2)
           .mitZubehoermenge(const Artikelnummer('p-clip'), 1);
-      // F01: 48 Dielen; 4 Clip-Packungen à 2; 2 × Vlies à 3
+      // F01: 47 Dielen; 4 Clip-Packungen à 2; 2 × Vlies à 3
       expect(zeilen(PlanungsDienst.berechne(stand, diele, pflichtig)), {
         '80-10-001-50': (1, 1, 0),
         '80-10-001-100': (1, 1, 0),
         '80-10-001-250': (2, 2, 0),
-        'p-diele': (48, 48, 48),
+        'p-diele': (47, 47, 47),
         'p-clip': (8, 8, 8),
         'p-vlies': (6, 6, 6),
         'vlies': (0, 2, 0),
@@ -819,7 +823,7 @@ void main() {
       );
       final antwort = await rufe(Planung.start.zuBytes());
       final b = Berechnung.ausBytes(antwort.payload.packedPayloadBytes!);
-      expect(b.befestigung.punkte, 624);
+      expect(b.befestigung.punkte, 611);
       expect(b.befestigung.mittel, hasLength(3));
     });
 
@@ -838,7 +842,7 @@ void main() {
                 .positionen
                 .where((p) => p.zusatz == Materialzusatz.freidiele)
                 .singleOrNull;
-        // F01: 48 Dielen à 5000 mm → eine Freidiele, wie im alten Planer
+        // F01: 47 Dielen à 5000 mm → eine Freidiele, wie im alten Planer
         final f01 = frei(Planung.start)!;
         expect(f01.nummer, diele.nummer);
         expect(f01.laenge, const Millimeter(5000));
@@ -855,9 +859,9 @@ void main() {
           m.positionen
               .where((p) => p.nummer == diele.nummer)
               .map((p) => p.anzahl),
-          [48, 1],
+          [47, 1],
         );
-        // zwei gleiche Flächen: 96 Dielen → zwei, nicht je Fläche eine
+        // zwei gleiche Flächen: 94 Dielen → zwei, nicht je Fläche eine
         expect(frei(Planung.start.mitHaeufigkeit(2))!.anzahl, 2);
         // unter 25 Dielen keine (200 × 100 cm: 16 Dielen)
         final klein = Planung([
@@ -914,10 +918,11 @@ void main() {
           ),
           48,
         );
-        // Clips wie im alten Planer; keine Terrassenschrauben für Randdielen
-        // (B-033), UK und Auflager folgen mit M6; Zubehör und Freidiele (M8)
+        // Clip-Packungen wie im alten Planer; mit 6 mm Fuge 47 statt 48
+        // Dielen (Planungskern v6); UK und Auflager folgen mit M6; Zubehör
+        // und Freidiele (M8)
         expect(zeilen(m), {
-          ('10-10-073-R', 5000): 48,
+          ('10-10-073-R', 5000): 47,
           ('80-10-001-250', null): 2,
           ('80-10-001-100', null): 1,
           ('80-10-001-50', null): 1,
@@ -935,6 +940,121 @@ void main() {
         expect(m.summe, const Cent(0));
       });
 
+      test('Planungskern v6: Anfangs- und Enddiele verschraubt, Clips + 5 %, '
+          'Bit TX25, Bohrsenker optional (Regeln 4.1–4.5)', () {
+        Artikel artikel(
+          String nummer,
+          String titel,
+          Artikelart art, {
+          int inhalt = 1,
+          int? laenge,
+          int? preis,
+        }) => Artikel(
+          nummer: Artikelnummer(nummer),
+          titel: titel,
+          art: art,
+          einheit: Verkaufseinheit(Mengeneinheit.stueck, inhalt: inhalt),
+          abmessungen: Abmessungen(
+            laengen: [?(laenge == null ? null : Millimeter(laenge))],
+          ),
+          preisBrutto: preis == null ? null : Cent(preis),
+        );
+        final schrauben = [
+          artikel(
+            '50-50-101',
+            'Schrauben 100',
+            Artikelart.schraube,
+            inhalt: 100,
+            laenge: 50,
+          ),
+          artikel(
+            '50-50-102',
+            'Schrauben 200',
+            Artikelart.schraube,
+            inhalt: 200,
+            laenge: 50,
+          ),
+        ];
+        final glatt = Artikel(
+          nummer: const Artikelnummer('10-10-071-R'),
+          titel: 'Terrassendiele Robinie PREMIUM SELECT 60 x 23 mm, glattkant',
+          art: Artikelart.diele,
+          einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+          abmessungen: Abmessungen(
+            breite: const Millimeter(60),
+            staerke: const Millimeter(23),
+          ),
+          holzart: robinie,
+          serie: premiumSelect,
+          profil: Profil.glattkant,
+        );
+        final bohrsenker = artikel(
+          '50-80-008',
+          'ALTO Bohrsenker',
+          Artikelart.werkzeug,
+          preis: 2290,
+        );
+        final kern = Regelwerk(
+          Artikeldatei(
+            quelle: 'test',
+            version: '4',
+            eintraege: [
+              ...regelwerk.datei.eintraege,
+              Artikeleintrag(
+                artikel: glatt,
+                verweise: {
+                  Beziehung.befestigung.spalte: [
+                    for (final a in schrauben) a.nummer,
+                  ],
+                },
+              ),
+              for (final a in [
+                ...schrauben,
+                artikel('50-80-002', 'ALTO Bit TX20', Artikelart.werkzeug),
+                artikel('50-80-003', 'ALTO Bit TX25', Artikelart.werkzeug),
+                bohrsenker,
+              ])
+                Artikeleintrag(artikel: a),
+            ],
+          ),
+        );
+        Materialliste liste(Planungsstand stand) =>
+            PlanungsDienst.berechnePlanung(
+              Planung.start.mitStand(stand),
+              (_) => diele,
+              kern,
+            ).materialliste;
+        final m = liste(Planungsstand.start);
+        // 47 Reihen × 13 = 611 Kreuzungen, Anfangs- und Endreihe 2 × 13
+        // verschraubt; (611 − 26) × 1,05 → 615 Clips; TX20 nicht (VPE 250
+        // mit Bit), TX25 zu den Schrauben (kein 600er-Set)
+        expect(zeilen(m), {
+          ('10-10-073-R', 5000): 47,
+          ('80-10-001-250', null): 2,
+          ('80-10-001-100', null): 1,
+          ('80-10-001-50', null): 1,
+          ('50-50-101', null): 1,
+          ('50-80-003', null): 1,
+        });
+        final optional = m.positionen.singleWhere(
+          (p) => p.zusatz == Materialzusatz.optional,
+        );
+        expect((optional.nummer, optional.anzahl), (bohrsenker.nummer, 1));
+        expect(optional.positionspreis, const Cent(2290));
+        // nicht in der Summe
+        expect(m.summe, const Cent(0));
+        // fest gewählt: keine optionale Position mehr
+        final fest = liste(
+          Planungsstand.start.mitZubehoermenge(bohrsenker.nummer, 1),
+        );
+        expect(
+          fest.positionen.where((p) => p.zusatz == Materialzusatz.optional),
+          isEmpty,
+        );
+        expect(zeilen(fest)[('50-80-008', null)], 1);
+        expect(fest.summe, const Cent(2290));
+      });
+
       test('alle Flächen mal Häufigkeit, Clips erst in der Summe verpackt', () {
         final planung = Planung.start.mitHaeufigkeit(2).mitNeuerFlaeche();
         final m = PlanungsDienst.berechnePlanung(
@@ -942,10 +1062,10 @@ void main() {
           (_) => diele,
           regelwerk,
         ).materialliste;
-        // 3 × 637 = 1911 Clips → 7 × 250 + 2 × 100: 9 Packungen statt
+        // 3 × 642 = 1926 Clips → 7 × 250 + 2 × 100: 9 Packungen statt
         // 3 × (2 × 250 + 100 + 50) = 12, wenn jede Fläche verpackt würde
         expect(zeilen(m), {
-          ('10-10-073-R', 5000): 144,
+          ('10-10-073-R', 5000): 141,
           ('80-10-001-250', null): 7,
           ('80-10-001-100', null): 2,
         });
@@ -958,7 +1078,7 @@ void main() {
           zeilen(
             PlanungsDienst.berechnePlanung(planung, (_) => diele).materialliste,
           ),
-          {('10-10-073-R', 5000): 144},
+          {('10-10-073-R', 5000): 141},
         );
       });
 
@@ -998,8 +1118,8 @@ void main() {
             ).materialliste,
           ),
           {
-            ('10-10-073-R', 5000): 96,
-            // 2 × 637 Clips zusammen verpackt: 5 × 250 + 50
+            ('10-10-073-R', 5000): 94,
+            // 2 × 642 Clips zusammen verpackt: 5 × 250 + 50
             ('80-10-001-250', null): 5,
             ('80-10-001-50', null): 1,
             // 3 Kartons je Fläche, das Bit nur einmal
@@ -1018,7 +1138,7 @@ void main() {
             ).materialliste,
           ),
           {
-            ('10-10-073-R', 5000): 96,
+            ('10-10-073-R', 5000): 94,
             ('80-10-001-50', null): 2,
             ('80-10-001-100', null): 2,
             ('80-10-001-250', null): 6,
@@ -1054,14 +1174,14 @@ void main() {
           regelwerk,
           true,
         ).materialliste.positionen.first;
-        expect((mit.anzahl, mit.berechnet), (50, 48));
+        expect((mit.anzahl, mit.berechnet), (50, 47));
         expect(
           PlanungsDienst.berechnePlanung(
             planung,
             (_) => diele,
             regelwerk,
           ).materialliste.positionen.first.anzahl,
-          48,
+          47,
         );
         // über den Router: ein Kunde kann sich nicht als Mitarbeiter ausgeben
         await dienst.stoppe();
@@ -1083,7 +1203,7 @@ void main() {
             )
             .timeout(const Duration(seconds: 5));
         final b = Berechnung.ausBytes(antwort.payload.packedPayloadBytes!);
-        expect(zeilen(b.materialliste)[('10-10-073-R', 5000)], 48);
+        expect(zeilen(b.materialliste)[('10-10-073-R', 5000)], 47);
         expect(b.materialliste.positionen.first.berechnet, isNull);
         // die Rolle aus den Aufrufdetails des Routers entscheidet
         LazyInvocationPayload aufruf(Map<String, dynamic>? details) =>
@@ -1788,7 +1908,7 @@ void main() {
         Millimeter(400),
       ]);
       expect(auto.unterbau.feldbreite, const Millimeter(400));
-      expect(auto.befestigung.punkte, 624);
+      expect(auto.befestigung.punkte, 611);
       final eng = rechne(
         Planungsstand.start
             .mitNutzungsart(Nutzungsart.doppelteUk)
@@ -1796,7 +1916,7 @@ void main() {
       );
       expect(eng.unterbau.feldbreite, const Millimeter(300));
       expect(eng.unterbau.feldbreiteBegrenzt, isFalse);
-      expect(eng.befestigung.punkte, 48 * 17);
+      expect(eng.befestigung.punkte, 47 * 17);
       int laengs(Berechnung b) =>
           b.stueckliste.zeilen.fold(0, (n, z) => n + z.stueck);
       // UK-Verlegung 17 statt 13 Hölzer (M6-10), zweite Lage: 309 cm mit
@@ -1807,7 +1927,7 @@ void main() {
       );
       expect(zuBreit.unterbau.feldbreite, const Millimeter(400));
       expect(zuBreit.unterbau.feldbreiteBegrenzt, isTrue);
-      expect(zuBreit.befestigung.punkte, 624);
+      expect(zuBreit.befestigung.punkte, 611);
     });
   });
 
@@ -1891,14 +2011,15 @@ void main() {
       ]);
       expect(b.unterbau.hoelzer, hasLength(13));
       expect(b.unterbau.holzbreite, const Millimeter(40));
-      expect(b.befestigung.punkte, 624);
-      // 48 Dielen à 5 m 60 × 21 + Freidiele (M8-04) + 13 UK à 4 m 40 × 60
-      expect(b.volumen, closeTo(0.3024 + 0.0063 + 0.1248, 1e-9));
+      expect(b.befestigung.punkte, 611);
+      // 47 Dielen à 5 m 60 × 21 (6 mm Fuge) + Freidiele (M8-04) + 13 UK à
+      // 4 m 40 × 60
+      expect(b.volumen, closeTo(0.2961 + 0.0063 + 0.1248, 1e-9));
       // ohne UK: Dielen allein, Befestigung auf gleichmäßigen Linien
       final ohne = rechne(Planung.start);
-      expect(ohne.volumen, closeTo(0.3024 + 0.0063, 1e-9));
+      expect(ohne.volumen, closeTo(0.2961 + 0.0063, 1e-9));
       expect(ohne.unterbau.hoelzer, isEmpty);
-      expect(ohne.befestigung.punkte, 624);
+      expect(ohne.befestigung.punkte, 611);
       // ohne Grundriss mit Fläche kein Volumen
       final offen = rechne(
         Planung.start.mitStand(
@@ -1915,8 +2036,8 @@ void main() {
       final planung = Planung.start.mitHaeufigkeit(2);
       final b = rechne(planung, mitUk: uk);
       expect(anzahl(b, '10-10-031', 4000), 26);
-      // 96 Dielen: zwei Freidielen (B-079)
-      expect(b.volumen, closeTo(2 * (0.3024 + 0.0063 + 0.1248), 1e-9));
+      // 94 Dielen: zwei Freidielen (B-079)
+      expect(b.volumen, closeTo(2 * (0.2961 + 0.0063 + 0.1248), 1e-9));
       // 7 cm: UK flach, in der Draufsicht 60 mm breit
       final flach = rechne(
         Planung.start.mitStand(
@@ -1991,7 +2112,7 @@ void main() {
         uk,
       );
       expect(b.unterbau.hoelzer, hasLength(13));
-      expect(b.befestigung.punkte, 624);
+      expect(b.befestigung.punkte, 611);
       expect(
         b.stueckliste.zeilen.where((z) => z.nummer == uk.nummer),
         hasLength(1),
@@ -2124,7 +2245,7 @@ void main() {
       final b = rechne(Planung.start.mitStand(stand).mitHaeufigkeit(2));
       expect(
         [for (final z in b.zuschnittBelag.zeilen) '$z'],
-        ['96 × 5000: 4800 (10-10-073)'],
+        ['94 × 5000: 4800 (10-10-073)'],
       );
       // jedes Lieferholz der Materialliste steht im Zuschnittplan
       final ukZeilen = b.zuschnittUk.zeilen;
@@ -2175,7 +2296,7 @@ void main() {
       expect(ohneUk.zuschnittUk.istLeer, isTrue);
       expect(
         [for (final z in ohneUk.zuschnittBelag.zeilen) '$z'],
-        ['48 × 5000: 4800 (10-10-073)'],
+        ['47 × 5000: 4800 (10-10-073)'],
       );
       expect(
         rechne(
@@ -2471,8 +2592,8 @@ void main() {
       final b = mit(Planung.start.mitStand(f38));
       final f01 = mit(Planung.start);
       expect(b.flaecheQuadratmeter, closeTo(14.256, 1e-9));
-      expect(anzahl(f01, diele.nummer, 5000), 48);
-      expect(anzahl(b, diele.nummer, 5000), 46);
+      expect(anzahl(f01, diele.nummer, 5000), 47);
+      expect(anzahl(b, diele.nummer, 5000), 45);
       expect(anzahl(b, uk.nummer, 4000), 13);
       expect(anzahl(b, rinne.nummer, 1200), 4);
       expect(anzahl(b, auflage.nummer), 6);

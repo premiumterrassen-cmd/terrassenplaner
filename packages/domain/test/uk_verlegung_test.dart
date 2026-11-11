@@ -2,6 +2,8 @@ import 'package:flat_buffers/flat_buffers.dart' as fb;
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import 'package:test/test.dart';
 
+import 'altplaner.dart';
+
 Artikel _diele(int breite, int staerke) => Artikel(
   nummer: const Artikelnummer('10-10-073'),
   titel: 'Diele',
@@ -36,7 +38,8 @@ Planungsstand _rechteck(int ab, int bc) => Planungsstand.start.mitGrundriss(
 );
 
 List<Dielenstueck> _dielen(Planungsstand s, [Artikel? belag]) => [
-  for (final t in verlegeBelag(s, belag ?? _d60)!.teile) ...t.stuecke,
+  for (final t in verlegeBelag(s, belag ?? _d60, fuge: altplanerFuge)!.teile)
+    ...t.stuecke,
 ];
 
 UkVerlegung _verlege(
@@ -554,7 +557,7 @@ void main() {
           _dielen(Planungsstand.start),
           _verlege(Planungsstand.start),
         ),
-        (punkte: 624, randpunkte: 13),
+        (punkte: 624, randpunkte: 26),
       );
       expect(befestigungspunkteAufUk(const [], _verlege(Planungsstand.start)), (
         punkte: 0,
@@ -692,6 +695,14 @@ void main() {
           [rand(const Punkt(1015, 20), const Punkt(1035, 40))],
         ),
         1,
+      );
+      // endet die Rand-UK genau auf Höhe der Mitte, kreuzt sie dort
+      expect(
+        punkte(
+          [linie(20)],
+          [rand(const Punkt(1015, 0), const Punkt(1005, 30))],
+        ),
+        2,
       );
       // Randreihe zählt mit
       expect(

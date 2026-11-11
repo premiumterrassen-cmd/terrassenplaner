@@ -1,6 +1,6 @@
 # 14 Planungsregeln aus Firmenwissen (M1-04)
 
-Fachregeln für den neuen Planer aus dem Firmenwissen von ALTO HOLZ. Gelesen am 19.10.2026: Beschlussregister **v129** (`Claude-Wissen/00_Zentral`), Sortimentsmatrix 2027_07 (mit Korrektur B-212), Unternehmensprofil, technisches Merkblatt mit Klärungsliste M-01–M-15, Montagehinweise (10 Regeln) und die Antworten von Alexander aus [10](10-offene-fragen.md).
+Fachregeln für den neuen Planer aus dem Firmenwissen von ALTO HOLZ. Abgleich mit den **Planungsregeln Alexander (Planungskern v6, 11.11.2026)** Abschnitte 1 und 4 am 11.11.2026 (R-B01, R-B06, R-B09, R-B14, R-B15, R-D07, R-D09; Rand-UK aus Abschnitt 3: R-C11, R-C12). Gelesen am 19.10.2026: Beschlussregister **v129** (`Claude-Wissen/00_Zentral`), Sortimentsmatrix 2027_07 (mit Korrektur B-212), Unternehmensprofil, technisches Merkblatt mit Klärungsliste M-01–M-15, Montagehinweise (10 Regeln) und die Antworten von Alexander aus [10](10-offene-fragen.md).
 
 **Vertraulichkeit (B-020 ff.):** Hier stehen nur Planungsregeln. Werke, Herkunftsländer, Lieferanten, Einkaufspreise, Margen und Hersteller der Eigenmarken stehen nicht in diesem öffentlichen Repository – die Serien heißen nur BASIC, ECO SELECT, PREMIUM SELECT und MASSIV.
 
@@ -29,19 +29,21 @@ Die mit ⚙ markierten Regeln sind im domain-Paket ausführbar und mit Tests bel
 
 | Nr. | Regel | Quelle | Status |
 |---|---|---|---|
-| R-B01 ⚙ | Verdeckte Befestigung genutet: unter 100 mm **CLIP-FIXX** (1 Schraube je Clip); genutete PREMIUM SELECT ab 100 mm **DUO-CLIP-FIXX** (2 Schrauben); ECO SELECT und BASIC 100 mm genutet: CLIP-FIXX. Schrauben sind im Clip-Lieferumfang. Artikel und Mengen: `befestigungsbedarf` (M5-09, [02 · 2.6](02-terrassenbelag.md)). | B-094, B-150, B-074 | gilt |
+| R-B01 ⚙ | Verdeckte Befestigung genutet: unter 100 mm **CLIP-FIXX** (1 Schraube je Clip); genutete PREMIUM SELECT ab 100 mm **DUO-CLIP-FIXX** (2 Schrauben); ECO SELECT und BASIC 100 mm genutet: CLIP-FIXX. Schrauben sind im Clip-Lieferumfang. **Clips = Kreuzungen + 5 %**, günstigste VPE 250/100/50; **Anfangs- und Enddiele sichtbar verschraubt** (wie R-B02); TX20-Bit nur ohne Clip-Packung mit Bit, TX25-Bit nur ohne 600er-Schraubenset. Artikel und Mengen: `befestigungsbedarf`, `bits` (M5-09, [02 · 2.6](02-terrassenbelag.md)). | B-094, B-150, B-074; Planungsregeln Alexander (Planungskern v6, 11.11.2026) Regeln 4.1–4.3, Entscheidung Alexander 11.11.2026 | gilt |
 | R-B02 ⚙ | Dielen über 100 mm werden empfohlen, dann **ausschließlich von oben verschraubt** (glattkant); 2 Schrauben je Auflager ab 100 mm. | B-090, Matrix Artikelbeschreibungen | gilt |
 | R-B03 ⚙ | Ab 80 mm Breite Bombierung empfehlen; 60 und 80 mm sind am besten geeignet. Meldung im Planer: `belagmeldungen` (M5-10, [02 · 2.8](02-terrassenbelag.md)). | Montagehinweise Regel 7 | gilt (Hinweis) |
 | R-B04 | Befestigungsmaterial wie bisher (CLIP-FIXX/DUO schwarz beschichtet), keine A4-Pflicht. | B-095 | gilt |
 | R-B05 | Verschraubung von unten ist nicht zulässig. | Merkblatt M-10, Antwort 6 | gilt (Hinweis) |
-| R-B06 | Fuge (Abstand der Dielen nebeneinander): **5 mm** im Planer; ERP-Flächenformel rechnet mit Breite + 5 mm. | Alexander (Frage 2), ERP-Plugins, Antwort 3 | gilt – 5 mm überall („auf der sicheren Seite“) |
+| R-B06 ⚙ | Fuge (Abstand der Dielen nebeneinander): **6 mm**, eine Reihe ist Dielenbreite + Fuge (Verlegung, Preis je m², Prüfung „Fläche kleiner als Belag“, 3D-Modell) – einheitlich mit R-D05 (Breite + 6). | Planungsregeln Alexander (Planungskern v6, 11.11.2026) Regel 1.2; Entscheidung Alexander 11.11.2026 | gilt – ersetzt „mit 5 mm rechnen“ vom 19.10.2026 (Antwort 3); die Paritätstests der Verlegung rechnen weiter mit den 5 mm des alten Planers |
 | R-B07 | Längsstoß (Stirnseiten) 0–2 mm, Stirnkanten fasen und paraffinieren. | Merkblatt M-06, Antwort 6 | gilt (Hinweis) |
 | R-B08 | Keine Dielenüberstände – UK bis an den Rand. | B-096 | gilt |
-| R-B09 ⚙ | Freidielen im Planer und ERP: **ab 25 Hauptdielen eine, ab 50 zwei, ab 100 je weitere 50 eine** (100 → 3, 150 → 4 …); gezählt und geliefert wird die Hauptdiele des Deckbelags (im alten Planer in der längsten Lieferlänge). | B-079, Antwort 1 | gilt · Abweichung alt: Grenzfälle und große Mengen |
+| R-B09 ⚙ | Freidielen im Planer und ERP: **ab 25 Hauptdielen eine, ab 50 zwei, ab 100 je weitere 50 eine** (100 → 3, 150 → 4 …); gezählt und geliefert wird die Hauptdiele des Deckbelags (im alten Planer in der längsten Lieferlänge). Die Staffel bleibt, obwohl B-228 und der Planungskern v6 (Regel 1.5) nur „1 Freidiele ab 25 Dielen“ nennen. | B-228 (ersetzt B-079), Antwort 1; Entscheidung Alexander 11.11.2026 (Staffel bleibt) | gilt · Abweichung alt: Grenzfälle und große Mengen |
 | R-B10 ⚙ | Dielenlänge: der Planer wählt die passende Lieferlänge automatisch (kürzeste, die die Reihe abdeckt); man kann eine Länge erzwingen (z. B. Lagerbestand). | Alexander (Frage 4) | gilt |
 | R-B11 | Verschnitt = geliefert minus geplant (Diele für 480 cm in 500 cm geliefert → 20 cm), für Belag und UK. | Alexander (Frage 3) | gilt |
 | R-B12 ⚙ | „Kurze Stücke verbinden“: ein Stoß muss nicht durchgehend sein, wenn bei nicht rechtwinkligen Terrassen ein kurzes Stück durch eine ganze Diele ersetzt werden kann. | Alexander (Frage 16) | gilt |
 | R-B13 | Die letzte Dielenreihe wird längs auf Restbreite aufgeschnitten und markiert (rote Kante). | Alexander (Frage 1) | gilt |
+| R-B14 ⚙ | **Befestigung umschaltbar:** von oben ↔ sichtverdeckt tauscht die Diele derselben Serie und Breite glattkant ↔ genutet (`gegenstueck`, `Befestigungsbedarf.wechsel`); ohne Gegenstück in den Artikeldaten bleibt es bei den Arten des Profils und der Meldung „nicht möglich“. | Planungsregeln Alexander (Planungskern v6, 11.11.2026) Regel 4.4 | gilt |
+| R-B15 ⚙ | **Bohrsenker immer als optionale Position** (50-80-008, 1 Stück, Preis aus den Artikeldaten): in Materialliste, Planungsunterlagen und GrandTotal-Export als „optional – nicht in der Summe“, nicht im Warenkorb-Link; nicht, wenn er schon fest gewählt ist (`bohrsenkerAngebot`, `Materialzusatz.optional`). | Planungsregeln Alexander (Planungskern v6, 11.11.2026) Regel 4.5 | gilt |
 
 ## C Unterkonstruktion
 
@@ -70,8 +72,9 @@ Die mit ⚙ markierten Regeln sind im domain-Paket ausführbar und mit Tests bel
 | R-D04 | Zubehör „Tatsächlich“: berechneter Wert, änderbar; der geänderte Wert erscheint im Angebot unter dem berechneten. | Alexander (Frage 10) | gilt |
 | R-D05 | Mengenfaktoren aus realen Projekten (Prüfgröße, nicht Rechenweg): Dielen-lfm ≈ m² × 1000 / (Breite + 6) × 1,07; UK-lfm ≈ m² / 0,40 × 1,1; Clips ≈ Dielen-lfm / 0,4; GUMO/Pads ≈ UK-lfm (alle 50 cm); Öl 0,2 l/m². | Unternehmensprofil | gilt (Plausibilitätsprüfung) |
 | R-D06 | Pflege: vor der Montage alle Seiten inkl. Stirnseiten ölen, danach mindestens jährlich und vor dem Winter (Hinweistext, Öl als Zubehör). | B-091, B-182, B-221 | gilt (Hinweis) |
-| R-D07 | Freidielen werden nur im Planer und ERP gerechnet – nie im Shop oder Chat zugesagt. | B-079 | gilt |
+| R-D07 | Freidielen: im Planer, in GrandTotal und in den Planungsunterlagen als eigene Position mit 0,00 € (Staffel R-B09); **nicht im Warenkorb-Link**. Im Shop werden sie nicht erwähnt oder zugesagt, im Chat dürfen sie erwähnt werden. | B-228 (ersetzt B-079) | gilt |
 | R-D08 ⚙ | Seitenblende: glattkante Diele der Serie in Belagstärke; Breite = breiteste Breite der Serie unter der Aufbauhöhe (steht nicht auf dem Boden auf), höchstens 100 mm (90 mm gibt es nicht → 80 mm); über ca. 13 cm zwei Blenden à 60 mm mit Zwischenraum; fehlt die Breite → Rückfrage statt raten; Ecken auf Gehrung (+5 cm je Kante im Zuschnitt); „Blende an allen Kanten“ = alle Kanten außer Hauswand/angrenzender Seite. Umsetzung: `blendenZumBelag`, `blendenreihen`, `verblendungsbedarf` ([04 · 4.2](04-terrassenanschluss.md)). | Planungsregeln Alexander (Planungskern v6, 11.11.2026), Abschnitt 4a.1–4a.5, 4a.7 | gilt · Abweichung alt: Verweis „moeglicheVerblendung“, nur 19–23 mm, Reihen bis zur Blendenhöhe |
+| R-D09 ⚙ | **Plausibilität der Fläche** (m²): bis 0,05 m² Fehler „Maße fehlen oder sind falsch“, über 1.000 m² Fehler „unplausibel groß“, außerhalb 1–300 m² Hinweis – im Schritt Grundriss und in den Hinweisen der Planungsunterlagen (`pruefeFlaeche`). Die Grenzen der Seitenlängen (50 cm bis 300 m) bleiben. | Planungsregeln Alexander (Planungskern v6, 11.11.2026) Regel 1.7 | gilt |
 
 ## Widersprüche zum alten Planer
 
@@ -81,7 +84,7 @@ Werden **nicht** übernommen (Liste in [09](09-nicht-teil-der-kopie.md)): einsei
 
 1. **Freidielen:** „bei 25 eine Diele, bei 50 zwei Dielen bis 100 und dann aller 50 Stück eine Freidiele“; sie beziehen sich immer auf die Hauptdiele des Deckbelags → R-B09.
 2. **Zwischenlängen:** gibt es nicht mehr, es gilt B-035 → R-A06.
-3. **Fuge:** überall 5 mm, „da sind wir auf der sicheren Seite“ → R-B06.
+3. **Fuge:** überall 5 mm, „da sind wir auf der sicheren Seite“ → R-B06. *Ersetzt am 11.11.2026: 6 mm (Planungskern v6, Entscheidung Alexander).*
 4. **UK-Achsabstand:** maximal 40 cm im Planer → R-C01.
 5. **Unterlüftung, Gefälle:** nur Hinweise; Wandabstand im Planer 2 cm → R-C10.
 6. **Längsstoß 0–2 mm, keine Verschraubung von unten:** beides korrekt (Hinweise) → R-B07, R-B05.
