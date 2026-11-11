@@ -165,7 +165,7 @@ Neuer Planer (M6-10, `ukVerlegung`):
 - **Holzvolumen** (Kennzahl „Volumen“, aus M4-13 verschoben, `holzvolumen`): Dielen und UK in ihren Lieferlängen mal Querschnitt, alle Flächen mal Häufigkeit. Die Freidielen (M8-04, `Materialzusatz.freidiele`) zählen mit. Prüfwerte: F28 UK 112 m 40 × 60 = 0,269 m³ wie im alten Planer; F01 0,434 m³ (48 Dielen + 1 Freidiele + 13 UK; alter Planer 0,435 m³ – er rechnet die Dielen mit 22 statt 21 mm (B-032) und zählt die einseitig genuteten Anfangsdielen nicht).
 - **Abgleich mit den UK-Stücklisten der Referenzfälle** (Tests): 2026-08-06-2810 13 × 500 blau, 2026-06-25-1275 9 × 100, 2026-05-12-1823 15 × 560, 2026-05-03-347 10 × 585, 2026-05-03-4381 15 × 304 (versetzt verlegt, doppelte UK an zwei Stoßlinien) – jeweils wie in der Planungsunterlage. Abweichend: 2026-07-07-2794 (1050 × 1000 cm) 29 statt 31 Linien – der alte Planer setzt die Hölzer dort enger als 40 cm (36–38 cm); die Stücke (600 rot + 400 blau je Linie) stimmen. Grüne Querstücke der Referenzfälle sind Versteifung (M6-05/M6-06) bzw. Blendenhalter (M7), nicht Teil der UK-Verlegung.
 - Berechnung: Unterbau Plätze 8–10 (Hölzer samt Rand-UK, Farben, Breite), Platz 15 (Längen der ergänzten Rand-UK), Volumen Platz 111.
-- Benchmark `domain.UkVerlegung.ukVerlegung`: Freiform 12 × 8 m mit Gefälle im Drittelverband, waagrecht und 45°, samt Befestigungspunkten ≈ 5,9 ms (lokal, unter Last).
+- Benchmark `domain.UkVerlegung.ukVerlegung`: Freiform 12 × 8 m mit Gefälle im Drittelverband, waagrecht und 45°, samt Befestigungspunkten ≈ 5,9 ms (lokal, unter Last); mit Rand-UK und Selbstkontrolle (11.11.2026) ≈ 7,2 ms.
 
 ## 3.12 Berechnung Stelzfüße/Pads mit Höhenzuordnung
 
