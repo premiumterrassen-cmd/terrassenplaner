@@ -2280,8 +2280,9 @@ void main() {
       );
     });
 
-    test('Verblendung (M7-02): F37 mit Dielen, Blendenhaltern aus den Resten '
-        'der UK und Unterlüftungs-Warnung; ohne UK-Verlegung keine Halter', () {
+    test('Seitenblende (M7-02, Planungskern v6, 4a): F37 mit Blenden der '
+        'Serie, Trägern aus den Resten der UK und Unterlüftungs-Warnung; '
+        'ohne UK-Verlegung keine Träger', () {
       final clip = Artikel(
         nummer: const Artikelnummer('80-10-001-250'),
         titel: 'Clip',
@@ -2323,7 +2324,6 @@ void main() {
               artikel: diele,
               verweise: {
                 Beziehung.befestigung.spalte: [clip.nummer],
-                Beziehung.verblendung.spalte: [blende.nummer],
               },
             ),
             Artikeleintrag(artikel: clip),
@@ -2369,14 +2369,15 @@ void main() {
       expect(anzahl(b, uk.nummer, 4000), 13);
       expect(
         b.stueckliste.zeilen
-            .where((z) => z.laenge == const Millimeter(86))
+            // Träger: 86 − 20 − 21 mm (4a.6)
+            .where((z) => z.laenge == const Millimeter(45))
             .single
             .stueck,
         31,
       );
       expect(b.anschluss.meldungen, [Anschlussmeldung.unterlueftung]);
       expect(b.volumen! - f36.volumen!, closeTo(13 * 0.08 * 0.021, 1e-9));
-      // ohne UK: Verblendung ja, Halter nein
+      // ohne UK: Blende ja, Träger nein
       final ohneUk = mit(f37);
       expect(anzahl(ohneUk, blende.nummer, 4000), 2);
       expect(

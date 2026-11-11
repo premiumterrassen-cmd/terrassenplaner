@@ -58,7 +58,8 @@ final _schraube = Artikel(
   einheit: Verkaufseinheit(Mengeneinheit.stueck),
 );
 
-/// Verblendung 80 x 21 mm glattkant (F37, F38).
+/// Blende 80 x 21 mm glattkant (F37, F38): die glattkante Diele der Serie
+/// in der Belagstärke (Planungsregeln Alexander, Planungskern v6, 4a.1).
 final blende = Artikel(
   nummer: const Artikelnummer('blende-80'),
   titel: 'Blende 80 x 21',
@@ -150,7 +151,6 @@ Regelwerk regelwerkFuer(Artikel? belag, Artikel? uk) => Regelwerk(
             Beziehung.befestigung.spalte: belag.profil == Profil.glattkant
                 ? [_schraube.nummer]
                 : [for (final c in _clips) c.nummer],
-            Beziehung.verblendung.spalte: [blende.nummer],
             Beziehung.drainage.spalte: [_rinne.nummer],
           },
         ),

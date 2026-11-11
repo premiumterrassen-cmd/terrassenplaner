@@ -4,25 +4,51 @@ import 'package:test/test.dart';
 
 Artikel _diele(
   String nummer, {
-  int breite = 60,
+  int? breite = 60,
   int? staerke = 21,
-  List<int> laengen = const [5000],
+  Profil profil = Profil.genutet,
+  Serie serie = basic,
 }) => Artikel(
   nummer: Artikelnummer(nummer),
   titel: 'Diele $nummer',
   art: Artikelart.diele,
   einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
   abmessungen: Abmessungen(
-    breite: Millimeter(breite),
+    breite: breite == null ? null : Millimeter(breite),
     staerke: staerke == null ? null : Millimeter(staerke),
-    laengen: [for (final l in laengen) Millimeter(l)],
+    laengen: const [Millimeter(4000), Millimeter(5000), Millimeter(6000)],
   ),
   holzart: robinie,
-  serie: basic,
+  serie: serie,
+  profil: profil,
+);
+
+/// Glattkante Blende der Serie BASIC (Planungskern v6, 4a.1).
+Artikel _blende(int breite, {int staerke = 21, Serie serie = basic}) => _diele(
+  'blende-$breite-$staerke-${serie.name}',
+  breite: breite,
+  staerke: staerke,
+  profil: Profil.glattkant,
+  serie: serie,
+);
+
+Artikel _schraube(String nummer, int laenge) => Artikel(
+  nummer: Artikelnummer(nummer),
+  titel: 'Schraube $nummer',
+  art: Artikelart.schraube,
+  einheit: Verkaufseinheit(Mengeneinheit.stueck),
+  abmessungen: Abmessungen(laengen: [Millimeter(laenge)]),
 );
 
 final _belag = _diele('10-10-073');
-final _blende = _diele('10-10-044', breite: 80, laengen: [4000, 5000, 6000]);
+final _b60 = _blende(60);
+final _b80 = _blende(80);
+final _b100 = _blende(100);
+final _schrauben = [
+  _schraube('s50-100', 50),
+  _schraube('s60-100', 60),
+  _schraube('s50-250', 50),
+];
 final _uk = Artikel(
   nummer: const Artikelnummer('10-10-031'),
   titel: 'UK 40 x 60',
@@ -37,24 +63,35 @@ final _uk = Artikel(
   serie: basic,
 );
 
-Regelwerk _regelwerk(Artikel belag, [List<Artikel> blenden = const []]) =>
-    Regelwerk(
-      Artikeldatei(
-        quelle: 'test',
-        version: '1',
-        eintraege: [
-          Artikeleintrag(
-            artikel: belag,
-            verweise: {
-              Beziehung.verblendung.spalte: [for (final b in blenden) b.nummer],
-            },
-          ),
-          for (final b in blenden) Artikeleintrag(artikel: b),
-        ],
-      ),
-    );
+/// Regelwerk mit dem [belag], den [blenden] (Befestigung: [schrauben])
+/// und den Schrauben.
+Regelwerk _regelwerk(
+  Artikel belag, [
+  List<Artikel> blenden = const [],
+  List<Artikel> schrauben = const [],
+]) => Regelwerk(
+  Artikeldatei(
+    quelle: 'test',
+    version: '1',
+    eintraege: [
+      Artikeleintrag(artikel: belag),
+      for (final b in blenden)
+        Artikeleintrag(
+          artikel: b,
+          verweise: {
+            Beziehung.befestigung.spalte: [for (final s in schrauben) s.nummer],
+          },
+        ),
+      for (final s in schrauben) Artikeleintrag(artikel: s),
+    ],
+  ),
+);
+
+final _serie = _regelwerk(_belag, [_b100, _b60, _b80], _schrauben);
 
 const _vier = [Millimeter(86), Millimeter(86), Millimeter(86), Millimeter(86)];
+
+List<Millimeter> _ueberall(int mm) => List.filled(4, Millimeter(mm));
 
 /// F37: A — B an Bauelement, B — C, C — D und D — A verblendet.
 final _f37 = Planungsstand.start
@@ -64,7 +101,7 @@ final _f37 = Planungsstand.start
     .mitVerblendet(3, an: true);
 
 int _anzahl(Anschlussbedarf b, Artikel a, int laenge) => b.bedarf
-    .where((m) => m.einheiten.single == a && m.laenge?.mm == laenge)
+    .where((m) => m.einheiten.first == a && m.laenge?.mm == laenge)
     .fold(0, (s, m) => s + m.stueck);
 
 void main() {
@@ -156,7 +193,7 @@ void main() {
       }
       expect(
         [for (final m in Anschlussmeldung.values) m.nummer],
-        [1, 2, 3, 4, 5, 6],
+        [1, 2, 5, 6, 7],
       );
       expect(() => Anschlussmeldung.ausNummer(0), throwsFormatException);
       final fbb = fb.Builder()..startTable(1);
@@ -171,35 +208,89 @@ void main() {
     });
   });
 
-  group('Verblendungsbedarf (M7-02)', () {
+  group('Seitenblende (M7-02, Planungskern v6, 4a)', () {
     final ukStuecke = List.filled(13, const Millimeter(3090));
 
-    test('F37: 2 × 4000 + 1 × 5000 mm Verblendung, 31 Blendenhalter à '
-        '8,6 cm aus den Resten der UK, Unterlüftung', () {
+    test('4a.1: Blenden = glattkante Dielen der Serie in der Belagstärke', () {
+      final ohneBreite = _diele(
+        'ohne-breite',
+        breite: null,
+        profil: Profil.glattkant,
+      );
+      final kandidaten = [
+        _b80,
+        _diele('genutet-80', breite: 80),
+        _blende(80, staerke: 23),
+        _blende(80, serie: ecoSelect),
+        ohneBreite,
+        _uk,
+        _schrauben.first,
+        _b60,
+      ];
+      expect(blendenZumBelag(_belag, kandidaten), [_b80, _b60]);
+      expect(blendenZumBelag(_belag, const []), isEmpty);
+    });
+
+    test('4a.2–4a.4: Breite unter der Höhe, höchstens 100 mm, über 13 cm '
+        'zwei à 60 mm, sonst Rückfrage', () {
+      final blenden = [_b100, _blende(50), _blende(120), _b80, _b60];
+      int? breite(int hoehe) {
+        final reihen = blendenreihen(Millimeter(hoehe), blenden);
+        return reihen?.single.abmessungen.breite!.mm;
+      }
+
+      expect(breite(86), 80);
+      expect(breite(95), 80, reason: '90 mm gibt es nicht → 80');
+      expect(breite(125), 100, reason: 'bei 12,5 cm 100 mm');
+      expect(breite(130), 100);
+      expect(breite(101), 100);
+      expect(breite(100), 80, reason: 'steht nicht auf dem Boden auf');
+      expect(breite(81), 80);
+      expect(breite(80), 60);
+      expect(breite(51), 50);
+      expect(breite(50), isNull);
+      expect(blendenreihen(const Millimeter(131), blenden), [_b60, _b60]);
+      expect(blendenreihen(const Millimeter(400), [_b80, _b100]), isNull);
+      expect(blendenreihen(const Millimeter(86), const []), isNull);
+      expect(
+        [blendeBreiteMax, blendeZweiReihenUeber, blendeZweiReihenBreite],
+        const [Millimeter(100), Millimeter(130), Millimeter(60)],
+      );
+    });
+
+    test('F37: 2 × 4000 + 1 × 5000 mm Blende 80 mm mit Gehrung, 31 Träger '
+        'à 4,5 cm aus den Resten der UK, 62 Schrauben, Unterlüftung', () {
       final b = verblendungsbedarf(
         _f37,
         hoehen: _vier,
         belag: _belag,
-        regelwerk: _regelwerk(_belag, [_blende]),
+        regelwerk: _serie,
         uk: _uk,
-        ukAbstand: const Millimeter(400),
       );
-      expect(_anzahl(b, _blende, 4000), 2);
-      expect(_anzahl(b, _blende, 5000), 1);
+      expect(_anzahl(b, _b80, 4000), 2);
+      expect(_anzahl(b, _b80, 5000), 1);
+      final blenden = b.bedarf.where((m) => m.laenge != null).toList();
+      expect(blenden, hasLength(2));
       expect(
-        b.bedarf.every((m) => m.zusatz == Materialzusatz.verblendung),
+        blenden.every((m) => m.zusatz == Materialzusatz.verblendung),
         isTrue,
       );
       expect(b.stuecke, hasLength(31));
-      expect(b.stuecke.first.laenge, const Millimeter(86));
+      // 86 − 20 − 21 mm
+      expect(b.stuecke.first.laenge, const Millimeter(45));
       expect(b.stuecke.first.nummer, _uk.nummer);
       expect(b.stuecke.first.titel, _uk.titel);
       expect(b.stuecke.first.ganzeLaenge, const Millimeter(6000));
+      // 2 Schrauben je Träger, alle Verpackungen der ersten Länge
+      final schrauben = b.bedarf.last;
+      expect(schrauben.stueck, 62);
+      expect(schrauben.einheiten, [_schrauben[0], _schrauben[2]]);
+      expect(schrauben.zusatz, isNull);
       expect(b.meldungen, [Anschlussmeldung.unterlueftung]);
       expect(b.bedarf.clear, throwsUnsupportedError);
       expect(b.stuecke.clear, throwsUnsupportedError);
       expect(b.meldungen.clear, throwsUnsupportedError);
-      // Volumen der Verblendung wie F37 → F36: 13 m × 80 × 21 mm
+      // Volumen der Blenden: 13 m × 80 × 21 mm
       expect(holzvolumen(b.bedarf), closeTo(13 * 0.08 * 0.021, 1e-9));
       // zusammen (anschlussbedarf): aus den Resten der UK-Verlegung keine
       // weitere UK, ohne Reste eigene Hölzer
@@ -208,7 +299,7 @@ void main() {
             _f37,
             hoehen: _vier,
             belag: _belag,
-            regelwerk: _regelwerk(_belag, [_blende]),
+            regelwerk: _serie,
             uk: _uk,
             ukAbstand: const Millimeter(400),
             ukStuecke: reste,
@@ -223,7 +314,7 @@ void main() {
             _f37.mitUkLaenge(const Millimeter(5000)),
             hoehen: _vier,
             belag: _belag,
-            regelwerk: _regelwerk(_belag, [_blende]),
+            regelwerk: _serie,
             uk: _uk,
             ukAbstand: const Millimeter(400),
           ),
@@ -232,57 +323,94 @@ void main() {
         ),
         1,
       );
-      // ohne UK nur die Verblendung
-      expect(
-        anschlussbedarf(
-          _f37,
-          hoehen: _vier,
-          belag: _belag,
-          regelwerk: _regelwerk(_belag, [_blende]),
-        ).bedarf,
-        hasLength(2),
+      // ohne UK-Verlegung (kein Achsabstand) keine Träger, keine Schrauben
+      final ohneVerlegung = anschlussbedarf(
+        _f37,
+        hoehen: _vier,
+        belag: _belag,
+        regelwerk: _serie,
+        uk: _uk,
       );
+      expect(ohneVerlegung.stuecke, isEmpty);
+      expect(ohneVerlegung.bedarf, hasLength(2));
     });
 
-    test('eine Seite: keine Unterlüftungs-Warnung, höhere Ecke zählt, '
-        'Reihen nach Blendenhöhe', () {
+    test('eine Seite: niedrigere Ecke zählt, über 13 cm zwei Reihen à '
+        '60 mm, Träger höchstens 40 cm auseinander', () {
       final stand = Planungsstand.start.mitVerblendet(1, an: true);
       final b = verblendungsbedarf(
         stand,
         hoehen: const [
-          Millimeter(86),
+          Millimeter(300),
           Millimeter(86),
           Millimeter(200),
-          Millimeter(86),
+          Millimeter(300),
         ],
         belag: _belag,
-        regelwerk: _regelwerk(_belag, [_blende]),
+        regelwerk: _serie,
         uk: _uk,
-        ukAbstand: const Millimeter(400),
       );
-      // 200 − 21 = 179 mm → 3 Reihen à 309 cm
-      expect(_anzahl(b, _blende, 4000), 3);
+      // B — C: 86 mm → eine Reihe 80 mm, 309 + 5 cm → 4000 mm
+      expect(_anzahl(b, _b80, 4000), 1);
       expect(b.meldungen, isEmpty);
-      // 9 Halter à 20 cm
+      // 309 cm / 40 cm → 8 Felder, 9 Träger à 4,5 cm
       expect(b.stuecke, hasLength(9));
-      expect(b.stuecke.first.laenge, const Millimeter(200));
-      // genau eine Reihe bei Blendenhöhe = Dielenbreite
-      final eine = verblendungsbedarf(
+      expect(b.stuecke.first.laenge, const Millimeter(45));
+      final hoch = verblendungsbedarf(
         stand,
-        hoehen: const [
-          Millimeter(101),
-          Millimeter(101),
-          Millimeter(101),
-          Millimeter(101),
-        ],
+        hoehen: _ueberall(200),
         belag: _belag,
-        regelwerk: _regelwerk(_belag, [_blende]),
+        regelwerk: _serie,
+        uk: _uk,
       );
-      expect(_anzahl(eine, _blende, 4000), 1);
-      expect(eine.stuecke, isEmpty, reason: 'ohne UK keine Halter');
+      expect(_anzahl(hoch, _b60, 4000), 2);
+      expect(_anzahl(hoch, _b80, 4000), 0);
+      expect(hoch.stuecke.first.laenge, const Millimeter(159));
+      // genau 800 mm: zwei Felder, drei Träger
+      final kurz = Planungsstand.start
+          .mitGrundriss(
+            RechteckGrundriss(const Millimeter(800), const Millimeter(800)),
+          )
+          .mitVerblendet(1, an: true);
+      expect(
+        verblendungsbedarf(
+          kurz,
+          hoehen: _vier,
+          belag: _belag,
+          regelwerk: _serie,
+          uk: _uk,
+        ).stuecke,
+        hasLength(3),
+      );
+      expect(
+        [blendentraegerAbstandMax, blendentraegerBodenabstand],
+        const [Millimeter(400), Millimeter(20)],
+      );
+      expect(blendentraegerSchrauben, 2);
+      expect(blendeGehrungszugabe, const Millimeter(50));
     });
 
-    test('Kreis: Umfang, Halter ohne Endstück', () {
+    test('4a.5: Gehrung +5 cm je Kante – 395 cm passen nicht mehr in '
+        '4000 mm', () {
+      final stand = Planungsstand.start
+          .mitGrundriss(
+            RechteckGrundriss(const Millimeter(3960), const Millimeter(3000)),
+          )
+          .mitVerblendet(0, an: true);
+      final b = verblendungsbedarf(
+        stand,
+        hoehen: _vier,
+        belag: _belag,
+        regelwerk: _serie,
+      );
+      expect(_anzahl(b, _b80, 4000), 0);
+      expect(_anzahl(b, _b80, 5000), 1);
+      expect(b.stuecke, isEmpty, reason: 'ohne UK keine Träger');
+      expect(b.bedarf, hasLength(1), reason: 'ohne Träger keine Schrauben');
+    });
+
+    test('Kreis: Umfang ohne Gehrung, Träger ohne Endstück, kleinste '
+        'Höhe', () {
       final kreis = Planungsstand.start
           .mitForm(Terrassenform.kreis)
           .mitVerblendet(0, an: true);
@@ -290,14 +418,16 @@ void main() {
         kreis,
         hoehen: const [Millimeter(86)],
         belag: _belag,
-        regelwerk: _regelwerk(_belag, [_blende]),
+        regelwerk: _serie,
         uk: _uk,
-        ukAbstand: const Millimeter(400),
       );
       // Umfang 2π · 180 cm = 1131 cm → 6000 + 6000 mm (lange Reihe)
-      expect(_anzahl(b, _blende, 6000), 2);
+      expect(_anzahl(b, _b80, 6000), 2);
       expect(b.stuecke, hasLength(29));
       expect(b.meldungen, [Anschlussmeldung.unterlueftung]);
+      expect(blendenstrecken(kreis, const [Millimeter(200), Millimeter(86)]), [
+        (laenge: kreis.kontur.umfang, hoehe: const Millimeter(86)),
+      ]);
       expect(
         blendenstrecken(kreis.mitVerblendet(0, an: false), const [
           Millimeter(86),
@@ -306,99 +436,88 @@ void main() {
       );
     });
 
-    test('Meldungen: zu dick, ohne Höhenunterschied, ohne Artikel; ohne '
-        'Belag oder Stärke nur Unterlüftung', () {
-      final dick = _diele('10-10-200', staerke: 25);
+    test('Meldungen: Rückfrage ohne passende Blende, ohne Höhenunterschied; '
+        'ohne Belag nur Unterlüftung', () {
+      final seite = Planungsstand.start.mitVerblendet(1, an: true);
+      // Serie ohne glattkante Blende in der Stärke (z. B. 26 mm genutet)
+      final dick = _diele('10-10-200', staerke: 26);
       final b = verblendungsbedarf(
         _f37,
         hoehen: _vier,
         belag: dick,
-        regelwerk: _regelwerk(dick, [_blende]),
+        regelwerk: _regelwerk(dick, [_b80], _schrauben),
+        uk: _uk,
       );
       expect(b.meldungen, [
         Anschlussmeldung.unterlueftung,
-        Anschlussmeldung.belagstaerke,
+        Anschlussmeldung.blendeFehlt,
       ]);
       expect(b.bedarf, isEmpty);
-      final duenn = _diele('10-10-201', staerke: 18);
-      expect(verblendungMoeglich(duenn), isFalse);
-      expect(verblendungMoeglich(_diele('a', staerke: 19)), isTrue);
-      expect(verblendungMoeglich(_diele('a', staerke: 23)), isTrue);
-      expect(verblendungMoeglich(_diele('a', staerke: 24)), isFalse);
-      expect(verblendungMoeglich(_diele('a', staerke: null)), isFalse);
-      final flach = verblendungsbedarf(
-        Planungsstand.start.mitVerblendet(1, an: true),
-        hoehen: const [
-          Millimeter(21),
-          Millimeter(21),
-          Millimeter(21),
-          Millimeter(21),
-        ],
-        belag: _belag,
-        regelwerk: _regelwerk(_belag),
-        uk: _uk,
-        ukAbstand: const Millimeter(400),
-      );
-      expect(flach.meldungen, [
-        Anschlussmeldung.keinHoehenunterschied,
-        Anschlussmeldung.ohneVerblendungsartikel,
-      ]);
-      expect(flach.bedarf, isEmpty);
-      expect(flach.stuecke, isEmpty);
-      // Regelwerk ohne den Belag: kein Artikel
+      expect(b.stuecke, isEmpty);
+      // nur 80 mm, Höhe 70 mm: keine Breite darunter
       expect(
         verblendungsbedarf(
-          Planungsstand.start.mitVerblendet(1, an: true),
-          hoehen: _vier,
+          seite,
+          hoehen: _ueberall(70),
           belag: _belag,
-          regelwerk: _regelwerk(_blende),
+          regelwerk: _regelwerk(_belag, [_b80]),
         ).meldungen,
-        [Anschlussmeldung.ohneVerblendungsartikel],
+        [Anschlussmeldung.blendeFehlt],
+      );
+      // eine Seite passt, eine nicht: Material nur für die passende
+      final gemischt = verblendungsbedarf(
+        seite.mitVerblendet(2, an: true),
+        hoehen: const [
+          Millimeter(86),
+          Millimeter(86),
+          Millimeter(86),
+          Millimeter(70),
+        ],
+        belag: _belag,
+        regelwerk: _regelwerk(_belag, [_b80]),
+        uk: _uk,
+      );
+      expect(gemischt.meldungen, [Anschlussmeldung.blendeFehlt]);
+      expect(_anzahl(gemischt, _b80, 4000), 1);
+      expect(gemischt.stuecke, hasLength(9));
+      // ohne Schraube an der Blende keine Schrauben
+      expect(gemischt.bedarf, hasLength(1));
+      final flach = verblendungsbedarf(
+        seite,
+        hoehen: _ueberall(21),
+        belag: _belag,
+        regelwerk: _serie,
+        uk: _uk,
+      );
+      expect(flach.meldungen, [Anschlussmeldung.keinHoehenunterschied]);
+      expect(flach.bedarf, isEmpty);
+      expect(flach.stuecke, isEmpty);
+      // ohne Regelwerk und ohne Stärke: Rückfrage
+      expect(
+        verblendungsbedarf(seite, hoehen: _vier, belag: _belag).meldungen,
+        [Anschlussmeldung.blendeFehlt],
+      );
+      expect(
+        verblendungsbedarf(
+          seite,
+          hoehen: _vier,
+          belag: _diele('x', staerke: null),
+          regelwerk: _serie,
+        ).meldungen,
+        [Anschlussmeldung.blendeFehlt],
       );
       expect(verblendungsbedarf(_f37, hoehen: _vier).meldungen, [
         Anschlussmeldung.unterlueftung,
       ]);
       expect(
         verblendungsbedarf(
-          _f37,
-          hoehen: _vier,
-          belag: _diele('x', staerke: null),
-        ).meldungen,
-        [Anschlussmeldung.unterlueftung],
-      );
-      expect(
-        verblendungsbedarf(
           Planungsstand.start,
           hoehen: _vier,
           belag: _belag,
+          regelwerk: _serie,
         ).meldungen,
         isEmpty,
       );
-    });
-
-    test('Verblendungsartikel ohne Lieferlängen in lfm, ohne Breite eine '
-        'Reihe', () {
-      final ohneLaenge = Artikel(
-        nummer: const Artikelnummer('20-10-001'),
-        titel: 'Blende',
-        art: Artikelart.verblendung,
-        einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
-      );
-      final b = verblendungsbedarf(
-        _f37,
-        hoehen: const [
-          Millimeter(300),
-          Millimeter(300),
-          Millimeter(300),
-          Millimeter(300),
-        ],
-        belag: _belag,
-        regelwerk: _regelwerk(_belag, [ohneLaenge]),
-      );
-      // 309 + 480 + 309 cm = 10,98 m → 11 lfm
-      expect(b.bedarf.single.stueck, 11);
-      expect(b.bedarf.single.laenge, isNull);
-      expect(b.bedarf.single.zusatz, Materialzusatz.verblendung);
     });
 
     test('Unterlüftung: nur wenn alle freien Seiten verblendet sind', () {

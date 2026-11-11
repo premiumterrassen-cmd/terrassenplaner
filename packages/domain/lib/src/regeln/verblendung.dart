@@ -1,5 +1,7 @@
-/// Verblendung der Seiten (M7-02, Fachkonzept 4.2): Verblendungsdielen je
-/// verblendeter Seite und Blendenhalter aus UK-Holz (R-C05).
+/// Seitenblende (M7-02, Fachkonzept 4.2) nach den Planungsregeln Alexander
+/// (Planungskern v6, 11.11.2026), Abschnitt 4a: Blenden aus der Serie des
+/// Belags je verblendeter Seite, senkrechte Träger aus UK-Holz (R-C05) und
+/// ihre Schrauben.
 library;
 
 import 'dart:math' as math;
@@ -9,6 +11,7 @@ import '../artikel/einheiten.dart';
 import '../artikel/ukauswahl.dart';
 import '../ergebnisse/materialliste.dart';
 import '../ergebnisse/stueckliste.dart';
+import '../holzart/holzart.dart';
 import '../konfiguration/anschlussergebnis.dart';
 import '../konfiguration/grundriss.dart';
 import '../konfiguration/planungsstand.dart';
@@ -16,16 +19,65 @@ import 'anschlussregeln.dart';
 import 'regelwerk.dart';
 import 'uk_zusatz.dart';
 
-/// Belagstärken, bei denen der Planer eine Verblendung rechnet
-/// (Fachkonzept 4.2): 19 bis 23 mm.
-const verblendungStaerkeVon = Millimeter(19);
-const verblendungStaerkeBis = Millimeter(23);
+/// Breiteste Blende in einer Reihe (Planungskern v6, 4a.2: bei 12,5 cm
+/// Höhe 100 mm).
+const blendeBreiteMax = Millimeter(100);
 
-/// Ob zum [belag] eine Verblendung gerechnet wird: Stärke 19 bis 23 mm.
-bool verblendungMoeglich(Artikel belag) => switch (belag.abmessungen.staerke) {
-  final s? => s >= verblendungStaerkeVon && s <= verblendungStaerkeBis,
-  null => false,
-};
+/// Über dieser Höhe zwei Blenden mit Zwischenraum (4a.3: über ca. 13 cm,
+/// Stellfüße oder größere Höhe) …
+const blendeZweiReihenUeber = Millimeter(130);
+
+/// … je 60 mm breit (4a.3).
+const blendeZweiReihenBreite = Millimeter(60);
+
+/// Zugabe je Kante für die Ecken auf Gehrung im Zuschnitt (4a.5).
+const blendeGehrungszugabe = Millimeter(50);
+
+/// Größter Abstand der senkrechten Träger (4a.6).
+const blendentraegerAbstandMax = Millimeter(400);
+
+/// Abstand der Träger zum Boden (4a.6: Länge = Höhe − 2 cm − Dielenstärke).
+const blendentraegerBodenabstand = Millimeter(20);
+
+/// Schrauben je Träger (4a.6).
+const blendentraegerSchrauben = 2;
+
+/// Mögliche Blenden zum [belag] aus [artikel] (4a.1): Dielen derselben
+/// Holzart und Serie, glattkant, in der Stärke des Belags, mit Breite.
+List<Artikel> blendenZumBelag(Artikel belag, Iterable<Artikel> artikel) => [
+  for (final a in artikel)
+    if (a.art == Artikelart.diele &&
+        a.profil == Profil.glattkant &&
+        a.holzart?.id == belag.holzart?.id &&
+        a.serie == belag.serie &&
+        a.abmessungen.staerke == belag.abmessungen.staerke &&
+        a.abmessungen.breite != null)
+      a,
+];
+
+/// Blendenreihen für die Höhe [hoehe] aus den [blenden] (4a.2–4a.4):
+/// über 13 cm zwei Blenden à 60 mm, sonst eine in der breitesten Breite
+/// unter der Höhe (die Blende steht nicht auf dem Boden auf), höchstens
+/// 100 mm – 90 mm gibt es nicht, dann 80 mm. `null`, wenn die Serie die
+/// nötige Breite nicht hat: dann fragt der Planer nach, statt zu raten.
+List<Artikel>? blendenreihen(Millimeter hoehe, List<Artikel> blenden) {
+  if (hoehe > blendeZweiReihenUeber) {
+    final schmal = blenden
+        .where((b) => b.abmessungen.breite == blendeZweiReihenBreite)
+        .firstOrNull;
+    return schmal == null ? null : [schmal, schmal];
+  }
+  Artikel? beste;
+  for (final b in blenden) {
+    final breite = b.abmessungen.breite!;
+    if (breite < hoehe &&
+        breite <= blendeBreiteMax &&
+        (beste == null || breite > beste.abmessungen.breite!)) {
+      beste = b;
+    }
+  }
+  return beste == null ? null : [beste];
+}
 
 /// Material und Meldungen des Terrassenanschlusses einer Fläche (M7):
 /// Zuschnitte für die Stückliste, Bedarf für die Materialliste.
@@ -38,7 +90,7 @@ final class Anschlussbedarf {
        bedarf = List.unmodifiable(bedarf),
        meldungen = List.unmodifiable(meldungen);
 
-  /// Zuschnitte aus UK-Holz (Blendenhalter) für die Stückliste.
+  /// Zuschnitte aus UK-Holz (Blendenträger, Treppe) für die Stückliste.
   final List<Planstueck> stuecke;
 
   /// Bedarf für die Materialliste.
@@ -59,8 +111,9 @@ final class Anschlussbedarf {
 typedef Blendenstrecke = ({double laenge, Millimeter hoehe});
 
 /// Verblendete Strecken der Fläche: je verblendeter Seite ihre Länge und
-/// die größere Höhe ihrer Ecken ([hoehen] je Ecke, geprüft); beim Kreis
-/// („Fläche verblenden“) der Umfang und die größte Höhe.
+/// die kleinere Höhe ihrer Ecken ([hoehen] je Ecke, geprüft) – dort darf
+/// die Blende nicht auf dem Boden aufstehen (4a.2); beim Kreis („Fläche
+/// verblenden“) der Umfang und die kleinste Höhe.
 List<Blendenstrecke> blendenstrecken(
   Planungsstand stand,
   List<Millimeter> hoehen,
@@ -68,7 +121,7 @@ List<Blendenstrecke> blendenstrecken(
   if (stand.grundriss is KreisGrundriss) {
     return [
       if (stand.anschluss.verblendet.isNotEmpty)
-        (laenge: stand.kontur.umfang, hoehe: hoehen.reduce(_hoeher)),
+        (laenge: stand.kontur.umfang, hoehe: hoehen.reduce(_niedriger)),
     ];
   }
   final n = stand.seitenzahl;
@@ -77,15 +130,17 @@ List<Blendenstrecke> blendenstrecken(
       if (seitenstrecke(stand, seite) case (:final von, :final bis))
         (
           laenge: von.abstand(bis),
-          hoehe: _hoeher(hoehen[seite], hoehen[(seite + 1) % n]),
+          hoehe: _niedriger(hoehen[seite], hoehen[(seite + 1) % n]),
         ),
   ];
 }
 
-Millimeter _hoeher(Millimeter a, Millimeter b) => a > b ? a : b;
+Millimeter _niedriger(Millimeter a, Millimeter b) => a < b ? a : b;
 
 /// Ob alle freien Seiten (nicht an Bauelementen) verblendet sind – dann
 /// warnt der Planer vor fehlender Unterlüftung (F37, Fachkonzept 4.2).
+/// „Blende an allen Kanten“ heißt alle Kanten außer der Hauswand
+/// (Planungskern v6, 4a.7): angrenzende Seiten sind nie verblendet.
 bool ohneUnterlueftung(Planungsstand stand) {
   final anschluss = stand.anschluss;
   if (anschluss.verblendet.isEmpty) return false;
@@ -98,45 +153,43 @@ bool ohneUnterlueftung(Planungsstand stand) {
   return true;
 }
 
-/// Verblendung der Fläche [stand] (M7-02, Fachkonzept 4.2) mit den
-/// geprüften Höhen [hoehen] je Ecke:
+/// Seitenblende der Fläche [stand] (M7-02) mit den geprüften Höhen
+/// [hoehen] je Ecke nach den Planungsregeln Alexander (Planungskern v6,
+/// 11.11.2026), Abschnitt 4a:
 ///
-/// - **Verblendungsdielen** (Artikel aus `Beziehung.verblendung` des
-///   [belag], nur bei Belagstärke 19–23 mm): je verblendeter Strecke so
-///   viele Reihen, wie die Blendenhöhe (Höhe minus Dielenstärke) in
-///   Dielenbreiten braucht, jede Reihe so lang wie die Strecke; die
-///   Lieferlängen rechnet `lieferstuecke` (F37: 309, 480, 309 cm → 2 ×
-///   4000 + 1 × 5000 mm). Sie stehen nur in der Materialliste, mit Zusatz
-///   „Verblendung“ (Fachkonzept 08).
-/// - **Blendenhalter** (R-C05): kurze Stücke aus UK-Holz ([uk]) in der
-///   Terrassenhöhe, je Strecke im UK-Achsabstand [ukAbstand] plus eins
-///   (F37: 9 + 13 + 9 = 31 à 8,6 cm), beim Kreis ohne das eine. Ihre
-///   Lieferstücke rechnet `anschlussbedarf` mit den übrigen UK-Zuschnitten
-///   des Anschlusses.
+/// - **Blenden** (4a.1–4a.4): glattkante Dielen der Serie des [belag] in
+///   seiner Stärke aus dem [regelwerk] (`blendenZumBelag`), Reihen je
+///   verblendeter Strecke nach `blendenreihen`. Jede Reihe ist so lang wie
+///   die Strecke plus 5 cm je Kante für die Gehrung (4a.5, beim Kreis ohne
+///   Ecken keine); die Lieferlängen rechnet `lieferstuecke` (F37: 314, 485,
+///   314 cm → 2 × 4000 + 1 × 5000 mm). Sie stehen nur in der Materialliste,
+///   mit Zusatz „Verblendung“ (Fachkonzept 08).
+/// - **Träger** (4a.6, R-C05): senkrechte Stücke aus UK-Holz ([uk], aus
+///   der Serie wie die UK), je Strecke höchstens 40 cm auseinander und an
+///   beiden Enden einer (beim Kreis schließt sich der Umfang), so lang wie
+///   Höhe − 2 cm − Dielenstärke (F37: 9 + 13 + 9 = 31 à 4,5 cm); ohne [uk]
+///   (keine UK-Verlegung) keine. Ihre Lieferstücke rechnet
+///   `anschlussbedarf` mit den übrigen UK-Zuschnitten des Anschlusses.
+/// - **Schrauben** (4a.6): 2 je Träger, aus dem Befestigungsverweis der
+///   ersten Blende (glattkant: Terrassenschrauben).
 ///
-/// Meldungen: Unterlüftung (alle freien Seiten verblendet), Belagstärke
-/// außerhalb 19–23 mm, kein Höhenunterschied (Blendenhöhe ≤ 0) und kein
-/// Verblendungsartikel in den Artikeldaten.
+/// Meldungen: Unterlüftung (alle freien Seiten verblendet), kein
+/// Höhenunterschied (Höhe ≤ Dielenstärke) und Rückfrage, wenn die Serie
+/// die nötige Blende nicht hat (4a.4) – an dieser Seite dann kein Material.
 Anschlussbedarf verblendungsbedarf(
   Planungsstand stand, {
   required List<Millimeter> hoehen,
   Artikel? belag,
   Regelwerk? regelwerk,
   Artikel? uk,
-  Millimeter? ukAbstand,
 }) {
   final meldungen = [
     if (ohneUnterlueftung(stand)) Anschlussmeldung.unterlueftung,
   ];
-  final staerke = belag?.abmessungen.staerke;
-  if (stand.anschluss.verblendet.isEmpty || belag == null || staerke == null) {
+  if (stand.anschluss.verblendet.isEmpty || belag == null) {
     return Anschlussbedarf(meldungen: meldungen);
   }
-  if (!verblendungMoeglich(belag)) {
-    return Anschlussbedarf(
-      meldungen: [...meldungen, Anschlussmeldung.belagstaerke],
-    );
-  }
+  final staerke = belag.abmessungen.staerke ?? const Millimeter(0);
   final strecken = [
     for (final s in blendenstrecken(stand, hoehen))
       if (s.hoehe > staerke) s,
@@ -144,84 +197,100 @@ Anschlussbedarf verblendungsbedarf(
   if (strecken.length < stand.anschluss.verblendet.length) {
     meldungen.add(Anschlussmeldung.keinHoehenunterschied);
   }
-  final artikel = regelwerk?.datei[belag.nummer] == null
-      ? null
-      : regelwerk!.moeglich(belag.nummer, Beziehung.verblendung).firstOrNull;
-  if (artikel == null) meldungen.add(Anschlussmeldung.ohneVerblendungsartikel);
-  final halter = _blendenhalter(stand, strecken, uk, ukAbstand);
+  final blenden = blendenZumBelag(
+    belag,
+    regelwerk?.imBereich(Bereich.belag) ?? const [],
+  );
+  final zugabe = stand.grundriss is KreisGrundriss
+      ? const Millimeter(0)
+      : blendeGehrungszugabe;
+  final reihen = <Artikel, List<Millimeter>>{};
+  final traeger = <Planstueck>[];
+  var fehlt = false;
+  for (final s in strecken) {
+    final auswahl = blendenreihen(s.hoehe, blenden);
+    if (auswahl == null) {
+      fehlt = true;
+      continue;
+    }
+    for (final blende in auswahl) {
+      (reihen[blende] ??= []).add(Millimeter(s.laenge.round()) + zugabe);
+    }
+    if (uk != null) traeger.addAll(_traeger(stand, s, uk, staerke));
+  }
+  if (fehlt) meldungen.add(Anschlussmeldung.blendeFehlt);
   return Anschlussbedarf(
-    stuecke: halter,
-    bedarf: [if (artikel != null) ..._dielen(artikel, strecken, staerke)],
+    stuecke: traeger,
+    bedarf: [
+      for (final MapEntry(key: blende, value: stuecke) in reihen.entries)
+        ..._blenden(blende, stuecke),
+      if (regelwerk != null && traeger.isNotEmpty)
+        ..._schrauben(regelwerk, reihen.keys.first, traeger.length),
+    ],
     meldungen: meldungen,
   );
 }
 
-/// Verblendungsdielen der [strecken]: Reihen je Strecke aus der
-/// Blendenhöhe, Lieferlängen wie bei der UK; ohne Lieferlängen in lfm.
-List<Materialbedarf> _dielen(
-  Artikel artikel,
-  List<Blendenstrecke> strecken,
+/// Blenden [artikel] für die Reihen [stuecke] in den Lieferlängen der
+/// Serie wie bei der UK (lange Reihen eigene Bretter, kurze zusammen).
+List<Materialbedarf> _blenden(Artikel artikel, List<Millimeter> stuecke) => [
+  for (final MapEntry(key: laenge, value: anzahl) in lieferstuecke(
+    stuecke,
+    ukLieferlaengen(artikel),
+  ).entries)
+    Materialbedarf(
+      [artikel],
+      anzahl,
+      laenge: laenge,
+      zusatz: Materialzusatz.verblendung,
+    ),
+];
+
+/// Träger der Strecke [s] aus der [uk] (4a.6): höchstens 40 cm
+/// auseinander, an beiden Enden einer (beim Kreis schließt sich der
+/// Umfang); Länge = Höhe − 2 cm − Dielenstärke [staerke].
+List<Planstueck> _traeger(
+  Planungsstand stand,
+  Blendenstrecke s,
+  Artikel uk,
   Millimeter staerke,
 ) {
-  final breite = artikel.abmessungen.breite;
-  final stuecke = [
-    for (final s in strecken)
-      for (
-        var r = 0;
-        r < (breite == null ? 1 : ((s.hoehe - staerke).mm / breite.mm).ceil());
-        r++
-      )
-        Millimeter(s.laenge.round()),
-  ];
-  final laengen = ukLieferlaengen(artikel);
-  if (laengen.isEmpty) {
-    final summe = stuecke.fold(0, (a, s) => a + s.mm);
-    return [
-      Materialbedarf(
-        [artikel],
-        (summe / 1000).ceil(),
-        zusatz: Materialzusatz.verblendung,
-      ),
-    ];
-  }
+  final ende = stand.grundriss is KreisGrundriss ? 0 : 1;
+  final felder = math.max(
+    1,
+    (s.laenge / blendentraegerAbstandMax.mm - 1e-6).ceil(),
+  );
+  final laenge = s.hoehe - blendentraegerBodenabstand - staerke;
   return [
-    for (final MapEntry(key: laenge, value: anzahl) in lieferstuecke(
-      stuecke,
-      laengen,
-    ).entries)
-      Materialbedarf(
-        [artikel],
-        anzahl,
-        laenge: laenge,
-        zusatz: Materialzusatz.verblendung,
+    for (var i = 0; i < felder + ende; i++)
+      Planstueck(
+        uk.nummer,
+        uk.titel,
+        laenge,
+        ganzeLaenge: ukLieferlaengen(uk).last,
       ),
   ];
 }
 
-/// Blendenhalter der [strecken] aus der [uk]: je Strecke so viele, dass
-/// sie höchstens [abstand] auseinander stehen, an beiden Enden einer (beim
-/// Kreis schließt sich der Umfang); so lang wie die Terrassenhöhe dort.
-List<Planstueck> _blendenhalter(
-  Planungsstand stand,
-  List<Blendenstrecke> strecken,
-  Artikel? uk,
-  Millimeter? abstand,
+/// Schrauben für [traeger] Träger (4a.6: 2 je Träger) aus dem
+/// Befestigungsverweis der [blende]: die erste Schraube in
+/// Datenreihenfolge mit allen Verpackungseinheiten ihrer Länge; ohne
+/// Schraube kein Bedarf.
+List<Materialbedarf> _schrauben(
+  Regelwerk regelwerk,
+  Artikel blende,
+  int traeger,
 ) {
-  if (uk == null || abstand == null) return const [];
-  final ende = stand.grundriss is KreisGrundriss ? 0 : 1;
-  final ganze = ukLieferlaengen(uk);
+  final schrauben = [
+    for (final a in regelwerk.moeglich(blende.nummer, Beziehung.befestigung))
+      if (a.art == Artikelart.schraube) a,
+  ];
+  if (schrauben.isEmpty) return const [];
+  final laenge = schrauben.first.abmessungen.laengste;
   return [
-    for (final s in strecken)
-      for (
-        var i = 0;
-        i < math.max(1, (s.laenge / abstand.mm - 1e-6).ceil()) + ende;
-        i++
-      )
-        Planstueck(
-          uk.nummer,
-          uk.titel,
-          s.hoehe,
-          ganzeLaenge: ganze.isEmpty ? s.hoehe : ganze.last,
-        ),
+    Materialbedarf([
+      for (final s in schrauben)
+        if (s.abmessungen.laengste == laenge) s,
+    ], traeger * blendentraegerSchrauben),
   ];
 }

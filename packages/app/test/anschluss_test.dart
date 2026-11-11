@@ -309,6 +309,10 @@ void main() {
       );
       expect(find.text(en.meldungOhneRinnenartikel), findsOneWidget);
       expect(
+        find.byKey(const ValueKey('anschluss-ohneRinnenartikel')),
+        findsOneWidget,
+      );
+      expect(
         rinnenlageText(en, Rinnenlage.imElement),
         'In the floor-level element',
       );
