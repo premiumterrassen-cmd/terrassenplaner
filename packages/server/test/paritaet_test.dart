@@ -44,6 +44,11 @@ const _gruende = {
       'UK – Rand-UK, wo keine UK-Linie höchstens 6 cm daneben liegt '
       '(schräge Ränder, Ausschnitte, Innenecken, Bögen); Stücke und '
       'Lieferlängen anders als im alten Planer, Dielenenden darauf befestigt',
+  'Planungskern v6':
+      'Planungskern v6 / Entscheidung 11.11.2026: UK-Linien enden vor der '
+      'Rand-UK (um die UK-Breite kürzer) – Dielenenden an schrägen Kanten '
+      'liegen auf der Rand-UK, nicht zusätzlich auf der Linie (weniger '
+      'Clips)',
   'Frage 2': 'offen: vorhandene UK – alt 2 × 473 cm zusätzlich',
   'Frage 3': 'offen: Alu-UK – Anzahl der Schienen',
 };
@@ -56,6 +61,7 @@ const _konfigurationen = <String, Map<String, String>>{
     'Dielen': 'B-035',
     'Freidielen': 'R-B09',
     'UK': 'Rand-UK',
+    'Clips': 'Planungskern v6',
   },
   'F05': {'Dielen': 'B-035', 'UK': 'Rand-UK'},
   'F09': {'Clips': 'B-033'},

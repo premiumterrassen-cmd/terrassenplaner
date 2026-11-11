@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import 'package:test/test.dart';
@@ -485,6 +487,66 @@ void main() {
       expect(liste, containsAll(['2x4800 blau', '2x3090 blau']));
       expect(v.stossanzahl, 0);
       expect(v.rand.first.stoesse, isEmpty);
+    });
+
+    test('Linien enden vor der Rand-UK: an einer Kante mit Rand-UK um die '
+        'UK-Breite kürzer, an Kanten ohne nicht; zu kurze Reste fallen weg '
+        '(Planungskern v6 / Entscheidung 11.11.2026)', () {
+      Planungsstand dreieck(int hoehe) => Planungsstand.start.mitGrundriss(
+        FreiformGrundriss([
+          const Punkt(0, 0),
+          const Punkt(4000, 0),
+          Punkt(4000, hoehe.toDouble()),
+        ], geschlossen: true),
+      );
+      // Schräge y = 2,5 x mit Rand-UK, oben (y = 0) keine
+      final v = _verlege(dreieck(10000));
+      expect(v.rand, hasLength(1));
+      for (final l in v.linien) {
+        final (von, bis) = l.abschnitte.single;
+        expect(von, closeTo(0, 1e-6));
+        expect(bis, closeTo(2.5 * l.x - 40, 1e-6), reason: 'x = ${l.x}');
+      }
+      // erste Linie bei x = 2 cm: 5 cm bis zur Kante, bleibt 1 cm
+      expect(v.linien.first.x, closeTo(20, 1e-9));
+      expect(v.linien.first.abschnitte.single.$2, closeTo(10, 1e-6));
+      // Schräge y = 1,5 x: an der ersten Linie nur 3 cm – fällt weg
+      final kurz = _verlege(dreieck(6000));
+      expect(kurz.linien.first.abschnitte, isEmpty);
+      expect(
+        kurz.linien[1].abschnitte.single.$2,
+        closeTo(1.5 * 416 - 40, 1e-6),
+      );
+      // Kreis: die Enden liegen auf dem Bogen, die Rand-UK auf Sehnen bis
+      // 5 mm daneben – auch dort endet die Linie vor der Rand-UK
+      final kreis = Planungsstand.start.mitGrundriss(KreisGrundriss.vorgabe);
+      final h = kreis.kontur.huellrechteck;
+      final (mx, my, r) = (
+        (h.min.x + h.max.x) / 2,
+        (h.min.y + h.max.y) / 2,
+        (h.max.x - h.min.x) / 2,
+      );
+      // flache Sehnen oben und unten haben keine Rand-UK (die Linien liegen
+      // dort schon), dort bleibt das Ende am Rand
+      final enden = <String>[];
+      for (final l in _verlege(kreis).linien) {
+        final halb = math.sqrt(r * r - (l.x - mx) * (l.x - mx));
+        final (von, bis) = l.abschnitte.single;
+        for (final (ende, rand, richtung) in [
+          (von, my - halb, 1),
+          (bis, my + halb, -1),
+        ]) {
+          final kuerzer = (ende - rand) * richtung;
+          expect(
+            (kuerzer - 40).abs() < 1 || kuerzer.abs() < 1,
+            isTrue,
+            reason: 'x = ${l.x}: $kuerzer',
+          );
+          enden.add(kuerzer.abs() < 1 ? 'Rand' : 'vor Rand-UK');
+        }
+      }
+      expect(enden.where((e) => e == 'vor Rand-UK'), hasLength(18));
+      expect(enden.where((e) => e == 'Rand'), hasLength(2));
     });
 
     test('lange Rand-UK gestückelt wie eine Linie (R-B10); ihre Stöße '
