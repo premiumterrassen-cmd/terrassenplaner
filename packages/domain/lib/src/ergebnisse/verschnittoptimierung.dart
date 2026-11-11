@@ -39,13 +39,7 @@ List<Lieferdiele> optimiereZuschnitt(
   final liste = stuecke.toList();
   final regel = zuschneiden(liste, lieferlaengen, ueberlaenge: ueberlaenge);
   final optimiert = _fuelleDielen(liste, lieferlaengen, ueberlaenge.mm);
-  return _besser(optimiert, regel) ? optimiert : regel;
-}
-
-/// Ob [a] weniger liefert als [b] – bei gleicher Länge in weniger Dielen.
-bool _besser(List<Lieferdiele> a, List<Lieferdiele> b) {
-  final (la, lb) = (_geliefert(a), _geliefert(b));
-  return la < lb || la == lb && a.length < b.length;
+  return liefertWeniger(optimiert, regel) ? optimiert : regel;
 }
 
 int _geliefert(List<Lieferdiele> dielen) =>

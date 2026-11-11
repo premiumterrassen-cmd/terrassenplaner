@@ -112,6 +112,7 @@ void main() {
         'Lieferlänge nimmt Stücke bis zu ihrer Länge plus 3 cm auf', () {
       const u = dielenUeberlaenge;
       expect(zuschnitt([6030], const [_m4, _m5, _m6], u), ['6000: [6030]']);
+      expect(zuschnitt([], const [_m4, _m5, _m6], u), isEmpty);
       expect(zuschnitt([3015, 3015], const [_m4, _m5, _m6], u), [
         '6000: [3015, 3015]',
       ]);
@@ -119,6 +120,31 @@ void main() {
       expect(zuschnitt([4031], const [_m4, _m5, _m6], u), ['5000: [4031]']);
       // ohne Überlänge passen sie nicht
       expect(zuschnitt([3015, 3015]), ['4000: [3015]', '4000: [3015]']);
+      // Überlänge macht die Verteilung nie schlechter: F19 (Kreis Ø 360 cm)
+      // liefert mit ihr verteilt 170 m, ohne 168 m – es gilt die ohne
+      final kreis = [
+        for (final t in _verlegt(
+          Planungsstand.start.mitGrundriss(KreisGrundriss.vorgabe),
+        ).teile)
+          for (final s in t.stuecke) s.laenge,
+      ];
+      int geliefert(Millimeter ueberlaenge) => Dielenliste.aus(
+        zuschneiden(kreis, const [_m4, _m5, _m6], ueberlaenge: ueberlaenge),
+      ).geliefert.mm;
+      expect(geliefert(u), geliefert(const Millimeter(0)));
+      expect(geliefert(u), 168000);
+      // auch mit einem Stück genau in der längsten Lieferlänge
+      kreis.add(_m6);
+      expect(geliefert(u), 174000);
+      // gleich viel geliefert: die mit weniger Dielen
+      final eine = zuschneiden(const [_m6], const [_m6]);
+      final zwei = zuschneiden(
+        const [Millimeter(3000), Millimeter(3000)],
+        const [Millimeter(3000)],
+      );
+      expect(liefertWeniger(eine, zwei), isTrue);
+      expect(liefertWeniger(zwei, eine), isFalse);
+      expect(liefertWeniger(eine, eine), isFalse);
       expect(() => zuschnitt([6001]), throwsArgumentError);
       // geplant zählt höchstens die Lieferlänge: kein negativer Verschnitt
       final liste = Dielenliste.aus(

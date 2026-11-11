@@ -39,7 +39,9 @@ final class Lieferdiele {
 /// 200 cm passen in 4000 mm wie im alten Planer. Eine Lieferlänge nimmt
 /// Stücke bis zu ihrer Länge plus [ueberlaenge] auf (`dielenUeberlaenge`,
 /// Planungsregeln Alexander (Planungskern v6, 11.11.2026)): 603 cm aus einer
-/// 6-m-Diele, 2 × 301 cm ebenso.
+/// 6-m-Diele, 2 × 301 cm ebenso. Die Überlänge ist nur ein Angebot: Liefert
+/// die Verteilung ohne sie weniger (die Verteilung ist nicht optimal), gilt
+/// diese – Überlänge macht den Zuschnitt nie schlechter.
 ///
 /// Das ist eine Verteilung je Teilfläche, keine Optimierung über
 /// Varianten, Flächen und Belagwechsel hinweg – die folgt mit der
@@ -50,11 +52,30 @@ List<Lieferdiele> zuschneiden(
   List<Millimeter> lieferlaengen, {
   Millimeter ueberlaenge = const Millimeter(0),
 }) {
-  final u = ueberlaenge.mm;
+  final folge = [for (final s in stuecke) s.mm]..sort((a, b) => b - a);
   final laengen = [for (final l in lieferlaengen) l.mm]..sort();
+  final mit = _verteile(folge, laengen, ueberlaenge.mm);
+  if (ueberlaenge.mm == 0 || folge.isEmpty || folge.first > laengen.last) {
+    return mit;
+  }
+  final ohne = _verteile(folge, laengen, 0);
+  return liefertWeniger(ohne, mit) ? ohne : mit;
+}
+
+/// Ob [a] weniger liefert als [b] – bei gleicher Länge in weniger Dielen.
+bool liefertWeniger(List<Lieferdiele> a, List<Lieferdiele> b) {
+  final (la, lb) = (_geliefert(a), _geliefert(b));
+  return la < lb || la == lb && a.length < b.length;
+}
+
+int _geliefert(List<Lieferdiele> dielen) =>
+    dielen.fold(0, (summe, d) => summe + d.laenge.mm);
+
+/// [zuschneiden] der Stücke [folge] (absteigend) auf die [laengen]
+/// (aufsteigend), jede mit [u] mm Überlänge.
+List<Lieferdiele> _verteile(List<int> folge, List<int> laengen, int u) {
   final offen = <({int laenge, List<int> schnitte})>[];
   final reste = <int>[];
-  final folge = [for (final s in stuecke) s.mm]..sort((a, b) => b - a);
   for (var i = 0; i < folge.length; i++) {
     final stueck = folge[i];
     var beste = -1;
