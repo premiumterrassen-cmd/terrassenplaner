@@ -19,7 +19,7 @@ Aus M1-03 (Verdacht auf Fehler des alten Planers, siehe [09](09-nicht-teil-der-k
 
 13. ~~**Gewerbliche Nutzung** (F35)~~ → beantwortet, siehe unten.
 14. ~~**Rinne** (F38)~~ → beantwortet.
-15. ~~**Dielenlängen über 600 cm** (F14)~~ → Fehler laut B-035 (7 m nur Serbien; UK 6,5 m gibt es nicht).
+15. ~~**Dielenlängen über 600 cm** (F14)~~ → Fehler laut B-035 (7 m nur bei ECO SELECT; UK 6,5 m gibt es nicht).
 16. ~~**Kurze Stücke verbinden** (F13)~~ → beantwortet.
 17. ~~**Querstreben**~~ → beantwortet.
 18. ~~**Grenzen der Terrassenmaße** (M4-02)~~ → beantwortet.
@@ -48,7 +48,7 @@ Aus dem Paritätsnachweis (M10-01, [Bericht](../abnahme/paritaetsbericht.md#offe
 
 - **Gewerbliche Nutzung** (Frage 13): war gedacht, um auf teurere Zubehörteile und dickere Dielen umzustellen – fachlich nicht nötig, nur Marketing; **bleibt wie im alten Planer** (nur mehr Gummiband). Später vielleicht: UK zwingend versteift und nur PREMIUM SELECT – noch nicht entschieden, zurückgestellt.
 - **Rinne und UK** (Frage 14): Die UK geht bis zur Hauswand (endet 1–2 cm davor). Unter der Rinne liegen die Auflageprofile (RELO VA), darauf werden die Ventilationsprofile (RELO V) geschraubt. Die volle UK-Länge in F38 ist also richtig.
-- **Dielenlängen über 600 cm** (Frage 15): laut B-035 gibt es 7 m nur aus Serbien (ECO SELECT), Bosnien und Rumänien liefern 4/5/6 m; UK 6,5 m gibt es nicht → Fehler des alten Planers (F14).
+- **Dielenlängen über 600 cm** (Frage 15): laut B-035 gibt es 7 m nur bei ECO SELECT, die anderen Serien haben 4/5/6 m; UK 6,5 m gibt es nicht → Fehler des alten Planers (F14).
 - **Kurze Stücke verbinden** (Frage 16): Ein Stoß muss dann nicht durchgehend sein – bei nicht rechtwinkligen Terrassen darf ein kurzes Stück durch eine ganze Diele ersetzt werden. Beim Rechteck (F13) daher ohne Wirkung, das ist richtig.
 - **Querstreben** (Frage 17): Abstand 60 cm (so im alten Planer hinterlegt, gewollt).
 
