@@ -1,6 +1,6 @@
 # 14 Planungsregeln aus Firmenwissen (M1-04)
 
-Fachregeln für den neuen Planer aus dem Firmenwissen von ALTO HOLZ. Abgleich mit den **Planungsregeln Alexander (Planungskern v6, 11.11.2026)** Abschnitte 1 und 4 am 11.11.2026 (R-B01, R-B06, R-B09, R-B14, R-B15, R-D07, R-D08; UK-Regeln aus Abschnitt 3 laufen getrennt). Gelesen am 19.10.2026: Beschlussregister **v129** (`Claude-Wissen/00_Zentral`), Sortimentsmatrix 2027_07 (mit Korrektur B-212), Unternehmensprofil, technisches Merkblatt mit Klärungsliste M-01–M-15, Montagehinweise (10 Regeln) und die Antworten von Alexander aus [10](10-offene-fragen.md).
+Fachregeln für den neuen Planer aus dem Firmenwissen von ALTO HOLZ. Abgleich mit den **Planungsregeln Alexander (Planungskern v6, 11.11.2026)** Abschnitte 1 und 4 am 11.11.2026 (R-B01, R-B06, R-B09, R-B14, R-B15, R-D07, R-D08; Rand-UK aus Abschnitt 3: R-C11, R-C12). Gelesen am 19.10.2026: Beschlussregister **v129** (`Claude-Wissen/00_Zentral`), Sortimentsmatrix 2027_07 (mit Korrektur B-212), Unternehmensprofil, technisches Merkblatt mit Klärungsliste M-01–M-15, Montagehinweise (10 Regeln) und die Antworten von Alexander aus [10](10-offene-fragen.md).
 
 **Vertraulichkeit (B-020 ff.):** Hier stehen nur Planungsregeln. Werke, Herkunftsländer, Lieferanten, Einkaufspreise, Margen und Hersteller der Eigenmarken stehen nicht in diesem öffentlichen Repository – die Serien heißen nur BASIC, ECO SELECT, PREMIUM SELECT und MASSIV.
 
