@@ -146,7 +146,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Diele genutet 60'), findsOneWidget);
       expect(find.text('Maße: 3000/4000 × 60 × 22 mm'), findsOneWidget);
-      expect(find.text('Fuge: 5 mm'), findsOneWidget);
+      expect(find.text('Fuge: 6 mm'), findsOneWidget);
       expect(find.text('Produktauswahl'), findsOneWidget);
       expect(tester.widget<Artikelbild>(find.byType(Artikelbild)).groesse, 64);
     });
