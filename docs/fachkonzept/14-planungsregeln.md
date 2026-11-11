@@ -1,6 +1,6 @@
 # 14 Planungsregeln aus Firmenwissen (M1-04)
 
-Fachregeln für den neuen Planer aus dem Firmenwissen von ALTO HOLZ. Abgleich mit den **Planungsregeln Alexander (Planungskern v6, 11.11.2026)** Abschnitte 1 und 4 am 11.11.2026 (R-B01, R-B06, R-B09, R-B14, R-B15, R-D07, R-D08; Rand-UK aus Abschnitt 3: R-C11, R-C12). Gelesen am 19.10.2026: Beschlussregister **v129** (`Claude-Wissen/00_Zentral`), Sortimentsmatrix 2027_07 (mit Korrektur B-212), Unternehmensprofil, technisches Merkblatt mit Klärungsliste M-01–M-15, Montagehinweise (10 Regeln) und die Antworten von Alexander aus [10](10-offene-fragen.md).
+Fachregeln für den neuen Planer aus dem Firmenwissen von ALTO HOLZ. Abgleich mit den **Planungsregeln Alexander (Planungskern v6, 11.11.2026)** Abschnitte 1 und 4 am 11.11.2026 (R-B01, R-B06, R-B09, R-B14, R-B15, R-D07, R-D09; Rand-UK aus Abschnitt 3: R-C11, R-C12). Gelesen am 19.10.2026: Beschlussregister **v129** (`Claude-Wissen/00_Zentral`), Sortimentsmatrix 2027_07 (mit Korrektur B-212), Unternehmensprofil, technisches Merkblatt mit Klärungsliste M-01–M-15, Montagehinweise (10 Regeln) und die Antworten von Alexander aus [10](10-offene-fragen.md).
 
 **Vertraulichkeit (B-020 ff.):** Hier stehen nur Planungsregeln. Werke, Herkunftsländer, Lieferanten, Einkaufspreise, Margen und Hersteller der Eigenmarken stehen nicht in diesem öffentlichen Repository – die Serien heißen nur BASIC, ECO SELECT, PREMIUM SELECT und MASSIV.
 
@@ -53,7 +53,7 @@ Die mit ⚙ markierten Regeln sind im domain-Paket ausführbar und mit Tests bel
 | R-C02 | UK auf den Auflagern verschrauben (Ecken, Ränder, ausgewählte Punkte). | Montagehinweise Regel 2 | gilt (Hinweis) |
 | R-C03 | Aussteifung: Leiterverband (Querstreben) oder Kopfband 45°. **Querstreben-Abstand 60 cm.** | Montagehinweise Regel 5, Alexander (Frage 17) | gilt |
 | R-C04 | Gummiband/Pads (GUMO) zwischen Diele und UK bzw. unter der UK. | Montagehinweise Regel 8, B-039 | gilt |
-| R-C05 | Blendenhalter: bei Verblendung kurze UK-Stücke (8,6–11 cm) im 90°-Winkel an den Sichtseiten. | Alexander | gilt |
+| R-C05 ⚙ | Blendenträger: bei Verblendung senkrechte Hölzer aus dem UK-Holz der Serie an den Sichtseiten, höchstens 40 cm auseinander (an den Stirnenden der UK und an der anderen Seite), Länge = Höhe − 2 cm − Dielenstärke, 2 Schrauben je Holz (`verblendungsbedarf`, [04 · 4.2](04-terrassenanschluss.md)). | Alexander; Planungsregeln Alexander (Planungskern v6, 11.11.2026), Abschnitt 4a.6 | gilt · früher: kurze Stücke 8,6–11 cm über die ganze Höhe im UK-Achsabstand |
 | R-C06 | Vorhandene UK: neue UK wird darauf gebaut – UK-Holz und Bodenanker bleiben. | Alexander (Frage 7) | gilt |
 | R-C07 | Untergrund ist nur Information für die Beratung, keine Wirkung auf die Berechnung. | Alexander (Frage 6) | gilt |
 | R-C08 | Unter einer Rinne geht die UK bis 1–2 cm vor die Hauswand; darunter Auflageprofile, darauf Ventilationsprofile. | Alexander (Frage 14) | gilt |
@@ -73,7 +73,8 @@ Die mit ⚙ markierten Regeln sind im domain-Paket ausführbar und mit Tests bel
 | R-D05 | Mengenfaktoren aus realen Projekten (Prüfgröße, nicht Rechenweg): Dielen-lfm ≈ m² × 1000 / (Breite + 6) × 1,07; UK-lfm ≈ m² / 0,40 × 1,1; Clips ≈ Dielen-lfm / 0,4; GUMO/Pads ≈ UK-lfm (alle 50 cm); Öl 0,2 l/m². | Unternehmensprofil | gilt (Plausibilitätsprüfung) |
 | R-D06 | Pflege: vor der Montage alle Seiten inkl. Stirnseiten ölen, danach mindestens jährlich und vor dem Winter (Hinweistext, Öl als Zubehör). | B-091, B-182, B-221 | gilt (Hinweis) |
 | R-D07 | Freidielen: im Planer, in GrandTotal und in den Planungsunterlagen als eigene Position mit 0,00 € (Staffel R-B09); **nicht im Warenkorb-Link**. Im Shop werden sie nicht erwähnt oder zugesagt, im Chat dürfen sie erwähnt werden. | B-228 (ersetzt B-079) | gilt |
-| R-D08 ⚙ | **Plausibilität der Fläche** (m²): bis 0,05 m² Fehler „Maße fehlen oder sind falsch“, über 1.000 m² Fehler „unplausibel groß“, außerhalb 1–300 m² Hinweis – im Schritt Grundriss und in den Hinweisen der Planungsunterlagen (`pruefeFlaeche`). Die Grenzen der Seitenlängen (50 cm bis 300 m) bleiben. | Planungsregeln Alexander (Planungskern v6, 11.11.2026) Regel 1.7 | gilt |
+| R-D08 ⚙ | Seitenblende: glattkante Diele der Serie in Belagstärke; Breite = breiteste Breite der Serie unter der Aufbauhöhe (steht nicht auf dem Boden auf), höchstens 100 mm (90 mm gibt es nicht → 80 mm); über ca. 13 cm zwei Blenden à 60 mm mit Zwischenraum; fehlt die Breite → Rückfrage statt raten; Ecken auf Gehrung (+5 cm je Kante im Zuschnitt); „Blende an allen Kanten“ = alle Kanten außer Hauswand/angrenzender Seite. Umsetzung: `blendenZumBelag`, `blendenreihen`, `verblendungsbedarf` ([04 · 4.2](04-terrassenanschluss.md)). | Planungsregeln Alexander (Planungskern v6, 11.11.2026), Abschnitt 4a.1–4a.5, 4a.7 | gilt · Abweichung alt: Verweis „moeglicheVerblendung“, nur 19–23 mm, Reihen bis zur Blendenhöhe |
+| R-D09 ⚙ | **Plausibilität der Fläche** (m²): bis 0,05 m² Fehler „Maße fehlen oder sind falsch“, über 1.000 m² Fehler „unplausibel groß“, außerhalb 1–300 m² Hinweis – im Schritt Grundriss und in den Hinweisen der Planungsunterlagen (`pruefeFlaeche`). Die Grenzen der Seitenlängen (50 cm bis 300 m) bleiben. | Planungsregeln Alexander (Planungskern v6, 11.11.2026) Regel 1.7 | gilt |
 
 ## Widersprüche zum alten Planer
 

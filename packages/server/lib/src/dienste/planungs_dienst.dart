@@ -642,7 +642,7 @@ class PlanungsDienst {
   /// Lieferhölzer der UK einer Fläche aus einem gemeinsamen Zuschnitt
   /// (M10-01, Paritätsnachweis): UK-Verlegung, zusätzliches Holz der
   /// Nutzungsart, Stützen der Hochterrasse und die UK-Stücke des
-  /// Anschlusses (Blendenhalter, Treppe). Kurze Stücke kommen so zuerst in
+  /// Anschlusses (Blendenträger, Treppe). Kurze Stücke kommen so zuerst in
   /// die Reste der langen (`lieferhoelzer`) – wie im alten Planer (F28: 13
   /// × 400 cm für 309 + 39,9 + 39,9 cm) statt je Quelle eigene Hölzer.
   static List<Lieferdiele> _ukHoelzer(
@@ -735,10 +735,10 @@ class PlanungsDienst {
     );
   }
 
-  /// Terrassenanschluss der Fläche (M7): Verblendung (M7-02) mit
-  /// Blendenhaltern im UK-Achsabstand aus den Resten der UK-Verlegung (ohne
-  /// UK-Verlegung keine Blendenhalter), Entwässerungsrinnen (M7-03) und
-  /// Treppen (M7-05).
+  /// Terrassenanschluss der Fläche (M7): Seitenblende (M7-02, Planungskern
+  /// v6, 4a) mit Trägern höchstens 40 cm auseinander aus den Resten der
+  /// UK-Verlegung (ohne UK-Verlegung keine Träger), Entwässerungsrinnen
+  /// (M7-03) und Treppen (M7-05).
   static Anschlussbedarf _anschluss(
     Planungsstand stand,
     Artikel? belag,
