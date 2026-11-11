@@ -434,6 +434,114 @@ void main() {
     });
   });
 
+  group('Rand-UK an den Kanten mit Dielenenden (Planungsregeln Alexander, '
+      'Planungskern v6, Regel 3.3/3.4)', () {
+    double summe(Iterable<double> l) => l.fold(0.0, (a, b) => a + b);
+    double linienlaenge(UkVerlegung v) => summe([
+      for (final l in v.linien)
+        for (final (von, bis) in l.abschnitte) bis - von,
+    ]);
+    List<int> randlaengen(UkVerlegung v) => [
+      for (final r in v.rand) r.von.abstand(r.bis).round(),
+    ];
+
+    test('Gegenprobe 480 × 309 cm (F01): die Ränder quer zur Diele haben '
+        'schon UK, keine Rand-UK', () {
+      final v = _verlege(Planungsstand.start);
+      expect(v.rand, isEmpty);
+      expect(v.ergaenzt, isEmpty);
+      expect(v.hoelzer, hasLength(13));
+      expect(v.rand.clear, throwsUnsupportedError);
+      expect(UkVerlegung.keine.rand, isEmpty);
+    });
+
+    test('diagonal (F03): an allen vier Kanten eine Rand-UK bündig, eine '
+        'halbe UK-Breite innen; Länge, Stückliste und Hölzer zählen sie', () {
+      final s = Planungsstand.start.mitVerlegerichtung(
+        Verlegerichtung.diagonal45,
+      );
+      final v = _verlege(s);
+      expect(randlaengen(v), [4800, 3090, 4800, 3090]);
+      expect(v.rand.every((r) => !r.ergaenzt), isTrue);
+      expect(v.ergaenzt, isEmpty);
+      expect(v.laenge, closeTo(linienlaenge(v) + 2 * (4800 + 3090), 1e-6));
+      // in Planungskoordinaten: die Rand-UK der Kante A–B liegt 2 cm innen
+      final ab = v.hoelzer.firstWhere(
+        (h) => (h.von.y - 20).abs() < 1e-6 && (h.bis.y - 20).abs() < 1e-6,
+      );
+      expect(ab.von.x, closeTo(0, 1e-6));
+      expect(ab.bis.x, closeTo(4800, 1e-6));
+      expect(ab.farbe, Stueckfarbe.blau);
+      expect(v.hoelzer, hasLength(v.stuecke.length));
+      final liste = _liste(v);
+      expect(liste, containsAll(['2x4800 blau', '2x3090 blau']));
+      expect(v.stossanzahl, 0);
+      expect(v.rand.first.stoesse, isEmpty);
+    });
+
+    test('lange Rand-UK gestückelt wie eine Linie (R-B10); ihre Stöße '
+        'zählen', () {
+      final s = _rechteck(
+        8000,
+        3090,
+      ).mitVerlegerichtung(Verlegerichtung.diagonal45);
+      final v = _verlege(s);
+      final lang = v.rand.firstWhere((r) => r.von.abstand(r.bis) > 7000);
+      expect(lang.stoesse, [6000]);
+      // 1300 cm: 600 + 600 + 100 cm, Stöße bei 600 und 1200 cm
+      final linie = _verlege(_rechteck(4800, 13000)).linien.first;
+      expect(linie.stoesse, [6000, 12000]);
+      expect(
+        v.stossanzahl,
+        v.linien.fold(0, (n, l) => n + l.stoesse.length) + 2,
+      );
+    });
+
+    test('Innenecke der L-Form und leerer Ausschnitt auf der '
+        'Terrassenseite; anderer Belag ohne Rand-UK', () {
+      final l = _verlege(Planungsstand.start.mitGrundriss(LGrundriss.vorgabe));
+      expect(l.rand.single.von, const Punkt(2680, 0));
+      expect(l.rand.single.bis, const Punkt(2680, 1800));
+      final leer = Ausschnitt(
+        bezeichnung: 'A1',
+        x: const Millimeter(1000),
+        y: const Millimeter(1000),
+        laenge: const Millimeter(1000),
+        breite: const Millimeter(1000),
+      );
+      final s = Planungsstand.start.mitNeuemAusschnitt().mitAusschnitt(0, leer);
+      // rechts liegt eine Linie 3,3 mm neben der Kante, links 21 cm
+      final a = _verlege(s);
+      expect(a.rand, hasLength(1));
+      expect(a.rand.single.von.x, closeTo(980, 1e-9));
+      expect(a.rand.single.bis.x, closeTo(980, 1e-9));
+      expect(
+        _verlege(
+          s.mitAusschnitt(0, leer.mitFunktion(Ausschnittfunktion.andererBelag)),
+        ).rand,
+        isEmpty,
+      );
+    });
+
+    test('Kreis: je Sehne eine Rand-UK (höchstens 5 mm vom Bogen); die '
+        'Selbstkontrolle ergänzt die flachen und meldet sie', () {
+      final v = _verlege(
+        Planungsstand.start.mitGrundriss(KreisGrundriss.vorgabe),
+      );
+      expect(randBogenToleranz, 5);
+      final laengen = randlaengen(v);
+      expect(laengen.every((l) => l > 250 && l < 260), isTrue);
+      expect(v.rand.where((r) => !r.ergaenzt), hasLength(32));
+      expect(v.ergaenzt, [
+        for (final r in v.rand)
+          if (r.ergaenzt) Millimeter(r.von.abstand(r.bis).round()),
+      ]);
+      expect(v.ergaenzt, hasLength(6));
+      // die ergänzten stehen nach denen der Regel
+      expect(v.rand.skip(32).every((r) => r.ergaenzt), isTrue);
+    });
+  });
+
   group('Befestigung auf den UK-Hölzern (M6-10)', () {
     test('F01 und F09 wie mit den gleichmäßigen Linien; L-Form nur, wo '
         'die Linie liegt', () {
@@ -459,8 +567,12 @@ void main() {
       final lv = _verlege(l);
       final ld = _dielen(l);
       final p = befestigungspunkteAufUk(ld, lv);
-      // jedes Stück liegt nur auf den Hölzern unter ihm
+      // jedes Stück liegt nur auf den Hölzern unter ihm; die Reihen des
+      // unteren Schenkels enden an der Innenkante (x = 2700) auf der
+      // Rand-UK (Planungsregeln 3.3)
+      expect(lv.rand.single.von, const Punkt(2680, 0));
       var erwartet = 0;
+      var aufRand = 0;
       for (final s in ld) {
         final xs = [for (final q in s.umriss) q.x];
         final ys = [for (final q in s.umriss) q.y];
@@ -476,14 +588,13 @@ void main() {
                   h.abschnitte.any((a) => a.$1 <= mitte && mitte <= a.$2),
             )
             .length;
+        // die Reihe an der Ecke (Mitte 1787,5) läuft über die Rand-UK
+        if (xs.reduce((a, b) => a > b ? a : b) > 2680 && mitte <= 1800) {
+          aufRand++;
+        }
       }
-      expect(p.punkte, erwartet);
-      expect(
-        p.punkte,
-        lessThan(
-          befestigungspunkte(ld, winkel: 0, ukAbstand: _abstand).punkte + 1,
-        ),
-      );
+      expect(aufRand, 28);
+      expect(p.punkte, erwartet + aufRand);
       // senkrecht verlegt: gedreht gerechnet
       final senk = Planungsstand.start.mitVerlegerichtung(
         Verlegerichtung.senkrecht,
@@ -495,6 +606,107 @@ void main() {
           winkel: 90,
           ukAbstand: _abstand,
         ).punkte,
+      );
+    });
+
+    test('Enden auf der Rand-UK (Planungsregeln 3.3): je Kreuzung auf Höhe '
+        'der Mitte ein Punkt, nicht doppelt neben einer Linie', () {
+      // Stück 0–1000 × 0–60 (Mitte y = 30), Rand-UK schräg über x = 1000
+      Dielenstueck stueck(double bis) => Dielenstueck(
+        0,
+        Millimeter(bis.round()),
+        [Punkt.ursprung, Punkt(bis, 0), Punkt(bis, 60), const Punkt(0, 60)],
+        breite: 65,
+      );
+      UkRand rand(Punkt von, Punkt bis) =>
+          (von: von, bis: bis, stoesse: const [], ergaenzt: false);
+      UkLinie linie(double x) =>
+          (x: x, abschnitte: const [(0.0, 3000.0)], stoesse: const []);
+      int punkte(List<UkLinie> linien, List<UkRand> r, [double bis = 1000]) =>
+          befestigungspunkteAufUk(
+            [stueck(bis)],
+            UkVerlegung(linien: linien, rand: r, breite: const Millimeter(40)),
+          ).punkte;
+      // Rand-UK von (990|0) nach (1010|60): kreuzt die Mitte bei x = 1000
+      final schraeg = rand(const Punkt(990, 0), const Punkt(1010, 60));
+      expect(punkte([linie(20)], [schraeg]), 2);
+      // die Rand-UK reicht nicht bis zur Mitte (oben oder unten vorbei)
+      expect(
+        punkte(
+          [linie(20)],
+          [rand(const Punkt(990, 31), const Punkt(1010, 90))],
+        ),
+        1,
+      );
+      expect(
+        punkte(
+          [linie(20)],
+          [rand(const Punkt(990, -60), const Punkt(1010, 29))],
+        ),
+        1,
+      );
+      // die Mitte genau am Ende der Rand-UK zählt noch
+      expect(
+        punkte(
+          [linie(20)],
+          [rand(const Punkt(990, 30), const Punkt(1010, 90))],
+        ),
+        2,
+      );
+      // Kreuzung höchstens eine halbe UK-Breite hinter dem Stückende
+      expect(
+        punkte(
+          [linie(20)],
+          [rand(const Punkt(1019, 0), const Punkt(1019, 60))],
+        ),
+        2,
+      );
+      expect(
+        punkte(
+          [linie(20)],
+          [rand(const Punkt(1020, 0), const Punkt(1020, 60))],
+        ),
+        1,
+      );
+      expect(
+        punkte([linie(500)], [rand(const Punkt(-19, 0), const Punkt(-19, 60))]),
+        2,
+      );
+      expect(
+        punkte([linie(500)], [rand(const Punkt(-20, 0), const Punkt(-20, 60))]),
+        1,
+      );
+      // eine Linie unter dem Ende höchstens 6 cm neben der Kreuzung
+      expect(punkte([linie(20), linie(940)], [schraeg]), 2);
+      expect(punkte([linie(20), linie(939)], [schraeg]), 3);
+      expect(punkte([linie(20), linie(960)], [schraeg]), 2);
+      // Kreuzung auf Höhe der Mitte: (1000|20)–(1010|40) bei x = 1005 ja,
+      // (1015|20)–(1035|40) bei x = 1025 hinter dem Stück nicht
+      expect(
+        punkte(
+          [linie(20)],
+          [rand(const Punkt(1000, 20), const Punkt(1010, 40))],
+        ),
+        2,
+      );
+      expect(
+        punkte(
+          [linie(20)],
+          [rand(const Punkt(1015, 20), const Punkt(1035, 40))],
+        ),
+        1,
+      );
+      // Randreihe zählt mit
+      expect(
+        befestigungspunkteAufUk(
+          [stueck(1000)],
+          UkVerlegung(
+            linien: [linie(20)],
+            rand: [schraeg],
+            breite: const Millimeter(40),
+          ),
+        ),
+        (punkte: 2, randpunkte: 2),
       );
     });
   });
@@ -606,7 +818,34 @@ void main() {
         ..startTable(111)
         ..addOffset(110, ort);
       fbb.finish(fbb.endTable());
-      expect(Berechnung.ausBytes(fbb.buffer).unterbau.hoelzer, isEmpty);
+      expect(Berechnung.ausBytes(fbb.buffer).unterbau.randErgaenzt, isEmpty);
+    });
+
+    test('ergänzte Rand-UK (Planungsregeln 3.4) für die Hinweise, Transport '
+        'hin und zurück', () {
+      final kreis = Planungsstand.start.mitGrundriss(KreisGrundriss.vorgabe);
+      final v = _verlege(kreis);
+      final u = unterbauFuer(
+        kreis,
+        hoehen: Hoehenpunkte(hoehen: const [Millimeter(86)]),
+        uk: _uk4060,
+        verlegung: v,
+      );
+      expect(u.randErgaenzt, v.ergaenzt);
+      expect(u.randErgaenzt, hasLength(6));
+      expect(u.randErgaenzt.clear, throwsUnsupportedError);
+      final z = Berechnung.ausBytes(
+        Berechnung(umriss: const [], flaeche: 0, unterbau: u).zuBytes(),
+      ).unterbau;
+      expect(z.randErgaenzt, v.ergaenzt);
+      expect(
+        unterbauFuer(
+          kreis,
+          hoehen: Hoehenpunkte(hoehen: const [Millimeter(86)]),
+          uk: _uk4060,
+        ).randErgaenzt,
+        isEmpty,
+      );
     });
   });
 

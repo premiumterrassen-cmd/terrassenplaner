@@ -2284,6 +2284,12 @@ abstract class PlanerTexte {
   /// **'Die gewählte Feldbreite überschreitet die Firmenregel; gerechnet wird mit {cm} cm.'**
   String feldbreiteBegrenzt(String cm);
 
+  /// No description provided for @randUkErgaenzt.
+  ///
+  /// In de, this message translates to:
+  /// **'Rand-UK {cm} cm ergänzt: An einer Kante endeten Dielen ohne UK darunter (Selbstkontrolle).'**
+  String randUkErgaenzt(String cm);
+
   /// No description provided for @feldbreiteOhneBelag.
   ///
   /// In de, this message translates to:

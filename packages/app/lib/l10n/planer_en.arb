@@ -382,6 +382,7 @@
   "feldbreiteHinweis": "Largest spacing of the substructure joists (centre to centre). Company rule: at most 40 cm, safer below 35 cm.",
   "feldbreiteCm": "{cm} cm",
   "feldbreiteBegrenzt": "The chosen field width exceeds the company rule; {cm} cm is used.",
+  "randUkErgaenzt": "Edge substructure of {cm} cm added: boards ended at an edge without substructure underneath (self-check).",
   "feldbreiteOhneBelag": "The field width depends on the decking: choose a timber decking first.",
   "automatisch": "Automatic",
   "materialliste": "Material list",

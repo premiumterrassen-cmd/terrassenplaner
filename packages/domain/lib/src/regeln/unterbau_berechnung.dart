@@ -25,7 +25,8 @@ import 'uk_verlegung.dart';
 ///   Stelzfüße und Pads samt Höhengrenzen und Meldungen. Hochterrasse und
 ///   vorhandene UK stehen auf Stützen bzw. der vorhandenen UK (M6-11). Ohne
 ///   UK keine; kennt das Regelwerk die UK nicht, nur der Abstand.
-/// - **UK-Hölzer** (M6-10) der [verlegung] für die Zeichnung.
+/// - **UK-Hölzer** (M6-10) der [verlegung] für die Zeichnung und die Längen
+///   der von der Selbstkontrolle ergänzten Rand-UK (Planungsregeln 3.4).
 /// - **Auflager** (M6-11) aus dem [auflager]bedarf: Orte mit Spalt und die
 ///   Tabelle der Höhenzuordnung.
 Unterbau unterbauFuer(
@@ -84,6 +85,7 @@ Unterbau unterbauFuer(
         : verlegung.breite,
     auflagerpunkte: auflager?.punkte ?? const [],
     zuordnung: auflager?.zeilen ?? const [],
+    randErgaenzt: verlegung?.ergaenzt ?? const [],
   );
 }
 

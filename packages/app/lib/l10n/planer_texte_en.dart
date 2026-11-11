@@ -1270,6 +1270,11 @@ class PlanerTexteEn extends PlanerTexte {
   }
 
   @override
+  String randUkErgaenzt(String cm) {
+    return 'Edge substructure of $cm cm added: boards ended at an edge without substructure underneath (self-check).';
+  }
+
+  @override
   String get feldbreiteOhneBelag =>
       'The field width depends on the decking: choose a timber decking first.';
 

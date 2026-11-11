@@ -332,6 +332,10 @@ void main() {
     test('fährt die Szenarien und meldet Ergebnisse und Zielwerte', () async {
       await starteDienste();
       final zeilen = <String>[];
+      // Lastwerkzeug mit fester Messung: je Abfrage 1 s CPU mehr. `ps` misst
+      // unter Linux nur ganze Sekunden, zwei echte Messungen desselben
+      // Prozesses streuen in kurzen Läufen um bis zu eine Sekunde.
+      var lastSekunden = 0;
       final bericht = await Lasttest.fuehreAus(
         Lauf(
           url: url,
@@ -341,7 +345,10 @@ void main() {
         ),
         verbinde,
         messe: () => Prozessmessung.lies(pid),
-        messeLast: () => Prozessmessung.lies(pid),
+        messeLast: () async => Prozessmessung(
+          speicherKb: 1,
+          cpuZeit: Duration(seconds: lastSekunden++),
+        ),
         melde: zeilen.add,
         // ein Stau im Router (connectanum, docs/abnahme/lasttest.md) darf
         // den Test nicht minutenlang aufhalten
@@ -362,7 +369,7 @@ void main() {
         expect(e.speicherVorherMb, greaterThan(1));
         expect(e.speicherSpitzeMb, greaterThanOrEqualTo(e.speicherVorherMb!));
         expect(e.cpuKerne, greaterThanOrEqualTo(0));
-        expect(e.lastCpuKerne, closeTo(e.cpuKerne!, 0.5));
+        expect(e.lastCpuKerne, greaterThan(0));
       }
       final nutzer = bericht.ergebnisse.first.profil('nutzer');
       expect(

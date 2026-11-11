@@ -661,6 +661,10 @@ void main() {
               ? const Millimeter(400)
               : gewaehlt ?? const Millimeter(400),
           feldbreiteBegrenzt: zuBreit,
+          // Planungsregeln 3.4: zwei Rand-UK von der Selbstkontrolle ergänzt
+          randErgaenzt: gewaehlt == const Millimeter(300)
+              ? const [Millimeter(2570), Millimeter(1000)]
+              : const [],
         ),
       );
     }
@@ -734,6 +738,24 @@ void main() {
       await tester.pump();
       expect(find.text(de.feldbreiteBegrenzt('40')), findsOneWidget);
       expect(find.byKey(const ValueKey('feldbreite-begrenzt')), findsOneWidget);
+    });
+
+    testWidgets('ergänzte Rand-UK (Planungsregeln 3.4): je ein Hinweis', (
+      tester,
+    ) async {
+      final planung = await zeige(tester);
+      expect(find.byKey(const ValueKey('rand-uk-0')), findsNothing);
+      planung.setze(planung.aktuell.mitFeldbreite(const Millimeter(300)));
+      await tester.pump();
+      await tester.pump();
+      expect(find.text(de.randUkErgaenzt('257')), findsOneWidget);
+      expect(find.text(de.randUkErgaenzt('100')), findsOneWidget);
+      expect(find.byKey(const ValueKey('rand-uk-1')), findsOneWidget);
+      expect(
+        de.randUkErgaenzt('257'),
+        'Rand-UK 257 cm ergänzt: An einer Kante endeten Dielen ohne UK '
+        'darunter (Selbstkontrolle).',
+      );
     });
 
     testWidgets('ohne Belag: Hinweis; englische Texte', (tester) async {

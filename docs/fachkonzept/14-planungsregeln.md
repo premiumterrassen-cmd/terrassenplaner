@@ -59,6 +59,8 @@ Die mit ⚙ markierten Regeln sind im domain-Paket ausführbar und mit Tests bel
 | R-C08 | Unter einer Rinne geht die UK bis 1–2 cm vor die Hauswand; darunter Auflageprofile, darauf Ventilationsprofile. | Alexander (Frage 14) | gilt |
 | R-C09 | Gewerbliche Nutzung bleibt wie im alten Planer (nur mehr Gummiband); „UK zwingend versteift, nur PREMIUM SELECT“ ist zurückgestellt. | Alexander (Frage 13) | gilt |
 | R-C10 ⚙ | Unterlüftung mind. 12 cm und Gefälle 1–2 % in Dielenlängsrichtung als **Hinweise**; der Planer rechnet mit **2 cm Wandabstand**. | Merkblatt M-07, Antwort 5 | gilt |
+| R-C11 ⚙ | **Rand-UK an jeder Kante mit Dielenenden**, bündig entlang der Kante, kein Überstand: schräge Ränder (über 12° zur UK, über 8 cm quer zur Diele), Ausschnittkanten auf der Terrassenseite, Innenecken L/T/U, Bögen je Sehne, Ränder bei diagonaler/freier Verlegung – wo keine UK-Linie höchstens 6 cm daneben liegt. Kanten parallel zur Diele: keine. | Planungsregeln Alexander (Planungskern v6, 11.11.2026), Regel 3.3; offene Frage 19 | gilt – Fachkonzept 3.11 |
+| R-C12 ⚙ | **Selbstkontrolle:** Prüfpunkte alle 10 cm entlang jeder Kante mit Dielenenden, Toleranz 6 cm; fehlt die UK an mehr als 10 % der Punkte, wird die Rand-UK ergänzt und in den Hinweisen gemeldet. | Planungsregeln Alexander (Planungskern v6, 11.11.2026), Regel 3.4 | gilt – Fachkonzept 3.11 |
 
 ## D Anschluss, Treppen, Zubehör
 

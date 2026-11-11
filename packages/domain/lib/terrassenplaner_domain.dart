@@ -70,6 +70,7 @@ export 'src/regeln/freidielen.dart';
 export 'src/regeln/gegenstueck.dart';
 export 'src/regeln/hoehenpunkte.dart';
 export 'src/regeln/planungsregeln.dart';
+export 'src/regeln/rand_uk.dart';
 export 'src/regeln/regelwerk.dart';
 export 'src/regeln/rinnen.dart';
 export 'src/regeln/treppen.dart';
