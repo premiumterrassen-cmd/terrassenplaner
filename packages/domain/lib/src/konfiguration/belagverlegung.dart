@@ -52,13 +52,13 @@ List<Lieferdiele> zuschneiden(
   List<Millimeter> lieferlaengen, {
   Millimeter ueberlaenge = const Millimeter(0),
 }) {
-  final folge = [for (final s in stuecke) s.mm]..sort((a, b) => b - a);
-  final laengen = [for (final l in lieferlaengen) l.mm]..sort();
-  final mit = _verteile(folge, laengen, ueberlaenge.mm);
-  if (ueberlaenge.mm == 0 || folge.isEmpty || folge.first > laengen.last) {
+  final liste = stuecke.toList();
+  final mit = verteile(liste, lieferlaengen, ueberlaenge: ueberlaenge);
+  if (ueberlaenge.mm == 0 ||
+      liste.any((s) => lieferlaengen.every((l) => s > l))) {
     return mit;
   }
-  final ohne = _verteile(folge, laengen, 0);
+  final ohne = verteile(liste, lieferlaengen);
   return liefertWeniger(ohne, mit) ? ohne : mit;
 }
 
@@ -71,9 +71,16 @@ bool liefertWeniger(List<Lieferdiele> a, List<Lieferdiele> b) {
 int _geliefert(List<Lieferdiele> dielen) =>
     dielen.fold(0, (summe, d) => summe + d.laenge.mm);
 
-/// [zuschneiden] der Stücke [folge] (absteigend) auf die [laengen]
-/// (aufsteigend), jede mit [u] mm Überlänge.
-List<Lieferdiele> _verteile(List<int> folge, List<int> laengen, int u) {
+/// Eine Verteilung wie [zuschneiden], aber nur mit der [ueberlaenge] (ohne
+/// den Vergleich) – für schnelle Vorschauen (Verschnittoptimierung).
+List<Lieferdiele> verteile(
+  Iterable<Millimeter> stuecke,
+  List<Millimeter> lieferlaengen, {
+  Millimeter ueberlaenge = const Millimeter(0),
+}) {
+  final u = ueberlaenge.mm;
+  final folge = [for (final s in stuecke) s.mm]..sort((a, b) => b - a);
+  final laengen = [for (final l in lieferlaengen) l.mm]..sort();
   final offen = <({int laenge, List<int> schnitte})>[];
   final reste = <int>[];
   for (var i = 0; i < folge.length; i++) {

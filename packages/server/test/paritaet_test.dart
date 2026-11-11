@@ -47,8 +47,8 @@ const _gruende = {
   'Planungskern v6':
       'Planungskern v6 / Entscheidung 11.11.2026: UK-Linien enden vor der '
       'Rand-UK (um die UK-Breite kürzer) – Dielenenden an schrägen Kanten '
-      'liegen auf der Rand-UK, nicht zusätzlich auf der Linie (weniger '
-      'Clips)',
+      'liegen auf der Rand-UK statt auf der Linie; F04 5 Befestigungspunkte '
+      'mehr (846 → 851), damit eine Packung mehr (850 → 900 Clips)',
   'Überlänge':
       'Planungskern v6 / Entscheidung 11.11.2026: Dielen kommen mit 3 cm '
       'Überlänge – eine Lieferlänge nimmt Stücke bis zu ihrer Länge plus '

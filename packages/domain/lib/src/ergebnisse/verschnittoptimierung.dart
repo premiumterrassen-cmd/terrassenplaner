@@ -37,7 +37,7 @@ List<Lieferdiele> optimiereZuschnitt(
   Millimeter ueberlaenge = const Millimeter(0),
 }) {
   final liste = stuecke.toList();
-  final regel = zuschneiden(liste, lieferlaengen, ueberlaenge: ueberlaenge);
+  final regel = verteile(liste, lieferlaengen, ueberlaenge: ueberlaenge);
   final optimiert = _fuelleDielen(liste, lieferlaengen, ueberlaenge.mm);
   return liefertWeniger(optimiert, regel) ? optimiert : regel;
 }
@@ -115,7 +115,7 @@ List<Lieferdiele> _fuelleDielen(
   return dielen;
 }
 
-/// Was die Verteilung je Teilfläche ([zuschneiden]) für die offenen Stücke
+/// Was die Verteilung je Teilfläche ([verteile]) für die offenen Stücke
 /// ohne [muster] liefert (mm) – die Vorschau, mit der eine Diele gewählt
 /// wird.
 int _rest(
@@ -125,7 +125,7 @@ int _rest(
   List<Millimeter> lieferlaengen,
   int u,
 ) => _geliefert(
-  zuschneiden(
+  verteile(
     [
       for (final (i, s) in sorten.indexed)
         for (var k = 0; k < offen[i] - (muster[i] ?? 0); k++) Millimeter(s),
