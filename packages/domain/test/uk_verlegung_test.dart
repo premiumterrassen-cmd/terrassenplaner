@@ -200,6 +200,17 @@ void main() {
       );
     });
 
+    test('Reststück mindestens 50 cm (Planungsregeln Alexander '
+        '(Planungskern v6, 11.11.2026), Regel 3.5): 610 cm → 560 + 50 cm', () {
+      final v = _verlege(_rechteck(1000, 6100));
+      expect(_liste(v), ['4x5600 blau', '4x500 blau']);
+      expect(v.linien.first.stoesse, [5600.0]);
+      expect(_zuschnitt(v), [
+        '4 × 600.0: 560.0',
+        '1 × 400.0: 50.0 + 50.0 + 50.0 + 50.0',
+      ]);
+    });
+
     test('erzwungene UK-Länge (3.4) gilt für Stücke und Lieferung', () {
       final v = _verlege(
         _rechteck(10500, 10000).mitUkLaenge(const Millimeter(5000)),

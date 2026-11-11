@@ -68,6 +68,42 @@ void main() {
     });
   });
 
+  group('UK-Stückelung (Planungsregeln Alexander (Planungskern v6, '
+      '11.11.2026), Regel 3.5)', () {
+    List<int> st(int laenge, List<Millimeter> laengen, {Millimeter? fest}) => [
+      for (final s in ukStueckelung(Millimeter(laenge), laengen, fest: fest))
+        s.mm,
+    ];
+
+    test('bis zur längsten Lieferlänge ein Stück', () {
+      expect(st(3090, _standard), [3090]);
+      expect(st(6000, _standard), [6000]);
+      expect(st(0, _standard), isEmpty);
+      expect(st(-5, _standard), isEmpty);
+      expect(st(7000, const []), [7000]);
+    });
+
+    test('Reststück mindestens 50 cm: 610 cm → 560 + 50 statt 600 + 10', () {
+      expect(st(6100, _standard), [5600, 500]);
+      expect(st(6001, _standard), [5501, 500]);
+      expect(st(6499, _standard), [5999, 500]);
+      expect(st(6500, _standard), [6000, 500]);
+      expect(st(6501, _standard), [6000, 501]);
+      expect(st(10000, _standard), [6000, 4000]);
+      expect(st(12100, _standard), [6000, 5600, 500]);
+      expect(ukMindestReststueck, const Millimeter(500));
+    });
+
+    test('erzwungene Länge; kurze Lieferlängen: Rest höchstens die halbe '
+        'Länge', () {
+      expect(st(4100, _standard, fest: _m4), [3600, 500]);
+      expect(st(4100, _standard, fest: _m7), [4100]);
+      expect(st(900, const [Millimeter(800)]), [500, 400]);
+      expect(st(820, const [Millimeter(800)]), [420, 400]);
+      expect(st(2000, const [Millimeter(800)]), [800, 800, 400]);
+    });
+  });
+
   group('erzwungene Länge', () {
     test('nur diese Länge (F13, Fachkonzept 2.2)', () {
       expect(lieferlaengenFuer(const Millimeter(8000), _standard, fest: _m4), [

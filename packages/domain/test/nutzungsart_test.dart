@@ -536,6 +536,9 @@ void main() {
         '4000: 399',
       ]);
       expect(hoelzer([13000]), ['6000: 6000', '6000: 6000', '4000: 1000']);
+      // Regel 3.5: Reststück mindestens 50 cm (610 cm → 560 + 50 cm)
+      expect(hoelzer([6100]), ['6000: 5600', '4000: 500']);
+      expect(hoelzer([6100, 3090]), ['6000: 5600', '4000: 3090 + 500']);
     });
 
     test('ohne Lieferlängen nichts', () {

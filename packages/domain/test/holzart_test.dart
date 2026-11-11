@@ -114,9 +114,10 @@ void main() {
       expect(l(ecoSelect), [4000, 5000, 6000]);
       expect(l(premiumSelect), [4000, 5000, 6000]);
       expect(
-        () => robinie.serie(ecoSelect).ukLieferlaengen.add(
-          const Millimeter(7000),
-        ),
+        () => robinie
+            .serie(ecoSelect)
+            .ukLieferlaengen
+            .add(const Millimeter(7000)),
         throwsUnsupportedError,
       );
     });

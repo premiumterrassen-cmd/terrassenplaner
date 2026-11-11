@@ -135,10 +135,11 @@ final class UkVerlegung {
 ///   Terrassenseite), Innenecken, Bogenstücke, Kanten bei diagonaler
 ///   Verlegung – ein Holz bündig entlang der Kante; Bögen in Sehnen, die
 ///   höchstens [randBogenToleranz] vom Bogen abweichen, je Sehne eine.
-/// - **Stöße der UK und Lieferlängen:** ein Abschnitt bekommt Hölzer wie
-///   eine Dielenreihe (`lieferlaengenFuer`, R-B10: kürzeste Länge, die ihn
-///   abdeckt, längere gestückelt; 1000 cm → 600 + 400 cm wie 2026-07-07);
-///   eine erzwungene UK-Länge (3.4, M6-03) gilt. Die Lieferstücke rechnet
+/// - **Stöße der UK und Lieferlängen:** ein Abschnitt über der längsten
+///   Lieferlänge wird gestückelt (`ukStueckelung`, 1000 cm → 600 + 400 cm
+///   wie 2026-07-07), das Reststück ist mindestens 50 cm (Planungsregeln
+///   Alexander (Planungskern v6, 11.11.2026), Regel 3.5: 610 cm → 560 +
+///   50 cm); eine erzwungene UK-Länge (3.4, M6-03) gilt. Die Lieferstücke rechnet
 ///   `lieferhoelzer` (kurze Reste aus gemeinsamen Hölzern).
 /// - **Längsverbinder:** je Stoß einer aus den Längsverbindern der UK im
 ///   [regelwerk] (Spalte „mögliche Längsverbinder“), wenn es welche gibt –
@@ -419,18 +420,18 @@ List<(double, double)> _ohne(
   ];
 }
 
-/// Zuschnitte eines Abschnitts der Länge [laenge]: ganze Lieferlängen und
-/// der Rest (`lieferlaengenFuer`, mit erzwungener Länge [fest]); ohne
-/// Lieferlängen ein Stück.
+/// Zuschnitte eines Abschnitts der Länge [laenge] (`ukStueckelung`,
+/// Regel 3.5: Reststück mindestens 50 cm, mit erzwungener Länge [fest]);
+/// ohne Lieferlängen ein Stück.
 List<double> _teile(double laenge, List<Millimeter> laengen, Millimeter? fest) {
-  final lieferung = lieferlaengenFuer(
+  final stuecke = ukStueckelung(
     Millimeter(laenge.round()),
     laengen,
     fest: fest,
   );
-  if (lieferung.length < 2) return [laenge];
+  if (stuecke.length < 2) return [laenge];
   final ganze = [
-    for (final l in lieferung.take(lieferung.length - 1)) l.mm.toDouble(),
+    for (final l in stuecke.take(stuecke.length - 1)) l.mm.toDouble(),
   ];
   return [...ganze, laenge - ganze.fold(0.0, (a, b) => a + b)];
 }

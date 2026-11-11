@@ -184,10 +184,12 @@ Map<Millimeter, int> lieferstuecke(
 /// Welche Lieferhölzer für die Zuschnitte [stuecke] aus den Lieferlängen
 /// [laengen] (aufsteigend) geschnitten werden (M9-02, UK-Zuschnittplan):
 ///
+/// - Ein Stück über der längsten Lieferlänge wird zuerst gestückelt
+///   (`ukStueckelung`, Regel 3.5: ganze Hölzer, Reststück mindestens
+///   50 cm).
 /// - Lange Stücke (ab der halben kürzesten Lieferlänge) bekommen eigene
-///   Hölzer wie eine Dielenreihe (R-B10, `lieferlaengenFuer`): 480 cm →
-///   5000 mm; ein Stück über der längsten wird gestückelt (ganze Hölzer
-///   und der Rest aus dem letzten).
+///   Hölzer in der kürzesten Lieferlänge, die sie aufnimmt (R-B10): 480 cm
+///   → 5000 mm.
 /// - Kurze Stücke (Querstreben, Stützen) werden der Größe nach aus
 ///   gemeinsamen Hölzern geschnitten: zuerst in den Rest eines langen
 ///   Stücks oder ein angeschnittenes Holz, in das sie passen (wie im alten
@@ -206,20 +208,16 @@ List<Lieferdiele> lieferhoelzer(
   final moeglich = laengen.contains(fest) ? [fest!] : laengen;
   if (moeglich.isEmpty) return const [];
   final grenze = moeglich.first.mm / 2;
+  final teile = [for (final s in stuecke) ...ukStueckelung(s, moeglich)];
   // lange Stücke zuerst, ihre Reste nehmen kurze auf (M10-01)
-  final offen = <({int laenge, List<Millimeter> schnitte, int rest})>[];
-  for (final s in stuecke) {
-    if (s.mm < grenze) continue;
-    final lieferung = lieferlaengenFuer(s, moeglich);
-    var rest = s;
-    for (final (i, l) in lieferung.indexed) {
-      final schnitt = i == lieferung.length - 1 ? rest : l;
-      offen.add((laenge: l.mm, schnitte: [schnitt], rest: l.mm - schnitt.mm));
-      rest -= schnitt;
-    }
-  }
+  final offen = <({int laenge, List<Millimeter> schnitte, int rest})>[
+    for (final s in teile)
+      if (s.mm >= grenze)
+        if (moeglich.firstWhere((l) => l >= s).mm case final holz)
+          (laenge: holz, schnitte: [s], rest: holz - s.mm),
+  ];
   final kurz = [
-    for (final s in stuecke)
+    for (final s in teile)
       if (s.mm < grenze) s.mm,
   ]..sort((a, b) => b.compareTo(a));
   var summe = kurz.fold(0, (a, b) => a + b);

@@ -1,3 +1,6 @@
+import 'dart:math' as math;
+
+import '../regeln/planungsregeln.dart';
 import 'artikel.dart';
 import 'einheiten.dart';
 
@@ -30,6 +33,34 @@ List<Millimeter> lieferlaengenFuer(
     ...List.filled(ganze, laengste),
     moeglich.firstWhere((l) => l.mm >= rest),
   ];
+}
+
+/// Stücke einer UK-Linie der Länge [laenge] aus den Lieferlängen [laengen]
+/// (aufsteigend; Planungsregeln Alexander (Planungskern v6, 11.11.2026),
+/// Regel 3.5): bis zur längsten Lieferlänge ein Stück, länger ganze
+/// längste Lieferlängen und der Rest. Wäre der Rest kürzer als
+/// [ukMindestReststueck], wird das letzte ganze Stück so weit gekürzt, dass
+/// der Rest gerade so lang ist: 610 cm → 560 + 50 cm statt 600 + 10 cm. Der
+/// Stoß liegt auf einem Auflager. Liefert die UK die Wunschlänge [fest],
+/// wird nur sie verwendet. Bei Lieferlängen unter dem doppelten
+/// Mindestrest gilt höchstens die halbe längste Länge als Rest.
+List<Millimeter> ukStueckelung(
+  Millimeter laenge,
+  List<Millimeter> laengen, {
+  Millimeter? fest,
+}) {
+  if (laenge.mm <= 0) return const [];
+  if (laengen.isEmpty) return [laenge];
+  final laengste = (laengen.contains(fest) ? fest! : laengen.last).mm;
+  final mindest = math.min(ukMindestReststueck.mm, laengste ~/ 2);
+  final stuecke = <Millimeter>[];
+  var rest = laenge.mm;
+  while (rest > laengste) {
+    final stueck = laengste - math.max<int>(0, mindest - rest + laengste);
+    stuecke.add(Millimeter(stueck));
+    rest -= stueck;
+  }
+  return [...stuecke, Millimeter(rest)];
 }
 
 /// Dielenstücke einer Reihe von [von] bis [bis], geschnitten an den

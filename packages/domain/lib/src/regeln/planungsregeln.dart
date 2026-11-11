@@ -20,6 +20,11 @@ const versteifungsAbstand = Millimeter(1200);
 /// (13 × 7 = 91 Bodenanker wie im alten Planer).
 const auflagerAbstandVorgabe = Millimeter(600);
 
+/// Kürzestes Reststück, wenn eine UK-Linie länger als die längste
+/// Lieferlänge gestückelt wird (Planungsregeln Alexander (Planungskern v6,
+/// 11.11.2026), Regel 3.5; `ukStueckelung`).
+const ukMindestReststueck = Millimeter(500);
+
 /// Fuge zwischen zwei Dielen (R-B06, Alexander).
 const fuge = Millimeter(5);
 
