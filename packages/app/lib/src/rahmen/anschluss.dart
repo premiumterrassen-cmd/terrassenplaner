@@ -171,18 +171,16 @@ class VerblendungWahl extends StatelessWidget {
 const zurVerblendung = {
   Anschlussmeldung.unterlueftung,
   Anschlussmeldung.keinHoehenunterschied,
-  Anschlussmeldung.belagstaerke,
-  Anschlussmeldung.ohneVerblendungsartikel,
+  Anschlussmeldung.blendeFehlt,
 };
 
 /// Text eines Hinweises zum Terrassenanschluss.
 String anschlussmeldungText(PlanerTexte t, Anschlussmeldung m) => switch (m) {
   Anschlussmeldung.unterlueftung => t.meldungUnterlueftung,
   Anschlussmeldung.keinHoehenunterschied => t.meldungKeinHoehenunterschied,
-  Anschlussmeldung.belagstaerke => t.meldungBelagstaerke,
-  Anschlussmeldung.ohneVerblendungsartikel => t.meldungOhneVerblendungsartikel,
   Anschlussmeldung.ohneRinnenartikel => t.meldungOhneRinnenartikel,
   Anschlussmeldung.treppeNichtFrei => t.meldungTreppeNichtFrei,
+  Anschlussmeldung.blendeFehlt => t.meldungBlendeFehlt,
 };
 
 /// Text einer Rinnenlage wie im alten Planer.

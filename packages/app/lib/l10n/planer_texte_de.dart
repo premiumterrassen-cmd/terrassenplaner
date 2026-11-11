@@ -1448,7 +1448,7 @@ class PlanerTexteDe extends PlanerTexte {
 
   @override
   String get verblendungHinweis =>
-      'Verblendet wird nur bei einer Belagstärke von 19 bis 23 mm.';
+      'Die Blende ist aus der Serie des Belags, glattkant und so stark wie die Diele. Ihre Breite richtet sich nach der Höhe (höchstens 100 mm, über ca. 13 cm zwei Blenden à 60 mm); die Ecken werden auf Gehrung geschnitten.';
 
   @override
   String get meldungUnterlueftung =>
@@ -1459,12 +1459,8 @@ class PlanerTexteDe extends PlanerTexte {
       'Ohne Höhenunterschied zum Boden ist an dieser Seite keine Verblendung möglich.';
 
   @override
-  String get meldungBelagstaerke =>
-      'Eine Verblendung ist nur bei einer Belagstärke von 19 bis 23 mm möglich – es wird keine gerechnet.';
-
-  @override
-  String get meldungOhneVerblendungsartikel =>
-      'Zu diesem Belag ist keine Verblendung hinterlegt.';
+  String get meldungBlendeFehlt =>
+      'Für die Höhe an einer verblendeten Seite gibt es in der Serie keine passende glattkante Blende – dort wird keine Blende gerechnet. Bitte sprechen Sie uns an.';
 
   @override
   String get materialVerblendung => 'Verblendung';
