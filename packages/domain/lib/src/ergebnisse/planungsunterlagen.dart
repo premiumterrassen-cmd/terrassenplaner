@@ -605,6 +605,7 @@ List<String> _meldungen(
         m,
         m == Auflagermeldung.unterMindesthoehe ? u.hoeheVon! : u.hoeheBis!,
       ),
+    for (final l in u.randErgaenzt) t.randUkErgaenzt(l),
   ];
 }
 

@@ -434,6 +434,8 @@
   "@feldbreiteCm": { "placeholders": { "cm": { "type": "String" } } },
   "feldbreiteBegrenzt": "Die gewählte Feldbreite überschreitet die Firmenregel; gerechnet wird mit {cm} cm.",
   "@feldbreiteBegrenzt": { "placeholders": { "cm": { "type": "String" } } },
+  "randUkErgaenzt": "Rand-UK {cm} cm ergänzt: An einer Kante endeten Dielen ohne UK darunter (Selbstkontrolle).",
+  "@randUkErgaenzt": { "placeholders": { "cm": { "type": "String" } } },
   "feldbreiteOhneBelag": "Die Feldbreite hängt vom Belag ab: Wählen Sie zuerst einen Belag aus Holz.",
   "automatisch": "Automatisch",
   "materialliste": "Materialliste",
