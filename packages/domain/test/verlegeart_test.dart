@@ -144,6 +144,18 @@ void main() {
     expect(stossraster(_m6, _m6), _m6);
   });
 
+  test('Raster mit 3 cm Überlänge (Planungskern v6 / Entscheidung '
+      '11.11.2026): bis 603 cm eine Diele, darüber die längste Länge', () {
+    const u = dielenUeberlaenge;
+    expect(u, const Millimeter(30));
+    expect(
+      stossraster(const Millimeter(6030), _m6, ueberlaenge: u),
+      const Millimeter(6030),
+    );
+    expect(stossraster(const Millimeter(6031), _m6, ueberlaenge: u), _m6);
+    expect(stossraster(const Millimeter(6030), _m6), _m6);
+  });
+
   test('Stoßmuster wie im alten Planer (F01, F06–F13)', () {
     const arten = {
       'Fugenschnitt': Verlegeart.fugenschnitt,

@@ -51,19 +51,21 @@ final class Dielenstueck {
 /// Wie weit die erste ganze Diele höchstens verschoben werden kann (M5-07,
 /// Fachkonzept 2.5), je Bildschirmachse in mm: Die Achse, die eher in
 /// Verlegerichtung liegt (|cos w| ≥ |sin w|), bekommt das Raster der Stöße
-/// ([stossraster]: längste oder erzwungene Länge, höchstens die Ausdehnung),
-/// die andere Dielenbreite plus Fuge.
+/// ([stossraster]: längste oder erzwungene Länge, höchstens die Ausdehnung,
+/// mit [ueberlaenge]), die andere Dielenbreite plus Fuge.
 ({Millimeter x, Millimeter y}) verschiebungsgrenzen(
   Kontur kontur, {
   required double winkel,
   required Millimeter dielenbreite,
   required Millimeter laengste,
+  Millimeter ueberlaenge = const Millimeter(0),
 }) {
   final drehung = -winkel * math.pi / 180;
   final huelle = _lokal(kontur, Punkt.ursprung, drehung).huellrechteck;
   final laenge = stossraster(
     Millimeter(huelle.max.x.round()) - Millimeter(huelle.min.x.round()),
     laengste,
+    ueberlaenge: ueberlaenge,
   );
   final breite = dielenbreite + fuge;
   // in Grad (0 bis 179) verglichen: bei 45° wären cos und sin im Bogenmaß
@@ -91,7 +93,9 @@ Flaeche _lokal(Kontur kontur, Punkt ausgangspunkt, double drehung) => Flaeche(
 /// in einem Reihenstreifen, ist er eine Dielenreihe von seinem ersten bis zu
 /// seinem letzten Punkt in Verlegerichtung (F03: 437 + 6,5 cm bei 45°).
 /// Geschnitten wird an den Stoßlinien der [verlegeart] im Raster ab dem
-/// Ausgangspunkt; [laengste] und [verbinden] wie bei [reihenstuecke].
+/// Ausgangspunkt; [laengste], [verbinden] und [ueberlaenge] wie bei
+/// [reihenstuecke] – mit Überlänge ist ein Stoß erst über der längsten
+/// Lieferlänge plus Überlänge nötig ([stossraster]).
 ///
 /// [aussparungen] (leere Ausschnitte und Teilflächen mit anderem Belag,
 /// M5-08) bleiben frei; Raster und Reihen richten sich weiter nach der
@@ -106,6 +110,7 @@ List<Dielenstueck> verlegeDielen(
   required Verlegeart verlegeart,
   required Millimeter laengste,
   bool verbinden = false,
+  Millimeter ueberlaenge = const Millimeter(0),
   List<Kontur> aussparungen = const [],
 }) {
   final drehung = -winkel * math.pi / 180;
@@ -116,7 +121,7 @@ List<Dielenstueck> verlegeDielen(
   ];
   final von = Millimeter(huelle.min.x.round());
   final bis = Millimeter(huelle.max.x.round());
-  final raster = stossraster(bis - von, laengste);
+  final raster = stossraster(bis - von, laengste, ueberlaenge: ueberlaenge);
   final breite = (dielenbreite + fuge).mm;
   final stuecke = <Dielenstueck>[];
   for (
@@ -155,6 +160,7 @@ List<Dielenstueck> verlegeDielen(
         stoesse,
         laengste: laengste,
         verbinden: verbinden,
+        ueberlaenge: ueberlaenge,
       );
       final zug = teil.kontur.vieleck();
       var anfang = h.min.x.round();

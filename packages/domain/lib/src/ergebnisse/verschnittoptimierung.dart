@@ -27,16 +27,18 @@ import '../konfiguration/belagverlegung.dart';
 ///
 /// Das Ergebnis ist nie schlechter als die Verteilung je Teilfläche
 /// ([zuschneiden], M5-08): Liefert sie weniger (oder gleich viel in weniger
-/// Dielen), gilt sie. Gesägt wird ohne Zugabe wie im alten Planer. Ein
-/// Stück, das länger als jede [lieferlaengen] ist, ist ein Fehler des
-/// Aufrufers.
+/// Dielen), gilt sie. Gesägt wird ohne Zugabe wie im alten Planer; jede
+/// Lieferlänge nimmt [ueberlaenge] mehr auf (`dielenUeberlaenge`). Ein
+/// Stück, das länger als jede [lieferlaengen] samt Überlänge ist, ist ein
+/// Fehler des Aufrufers.
 List<Lieferdiele> optimiereZuschnitt(
   Iterable<Millimeter> stuecke,
-  List<Millimeter> lieferlaengen,
-) {
+  List<Millimeter> lieferlaengen, {
+  Millimeter ueberlaenge = const Millimeter(0),
+}) {
   final liste = stuecke.toList();
-  final regel = zuschneiden(liste, lieferlaengen);
-  final optimiert = _fuelleDielen(liste, lieferlaengen);
+  final regel = zuschneiden(liste, lieferlaengen, ueberlaenge: ueberlaenge);
+  final optimiert = _fuelleDielen(liste, lieferlaengen, ueberlaenge.mm);
   return _besser(optimiert, regel) ? optimiert : regel;
 }
 
@@ -56,6 +58,7 @@ const vorschau = 60;
 List<Lieferdiele> _fuelleDielen(
   List<Millimeter> stuecke,
   List<Millimeter> lieferlaengen,
+  int u,
 ) {
   final laengen = [for (final l in lieferlaengen) l.mm]..sort();
   final gruppen = <int, int>{};
@@ -72,13 +75,13 @@ List<Lieferdiele> _fuelleDielen(
       offen[erste]--;
       ({int laenge, int genutzt, int gesamt, Map<int, int> muster})? beste;
       for (final laenge in laengen) {
-        if (laenge < anfang) continue;
-        final (:summe, :muster) = _fuelle(laenge - anfang, sorten, offen);
+        if (laenge + u < anfang) continue;
+        final (:summe, :muster) = _fuelle(laenge + u - anfang, sorten, offen);
         final genutzt = anfang + summe;
         // Vorschau auf den Rest erst gegen Ende: dort entscheidet sie
         final gesamt = verbleibend > vorschau
             ? 0
-            : laenge + _rest(sorten, offen, muster, lieferlaengen);
+            : laenge + _rest(sorten, offen, muster, lieferlaengen, u);
         if (beste == null ||
             gesamt < beste.gesamt ||
             gesamt == beste.gesamt &&
@@ -126,11 +129,16 @@ int _rest(
   List<int> offen,
   Map<int, int> muster,
   List<Millimeter> lieferlaengen,
+  int u,
 ) => _geliefert(
-  zuschneiden([
-    for (final (i, s) in sorten.indexed)
-      for (var k = 0; k < offen[i] - (muster[i] ?? 0); k++) Millimeter(s),
-  ], lieferlaengen),
+  zuschneiden(
+    [
+      for (final (i, s) in sorten.indexed)
+        for (var k = 0; k < offen[i] - (muster[i] ?? 0); k++) Millimeter(s),
+    ],
+    lieferlaengen,
+    ueberlaenge: Millimeter(u),
+  ),
 );
 
 /// Größte Summe aus den offenen Stücken (je Sorte [sorten] höchstens
@@ -187,11 +195,12 @@ int _rest(
 
 /// Stücke eines Belags über die ganze Planung (M9-01): alle Teilflächen
 /// aller Flächen mit derselben Auswahl an [laengen], jede Fläche mal ihrer
-/// Häufigkeit.
+/// Häufigkeit; [ueberlaenge] der Lieferlängen (`Belagverlegung.ueberlaenge`).
 typedef Belagstuecke = ({
   Artikelnummer belag,
   List<Millimeter> laengen,
   List<Millimeter> stuecke,
+  Millimeter ueberlaenge,
 });
 
 /// Eine Verschnittvariante (M9-01): Lieferdielen je Belag der ganzen
@@ -258,10 +267,12 @@ Map<Artikelnummer, List<Lieferdiele>> _variante(
 /// Verschiedene Verteilungen der Stücke eines Belags, die beste zuerst.
 List<List<Lieferdiele>> _verteilungen(Belagstuecke b) {
   final laengste = b.stuecke.fold(0, (m, s) => s.mm > m ? s.mm : m);
+  final u = b.ueberlaenge;
   final kandidaten = [
-    optimiereZuschnitt(b.stuecke, b.laengen),
+    optimiereZuschnitt(b.stuecke, b.laengen, ueberlaenge: u),
     for (final l in [...b.laengen]..sort((x, y) => x.mm - y.mm))
-      if (l.mm >= laengste) optimiereZuschnitt(b.stuecke, [l]),
+      if (l.mm + u.mm >= laengste)
+        optimiereZuschnitt(b.stuecke, [l], ueberlaenge: u),
   ];
   final reihenfolge = [for (var i = 0; i < kandidaten.length; i++) i]
     ..sort((x, y) {

@@ -49,6 +49,10 @@ const _gruende = {
       'Rand-UK (um die UK-Breite kürzer) – Dielenenden an schrägen Kanten '
       'liegen auf der Rand-UK, nicht zusätzlich auf der Linie (weniger '
       'Clips)',
+  'Überlänge':
+      'Planungskern v6 / Entscheidung 11.11.2026: Dielen kommen mit 3 cm '
+      'Überlänge – eine Lieferlänge nimmt Stücke bis zu ihrer Länge plus '
+      '3 cm auf, ein Stoß ist erst darüber nötig (weniger Verschnitt)',
   'Frage 2': 'offen: vorhandene UK – alt 2 × 473 cm zusätzlich',
   'Frage 3': 'offen: Alu-UK – Anzahl der Schienen',
 };
@@ -63,7 +67,7 @@ const _konfigurationen = <String, Map<String, String>>{
     'UK': 'Rand-UK',
     'Clips': 'Planungskern v6',
   },
-  'F05': {'Dielen': 'B-035', 'UK': 'Rand-UK'},
+  'F05': {'Verschnitt': 'Überlänge', 'Dielen': 'B-035', 'UK': 'Rand-UK'},
   'F09': {'Clips': 'B-033'},
   'F10': {'UK': 'UK-Lage'},
   'F11': {'Clips': 'B-033'},

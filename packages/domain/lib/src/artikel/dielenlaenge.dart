@@ -68,8 +68,9 @@ List<Millimeter> ukStueckelung(
 ///
 /// Mit [verbinden] („Sollen kurze Dielenstücke miteinander verbunden
 /// werden?“ = Ja) ersetzt eine ganze Diele ein Endstück samt Nachbarstück,
-/// wenn beide zusammen in die längste erlaubte Länge [laengste] passen; der
-/// Stoß ist dann nicht mehr durchgehend (R-B12). Beim Rechteck liegen die
+/// wenn beide zusammen in die längste erlaubte Länge [laengste] samt
+/// [ueberlaenge] (`dielenUeberlaenge`) passen; der Stoß ist dann nicht mehr
+/// durchgehend (R-B12). Beim Rechteck liegen die
 /// Stöße eine ganze Lieferlänge auseinander, dort wirkt das nie (F13).
 List<Millimeter> reihenstuecke(
   Millimeter von,
@@ -77,8 +78,10 @@ List<Millimeter> reihenstuecke(
   Iterable<Millimeter> stoesse, {
   required Millimeter laengste,
   bool verbinden = false,
+  Millimeter ueberlaenge = const Millimeter(0),
 }) {
   if (bis <= von) return const [];
+  final platz = laengste + ueberlaenge;
   final schnitte = [
     von,
     ...[
@@ -91,11 +94,11 @@ List<Millimeter> reihenstuecke(
     for (var i = 1; i < schnitte.length; i++) schnitte[i] - schnitte[i - 1],
   ];
   if (!verbinden || stuecke.length < 2) return stuecke;
-  if (stuecke[0] + stuecke[1] <= laengste) {
+  if (stuecke[0] + stuecke[1] <= platz) {
     stuecke.replaceRange(0, 2, [stuecke[0] + stuecke[1]]);
   }
   final n = stuecke.length;
-  if (n > 1 && stuecke[n - 2] + stuecke[n - 1] <= laengste) {
+  if (n > 1 && stuecke[n - 2] + stuecke[n - 1] <= platz) {
     stuecke.replaceRange(n - 2, n, [stuecke[n - 2] + stuecke[n - 1]]);
   }
   return stuecke;

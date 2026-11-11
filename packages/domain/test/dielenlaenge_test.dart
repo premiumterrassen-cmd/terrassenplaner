@@ -181,13 +181,32 @@ void main() {
       List<int> stoesse, {
       int laengste = 6000,
       bool verbinden = false,
+      int ueberlaenge = 0,
     }) => reihenstuecke(
       mm(von),
       mm(bis),
       [for (final s in stoesse) mm(s)],
       laengste: mm(laengste),
       verbinden: verbinden,
+      ueberlaenge: mm(ueberlaenge),
     );
+
+    test('mit Überlänge (Planungskern v6 / Entscheidung 11.11.2026): '
+        'verbunden bis zur längsten Länge plus 3 cm', () {
+      expect(stuecke(0, 6030, [3000], verbinden: true, ueberlaenge: 30), [
+        mm(6030),
+      ]);
+      expect(stuecke(0, 6031, [3000], verbinden: true, ueberlaenge: 30), [
+        mm(3000),
+        mm(3031),
+      ]);
+      expect(stuecke(0, 6030, [3000], verbinden: true), [mm(3000), mm(3030)]);
+      // auch das Ende der Reihe
+      expect(
+        stuecke(0, 10030, [4000, 7000], verbinden: true, ueberlaenge: 30),
+        [mm(4000), mm(6030)],
+      );
+    });
 
     test('Nein: Schnitt an jeder Stoßlinie innerhalb der Reihe', () {
       expect(stuecke(3800, 8000, [4000, 0, 3800, 8000, 9000]), [

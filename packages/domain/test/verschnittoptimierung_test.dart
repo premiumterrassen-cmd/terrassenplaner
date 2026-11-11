@@ -4,6 +4,7 @@ import 'package:flat_buffers/flat_buffers.dart' as fb;
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import 'package:test/test.dart';
 
+const _ohne = Millimeter(0);
 const _m4 = Millimeter(4000);
 const _m5 = Millimeter(5000);
 const _m6 = Millimeter(6000);
@@ -46,6 +47,38 @@ void main() {
       final stuecke = List.filled(48, const Millimeter(4800));
       final d = optimiereZuschnitt(stuecke, _laengen);
       expect(_text(d), List.filled(48, '5000: 4800'));
+    });
+
+    test('3 cm Überlänge (Planungskern v6 / Entscheidung 11.11.2026): '
+        'eine Lieferlänge nimmt bis zu ihrer Länge plus 3 cm auf', () {
+      const u = dielenUeberlaenge;
+      expect(
+        _text(
+          optimiereZuschnitt(
+            _mm([6030, 6030, 3015, 3015]),
+            _laengen,
+            ueberlaenge: u,
+          ),
+        ),
+        ['6000: 6030', '6000: 6030', '6000: 3015 + 3015'],
+      );
+      // ohne Überlänge passen 2 × 301,5 cm nicht in 6 m
+      expect(_text(optimiereZuschnitt(_mm([3015, 3015]), const [_m6])), [
+        '6000: 3015',
+        '6000: 3015',
+      ]);
+      // je Lieferlänge eine Variante, wenn das längste Stück samt Überlänge
+      // hineinpasst
+      final v = verschnittvarianten([
+        (
+          belag: _diele,
+          laengen: _laengen,
+          stuecke: _mm([6030, 2000]),
+          ueberlaenge: u,
+        ),
+      ]);
+      expect(v, hasLength(2));
+      expect(v[1].dielenlisten[_diele]!.anzahl, {_m6: 2});
     });
 
     test('Teilsummen auf den Millimeter: 3000 + 1700 + 1300 füllen 6000 mm '
@@ -170,6 +203,7 @@ void main() {
         '550 cm, die es nicht mehr gibt)', () {
       final v = verschnittvarianten([
         (
+          ueberlaenge: _ohne,
           belag: _diele,
           laengen: _laengen,
           stuecke: List.filled(48, const Millimeter(4800)),
@@ -186,7 +220,12 @@ void main() {
         'höchstens drei', () {
       final stuecke = _mm([3500, 3000, 3000, 1000, 1000]);
       final v = verschnittvarianten([
-        (belag: _diele, laengen: const [_m6, _m4, _m5], stuecke: stuecke),
+        (
+          ueberlaenge: _ohne,
+          belag: _diele,
+          laengen: const [_m6, _m4, _m5],
+          stuecke: stuecke,
+        ),
       ]);
       expect(
         [for (final x in v) x.dielenlisten[_diele]!.anzahl],
@@ -198,14 +237,24 @@ void main() {
       );
       expect(
         verschnittvarianten([
-          (belag: _diele, laengen: _laengen, stuecke: stuecke),
+          (
+            ueberlaenge: _ohne,
+            belag: _diele,
+            laengen: _laengen,
+            stuecke: stuecke,
+          ),
         ], hoechstens: 2),
         hasLength(2),
       );
       // eine Länge: nur eine Variante
       expect(
         verschnittvarianten([
-          (belag: _diele, laengen: const [_m5], stuecke: stuecke),
+          (
+            ueberlaenge: _ohne,
+            belag: _diele,
+            laengen: const [_m5],
+            stuecke: stuecke,
+          ),
         ]),
         hasLength(1),
       );
@@ -213,7 +262,12 @@ void main() {
 
     test('gleiche Länge geliefert: weniger Dielen zuerst', () {
       final v = verschnittvarianten([
-        (belag: _diele, laengen: _laengen, stuecke: _mm([2000, 2000, 2000])),
+        (
+          ueberlaenge: _ohne,
+          belag: _diele,
+          laengen: _laengen,
+          stuecke: _mm([2000, 2000, 2000]),
+        ),
       ]);
       expect(
         [for (final x in v) x.dielenlisten[_diele]!.anzahl],
@@ -228,6 +282,7 @@ void main() {
     test('zuerst weniger geliefert, auch mit mehr Dielen', () {
       final v = verschnittvarianten([
         (
+          ueberlaenge: _ohne,
           belag: _diele,
           laengen: const [_m4, _m6],
           stuecke: List.filled(7, const Millimeter(1900)),
@@ -242,12 +297,23 @@ void main() {
         'Gruppen desselben Belags zusammen', () {
       final v = verschnittvarianten([
         (
+          ueberlaenge: _ohne,
           belag: _diele,
           laengen: _laengen,
           stuecke: List.filled(2, const Millimeter(4800)),
         ),
-        (belag: _andere, laengen: const [_m4], stuecke: _mm([3000])),
-        (belag: _diele, laengen: const [_m4], stuecke: _mm([3900])),
+        (
+          ueberlaenge: _ohne,
+          belag: _andere,
+          laengen: const [_m4],
+          stuecke: _mm([3000]),
+        ),
+        (
+          ueberlaenge: _ohne,
+          belag: _diele,
+          laengen: const [_m4],
+          stuecke: _mm([3900]),
+        ),
       ]);
       expect(v, hasLength(2));
       expect(v[0].zuschnitt.keys, [_diele, _andere]);
@@ -259,7 +325,12 @@ void main() {
       expect(verschnittvarianten(const []), isEmpty);
       expect(
         verschnittvarianten([
-          (belag: _diele, laengen: _laengen, stuecke: const []),
+          (
+            ueberlaenge: _ohne,
+            belag: _diele,
+            laengen: _laengen,
+            stuecke: const <Millimeter>[],
+          ),
         ]).single.summe.geliefert,
         const Millimeter(0),
       );
@@ -283,7 +354,12 @@ void main() {
       ];
       final uhr = Stopwatch()..start();
       final v = verschnittvarianten([
-        (belag: _diele, laengen: _laengen, stuecke: stuecke),
+        (
+          ueberlaenge: _ohne,
+          belag: _diele,
+          laengen: _laengen,
+          stuecke: stuecke,
+        ),
       ]);
       expect(uhr.elapsed, lessThan(const Duration(seconds: 1)));
       expect(v.first.summe.verschnitt, lessThan(0.02));

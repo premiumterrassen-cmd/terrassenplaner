@@ -42,6 +42,7 @@ Die mit ⚙ markierten Regeln sind im domain-Paket ausführbar und mit Tests bel
 | R-B11 | Verschnitt = geliefert minus geplant (Diele für 480 cm in 500 cm geliefert → 20 cm), für Belag und UK. | Alexander (Frage 3) | gilt |
 | R-B12 ⚙ | „Kurze Stücke verbinden“: ein Stoß muss nicht durchgehend sein, wenn bei nicht rechtwinkligen Terrassen ein kurzes Stück durch eine ganze Diele ersetzt werden kann. | Alexander (Frage 16) | gilt |
 | R-B13 | Die letzte Dielenreihe wird längs auf Restbreite aufgeschnitten und markiert (rote Kante). | Alexander (Frage 1) | gilt |
+| R-B14 ⚙ | **Überlänge 3 cm:** Dielen kommen mit 3 cm Überlänge; eine Lieferlänge nimmt Stücke bis zu ihrer Länge plus 3 cm auf, ein Dielenstoß ist erst darüber nötig (6,00 m Fläche = eine 6-m-Diele, 2 × 3,00 m aus einer 6-m-Diele). Holzfliesen ohne. Sägeschnitt (Kern 0,5 cm) offen. | Planungsregeln Alexander (Planungskern v6, 11.11.2026), Kern-Konstante Überlänge; Entscheidung 11.11.2026; vgl. B-111 | gilt – Fachkonzept 2.3/2.7 |
 
 ## C Unterkonstruktion
 

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import '../artikel/artikel.dart';
 import '../artikel/einheiten.dart';
 import '../geometrie/kontur.dart';
@@ -34,16 +36,21 @@ final class Lieferdiele {
 /// Auffüllen mit den folgenden Stücken am kleinsten ist – bei gleichem Rest
 /// die kürzere. Zum Schluss bekommt jede Diele die kürzeste Lieferlänge,
 /// die ihre Stücke noch aufnimmt. Gesägt wird ohne Zugabe: zwei Stücke von
-/// 200 cm passen in 4000 mm wie im alten Planer.
+/// 200 cm passen in 4000 mm wie im alten Planer. Eine Lieferlänge nimmt
+/// Stücke bis zu ihrer Länge plus [ueberlaenge] auf (`dielenUeberlaenge`,
+/// Planungsregeln Alexander (Planungskern v6, 11.11.2026)): 603 cm aus einer
+/// 6-m-Diele, 2 × 301 cm ebenso.
 ///
 /// Das ist eine Verteilung je Teilfläche, keine Optimierung über
 /// Varianten, Flächen und Belagwechsel hinweg – die folgt mit der
 /// Verschnittoptimierung (M9-01). Ein Stück, das länger als jede
-/// [lieferlaengen] ist, ist ein Fehler des Aufrufers.
+/// [lieferlaengen] (samt Überlänge) ist, ist ein Fehler des Aufrufers.
 List<Lieferdiele> zuschneiden(
   Iterable<Millimeter> stuecke,
-  List<Millimeter> lieferlaengen,
-) {
+  List<Millimeter> lieferlaengen, {
+  Millimeter ueberlaenge = const Millimeter(0),
+}) {
+  final u = ueberlaenge.mm;
   final laengen = [for (final l in lieferlaengen) l.mm]..sort();
   final offen = <({int laenge, List<int> schnitte})>[];
   final reste = <int>[];
@@ -57,9 +64,9 @@ List<Lieferdiele> zuschneiden(
       }
     }
     if (beste < 0) {
-      final laenge = _neueLaenge(stueck, folge, i + 1, laengen);
+      final laenge = _neueLaenge(stueck, folge, i + 1, laengen, u);
       offen.add((laenge: laenge, schnitte: [stueck]));
-      reste.add(laenge - stueck);
+      reste.add(laenge + u - stueck);
     } else {
       offen[beste].schnitte.add(stueck);
       reste[beste] -= stueck;
@@ -76,13 +83,13 @@ List<Lieferdiele> zuschneiden(
 
 /// Lieferlänge für eine neue Diele, die mit [stueck] beginnt: kleinster Rest
 /// nach dem Auffüllen mit den Stücken ab [ab] aus [folge] (absteigend),
-/// bei Gleichstand die kürzere.
-int _neueLaenge(int stueck, List<int> folge, int ab, List<int> laengen) {
+/// bei Gleichstand die kürzere; jede Länge nimmt [u] mm Überlänge mehr auf.
+int _neueLaenge(int stueck, List<int> folge, int ab, List<int> laengen, int u) {
   int? beste;
   var besterRest = 0;
   for (final laenge in laengen) {
-    if (laenge < stueck) continue;
-    var rest = laenge - stueck;
+    if (laenge + u < stueck) continue;
+    var rest = laenge + u - stueck;
     for (var k = ab; k < folge.length && rest >= folge.last; k++) {
       if (folge[k] <= rest) rest -= folge[k];
     }
@@ -116,10 +123,11 @@ final class Dielensorte {
 /// zugeschnitten wie im alten Planer (eigene Nummern je Ausschnitt).
 final class Teilverlegung {
   /// Nummeriert die [stuecke] in Verlegereihenfolge und schneidet sie aus
-  /// den [lieferlaengen] zu ([zuschneiden]).
+  /// den [lieferlaengen] samt [ueberlaenge] zu ([zuschneiden]).
   factory Teilverlegung(
     List<Dielenstueck> stuecke, {
     required List<Millimeter> lieferlaengen,
+    Millimeter ueberlaenge = const Millimeter(0),
     String? bezeichnung,
   }) {
     final index = <(int, int), int>{};
@@ -136,10 +144,20 @@ final class Teilverlegung {
       anzahl[i]++;
       nummern.add(i + 1);
     }
-    return Teilverlegung._(bezeichnung, stuecke, nummern, [
-      for (final (i, (laenge, breite)) in sorten.indexed)
-        Dielensorte(i + 1, Millimeter(laenge), Millimeter(breite), anzahl[i]),
-    ], zuschneiden([for (final s in stuecke) s.laenge], lieferlaengen));
+    return Teilverlegung._(
+      bezeichnung,
+      stuecke,
+      nummern,
+      [
+        for (final (i, (laenge, breite)) in sorten.indexed)
+          Dielensorte(i + 1, Millimeter(laenge), Millimeter(breite), anzahl[i]),
+      ],
+      zuschneiden(
+        [for (final s in stuecke) s.laenge],
+        lieferlaengen,
+        ueberlaenge: ueberlaenge,
+      ),
+    );
   }
 
   Teilverlegung._(
@@ -184,7 +202,8 @@ final class Dielenliste {
     var geplant = 0, geliefert = 0;
     for (final d in zuschnitt) {
       anzahl.update(d.laenge, (n) => n + 1, ifAbsent: () => 1);
-      geplant += d.genutzt.mm;
+      // die Überlänge zählt nicht als geliefert: höchstens die Lieferlänge
+      geplant += math.min(d.genutzt.mm, d.laenge.mm);
       geliefert += d.laenge.mm;
     }
     return Dielenliste(
@@ -246,6 +265,7 @@ final class Belagverlegung {
     this.ausgangspunkt,
     this.grenzen,
     List<Millimeter> lieferlaengen,
+    this.ueberlaenge,
     List<Teilverlegung> teile,
   ) : lieferlaengen = List.unmodifiable(lieferlaengen),
       teile = List.unmodifiable(teile);
@@ -265,6 +285,10 @@ final class Belagverlegung {
   /// längste des Belags): ein Stück dieser Länge ist ungeschnitten
   /// (Stückliste, M9-04).
   Millimeter get laengste => lieferlaengen.last;
+
+  /// Überlänge der Lieferlängen (`dielenUeberlaenge`; Holzfliesen 0) – auch
+  /// für die Verschnittoptimierung.
+  final Millimeter ueberlaenge;
   final List<Teilverlegung> teile;
 
   /// Dielenliste aller Teilflächen.
@@ -283,7 +307,9 @@ final class Belagverlegung {
 /// Endlosverlegung) oder unvollständige Abmessungen.
 ///
 /// Dielen: Breite und Lieferlängen des Belags (erzwungene Länge, solange der
-/// Belag sie liefert, M5-02), Fuge 5 mm (R-B06). Holzfliesen (606 × 606 mm)
+/// Belag sie liefert, M5-02), Fuge 5 mm (R-B06), 3 cm Überlänge
+/// (`dielenUeberlaenge`, Planungsregeln Alexander (Planungskern v6,
+/// 11.11.2026)): eine Reihe bis 603 cm liegt ohne Stoß auf einer 6-m-Diele. Holzfliesen (606 × 606 mm)
 /// liegen wie Dielen in Reihen aus Kantenlänge plus Fuge und werden längs
 /// ohne Fuge gestoßen – wie im alten Planer (F25: 7 × 60,6 + 55,8 cm je
 /// Reihe; Referenzfall 2026-08-17-1838: Randreihe 25,1 cm); kurze Stücke
@@ -299,19 +325,20 @@ Belagverlegung? verlegeBelag(Planungsstand stand, Artikel? belag) {
   final breite = masse?.breite;
   if (breite == null || masse!.laengen.isEmpty) return null;
   final fest = stand.dielenlaenge;
-  final (List<Millimeter> lieferlaengen, bool verbinden) art;
+  final (List<Millimeter> lieferlaengen, bool verbinden, Millimeter ueber) art;
   switch (belag!.art) {
     case Artikelart.diele:
       art = (
         masse.laengen.contains(fest) ? [fest!] : masse.laengen,
         stand.kurzeStueckeVerbinden,
+        dielenUeberlaenge,
       );
     case Artikelart.holzfliese:
-      art = (masse.laengen, false);
+      art = (masse.laengen, false, const Millimeter(0));
     default:
       return null;
   }
-  final (lieferlaengen, verbinden) = art;
+  final (lieferlaengen, verbinden, ueberlaenge) = art;
   final kontur = stand.kontur;
   final winkel = stand.dielenwinkel.toDouble();
   final laengste = lieferlaengen.last;
@@ -320,6 +347,7 @@ Belagverlegung? verlegeBelag(Planungsstand stand, Artikel? belag) {
     winkel: winkel,
     dielenbreite: breite,
     laengste: laengste,
+    ueberlaenge: ueberlaenge,
   );
   final ausgangspunkt =
       stand.ausgangspunkt +
@@ -341,12 +369,14 @@ Belagverlegung? verlegeBelag(Planungsstand stand, Artikel? belag) {
       verlegeart: stand.verlegeart,
       laengste: laengste,
       verbinden: verbinden,
+      ueberlaenge: ueberlaenge,
       aussparungen: aussparungen,
     ),
     lieferlaengen: lieferlaengen,
+    ueberlaenge: ueberlaenge,
     bezeichnung: bezeichnung,
   );
-  return Belagverlegung._(ausgangspunkt, grenzen, lieferlaengen, [
+  return Belagverlegung._(ausgangspunkt, grenzen, lieferlaengen, ueberlaenge, [
     teil(
       kontur,
       ausgangspunkt,

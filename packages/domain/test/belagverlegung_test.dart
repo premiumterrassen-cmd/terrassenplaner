@@ -98,12 +98,35 @@ void main() {
     List<String> zuschnitt(
       List<int> stuecke, [
       List<Millimeter> laengen = const [_m4, _m5, _m6],
+      Millimeter ueberlaenge = const Millimeter(0),
     ]) => [
-      for (final d in zuschneiden([
-        for (final s in stuecke) Millimeter(s),
-      ], laengen))
+      for (final d in zuschneiden(
+        [for (final s in stuecke) Millimeter(s)],
+        laengen,
+        ueberlaenge: ueberlaenge,
+      ))
         '${d.laenge.mm}: ${_mm(d.schnitte)}',
     ];
+
+    test('3 cm Überlänge (Planungskern v6 / Entscheidung 11.11.2026): eine '
+        'Lieferlänge nimmt Stücke bis zu ihrer Länge plus 3 cm auf', () {
+      const u = dielenUeberlaenge;
+      expect(zuschnitt([6030], const [_m4, _m5, _m6], u), ['6000: [6030]']);
+      expect(zuschnitt([3015, 3015], const [_m4, _m5, _m6], u), [
+        '6000: [3015, 3015]',
+      ]);
+      expect(zuschnitt([4020], const [_m4, _m5, _m6], u), ['4000: [4020]']);
+      expect(zuschnitt([4031], const [_m4, _m5, _m6], u), ['5000: [4031]']);
+      // ohne Überlänge passen sie nicht
+      expect(zuschnitt([3015, 3015]), ['4000: [3015]', '4000: [3015]']);
+      expect(() => zuschnitt([6001]), throwsArgumentError);
+      // geplant zählt höchstens die Lieferlänge: kein negativer Verschnitt
+      final liste = Dielenliste.aus(
+        zuschneiden(const [Millimeter(6030)], const [_m6], ueberlaenge: u),
+      );
+      expect(liste.geplant, _m6);
+      expect(liste.verschnitt, 0);
+    });
 
     test('je Reihe die kürzeste passende Länge (M5-02)', () {
       expect(zuschnitt([4800, 3090]), ['5000: [4800]', '4000: [3090]']);
@@ -268,6 +291,30 @@ void main() {
       expect(v.kurzeZuschnitte, isTrue);
       expect(v.teile.clear, throwsUnsupportedError);
     });
+
+    test(
+      '3 cm Überlänge (Planungskern v6 / Entscheidung 11.11.2026): '
+      'Reihen bis 603 cm ohne Stoß aus einer 6-m-Diele, darüber gestoßen',
+      () {
+        final v = _verlegt(_rechteck(6030, 1000));
+        expect(v.ueberlaenge, dielenUeberlaenge);
+        expect(
+          v.teile.single.stuecke.every((s) => s.laenge.mm == 6030),
+          isTrue,
+        );
+        expect(_anzahl(v.dielenliste), {6000: 16});
+        expect(v.dielenliste.verschnitt, 0);
+        expect(v.grenzen.x, const Millimeter(6030));
+        // 603,1 cm: Stoß bei 600 cm, die Reste 3,1 cm aus einer 4-m-Diele
+        final lang = _verlegt(_rechteck(6031, 1000));
+        expect(_anzahl(lang.dielenliste), {4000: 1, 6000: 16});
+        expect(lang.grenzen.x, _m6);
+        // 6,00 m: eine 6-m-Diele je Reihe wie bisher
+        expect(_anzahl(_verlegt(_rechteck(6000, 1000)).dielenliste), {
+          6000: 16,
+        });
+      },
+    );
 
     test('nichts zu verlegen: offene Freiform, kein Belag, Systemdiele, '
         'unvollständige Abmessungen', () {
@@ -476,6 +523,8 @@ void main() {
       // F25: 0,99 % – längs gerechnet wie bei Dielen
       expect((v.dielenliste.verschnitt * 10000).round() / 100, 0.99);
       expect(v.grenzen, (x: const Millimeter(606), y: const Millimeter(611)));
+      // Holzfliesen ohne Überlänge
+      expect(v.ueberlaenge, const Millimeter(0));
     });
   });
 

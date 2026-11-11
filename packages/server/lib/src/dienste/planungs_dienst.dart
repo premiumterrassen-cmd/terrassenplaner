@@ -507,6 +507,7 @@ class PlanungsDienst {
               belag: nummer,
               laengen: verlegung.lieferlaengen,
               stuecke: <Millimeter>[],
+              ueberlaenge: verlegung.ueberlaenge,
             ),
           );
           for (var k = 0; k < f.haeufigkeit; k++) {

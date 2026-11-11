@@ -64,7 +64,11 @@ enum Verlegeart {
 
 /// Raster der Stoßlinien: die längste erlaubte Lieferlänge [laengste] (bei
 /// erzwungener Länge diese), höchstens aber die [ausdehnung] der Fläche in
-/// Verlegerichtung – passt eine Reihe in eine Diele, wird um Teile der Reihe
+/// Verlegerichtung – passt eine Reihe in eine Diele (samt [ueberlaenge],
+/// `dielenUeberlaenge`: 603 cm in eine 6-m-Diele), wird um Teile der Reihe
 /// versetzt (480 cm Halbverband: 240 cm, nicht 250 cm).
-Millimeter stossraster(Millimeter ausdehnung, Millimeter laengste) =>
-    ausdehnung < laengste ? ausdehnung : laengste;
+Millimeter stossraster(
+  Millimeter ausdehnung,
+  Millimeter laengste, {
+  Millimeter ueberlaenge = const Millimeter(0),
+}) => ausdehnung <= laengste + ueberlaenge ? ausdehnung : laengste;

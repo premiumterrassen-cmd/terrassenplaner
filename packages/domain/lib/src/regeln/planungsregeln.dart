@@ -37,6 +37,14 @@ const auflagerRandabstand = Millimeter(50);
 /// (Planungsregeln Alexander (Planungskern v6, 11.11.2026), Regel 3.6).
 const auflagerEinzelnBis = Millimeter(120);
 
+/// Dielen kommen mit dieser Überlänge (Planungsregeln Alexander
+/// (Planungskern v6, 11.11.2026); Shoptext „teilweise geringe Überlänge“):
+/// Eine Lieferlänge nimmt Stücke bis zu ihrer Länge plus Überlänge auf –
+/// 6,00 m Fläche liegt ohne Stoß auf einer 6-m-Diele, 2 × 3,00 m passen in
+/// eine 6-m-Diele. Ein Dielenstoß ist erst über der längsten Lieferlänge
+/// plus Überlänge nötig. Holzfliesen haben keine.
+const dielenUeberlaenge = Millimeter(30);
+
 /// Fuge zwischen zwei Dielen (R-B06, Alexander).
 const fuge = Millimeter(5);
 
