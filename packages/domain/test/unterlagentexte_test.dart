@@ -146,6 +146,17 @@ void main() {
       en.hoeheKorrigiert(const Millimeter(63)),
       contains('6.3 cm and has been corrected'),
     );
+    // Planungsregeln 3.4: Selbstkontrolle der Rand-UK
+    expect(
+      de.randUkErgaenzt(const Millimeter(2570)),
+      'Rand-UK 257 cm ergänzt: An einer Kante endeten Dielen ohne UK '
+      'darunter.',
+    );
+    expect(
+      en.randUkErgaenzt(const Millimeter(2575)),
+      'Edge substructure of 257.5 cm added: boards ended at an edge '
+      'without substructure underneath.',
+    );
   });
 
   test('rechtliche Hinweise und Grußtext wie in den Planungsunterlagen', () {

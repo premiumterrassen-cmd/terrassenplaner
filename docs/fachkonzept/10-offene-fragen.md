@@ -19,14 +19,14 @@ Aus M1-03 (Verdacht auf Fehler des alten Planers, siehe [09](09-nicht-teil-der-k
 
 13. ~~**Gewerbliche Nutzung** (F35)~~ → beantwortet, siehe unten.
 14. ~~**Rinne** (F38)~~ → beantwortet.
-15. ~~**Dielenlängen über 600 cm** (F14)~~ → Fehler laut B-035 (7 m nur Serbien; UK 6,5 m gibt es nicht).
+15. ~~**Dielenlängen über 600 cm** (F14)~~ → Fehler laut B-035 (7 m nur bei ECO SELECT; UK 6,5 m gibt es nicht).
 16. ~~**Kurze Stücke verbinden** (F13)~~ → beantwortet.
 17. ~~**Querstreben**~~ → beantwortet.
 18. ~~**Grenzen der Terrassenmaße** (M4-02)~~ → beantwortet.
 
 Aus dem Paritätsnachweis (M10-01, [Bericht](../abnahme/paritaetsbericht.md#offene-fragen-an-alexander)):
 
-19. **UK an schrägen Rändern, Ausschnitt-, Innen- und Bogenkanten:** Der alte Planer legt dort zusätzliche UK-Stücke (F18, F19, F21, F22, L/T/U) und bei Diagonalverlegung mehr UK (F03 ≈ 52 statt 37 m). Neu: nur der Achsabstand, äußere Hölzer bündig. Zusätzliche UK an diesen Kanten (wie alt) oder genügt der Achsabstand?
+19. ~~**UK an schrägen Rändern, Ausschnitt-, Innen- und Bogenkanten**~~ → beantwortet, siehe unten.
 20. **Vorhandene UK (F29):** alt zusätzlich 2 × 473 cm wie ein Rahmen – gewollt?
 21. **Alu-UK:** alt mehr Schienen (RELO 22 statt 18, ALUecofix XL 182 statt 169) – eigener, engerer Achsabstand?
 
@@ -48,10 +48,11 @@ Aus dem Paritätsnachweis (M10-01, [Bericht](../abnahme/paritaetsbericht.md#offe
 
 - **Gewerbliche Nutzung** (Frage 13): war gedacht, um auf teurere Zubehörteile und dickere Dielen umzustellen – fachlich nicht nötig, nur Marketing; **bleibt wie im alten Planer** (nur mehr Gummiband). Später vielleicht: UK zwingend versteift und nur PREMIUM SELECT – noch nicht entschieden, zurückgestellt.
 - **Rinne und UK** (Frage 14): Die UK geht bis zur Hauswand (endet 1–2 cm davor). Unter der Rinne liegen die Auflageprofile (RELO VA), darauf werden die Ventilationsprofile (RELO V) geschraubt. Die volle UK-Länge in F38 ist also richtig.
-- **Dielenlängen über 600 cm** (Frage 15): laut B-035 gibt es 7 m nur aus Serbien (ECO SELECT), Bosnien und Rumänien liefern 4/5/6 m; UK 6,5 m gibt es nicht → Fehler des alten Planers (F14).
+- **Dielenlängen über 600 cm** (Frage 15): laut B-035 gibt es 7 m nur bei ECO SELECT, die anderen Serien haben 4/5/6 m; UK 6,5 m gibt es nicht → Fehler des alten Planers (F14).
 - **Kurze Stücke verbinden** (Frage 16): Ein Stoß muss dann nicht durchgehend sein – bei nicht rechtwinkligen Terrassen darf ein kurzes Stück durch eine ganze Diele ersetzt werden. Beim Rechteck (F13) daher ohne Wirkung, das ist richtig.
 - **Querstreben** (Frage 17): Abstand 60 cm (so im alten Planer hinterlegt, gewollt).
 
 - **Grenzen der Terrassenmaße** (Frage 18): größte Seitenlänge 3000 cm (Alexander, 27.10.2026); kleinste bleibt vorläufig 50 cm.
+- **UK an schrägen Rändern, Ausschnitt-, Innen- und Bogenkanten** (Frage 19): An jeder Kante, an der Dielen enden, liegt eine UK; schräge Kanten bekommen eine Rand-UK entlang der Kante, bündig, ohne Überstand. Eine Selbstkontrolle prüft alle Kanten mit Dielenenden und ergänzt eine fehlende Rand-UK mit Meldung (Planungsregeln Alexander (Planungskern v6, 11.11.2026), Regel 3.3/3.4). Umsetzung: Fachkonzept 3.11, R-C11/R-C12 in [14](14-planungsregeln.md). Bei diagonaler Verlegung bleibt der Achsabstand quer zur UK gemessen; die zusätzliche UK sind die Rand-UK an den schrägen Rändern (F03: 6 × 5000 + 8 × 4000 mm, Clips wie im alten Planer).
 
 (Alle Antworten Alexander, 19.10.2026, sofern nicht anders angegeben.)

@@ -1261,6 +1261,11 @@ class PlanerTexteDe extends PlanerTexte {
   }
 
   @override
+  String randUkErgaenzt(String cm) {
+    return 'Rand-UK $cm cm ergänzt: An einer Kante endeten Dielen ohne UK darunter (Selbstkontrolle).';
+  }
+
+  @override
   String get feldbreiteOhneBelag =>
       'Die Feldbreite hängt vom Belag ab: Wählen Sie zuerst einen Belag aus Holz.';
 

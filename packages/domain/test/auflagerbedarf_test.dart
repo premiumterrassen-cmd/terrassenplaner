@@ -36,6 +36,10 @@ Auflagerbedarf _bedarf(
   regelwerk: mitRegelwerk ? auflagerRegelwerk : null,
 );
 
+Planungsstand _rechteck8000() => _f01.mitGrundriss(
+  RechteckGrundriss(const Millimeter(8000), const Millimeter(3090)),
+);
+
 Map<String, int> _zeilen(Auflagerbedarf b) => {
   for (final z in b.zeilen) z.titel: z.anzahl,
 };
@@ -237,6 +241,43 @@ void main() {
       expect(b.punkte.first.ort.y, closeTo(20, 1e-6));
       expect(b.punkte[1].ort.x, closeTo(4200, 1e-6));
       expect(b.punkte[1].ort.y, closeTo(20, 1e-6));
+    });
+
+    test('Rand-UK (Planungsregeln 3.3) trägt ihre Auflager wie eine Linie: '
+        'diagonal je 480 cm 9, je 309 cm 7, an Stößen eins', () {
+      final s = _f01.mitVerlegerichtung(Verlegerichtung.diagonal45);
+      final v = _verlegung(s);
+      final ohneRand = auflagerbedarf(
+        s,
+        UkVerlegung(linien: v.linien, winkel: v.winkel),
+        uk: ukArtikel,
+        abstand: const Millimeter(600),
+        flaeche: Hoehenflaeche(s.grundriss.ecken, _mm(const [86])),
+        aufbauhoehe: _aufbau,
+      );
+      final b = _bedarf(s);
+      expect(b.punkte, hasLength(ohneRand.punkte.length + 2 * 9 + 2 * 7));
+      // die erste Rand-UK (Kante A–B, 2 cm innen) von x = 0 bis 4800
+      final rand = b.punkte.skip(ohneRand.punkte.length).take(9).toList();
+      for (final (i, p) in rand.indexed) {
+        expect(p.ort.x, closeTo(600 * i, 1e-6));
+        expect(p.ort.y, closeTo(20, 1e-6));
+      }
+      // 800 × 309 cm diagonal: die lange Rand-UK mit Stoß bei 600 cm
+      final lang = _rechteck8000().mitVerlegerichtung(
+        Verlegerichtung.diagonal45,
+      );
+      final orte = [
+        for (final p in _bedarf(lang).punkte)
+          if ((p.ort.y - 20).abs() < 1e-6) p.ort.x,
+      ];
+      expect(orte, [
+        for (var x = 0; x <= 6000; x += 600) closeTo(x, 1e-6),
+        closeTo(6000 + 2000 / 4, 1e-6),
+        closeTo(7000, 1e-6),
+        closeTo(7500, 1e-6),
+        closeTo(8000, 1e-6),
+      ]);
     });
 
     test('ohne Pads (nur Stelzfüße): zu niedrig ohne Auflager, Zeile null; '
