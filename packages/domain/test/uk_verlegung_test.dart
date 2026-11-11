@@ -485,6 +485,9 @@ void main() {
       final v = _verlege(s);
       final lang = v.rand.firstWhere((r) => r.von.abstand(r.bis) > 7000);
       expect(lang.stoesse, [6000]);
+      // 1300 cm: 600 + 600 + 100 cm, Stöße bei 600 und 1200 cm
+      final linie = _verlege(_rechteck(4800, 13000)).linien.first;
+      expect(linie.stoesse, [6000, 12000]);
       expect(
         v.stossanzahl,
         v.linien.fold(0, (n, l) => n + l.stoesse.length) + 2,
@@ -673,6 +676,23 @@ void main() {
       // eine Linie unter dem Ende höchstens 6 cm neben der Kreuzung
       expect(punkte([linie(20), linie(940)], [schraeg]), 2);
       expect(punkte([linie(20), linie(939)], [schraeg]), 3);
+      expect(punkte([linie(20), linie(960)], [schraeg]), 2);
+      // Kreuzung auf Höhe der Mitte: (1000|20)–(1010|40) bei x = 1005 ja,
+      // (1015|20)–(1035|40) bei x = 1025 hinter dem Stück nicht
+      expect(
+        punkte(
+          [linie(20)],
+          [rand(const Punkt(1000, 20), const Punkt(1010, 40))],
+        ),
+        2,
+      );
+      expect(
+        punkte(
+          [linie(20)],
+          [rand(const Punkt(1015, 20), const Punkt(1035, 40))],
+        ),
+        1,
+      );
       // Randreihe zählt mit
       expect(
         befestigungspunkteAufUk(

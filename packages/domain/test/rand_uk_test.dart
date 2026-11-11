@@ -51,6 +51,8 @@ void main() {
       expect(_rand([k], [_linie(0, 111, 1000)]), isEmpty);
       expect(_rand([k], [_linie(0, 0, 889)]), isEmpty);
       expect(_rand([k], [_linie(0, 111, 889)]), hasLength(1));
+      // beide Grenzen genau getroffen: belegt
+      expect(_rand([k], [_linie(0, 110, 890)]), isEmpty);
       expect(_rand([k], [_linie(0, 211, 1000)]), hasLength(1));
       // zwei Abschnitte decken gemeinsam
       expect(
@@ -269,7 +271,49 @@ void main() {
       }
 
       expect(unten3(0.5).single.bis, const Punkt(800, 0));
+      expect(unten3(0.3).single.bis, const Punkt(800, 0));
       expect(unten3(0.6).single.bis, const Punkt(1000, 0));
+    });
+
+    test('verschoben gleich: Schnitte und Ecken unabhängig vom Ursprung', () {
+      const v = Punkt(300, 700);
+      final u = [for (final p in umriss) p + v];
+      final raus = [
+        for (final p in const [
+          Punkt(400, -100),
+          Punkt(600, -100),
+          Punkt(600, 100),
+          Punkt(400, 100),
+        ])
+          p + v,
+      ];
+      final ecke2 = [
+        for (final p in const [
+          Punkt(450, 0.3),
+          Punkt(550, 0.3),
+          Punkt(550, 50),
+          Punkt(450, 50),
+        ])
+          p + v,
+      ];
+      final unten = randkanten(
+        [u, raus],
+        (q) => drin(u, q) && !drin(raus, q),
+        40,
+      ).where((k) => k.von.y == 700 && k.bis.y == 700);
+      expect(
+        [for (final k in unten) (k.von.x, k.bis.x)],
+        [(300.0, 700.0), (900.0, 1300.0)],
+      );
+      final knapp = randkanten(
+        [u, ecke2],
+        (q) => drin(u, q) && !drin(ecke2, q),
+        40,
+      ).where((k) => k.von.y == 700 && k.bis.y == 700);
+      expect(
+        [for (final k in knapp) (k.von.x, k.bis.x)],
+        [(300.0, 750.0), (850.0, 1300.0)],
+      );
     });
   });
 }
