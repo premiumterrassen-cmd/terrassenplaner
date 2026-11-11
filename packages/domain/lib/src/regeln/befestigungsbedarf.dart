@@ -220,14 +220,24 @@ final class Befestigungsbedarf {
     this.punkte = 0,
     List<Befestigungsposition> mittel = const [],
     List<Materialbedarf> bedarf = const [],
+    Map<Befestigungsart, Artikelnummer> wechsel = const {},
   }) : mittel = List.unmodifiable(mittel),
-       bedarf = List.unmodifiable(bedarf);
+       bedarf = List.unmodifiable(bedarf),
+       wechsel = Map.unmodifiable(wechsel);
 
   /// Ohne Befestigung (Holzfliese, kein Holzbelag).
   static final keiner = Befestigungsbedarf();
 
-  /// Wählbare Befestigungsarten des Belags (`Befestigungsart.fuer`).
+  /// Wählbare Befestigungsarten: die des Belags (`Befestigungsart.fuer`)
+  /// und die seines Gegenstücks ([wechsel]), in der Reihenfolge von
+  /// [Befestigungsart].
   final List<Befestigungsart> arten;
+
+  /// Arten, für die der Belag gegen sein Gegenstück derselben Serie und
+  /// Breite getauscht wird (glattkant ↔ genutet, `gegenstueck`) –
+  /// Planungsregeln Alexander (Planungskern v6, 11.11.2026) Regel 4.4. Die
+  /// App setzt bei dieser Wahl auch den Belag.
+  final Map<Befestigungsart, Artikelnummer> wechsel;
 
   /// Wirksame Befestigungsart; `null` ohne wählbare Art.
   final Befestigungsart? art;
@@ -295,12 +305,17 @@ Befestigungsbedarf befestigungsbedarf(
       ? befestigungspunkte(stuecke, winkel: winkel, ukAbstand: ukAbstand)
       : befestigungspunkteAufUk(stuecke, uk);
   final moeglich = regelwerk.moeglich(belag.nummer, Beziehung.befestigung);
+  final anderer = gegenstueck(regelwerk, belag);
+  final wechsel = {
+    for (final a in Befestigungsart.fuer(anderer?.profil)) a: anderer!.nummer,
+  };
   final bedarf = [
     for (final (einheiten, stueck, jePlanung) in switch (art) {
       Befestigungsart.clips => _sichtverdeckt(
         regelwerk,
-        belag,
+        anderer,
         _clips(moeglich, holzart.serie(serie).befestigung(profil, breite)),
+        staerke: belag.abmessungen.staerke,
         punkte: punkte,
         randpunkte: randpunkte,
         schraubenJePunkt: holzart.schraubenJePunkt(
@@ -323,7 +338,12 @@ Befestigungsbedarf befestigungsbedarf(
         Materialbedarf(einheiten, stueck, jePlanung: jePlanung),
   ];
   return Befestigungsbedarf(
-    arten: Befestigungsart.fuer(profil),
+    arten: [
+      for (final a in Befestigungsart.values)
+        if (Befestigungsart.fuer(profil).contains(a) || wechsel.containsKey(a))
+          a,
+    ],
+    wechsel: wechsel,
     art: art,
     punkte: punkte,
     mittel: [
@@ -340,21 +360,22 @@ Befestigungsbedarf befestigungsbedarf(
 /// bisherigen Auslegung von B-033 ab): Anfangs- und Enddiele werden sichtbar
 /// verschraubt, Schraube und Anzahl je Kreuzung wie bei der Verschraubung
 /// von oben ([schraubenJePunkt] des glattkanten Profils, Schrauben aus den
-/// Befestigungsverweisen des Gegenstücks, `gegenstueck`). Die [clips]
+/// Befestigungsverweisen des [gegenstueck]s). Die [clips]
 /// decken die übrigen Kreuzungen + 5 % ([clipsMitZuschlag]). Ohne
 /// Gegenstück oder ohne dessen Schrauben bekommen auch die Randreihen Clips.
 List<(List<Artikel>, int, bool)> _sichtverdeckt(
   Regelwerk regelwerk,
-  Artikel belag,
+  Artikel? gegenstueck,
   List<Artikel> clips, {
+  required Millimeter? staerke,
   required int punkte,
   required int randpunkte,
   required int schraubenJePunkt,
 }) {
-  final schrauben = switch (gegenstueck(regelwerk, belag)) {
+  final schrauben = switch (gegenstueck) {
     final g? => _schrauben(
       regelwerk.moeglich(g.nummer, Beziehung.befestigung),
-      belag.abmessungen.staerke,
+      staerke,
     ),
     null => const <Artikel>[],
   };

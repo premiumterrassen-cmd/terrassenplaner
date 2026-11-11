@@ -341,6 +341,19 @@ final class Berechnung {
             const fb.Uint32Reader().vTableGet(puffer, ort, _versatz(2), 0),
           ),
       ],
+      wechsel: {
+        for (final ort in const fb.ListReader<int>(_Tabellenort()).vTableGet(
+          puffer,
+          wurzel,
+          _versatz(_befestigungswechselPlatz),
+          const [],
+        ))
+          Befestigungsart.ausNummer(
+            const fb.Uint8Reader().vTableGet(puffer, ort, _versatz(0), 0),
+          ): Artikelnummer(
+            const fb.StringReader().vTableGet(puffer, ort, _versatz(1), ''),
+          ),
+      },
     );
   }
 
@@ -577,7 +590,9 @@ final class Berechnung {
   /// (M5-08), 25: hoehen ([int32] mm je Eckpunkt), 26: hoehenKorrigiert
   /// (bool), 27: ukGedreht (bool), 28: aufbauhoehe (int32 mm),
   /// 29: mindesthoehe (int32 mm; beide fehlen ungeprüft) (M6-02),
-  /// 35: belagmeldungen ([uint8], M5-10), 50: zubehoer ([{ 0: nummer
+  /// 35: belagmeldungen ([uint8], M5-10), 36: befestigungswechsel ([{ 0:
+  /// art (uint8), 1: belag (string) }], Planungskern v6 Regel 4.4),
+  /// 50: zubehoer ([{ 0: nummer
   /// (string), 1: berechnet (uint32), 2: menge (uint32), 3: pflicht
   /// (uint32, M8-03) }], M8-02), 60: materialliste (Tabelle,
   /// `Materialliste.schreibe`, M9-03), 61: stueckliste (Tabelle,
@@ -619,6 +634,11 @@ final class Berechnung {
     ]);
     final mittelOrt = fbb.writeList([
       for (final m in befestigung.mittel) _position(fbb, m),
+    ]);
+    final wechselOrt = fbb.writeList([
+      for (final MapEntry(key: art, value: belag)
+          in befestigung.wechsel.entries)
+        _wechsel(fbb, art, belag),
     ]);
     final hoehenOrt = fbb.writeListInt32([
       for (final h in hoehenpunkte.hoehen) h.mm,
@@ -672,6 +692,7 @@ final class Berechnung {
       ..addInt32(_aufbauhoehePlatz, hoehenpunkte.aufbauhoehe?.mm)
       ..addInt32(_mindesthoehePlatz, hoehenpunkte.mindesthoehe?.mm)
       ..addOffset(_belagmeldungenPlatz, meldungenOrt)
+      ..addOffset(_befestigungswechselPlatz, wechselOrt)
       ..addOffset(_zubehoerPlatz, zubehoerOrt)
       ..addOffset(_materiallistePlatz, materialOrt)
       ..addOffset(_stuecklistePlatz, stueckOrt)
@@ -747,6 +768,15 @@ final class Berechnung {
     return fbb.endTable();
   }
 
+  static int _wechsel(fb.Builder fbb, Befestigungsart art, Artikelnummer b) {
+    final belagOrt = fbb.writeString(b.wert);
+    fbb
+      ..startTable(2)
+      ..addUint8(0, art.nummer)
+      ..addOffset(1, belagOrt);
+    return fbb.endTable();
+  }
+
   static int _zubehoerposition(fb.Builder fbb, Zubehoerposition z) {
     final nummerOrt = fbb.writeString(z.nummer.wert);
     fbb
@@ -803,6 +833,7 @@ final class Berechnung {
   static const _aufbauhoehePlatz = 28;
   static const _mindesthoehePlatz = 29;
   static const _belagmeldungenPlatz = 35;
+  static const _befestigungswechselPlatz = 36;
   static const _zubehoerPlatz = 50;
   static const _materiallistePlatz = 60;
   static const _stuecklistePlatz = 61;

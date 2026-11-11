@@ -117,6 +117,38 @@ void main() {
     expect(s.aenderungen, [0, 1]);
   });
 
+  testWidgets('Clips mit Gegenstück: tauscht die Diele glattkant ↔ genutet '
+      '(Planungskern v6 Regel 4.4)', (tester) async {
+    const glatt = Artikelnummer('10-10-044-R');
+    final s = await zeige(
+      tester,
+      berechne: (planung) async => Berechnung(
+        umriss: planung.aktuell.grundriss.ecken,
+        flaeche: 1,
+        befestigung: Befestigungsbedarf(
+          arten: Befestigungsart.values,
+          wechsel: const {
+            Befestigungsart.verschraubt: glatt,
+            Befestigungsart.verschraubtMitAbstandshaltern: glatt,
+          },
+          art: planung.aktuell.befestigungsart,
+        ),
+      ),
+    );
+    final vorher = s.planung.aktuell.belag;
+    await tester.tap(find.byKey(const ValueKey('befestigungsart-verschraubt')));
+    await tester.pumpAndSettle();
+    expect(s.planung.aktuell.belag, glatt);
+    expect(s.planung.aktuell.befestigungsart, Befestigungsart.verschraubt);
+    expect(s.aenderungen, [0]);
+    // Clips ohne Gegenstück: Belag bleibt
+    await tester.tap(find.byKey(const ValueKey('befestigungsart-clips')));
+    await tester.pumpAndSettle();
+    expect(s.planung.aktuell.belag, glatt);
+    expect(s.planung.aktuell.befestigungsart, Befestigungsart.clips);
+    expect(vorher, isNot(glatt));
+  });
+
   testWidgets('ohne Dielen oder ohne Berechnung ein Hinweis', (tester) async {
     await zeige(tester, berechne: _ohneDielen);
     expect(find.text(de.befestigungOhneDielen), findsOneWidget);

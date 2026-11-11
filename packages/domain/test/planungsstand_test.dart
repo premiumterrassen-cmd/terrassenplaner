@@ -1935,10 +1935,8 @@ void main() {
         umriss: const [],
         flaeche: 1,
         befestigung: Befestigungsbedarf(
-          arten: const [
-            Befestigungsart.verschraubt,
-            Befestigungsart.verschraubtMitAbstandshaltern,
-          ],
+          arten: Befestigungsart.values,
+          wechsel: const {Befestigungsart.clips: Artikelnummer('10-10-143-R')},
           art: Befestigungsart.verschraubtMitAbstandshaltern,
           punkte: 390,
           mittel: const [
@@ -1959,6 +1957,10 @@ void main() {
         );
         expect(k.befestigung.punkte, 390);
         expect(k.befestigung.mittel, b.befestigung.mittel);
+        // Gegenstück je Art (Planungskern v6 Regel 4.4)
+        expect(k.befestigung.wechsel, {
+          Befestigungsart.clips: const Artikelnummer('10-10-143-R'),
+        });
       }
       expect(
         () => b.befestigung.mittel.add(b.befestigung.mittel.first),
@@ -1971,6 +1973,7 @@ void main() {
       expect(ohne.befestigung.art, isNull);
       expect(ohne.befestigung.punkte, 0);
       expect(ohne.befestigung.mittel, isEmpty);
+      expect(ohne.befestigung.wechsel, isEmpty);
       expect(
         Berechnung(umriss: const [], flaeche: 0).befestigung,
         same(Befestigungsbedarf.keiner),

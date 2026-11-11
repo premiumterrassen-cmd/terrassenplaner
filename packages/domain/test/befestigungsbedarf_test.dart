@@ -394,7 +394,13 @@ void main() {
         _verlegt(),
         winkel: 0,
       );
-      expect(b.arten, [Befestigungsart.clips]);
+      // Gegenstück glattkant: „von oben“ ist wählbar und tauscht die
+      // Diele (Planungskern v6 Regel 4.4)
+      expect(b.arten, Befestigungsart.values);
+      expect(b.wechsel, {
+        Befestigungsart.verschraubt: _glatt60.nummer,
+        Befestigungsart.verschraubtMitAbstandshaltern: _glatt60.nummer,
+      });
       expect(b.art, Befestigungsart.clips);
       expect(b.punkte, 624);
       // (624 − 26) × 1,05 = 627,9 → 628 Clips (vorher 624 + 13 = 637):
@@ -505,6 +511,21 @@ void main() {
       );
     });
 
+    test('glattkant mit genutetem Gegenstück: sichtverdeckt wählbar, '
+        'tauscht die Diele (Planungskern v6 Regel 4.4)', () {
+      final b = befestigungsbedarf(
+        regelwerk,
+        _glatt100premium,
+        Befestigungsart.verschraubt,
+        _verlegt(breite: 100),
+        winkel: 0,
+      );
+      expect(b.arten, Befestigungsart.values);
+      expect(b.wechsel, {Befestigungsart.clips: _genutet100.nummer});
+      expect(b.art, Befestigungsart.verschraubt);
+      expect(() => b.wechsel.clear(), throwsUnsupportedError);
+    });
+
     test('ECO SELECT genutet 100 mm: CLIP-FIXX (B-094); ohne Gegenstück '
         'auch die Randreihen mit Clips', () {
       final b = befestigungsbedarf(
@@ -527,10 +548,12 @@ void main() {
         _verlegt(breite: 100),
         winkel: 0,
       );
+      // kein genutetes Gegenstück (BASIC 100 mm): nur verschraubt
       expect(b.arten, [
         Befestigungsart.verschraubt,
         Befestigungsart.verschraubtMitAbstandshaltern,
       ]);
+      expect(b.wechsel, isEmpty);
       expect(b.art, Befestigungsart.verschraubt);
       expect(b.punkte, 390);
       // 780 Schrauben → 4 × 200
