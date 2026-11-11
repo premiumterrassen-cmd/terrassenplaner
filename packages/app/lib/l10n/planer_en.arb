@@ -393,6 +393,7 @@
   "materialSpaltePositionspreis": "Line total",
   "materialLaenge": "Length: {laenge} mm",
   "materialFreidiele": "Free board",
+  "materialOptional": "Optional – not included in the total",
   "materialBerechnet": "calculated: {anzahl}",
   "materialSumme": "Total: {betrag}",
   "materialMehrwertsteuer": "incl. {satz} % VAT: {betrag}",

@@ -64,7 +64,9 @@ final class GrandTotalZeile {
   });
 
   /// Titel wie im Shop, bei Lfm-Ware mit „ - Länge: 5000 mm“ und ggf.
-  /// „ - Freidiele“.
+  /// „ - Freidiele“; eine optionale Position (Planungskern v6 Regel 4.5)
+  /// als „Optional: Titel - nicht in der Summe“, damit GrandTotal sie als
+  /// optionale Position anlegt.
   final String bezeichnung;
 
   /// Kurzbezeichnung – der Titel wie im Shop (keine Werks-Nomenklatur,
@@ -203,9 +205,13 @@ GrandTotalZeile _zeile(Materialzeile p, Artikel? artikel, Uri? bilder) {
   };
   return GrandTotalZeile(
     bezeichnung: [
-      p.titel,
+      if (p.zusatz == Materialzusatz.optional)
+        'Optional: ${p.titel}'
+      else
+        p.titel,
       if (laenge != null) 'Länge: ${laenge.mm} mm',
       if (p.zusatz == Materialzusatz.freidiele) 'Freidiele',
+      if (p.zusatz == Materialzusatz.optional) 'nicht in der Summe',
     ].join(' - '),
     nomenklatur: p.titel,
     artikelnummer: p.nummer,

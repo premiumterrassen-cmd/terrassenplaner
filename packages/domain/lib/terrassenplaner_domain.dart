@@ -63,6 +63,7 @@ export 'src/regeln/auflager.dart';
 export 'src/regeln/auflagerbedarf.dart';
 export 'src/regeln/befestigungsbedarf.dart';
 export 'src/regeln/belagmeldungen.dart';
+export 'src/regeln/bohrsenker.dart';
 export 'src/regeln/feldbreite.dart';
 export 'src/regeln/freidielen.dart';
 export 'src/regeln/gegenstueck.dart';

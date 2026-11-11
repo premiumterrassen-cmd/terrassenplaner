@@ -256,6 +256,36 @@ void main() {
       expect(p.preisJeLfm, isNull);
     });
 
+    test('optionale Position (Planungskern v6 Regel 4.5): mit Preis, aber '
+        'nicht in der Summe; ohne Preis bleibt die Summe vollständig', () {
+      final liste = Materialliste.aus([
+        Materialbedarf([_montagehilfe], 1),
+        Materialbedarf(
+          [_montagehilfe],
+          1,
+          zusatz: Materialzusatz.optional,
+          jePlanung: true,
+        ),
+      ]);
+      expect(
+        [for (final p in liste.positionen) p.zusatz],
+        [null, Materialzusatz.optional],
+      );
+      expect(liste.positionen.last.positionspreis, const Cent(1999));
+      expect(liste.summe, const Cent(1999));
+      expect(liste.mehrwertsteuer, enthalteneMehrwertsteuer(const Cent(1999)));
+      final ohnePreis = Materialliste.aus([
+        Materialbedarf([_montagehilfe], 1),
+        Materialbedarf(
+          [_diele(preis: null)],
+          1,
+          zusatz: Materialzusatz.optional,
+        ),
+      ]);
+      expect(ohnePreis.vollstaendig, isTrue);
+      expect(ohnePreis.summe, const Cent(1999));
+    });
+
     test('Artikel ohne Preis: Position ohne Preise, Summe unvollständig', () {
       final liste = Materialliste.aus([
         Materialbedarf([_diele(preis: null)], 2, laenge: _m5),
@@ -397,6 +427,7 @@ void main() {
     test('Zusatz im Transportformat', () {
       expect(Materialzusatz.freidiele.nummer, 1);
       expect(Materialzusatz.ausNummer(1), Materialzusatz.freidiele);
+      expect(Materialzusatz.ausNummer(3), Materialzusatz.optional);
       expect(Materialzusatz.ausNummer(0), isNull);
       expect(Materialzusatz.ausNummer(9), isNull);
     });

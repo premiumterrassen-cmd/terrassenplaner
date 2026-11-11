@@ -212,6 +212,7 @@ void main() {
       ),
       Materialbedarf([uk], 13, laenge: const Millimeter(4000)),
       Materialbedarf([pad], 91),
+      Materialbedarf([pad], 1, zusatz: Materialzusatz.optional),
     ]);
     Berechnung berechnung({
       List<Belagmeldung> meldungen = const [],
@@ -485,7 +486,8 @@ void main() {
       ]);
     });
 
-    test('Materialliste mit Länge, Freidiele, Preisen und Hinweis', () {
+    test('Materialliste mit Länge, Freidiele, optionaler Position, Preisen '
+        'und Hinweis', () {
       final k = kapitel(erzeuge([berechnung()]), 'Materialliste');
       final tabelle = baustein<Tabelle>(k);
       expect(tabelle.zeilen.first.take(4), [
@@ -502,9 +504,15 @@ void main() {
       expect(tabelle.zeilen.first.skip(4), ['4,49', '22,45', '1.077,60']);
       // UK ohne Preis: „–“; Pad ohne lfm: leer
       expect(tabelle.zeilen[2].skip(4), ['–', '–', '–']);
-      expect(tabelle.zeilen.last.skip(3), ['', '', '25,00', '50,00']);
+      expect(tabelle.zeilen[3].skip(3), ['', '', '25,00', '50,00']);
+      // optional (Planungskern v6 Regel 4.5): mit Preis, nicht in der Summe
+      expect(
+        tabelle.zeilen.last[1],
+        endsWith(' – optional – nicht in der Summe'),
+      );
+      expect(tabelle.zeilen.last.skip(5), ['25,00', '25,00']);
       expect(tabelle.rechts, {0, 2, 3, 4, 5, 6});
-      expect(texte(k).skip(6), [
+      expect(texte(k).skip(7), [
         'Summe gesamt: ${materialliste.summe.anzeige}',
         'enthaltene 19 % MwSt.: ${materialliste.mehrwertsteuer.anzeige}',
         'Alle Preise inkl. MwSt. und nur zur Information – verbindlich ist '

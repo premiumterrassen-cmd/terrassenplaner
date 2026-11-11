@@ -2350,6 +2350,12 @@ abstract class PlanerTexte {
   /// **'Freidiele'**
   String get materialFreidiele;
 
+  /// No description provided for @materialOptional.
+  ///
+  /// In de, this message translates to:
+  /// **'Optional – nicht in der Summe'**
+  String get materialOptional;
+
   /// No description provided for @materialBerechnet.
   ///
   /// In de, this message translates to:

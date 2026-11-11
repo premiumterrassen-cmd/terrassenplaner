@@ -1304,6 +1304,9 @@ class PlanerTexteEn extends PlanerTexte {
   String get materialFreidiele => 'Free board';
 
   @override
+  String get materialOptional => 'Optional – not included in the total';
+
+  @override
   String materialBerechnet(int anzahl) {
     return 'calculated: $anzahl';
   }

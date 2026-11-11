@@ -449,6 +449,7 @@
   "materialLaenge": "Länge: {laenge} mm",
   "@materialLaenge": {"placeholders": {"laenge": {"type": "int"}}},
   "materialFreidiele": "Freidiele",
+  "materialOptional": "Optional – nicht in der Summe",
   "materialBerechnet": "berechnet: {anzahl}",
   "@materialBerechnet": {"placeholders": {"anzahl": {"type": "int"}}},
   "materialSumme": "Summe gesamt: {betrag}",

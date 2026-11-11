@@ -1307,6 +1307,9 @@ class PlanerTexteDe extends PlanerTexte {
   String get materialFreidiele => 'Freidiele';
 
   @override
+  String get materialOptional => 'Optional – nicht in der Summe';
+
+  @override
   String materialBerechnet(int anzahl) {
     return 'berechnet: $anzahl';
   }

@@ -96,6 +96,7 @@ final class Unterlagentexte {
     required this.gesamt,
     required this.laenge,
     required this.freidiele,
+    required this.optional,
     required this.summeGesamt,
     required this.mehrwertsteuer,
     required this.preisHinweis,
@@ -177,6 +178,7 @@ final class Unterlagentexte {
     gesamt: '€ gesamt',
     laenge: 'Länge',
     freidiele: 'Freidiele',
+    optional: 'optional – nicht in der Summe',
     summeGesamt: 'Summe gesamt',
     mehrwertsteuer: 'enthaltene $mehrwertsteuerSatz % MwSt.',
     preisHinweis:
@@ -281,6 +283,7 @@ final class Unterlagentexte {
     gesamt: '€ total',
     laenge: 'Length',
     freidiele: 'Free board',
+    optional: 'optional – not included in the total',
     summeGesamt: 'Total',
     mehrwertsteuer: 'incl. $mehrwertsteuerSatz % VAT',
     preisHinweis:
@@ -389,6 +392,9 @@ final class Unterlagentexte {
   final String gesamt;
   final String laenge;
   final String freidiele;
+
+  /// Kennzeichen einer optionalen Position (Planungskern v6 Regel 4.5).
+  final String optional;
   final String summeGesamt;
   final String mehrwertsteuer;
   final String preisHinweis;

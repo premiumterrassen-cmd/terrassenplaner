@@ -540,6 +540,7 @@ Kapitel _materialliste(Unterlagentexte t, Materialliste liste) =>
                 p.titel,
                 if (p.laenge case final l?) '${t.laenge}: ${l.mm} mm',
                 if (p.zusatz == Materialzusatz.freidiele) t.freidiele,
+                if (p.zusatz == Materialzusatz.optional) t.optional,
               ].join(' – '),
               '${p.anzahl} ${t.einheit(p.einheit)}',
               switch (p.gesamtlaenge) {
