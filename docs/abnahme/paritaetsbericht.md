@@ -163,7 +163,7 @@ Grund aller Änderungen: **Planungskern v6 / Entscheidung Alexander 11.11.2026**
 - **Fuge 6 mm:** Wo die Dielen vorher gleich waren, steht jetzt die Abweichung „Dielen“ mit Grund „Fuge“: F01, F02, F06–F12, F20, F21, F23, F26–F38 und die Referenzfälle 2025-08-26-719, 2026-04-29-2412, -05-03-347, -05-12-1823, -05-28-4655, -06-30-2295, -08-06-2810. Die UK-Werte ändert die Fuge nicht. Die Paritätstests der Verlegung im domain-Paket rechnen weiter mit den 5 mm des alten Planers (`altplanerFuge`), damit sie den Rechenweg prüfen.
 - **Befestigung:** Die Clip-Abweichungen „B-033“ (F09, F11, F12, F13, F38) und „Rand-UK“ (F17, F21) sind verschwunden – die Clip-Packungen stimmen wieder mit dem alten Planer, der die Randdielen ebenfalls verschraubte.
 
-Werte gegenüber `main` mit Rand-UK (Stand 34d42fd):
+Werte gegenüber `main` mit Rand-UK und Seitenblende (Stand 3bfb094; die Seitenblende ändert keinen verglichenen Wert):
 
 | Fall | main (5 mm, Clips + Rand) | jetzt (6 mm, Randreihen verschraubt, Clips + 5 %) | alter Planer |
 |---|---|---|---|
