@@ -51,7 +51,7 @@ Auswahl, im Test nur „600 cm“. Die Materialliste verwendet trotzdem Stücke 
 Neuer Planer (M6-03):
 
 - Unterpunkt 3.4 mit „Automatisch“ (Vorgabe) und den Lieferlängen der gewählten UK als Chips; Planungsstand-Feld `ukLaenge` (Platz 26, fehlt = automatisch). Eine gewählte Länge, die die UK nicht liefert (etwa nach einem UK-Wechsel), gilt als automatisch.
-- **Lieferlängen** (`ukLieferlaengen`): die Länge der Artikeldaten (die Upload-Datei führt je UK nur 6000 mm) und die Lieferlängen ihrer Serie (R-A06, B-035: 4/5/6 m, ECO SELECT bis 7 m). Damit ist der Fehler des alten Planers behoben, der nur 600 cm anbot, aber mit anderen Längen rechnete ([09](09-nicht-teil-der-kopie.md)).
+- **Lieferlängen** (`ukLieferlaengen`): die Länge der Artikeldaten (die Upload-Datei führt je UK nur 6000 mm) und die UK-Lieferlängen ihrer Serie (R-A06, B-035: 4/5/6 m; **ECO SELECT als UK nur 4/5/6 m**, die ECO-Dielen bis 7 m – B-230, Planungsregeln Alexander (Planungskern v6, 11.11.2026), Regel 1.1; Holzart-Feld `uk_lieferlaengen_mm`, ohne Angabe die Lieferlängen der Dielen). Damit ist der Fehler des alten Planers behoben, der nur 600 cm anbot, aber mit anderen Längen rechnete ([09](09-nicht-teil-der-kopie.md)).
 - **Automatik** wie bei den Dielen (R-B10, `lieferlaengenFuer`): je UK-Linie die kürzeste Länge, die sie abdeckt, längere gestückelt. Gerechnet wird das mit der UK-Verlegung (M6-10); bis dahin rechnet die Befestigung (M5-09) weiter mit gleichmäßigen UK-Linien im UK-Abstand.
 
 ## 3.5 Auf welchem Untergrund wird die Terrasse aufgebaut?

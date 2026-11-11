@@ -24,7 +24,8 @@ bool ukPasstZuBelag(Artikel uk, Artikel belag) {
 }
 
 /// Lieferlängen einer UK (M6-03): die Längen der Artikeldaten und die
-/// Lieferlängen ihrer Serie (R-A06, B-035), aufsteigend. Die Upload-Datei
+/// UK-Lieferlängen ihrer Serie (R-A06, B-035; ECO SELECT nur 4/5/6 m,
+/// B-230), aufsteigend. Die Upload-Datei
 /// führt je UK nur eine Länge (6000 mm), geliefert wird aber wie bei den
 /// Dielen in allen Längen der Serie – der alte Planer bot nur 600 cm an,
 /// rechnete aber mit anderen Längen (Fehler, Fachkonzept 09).
@@ -32,7 +33,7 @@ List<Millimeter> ukLieferlaengen(Artikel uk) {
   final serie = uk.serie;
   return {
     ...uk.abmessungen.laengen,
-    if (serie != null) ...uk.holzart!.serie(serie).lieferlaengen,
+    if (serie != null) ...uk.holzart!.serie(serie).ukLieferlaengen,
   }.toList()..sort((a, b) => a.mm.compareTo(b.mm));
 }
 
