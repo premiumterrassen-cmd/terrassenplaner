@@ -374,6 +374,20 @@ void main() {
       expect(identical(verpackt(0, e), verpackt(-1, e)), isTrue);
     });
 
+    test('gleich viele Packungen: die zuerst gefundene Zusammensetzung', () {
+      // 200 = 2 × 100 = 60 + 140: beide zwei Packungen ohne Überhang – es
+      // bleibt die über die erste Einheit gefundene
+      final e = [
+        _artikel('a', 'VPE 100', Artikelart.clip, inhalt: 100),
+        _artikel('b', 'VPE 60', Artikelart.clip, inhalt: 60),
+        _artikel('c', 'VPE 140', Artikelart.clip, inhalt: 140),
+      ];
+      expect(
+        [for (final (a, n) in verpackt(200, e)) (a.nummer.wert, n)],
+        [('a', 2)],
+      );
+    });
+
     test('nur eine Einheit: aufgerundet', () {
       expect(verpackt(390, [_abstandshalter]).single.$2, 4);
       expect(verpackt(400, [_abstandshalter]).single.$2, 4);
