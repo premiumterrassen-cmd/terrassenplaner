@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import 'package:test/test.dart';
@@ -93,8 +94,78 @@ Map<String, int> _neuerPlan(Belagverlegung v) => _plan([
 int _summe(Map<int, int> anzahl) =>
     anzahl.entries.fold(0, (summe, e) => summe + e.key * e.value);
 
+/// Die Verteilung je Stück (bis 11.11.2026), als Gegenprobe für die
+/// schnellere je Länge und Rest (`verteile`): gleiche Ergebnisse.
+List<String> _verteileJeStueck(List<int> stuecke, List<int> laengen, int u) {
+  final folge = [...stuecke]..sort((a, b) => b - a);
+  final l = [...laengen]..sort();
+  final offen = <(int, List<int>)>[];
+  final reste = <int>[];
+  for (var i = 0; i < folge.length; i++) {
+    final stueck = folge[i];
+    var beste = -1;
+    for (var j = 0; j < reste.length; j++) {
+      if (reste[j] >= stueck && (beste < 0 || reste[j] < reste[beste])) {
+        beste = j;
+      }
+    }
+    if (beste < 0) {
+      int? wahl;
+      var besterRest = 0;
+      for (final laenge in l) {
+        if (laenge + u < stueck) continue;
+        var rest = laenge + u - stueck;
+        for (var k = i + 1; k < folge.length && rest >= folge.last; k++) {
+          if (folge[k] <= rest) rest -= folge[k];
+        }
+        if (wahl == null || rest < besterRest) {
+          wahl = laenge;
+          besterRest = rest;
+        }
+      }
+      offen.add((wahl!, [stueck]));
+      reste.add(wahl + u - stueck);
+    } else {
+      offen[beste].$2.add(stueck);
+      reste[beste] -= stueck;
+    }
+  }
+  return [
+    for (final (j, (laenge, schnitte)) in offen.indexed)
+      '${l.firstWhere((x) => x >= laenge - reste[j])}: $schnitte',
+  ];
+}
+
 void main() {
   group('zuschneiden', () {
+    test('je Länge und Rest gerechnet wie je Stück (Laufzeit, 11.11.2026)', () {
+      final zufall = Random(7);
+      for (var fall = 0; fall < 300; fall++) {
+        final laengen = [4000, 5000, 6000];
+        final sorten = [
+          for (var k = 0; k < 1 + zufall.nextInt(5); k++)
+            300 + zufall.nextInt(5700),
+        ];
+        final stuecke = [
+          for (var k = 0; k < zufall.nextInt(60); k++)
+            sorten[zufall.nextInt(sorten.length)],
+        ];
+        final u = fall.isEven ? 0 : 30;
+        expect(
+          [
+            for (final d in verteile(
+              [for (final s in stuecke) Millimeter(s)],
+              [for (final l in laengen) Millimeter(l)],
+              ueberlaenge: Millimeter(u),
+            ))
+              '${d.laenge.mm}: ${_mm(d.schnitte)}',
+          ],
+          _verteileJeStueck(stuecke, laengen, u),
+          reason: 'Fall $fall: $stuecke',
+        );
+      }
+    });
+
     List<String> zuschnitt(
       List<int> stuecke, [
       List<Millimeter> laengen = const [_m4, _m5, _m6],

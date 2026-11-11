@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:math' as math;
 
 import '../artikel/artikel.dart';
@@ -81,23 +82,29 @@ List<Lieferdiele> verteile(
   final u = ueberlaenge.mm;
   final folge = [for (final s in stuecke) s.mm]..sort((a, b) => b - a);
   final laengen = [for (final l in lieferlaengen) l.mm]..sort();
+  final gruppen = _Gruppen(folge);
   final offen = <({int laenge, List<int> schnitte})>[];
   final reste = <int>[];
+  // Dielen je Rest, jeweils aufsteigend nach Nummer: der kleinste passende
+  // Rest in O(log n), bei Gleichstand die zuerst begonnene Diele
+  final nachRest = SplayTreeMap<int, List<int>>();
+  void merke(int j) => nachRest.putIfAbsent(reste[j], () => []).add(j);
   for (var i = 0; i < folge.length; i++) {
     final stueck = folge[i];
-    var beste = -1;
-    for (var j = 0; j < reste.length; j++) {
-      if (reste[j] >= stueck && (beste < 0 || reste[j] < reste[beste])) {
-        beste = j;
-      }
-    }
-    if (beste < 0) {
-      final laenge = _neueLaenge(stueck, folge, i + 1, laengen, u);
+    final passend = nachRest.firstKeyAfter(stueck - 1);
+    if (passend == null) {
+      final laenge = _neueLaenge(stueck, gruppen, i + 1, laengen, u);
       offen.add((laenge: laenge, schnitte: [stueck]));
       reste.add(laenge + u - stueck);
+      merke(reste.length - 1);
     } else {
+      final dielen = nachRest[passend]!;
+      final beste = dielen.removeAt(0);
+      if (dielen.isEmpty) nachRest.remove(passend);
       offen[beste].schnitte.add(stueck);
       reste[beste] -= stueck;
+      final ziel = nachRest.putIfAbsent(reste[beste], () => []);
+      ziel.insert(_einfuegestelle(ziel, beste), beste);
     }
   }
   return [
@@ -109,17 +116,70 @@ List<Lieferdiele> verteile(
   ];
 }
 
+/// Stelle, an der [wert] in die aufsteigende [liste] gehört.
+int _einfuegestelle(List<int> liste, int wert) {
+  var (unten, oben) = (0, liste.length);
+  while (unten < oben) {
+    final mitte = (unten + oben) ~/ 2;
+    if (liste[mitte] < wert) {
+      unten = mitte + 1;
+    } else {
+      oben = mitte;
+    }
+  }
+  return unten;
+}
+
+/// Gleich lange Stücke einer absteigenden Folge als Gruppen (Länge, Ende),
+/// damit das Auffüllen einer Diele je Länge statt je Stück rechnet.
+final class _Gruppen {
+  _Gruppen(List<int> folge) : kleinstes = folge.isEmpty ? 0 : folge.last {
+    for (var i = 0; i < folge.length; i++) {
+      if (i == 0 || folge[i] != folge[i - 1]) {
+        laengen.add(folge[i]);
+        anfaenge.add(i);
+        enden.add(i);
+      }
+      enden.last = i + 1;
+      gruppe.add(laengen.length - 1);
+    }
+  }
+
+  final int kleinstes;
+  final laengen = <int>[];
+  final anfaenge = <int>[];
+  final enden = <int>[];
+
+  /// Gruppe je Stück.
+  final gruppe = <int>[];
+}
+
 /// Lieferlänge für eine neue Diele, die mit [stueck] beginnt: kleinster Rest
-/// nach dem Auffüllen mit den Stücken ab [ab] aus [folge] (absteigend),
-/// bei Gleichstand die kürzere; jede Länge nimmt [u] mm Überlänge mehr auf.
-int _neueLaenge(int stueck, List<int> folge, int ab, List<int> laengen, int u) {
+/// nach dem Auffüllen mit den Stücken ab [ab] (absteigend, je Länge so viele
+/// wie passen) aus [gruppen], bei Gleichstand die kürzere; jede Länge nimmt
+/// [u] mm Überlänge mehr auf.
+int _neueLaenge(
+  int stueck,
+  _Gruppen gruppen,
+  int ab,
+  List<int> laengen,
+  int u,
+) {
   int? beste;
   var besterRest = 0;
   for (final laenge in laengen) {
     if (laenge + u < stueck) continue;
     var rest = laenge + u - stueck;
-    for (var k = ab; k < folge.length && rest >= folge.last; k++) {
-      if (folge[k] <= rest) rest -= folge[k];
+    if (ab < gruppen.gruppe.length) {
+      for (
+        var g = gruppen.gruppe[ab];
+        g < gruppen.laengen.length && rest >= gruppen.kleinstes;
+        g++
+      ) {
+        final groesse = gruppen.laengen[g];
+        final vorrat = gruppen.enden[g] - math.max<int>(ab, gruppen.anfaenge[g]);
+        rest -= groesse * math.min(vorrat, rest ~/ groesse);
+      }
     }
     if (beste == null || rest < besterRest) {
       beste = laenge;
