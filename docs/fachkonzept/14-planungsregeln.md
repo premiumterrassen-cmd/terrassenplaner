@@ -1,6 +1,6 @@
 # 14 Planungsregeln aus Firmenwissen (M1-04)
 
-Fachregeln für den neuen Planer aus dem Firmenwissen von ALTO HOLZ. Gelesen am 19.10.2026: Beschlussregister **v129** (`Claude-Wissen/00_Zentral`), Sortimentsmatrix 2027_07 (mit Korrektur B-212), Unternehmensprofil, technisches Merkblatt mit Klärungsliste M-01–M-15, Montagehinweise (10 Regeln) und die Antworten von Alexander aus [10](10-offene-fragen.md).
+Fachregeln für den neuen Planer aus dem Firmenwissen von ALTO HOLZ. Abgleich mit den **Planungsregeln Alexander (Planungskern v6, 11.11.2026)** Abschnitte 1 und 4 am 11.11.2026 (R-B01, R-B06, R-B09, R-B14, R-B15, R-D07, R-D08; UK-Regeln aus Abschnitt 3 laufen getrennt). Gelesen am 19.10.2026: Beschlussregister **v129** (`Claude-Wissen/00_Zentral`), Sortimentsmatrix 2027_07 (mit Korrektur B-212), Unternehmensprofil, technisches Merkblatt mit Klärungsliste M-01–M-15, Montagehinweise (10 Regeln) und die Antworten von Alexander aus [10](10-offene-fragen.md).
 
 **Vertraulichkeit (B-020 ff.):** Hier stehen nur Planungsregeln. Werke, Herkunftsländer, Lieferanten, Einkaufspreise, Margen und Hersteller der Eigenmarken stehen nicht in diesem öffentlichen Repository – die Serien heißen nur BASIC, ECO SELECT, PREMIUM SELECT und MASSIV.
 
@@ -37,11 +37,13 @@ Die mit ⚙ markierten Regeln sind im domain-Paket ausführbar und mit Tests bel
 | R-B06 ⚙ | Fuge (Abstand der Dielen nebeneinander): **6 mm**, eine Reihe ist Dielenbreite + Fuge (Verlegung, Preis je m², Prüfung „Fläche kleiner als Belag“, 3D-Modell) – einheitlich mit R-D05 (Breite + 6). | Planungsregeln Alexander (Planungskern v6, 11.11.2026) Regel 1.2; Entscheidung Alexander 11.11.2026 | gilt – ersetzt „mit 5 mm rechnen“ vom 19.10.2026 (Antwort 3); die Paritätstests der Verlegung rechnen weiter mit den 5 mm des alten Planers |
 | R-B07 | Längsstoß (Stirnseiten) 0–2 mm, Stirnkanten fasen und paraffinieren. | Merkblatt M-06, Antwort 6 | gilt (Hinweis) |
 | R-B08 | Keine Dielenüberstände – UK bis an den Rand. | B-096 | gilt |
-| R-B09 ⚙ | Freidielen im Planer und ERP: **ab 25 Hauptdielen eine, ab 50 zwei, ab 100 je weitere 50 eine** (100 → 3, 150 → 4 …); gezählt und geliefert wird die Hauptdiele des Deckbelags (im alten Planer in der längsten Lieferlänge). | B-079, Antwort 1 | gilt · Abweichung alt: Grenzfälle und große Mengen |
+| R-B09 ⚙ | Freidielen im Planer und ERP: **ab 25 Hauptdielen eine, ab 50 zwei, ab 100 je weitere 50 eine** (100 → 3, 150 → 4 …); gezählt und geliefert wird die Hauptdiele des Deckbelags (im alten Planer in der längsten Lieferlänge). Die Staffel bleibt, obwohl B-228 und der Planungskern v6 (Regel 1.5) nur „1 Freidiele ab 25 Dielen“ nennen. | B-228 (ersetzt B-079), Antwort 1; Entscheidung Alexander 11.11.2026 (Staffel bleibt) | gilt · Abweichung alt: Grenzfälle und große Mengen |
 | R-B10 ⚙ | Dielenlänge: der Planer wählt die passende Lieferlänge automatisch (kürzeste, die die Reihe abdeckt); man kann eine Länge erzwingen (z. B. Lagerbestand). | Alexander (Frage 4) | gilt |
 | R-B11 | Verschnitt = geliefert minus geplant (Diele für 480 cm in 500 cm geliefert → 20 cm), für Belag und UK. | Alexander (Frage 3) | gilt |
 | R-B12 ⚙ | „Kurze Stücke verbinden“: ein Stoß muss nicht durchgehend sein, wenn bei nicht rechtwinkligen Terrassen ein kurzes Stück durch eine ganze Diele ersetzt werden kann. | Alexander (Frage 16) | gilt |
 | R-B13 | Die letzte Dielenreihe wird längs auf Restbreite aufgeschnitten und markiert (rote Kante). | Alexander (Frage 1) | gilt |
+| R-B14 ⚙ | **Befestigung umschaltbar:** von oben ↔ sichtverdeckt tauscht die Diele derselben Serie und Breite glattkant ↔ genutet (`gegenstueck`, `Befestigungsbedarf.wechsel`); ohne Gegenstück in den Artikeldaten bleibt es bei den Arten des Profils und der Meldung „nicht möglich“. | Planungsregeln Alexander (Planungskern v6, 11.11.2026) Regel 4.4 | gilt |
+| R-B15 ⚙ | **Bohrsenker immer als optionale Position** (50-80-008, 1 Stück, Preis aus den Artikeldaten): in Materialliste, Planungsunterlagen und GrandTotal-Export als „optional – nicht in der Summe“, nicht im Warenkorb-Link; nicht, wenn er schon fest gewählt ist (`bohrsenkerAngebot`, `Materialzusatz.optional`). | Planungsregeln Alexander (Planungskern v6, 11.11.2026) Regel 4.5 | gilt |
 
 ## C Unterkonstruktion
 
@@ -68,7 +70,8 @@ Die mit ⚙ markierten Regeln sind im domain-Paket ausführbar und mit Tests bel
 | R-D04 | Zubehör „Tatsächlich“: berechneter Wert, änderbar; der geänderte Wert erscheint im Angebot unter dem berechneten. | Alexander (Frage 10) | gilt |
 | R-D05 | Mengenfaktoren aus realen Projekten (Prüfgröße, nicht Rechenweg): Dielen-lfm ≈ m² × 1000 / (Breite + 6) × 1,07; UK-lfm ≈ m² / 0,40 × 1,1; Clips ≈ Dielen-lfm / 0,4; GUMO/Pads ≈ UK-lfm (alle 50 cm); Öl 0,2 l/m². | Unternehmensprofil | gilt (Plausibilitätsprüfung) |
 | R-D06 | Pflege: vor der Montage alle Seiten inkl. Stirnseiten ölen, danach mindestens jährlich und vor dem Winter (Hinweistext, Öl als Zubehör). | B-091, B-182, B-221 | gilt (Hinweis) |
-| R-D07 | Freidielen werden nur im Planer und ERP gerechnet – nie im Shop oder Chat zugesagt. | B-079 | gilt |
+| R-D07 | Freidielen: im Planer, in GrandTotal und in den Planungsunterlagen als eigene Position mit 0,00 € (Staffel R-B09); **nicht im Warenkorb-Link**. Im Shop werden sie nicht erwähnt oder zugesagt, im Chat dürfen sie erwähnt werden. | B-228 (ersetzt B-079) | gilt |
+| R-D08 ⚙ | **Plausibilität der Fläche** (m²): bis 0,05 m² Fehler „Maße fehlen oder sind falsch“, über 1.000 m² Fehler „unplausibel groß“, außerhalb 1–300 m² Hinweis – im Schritt Grundriss und in den Hinweisen der Planungsunterlagen (`pruefeFlaeche`). Die Grenzen der Seitenlängen (50 cm bis 300 m) bleiben. | Planungsregeln Alexander (Planungskern v6, 11.11.2026) Regel 1.7 | gilt |
 
 ## Widersprüche zum alten Planer
 

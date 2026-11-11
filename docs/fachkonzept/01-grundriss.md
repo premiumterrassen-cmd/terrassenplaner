@@ -19,6 +19,7 @@ Sieben Formen als Bildknöpfe. Kennzahlen jeweils mit Vorgabebelag (Diele 60 × 
 - Abhängige Maße ergeben sich aus den eingegebenen (z. B. L-Form: E—F = A—B + C—D).
 - Kreisfläche wird als Vieleck gerechnet (10,150 m² statt π · 1,8² = 10,179 m²) – der neue Planer rechnet exakt π·r² (Alexander, 27.10.2026; siehe [09](09-nicht-teil-der-kopie.md)).
 - Eine Kante ist rot markiert (Rechteck/O: D—C, L/T: Unterkante, erst nach Formwahl): die **letzte Dielenreihe, die längs auf Restbreite aufgeschnitten wird** (Alexander, 19.10.2026).
+- **Neuer Planer – Plausibilität der Fläche** (Planungsregeln Alexander (Planungskern v6, 11.11.2026) Regel 1.7, R-D08): Fläche bis 0,05 m² → Fehler „Maße fehlen oder sind falsch“; über 1.000 m² → Fehler „unplausibel groß“; außerhalb 1–300 m² → Hinweis. Die Meldung steht unter den Maßen (Unterpunkt 1.2) und in den Hinweisen der Planungsunterlagen; die Fläche rechnet der Server, die Grenzen stehen im domain-Paket (`pruefeFlaeche`, `Berechnung.flaechenmeldung`). Die Grenzen der Seitenlängen (50 cm bis 300 m je Seite) bleiben daneben bestehen.
 
 ### Freiform
 
