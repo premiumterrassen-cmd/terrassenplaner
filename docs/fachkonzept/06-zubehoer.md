@@ -30,7 +30,7 @@ Der Planungsdienst rechnet je Fläche die Menge jedes Zubehörs (`berechnetesZub
 | Zubehör | Regel | Abgleich alter Planer |
 |---|---|---|
 | Clips & Schrauben, Montagehilfe | aus der Befestigung (M5-09, B-094, B-090, B-074) übernommen, nicht doppelt gerechnet | wie M5-09 (F01: 637 Clips) |
-| Bit TX25 (Allgemein) | eines bei Verschraubung, bei Clips keines; der erste Werkzeug-Artikel mit „Bit TX25“ im Titel | F24: 1 Bit, F01: keines |
+| Bit TX20 / TX25 (Allgemein) | Planungskern v6 Regeln 4.2/4.3 (`bits`): **TX20** zu Clips nur, wenn keine Clip-Packung mit Bit dabei ist (CLIP-FIXX ab VPE 100, DUO-CLIP-FIXX ab VPE 250); **TX25** zu Schrauben (von oben oder Anfangs-/Enddiele) nur, wenn kein 600er-Schraubenset (mit Bit) dabei ist. Die Artikeldaten führen nicht, welche Packung ein Bit enthält – die Grenzen stehen in `planungsregeln.dart` (`clipBitAbVpe`, `duoClipBitAbVpe`, `schraubenBitAbVpe`); in der Upload-Datei v6 gibt es kein 600er-Set. Bit = erster Werkzeug-Artikel mit „Bit TX20“ bzw. „Bit TX25“ im Titel | F24: TX25; F01: TX25 (Schrauben der Randreihen), kein TX20 (VPE 250 dabei) |
 | Gummiband (Pads & EPDM-Bänder, R-C04, B-039) | das erste Band mit Rollenlänge aus dem Zubehör des Belags; Bedarf = Länge der Unterkonstruktion unter den Dielen (Fugen überbrückt), je Verkaufseinheit Rollenlänge × Rollen laut Titel („10 Rollen à 10 m“) | mit 10-m-Rollen wie KOPPLEX-1: F01 5, F02 5, F09 7, F20 4 Rollen – gleich |
 | Terrassenöl RIBOL (R-D05, B-221) | die erste Sorte aus dem Zubehör des Belags, 0,2 l je m² Belagfläche (Länge × Breite samt Fuge je Stück), Gebinde laut Titel („2,5 Liter“, „0,75 Liter“) mit möglichst wenig Überhang, dann möglichst wenigen Gebinden (`verpackt`) | der alte Planer rechnet kein Öl (alle F-Fälle ohne) – neue Regel |
 

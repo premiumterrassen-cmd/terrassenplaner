@@ -9,7 +9,6 @@ import 'dart:math' as math;
 
 import '../artikel/artikel.dart';
 import '../artikel/einheiten.dart';
-import '../konfiguration/befestigungsart.dart';
 import '../konfiguration/dielenverlegung.dart';
 import 'befestigungsbedarf.dart';
 import 'feldbreite.dart';
@@ -66,8 +65,9 @@ final class Zubehoerposition {
 ///
 /// - **Clips und Schrauben** samt Montagehilfe aus der [befestigung]
 ///   (M5-09, B-094, B-090) – unverändert übernommen.
-/// - **Bit TX25** (Allgemein): eines bei Verschraubung, wie im alten Planer
-///   (F24); bei Clips nicht (F01).
+/// - **Bits** ([bits], Planungsregeln Alexander (Planungskern v6,
+///   11.11.2026) Regeln 4.2 und 4.3): TX20 zu den Clips, TX25 zu den
+///   Schrauben – nur, wenn keine Packung mit Bit dabei ist.
 /// - **Gummiband** (Pads & EPDM-Bänder, R-C04, B-039): das erste Band aus
 ///   dem Zubehör des Belags für die ganze Länge der Unterkonstruktion: die
 ///   Hölzer der UK-Verlegung [uk] (M6-10, `UkVerlegung.laenge`), ohne sie
@@ -90,18 +90,15 @@ Map<Artikelnummer, int> berechnetesZubehoer(
   UkVerlegung? uk,
 }) {
   final zubehoer = regelwerk.moeglich(belag.nummer, Beziehung.zubehoer);
-  final verschraubt =
-      befestigung.art != null && befestigung.art != Befestigungsart.clips;
   final band = [
     for (final a in zubehoer)
       if (a.art == Artikelart.gummiband)
         if (_bandlaenge(a) case final je?) (a, je),
   ].firstOrNull;
   final holzart = belag.holzart;
-  final bit = verschraubt ? _bit(regelwerk) : null;
   return {
     for (final m in befestigung.mittel) m.nummer: m.anzahl,
-    if (bit != null) bit.nummer: 1,
+    for (final bit in bits(regelwerk, befestigung)) bit.nummer: 1,
     // Holzfliesen liegen ohne Unterkonstruktion
     if ((band, holzart) case ((final a, final je)?, final h?)
         when stuecke.isNotEmpty)
@@ -240,11 +237,45 @@ List<(Artikel, int)> _oel(List<Artikel> zubehoer, double quadratmeter) {
   );
 }
 
-/// Bit TX25 aus den Artikeldaten: der erste Werkzeug-Artikel mit „Bit TX25“
-/// im Titel – die Upload-Datei kennt keine Beziehung Schraube → Bit.
-Artikel? _bit(Regelwerk regelwerk) => regelwerk.datei.eintraege
+/// Bits zur [befestigung] (Planungsregeln Alexander (Planungskern v6,
+/// 11.11.2026) Regeln 4.2 und 4.3), je eines:
+///
+/// - **TX20** zu Clips, wenn keine Clip-Packung mit Bit dabei ist –
+///   CLIP-FIXX ab VPE [clipBitAbVpe], DUO-CLIP-FIXX ab [duoClipBitAbVpe];
+/// - **TX25** zu Schrauben (Verschraubung von oben, Anfangs- und Enddiele),
+///   wenn kein Schraubenset ab [schraubenBitAbVpe] Stück (mit Bit) dabei ist.
+///
+/// Ob eine Packung ein Bit enthält, führen die Artikeldaten nicht; es folgt
+/// aus der Packungsgröße. Gezählt wird je Fläche, das Werkzeug geht einmal
+/// je Planung in die Materialliste. Die Bits sind die ersten
+/// Werkzeug-Artikel mit „Bit TX20“ bzw. „Bit TX25“ im Titel – die
+/// Upload-Datei kennt keine Beziehung Befestigung → Bit.
+List<Artikel> bits(Regelwerk regelwerk, Befestigungsbedarf befestigung) {
+  final packungen = [
+    for (final b in befestigung.bedarf)
+      for (final (a, _) in verpackt(b.stueck, b.einheiten)) a,
+  ];
+  final clips = packungen.where((a) => a.art == Artikelart.clip);
+  final schrauben = packungen.where((a) => a.art == Artikelart.schraube);
+  return [
+    if (clips.isNotEmpty && !clips.any(_clipMitBit))
+      ?_werkzeug(regelwerk, 'Bit TX20'),
+    if (schrauben.isNotEmpty &&
+        !schrauben.any((a) => a.einheit.inhalt >= schraubenBitAbVpe))
+      ?_werkzeug(regelwerk, 'Bit TX25'),
+  ];
+}
+
+/// Ob die Clip-Packung [a] ein Bit enthält (Planungskern v6 Regel 4.2).
+bool _clipMitBit(Artikel a) =>
+    a.einheit.inhalt >= (istDuoClip(a) ? duoClipBitAbVpe : clipBitAbVpe);
+
+/// Erster Werkzeug-Artikel mit [titel] im Titel.
+Artikel? _werkzeug(Regelwerk regelwerk, String titel) => regelwerk
+    .datei
+    .eintraege
     .map((e) => e.artikel)
-    .where((a) => a.art == Artikelart.werkzeug && a.titel.contains('Bit TX25'))
+    .where((a) => a.art == Artikelart.werkzeug && a.titel.contains(titel))
     .firstOrNull;
 
 /// Länge der Unterkonstruktion unter den [stuecke]n in mm (M8-02): je

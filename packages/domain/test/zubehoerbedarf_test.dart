@@ -300,11 +300,15 @@ void main() {
           stuecke,
           winkel: 0,
         );
-        // 637 Clips (M5-09) → 650, 40,17 m Band → 1 Karton à 100 m,
-        // 14,832 m² × 0,2 l = 2,97 l → 4 × 0,75 l (wenig Überhang)
+        // 628 Clips (M5-09) → 650 mit VPE 250 (Bit dabei, kein TX20);
+        // 26 Schrauben der Randreihen → 200er Packung, dazu Bit TX25
+        // (Planungskern v6 Regeln 4.1–4.3); 40,17 m Band → 1 Karton à
+        // 100 m, 14,832 m² × 0,2 l = 2,97 l → 4 × 0,75 l (wenig Überhang)
         expect(_mengen(m), {
           '80-10-001-50': 3,
           '80-10-001-250': 2,
+          '50-50-102': 1,
+          '50-80-003': 1,
           '50-60-120': 1,
           '568-075': 4,
         });
@@ -404,6 +408,48 @@ void main() {
         ).keys,
         ['50-50-102'],
       );
+    });
+  });
+
+  group('Bits (Planungskern v6 Regeln 4.2, 4.3)', () {
+    Befestigungsbedarf mit(List<(Artikel, int)> bedarf) => Befestigungsbedarf(
+      bedarf: [
+        for (final (a, n) in bedarf) Materialbedarf([a], n),
+      ],
+    );
+    Artikel packung(String titel, Artikelart art, int inhalt) =>
+        _artikel('x-$inhalt-$titel', titel, art, inhalt: inhalt);
+    final clip50 = packung('CLIP-FIXX - VPE 50', Artikelart.clip, 50);
+    final clip100 = packung('CLIP-FIXX - VPE 100', Artikelart.clip, 100);
+    final duo100 = packung('DUO-CLIP-FIXX - VPE 100', Artikelart.clip, 100);
+    final duo250 = packung('DUO-CLIP-FIXX - VPE 250', Artikelart.clip, 250);
+    final set200 = packung('Schrauben 200', Artikelart.schraube, 200);
+    final set600 = packung('Schrauben 600', Artikelart.schraube, 600);
+    List<String> namen(List<(Artikel, int)> bedarf) => [
+      for (final b in bits(_regelwerk, mit(bedarf))) b.nummer.wert,
+    ];
+
+    test('TX20 nur ohne Clip-Packung mit Bit: CLIP-FIXX ab VPE 100, DUO ab '
+        '250', () {
+      expect(namen([(clip50, 50)]), ['50-80-002']);
+      expect(namen([(clip100, 100)]), isEmpty);
+      expect(namen([(duo100, 100)]), ['50-80-002']);
+      expect(namen([(duo250, 250)]), isEmpty);
+      expect(namen(const []), isEmpty);
+    });
+
+    test('TX25 nur ohne 600er-Schraubenset', () {
+      expect(namen([(set200, 26)]), ['50-80-003']);
+      expect(namen([(set600, 600)]), isEmpty);
+      // Clips ohne Bit und Schrauben: beide Bits
+      expect(namen([(clip50, 40), (set200, 26)]), ['50-80-002', '50-80-003']);
+    });
+
+    test('kein Bit in den Artikeldaten: keins', () {
+      final leer = Regelwerk(
+        Artikeldatei(quelle: 'test', version: '0', eintraege: const []),
+      );
+      expect(bits(leer, mit([(clip50, 50), (set200, 1)])), isEmpty);
     });
   });
 

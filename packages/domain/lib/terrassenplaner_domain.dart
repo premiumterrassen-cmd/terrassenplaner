@@ -65,6 +65,7 @@ export 'src/regeln/befestigungsbedarf.dart';
 export 'src/regeln/belagmeldungen.dart';
 export 'src/regeln/feldbreite.dart';
 export 'src/regeln/freidielen.dart';
+export 'src/regeln/gegenstueck.dart';
 export 'src/regeln/hoehenpunkte.dart';
 export 'src/regeln/planungsregeln.dart';
 export 'src/regeln/regelwerk.dart';

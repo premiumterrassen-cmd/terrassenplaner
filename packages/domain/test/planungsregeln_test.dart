@@ -9,6 +9,17 @@ void main() {
     expect(wandabstand, const Millimeter(20));
   });
 
+  test('Clips: Kreuzungen + 5 %, aufgerundet; Bits nach Packungsgröße '
+      '(Planungskern v6 Regeln 4.1–4.3)', () {
+    expect(clipsMitZuschlag(0), 0);
+    expect(clipsMitZuschlag(1), 2);
+    expect(clipsMitZuschlag(20), 21);
+    expect(clipsMitZuschlag(21), 23);
+    expect(clipsMitZuschlag(598), 628);
+    expect(clipsMitZuschlag(600), 630);
+    expect((clipBitAbVpe, duoClipBitAbVpe, schraubenBitAbVpe), (100, 250, 600));
+  });
+
   test('Freidielen-Staffel (R-B09): ab 25 eine, ab 50 zwei, ab 100 je 50', () {
     expect(freidielenAbDielen, 25);
     final faelle = {

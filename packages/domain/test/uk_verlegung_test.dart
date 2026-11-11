@@ -449,7 +449,7 @@ void main() {
           _dielen(Planungsstand.start),
           _verlege(Planungsstand.start),
         ),
-        (punkte: 624, randpunkte: 13),
+        (punkte: 624, randpunkte: 26),
       );
       expect(befestigungspunkteAufUk(const [], _verlege(Planungsstand.start)), (
         punkte: 0,
