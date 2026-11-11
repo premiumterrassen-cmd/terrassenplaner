@@ -2,10 +2,9 @@ import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import 'package:test/test.dart';
 
 void main() {
-  test('Abstände (R-C03, R-B06, R-C10)', () {
+  test('Abstände (R-C03, R-B06)', () {
     expect(querstrebenAbstand, const Millimeter(750));
     expect(fuge, const Millimeter(5));
-    expect(wandabstand, const Millimeter(20));
   });
 
   test('Freidielen-Staffel (R-B09): ab 25 eine, ab 50 zwei, ab 100 je 50', () {

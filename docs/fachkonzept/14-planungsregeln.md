@@ -56,7 +56,7 @@ Die mit ⚙ markierten Regeln sind im domain-Paket ausführbar und mit Tests bel
 | R-C07 | Untergrund ist nur Information für die Beratung, keine Wirkung auf die Berechnung. | Alexander (Frage 6) | gilt |
 | R-C08 | Unter einer Rinne geht die UK bis 1–2 cm vor die Hauswand; darunter Auflageprofile, darauf Ventilationsprofile. | Alexander (Frage 14) | gilt |
 | R-C09 | Gewerbliche Nutzung bleibt wie im alten Planer (nur mehr Gummiband); „UK zwingend versteift, nur PREMIUM SELECT“ ist zurückgestellt. | Alexander (Frage 13) | gilt |
-| R-C10 ⚙ | Unterlüftung mind. 12 cm und Gefälle 1–2 % in Dielenlängsrichtung als **Hinweise**; der Planer rechnet mit **2 cm Wandabstand**. | Merkblatt M-07, Antwort 5 | gilt |
+| R-C10 | Unterlüftung mind. 12 cm und Gefälle 1–2 % in Dielenlängsrichtung als **Hinweise**. **Wandabstand: im Plan und in den Unterlagen nur „Abstand lassen“, kein fester Wert** – der Planer rechnet mit keinem Wandabstand (die frühere Konstante 2 cm ist entfernt). Stellfüße an der Hauswand (UK 1 cm vor der Wand, Regel 3.11) folgen später. | Merkblatt M-07, Antwort 5; Planungsregeln Alexander (Planungskern v6, 11.11.2026), Regel 3.9 | gilt |
 | R-C11 ⚙ | **Rand-UK an jeder Kante mit Dielenenden**, bündig entlang der Kante, kein Überstand: schräge Ränder (über 12° zur UK, über 8 cm quer zur Diele), Ausschnittkanten auf der Terrassenseite, Innenecken L/T/U, Bögen je Sehne, Ränder bei diagonaler/freier Verlegung – wo keine UK-Linie höchstens 6 cm daneben liegt. Kanten parallel zur Diele: keine. | Planungsregeln Alexander (Planungskern v6, 11.11.2026), Regel 3.3; offene Frage 19 | gilt – Fachkonzept 3.11 |
 | R-C12 ⚙ | **Selbstkontrolle:** Prüfpunkte alle 10 cm entlang jeder Kante mit Dielenenden, Toleranz 6 cm; fehlt die UK an mehr als 10 % der Punkte, wird die Rand-UK ergänzt und in den Hinweisen gemeldet. | Planungsregeln Alexander (Planungskern v6, 11.11.2026), Regel 3.4 | gilt – Fachkonzept 3.11 |
 | R-C13 ⚙ | **UK-Stoß mit Reststück mindestens 50 cm:** UK-Linien über der längsten Lieferlänge werden gestückelt (ganze Längen und der Rest), der Rest ist mindestens 50 cm (610 cm → 560 + 50 cm); der Stoß liegt auf einem Auflager. | Planungsregeln Alexander (Planungskern v6, 11.11.2026), Regel 3.5 | gilt – Fachkonzept 3.11 |
@@ -84,5 +84,5 @@ Werden **nicht** übernommen (Liste in [09](09-nicht-teil-der-kopie.md)): einsei
 2. **Zwischenlängen:** gibt es nicht mehr, es gilt B-035 → R-A06.
 3. **Fuge:** überall 5 mm, „da sind wir auf der sicheren Seite“ → R-B06.
 4. **UK-Achsabstand:** maximal 40 cm im Planer → R-C01.
-5. **Unterlüftung, Gefälle:** nur Hinweise; Wandabstand im Planer 2 cm → R-C10.
+5. **Unterlüftung, Gefälle:** nur Hinweise; Wandabstand ohne festen Wert („Abstand lassen“, Planungskern v6 Regel 3.9) → R-C10.
 6. **Längsstoß 0–2 mm, keine Verschraubung von unten:** beides korrekt (Hinweise) → R-B07, R-B05.

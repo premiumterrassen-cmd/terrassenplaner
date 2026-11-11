@@ -40,9 +40,6 @@ const auflagerEinzelnBis = Millimeter(120);
 /// Fuge zwischen zwei Dielen (R-B06, Alexander).
 const fuge = Millimeter(5);
 
-/// Wandabstand der Terrasse (R-C10, Alexander 19.10.2026).
-const wandabstand = Millimeter(20);
-
 /// Terrassenöl je m² Holzfläche (R-D05, Mengenfaktor aus realen Projekten;
 /// automatische Menge im Zubehör, M8-02).
 const oelJeQuadratmeter = 0.2;
