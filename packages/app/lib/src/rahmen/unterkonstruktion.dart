@@ -649,8 +649,9 @@ class AuflagenWahl extends StatelessWidget {
 /// „Automatisch“ (Vorgabe, die höchste erlaubte) oder eine der Feldbreiten,
 /// die der Server für den Belag erlaubt (R-C01: Robinie 30, 35, 40 cm);
 /// dazu der Hinweis zur Firmenregel und – wenn eine gespeicherte Wahl
-/// darüber liegt – die Meldung, mit welcher Breite gerechnet wird. Jede
-/// Wahl ist ein Schritt für Rückgängig/Wiederherstellen.
+/// darüber liegt – die Meldung, mit welcher Breite gerechnet wird. Dazu je
+/// Rand-UK, die die Selbstkontrolle ergänzt hat, ein Hinweis (Planungsregeln
+/// 3.4). Jede Wahl ist ein Schritt für Rückgängig/Wiederherstellen.
 class FeldbreiteWahl extends StatelessWidget {
   const FeldbreiteWahl({
     required this.planung,
@@ -717,6 +718,11 @@ class FeldbreiteWahl extends StatelessWidget {
               key: const ValueKey('feldbreite-begrenzt'),
               warnung: true,
               text: t.feldbreiteBegrenzt(cmText(t, wirksam)),
+            ),
+          for (final (i, laenge) in unterbau.randErgaenzt.indexed)
+            Hinweis(
+              key: ValueKey('rand-uk-$i'),
+              text: t.randUkErgaenzt(cmText(t, laenge)),
             ),
         ],
       );
