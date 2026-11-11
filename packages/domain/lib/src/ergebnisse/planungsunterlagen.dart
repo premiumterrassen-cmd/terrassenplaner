@@ -598,6 +598,7 @@ List<String> _meldungen(
   final h = b.hoehenpunkte;
   final u = b.unterbau;
   return [
+    if (b.flaechenmeldung case final m?) t.flaechenmeldung(m),
     for (final m in b.belagmeldungen) t.belagmeldung(m, stand.dielenlaenge),
     if (h.gedreht) t.ukGedreht,
     if (h.korrigiert) t.hoeheKorrigiert(h.mindesthoehe!),

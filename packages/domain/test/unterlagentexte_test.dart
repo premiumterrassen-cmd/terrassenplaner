@@ -80,6 +80,9 @@ void main() {
 
   test('Meldungen wie in der App, mit Längen in cm', () {
     for (final t in [de, en]) {
+      expect({
+        for (final m in Flaechenmeldung.values) t.flaechenmeldung(m),
+      }, hasLength(Flaechenmeldung.values.length));
       final texte = [
         for (final m in Belagmeldung.values)
           t.belagmeldung(m, const Millimeter(7000)),
@@ -103,6 +106,14 @@ void main() {
     expect(
       de.belagmeldung(Belagmeldung.bombierungEmpfohlen, null),
       startsWith('Ab 8 cm'),
+    );
+    expect(
+      de.flaechenmeldung(Flaechenmeldung.masseFalsch),
+      startsWith('Maße fehlen oder sind falsch'),
+    );
+    expect(
+      en.flaechenmeldung(Flaechenmeldung.unplausibelGross),
+      contains('implausibly large'),
     );
     expect(
       en.belagmeldung(Belagmeldung.bombierungEmpfohlen, null),

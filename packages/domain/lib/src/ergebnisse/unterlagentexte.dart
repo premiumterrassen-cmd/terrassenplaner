@@ -8,6 +8,7 @@ import '../konfiguration/verlegeart.dart';
 import '../konfiguration/verlegerichtung.dart';
 import '../regeln/auflager.dart';
 import '../regeln/belagmeldungen.dart';
+import '../regeln/flaechenpruefung.dart';
 import 'materialliste.dart';
 import 'stueckliste.dart';
 
@@ -532,6 +533,26 @@ final class Unterlagentexte {
 
   /// Meldung zum Belag wie in der App; [laenge] ist die gewählte
   /// Dielenlänge für [Belagmeldung.laengeNichtLieferbar].
+  /// Meldung zur Größe der Fläche (Planungskern v6 Regel 1.7).
+  String flaechenmeldung(Flaechenmeldung m) => switch ((m, _de)) {
+    (Flaechenmeldung.masseFalsch, true) =>
+      'Maße fehlen oder sind falsch: Die Fläche ist höchstens 0,05 m² groß.',
+    (Flaechenmeldung.masseFalsch, false) =>
+      'Dimensions are missing or wrong: the area is at most 0.05 m².',
+    (Flaechenmeldung.unplausibelGross, true) =>
+      'Die Fläche ist unplausibel groß (über 1.000 m²). Bitte prüfen Sie '
+          'die Maße.',
+    (Flaechenmeldung.unplausibelGross, false) =>
+      'The area is implausibly large (over 1,000 m²). Please check the '
+          'dimensions.',
+    (Flaechenmeldung.ungewoehnlich, true) =>
+      'Die Fläche liegt außerhalb der üblichen 1 bis 300 m² – bitte prüfen '
+          'Sie die Maße.',
+    (Flaechenmeldung.ungewoehnlich, false) =>
+      'The area is outside the usual 1 to 300 m² – please check the '
+          'dimensions.',
+  };
+
   String belagmeldung(Belagmeldung m, Millimeter? laenge) => switch ((m, _de)) {
     (Belagmeldung.belagErsetzt, true) =>
       'Der gewählte Belag ist nicht mehr im Sortiment. Geplant wird mit '

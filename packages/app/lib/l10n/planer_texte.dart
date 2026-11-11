@@ -1930,6 +1930,24 @@ abstract class PlanerTexte {
   /// **'Die Fläche hat Ecken unter 90°. Holzfliesen müssen dort schräg zugeschnitten werden – für solche Formen eignen sich Dielen besser.'**
   String get belagmeldungFliesenSpitzeWinkel;
 
+  /// No description provided for @flaechenmeldungMasseFalsch.
+  ///
+  /// In de, this message translates to:
+  /// **'Maße fehlen oder sind falsch: Die Fläche ist höchstens 0,05 m² groß. Bitte prüfen Sie die Maße.'**
+  String get flaechenmeldungMasseFalsch;
+
+  /// No description provided for @flaechenmeldungUnplausibelGross.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Fläche ist unplausibel groß (über 1.000 m²). Bitte prüfen Sie die Maße.'**
+  String get flaechenmeldungUnplausibelGross;
+
+  /// No description provided for @flaechenmeldungUngewoehnlich.
+  ///
+  /// In de, this message translates to:
+  /// **'Hinweis: Die Fläche liegt außerhalb der üblichen 1 bis 300 m² – bitte prüfen Sie die Maße.'**
+  String get flaechenmeldungUngewoehnlich;
+
   /// No description provided for @belagmeldungBombierung.
   ///
   /// In de, this message translates to:

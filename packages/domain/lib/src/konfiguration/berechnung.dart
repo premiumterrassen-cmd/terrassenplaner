@@ -10,6 +10,7 @@ import '../ergebnisse/zuschnittplan.dart';
 import '../geometrie/punkt.dart';
 import '../regeln/befestigungsbedarf.dart';
 import '../regeln/belagmeldungen.dart';
+import '../regeln/flaechenpruefung.dart';
 import '../regeln/hoehenpunkte.dart';
 import '../regeln/uk_zusatz.dart';
 import '../regeln/zubehoerbedarf.dart';
@@ -399,6 +400,11 @@ final class Berechnung {
 
   /// Terrassenfläche in m² für die Anzeige.
   double get flaecheQuadratmeter => flaeche / 1e6;
+
+  /// Plausibilität der vom Server berechneten [flaeche] (Planungskern v6
+  /// Regel 1.7, `pruefeFlaeche`); eine offene Freiform hat keine.
+  Flaechenmeldung? get flaechenmeldung =>
+      geschlossen ? pruefeFlaeche(flaecheQuadratmeter) : null;
 
   /// Summe aller Flächen der Planung in mm², jede mal ihrer Häufigkeit
   /// (M4-14); bei nur einer Fläche gleich [flaeche].

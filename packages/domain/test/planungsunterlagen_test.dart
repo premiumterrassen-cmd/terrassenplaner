@@ -218,9 +218,10 @@ void main() {
       List<Belagmeldung> meldungen = const [],
       Hoehenpunkte? hoehen,
       List<Auflagermeldung> auflagermeldungen = const [],
+      double flaeche = 4800 * 3090,
     }) => Berechnung(
       umriss: rechteck,
-      flaeche: 4800 * 3090,
+      flaeche: flaeche,
       gesamtflaeche: 2 * 4800 * 3090,
       dielen: [for (final s in stuecke) s.umriss],
       nummern: [for (final t in verlegung.teile) ...t.nummern],
@@ -532,6 +533,8 @@ void main() {
           gedreht: true,
         ),
         auflagermeldungen: Auflagermeldung.values,
+        // 0,5 m²: Hinweis zur Fläche (Planungskern v6 Regel 1.7)
+        flaeche: 500000,
       );
       final planung = Planung([
         Terrassenflaeche(Planungsstand.start),
@@ -552,6 +555,7 @@ void main() {
       expect(texte(hinweise), [
         'Hinweise zur Planung',
         'Terrasse 2',
+        '• ${Unterlagentexte.deutsch.flaechenmeldung(Flaechenmeldung.ungewoehnlich)}',
         '• ${Unterlagentexte.deutsch.belagmeldung(Belagmeldung.laengeNichtLieferbar, const Millimeter(7000))}',
         '• ${Unterlagentexte.deutsch.ukGedreht}',
         '• ${Unterlagentexte.deutsch.hoeheKorrigiert(const Millimeter(63))}',

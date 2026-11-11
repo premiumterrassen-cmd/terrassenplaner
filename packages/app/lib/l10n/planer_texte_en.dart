@@ -1043,6 +1043,18 @@ class PlanerTexteEn extends PlanerTexte {
       'The area has corners below 90°. Wooden tiles must be cut at an angle there – boards are better suited for such shapes.';
 
   @override
+  String get flaechenmeldungMasseFalsch =>
+      'Dimensions are missing or wrong: the area is at most 0.05 m². Please check the dimensions.';
+
+  @override
+  String get flaechenmeldungUnplausibelGross =>
+      'The area is implausibly large (over 1,000 m²). Please check the dimensions.';
+
+  @override
+  String get flaechenmeldungUngewoehnlich =>
+      'Note: the area is outside the usual 1 to 300 m² – please check the dimensions.';
+
+  @override
   String get belagmeldungBombierung =>
       'From 8 cm width we recommend crowned (slightly curved) boards.';
 
