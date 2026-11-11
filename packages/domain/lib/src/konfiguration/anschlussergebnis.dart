@@ -38,19 +38,20 @@ enum Anschlussmeldung {
   /// (Höhe höchstens Dielenstärke) – dort keine Verblendung.
   keinHoehenunterschied(2),
 
-  /// Verblendung nur bei Belagstärke 19–23 mm (Fachkonzept 4.2).
-  belagstaerke(3),
-
-  /// Die Artikeldaten nennen zum Belag keine Verblendung.
-  ohneVerblendungsartikel(4),
-
   /// Die Artikeldaten nennen zum Belag keine Rinne (M7-03) – ohne Material
   /// und ohne Aussparung im Belag.
   ohneRinnenartikel(5),
 
   /// Eine Treppe liegt an einer Seite, die nicht frei ist (am Bauelement
   /// oder mit Rinne, Fachkonzept 5.1) – sie wird nicht gerechnet.
-  treppeNichtFrei(6);
+  treppeNichtFrei(6),
+
+  /// Die Serie des Belags hat keine glattkante Blende in seiner Stärke und
+  /// der nötigen Breite (Planungsregeln Alexander, Planungskern v6, 4a.4):
+  /// Rückfrage statt raten, an dieser Seite kein Material. Ersetzt die
+  /// früheren Meldungen 3 (Belagstärke 19–23 mm) und 4 (kein
+  /// Verblendungsartikel).
+  blendeFehlt(7);
 
   const Anschlussmeldung(this.nummer);
 
