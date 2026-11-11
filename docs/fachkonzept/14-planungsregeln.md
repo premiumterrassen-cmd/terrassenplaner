@@ -60,6 +60,7 @@ Die mit ⚙ markierten Regeln sind im domain-Paket ausführbar und mit Tests bel
 | R-C11 ⚙ | **Rand-UK an jeder Kante mit Dielenenden**, bündig entlang der Kante, kein Überstand: schräge Ränder (über 12° zur UK, über 8 cm quer zur Diele), Ausschnittkanten auf der Terrassenseite, Innenecken L/T/U, Bögen je Sehne, Ränder bei diagonaler/freier Verlegung – wo keine UK-Linie höchstens 6 cm daneben liegt. Kanten parallel zur Diele: keine. | Planungsregeln Alexander (Planungskern v6, 11.11.2026), Regel 3.3; offene Frage 19 | gilt – Fachkonzept 3.11 |
 | R-C12 ⚙ | **Selbstkontrolle:** Prüfpunkte alle 10 cm entlang jeder Kante mit Dielenenden, Toleranz 6 cm; fehlt die UK an mehr als 10 % der Punkte, wird die Rand-UK ergänzt und in den Hinweisen gemeldet. | Planungsregeln Alexander (Planungskern v6, 11.11.2026), Regel 3.4 | gilt – Fachkonzept 3.11 |
 | R-C13 ⚙ | **UK-Stoß mit Reststück mindestens 50 cm:** UK-Linien über der längsten Lieferlänge werden gestückelt (ganze Längen und der Rest), der Rest ist mindestens 50 cm (610 cm → 560 + 50 cm); der Stoß liegt auf einem Auflager. | Planungsregeln Alexander (Planungskern v6, 11.11.2026), Regel 3.5 | gilt – Fachkonzept 3.11 |
+| R-C14 ⚙ | **Auflager an den Enden:** das erste und letzte Auflager jeder UK 5 cm vom Ende, dazwischen gleichmäßig höchstens im Auflagerabstand (60 cm); eine UK bis 12 cm bekommt ein Auflager in der Mitte. | Planungsregeln Alexander (Planungskern v6, 11.11.2026), Regel 3.6 | gilt – Fachkonzept 3.12 |
 
 ## D Anschluss, Treppen, Zubehör
 

@@ -162,8 +162,11 @@ void main() {
         '(Spalt 4 mm wie F30 an C/D)', () {
       final b = _bedarf(_f01);
       expect(b.punkte, hasLength(91));
-      expect(b.punkte.first.ort, const Punkt(20, 0));
-      expect(b.punkte[1].ort.y, closeTo(515, 1e-9));
+      // Planungskern v6 / Entscheidung 11.11.2026 (Regel 3.6): erstes und
+      // letztes Auflager 5 cm vom UK-Ende (vorher 0 und 51,5 cm)
+      expect(b.punkte.first.ort, const Punkt(20, 50));
+      expect(b.punkte[1].ort.y, closeTo(50 + 2990 / 6, 1e-9));
+      expect(b.punkte[6].ort.y, closeTo(3040, 1e-9));
       expect(b.punkte.first.spalt, const Millimeter(4));
       expect(b.punkte.first.zeile, 0);
       expect(b.zeilen, [
@@ -187,10 +190,12 @@ void main() {
         'Bereich, Packungen über alle Größen', () {
       final s = _f01.mitGefaelle(true);
       final b = _bedarf(s, hoehen: [150, 150, 86, 86]);
-      // je Linie von A–B (150) nach D–C (86): Spalt 68, 57, 47, 36, 25, 15, 4
+      // je Linie von A–B (150) nach D–C (86), erstes und letztes Auflager
+      // 5 cm vom Ende (Planungskern v6 / Entscheidung 11.11.2026; vorher
+      // 68, 57, 47, 36, 25, 15, 4)
       expect(
         [for (final p in b.punkte.take(7)) p.spalt.mm],
-        [68, 57, 47, 36, 25, 15, 4],
+        [67, 57, 46, 36, 26, 15, 5],
       );
       expect(_zeilen(b), {
         'Unterleger 5 mm': 13,
@@ -201,7 +206,7 @@ void main() {
       });
       final fuss = b.zeilen.firstWhere((z) => z.titel == 'Fuß 55-95 (20)');
       expect(fuss.von, const Millimeter(57));
-      expect(fuss.bis, const Millimeter(68));
+      expect(fuss.bis, const Millimeter(67));
       // Zeile je Auflager zeigt in die Tabelle
       expect(b.zeilen[b.punkte.first.zeile!].titel, 'Fuß 55-95 (20)');
       final bedarf35 = b.bedarf.firstWhere((m) => m.einheiten.first == fuss35);
@@ -218,9 +223,9 @@ void main() {
       // 6000 + 4000 mm: 10 + 7 Felder, der Stoß gemeinsam → 18 je Linie
       expect(b.punkte, hasLength(13 * 18));
       expect(b.punkte.map((p) => p.ort.y), contains(6000));
-      // nach dem Stoß gleichmäßig bis zum Ende: 4000 / 7
-      expect(b.punkte[11].ort.y, closeTo(6000 + 4000 / 7, 1e-6));
-      expect(b.punkte[17].ort.y, 10000);
+      // nach dem Stoß gleichmäßig bis 5 cm vor das Ende: 3950 / 7
+      expect(b.punkte[11].ort.y, closeTo(6000 + 3950 / 7, 1e-6));
+      expect(b.punkte[17].ort.y, 9950);
       final gewerblich = _bedarf(
         _f01.mitGewerblich(true),
         abstand: auflagerabstand(
@@ -237,9 +242,9 @@ void main() {
       final b = _bedarf(s);
       // 9 Hölzer à 480 cm, je 9 Auflager (8 Felder à 60 cm)
       expect(b.punkte, hasLength(81));
-      expect(b.punkte.first.ort.x, closeTo(4800, 1e-6));
+      expect(b.punkte.first.ort.x, closeTo(4750, 1e-6));
       expect(b.punkte.first.ort.y, closeTo(20, 1e-6));
-      expect(b.punkte[1].ort.x, closeTo(4200, 1e-6));
+      expect(b.punkte[1].ort.x, closeTo(4750 - 4700 / 8, 1e-6));
       expect(b.punkte[1].ort.y, closeTo(20, 1e-6));
     });
 
@@ -260,7 +265,7 @@ void main() {
       // die erste Rand-UK (Kante A–B, 2 cm innen) von x = 0 bis 4800
       final rand = b.punkte.skip(ohneRand.punkte.length).take(9).toList();
       for (final (i, p) in rand.indexed) {
-        expect(p.ort.x, closeTo(600 * i, 1e-6));
+        expect(p.ort.x, closeTo(50 + 4700 * i / 8, 1e-6));
         expect(p.ort.y, closeTo(20, 1e-6));
       }
       // 800 × 309 cm diagonal: die lange Rand-UK mit Stoß bei 600 cm
@@ -272,12 +277,35 @@ void main() {
           if ((p.ort.y - 20).abs() < 1e-6) p.ort.x,
       ];
       expect(orte, [
-        for (var x = 0; x <= 6000; x += 600) closeTo(x, 1e-6),
-        closeTo(6000 + 2000 / 4, 1e-6),
-        closeTo(7000, 1e-6),
-        closeTo(7500, 1e-6),
-        closeTo(8000, 1e-6),
+        for (var i = 0; i <= 10; i++) closeTo(50 + 5950 * i / 10, 1e-6),
+        for (var k = 1; k <= 4; k++) closeTo(6000 + 1950 * k / 4, 1e-6),
       ]);
+    });
+
+    test('kurze UK (Planungsregeln Alexander (Planungskern v6, 11.11.2026), '
+        'Regel 3.6): bis 12 cm ein Auflager in der Mitte, darüber 5 cm vom '
+        'Ende', () {
+      List<double> stellen(double laenge) => [
+        for (final p in auflagerbedarf(
+          _f01,
+          UkVerlegung(
+            linien: [
+              (x: 0, abschnitte: [(100, 100 + laenge)], stoesse: const []),
+            ],
+          ),
+          uk: ukArtikel,
+          abstand: const Millimeter(600),
+          flaeche: Hoehenflaeche(_f01.grundriss.ecken, _mm(const [86])),
+          aufbauhoehe: _aufbau,
+        ).punkte)
+          p.ort.y,
+      ];
+      expect(stellen(100), [150]);
+      expect(stellen(120), [160]);
+      expect(stellen(121), [150, 171]);
+      expect(stellen(700), [150, 450, 750]);
+      expect(auflagerRandabstand, const Millimeter(50));
+      expect(auflagerEinzelnBis, const Millimeter(120));
     });
 
     test('ohne Pads (nur Stelzfüße): zu niedrig ohne Auflager, Zeile null; '

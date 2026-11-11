@@ -2096,12 +2096,14 @@ void main() {
           .mitEckhoehe(1, const Millimeter(150));
       final b = rechne(Planung.start.mitStand(stand));
       final titel = {for (final z in b.unterbau.zuordnung) z.titel: z.anzahl};
-      // Spalt je Holz 69, 58, 48, 37, 26, 16, 5 mm: 55–95 mm passt für die
-      // ersten beiden, 48 und 37 liegen näher am Fuß, 26 und 16 näher am
-      // Pad (Lücke: der nächste Bereich, M6-08), 5 mm ist das Pad
+      // Spalt je Holz 68, 58, 47, 37, 27, 16, 6 mm (erstes und letztes
+      // Auflager 5 cm vom UK-Ende, Planungskern v6 / Entscheidung
+      // 11.11.2026; vorher 69 … 5): 55–95 mm passt für die ersten beiden,
+      // 47 und 37 liegen näher am Fuß, 27 und 16 näher am Pad (Lücke: der
+      // nächste Bereich, M6-08), 6 mm ist das Pad
       expect(
         [for (final p in b.unterbau.auflagerpunkte.take(7)) p.spalt.mm],
-        [69, 58, 48, 37, 26, 16, 5],
+        [68, 58, 47, 37, 27, 16, 6],
       );
       expect(titel, {'Artikel 50-60-005': 39, 'Artikel 60-55-136': 52});
       expect(b.unterbau.auflagerpunkte.every((p) => p.zeile != null), isTrue);

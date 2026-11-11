@@ -25,6 +25,15 @@ const auflagerAbstandVorgabe = Millimeter(600);
 /// 11.11.2026), Regel 3.5; `ukStueckelung`).
 const ukMindestReststueck = Millimeter(500);
 
+/// Das erste und das letzte Auflager einer UK liegen so weit vom Ende der UK
+/// (Planungsregeln Alexander (Planungskern v6, 11.11.2026), Regel 3.6; Kern:
+/// „Die UK muss immer am Anfang und Ende aufliegen.“).
+const auflagerRandabstand = Millimeter(50);
+
+/// Eine UK bis zu dieser Länge bekommt nur ein Auflager in der Mitte
+/// (Planungsregeln Alexander (Planungskern v6, 11.11.2026), Regel 3.6).
+const auflagerEinzelnBis = Millimeter(120);
+
 /// Fuge zwischen zwei Dielen (R-B06, Alexander).
 const fuge = Millimeter(5);
 
