@@ -3,7 +3,7 @@ import 'package:test/test.dart';
 
 void main() {
   test('Abstände (R-C03, R-B06, R-C10)', () {
-    expect(querstrebenAbstand, const Millimeter(600));
+    expect(querstrebenAbstand, const Millimeter(750));
     expect(fuge, const Millimeter(5));
     expect(wandabstand, const Millimeter(20));
   });

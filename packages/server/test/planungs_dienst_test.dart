@@ -1428,18 +1428,21 @@ void main() {
         'bearbeiteten Fläche', () {
       final stand = Planungsstand.start.mitQuerstreben(true);
       final b = rechne(Planung.start.mitStand(stand), mitUk: uk);
-      expect(b.querstreben, hasLength(60));
+      // 75-cm-Raster versetzt, je Feld 4 (Planungskern v6 / Entscheidung
+      // 11.11.2026; vorher 60 cm, 5 Reihen = 60)
+      expect(b.querstreben, hasLength(48));
       // zwischen den UK-Hölzern der Verlegung (M6-10): Achsen 20 mm vom Rand,
-      // 4760 / 12 = 396,7 mm auseinander, Strebe 356,7 mm
-      expect(b.querstreben.first.von, const Punkt(40, 515));
-      expect(b.querstrebenReihen, 5);
+      // 4760 / 12 = 396,7 mm auseinander, Strebe 356,7 mm; das erste Feld ab
+      // einem Viertel Raster
+      expect(b.querstreben.first.von, const Punkt(40, 187.5));
+      expect(b.querstrebenReihen, 4);
       expect(
         b.stueckliste.zeilen.singleWhere((z) => z.farbe == Stueckfarbe.gruen),
         const Stuecklistenzeile(
           nummer: Artikelnummer('10-10-031'),
           titel: '10-10-031',
           laenge: Millimeter(357),
-          stueck: 60,
+          stueck: 48,
           farbe: Stueckfarbe.gruen,
         ),
       );

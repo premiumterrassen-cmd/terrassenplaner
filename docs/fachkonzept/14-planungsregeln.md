@@ -49,7 +49,7 @@ Die mit ⚙ markierten Regeln sind im domain-Paket ausführbar und mit Tests bel
 |---|---|---|---|
 | R-C01 ⚙ | **UK-Achsabstand höchstens 40 cm**, sicherer unter 35 cm. | Montagehinweise Regel 3, Antwort 4 | gilt – max. 40 cm im Planer (auch PREMIUM-UK) |
 | R-C02 | UK auf den Auflagern verschrauben (Ecken, Ränder, ausgewählte Punkte). | Montagehinweise Regel 2 | gilt (Hinweis) |
-| R-C03 | Aussteifung: Leiterverband (Querstreben) oder Kopfband 45°. **Querstreben-Abstand 60 cm.** | Montagehinweise Regel 5, Alexander (Frage 17) | gilt |
+| R-C03 ⚙ | Aussteifung (nur optional, kein Standard): Leiterverband (Querstreben) oder Kopfband 45°. **Querhölzer im 75-cm-Raster, von Feld zu Feld versetzt** (bis 11.11.2026: 60 cm). | Montagehinweise Regel 5, Alexander (Frage 17); Planungsregeln Alexander (Planungskern v6, 11.11.2026), Regel 3.7; Entscheidung Alexander 11.11.2026 | gilt – Fachkonzept 3.7 |
 | R-C04 | Gummiband/Pads (GUMO) zwischen Diele und UK bzw. unter der UK. | Montagehinweise Regel 8, B-039 | gilt |
 | R-C05 | Blendenhalter: bei Verblendung kurze UK-Stücke (8,6–11 cm) im 90°-Winkel an den Sichtseiten. | Alexander | gilt |
 | R-C06 | Vorhandene UK: neue UK wird darauf gebaut – UK-Holz und Bodenanker bleiben. | Alexander (Frage 7) | gilt |

@@ -354,7 +354,7 @@
   "nutzungsartDoppelteUk": "Double substructure",
   "nutzungsartVerwindung": "Note: without anchoring to the ground, a floating substructure can twist. Bracing or a frame keeps it in shape.",
   "querstrebenFrage": "Would you like to add additional cross braces?",
-  "querstrebenAbstand": "Cross braces form a ladder between the substructure joists; automatically every 60 cm.",
+  "querstrebenAbstand": "Cross braces form a ladder between the substructure joists; automatically on a 75 cm grid, staggered from bay to bay.",
   "querstrebenAnzahl": "Number of cross brace rows",
   "querstrebenAnzahlUngueltig": "Please enter a whole number from 1 to 99",
   "nutzungPrivat": "Private use",

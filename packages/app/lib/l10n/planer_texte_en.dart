@@ -1156,7 +1156,7 @@ class PlanerTexteEn extends PlanerTexte {
 
   @override
   String get querstrebenAbstand =>
-      'Cross braces form a ladder between the substructure joists; automatically every 60 cm.';
+      'Cross braces form a ladder between the substructure joists; automatically on a 75 cm grid, staggered from bay to bay.';
 
   @override
   String get querstrebenAnzahl => 'Number of cross brace rows';

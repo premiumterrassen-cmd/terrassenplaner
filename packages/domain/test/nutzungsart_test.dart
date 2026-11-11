@@ -231,9 +231,14 @@ void main() {
       final erste = z.streben.first;
       expect(erste.von.x, closeTo(20, 1e-9));
       expect(erste.bis.x, closeTo(380, 1e-9));
-      expect(erste.von.y, closeTo(1030, 1e-9));
-      expect(erste.bis.y, closeTo(1030, 1e-9));
-      expect(z.streben.last.von.y, closeTo(2060, 1e-9));
+      // Raster 309 / 2 cm, von Feld zu Feld versetzt (Planungskern v6 /
+      // Entscheidung 11.11.2026; vorher alle Felder bei 103 und 206 cm):
+      // Feld 0 ab einem Viertel, Feld 1 ab einem halben Raster
+      expect(erste.von.y, closeTo(1545 / 4, 1e-9));
+      expect(erste.bis.y, closeTo(1545 / 4, 1e-9));
+      expect(z.streben[1].von.y, closeTo(1545 / 4 + 1545, 1e-9));
+      expect(z.streben[2].von.y, closeTo(1545 / 2, 1e-9));
+      expect(z.streben.last.von.y, closeTo(1545 / 2 + 1545, 1e-9));
       expect(z.streben.last.bis.x, closeTo(4780, 1e-9));
     });
 
@@ -358,10 +363,14 @@ void main() {
         _uk,
         ukAbstand: _abstand,
       ).streben;
-      // eine Reihe in der Mitte (y = 200 cm), UK-Linien ab x = 50 cm alle
-      // 40 cm; Streben nur, wo ihre Mitte in der Fläche liegt (100–400 cm):
-      // die Felder mit der Mitte bei 110 bis 390 cm
-      expect(streben.map((s) => s.von.y).toSet(), {2000});
+      // eine Reihe: Raster 200 cm, UK-Linien ab x = 50 cm alle 40 cm; je
+      // Feld ab seinem Anfang (oben y = 100 cm) ein Viertel bzw. ein halbes
+      // Raster, versetzt (Planungskern v6 / Entscheidung 11.11.2026), und
+      // mehr als 10 cm vor seinem Ende – die Felder mit der Mitte bei 110
+      // bis 390 cm, das erste und letzte sind zu kurz
+      expect(streben.map((s) => s.von.y).toSet(), {1500, 2000});
+      expect(streben.first.von.y, 2000);
+      expect(streben[1].von.y, 1500);
       expect(streben.first.von.x, closeTo(920, 1e-9));
       expect(streben.last.bis.x, closeTo(4080, 1e-9));
       expect(streben, hasLength(8));

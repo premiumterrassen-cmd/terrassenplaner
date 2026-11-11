@@ -5,13 +5,16 @@ library;
 
 import '../artikel/einheiten.dart';
 
-/// Abstand der Querstreben (Leiterverband) (R-C03, Alexander).
-const querstrebenAbstand = Millimeter(600);
+/// Raster der Querhölzer (Aussteifung als Leiter, R-C03): 75 cm, von Feld
+/// zu Feld versetzt (Planungsregeln Alexander (Planungskern v6,
+/// 11.11.2026), Regel 3.7; Entscheidung Alexander 11.11.2026 – vorher
+/// 60 cm).
+const querstrebenAbstand = Millimeter(750);
 
 /// Höchster Abstand der Querstreben-Reihen bei der Nutzungsart Versteifung
 /// (Leiterverband, M6-05). Annahme aus den Referenzkonfigurationen F31/F33:
 /// der alte Planer setzt bei 309 cm UK-Länge zwei Reihen – das ergibt
-/// höchstens der doppelte Querstreben-Abstand.
+/// höchstens 120 cm.
 const versteifungsAbstand = Millimeter(1200);
 
 /// Abstand der Auflager längs der UK, wenn die Artikeldaten der UK keinen
