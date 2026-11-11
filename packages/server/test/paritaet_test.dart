@@ -39,29 +39,25 @@ const _gruende = {
   'Eingaben':
       'Unterlage unvollständig: Nutzungsart, Terrassenart oder '
       'Verblendungsseiten nicht erfasst (Querstücke, Stützen, Blendenhalter)',
-  'Frage 1':
-      'offen: Unterstützung der Dielenenden an Kanten schräg zur UK, '
-      'an Ausschnitten, Innenecken und Bögen',
+  'Rand-UK':
+      'Planungsregeln 3.3 (Rand-UK): an jeder Kante mit Dielenenden eine '
+      'UK – Rand-UK, wo keine UK-Linie höchstens 6 cm daneben liegt '
+      '(schräge Ränder, Ausschnitte, Innenecken, Bögen); Stücke und '
+      'Lieferlängen anders als im alten Planer, Dielenenden darauf befestigt',
   'Frage 2': 'offen: vorhandene UK – alt 2 × 473 cm zusätzlich',
   'Frage 3': 'offen: Alu-UK – Anzahl der Schienen',
 };
 
 /// Abweichungen der Referenzkonfigurationen: Fall → Größe → Grund.
 const _konfigurationen = <String, Map<String, String>>{
-  'F03': {
-    'Verschnitt': 'B-035',
-    'Dielen': 'B-035',
-    'UK': 'Frage 1',
-    'Clips': 'Frage 1',
-  },
+  'F03': {'Verschnitt': 'B-035', 'Dielen': 'B-035', 'UK': 'Rand-UK'},
   'F04': {
     'Verschnitt': 'B-035',
     'Dielen': 'B-035',
     'Freidielen': 'R-B09',
-    'UK': 'Frage 1',
-    'Clips': 'Frage 1',
+    'UK': 'Rand-UK',
   },
-  'F05': {'Dielen': 'B-035', 'UK': 'Frage 1', 'Clips': 'Frage 1'},
+  'F05': {'Dielen': 'B-035', 'UK': 'Rand-UK'},
   'F09': {'Clips': 'B-033'},
   'F10': {'UK': 'UK-Lage'},
   'F11': {'Clips': 'B-033'},
@@ -73,40 +69,39 @@ const _konfigurationen = <String, Map<String, String>>{
     'Freidielen': 'Fehler',
     'UK': 'Fehler',
   },
-  'F15': {'Verschnitt': 'B-035', 'Dielen': 'B-035', 'UK': 'Frage 1'},
+  'F15': {'Verschnitt': 'B-035', 'Dielen': 'B-035', 'UK': 'Rand-UK'},
   'F16': {
     'Verschnitt': 'B-035',
     'Dielen': 'B-035',
     'Freidielen': 'R-B09',
-    'UK': 'Frage 1',
-    'Clips': 'Frage 1',
+    'UK': 'Rand-UK',
   },
   'F17': {
     'Verschnitt': 'B-035',
     'Dielen': 'B-035',
     'Freidielen': 'R-B09',
-    'UK': 'Frage 1',
+    'UK': 'Rand-UK',
+    'Clips': 'Rand-UK',
   },
   'F18': {
     'Verschnitt': 'B-035',
     'Dielen': 'B-035',
-    'UK': 'Frage 1',
-    'Clips': 'Frage 1',
+    'UK': 'Rand-UK',
+    'Clips': 'Rand-UK',
   },
   'F19': {
     'Fläche': 'M4-07',
     'Verschnitt': 'B-035',
     'Dielen': 'B-035',
-    'UK': 'Frage 1',
-    'Clips': 'Frage 1',
+    'UK': 'Rand-UK',
   },
   'F20': {'UK': 'UK-Lage'},
-  'F21': {'Verschnitt': 'Rechenweg', 'UK': 'Frage 1'},
+  'F21': {'Verschnitt': 'Rechenweg', 'UK': 'Rand-UK', 'Clips': 'Rand-UK'},
   'F22': {
     'Verschnitt': 'Rechenweg',
     'Dielen': 'B-035',
-    'UK': 'Frage 1',
-    'Clips': 'Frage 1',
+    'UK': 'Rand-UK',
+    'Clips': 'Rand-UK',
   },
   'F24': {'Freidielen': 'R-B09'},
   'F28': {'UK': 'Stützen'},
@@ -133,7 +128,7 @@ const _faelle = <String, Map<String, String>>{
   '2026-05-03-4381-v2': {'Dielen': 'B-035', 'UK': 'B-035'},
   '2026-05-12-1823-v4': {'UK': 'Eingaben'},
   '2026-05-19-3958-v4': {'Dielen': 'B-035'},
-  '2026-06-07-4340-v4': {'Dielen': 'B-035', 'UK': 'Frage 1'},
+  '2026-06-07-4340-v4': {'Dielen': 'B-035', 'UK': 'Rand-UK'},
   '2026-06-11-3389-v3': {'Dielen': 'B-035'},
   '2026-06-15-1093-v7': {'Dielen': 'B-035', 'UK': 'Eingaben'},
   '2026-06-25-1275-v3': {'Dielen': 'B-035', 'UK': 'B-035'},
