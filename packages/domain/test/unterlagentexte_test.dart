@@ -112,8 +112,18 @@ void main() {
       startsWith('Maße fehlen oder sind falsch'),
     );
     expect(
-      en.flaechenmeldung(Flaechenmeldung.unplausibelGross),
-      contains('implausibly large'),
+      [
+        for (final t in [de, en])
+          for (final m in Flaechenmeldung.values) t.flaechenmeldung(m),
+      ],
+      [
+        contains('höchstens 0,05 m²'),
+        contains('über 1.000 m²'),
+        contains('1 bis 300 m²'),
+        contains('at most 0.05 m²'),
+        contains('implausibly large (over 1,000 m²)'),
+        contains('1 to 300 m²'),
+      ],
     );
     expect(
       en.belagmeldung(Belagmeldung.bombierungEmpfohlen, null),
