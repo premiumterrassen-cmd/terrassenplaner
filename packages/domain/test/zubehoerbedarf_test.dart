@@ -267,17 +267,144 @@ void main() {
     });
   });
 
-  group('Belagfläche', () {
-    test('Länge mal Breite samt Fuge je Stück', () {
-      expect(belagflaeche(const []), 0);
+  group('Ölfläche (R-D10, Planungskern v6 Regel 5.2.1)', () {
+    test('Deckholz allseitig und die Deckseite ein zweites Mal, UK '
+        'allseitig', () {
+      expect(oelflaeche((deckholz: const [], unterkonstruktion: const [])), 0);
+      // 1000 × 100 × 20: 2 × (100000 + 20000 + 2000) + 100000 mm²
+      const diele = (laenge: 1000.0, breite: 100.0, staerke: 20.0);
       expect(
-        belagflaeche([
-          Dielenstueck(0, const Millimeter(2000), const [], breite: 500),
-          Dielenstueck(1, const Millimeter(1000), const [], breite: 500),
-        ]),
-        closeTo(1.5, 1e-9),
+        oelflaeche((deckholz: const [diele], unterkonstruktion: const [])),
+        closeTo(0.344, 1e-9),
       );
-      expect(belagflaeche(_verlegt()), closeTo(14.832, 1e-6));
+      // 1000 × 40 × 60: 2 × (40000 + 60000 + 2400) mm², ohne Deckseite
+      const uk = (laenge: 1000.0, breite: 40.0, staerke: 60.0);
+      expect(
+        oelflaeche((deckholz: const [], unterkonstruktion: const [uk])),
+        closeTo(0.2048, 1e-9),
+      );
+      expect(
+        oelflaeche((
+          deckholz: const [diele, diele],
+          unterkonstruktion: const [uk],
+        )),
+        closeTo(0.8928, 1e-9),
+      );
+    });
+
+    test('Ölteile: Dielen ohne Fuge, Treppendielen und Blenden als Deckholz, '
+        'alle UK-Zuschnitte als Unterkonstruktion', () {
+      final blende = Artikel(
+        nummer: const Artikelnummer('10-10-080'),
+        titel: 'Blende',
+        art: Artikelart.diele,
+        einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+        abmessungen: Abmessungen(
+          breite: const Millimeter(80),
+          staerke: const Millimeter(21),
+        ),
+        holzart: robinie,
+        serie: premiumSelect,
+      );
+      final ohneMasse = _artikel(
+        '10-10-099',
+        'ohne Maße',
+        Artikelart.verblendung,
+      );
+      final teile = oelteile(
+        belag: _genutet,
+        dielen: [
+          Dielenstueck(0, const Millimeter(2000), const [], breite: 66),
+          // schmaler als die Fuge: Breite 0
+          Dielenstueck(1, const Millimeter(500), const [], breite: 4),
+        ],
+        anschluss: Anschlussbedarf(
+          stuecke: [
+            Planstueck(
+              _genutet.nummer,
+              'Treppe',
+              const Millimeter(1200),
+              ganzeLaenge: const Millimeter(4000),
+            ),
+            Planstueck(
+              _uk.nummer,
+              'Blendenträger',
+              const Millimeter(150),
+              ganzeLaenge: const Millimeter(4000),
+            ),
+          ],
+          blenden: [
+            (blende, const Millimeter(3140)),
+            (ohneMasse, const Millimeter(100)),
+          ],
+        ),
+        uk: _uk,
+        ukStuecke: const [Millimeter(3090), Millimeter(150)],
+      );
+      expect(teile.deckholz, [
+        (laenge: 2000.0, breite: 60.0, staerke: 23.0),
+        (laenge: 500.0, breite: 0.0, staerke: 23.0),
+        (laenge: 1200.0, breite: 60.0, staerke: 23.0),
+        (laenge: 3140.0, breite: 80.0, staerke: 21.0),
+        (laenge: 100.0, breite: 0.0, staerke: 0.0),
+      ]);
+      expect(teile.unterkonstruktion, [
+        (laenge: 3090.0, breite: 40.0, staerke: 60.0),
+        (laenge: 150.0, breite: 40.0, staerke: 60.0),
+      ]);
+      // mit der Fuge der Verlegung; ohne UK keine Unterkonstruktion
+      final ohne = oelteile(
+        belag: _genutet,
+        dielen: [Dielenstueck(0, const Millimeter(2000), const [], breite: 65)],
+        ukStuecke: const [Millimeter(3090)],
+        fuge: altplanerFuge,
+      );
+      expect(ohne.deckholz.single.breite, 60);
+      expect(ohne.unterkonstruktion, isEmpty);
+      expect(oelteile(belag: _genutet).deckholz, isEmpty);
+    });
+  });
+
+  group('Ölgebinde (Planungskern v6 Regel 5.2.2)', () {
+    Artikel oel(String nummer, String liter, int? cent) => Artikel(
+      nummer: Artikelnummer(nummer),
+      titel: 'Holzschutz-Öl NATUR, $liter Liter',
+      art: Artikelart.pflege,
+      einheit: Verkaufseinheit(Mengeneinheit.stueck),
+      abmessungen: Abmessungen(),
+      preisBrutto: cent == null ? null : Cent(cent),
+    );
+    Map<String, int> gebinde(int ml, List<Artikel> g) => {
+      for (final (a, n) in oelgebinde(ml, g)) a.nummer.wert: n,
+    };
+    final gross = oel('562-250', '2,5', 6000);
+    final klein = oel('562-075', '0,75', 2200);
+
+    test('die günstigste Kombination: 2 l als 2,5 l statt 3 × 0,75 l', () {
+      expect(gebinde(2000, [gross, klein]), {'562-250': 1});
+      expect(gebinde(600, [gross, klein]), {'562-075': 1});
+      expect(gebinde(2501, [gross, klein]), {'562-250': 1, '562-075': 1});
+      // 5,1 l: 2 × 2,5 + 0,75 = 14200 statt 3 × 2,5 = 18000
+      expect(gebinde(5100, [klein, gross]), {'562-075': 1, '562-250': 2});
+      expect(oelgebinde(5100, [klein, gross]).first.$1, klein);
+      expect(gebinde(0, [gross, klein]), isEmpty);
+      expect(gebinde(100, const []), isEmpty);
+    });
+
+    test('gleicher Preis: weniger Inhalt, dann weniger Gebinde', () {
+      final teuer = oel('562-251', '2,5', 6600);
+      // 3 × 0,75 l = 2,25 l kostet so viel wie 2,5 l
+      expect(gebinde(2000, [teuer, klein]), {'562-075': 3});
+      final einLiter = oel('562-100', '1', 100);
+      final zweiLiter = oel('562-200', '2', 200);
+      expect(gebinde(2000, [einLiter, zweiLiter]), {'562-200': 1});
+      expect(gebinde(2000, [zweiLiter, einLiter]), {'562-200': 1});
+    });
+
+    test('ohne Preis: so wenig Überhang wie möglich', () {
+      final ohnePreis = oel('562-252', '2,5', null);
+      expect(gebinde(2000, [ohnePreis, klein]), {'562-075': 3});
+      expect(gebinde(2000, [klein, ohnePreis]), {'562-075': 3});
     });
   });
 
@@ -293,24 +420,29 @@ void main() {
           stuecke,
           winkel: 0,
         );
+        final flaeche = oelflaeche(oelteile(belag: _genutet, dielen: stuecke));
+        // 47 Reihen à 4800 × 60 × 23 mm, Randreihe 30 mm breit: 51,08 m²
+        expect(flaeche, closeTo(51.076, 1e-3));
         final m = berechnetesZubehoer(
           _regelwerk,
           _genutet,
           befestigung,
           stuecke,
           winkel: 0,
+          oelflaeche: flaeche,
         );
         // 628 Clips (M5-09) → 650 mit VPE 250 (Bit dabei, kein TX20);
         // 26 Schrauben der Randreihen → 200er Packung, dazu Bit TX25
         // (Planungskern v6 Regeln 4.1–4.3); 40,17 m Band → 1 Karton à
-        // 100 m, 14,832 m² × 0,2 l = 2,97 l → 4 × 0,75 l (wenig Überhang)
+        // 100 m; Öl (R-D10) 51,08 m² × 44 ml = 2,25 l → 3 × 0,75 l (die
+        // Testartikel haben keinen Preis: wenig Überhang)
         expect(_mengen(m), {
           '80-10-001-50': 3,
           '80-10-001-250': 2,
           '50-50-102': 1,
           '50-80-003': 1,
           '50-60-120': 1,
-          '568-075': 4,
+          '568-075': 3,
         });
         expect(m.keys.first, const Artikelnummer('80-10-001-50'));
       },
@@ -324,8 +456,10 @@ void main() {
         Befestigungsbedarf.keiner,
         stuecke,
         winkel: 0,
+        oelflaeche: 9600 / 44,
       );
-      // 48 m² × 0,2 = 9,6 l → 3 × 2,5 + 3 × 0,75 = 9,75 l
+      // 218,2 m² Ölfläche × 44 ml = 9,6 l → 3 × 2,5 + 3 × 0,75 = 9,75 l
+      // (ohne Preise: wenig Überhang)
       expect(_mengen(m)['568-250'], 3);
       expect(_mengen(m)['568-075'], 3);
       // 21 Linien × 600 cm = 126 m → 2 Kartons
@@ -347,6 +481,7 @@ void main() {
         befestigung,
         stuecke,
         winkel: 0,
+        oelflaeche: 0,
       );
       // das Band ohne Rollenlänge zählt nicht, das nächste schon: 40,17 m
       expect(_mengen(m), {'50-50-102': 4, '50-80-003': 1, '50-60-001': 5});
@@ -360,6 +495,7 @@ void main() {
           Befestigungsbedarf.keiner,
           const [],
           winkel: 0,
+          oelflaeche: 0,
         ),
         isEmpty,
       );
@@ -371,6 +507,7 @@ void main() {
             Befestigungsbedarf.keiner,
             const [],
             winkel: 0,
+            oelflaeche: 0,
           ),
         ),
         isEmpty,
@@ -404,6 +541,7 @@ void main() {
             befestigung,
             stuecke,
             winkel: 0,
+            oelflaeche: 0,
           ),
         ).keys,
         ['50-50-102'],
@@ -470,13 +608,14 @@ void main() {
         ],
       ),
     );
-    // 48 m² × 0,2 l = 9,6 l: 2 × 5 l = 10 l, beide Gebinde einer Sorte
+    // 9,6 l: 2 × 5 l = 10 l, beide Gebinde einer Sorte
     final m = berechnetesZubehoer(
       regelwerk,
       _genutet,
       Befestigungsbedarf.keiner,
       _verlegt(laenge: 8000, breite: 6000),
       winkel: 0,
+      oelflaeche: 9600 / 44,
     );
     expect(_mengen(m), {'568-500': 2});
   });
@@ -638,6 +777,7 @@ void main() {
           Befestigungsbedarf.keiner,
           stuecke,
           winkel: winkel,
+          oelflaeche: 0,
         );
         expect(_mengen(m)['50-60-001'], alt);
       });
@@ -677,6 +817,7 @@ void main() {
             Befestigungsbedarf.keiner,
             stuecke,
             winkel: winkel,
+            oelflaeche: 0,
             uk: uk,
           );
           expect(_mengen(m)['50-60-001'], alt);
@@ -693,6 +834,7 @@ void main() {
           Befestigungsbedarf.keiner,
           stuecke,
           winkel: 0,
+          oelflaeche: 0,
           uk: uk,
           feldbreite: feldbreite,
         ),

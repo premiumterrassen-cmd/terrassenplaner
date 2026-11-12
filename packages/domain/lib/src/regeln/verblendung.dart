@@ -86,12 +86,18 @@ final class Anschlussbedarf {
     List<Planstueck> stuecke = const [],
     List<Materialbedarf> bedarf = const [],
     List<Anschlussmeldung> meldungen = const [],
+    List<(Artikel, Millimeter)> blenden = const [],
   }) : stuecke = List.unmodifiable(stuecke),
        bedarf = List.unmodifiable(bedarf),
-       meldungen = List.unmodifiable(meldungen);
+       meldungen = List.unmodifiable(meldungen),
+       blenden = List.unmodifiable(blenden);
 
   /// Zuschnitte aus UK-Holz (Blendenträger, Treppe) für die Stückliste.
   final List<Planstueck> stuecke;
+
+  /// Zuschnitte der Seitenblende je Reihe (Artikel, Länge samt
+  /// Gehrungszugabe) – für die Ölfläche (R-D10).
+  final List<(Artikel, Millimeter)> blenden;
 
   /// Bedarf für die Materialliste.
   final List<Materialbedarf> bedarf;
@@ -104,6 +110,7 @@ final class Anschlussbedarf {
     stuecke: [...stuecke, ...weiterer.stuecke],
     bedarf: [...bedarf, ...weiterer.bedarf],
     meldungen: [...meldungen, ...weiterer.meldungen],
+    blenden: [...blenden, ...weiterer.blenden],
   );
 }
 
@@ -228,6 +235,10 @@ Anschlussbedarf verblendungsbedarf(
         ..._schrauben(regelwerk, reihen.keys.first, traeger.length),
     ],
     meldungen: meldungen,
+    blenden: [
+      for (final MapEntry(key: blende, value: stuecke) in reihen.entries)
+        for (final laenge in stuecke) (blende, laenge),
+    ],
   );
 }
 

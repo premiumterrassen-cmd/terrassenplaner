@@ -95,6 +95,7 @@ class VerschnittoptimierungBenchmark extends BenchmarkBase {
               belag: _belag.nummer,
               laengen: _laengen,
               ueberlaenge: dielenUeberlaenge,
+              muster: Musterregel.dielen,
               stuecke: [
                 for (var k = 0; k < haeufigkeit; k++)
                   for (final t in verlegeBelag(

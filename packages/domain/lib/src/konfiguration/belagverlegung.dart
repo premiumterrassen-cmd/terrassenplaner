@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import '../artikel/artikel.dart';
 import '../artikel/einheiten.dart';
+import '../ergebnisse/verschnittoptimierung.dart';
 import '../geometrie/kontur.dart';
 import '../geometrie/punkt.dart';
 import '../regeln/planungsregeln.dart';
@@ -27,6 +28,68 @@ final class Lieferdiele {
       schnitte.fold(const Millimeter(0), (summe, s) => summe + s);
 }
 
+/// Regeln des Musterverfahrens für den Zuschnitt (R-B17, Planungsregeln
+/// Alexander (Planungskern v6, 11.11.2026) Regeln 1.3 und 1.4): zwischen
+/// zwei Stücken einer Diele ein [schnitt], höchstens [hoechstens] Stücke je
+/// Diele, ein Rest nur ab [wiederverwendetAb] für weitere Stücke.
+final class Musterregel {
+  const Musterregel._({
+    this.schnitt = const Millimeter(0),
+    this.hoechstens,
+    this.wiederverwendetAb = const Millimeter(0),
+    this.mehrlaenge = 0,
+  });
+
+  /// Ohne Einschränkung, wie im alten Planer: Holzfliesen und die
+  /// Paritätstests des Rechenwegs (gesägt ohne Zugabe, beliebig viele
+  /// Stücke, jeder Rest; es gilt die kürzeste Verteilung).
+  static const frei = Musterregel._();
+
+  /// Dielen (R-B17): 5 mm Sägeschnitt, höchstens 3 Stücke, Reste ab 30 cm,
+  /// 1-%-Regel.
+  static const dielen = Musterregel._(
+    schnitt: saegeschnitt,
+    hoechstens: stueckeJeDiele,
+    wiederverwendetAb: mindestrest,
+    mehrlaenge: mehrlaengeFuerWenigerDielen,
+  );
+
+  /// Sägeschnitt zwischen zwei Stücken einer Diele.
+  final Millimeter schnitt;
+
+  /// Höchstens so viele Stücke je Diele; `null` = beliebig viele.
+  final int? hoechstens;
+
+  /// Kürzester Rest, aus dem noch ein Stück geschnitten wird.
+  final Millimeter wiederverwendetAb;
+
+  /// So viel Mehrlänge (Anteil) nimmt die Wahl der Verteilung für weniger
+  /// Dielen in Kauf ([besteVerteilung]); frei 0: die kürzeste gilt.
+  final double mehrlaenge;
+
+  /// Ob eine Diele mit [stuecke] Stücken und [rest] mm Rest (nach dem
+  /// Sägeschnitt) noch ein Stück aufnimmt.
+  bool nimmtAuf(int stuecke, int rest) =>
+      rest >= wiederverwendetAb.mm &&
+      (hoechstens == null || stuecke < hoechstens!);
+
+  /// Ob die [schnitte] (absteigend, in mm) nach dieser Regel aus [platz] mm
+  /// (Lieferlänge plus Überlänge) geschnitten werden können.
+  bool passt(int platz, List<int> schnitte) {
+    var rest = platz;
+    for (final (i, s) in schnitte.indexed) {
+      if (s > rest || i > 0 && !nimmtAuf(i, rest)) return false;
+      rest -= s + schnitt.mm;
+    }
+    return true;
+  }
+
+  /// Die kürzeste der aufsteigenden [laengen] (mm), aus der die [schnitte]
+  /// samt [ueberlaenge] nach dieser Regel geschnitten werden können.
+  int kuerzeste(List<int> laengen, int ueberlaenge, List<int> schnitte) =>
+      laengen.firstWhere((l) => passt(l + ueberlaenge, schnitte));
+}
+
 /// Ordnet jedes Stück einer Lieferdiele zu (M5-08, R-B10, R-B11) und
 /// verteilt Reststücke auf weitere Reihen – etwa eine 4000-mm-Diele für
 /// zwei Reihen mit je 200 cm Rest (F09).
@@ -36,13 +99,21 @@ final class Lieferdiele {
 /// beginnt eine neue Diele in der Lieferlänge, deren Rest nach dem
 /// Auffüllen mit den folgenden Stücken am kleinsten ist – bei gleichem Rest
 /// die kürzere. Zum Schluss bekommt jede Diele die kürzeste Lieferlänge,
-/// die ihre Stücke noch aufnimmt. Gesägt wird ohne Zugabe: zwei Stücke von
-/// 200 cm passen in 4000 mm wie im alten Planer. Eine Lieferlänge nimmt
-/// Stücke bis zu ihrer Länge plus [ueberlaenge] auf (`dielenUeberlaenge`,
-/// Planungsregeln Alexander (Planungskern v6, 11.11.2026)): 603 cm aus einer
-/// 6-m-Diele, 2 × 301 cm ebenso. Die Überlänge ist nur ein Angebot: Liefert
-/// die Verteilung ohne sie weniger (die Verteilung ist nicht optimal), gilt
-/// diese – Überlänge macht den Zuschnitt nie schlechter.
+/// die ihre Stücke noch aufnimmt. Eine Lieferlänge nimmt Stücke bis zu
+/// ihrer Länge plus [ueberlaenge] auf (`dielenUeberlaenge`, Planungsregeln
+/// Alexander (Planungskern v6, 11.11.2026)): 603 cm aus einer 6-m-Diele.
+/// Das [muster] (R-B17) begrenzt die Stücke je Diele, rechnet den
+/// Sägeschnitt zwischen zwei Stücken (2 × 300 cm + 5 mm aus 6 m samt
+/// Überlänge) und verwendet nur Reste ab 30 cm weiter; ohne ([Musterregel.frei])
+/// wird gesägt wie im alten Planer: zwei Stücke von 200 cm passen in
+/// 4000 mm.
+///
+/// Mit Musterverfahren wird außerdem je Lieferlänge, die jedes Stück
+/// aufnimmt, nur mit dieser verteilt und Diele für Diele gefüllt
+/// ([musterZuschnitte]); es gilt die Verteilung nach der 1-%-Regel
+/// ([besteVerteilung], R-B17): bei höchstens 1 % Mehrlänge die mit den
+/// wenigsten Dielen. Ohne ([Musterregel.frei]) ist die Überlänge nur ein
+/// Angebot: Liefert die Verteilung ohne sie weniger, gilt diese.
 ///
 /// Das ist eine Verteilung je Teilfläche, keine Optimierung über
 /// Varianten, Flächen und Belagwechsel hinweg – die folgt mit der
@@ -52,67 +123,149 @@ List<Lieferdiele> zuschneiden(
   Iterable<Millimeter> stuecke,
   List<Millimeter> lieferlaengen, {
   Millimeter ueberlaenge = const Millimeter(0),
+  Musterregel muster = Musterregel.frei,
 }) {
   final liste = stuecke.toList();
-  final mit = verteile(liste, lieferlaengen, ueberlaenge: ueberlaenge);
-  if (ueberlaenge.mm == 0 ||
-      liste.any((s) => lieferlaengen.every((l) => s > l))) {
-    return mit;
-  }
-  final ohne = verteile(liste, lieferlaengen);
-  return liefertWeniger(ohne, mit) ? ohne : mit;
+  final laengste = liste.fold(0, (m, s) => s.mm > m ? s.mm : m);
+  final mit = verteile(
+    liste,
+    lieferlaengen,
+    ueberlaenge: ueberlaenge,
+    muster: muster,
+  );
+  return besteVerteilung(
+    muster.hoechstens == null
+        ? [
+            mit,
+            // ohne Überlänge nur, wo jedes Stück auch ohne sie passt
+            if (ueberlaenge.mm > 0 &&
+                lieferlaengen.any((l) => l.mm >= laengste))
+              verteile(liste, lieferlaengen),
+          ]
+        : [
+            mit,
+            if (lieferlaengen.length > 1)
+              for (final l in lieferlaengen)
+                if (l.mm + ueberlaenge.mm >= laengste)
+                  _gekuerzt(
+                    verteile(
+                      liste,
+                      [l],
+                      ueberlaenge: ueberlaenge,
+                      muster: muster,
+                    ),
+                    lieferlaengen,
+                    ueberlaenge.mm,
+                    muster,
+                  ),
+            ...musterZuschnitte(
+              liste,
+              lieferlaengen,
+              ueberlaenge: ueberlaenge,
+              muster: muster,
+            ),
+          ],
+    mehrlaenge: muster.mehrlaenge,
+  );
 }
 
-/// Ob [a] weniger liefert als [b] – bei gleicher Länge in weniger Dielen.
-bool liefertWeniger(List<Lieferdiele> a, List<Lieferdiele> b) {
-  final (la, lb) = (_geliefert(a), _geliefert(b));
-  return la < lb || la == lb && a.length < b.length;
+/// Die [dielen] je in der kürzesten der [lieferlaengen], aus der ihre
+/// Stücke samt Überlänge [u] nach dem [muster] geschnitten werden können.
+List<Lieferdiele> _gekuerzt(
+  List<Lieferdiele> dielen,
+  List<Millimeter> lieferlaengen,
+  int u,
+  Musterregel muster,
+) {
+  final laengen = [for (final l in lieferlaengen) l.mm]..sort();
+  return [
+    for (final d in dielen)
+      Lieferdiele(
+        Millimeter(muster.kuerzeste(laengen, u, _mm(d.schnitte))),
+        d.schnitte,
+      ),
+  ];
+}
+
+List<int> _mm(List<Millimeter> werte) => [for (final w in werte) w.mm];
+
+/// Die Verteilung, die gilt (R-B17, Planungsregeln Alexander (Planungskern
+/// v6, 11.11.2026) Regel 1.3): Unter den [kandidaten], die höchstens
+/// [mehrlaenge] (Musterverfahren: [mehrlaengeFuerWenigerDielen], 1 %) mehr
+/// liefern als die kürzeste, die mit den wenigsten Dielen, dann die
+/// kürzeste, dann die erste. Mit 0 gilt die kürzeste (bei gleicher Länge
+/// die mit weniger Dielen) wie im alten Planer.
+List<Lieferdiele> besteVerteilung(
+  List<List<Lieferdiele>> kandidaten, {
+  double mehrlaenge = mehrlaengeFuerWenigerDielen,
+}) {
+  final laengen = [for (final k in kandidaten) _geliefert(k)];
+  final grenze = laengen.reduce(math.min) * (1 + mehrlaenge);
+  var beste = 0;
+  for (var i = 1; i < kandidaten.length; i++) {
+    if (laengen[i] > grenze) continue;
+    final (n, m) = (kandidaten[i].length, kandidaten[beste].length);
+    if (laengen[beste] > grenze ||
+        n < m ||
+        n == m && laengen[i] < laengen[beste]) {
+      beste = i;
+    }
+  }
+  return kandidaten[beste];
 }
 
 int _geliefert(List<Lieferdiele> dielen) =>
     dielen.fold(0, (summe, d) => summe + d.laenge.mm);
 
-/// Eine Verteilung wie [zuschneiden], aber nur mit der [ueberlaenge] (ohne
-/// den Vergleich) – für schnelle Vorschauen (Verschnittoptimierung).
+/// Eine Verteilung wie [zuschneiden], aber nur mit der [ueberlaenge] und
+/// allen [lieferlaengen] (ohne den Vergleich) – für schnelle Vorschauen
+/// (Verschnittoptimierung).
 List<Lieferdiele> verteile(
   Iterable<Millimeter> stuecke,
   List<Millimeter> lieferlaengen, {
   Millimeter ueberlaenge = const Millimeter(0),
+  Musterregel muster = Musterregel.frei,
 }) {
   final u = ueberlaenge.mm;
+  final k = muster.schnitt.mm;
   final folge = [for (final s in stuecke) s.mm]..sort((a, b) => b - a);
   final laengen = [for (final l in lieferlaengen) l.mm]..sort();
   final gruppen = _Gruppen(folge);
-  final offen = <({int laenge, List<int> schnitte})>[];
+  // Schnitte je angefangener Diele
+  final offen = <List<int>>[];
+  // Rest je Diele nach dem Sägeschnitt hinter dem letzten Stück
   final reste = <int>[];
   // Dielen je Rest, jeweils aufsteigend nach Nummer: der kleinste passende
   // Rest in O(log n), bei Gleichstand die zuerst begonnene Diele
   final nachRest = SplayTreeMap<int, List<int>>();
-  void merke(int j) => nachRest.putIfAbsent(reste[j], () => []).add(j);
+  void merke(int j) {
+    if (!muster.nimmtAuf(offen[j].length, reste[j])) return;
+    final ziel = nachRest.putIfAbsent(reste[j], () => []);
+    ziel.insert(_einfuegestelle(ziel, j), j);
+  }
+
   for (var i = 0; i < folge.length; i++) {
     final stueck = folge[i];
     final passend = nachRest.firstKeyAfter(stueck - 1);
     if (passend == null) {
-      final laenge = _neueLaenge(stueck, gruppen, i + 1, laengen, u);
-      offen.add((laenge: laenge, schnitte: [stueck]));
-      reste.add(laenge + u - stueck);
+      final laenge = _neueLaenge(stueck, gruppen, i + 1, laengen, u, muster);
+      offen.add([stueck]);
+      reste.add(laenge + u - stueck - k);
       merke(reste.length - 1);
     } else {
       final dielen = nachRest[passend]!;
       final beste = dielen.removeAt(0);
       if (dielen.isEmpty) nachRest.remove(passend);
-      offen[beste].schnitte.add(stueck);
-      reste[beste] -= stueck;
-      final ziel = nachRest.putIfAbsent(reste[beste], () => []);
-      ziel.insert(_einfuegestelle(ziel, beste), beste);
+      offen[beste].add(stueck);
+      reste[beste] -= stueck + k;
+      merke(beste);
     }
   }
   return [
-    for (final (j, (:laenge, :schnitte)) in offen.indexed)
-      Lieferdiele(
-        Millimeter(laengen.firstWhere((l) => l >= laenge - reste[j])),
-        [for (final s in schnitte) Millimeter(s)],
-      ),
+    for (final schnitte in offen)
+      Lieferdiele(Millimeter(muster.kuerzeste(laengen, u, schnitte)), [
+        for (final s in schnitte) Millimeter(s),
+      ]),
   ];
 }
 
@@ -156,30 +309,44 @@ final class _Gruppen {
 
 /// Lieferlänge für eine neue Diele, die mit [stueck] beginnt: kleinster Rest
 /// nach dem Auffüllen mit den Stücken ab [ab] (absteigend, je Länge so viele
-/// wie passen) aus [gruppen], bei Gleichstand die kürzere; jede Länge nimmt
-/// [u] mm Überlänge mehr auf.
+/// wie passen und das [muster] erlaubt) aus [gruppen], bei Gleichstand die
+/// kürzere; jede Länge nimmt [u] mm Überlänge mehr auf.
 int _neueLaenge(
   int stueck,
   _Gruppen gruppen,
   int ab,
   List<int> laengen,
   int u,
+  Musterregel muster,
 ) {
+  final k = muster.schnitt.mm;
   int? beste;
   var besterRest = 0;
   for (final laenge in laengen) {
     if (laenge + u < stueck) continue;
-    var rest = laenge + u - stueck;
+    var rest = laenge + u - stueck - k;
+    var anzahl = 1;
     if (ab < gruppen.gruppe.length) {
       for (
         var g = gruppen.gruppe[ab];
-        g < gruppen.laengen.length && rest >= gruppen.kleinstes;
+        g < gruppen.laengen.length &&
+            rest >= gruppen.kleinstes &&
+            muster.nimmtAuf(anzahl, rest);
         g++
       ) {
-        final groesse = gruppen.laengen[g];
+        final schritt = gruppen.laengen[g] + k;
         final vorrat =
             gruppen.enden[g] - math.max<int>(ab, gruppen.anfaenge[g]);
-        rest -= groesse * math.min(vorrat, rest ~/ groesse);
+        // jedes weitere Stück nur aus einem Rest ab dem Mindestrest
+        final nimm = math.min(
+          math.min(vorrat, (rest + k) ~/ schritt),
+          math.min(
+            (rest - muster.wiederverwendetAb.mm) ~/ schritt + 1,
+            (muster.hoechstens ?? vorrat + anzahl) - anzahl,
+          ),
+        );
+        rest -= schritt * nimm;
+        anzahl += nimm;
       }
     }
     if (beste == null || rest < besterRest) {
@@ -212,13 +379,15 @@ final class Dielensorte {
 /// zugeschnitten wie im alten Planer (eigene Nummern je Ausschnitt).
 final class Teilverlegung {
   /// Nummeriert die [stuecke] in Verlegereihenfolge und schneidet sie aus
-  /// den [lieferlaengen] samt [ueberlaenge] zu ([zuschneiden]); die
+  /// den [lieferlaengen] samt [ueberlaenge] nach dem [muster] zu
+  /// ([zuschneiden]); die
   /// zugeschnittene Breite ist die Breite des Stücks ohne die [fuge], mit der
   /// verlegt wurde.
   factory Teilverlegung(
     List<Dielenstueck> stuecke, {
     required List<Millimeter> lieferlaengen,
     Millimeter ueberlaenge = const Millimeter(0),
+    Musterregel muster = Musterregel.frei,
     String? bezeichnung,
     Millimeter fuge = fuge,
   }) {
@@ -248,6 +417,7 @@ final class Teilverlegung {
         [for (final s in stuecke) s.laenge],
         lieferlaengen,
         ueberlaenge: ueberlaenge,
+        muster: muster,
       ),
     );
   }
@@ -358,6 +528,7 @@ final class Belagverlegung {
     this.grenzen,
     List<Millimeter> lieferlaengen,
     this.ueberlaenge,
+    this.muster,
     List<Teilverlegung> teile,
   ) : lieferlaengen = List.unmodifiable(lieferlaengen),
       teile = List.unmodifiable(teile);
@@ -381,6 +552,10 @@ final class Belagverlegung {
   /// Überlänge der Lieferlängen (`dielenUeberlaenge`; Holzfliesen 0) – auch
   /// für die Verschnittoptimierung.
   final Millimeter ueberlaenge;
+
+  /// Musterverfahren des Zuschnitts (R-B17; Holzfliesen frei) – auch für
+  /// die Verschnittoptimierung.
+  final Musterregel muster;
   final List<Teilverlegung> teile;
 
   /// Dielenliste aller Teilflächen.
@@ -403,10 +578,13 @@ final class Belagverlegung {
 /// (Planungskern v6, 11.11.2026) Regel 1.2; Paritätstests rechnen mit den
 /// 5 mm des alten Planers), 3 cm Überlänge (`dielenUeberlaenge`,
 /// Planungsregeln Alexander (Planungskern v6, 11.11.2026)): eine Reihe bis
-/// 603 cm liegt ohne Stoß auf einer 6-m-Diele. Holzfliesen (606 × 606 mm)
+/// 603 cm liegt ohne Stoß auf einer 6-m-Diele; zugeschnitten nach dem
+/// Musterverfahren [dielenmuster] ([Musterregel.dielen], R-B17;
+/// Paritätstests des Rechenwegs: [Musterregel.frei]). Holzfliesen (606 × 606 mm)
 /// liegen wie Dielen in Reihen aus Kantenlänge plus Fuge und werden längs
 /// ohne Fuge gestoßen – wie im alten Planer (F25: 7 × 60,6 + 55,8 cm je
-/// Reihe; Referenzfall 2026-08-17-1838: Randreihe 25,1 cm); kurze Stücke
+/// Reihe; Referenzfall 2026-08-17-1838: Randreihe 25,1 cm), ohne Überlänge
+/// und ohne Musterverfahren ([Musterregel.frei]); kurze Stücke
 /// werden nie verbunden, eine Fliese über eine Rasterlinie gibt es nicht.
 ///
 /// Die Hauptfläche spart alle Ausschnitte aus (leere Fläche: kein Material,
@@ -417,26 +595,34 @@ Belagverlegung? verlegeBelag(
   Planungsstand stand,
   Artikel? belag, {
   Millimeter fuge = fuge,
+  Musterregel dielenmuster = Musterregel.dielen,
 }) {
   if (stand.grundriss case FreiformGrundriss(geschlossen: false)) return null;
   final masse = belag?.abmessungen;
   final breite = masse?.breite;
   if (breite == null || masse!.laengen.isEmpty) return null;
   final fest = stand.dielenlaenge;
-  final (List<Millimeter> lieferlaengen, bool verbinden, Millimeter ueber) art;
+  final (
+    List<Millimeter> lieferlaengen,
+    bool verbinden,
+    Millimeter ueber,
+    Musterregel muster,
+  )
+  art;
   switch (belag!.art) {
     case Artikelart.diele:
       art = (
         masse.laengen.contains(fest) ? [fest!] : masse.laengen,
         stand.kurzeStueckeVerbinden,
         dielenUeberlaenge,
+        dielenmuster,
       );
     case Artikelart.holzfliese:
-      art = (masse.laengen, false, const Millimeter(0));
+      art = (masse.laengen, false, const Millimeter(0), Musterregel.frei);
     default:
       return null;
   }
-  final (lieferlaengen, verbinden, ueberlaenge) = art;
+  final (lieferlaengen, verbinden, ueberlaenge, muster) = art;
   final kontur = stand.kontur;
   final winkel = stand.dielenwinkel.toDouble();
   final laengste = lieferlaengen.last;
@@ -474,23 +660,31 @@ Belagverlegung? verlegeBelag(
     ),
     lieferlaengen: lieferlaengen,
     ueberlaenge: ueberlaenge,
+    muster: muster,
     bezeichnung: bezeichnung,
     fuge: fuge,
   );
-  return Belagverlegung._(ausgangspunkt, grenzen, lieferlaengen, ueberlaenge, [
-    teil(
-      kontur,
-      ausgangspunkt,
-      aussparungen: [for (final a in stand.ausschnitte) a.kontur],
-    ),
-    for (final a in stand.ausschnitte)
-      if (a.funktion == Ausschnittfunktion.andererBelag)
-        teil(
-          a.kontur,
-          Punkt(a.x.mm.toDouble(), a.y.mm.toDouble()),
-          bezeichnung: a.bezeichnung,
-        ),
-  ]);
+  return Belagverlegung._(
+    ausgangspunkt,
+    grenzen,
+    lieferlaengen,
+    ueberlaenge,
+    muster,
+    [
+      teil(
+        kontur,
+        ausgangspunkt,
+        aussparungen: [for (final a in stand.ausschnitte) a.kontur],
+      ),
+      for (final a in stand.ausschnitte)
+        if (a.funktion == Ausschnittfunktion.andererBelag)
+          teil(
+            a.kontur,
+            Punkt(a.x.mm.toDouble(), a.y.mm.toDouble()),
+            bezeichnung: a.bezeichnung,
+          ),
+    ],
+  );
 }
 
 double _begrenzt(Millimeter wert, Millimeter grenze) =>
