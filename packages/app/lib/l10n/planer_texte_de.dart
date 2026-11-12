@@ -339,6 +339,18 @@ class PlanerTexteDe extends PlanerTexte {
   String get rundungUnzulaessig => 'Diese Rundung ist nicht möglich.';
 
   @override
+  String get rundungInnen => 'innen';
+
+  @override
+  String get rundungHalbkreis =>
+      'Der Radius ist kleiner als die halbe Seite – die Seite wird als Halbkreis gerechnet.';
+
+  @override
+  String bogenMass(String laenge, String radius) {
+    return 'Bogen $laenge · R $radius';
+  }
+
+  @override
   String get rundungVerlassenTitel => 'Rundungen übernehmen?';
 
   @override
@@ -1556,6 +1568,14 @@ class PlanerTexteDe extends PlanerTexte {
   @override
   String get meldungBlendeFehlt =>
       'Für die Höhe an einer verblendeten Seite gibt es in der Serie keine passende glattkante Blende – dort wird keine Blende gerechnet. Bitte sprechen Sie uns an.';
+
+  @override
+  String get meldungBogenblende =>
+      'Blende am Bogen aus senkrechten Stücken des glattkanten Bretts (100 mm): je Stück 2 Schrauben in die Rand-UK, vorbohren; unten ca. 1 cm Luft lassen, Hirnholz oben und unten mit Stirnkantenschutz streichen.';
+
+  @override
+  String get meldungBogenblendeRiegel =>
+      'Blende am Bogen höher als 30 cm: die Stücke unten zusätzlich an einem Riegel befestigen (nicht in der Stückliste).';
 
   @override
   String get materialVerblendung => 'Verblendung';

@@ -227,7 +227,8 @@ class Zeichenflaeche extends StatelessWidget {
             final massstab = pixelJeMm * ansicht.zoom;
             Offset schirm(Offset mm) => ansicht.verschiebung + mm * massstab;
             final n = ecken.length;
-            final seiten = planung.aktuell.rundungen.seiten;
+            final rundungen = planung.aktuell.rundungen;
+            final grundriss = planung.aktuell.grundriss;
             return Stack(
               children: [
                 for (var i = 0; i < n; i++) ...[
@@ -244,7 +245,7 @@ class Zeichenflaeche extends StatelessWidget {
                     schirm(
                       Offset.lerp(ecken[i], ecken[(i + 1) % n], 0.5)! +
                           ZeichnungsMaler.aussen(ecken, i) *
-                              (seiten[i]?.mm ?? 0).toDouble(),
+                              rundungen.stichAn(grundriss, i).mm.toDouble(),
                     ),
                     ZeichnungsMaler.aussen(ecken, i),
                   ),

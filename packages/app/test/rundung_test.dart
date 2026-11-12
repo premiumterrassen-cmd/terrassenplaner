@@ -159,6 +159,85 @@ void main() {
     });
   });
 
+  group('Radius je Seite (Planungskern v12, Regel 14.1.2)', () {
+    test('Radius mit Haken innen, Halbkreis, unzulässig', () {
+      final s = _bedienung();
+      s.b
+        ..oeffne()
+        ..waehle((ecke: false, nummer: 1));
+      expect(s.b.innen, isFalse);
+      expect(s.b.halbkreis, isFalse);
+      expect(s.b.setzeRadius(1, const Millimeter(2000)), isTrue);
+      expect(s.planung.aktuell.rundungen.radien, {1: const Millimeter(2000)});
+      expect(s.b.halbkreis, isFalse);
+      // kleiner als die halbe Seite (180 cm): Halbkreis
+      expect(s.b.setzeRadius(1, const Millimeter(1500)), isTrue);
+      expect(s.b.halbkreis, isTrue);
+      s.b.setzeInnen(1, innen: true);
+      expect(s.b.innen, isTrue);
+      expect(s.planung.aktuell.rundungen.radien[1], const Millimeter(-1500));
+      expect(s.geaendert, [0, 1, 2]);
+      s.b.setzeInnen(1, innen: false);
+      expect(s.planung.aktuell.rundungen.radien[1], const Millimeter(1500));
+      // beide langen Seiten als Halbkreis nach innen: überschneiden sich
+      s.b.waehle((ecke: false, nummer: 0));
+      expect(s.b.innen, isFalse);
+      s.b.setzeInnen(0, innen: true);
+      expect(s.b.innen, isTrue);
+      expect(s.geaendert, hasLength(4), reason: 'ohne Rundung kein Schritt');
+      expect(s.b.setzeRadius(0, const Millimeter(100)), isTrue);
+      expect(s.b.setzeRadius(2, const Millimeter(100)), isFalse);
+      expect(s.planung.aktuell.rundungen.radien.keys, [1, 0]);
+      // Auswahl einer Ecke oder keine: kein Halbkreis
+      s.b.waehle((ecke: true, nummer: 1));
+      expect(s.b.halbkreis, isFalse);
+      s.b.uebernimm();
+      expect(s.b.halbkreis, isFalse);
+    });
+
+    test('Haken innen kehrt einen Stich um; unzulässig bleibt es', () {
+      final s = _bedienung(
+        _rechteck.mitRundungen(
+          Rundungen.keine
+              .mitSeite(3, const Millimeter(300))
+              .mitSeite(2, const Millimeter(-1850)),
+        ),
+      );
+      s.b
+        ..oeffne()
+        ..waehle((ecke: false, nummer: 3));
+      expect(s.b.innen, isFalse);
+      s.b.setzeInnen(3, innen: true);
+      expect(s.planung.aktuell.rundungen.seiten[3], const Millimeter(-300));
+      s.b.setzeInnen(3, innen: false);
+      expect(s.planung.aktuell.rundungen.seiten[3], const Millimeter(300));
+      // C — D 185 cm nach innen, A — B ebenso: überschneiden sich
+      s.b
+        ..waehle((ecke: false, nummer: 2))
+        ..setze((ecke: false, nummer: 0), const Millimeter(1850));
+      expect(s.b.innen, isTrue);
+      s.b.setzeInnen(0, innen: true);
+      expect(s.planung.aktuell.rundungen.seiten[0], const Millimeter(1850));
+    });
+
+    test('Seite mit Radius ziehen: weiter vom Stich des Bogens', () {
+      final s = _bedienung(
+        _rechteck.mitRundungen(
+          Rundungen.keine.mitRadius(1, const Millimeter(2000)),
+        ),
+      );
+      final stich = (2000 - math.sqrt(2000 * 2000 - 1800 * 1800)).round();
+      s.b.ziehe(
+        (ecke: false, nummer: 1),
+        const Punkt(100, 0),
+        const Punkt(1, 0),
+        beginn: true,
+      );
+      expect(s.planung.aktuell.rundungen.seiten[1], Millimeter(stich + 100));
+      expect(s.planung.aktuell.rundungen.radien, isEmpty);
+    });
+  });
+
   group('RundungsEingabe', () {
     Future<({PlanungsSteuerung planung, RundungsBedienung b})> zeige(
       WidgetTester tester, [
@@ -216,6 +295,36 @@ void main() {
       expect(find.text('Seite ab C'), findsOneWidget);
       await gib(tester, '-20');
       expect(s.planung.aktuell.rundungen.seiten[2], const Millimeter(-200));
+      // Planungskern v12: Radius und Haken „innen“ je Seite
+      expect(find.text('Stich: cm'), findsOneWidget);
+      expect(find.text('Radius: cm'), findsOneWidget);
+      await tester.enterText(find.byKey(const ValueKey('rundung-1')), '150');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+      expect(s.planung.aktuell.rundungen.radien[2], const Millimeter(1500));
+      expect(find.byKey(const ValueKey('rundung-halbkreis')), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('rundung-innen')));
+      await tester.pump();
+      expect(s.planung.aktuell.rundungen.radien[2], const Millimeter(-1500));
+      await tester.enterText(find.byKey(const ValueKey('rundung-1')), '100');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+      expect(find.byKey(const ValueKey('rundung-halbkreis')), findsOneWidget);
+      expect(find.text('Diese Rundung ist nicht möglich.'), findsNothing);
+      // gegenüber auch nach innen: die Halbkreise überschneiden sich
+      s.planung.setze(
+        s.planung.aktuell.mitRundungen(
+          s.planung.aktuell.rundungen.mitRadius(
+            0,
+            const Millimeter(100),
+            innen: true,
+          ),
+        ),
+      );
+      await tester.enterText(find.byKey(const ValueKey('rundung-1')), '120');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+      expect(find.text('Diese Rundung ist nicht möglich.'), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('rundungen-uebernehmen')));
       await tester.pump();
       expect(s.b.aktiv, isFalse);

@@ -676,6 +676,24 @@ abstract class PlanerTexte {
   /// **'Diese Rundung ist nicht möglich.'**
   String get rundungUnzulaessig;
 
+  /// No description provided for @rundungInnen.
+  ///
+  /// In de, this message translates to:
+  /// **'innen'**
+  String get rundungInnen;
+
+  /// No description provided for @rundungHalbkreis.
+  ///
+  /// In de, this message translates to:
+  /// **'Der Radius ist kleiner als die halbe Seite – die Seite wird als Halbkreis gerechnet.'**
+  String get rundungHalbkreis;
+
+  /// No description provided for @bogenMass.
+  ///
+  /// In de, this message translates to:
+  /// **'Bogen {laenge} · R {radius}'**
+  String bogenMass(String laenge, String radius);
+
   /// No description provided for @rundungVerlassenTitel.
   ///
   /// In de, this message translates to:
@@ -2757,6 +2775,18 @@ abstract class PlanerTexte {
   /// In de, this message translates to:
   /// **'Für die Höhe an einer verblendeten Seite gibt es in der Serie keine passende glattkante Blende – dort wird keine Blende gerechnet. Bitte sprechen Sie uns an.'**
   String get meldungBlendeFehlt;
+
+  /// No description provided for @meldungBogenblende.
+  ///
+  /// In de, this message translates to:
+  /// **'Blende am Bogen aus senkrechten Stücken des glattkanten Bretts (100 mm): je Stück 2 Schrauben in die Rand-UK, vorbohren; unten ca. 1 cm Luft lassen, Hirnholz oben und unten mit Stirnkantenschutz streichen.'**
+  String get meldungBogenblende;
+
+  /// No description provided for @meldungBogenblendeRiegel.
+  ///
+  /// In de, this message translates to:
+  /// **'Blende am Bogen höher als 30 cm: die Stücke unten zusätzlich an einem Riegel befestigen (nicht in der Stückliste).'**
+  String get meldungBogenblendeRiegel;
 
   /// No description provided for @materialVerblendung.
   ///

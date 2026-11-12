@@ -7,7 +7,7 @@ import 'grundriss_eingabe.dart';
 import 'steuerung.dart';
 
 /// Was im Rundungsmodus ausgewählt ist: eine Ecke (Radius) oder eine Seite
-/// (Stich).
+/// (Stich oder Radius mit Haken „innen“, Planungskern v12, Regel 14.1.2).
 typedef RundungsAuswahl = ({bool ecke, int nummer});
 
 /// Bearbeitungsmodus „Ecken und Seiten abrunden“ (Fachkonzept 1.3, M4-11):
@@ -24,6 +24,21 @@ class RundungsBedienung extends ChangeNotifier {
   Planungsstand? _beimOeffnen;
   RundungsAuswahl? _auswahl;
   Rundungen? _vorZiehen;
+  var _innen = false;
+
+  /// Haken „innen“ für den Radius einer Seite (Planungskern v12, Regel
+  /// 14.1.2); folgt der gewählten Seite.
+  bool get innen => _innen;
+
+  /// Ist die gewählte Seite ein Halbkreis, weil ihr Radius kleiner ist als
+  /// die halbe Seite (Regel 14.1.1)?
+  bool get halbkreis => switch (_auswahl) {
+    (ecke: false, :final nummer) =>
+      planung.aktuell.rundungen
+          .zuKleineRadien(planung.aktuell.grundriss)
+          .contains(nummer),
+    _ => false,
+  };
 
   bool get aktiv => _beimOeffnen != null;
   RundungsAuswahl? get auswahl => _auswahl;
@@ -56,6 +71,41 @@ class RundungsBedienung extends ChangeNotifier {
 
   void waehle(RundungsAuswahl auswahl) {
     _auswahl = auswahl;
+    _innen =
+        planung.aktuell.rundungen
+            .stichAn(planung.aktuell.grundriss, auswahl.nummer)
+            .mm <
+        0;
+    notifyListeners();
+  }
+
+  /// Bogen mit Radius [radius] an der Seite [seite] (Regel 14.1.2), nach
+  /// innen nach dem Haken [innen]; `false`, wenn er unzulässig ist.
+  bool setzeRadius(int seite, Millimeter radius) {
+    final r = planung.aktuell.rundungen.mitRadius(seite, radius, innen: _innen);
+    if (!_zulaessig(r)) return false;
+    planung.setze(planung.aktuell.mitRundungen(r));
+    onGeaendert();
+    return true;
+  }
+
+  /// Haken „innen“: ein Radius oder Stich der Seite [seite] wölbt sich
+  /// sofort zur anderen Seite, sofern das zulässig ist.
+  void setzeInnen(int seite, {required bool innen}) {
+    _innen = innen;
+    final alt = planung.aktuell.rundungen;
+    final r = switch ((alt.radien[seite], alt.seiten[seite])) {
+      (final radius?, _) => alt.mitRadius(seite, radius, innen: innen),
+      (_, final stich?) => alt.mitSeite(
+        seite,
+        Millimeter(innen ? -stich.mm.abs() : stich.mm.abs()),
+      ),
+      _ => alt,
+    };
+    if (r != alt && _zulaessig(r)) {
+      planung.setze(planung.aktuell.mitRundungen(r));
+      onGeaendert();
+    }
     notifyListeners();
   }
 
@@ -82,9 +132,9 @@ class RundungsBedienung extends ChangeNotifier {
       _vorZiehen = planung.aktuell.rundungen;
       _auswahl = ziel;
     }
-    final alt =
-        (ziel.ecke ? _vorZiehen!.ecken : _vorZiehen!.seiten)[ziel.nummer]?.mm ??
-        0;
+    final alt = ziel.ecke
+        ? _vorZiehen!.ecken[ziel.nummer]?.mm ?? 0
+        : _vorZiehen!.stichAn(planung.aktuell.grundriss, ziel.nummer).mm;
     var neu = alt + versatz.punktprodukt(richtung).round();
     // ein Radius ist nie negativ
     if (ziel.ecke && neu < 0) neu = 0;
@@ -151,14 +201,39 @@ class RundungsEingabe extends StatelessWidget {
               MassFelder(
                 key: ValueKey(auswahl),
                 schluessel: 'rundung',
-                namen: [auswahl.ecke ? t.feldRadius : t.feldStich],
+                namen: [
+                  if (auswahl.ecke)
+                    t.feldRadius
+                  else ...[
+                    t.feldStich,
+                    t.feldRadius,
+                  ],
+                ],
                 kleinstes: const Millimeter(0),
-                uebernimm: (_, wert) {
-                  if (!bedienung.setze(auswahl, wert)) {
-                    throw ArgumentError(t.rundungUnzulaessig);
-                  }
+                uebernimm: (index, wert) {
+                  final ok = index == 1
+                      ? bedienung.setzeRadius(auswahl.nummer, wert)
+                      : bedienung.setze(auswahl, wert);
+                  if (!ok) throw ArgumentError(t.rundungUnzulaessig);
                 },
               ),
+              if (!auswahl.ecke) ...[
+                CheckboxListTile(
+                  key: const ValueKey('rundung-innen'),
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  title: Text(t.rundungInnen),
+                  value: bedienung.innen,
+                  onChanged: (wert) =>
+                      bedienung.setzeInnen(auswahl.nummer, innen: wert!),
+                ),
+                if (bedienung.halbkreis)
+                  Text(
+                    t.rundungHalbkreis,
+                    key: const ValueKey('rundung-halbkreis'),
+                  ),
+              ],
               TextButton(
                 key: const ValueKey('rundung-entfernen'),
                 onPressed: () => bedienung.setze(auswahl, const Millimeter(0)),
