@@ -57,8 +57,12 @@ Planungsstand _streifen(double ab, double bc) => Planungsstand(
   ], geschlossen: true),
 );
 
-Belagverlegung _verlegt(Planungsstand stand, [Artikel? belag]) =>
-    verlegeBelag(stand, belag ?? _diele(60), fuge: altplanerFuge)!;
+Belagverlegung _verlegt(Planungsstand stand, [Artikel? belag]) => verlegeBelag(
+  stand,
+  belag ?? _diele(60),
+  fuge: altplanerFuge,
+  dielenmuster: altplanerMuster,
+)!;
 
 /// Dielen nach Nummer als sortierbare Texte „Länge × Breite: Stück“ (cm).
 List<String> _sorten(Belagverlegung v) => [
@@ -139,6 +143,178 @@ List<String> _verteileJeStueck(List<int> stuecke, List<int> laengen, int u) {
 }
 
 void main() {
+  group('Musterverfahren (R-B17, Planungskern v6 Regeln 1.3, 1.4)', () {
+    const u = dielenUeberlaenge;
+    const muster = Musterregel.dielen;
+    List<String> text(List<Lieferdiele> dielen) => [
+      for (final d in dielen) '${d.laenge.mm}: ${_mm(d.schnitte)}',
+    ];
+    List<String> verteilt(
+      List<int> stuecke, [
+      List<Millimeter> laengen = const [_m4, _m5, _m6],
+    ]) => text(
+      verteile(
+        [for (final s in stuecke) Millimeter(s)],
+        laengen,
+        ueberlaenge: u,
+        muster: muster,
+      ),
+    );
+    List<String> zugeschnitten(
+      List<int> stuecke, [
+      List<Millimeter> laengen = const [_m4, _m5, _m6],
+    ]) => text(
+      zuschneiden(
+        [for (final s in stuecke) Millimeter(s)],
+        laengen,
+        ueberlaenge: u,
+        muster: muster,
+      ),
+    );
+
+    test('Regeln: 5 mm Sägeschnitt, 3 Stücke, Reste ab 30 cm, 1 %', () {
+      expect(saegeschnitt, const Millimeter(5));
+      expect(stueckeJeDiele, 3);
+      expect(mindestrest, const Millimeter(300));
+      expect(mehrlaengeFuerWenigerDielen, 0.01);
+      expect(muster.schnitt, saegeschnitt);
+      expect(muster.hoechstens, stueckeJeDiele);
+      expect(muster.wiederverwendetAb, mindestrest);
+      expect(muster.mehrlaenge, mehrlaengeFuerWenigerDielen);
+      const frei = Musterregel.frei;
+      expect(frei.schnitt, const Millimeter(0));
+      expect(frei.hoechstens, isNull);
+      expect(frei.wiederverwendetAb, const Millimeter(0));
+      expect(frei.mehrlaenge, 0);
+      // nimmt ein weiteres Stück auf: Rest ab 30 cm, unter 3 Stücken
+      expect(muster.nimmtAuf(2, 300), isTrue);
+      expect(muster.nimmtAuf(2, 299), isFalse);
+      expect(muster.nimmtAuf(3, 1000), isFalse);
+      expect(frei.nimmtAuf(100, 0), isTrue);
+      expect(frei.nimmtAuf(1, -1), isFalse);
+      // passt: absteigend geschnitten, je Rest geprüft
+      expect(muster.passt(6030, [3000, 3000]), isTrue);
+      expect(muster.passt(6030, [3015, 3015]), isFalse);
+      expect(muster.passt(4030, [3725, 290]), isTrue);
+      expect(muster.passt(4030, [3726, 290]), isFalse);
+      expect(muster.passt(6030, [2000, 2000, 1000, 500]), isFalse);
+      expect(muster.passt(6030, []), isTrue);
+      expect(frei.passt(4000, [2000, 2000]), isTrue);
+      expect(frei.passt(4000, [2000, 2001]), isFalse);
+      expect(muster.kuerzeste([4000, 5000], 30, [3800, 200]), 5000);
+      expect(frei.kuerzeste([4000, 5000], 30, [3800, 200]), 4000);
+    });
+
+    test('Sägeschnitt zwischen zwei Stücken: 2 × 3000 mm aus 6 m, 2 × 3015 '
+        'nicht', () {
+      expect(verteilt([3000, 3000], const [_m6]), ['6000: [3000, 3000]']);
+      expect(verteilt([3015, 3015], const [_m6]), [
+        '6000: [3015]',
+        '6000: [3015]',
+      ]);
+      // 2 × 2015 + 5 mm passen nicht in 4000 + 30: 5000
+      expect(verteilt([2015, 2015]), ['5000: [2015, 2015]']);
+      expect(verteilt([2000, 2000]), ['4000: [2000, 2000]']);
+    });
+
+    test('höchstens 3 Stücke je Diele', () {
+      expect(verteilt([1000, 1000, 1000, 1000, 1000]), [
+        '4000: [1000, 1000, 1000]',
+        '4000: [1000, 1000]',
+      ]);
+      // ohne Musterverfahren vier in eine Diele
+      expect(
+        text(
+          verteile(List.filled(5, const Millimeter(1000)), const [
+            _m4,
+            _m5,
+            _m6,
+          ], ueberlaenge: u),
+        ),
+        ['4000: [1000, 1000, 1000, 1000]', '4000: [1000]'],
+      );
+      // die neue Diele zählt nur 3 Stücke: 3700 mit Rest 115 statt 4000
+      expect(verteilt([3000, 300, 300, 300], const [Millimeter(3700), _m4]), [
+        '3700: [3000, 300, 300]',
+        '3700: [300]',
+      ]);
+    });
+
+    test('Reste ab 30 cm: ein Stück nur aus einem Rest ab 300 mm', () {
+      expect(verteilt([3725, 290], const [_m4]), ['4000: [3725, 290]']);
+      expect(verteilt([3726, 290], const [_m4]), [
+        '4000: [3726]',
+        '4000: [290]',
+      ]);
+      expect(verteilt([3800, 200], const [_m4]), [
+        '4000: [3800]',
+        '4000: [200]',
+      ]);
+      // die neue Diele zählt den Rest erst ab 300 mm: 4100 nimmt alle drei
+      // (3475 + 250 + 250 mit Resten 650 und 395), 4000 nur zwei
+      expect(verteilt([3475, 250, 250], const [_m4, Millimeter(4100)]), [
+        '4100: [3475, 250, 250]',
+      ]);
+    });
+
+    test('zuschneiden: auch je Lieferlänge und Diele für Diele, dann die '
+        '1-%-Regel', () {
+      // alle Längen: 3800 in 4000 (Rest 225 zu kurz), 200 extra; nur 5000
+      // nimmt beide
+      expect(verteilt([3800, 200], const [_m4, _m5]), [
+        '4000: [3800]',
+        '4000: [200]',
+      ]);
+      expect(zugeschnitten([3800, 200], const [_m4, _m5]), [
+        '5000: [3800, 200]',
+      ]);
+      // nur in 6000 verteilt, dann gekürzt: 2 × 1900 brauchen nur 4000
+      expect(zugeschnitten([1900, 1900, 1900, 1900, 1900, 1900]), [
+        '6000: [1900, 1900, 1900]',
+        '6000: [1900, 1900, 1900]',
+      ]);
+      expect(zugeschnitten([5800, 1900, 1900]), [
+        '6000: [5800]',
+        '4000: [1900, 1900]',
+      ]);
+      expect(zugeschnitten([]), isEmpty);
+      // eine Länge: keine weiteren Kandidaten
+      expect(zugeschnitten([3000, 3000], const [_m6]), ['6000: [3000, 3000]']);
+    });
+
+    test('1-%-Regel: bis 1 % mehr mit weniger Dielen gewinnt', () {
+      List<Lieferdiele> dielen(List<int> laengen) => [
+        for (final l in laengen) Lieferdiele(Millimeter(l), const []),
+      ];
+      final kurz = dielen(List.filled(10, 5000)); // 50 m, 10 Dielen
+      final knapp = dielen([...List.filled(8, 6000), 2500]); // 50,5 m, 9
+      final zuViel = dielen([...List.filled(8, 6000), 2501]); // 50,501 m, 9
+      expect(besteVerteilung([kurz, knapp]), same(knapp));
+      expect(besteVerteilung([knapp, kurz]), same(knapp));
+      expect(besteVerteilung([kurz, zuViel]), same(kurz));
+      expect(besteVerteilung([zuViel, kurz]), same(kurz));
+      // ohne Toleranz die kürzeste
+      expect(besteVerteilung([knapp, kurz], mehrlaenge: 0), same(kurz));
+      // gleich viele Dielen: die kürzere, bei Gleichstand die erste
+      final laenger = dielen([...List.filled(9, 5000), 5400]); // 50,4 m, 10
+      expect(besteVerteilung([laenger, kurz]), same(kurz));
+      expect(besteVerteilung([kurz, laenger]), same(kurz));
+      final gleich = dielen(List.filled(10, 5000));
+      expect(besteVerteilung([kurz, gleich]), same(kurz));
+      expect(besteVerteilung([gleich, kurz]), same(gleich));
+      expect(besteVerteilung([kurz]), same(kurz));
+    });
+
+    test('verlegeBelag: Dielen nach dem Musterverfahren, Holzfliesen frei', () {
+      final stand = _rechteck(4800, 3090);
+      expect(verlegeBelag(stand, _diele(60))!.muster, Musterregel.dielen);
+      expect(
+        verlegeBelag(stand, _diele(60), dielenmuster: Musterregel.frei)!.muster,
+        Musterregel.frei,
+      );
+    });
+  });
+
   group('zuschneiden', () {
     test('je Länge und Rest gerechnet wie je Stück (Laufzeit, 11.11.2026)', () {
       final zufall = Random(7);
@@ -215,9 +391,9 @@ void main() {
         const [Millimeter(3000), Millimeter(3000)],
         const [Millimeter(3000)],
       );
-      expect(liefertWeniger(eine, zwei), isTrue);
-      expect(liefertWeniger(zwei, eine), isFalse);
-      expect(liefertWeniger(eine, eine), isFalse);
+      expect(besteVerteilung([zwei, eine], mehrlaenge: 0), same(eine));
+      expect(besteVerteilung([eine, zwei], mehrlaenge: 0), same(eine));
+      expect(besteVerteilung([eine, eine], mehrlaenge: 0), same(eine));
       expect(() => zuschnitt([6001]), throwsArgumentError);
       // geplant zählt höchstens die Lieferlänge: kein negativer Verschnitt
       final liste = Dielenliste.aus(

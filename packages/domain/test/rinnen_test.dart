@@ -341,8 +341,11 @@ void main() {
             ganzeLaenge: const Millimeter(100),
           ),
         ],
+        blenden: [(_belag, const Millimeter(100))],
       );
       final c = a.und(b);
+      expect(c.blenden, b.blenden);
+      expect(b.und(b).blenden, [...b.blenden, ...b.blenden]);
       expect(c.meldungen, [
         Anschlussmeldung.unterlueftung,
         Anschlussmeldung.ohneRinnenartikel,

@@ -291,6 +291,13 @@ void main() {
       expect(b.bedarf.clear, throwsUnsupportedError);
       expect(b.stuecke.clear, throwsUnsupportedError);
       expect(b.meldungen.clear, throwsUnsupportedError);
+      // Zuschnitte der Blende samt Gehrung für die Ölfläche (R-D10)
+      expect(b.blenden, [
+        (_b80, const Millimeter(3140)),
+        (_b80, const Millimeter(4850)),
+        (_b80, const Millimeter(3140)),
+      ]);
+      expect(b.blenden.clear, throwsUnsupportedError);
       // Volumen der Blenden: 13 m × 80 × 21 mm
       expect(holzvolumen(b.bedarf), closeTo(13 * 0.08 * 0.021, 1e-9));
       // zusammen (anschlussbedarf): aus den Resten der UK-Verlegung keine
