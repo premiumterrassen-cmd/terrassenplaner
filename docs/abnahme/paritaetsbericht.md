@@ -273,3 +273,17 @@ Branch `feature/planungskern-v7-hoehe` auf `main` (9f2b2d1). Planungsregeln Alex
 **Verglichene Werte:** Alle F01–F43 und alle 26 Referenzfälle rechnen **genau wie `main`**; der Paritätstest bleibt unverändert. Die Fälle haben ebene Höhen (eine Höhe oder eine geneigte Ebene wie F30), dort sind Ausgleichsebene und die bisherigen Dreiecke gleich; keiner hat eine eigene Blendenhöhe oder Teilverblendung. Die Referenzunterlagen haben je Fläche die neue Seite „Bemaßung und Höhen“.
 
 **Nicht im Vergleich, aber geändert** (Unit-Tests, Planungskern v7): Höhen zwischen den Punkten bei verwundenem Untergrund und mit Abläufen (Ablauf 5 cm in der Mitte, Ecken 10 cm: auf halbem Weg 8,0 statt 7,5 cm; L- und U-Form mit unebenen Ecken je Punkt bis 4 mm anders).
+
+## Nachtrag Entwässerungsrinne RELO V je Kante (Planungskern v11, 12.11.2026)
+
+Branch `feature/planungskern-v11-rinne` auf `main` (fc1007f). Planungsregeln Alexander (Planungskern v11, 12.11.2026), Abschnitt 13; R-C19, R-D11, R-E07.
+
+**Verglichene Werte:** Nur **F38** ändert sich, alle übrigen F01–F43 und alle 26 Referenzfälle rechnen genau wie `main` (keiner hat eine Rinne):
+
+| Fall | Größe | `main` | jetzt | alter Planer | Grund |
+|---|---|---|---|---|---|
+| F38 | Fläche | 14,256 m² (480 × 297 cm, Artikelbreite 12 cm) | 14,078 m² (480 × 293,3 cm) | 14,256 m² | **Planungskern v11:** der Belag endet 15,7 cm vor der Kante (Profil 15,1 cm + 6 mm Fuge, Regel 13.1.1) |
+
+Dielen (45 × 5000 mm, Grund „Fuge“ wie bisher), Verschnitt, Volumen, UK (13 × 4000 mm – die Rinne A — B liegt längs der Dielen, die UK läuft darunter bis an die Hauswand, Frage 14/R-C08) und Clips bleiben gleich. Im Paritätstest steht für F38 neu die Abweichung „Fläche“ mit dem Grund „Planungskern v11“.
+
+**Nicht im Vergleich, aber geändert:** Profile RELO V jetzt ohne Lieferlänge als Stück (verpackt nach den Artikeldaten, F38 weiter 4), Auflagerprofile 2 × Länge / 1,88 m (F38 weiter 6) statt „Abstand_Stelzfuesse“; Stützhölzer und Eckverbundwinkel nur an Rinnen längs zur UK (in keinem Referenzfall). Offen: Fragen 80–87 in [Fachkonzept 10](../fachkonzept/10-offene-fragen.md).
