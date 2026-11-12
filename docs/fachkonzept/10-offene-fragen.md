@@ -30,6 +30,11 @@ Aus dem Paritätsnachweis (M10-01, [Bericht](../abnahme/paritaetsbericht.md#offe
 20. **Vorhandene UK (F29):** alt zusätzlich 2 × 473 cm wie ein Rahmen – gewollt?
 21. **Alu-UK:** alt mehr Schienen (RELO 22 statt 18, ALUecofix XL 182 statt 169) – eigener, engerer Achsabstand?
 
+Aus den Plänen nach dem Planungskern v6 (Abschnitt 6, `feature/planungskern-plaene`):
+
+22. **Eckbuchstaben über mehrere Flächen:** Der Kern benennt die Ecken „um alle Flächen zusammen“ (gleiche Ecke zweier Flächen = gleicher Buchstabe, Nahtpunkte danach). Die Flächen des Planers (Reiter 1, 2 …) haben aber keine gemeinsame Lage zueinander – umgesetzt ist darum je Fläche ihr Umriss (A oben links, im Uhrzeigersinn, R-E03), jede Fläche beginnt bei A; Ecken von Ausschnitten bleiben ohne Buchstaben. Reicht das, oder sollen Flächen zueinander platziert werden (dann gemeinsamer Umriss wie im Kern)?
+23. **Weitere Darstellungsregeln aus Abschnitt 6** noch nicht übernommen: „Haus oben“ (Plan so drehen, dass die Hauswand oben liegt), Winkel nur im UK-Plan statt in der Eckpunkt-Tabelle der Terrasse, Länge je UK im UK-Plan. Gewünscht für den Go-Live oder später?
+
 ## Beantwortet
 
 - **Kurze UK-Stücke 8,6 / 8,7 / 11 cm im UK-Zuschnitt** (aus M1-02): im 90°-Winkel an den Sichtseiten angesetzte UK-Stücke, an denen die Blenden befestigt werden (Alexander, 19.10.2026).
