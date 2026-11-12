@@ -345,6 +345,9 @@ class PlanungsDienst {
           final u? => achsmasskette(u, flaeche.umriss),
           null => null,
         },
+        // Planungskern v12: „Bogen … · R …“ und Riegel am Bogen
+        boegen: bogenmasse(stand),
+        riegel: uk?.riegel ?? const [],
       ),
     );
   }

@@ -33,7 +33,11 @@ final class Zeichnung {
     List<String> namen = const [],
     List<(Offset, Offset)> stoesse = const [],
     this.achsen,
+    List<Bogenangabe> boegen = const [],
+    List<(Offset, Offset)> riegel = const [],
   }) : umriss = List.unmodifiable(umriss),
+       boegen = List.unmodifiable(boegen),
+       riegel = List.unmodifiable(riegel),
        namen = List.unmodifiable(namen),
        stoesse = List.unmodifiable(stoesse),
        treppen = List.unmodifiable(treppen),
@@ -121,7 +125,24 @@ final class Zeichnung {
   /// Achsmaßkette der UK in mm (R-E02): Marken am Rand des Umrisses und
   /// die Richtung nach außen; `null` ohne.
   final ({List<Offset> marken, Offset normale})? achsen;
+
+  /// Bögen an Seiten (Planungskern v12, Regel 14.1.3): statt der Sehne
+  /// „Bogen … · R …“ außen am Scheitel.
+  final List<Bogenangabe> boegen;
+
+  /// Riegel am Bogen in mm (Regel 14.2.3), grün umrandet.
+  final List<(Offset, Offset)> riegel;
 }
+
+/// Bogen einer Seite in mm: Nummer der Seite, Bogenlänge, Radius, Scheitel
+/// und die Richtung aus der Fläche.
+typedef Bogenangabe = ({
+  int seite,
+  double laenge,
+  double radius,
+  Offset scheitel,
+  Offset aussen,
+});
 
 /// Ein Text der Zeichnung: [ort] ist der Ankerpunkt auf dem Bildschirm,
 /// [richtung] zeigt, wohin der Text vom Anker aus liegt (Einheitsvektor;
@@ -210,6 +231,21 @@ class ZeichnungsMaler extends CustomPainter {
         ),
   ];
 
+  /// Riegel am Bogen auf dem Bildschirm (Planungskern v12, Regel 14.2.3),
+  /// wenn die Ebene UK sichtbar ist: Rechteck in UK-Breite, grün umrandet.
+  List<Path> riegelpfade() => [
+    if (optionen.zeigt(Ebene.unterkonstruktion))
+      for (final (von, bis) in zeichnung.riegel)
+        if ((bis - von) / (bis - von).distance case final r)
+          if (Offset(-r.dy, r.dx) * (zeichnung.ukBreite / 2) case final q)
+            Path()..addPolygon([
+              bildschirm(von - q),
+              bildschirm(bis - q),
+              bildschirm(bis + q),
+              bildschirm(von + q),
+            ], true),
+  ];
+
   /// Auflager auf dem Bildschirm (M6-11), wenn die Ebene UK sichtbar ist:
   /// Mitte, Farbe (rot ohne passendes Auflager) und – ab [hoeheAbZoom] –
   /// der Spalt in cm als Beschriftung.
@@ -261,6 +297,9 @@ class ZeichnungsMaler extends CustomPainter {
 
   /// Farbe der Auflager; ohne passendes Auflager rot wie ganze Stücke.
   static const auflagerFarbe = Color(0xFF424242);
+
+  /// Rand der Riegel am Bogen (Planungskern v12: „im Plan grün umrandet“).
+  static const riegelFarbe = Color(0xFF4CAF50);
   static final ohneFarbe = Color(Stueckfarbe.rot.argb);
 
   /// Ab diesem Zoom steht der Spalt an jedem Auflager.
@@ -399,12 +438,14 @@ class ZeichnungsMaler extends CustomPainter {
   }
 
   /// Alle Texte der eingeschalteten Beschriftungen und Maße: Seitenlängen
-  /// außen neben der Kante, Winkel innen in der Ecke, Punktnamen außen.
+  /// außen neben der Kante (am Bogen „Bogen … · R …“ am Scheitel), Winkel
+  /// innen in der Ecke (nicht an sehr kurzen Kanten), Punktnamen außen.
   List<Zeichentext> texte() {
     if (!zeichnung.geschlossen) return _offeneTexte();
     final punkte = zeichnung.ecken;
     final n = punkte.length;
     final schirm = [for (final p in punkte) bildschirm(p)];
+    final boegen = {for (final b in zeichnung.boegen) b.seite: b};
     return [
       if (optionen.beschriftet(Beschriftung.punkte))
         for (var i = 0; i < n; i++)
@@ -415,22 +456,34 @@ class ZeichnungsMaler extends CustomPainter {
           ),
       if (optionen.beschriftet(Beschriftung.seitenlaengen))
         for (var i = 0; i < n; i++)
-          (
-            text: zentimeter(
-              (punkte[_nachher(punkte, i)] - punkte[i]).distance,
+          if (boegen[i] case final b?)
+            (
+              text: sprache.bogenMass(meter(b.laenge), meter(b.radius)),
+              ort: bildschirm(b.scheitel) + b.aussen * beschriftungsAbstand,
+              richtung: b.aussen,
+            )
+          else
+            (
+              text: zentimeter(
+                (punkte[_nachher(punkte, i)] - punkte[i]).distance,
+              ),
+              ort:
+                  Offset.lerp(schirm[i], schirm[_nachher(punkte, i)], 0.5)! +
+                  aussen(punkte, i) * beschriftungsAbstand,
+              richtung: aussen(punkte, i),
             ),
-            ort:
-                Offset.lerp(schirm[i], schirm[_nachher(punkte, i)], 0.5)! +
-                aussen(punkte, i) * beschriftungsAbstand,
-            richtung: aussen(punkte, i),
-          ),
+      // keine Winkel an sehr kurzen Kanten (Planungskern v10, Regel 12.3)
       if (optionen.beschriftet(Beschriftung.winkel))
         for (var i = 0; i < n; i++)
-          (
-            text: '${innenwinkel(punkte, i).round()}°',
-            ort: schirm[i] + innen(punkte, i) * beschriftungsAbstand,
-            richtung: innen(punkte, i),
-          ),
+          if ((schirm[i] - schirm[_vorher(punkte, i)]).distance >=
+                  winkelAbKante &&
+              (schirm[_nachher(punkte, i)] - schirm[i]).distance >=
+                  winkelAbKante)
+            (
+              text: '${innenwinkel(punkte, i).round()}°',
+              ort: schirm[i] + innen(punkte, i) * beschriftungsAbstand,
+              richtung: innen(punkte, i),
+            ),
       if (optionen.beschriftet(Beschriftung.ablaeufe))
         for (final a in zeichnung.ablaeufe)
           (
@@ -523,6 +576,13 @@ class ZeichnungsMaler extends CustomPainter {
     punkte.map((p) => p.dx).reduce(math.max),
     punkte.map((p) => p.dy).reduce(math.max),
   );
+
+  /// Kanten unter so vielen Pixeln bekommen an ihren Ecken keinen Winkel
+  /// (Planungskern v10, Regel 12.3: Nischen, Laibungen).
+  static const winkelAbKante = 45.0;
+
+  /// Länge in mm als Meter mit zwei Stellen („3,53 m“).
+  String meter(double mm) => '${zahlText(sprache, mm / 1000, '0.00')} m';
 
   /// Länge in mm als Zentimeter, auf den Millimeter gerundet
   /// („480 cm“, „12,5 cm“ – auf Englisch „12.5 cm“).
@@ -631,6 +691,13 @@ class ZeichnungsMaler extends CustomPainter {
           ..color = farbe
           ..strokeWidth = breite,
       );
+    }
+    final riegel = Paint()
+      ..color = riegelFarbe
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+    for (final pfad in riegelpfade()) {
+      canvas.drawPath(pfad, riegel);
     }
     for (final (ort, farbe, text) in auflagerpunkte()) {
       canvas.drawRect(

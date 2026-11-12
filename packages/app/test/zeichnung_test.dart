@@ -795,6 +795,102 @@ void main() {
     });
   });
 
+  group('Planungskern v12 / v10', () {
+    test('am Bogen „Bogen … · R …“ außen am Scheitel statt der Sehne '
+        '(Regel 14.1.3)', () {
+      final z = Zeichnung(
+        umriss: const [
+          Offset(0, 0),
+          Offset(4000, 0),
+          Offset(4000, 3000),
+          Offset(0, 3000),
+        ],
+        boegen: const [
+          (
+            seite: 1,
+            laenge: 3530.4,
+            radius: 2000,
+            scheitel: Offset(4730, 1500),
+            aussen: Offset(1, 0),
+          ),
+        ],
+      );
+      expect(() => z.boegen.add(z.boegen.first), throwsUnsupportedError);
+      final o = AnsichtsOptionen();
+      final m = _maler(z, o);
+      final texte = m.texte();
+      final bogen = texte.singleWhere((t) => t.text.startsWith('Bogen'));
+      expect(bogen.text, 'Bogen 3,53 m · R 2,00 m');
+      expect(bogen.ort, const Offset(473 + 6, 150));
+      expect(bogen.richtung, const Offset(1, 0));
+      expect(_texte(m).where((t) => t == '300 cm'), hasLength(2));
+      expect(m.meter(1234), '1,23 m');
+      expect(_texte(_maler(z, o, null, en)), contains('Arc 3.53 m · R 2.00 m'));
+    });
+
+    test('keine Winkel an Ecken sehr kurzer Kanten (Regel 12.3)', () {
+      // Nische 40 cm breit: bei 100 % Zoom 40 px, bei 200 % 80 px
+      final z = Zeichnung(
+        umriss: const [
+          Offset(0, 0),
+          Offset(4000, 0),
+          Offset(4000, 3000),
+          Offset(2400, 3000),
+          Offset(2400, 2600),
+          Offset(2000, 2600),
+          Offset(2000, 3000),
+          Offset(0, 3000),
+        ],
+      );
+      final o = AnsichtsOptionen();
+      final a = AnsichtSteuerung();
+      List<String> winkel() => [
+        for (final t in _texte(_maler(z, o, a)))
+          if (t.endsWith('°')) t,
+      ];
+      expect(ZeichnungsMaler.winkelAbKante, 45);
+      // die vier Ecken an den Kanten der Nische (40 px) ohne Winkel
+      expect(winkel(), ['90°', '90°', '90°', '90°']);
+      a.zoomeAuf(2);
+      expect(winkel(), hasLength(8));
+      // 45 px genau: mit Winkel
+      a.zoomeAuf(1.125);
+      expect(winkel(), hasLength(8));
+    });
+
+    test('Riegel am Bogen grün umrandet, nur mit der Ebene UK (Regel '
+        '14.2.3)', () {
+      final z = Zeichnung(
+        riegel: const [(Offset(40, 1000), Offset(395, 1000))],
+        ukBreite: 40,
+      );
+      expect(() => z.riegel.add(z.riegel.first), throwsUnsupportedError);
+      final o = AnsichtsOptionen();
+      final a = AnsichtSteuerung();
+      final m = _maler(z, o, a);
+      final pfad = m.riegelpfade().single;
+      final rahmen = pfad.getBounds();
+      expect(rahmen.left, closeTo(a.verschiebung.dx + 4, 1e-9));
+      expect(rahmen.right, closeTo(a.verschiebung.dx + 39.5, 1e-9));
+      expect(rahmen.top, closeTo(a.verschiebung.dy + 98, 1e-9));
+      expect(rahmen.bottom, closeTo(a.verschiebung.dy + 102, 1e-9));
+      final aufnahme = PictureRecorder();
+      final leinwand = _ZaehlendeLeinwand(Canvas(aufnahme));
+      m.paint(leinwand, const Size(800, 600));
+      aufnahme.endRecording();
+      final stift = leinwand.pfadStifte.singleWhere(
+        (p) => p.color.toARGB32() == ZeichnungsMaler.riegelFarbe.toARGB32(),
+      );
+      expect(stift.style, PaintingStyle.stroke);
+      expect(stift.strokeWidth, 1.5);
+      expect(ZeichnungsMaler.riegelFarbe, const Color(0xFF4CAF50));
+      expect(Zeichnung.leer.riegel, isEmpty);
+      expect(Zeichnung.leer.boegen, isEmpty);
+      o.setzeEbenen({Ebene.belag});
+      expect(m.riegelpfade(), isEmpty);
+    });
+  });
+
   group('Bedienung', () {
     Future<AnsichtsOptionen> zeige(WidgetTester tester) async {
       tester.view

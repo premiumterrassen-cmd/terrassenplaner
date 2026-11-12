@@ -204,11 +204,22 @@ final class Planmassstab {
       for (final t in plan.texte) t.ort,
     ];
     if (punkte.isEmpty) return Planmassstab._(Punkt.ursprung, 0, 0, 0, 0);
-    final huelle = Huellrechteck.um(punkte);
-    final faktor = math.min(
-      (satzbreite - 2 * planrand) / math.max(huelle.breite, 1),
-      planhoehe / math.max(huelle.hoehe, 1),
+    double massstab(Huellrechteck h) => math.min(
+      (satzbreite - 2 * planrand) / math.max(h.breite, 1),
+      planhoehe / math.max(h.hoehe, 1),
     );
+    // breite Beschriftungen (über den Rand hinaus) ganz auf die Seite
+    final vorlaeufig = massstab(Huellrechteck.um(punkte));
+    final huelle = Huellrechteck.um([
+      ...punkte,
+      for (final t in plan.texte)
+        if ((beschriftungsbreite(t.text) / 2 - planrand) / vorlaeufig
+            case final ueber when ueber > 0) ...[
+          t.ort - Punkt(ueber, 0),
+          t.ort + Punkt(ueber, 0),
+        ],
+    ]);
+    final faktor = massstab(huelle);
     return Planmassstab._(
       huelle.min,
       faktor,
@@ -229,6 +240,12 @@ final class Planmassstab {
       PdfPoint((p.x - _min.x) * faktor, (_maxY - p.y) * faktor);
 }
 
+/// Breite des Felds einer Beschriftung (7 pt) in Punkt: mindestens 40,
+/// längere Texte („Bogen 3,74 m · R 3,00 m“, Planungskern v12) aus der
+/// Zeichenzahl geschätzt, damit sie nicht umbrechen.
+double beschriftungsbreite(String text) =>
+    math.max(40, text.length * 7 * 0.55 + 2);
+
 pw.Widget _plan(Plan plan) {
   final m = Planmassstab.fuer(plan);
   return pw.Center(
@@ -246,14 +263,15 @@ pw.Widget _plan(Plan plan) {
             ),
           ),
           for (final t in plan.texte)
-            pw.Positioned(
-              left: m.abbild(t.ort).x + planrand - 20,
-              bottom: m.abbild(t.ort).y + planrand - 4,
-              child: pw.SizedBox(
-                width: 40,
-                child: pw.Center(child: _text(t.text, groesse: 7)),
+            if (beschriftungsbreite(t.text) case final breite)
+              pw.Positioned(
+                left: m.abbild(t.ort).x + planrand - breite / 2,
+                bottom: m.abbild(t.ort).y + planrand - 4,
+                child: pw.SizedBox(
+                  width: breite,
+                  child: pw.Center(child: _text(t.text, groesse: 7)),
+                ),
               ),
-            ),
         ],
       ),
     ),

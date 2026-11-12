@@ -308,6 +308,7 @@ List<Kapitel> _flaeche(
       Kapitel('$titel – ${t.ukKapitel}', [
         _ukPlan(t, b),
         if (b.planbild.achsen != null) Absatz(t.achsmassHinweis),
+        if (b.planbild.riegel.isNotEmpty) Absatz(t.riegelHinweis),
         Absatz(t.stuecklisteUk, fett: true),
         _stueckliste(t, b.stueckliste, ohne: f.belag?.nummer),
       ]),
@@ -409,7 +410,8 @@ const beschriftungsanteil = 0.04;
 
 /// Eckbuchstaben und Kantenmaße außen am Umriss (Planungskern Regel 6.2,
 /// R-E03): Buchstaben auf der Winkelhalbierenden vor der Ecke, Kantenmaße
-/// in m vor der Mitte jeder Kante.
+/// in m vor der Mitte jeder Kante – am Bogen statt der Sehne „Bogen … ·
+/// R …“ außen am Scheitel (Planungskern v12, Regel 14.1.3).
 List<Planbeschriftung> umrissbeschriftung(Unterlagentexte t, Berechnung b) {
   final ecken = b.ecken;
   if (ecken.length < 2) return const [];
@@ -417,16 +419,39 @@ List<Planbeschriftung> umrissbeschriftung(Unterlagentexte t, Berechnung b) {
   final n = ecken.length;
   final normalen = _kantennormalen(b);
   final richtungen = _eckrichtungen(b, normalen);
+  final boegen = {for (final g in b.planbild.boegen) g.seite: g};
   return [
     for (var i = 0; i < n; i++)
       (ort: ecken[i] + richtungen[i] * a, text: _eckname(b, i)),
     for (var i = 0; i < normalen.length; i++)
-      (
-        ort: (ecken[i] + ecken[(i + 1) % n]) * 0.5 + normalen[i] * a,
-        text: '${t.zahl(ecken[i].abstand(ecken[(i + 1) % n]) / 1000, 2)} m',
-      ),
+      if (boegen[i] case final g?)
+        _bogenbeschriftung(t.bogen(g.laenge, g.radius), g, a)
+      else
+        (
+          ort: (ecken[i] + ecken[(i + 1) % n]) * 0.5 + normalen[i] * a,
+          text: '${t.zahl(ecken[i].abstand(ecken[(i + 1) % n]) / 1000, 2)} m',
+        ),
   ];
 }
+
+/// „Bogen … · R …“ [text] außen am Scheitel des Bogens [g]: so weit vom
+/// Bogen, dass der Text ihn nicht berührt – quer zur Schrift um die halbe
+/// Textbreite (je Zeichen etwa [zeichenbreite] Beschriftungsabstände [a]),
+/// längs um die halbe Zeilenhöhe.
+Planbeschriftung _bogenbeschriftung(String text, Bogenmass g, double a) => (
+  ort:
+      g.scheitel +
+      g.aussen *
+          (a *
+              (1 +
+                  g.aussen.x.abs() * text.length * zeichenbreite / 2 +
+                  g.aussen.y.abs() / 4)),
+  text: text,
+);
+
+/// Breite eines Zeichens der Beschriftung (7 pt) in Beschriftungsabständen
+/// (etwa 19 pt auf der Seitenbreite).
+const zeichenbreite = 0.2;
 
 /// Normale je Kante der Ecken von [b] (ein offener Linienzug hat eine
 /// Kante weniger als Ecken).
@@ -537,6 +562,9 @@ Plan _ukPlan(Unterlagentexte t, Berechnung b) {
           geschlossen: false,
           staerke: 1.5,
         ),
+      // Riegel am Bogen grün umrandet (Planungskern v12, Regel 14.2.3)
+      for (final r in b.planbild.riegel)
+        Planlinie(_balken(r.von, r.bis, halb), argb: Stueckfarbe.gruen.argb),
       for (final a in u.auflagerpunkte)
         Planlinie(_balken(a.ort, a.ort, 25), argb: _schwarz, gefuellt: true),
       ...?kette?.linien,
@@ -852,6 +880,7 @@ List<String> _meldungen(
         m == Auflagermeldung.unterMindesthoehe ? u.hoeheVon! : u.hoeheBis!,
       ),
     for (final l in u.randErgaenzt) t.randUkErgaenzt(l),
+    for (final m in b.anschluss.meldungen) ?t.anschlusshinweis(m),
     for (final (i, treppe) in b.anschluss.treppen.indexed)
       for (final m in treppe.meldungen) t.treppenmeldung(i + 1, m),
   ];

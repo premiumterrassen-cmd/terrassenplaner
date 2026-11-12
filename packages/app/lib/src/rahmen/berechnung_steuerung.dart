@@ -94,6 +94,21 @@ class BerechnungsSteuerung extends ChangeNotifier {
         ),
         null => null,
       },
+      // Planungskern v12: Bögen und Riegel
+      boegen: [
+        for (final g in b.planbild.boegen)
+          (
+            seite: g.seite,
+            laenge: g.laenge,
+            radius: g.radius,
+            scheitel: Offset(g.scheitel.x, g.scheitel.y),
+            aussen: Offset(g.aussen.x, g.aussen.y),
+          ),
+      ],
+      riegel: [
+        for (final r in b.planbild.riegel)
+          (Offset(r.von.x, r.von.y), Offset(r.bis.x, r.bis.y)),
+      ],
     ),
     null => Zeichnung.leer,
   };
