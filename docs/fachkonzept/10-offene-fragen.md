@@ -30,6 +30,15 @@ Aus dem Paritätsnachweis (M10-01, [Bericht](../abnahme/paritaetsbericht.md#offe
 20. **Vorhandene UK (F29):** alt zusätzlich 2 × 473 cm wie ein Rahmen – gewollt?
 21. **Alu-UK:** alt mehr Schienen (RELO 22 statt 18, ALUecofix XL 182 statt 169) – eigener, engerer Achsabstand?
 
+Aus dem Planungskern v6 (Musterverfahren R-B17 und RIBOL-Menge R-D10, 12.11.2026):
+
+30. **Höchstens 3 Stücke je Diele – streng?** Umgesetzt wie im Regeltext 1.3 „bis 3 Stücke je Diele“ (der Auftrag nannte „je Reihe“). Folgen: F04 (diagonal 135°, 152 Stücke) braucht mindestens 51 Dielen – die 1-%-Regel kann die 46 Dielen ohne Grenze nicht erreichen, es bleiben 2 Freidielen (Planer: 51 Dielen, 237 m statt 52 Dielen, 231 m); die Teilfläche A1 von F22 (20 × 1,20 m) braucht 7 × 4 m statt 4 × 6 m (+4 m); Referenzfall 2026-04-29-164 +28 m. Soll die Grenze auch gelten, wenn 4–5 kurze Stücke aus einer Diele passen?
+31. **Musterverfahren über alle Flächen gemeinsam als Standard?** Regel 1.3 sagt „über ALLE Flächen gemeinsam“. Umgesetzt ist das Musterverfahren in jedem Zuschnitt; gemeinsam über alle Teilflächen und Flächen schneidet der Planer aber weiter erst nach „OPTIMIERUNG ERSTELLEN“ (Bedienung wie im alten Planer, Fachkonzept 7.1). Soll die gemeinsame Optimierung immer gelten (dann entfallen Hinweis und Knopf)?
+32. **Mindestrest 30 cm:** Umgesetzt: Ein Rest unter 30 cm ist Verschnitt und nimmt kein Stück mehr auf, auch wenn ein kürzeres Stück hineinpasste (3,80 m aus 4 m lässt 22,5 cm – ein 20-cm-Stück kommt aus einer neuen Diele). Richtig so?
+33. **Musterverfahren auch für die UK?** Heute nur für Dielen; die UK stückelt mit Reststück ab 50 cm (R-C13) und schneidet kurze Stücke ohne Sägeschnitt und ohne Grenze der Stücke aus den Resten (`lieferhoelzer`).
+34. **RIBOL-Ölfläche:** Umgesetzt mit den verlegten Stücken (nicht den Lieferlängen), Treppendielen als Dielen, Blenden mit ihren Zuschnitten (samt Gehrungszugabe) und allen UK-Zuschnitten (auch Rand-UK, Querhölzer, Stützen, Blendenträger, Treppen-UK). Bestätigen? Offen bleibt der Abgleich mit der Formel in GrandTotal (Regel 5.2.4). Regel 5.2.3 „die Annahme nennt m² und Liter“: Soll der Planer Ölfläche und Liter anzeigen (Zubehör, Planungsunterlagen)? Noch nicht umgesetzt.
+35. **RIBOL-Gebinde und Sorte:** Regel 5.2.2 nennt 2,5 l und 0,75 l; der Planer nimmt alle Gebinde der Sorte aus den Zubehör-Verweisen des Belags (auch ein 10-l-Gebinde, falls verknüpft) und die günstigste Kombination nach den Preisen der Artikeldaten (nur Anzeige, B-055). Die Sorte ist die erste verknüpfte – Regel 5.1 nennt RIBOL 562 NATUR als Standard. Reicht die Reihenfolge der Verweise in den Artikeldaten, oder soll NATUR fest Standard sein?
+
 ## Beantwortet
 
 - **Kurze UK-Stücke 8,6 / 8,7 / 11 cm im UK-Zuschnitt** (aus M1-02): im 90°-Winkel an den Sichtseiten angesetzte UK-Stücke, an denen die Blenden befestigt werden (Alexander, 19.10.2026).
