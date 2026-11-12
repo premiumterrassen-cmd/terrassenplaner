@@ -139,37 +139,93 @@ void main() {
       gewerblich: false,
       auflagen: Auflagen.stelzfuesse,
     );
-    String? wahl(int spalt, [List<Auflagerbereich>? bereiche]) =>
-        auflagerFuer(Millimeter(spalt), bereiche ?? alle)?.titel;
+    String? wahl(int spalt, [List<Auflagerbereich>? bereiche]) => auflagerFuer(
+      Millimeter(spalt),
+      auflagerwahlen(bereiche ?? alle),
+    )?.titel;
 
-    test('Pads: das dünnste, das reicht (F30: 4 mm → 5 mm)', () {
-      expect(wahl(0), 'Unterleger 2 mm');
-      expect(wahl(2), 'Unterleger 2 mm');
-      expect(wahl(3), 'Unterleger 5 mm');
-      expect(wahl(4), 'Unterleger 5 mm');
-      expect(wahl(5), 'Unterleger 5 mm');
-      expect(wahl(8), 'Unterleger 8 mm');
+    test('Lagen aus einem oder zwei Pads: nach Höhe, bei gleicher Höhe '
+        'erst eins, dann das ausgeglichene Paar; danach die Stelzfüße '
+        '(Planungskern v6 Regel 3a.2.2)', () {
+      final wahlen = auflagerwahlen(alle);
+      expect(
+        [for (final w in wahlen.take(9)) w.titel],
+        [
+          'Unterleger 2 mm',
+          '2 × Unterleger 2 mm',
+          'Unterleger 5 mm',
+          'Unterleger 5 mm + Unterleger 2 mm',
+          'Unterleger 8 mm',
+          '2 × Unterleger 5 mm',
+          'Unterleger 8 mm + Unterleger 2 mm',
+          'Unterleger 8 mm + Unterleger 5 mm',
+          '2 × Unterleger 8 mm',
+        ],
+      );
+      expect(wahlen, hasLength(9 + 5));
+      expect(wahlen[9].titel, 'Keil 14-22');
+      expect(wahlen.last.titel, 'Fuß 80-200 (5)');
+      expect(wahlen[3].teile, [alle[1], alle[0]]);
+      expect(wahlen.first.teile.clear, throwsUnsupportedError);
+      // ein Pad über einem gleich dicken: zwei gleiche Teile
+      expect(wahlen[1].teile, [alle[0], alle[0]]);
+      // ohne Pads nur die Stelzfüße
+      expect(
+        [for (final w in auflagerwahlen(ohnePads)) w.titel],
+        [for (final b in ohnePads) b.titel],
+      );
     });
 
-    test('Stelzfüße: der erste passende in Datenreihenfolge', () {
-      expect(wahl(14), 'Keil 14-22');
+    test('Pads bis 17 mm: die niedrigste Lage, die reicht (F30: 2 mm → '
+        '2 mm, 4 mm → 2 + 2 mm), darüber die höchste', () {
+      expect(wahl(-1), 'Unterleger 2 mm');
+      expect(wahl(0), 'Unterleger 2 mm');
+      expect(wahl(2), 'Unterleger 2 mm');
+      expect(wahl(3), '2 × Unterleger 2 mm');
+      expect(wahl(4), '2 × Unterleger 2 mm');
+      expect(wahl(5), 'Unterleger 5 mm');
+      expect(wahl(6), 'Unterleger 5 mm + Unterleger 2 mm');
+      expect(wahl(8), 'Unterleger 8 mm');
+      expect(wahl(9), '2 × Unterleger 5 mm');
+      expect(wahl(10), '2 × Unterleger 5 mm');
+      expect(wahl(11), 'Unterleger 8 mm + Unterleger 5 mm');
+      expect(wahl(14), '2 × Unterleger 8 mm');
+      expect(wahl(16), '2 × Unterleger 8 mm');
+      expect(wahl(17), '2 × Unterleger 8 mm');
+      expect(padAusgleichBis, const Millimeter(17));
+    });
+
+    test('Stelzfüße ab 18 mm: der erste passende in Datenreihenfolge', () {
+      expect(wahl(18), 'Keil 14-22');
       expect(wahl(22), 'Keil 14-22');
       expect(wahl(23), 'Keil 18-32');
       expect(wahl(36), 'Fuß 35-55 (10)');
       expect(wahl(55), 'Fuß 35-55 (10)');
       expect(wahl(68), 'Fuß 55-95 (20)');
       expect(wahl(200), 'Fuß 80-200 (5)');
+      // ohne Pads auch darunter
+      expect(wahl(14, ohnePads), 'Keil 14-22');
     });
 
-    test('Lücke: der nächste Bereich; außerhalb der Grenzen keiner', () {
-      expect(wahl(10), 'Unterleger 8 mm');
-      expect(wahl(12), 'Keil 14-22');
+    test('Lücke: der nächste Stelzfuß; außerhalb der Grenzen keiner', () {
       expect(wahl(33), 'Keil 18-32');
       expect(wahl(34), 'Fuß 35-55 (10)');
       expect(wahl(201), isNull);
       expect(wahl(13, ohnePads), isNull);
-      expect(wahl(14, ohnePads), 'Keil 14-22');
       expect(wahl(0, const []), isNull);
+      // nur Pads: darüber keiner
+      final nurPads = [
+        for (final b in alle)
+          if (b.pad) b,
+      ];
+      expect(wahl(17, nurPads), '2 × Unterleger 8 mm');
+      expect(wahl(18, nurPads), isNull);
+      // Lücke zwischen zwei Füßen: der nähere
+      final luecke = [ohnePads[0], ohnePads.last];
+      expect(wahl(50, luecke), 'Keil 14-22');
+      // gleich weit: der frühere
+      expect(wahl(51, luecke), 'Keil 14-22');
+      expect(wahl(52, luecke), 'Fuß 80-200 (5)');
     });
   });
 
@@ -189,16 +245,27 @@ void main() {
     const aufbau = Millimeter(82);
     List<Millimeter> cm(List<int> mm) => [for (final h in mm) Millimeter(h)];
 
-    test('Grenzen: mit Pads ab Aufbauhöhe, ohne ab dem kleinsten Fuß', () {
+    test('Grenzen: mit Pads ab Aufbauhöhe, ohne ab dem kleinsten Fuß; '
+        'Gummiband 1 mm dazu (Planungskern v6 Regel 3a.2.1)', () {
       expect(auflagergrenzen(alle, aufbau), (
         von: const Millimeter(82),
-        bis: const Millimeter(282),
+        bis: const Millimeter(283),
       ));
       expect(auflagergrenzen(ohnePads, aufbau), (
-        von: const Millimeter(96),
-        bis: const Millimeter(282),
+        von: const Millimeter(97),
+        bis: const Millimeter(283),
       ));
       expect(auflagergrenzen(const [], aufbau), isNull);
+      // nur Pads: zwei übereinander bis 17 mm
+      final nurPads = [
+        for (final b in alle)
+          if (b.pad) b,
+      ];
+      expect(auflagergrenzen(nurPads, aufbau), (
+        von: const Millimeter(82),
+        bis: const Millimeter(100),
+      ));
+      expect(gummiband, const Millimeter(1));
     });
 
     test('unter der Mindesthöhe nur ohne Pads, über der Höchsthöhe immer', () {
@@ -206,12 +273,12 @@ void main() {
       expect(auflagermeldungen(cm([86, 150]), aufbau, ohnePads), [
         Auflagermeldung.unterMindesthoehe,
       ]);
-      expect(auflagermeldungen(cm([96, 282]), aufbau, ohnePads), isEmpty);
-      expect(auflagermeldungen(cm([95, 283]), aufbau, ohnePads), [
+      expect(auflagermeldungen(cm([97, 283]), aufbau, ohnePads), isEmpty);
+      expect(auflagermeldungen(cm([96, 284]), aufbau, ohnePads), [
         Auflagermeldung.unterMindesthoehe,
         Auflagermeldung.ueberHoechsthoehe,
       ]);
-      expect(auflagermeldungen(cm([283]), aufbau, const []), isEmpty);
+      expect(auflagermeldungen(cm([284]), aufbau, const []), isEmpty);
     });
 
     test('Meldungen: Nummern und Formatfehler', () {
@@ -249,6 +316,40 @@ void main() {
     });
   });
 
+  group('Auf Stellfüßen (Planungskern v6, Regel 3.11)', () {
+    Hoehenpunkte hoehen(List<int> mm, {int? aufbau = 82}) => Hoehenpunkte(
+      hoehen: [for (final h in mm) Millimeter(h)],
+      aufbauhoehe: aufbau == null ? null : Millimeter(aufbau),
+    );
+
+    test('normale Terrasse: ab 18 mm Ausgleichshöhe an einem Punkt, ohne '
+        'Pads immer', () {
+      expect(mitStellfuessen(f01, hoehen([86, 100])), isFalse);
+      // 101 − 82 − 1 = 18 mm
+      expect(mitStellfuessen(f01, hoehen([86, 101])), isTrue);
+      expect(
+        mitStellfuessen(f01.mitAuflagen(Auflagen.stelzfuesse), hoehen([86])),
+        isTrue,
+      );
+    });
+
+    test('ohne Aufbauhöhe, Hochterrasse und vorhandene UK nicht', () {
+      expect(mitStellfuessen(f01, hoehen([300], aufbau: null)), isFalse);
+      for (final art in [
+        Terrassenart.hochterrasse,
+        Terrassenart.vorhandeneUk,
+      ]) {
+        expect(
+          mitStellfuessen(
+            f01.mitTerrassenart(art).mitAuflagen(Auflagen.stelzfuesse),
+            hoehen([300]),
+          ),
+          isFalse,
+        );
+      }
+    });
+  });
+
   group('Unterbau (M6-08)', () {
     final hoehen = Hoehenpunkte(
       hoehen: const [Millimeter(86), Millimeter(300)],
@@ -266,7 +367,7 @@ void main() {
       expect(u.auflager, hasLength(8));
       expect(u.auflager.first.titel, 'Unterleger 2 mm');
       expect(u.hoeheVon, const Millimeter(82));
-      expect(u.hoeheBis, const Millimeter(282));
+      expect(u.hoeheBis, const Millimeter(283));
       expect(u.meldungen, [Auflagermeldung.ueberHoechsthoehe]);
       expect(u.auflager.clear, throwsUnsupportedError);
       expect(u.meldungen.clear, throwsUnsupportedError);
@@ -336,8 +437,8 @@ void main() {
       final z = Berechnung.ausBytes(b.zuBytes()).unterbau;
       expect(z.auflagerabstand, u.auflagerabstand);
       expect(z.auflager, u.auflager);
-      expect(z.hoeheVon, const Millimeter(96));
-      expect(z.hoeheBis, const Millimeter(282));
+      expect(z.hoeheVon, const Millimeter(97));
+      expect(z.hoeheBis, const Millimeter(283));
       expect(z.meldungen, [
         Auflagermeldung.unterMindesthoehe,
         Auflagermeldung.ueberHoechsthoehe,

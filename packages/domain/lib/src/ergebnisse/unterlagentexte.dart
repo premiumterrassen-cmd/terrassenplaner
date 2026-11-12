@@ -646,6 +646,17 @@ final class Unterlagentexte {
       : 'A height point was below the minimum height of '
             '${cm(mindesthoehe)} cm and has been corrected.';
 
+  /// Höhe ungültig (Planungsregeln Alexander (Planungskern v6, 11.11.2026),
+  /// Regel 3a.5): über der [hoechsthoehe] mit Stellfüßen, gerechnet mit dem
+  /// Standardaufbau; mit [vorschlag] die Rückfrage „Meintest du … cm?“.
+  String hoeheUngueltig(Millimeter hoechsthoehe, Millimeter? vorschlag) => _de
+      ? 'Höhe ungültig: höchstens ${cm(hoechsthoehe)} cm mit Stellfüßen. '
+            'Gerechnet wird mit dem Standardaufbau.'
+            '${vorschlag == null ? '' : ' Meintest du ${cm(vorschlag)} cm?'}'
+      : 'Invalid height: at most ${cm(hoechsthoehe)} cm with adjustable '
+            'feet. The standard build-up is used.'
+            '${vorschlag == null ? '' : ' Did you mean ${cm(vorschlag)} cm?'}';
+
   /// Die Selbstkontrolle hat an einer Kante mit Dielenenden eine Rand-UK der
   /// Länge [laenge] ergänzt (Planungsregeln Alexander (Planungskern v6,
   /// 11.11.2026), Regel 3.4).

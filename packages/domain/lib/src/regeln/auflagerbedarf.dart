@@ -218,11 +218,14 @@ List<(int, int, int)> _ohrenschnitt(List<Punkt> p) {
 ///   13 Linien à 309 cm mit 60 cm → je 7 (91; F28: 91 Bodenanker wie im
 ///   alten Planer).
 ///   Die Rand-UK (Planungsregeln 3.3) trägt ihre Auflager genauso.
-/// - **Höhe:** [flaeche] am Auflager minus [aufbauhoehe] ist der Spalt
-///   zwischen UK und Boden.
+/// - **Höhe:** [flaeche] am Auflager minus [aufbauhoehe] und
+///   [gummiband] ist der Spalt zwischen UK und Boden (Ausgleichshöhe,
+///   Planungsregeln Alexander (Planungskern v6, 11.11.2026), Regel 3a.2.1).
 /// - **Normale Terrasse:** je Spalt das Auflager aus den [bereiche]n
-///   (`auflagerFuer`, M6-08); die Höhenzuordnung zählt je Bereich, die
-///   Materialliste verpackt über die Packungen des Bereichs.
+///   (`auflagerFuer`, M6-08, Regel 3a.2: bis 17 mm ein oder zwei Pads,
+///   darüber Stelzfüße); die Höhenzuordnung zählt je Auflager (zwei Pads
+///   übereinander sind eine Zeile), die Materialliste je Bereich über
+///   seine Packungen.
 /// - **Hochterrasse:** je Auflager eine Stütze aus UK-Holz in Spaltlänge
 ///   (Stückliste grün, Lieferstücke wie kurze Stücke) und ein Bodenanker.
 /// - **Vorhandene UK:** je Auflager (Abstand = Spannweite) ein Bodenanker
@@ -251,7 +254,9 @@ Auflagerbedarf auflagerbedarf(
         (r.von + (r.bis - r.von).einheit * s).gedreht(drehung),
   ];
   if (orte.isEmpty) return Auflagerbedarf.keiner;
-  final spalte = [for (final o in orte) flaeche.bei(o) - aufbauhoehe];
+  final spalte = [
+    for (final o in orte) flaeche.bei(o) - aufbauhoehe - gummiband,
+  ];
   final anker = regelwerk?.datei.eintraege
       .map((e) => e.artikel)
       .where((a) => a.art == Artikelart.bodenanker)
@@ -328,10 +333,15 @@ Auflagerbedarf _stelzfuesse(
   List<Millimeter> spalte,
   List<Auflagerbereich> bereiche,
 ) {
-  final wahl = [for (final s in spalte) auflagerFuer(s, bereiche)];
-  final zeilen = <Auflagerbereich>[
-    for (final b in bereiche)
-      if (wahl.contains(b)) b,
+  final wahlen = auflagerwahlen(bereiche);
+  final wahl = [for (final s in spalte) auflagerFuer(s, wahlen)];
+  final zeilen = [
+    for (final w in wahlen)
+      if (wahl.contains(w)) w,
+  ];
+  final teile = [
+    for (final w in wahl)
+      if (w != null) ...w.teile,
   ];
   return Auflagerbedarf(
     punkte: [
@@ -340,23 +350,24 @@ Auflagerbedarf _stelzfuesse(
           ort: o,
           spalt: spalte[i],
           zeile: switch (wahl[i]) {
-            final b? => zeilen.indexOf(b),
+            final w? => zeilen.indexOf(w),
             null => null,
           },
         ),
     ],
     zeilen: [
-      for (final b in zeilen)
+      for (final w in zeilen)
         if ([
-              for (final (i, w) in wahl.indexed)
-                if (w == b) spalte[i],
+              for (final (i, x) in wahl.indexed)
+                if (x == w) spalte[i],
             ]
             case final s)
-          (titel: b.titel, anzahl: s.length, von: _min(s), bis: _max(s)),
+          (titel: w.titel, anzahl: s.length, von: _min(s), bis: _max(s)),
     ],
     bedarf: [
-      for (final b in zeilen)
-        Materialbedarf(b.einheiten, wahl.where((w) => w == b).length),
+      for (final b in bereiche)
+        if (teile.where((t) => t == b).length case final n when n > 0)
+          Materialbedarf(b.einheiten, n),
     ],
   );
 }

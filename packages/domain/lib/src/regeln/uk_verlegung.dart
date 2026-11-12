@@ -18,6 +18,7 @@ import '../konfiguration/ausschnitt.dart';
 import '../konfiguration/belagverlegung.dart';
 import '../konfiguration/dielenverlegung.dart';
 import '../konfiguration/planungsstand.dart';
+import 'planungsregeln.dart';
 import 'rand_uk.dart';
 import 'regelwerk.dart';
 import 'uk_zusatz.dart';
@@ -148,12 +149,22 @@ final class UkVerlegung {
 ///   Robinien-UK haben keine.
 /// - [gedreht]: die UK liegt flach (M6-02, B-034) – in der Draufsicht ist
 ///   sie dann so breit wie ihre breite Seite.
+/// - **Stellfüße an der Hauswand** ([stellfuesse], Planungsregeln Alexander
+///   (Planungskern v6, 11.11.2026), Regel 3.11): Hauswand sind die Seiten
+///   an Bauelementen (`Anschluss.angrenzend`, 4.1). Eine UK-Linie, die auf
+///   die Wand zuläuft, endet [wandabstandBeiStellfuessen] (1 cm) vor ihr –
+///   der erste Fuß steht 5 cm vom UK-Ende, also 6 cm von der Wand; eine UK
+///   parallel zur Wand (äußere Linie oder Rand-UK) liegt mit der Achse
+///   [wandachseBeiStellfuessen] (6 cm) von ihr, Linien enden dann vor ihr;
+///   eine Rand-UK, die an die Wand stößt, endet ebenfalls 1 cm davor. Freie
+///   Kanten bleiben bündig.
 UkVerlegung ukVerlegung(
   Planungsstand stand,
   Artikel uk, {
   required Millimeter abstand,
   List<Dielenstueck> dielen = const [],
   bool gedreht = false,
+  bool stellfuesse = false,
   Regelwerk? regelwerk,
 }) {
   final (a, b) = (uk.abmessungen.breite, uk.abmessungen.staerke);
@@ -170,6 +181,9 @@ UkVerlegung ukVerlegung(
   final aussparungen = [for (final s in _leere(stand)) gedrehte(s)];
   final huelle = Huellrechteck.um(flaeche);
   final w = breite.mm.toDouble();
+  final wand = stellfuesse ? _wand(stand, drehung) : const <Kante>[];
+  double randachse(double x) =>
+      wand.any((k) => _senkrechtBei(k, x)) ? _wandachse : w / 2;
   final lagen = _lagen(
     [
       huelle.min.x,
@@ -178,6 +192,7 @@ UkVerlegung ukVerlegung(
     ],
     w,
     abstand.mm.toDouble(),
+    (randachse(huelle.min.x), randachse(huelle.max.x)),
   );
   final roh = <UkLinie>[
     for (final x in lagen)
@@ -191,11 +206,20 @@ UkVerlegung ukVerlegung(
   ];
   final belegung = randbelegung(_randkanten(stand, drehung, w), roh);
   final randkanten = [for (final r in belegung) r.kante];
+  // Achse einer Rand-UK von ihrer Kante: an der Wand 6 cm, sonst bündig
+  double achse(Randkante k) =>
+      wand.any((h) => _aufKante(k, h)) ? _wandachse : w / 2;
   final laengen = ukLieferlaengen(uk);
   final holz = _Holzleger(uk, laengen, stand.ukLaenge, drehung);
   final linien = <UkLinie>[];
   for (final l in roh) {
-    final abschnitte = _vorRandUk(l.x, l.abschnitte, randkanten, w);
+    final abschnitte = _vorRandUk(
+      l.x,
+      l.abschnitte,
+      [for (final k in randkanten) (kante: k, achse: achse(k))],
+      wand,
+      w,
+    );
     final stoesse = [
       for (final (von, bis) in abschnitte)
         for (final s in holz.lege(Punkt(l.x, von), Punkt(l.x, bis))) von + s,
@@ -203,9 +227,17 @@ UkVerlegung ukVerlegung(
     linien.add((x: l.x, abschnitte: abschnitte, stoesse: stoesse));
   }
   UkRand randholz(Randbelegung r) {
-    // bündig: die Achse eine halbe Breite auf der Belagseite
-    final innen = r.kante.innen * (w / 2);
-    final (von, bis) = (r.kante.von + innen, r.kante.bis + innen);
+    // bündig: die Achse eine halbe Breite auf der Belagseite (an der Wand
+    // 6 cm); stößt sie an die Wand, endet sie 1 cm davor
+    final anWand = wand.any((h) => _aufKante(r.kante, h));
+    final innen = r.kante.innen * (anWand ? _wandachse : w / 2);
+    final richtung = (r.kante.bis - r.kante.von).einheit;
+    double kuerzung(Punkt ende) =>
+        !anWand && wand.any((h) => h.abstand(ende) <= _amRand)
+        ? _wandabstand
+        : 0;
+    final von = r.kante.von + innen + richtung * kuerzung(r.kante.von);
+    final bis = r.kante.bis + innen - richtung * kuerzung(r.kante.bis);
     return (
       von: von,
       bis: bis,
@@ -309,6 +341,33 @@ List<Kontur> _leere(Planungsstand stand) => [
     if (s.funktion == Ausschnittfunktion.leer) s.kontur,
 ];
 
+/// Hauswand in der gedrehten Fläche: die Seiten des Grundrisses an
+/// Bauelementen (`Anschluss.angrenzend`, Fachkonzept 4.1) – Regel 3.11.
+List<Kante> _wand(Planungsstand stand, double drehung) {
+  final ecken = stand.grundriss.ecken;
+  return [
+    for (final i in stand.anschluss.angrenzend)
+      if (i < ecken.length)
+        Kante(
+          ecken[i].gedreht(drehung),
+          ecken[(i + 1) % ecken.length].gedreht(drehung),
+        ),
+  ];
+}
+
+/// Achse einer UK parallel zur Hauswand ([wandachseBeiStellfuessen]) und
+/// Abstand der UK-Enden von ihr ([wandabstandBeiStellfuessen]) in mm.
+final _wandachse = wandachseBeiStellfuessen.mm.toDouble();
+final _wandabstand = wandabstandBeiStellfuessen.mm.toDouble();
+
+/// Läuft die Wandkante [k] senkrecht (quer zu den Dielen) bei [x]?
+bool _senkrechtBei(Kante k, double x) =>
+    (k.start.x - x).abs() <= _amRand && (k.ende.x - x).abs() <= _amRand;
+
+/// Liegt die Randkante [k] auf der Wandkante [h]?
+bool _aufKante(Randkante k, Kante h) =>
+    h.abstand(k.von) <= _amRand && h.abstand(k.bis) <= _amRand;
+
 /// Kanten des Umrisses und der leeren Ausschnitte in der gedrehten Fläche,
 /// die an Belag grenzen (`randkanten`); Bögen als Sehnen
 /// ([randBogenToleranz]).
@@ -373,14 +432,21 @@ List<double> _dielenstoesse(
 
 /// Achsen der UK-Hölzer zwischen den [grenzen] (Rand, Stöße, Rand): je Feld
 /// bündig an beiden Grenzen (Achse eine halbe Breite [w] innen) und
-/// dazwischen gleichmäßig höchstens [abstand] auseinander. Ein Feld ist
-/// mindestens den halben Abstand breit (Grundriss ab 50 cm, nahe Stöße
-/// zusammengefasst), also breiter als ein Holz.
-List<double> _lagen(List<double> grenzen, double w, double abstand) {
+/// dazwischen gleichmäßig höchstens [abstand] auseinander; am ersten und
+/// letzten Rand liegt die Achse [rand] innen (an der Hauswand bei
+/// Stellfüßen 6 cm, Regel 3.11.2). Ein Feld ist mindestens den halben
+/// Abstand breit (Grundriss ab 50 cm, nahe Stöße zusammengefasst), also
+/// breiter als ein Holz.
+List<double> _lagen(
+  List<double> grenzen,
+  double w,
+  double abstand,
+  (double, double) rand,
+) {
   final lagen = <double>[];
   for (var i = 1; i < grenzen.length; i++) {
-    final links = grenzen[i - 1] + w / 2;
-    final rechts = grenzen[i] - w / 2;
+    final links = grenzen[i - 1] + (i == 1 ? rand.$1 : w / 2);
+    final rechts = grenzen[i] - (i == grenzen.length - 1 ? rand.$2 : w / 2);
     // feste Obergrenze: ein Fehler im Abstand darf nicht endlos rechnen
     final felder = math.min(
       hoechsteFelder,
@@ -399,23 +465,33 @@ List<double> _lagen(List<double> grenzen, double w, double abstand) {
 const _amRand = randBogenToleranz + 1;
 
 /// [abschnitte] der Linie bei [x] ohne die Rand-UK: endet ein Abschnitt an
-/// einer der [randkanten], wird er dort um die UK-Breite [w] gekürzt – die
-/// Linie läuft nicht über die Rand-UK (Planungsregeln Alexander
-/// (Planungskern v6, 11.11.2026), Regel 3.3; Zuschnitt und Längen
-/// stimmen). Zu kurze Reste fallen weg.
+/// einer der [randkanten], wird er dort bis vor die Rand-UK gekürzt – um
+/// ihre Achse (bündig eine halbe UK-Breite [w], an der Hauswand 6 cm) plus
+/// eine halbe Breite; die Linie läuft nicht über die Rand-UK (Planungsregeln
+/// Alexander (Planungskern v6, 11.11.2026), Regel 3.3; Zuschnitt und Längen
+/// stimmen). Endet er sonst an der [wand], endet er 1 cm davor (Regel
+/// 3.11.1). Zu kurze Reste fallen weg.
 List<(double, double)> _vorRandUk(
   double x,
   List<(double, double)> abschnitte,
-  List<Randkante> randkanten,
+  List<({Randkante kante, double achse})> randkanten,
+  List<Kante> wand,
   double w,
 ) {
-  bool amRand(double y) => randkanten.any(
-    (k) => Kante(k.von, k.bis).abstand(Punkt(x, y)) <= _amRand,
-  );
+  double kuerzung(double y) {
+    final p = Punkt(x, y);
+    for (final (:kante, :achse) in randkanten) {
+      if (Kante(kante.von, kante.bis).abstand(p) <= _amRand) {
+        return achse + w / 2;
+      }
+    }
+    return wand.any((k) => k.abstand(p) <= _amRand) ? _wandabstand : 0;
+  }
+
   return [
     for (final (von, bis) in abschnitte)
-      if ((amRand(von) ? von + w : von, amRand(bis) ? bis - w : bis)
-          case (final a, final b) when b - a >= _mindestAbschnitt)
+      if ((von + kuerzung(von), bis - kuerzung(bis)) case (final a, final b)
+          when b - a >= _mindestAbschnitt)
         (a, b),
   ];
 }

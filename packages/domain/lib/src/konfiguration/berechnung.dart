@@ -300,6 +300,9 @@ final class Berechnung {
       mindesthoehe: mm(_mindesthoehePlatz),
       korrigiert: ja(_hoehenKorrigiertPlatz),
       gedreht: ja(_ukGedrehtPlatz),
+      hoechsthoehe: mm(_hoechsthoehePlatz),
+      ungueltig: ja(_hoeheUngueltigPlatz),
+      vorschlag: mm(_hoeheVorschlagPlatz),
     );
   }
 
@@ -590,6 +593,9 @@ final class Berechnung {
   /// (M5-08), 25: hoehen ([int32] mm je Eckpunkt), 26: hoehenKorrigiert
   /// (bool), 27: ukGedreht (bool), 28: aufbauhoehe (int32 mm),
   /// 29: mindesthoehe (int32 mm; beide fehlen ungeprüft) (M6-02),
+  /// 30: hoechsthoehe (int32 mm; nur normale Terrasse), 31: hoeheUngueltig
+  /// (bool), 32: hoeheVorschlag (int32 mm; fehlt ohne Rückfrage)
+  /// (Planungskern v6 Regel 3a.4/3a.5),
   /// 35: belagmeldungen ([uint8], M5-10), 36: befestigungswechsel ([{ 0:
   /// art (uint8), 1: belag (string) }], Planungskern v6 Regel 4.4),
   /// 50: zubehoer ([{ 0: nummer
@@ -691,6 +697,9 @@ final class Berechnung {
       ..addBool(_ukGedrehtPlatz, hoehenpunkte.gedreht)
       ..addInt32(_aufbauhoehePlatz, hoehenpunkte.aufbauhoehe?.mm)
       ..addInt32(_mindesthoehePlatz, hoehenpunkte.mindesthoehe?.mm)
+      ..addInt32(_hoechsthoehePlatz, hoehenpunkte.hoechsthoehe?.mm)
+      ..addBool(_hoeheUngueltigPlatz, hoehenpunkte.ungueltig)
+      ..addInt32(_hoeheVorschlagPlatz, hoehenpunkte.vorschlag?.mm)
       ..addOffset(_belagmeldungenPlatz, meldungenOrt)
       ..addOffset(_befestigungswechselPlatz, wechselOrt)
       ..addOffset(_zubehoerPlatz, zubehoerOrt)
@@ -832,6 +841,9 @@ final class Berechnung {
   static const _ukGedrehtPlatz = 27;
   static const _aufbauhoehePlatz = 28;
   static const _mindesthoehePlatz = 29;
+  static const _hoechsthoehePlatz = 30;
+  static const _hoeheUngueltigPlatz = 31;
+  static const _hoeheVorschlagPlatz = 32;
   static const _belagmeldungenPlatz = 35;
   static const _befestigungswechselPlatz = 36;
   static const _zubehoerPlatz = 50;
