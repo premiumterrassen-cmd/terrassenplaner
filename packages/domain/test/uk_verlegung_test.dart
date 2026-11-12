@@ -1055,11 +1055,56 @@ void main() {
     });
   });
 
+  test('Verlegemuster (Planungskern v7 Regel 9.3 mit 2.1, R-B18): jede '
+      'benutzte Stoßlinie bekommt eine Doppel-UK', () {
+    for (final art in Verlegeart.values) {
+      final s = _rechteck(13000, 1000).mitVerlegeart(art);
+      final dielen = _dielen(s);
+      final v = _verlege(s);
+      final stoesse = <int>{};
+      final jeReihe = <int, List<Dielenstueck>>{};
+      for (final d in dielen) {
+        jeReihe.putIfAbsent(d.reihe, () => []).add(d);
+      }
+      for (final reihe in jeReihe.values) {
+        var x = 0;
+        for (final d in reihe.take(reihe.length - 1)) {
+          x += d.laenge.mm;
+          stoesse.add(x);
+        }
+      }
+      expect(stoesse, isNotEmpty, reason: art.name);
+      for (final j in stoesse) {
+        // je Dielenende ein Holz (40 mm breit): Achse 20 mm links und rechts
+        final xs = [for (final l in v.linien) l.x];
+        expect(
+          xs.where((x) => (x - (j - 20)).abs() < 1),
+          hasLength(1),
+          reason: '${art.name} $j',
+        );
+        expect(
+          xs.where((x) => (x - (j + 20)).abs() < 1),
+          hasLength(1),
+          reason: '${art.name} $j',
+        );
+      }
+      final erwartet = switch (art) {
+        Verlegeart.fugenschnitt => 2,
+        Verlegeart.halbverband => 4,
+        Verlegeart.drittelverband => 6,
+        Verlegeart.viertelverband || Verlegeart.wechselverband => 8,
+      };
+      expect(stoesse, hasLength(erwartet), reason: art.name);
+    }
+  });
+
   test('M9-02: UK-Zuschnitt wie in den Zuschnittlisten des alten Planers', () {
     for (final (art, ab, erwartet) in [
       (Verlegeart.fugenschnitt, 4800, ['13 × 400.0: 309.0']), // F01
-      (Verlegeart.halbverband, 4800, ['14 × 400.0: 309.0']), // F06
-      (Verlegeart.drittelverband, 4800, ['15 × 400.0: 309.0']), // F07
+      // F06/F07: alt 14 und 15 Hölzer – Planungskern v7 (R-B18): kein
+      // Verband, wenn die Fläche in eine Diele passt, also keine Doppel-UK
+      (Verlegeart.halbverband, 4800, ['13 × 400.0: 309.0']),
+      (Verlegeart.drittelverband, 4800, ['13 × 400.0: 309.0']),
       (Verlegeart.fugenschnitt, 8000, ['22 × 400.0: 309.0']), // F09
       // F10: alter Planer 25 Hölzer – Lage der UK-Linien (M6-10), nicht Zuschnitt
       (Verlegeart.halbverband, 8000, ['24 × 400.0: 309.0']),

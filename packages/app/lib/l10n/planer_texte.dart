@@ -1543,7 +1543,7 @@ abstract class PlanerTexte {
   /// No description provided for @verlegeartHalbverbandHinweis.
   ///
   /// In de, this message translates to:
-  /// **'Jede zweite Reihe um eine halbe Diele versetzt'**
+  /// **'Jede zweite Reihe um eine halbe Diele versetzt; jeder Stoß auf doppelter UK'**
   String get verlegeartHalbverbandHinweis;
 
   /// No description provided for @verlegeartDrittelverband.
@@ -1555,8 +1555,20 @@ abstract class PlanerTexte {
   /// No description provided for @verlegeartDrittelverbandHinweis.
   ///
   /// In de, this message translates to:
-  /// **'Jede Reihe um ein Drittel der Diele versetzt'**
+  /// **'Jede Reihe um ein Drittel der Diele versetzt; jeder Stoß auf doppelter UK'**
   String get verlegeartDrittelverbandHinweis;
+
+  /// No description provided for @verlegeartViertelverband.
+  ///
+  /// In de, this message translates to:
+  /// **'Viertelverband'**
+  String get verlegeartViertelverband;
+
+  /// No description provided for @verlegeartViertelverbandHinweis.
+  ///
+  /// In de, this message translates to:
+  /// **'Jede Reihe um ein Viertel der Diele versetzt; jeder Stoß auf doppelter UK'**
+  String get verlegeartViertelverbandHinweis;
 
   /// No description provided for @verlegeartWechselverband.
   ///
@@ -1567,7 +1579,7 @@ abstract class PlanerTexte {
   /// No description provided for @verlegeartWechselverbandHinweis.
   ///
   /// In de, this message translates to:
-  /// **'Jede zweite Reihe beginnt an der Gegenseite'**
+  /// **'Stöße unregelmäßig versetzt, nie wie in den beiden Reihen davor; jeder Stoß auf doppelter UK'**
   String get verlegeartWechselverbandHinweis;
 
   /// No description provided for @verlegerichtungWaagrecht.

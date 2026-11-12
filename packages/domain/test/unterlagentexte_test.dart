@@ -66,6 +66,8 @@ void main() {
     }
     expect(de.art(Verlegeart.halbverband), 'Halbverband');
     expect(en.art(Verlegeart.halbverband), 'Half bond');
+    expect(de.art(Verlegeart.viertelverband), 'Viertelverband');
+    expect(en.art(Verlegeart.viertelverband), 'Quarter bond');
     expect(de.befestigungsart(Befestigungsart.clips), 'mit Clips');
     expect(en.befestigungsart(Befestigungsart.clips), 'with clips');
     expect(de.terrassenartText(Terrassenart.hochterrasse), 'Hochterrasse');

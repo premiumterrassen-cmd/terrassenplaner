@@ -812,21 +812,28 @@ class PlanerTexteDe extends PlanerTexte {
 
   @override
   String get verlegeartHalbverbandHinweis =>
-      'Jede zweite Reihe um eine halbe Diele versetzt';
+      'Jede zweite Reihe um eine halbe Diele versetzt; jeder Stoß auf doppelter UK';
 
   @override
   String get verlegeartDrittelverband => 'Drittelverband';
 
   @override
   String get verlegeartDrittelverbandHinweis =>
-      'Jede Reihe um ein Drittel der Diele versetzt';
+      'Jede Reihe um ein Drittel der Diele versetzt; jeder Stoß auf doppelter UK';
+
+  @override
+  String get verlegeartViertelverband => 'Viertelverband';
+
+  @override
+  String get verlegeartViertelverbandHinweis =>
+      'Jede Reihe um ein Viertel der Diele versetzt; jeder Stoß auf doppelter UK';
 
   @override
   String get verlegeartWechselverband => 'Wechselverband';
 
   @override
   String get verlegeartWechselverbandHinweis =>
-      'Jede zweite Reihe beginnt an der Gegenseite';
+      'Stöße unregelmäßig versetzt, nie wie in den beiden Reihen davor; jeder Stoß auf doppelter UK';
 
   @override
   String get verlegerichtungWaagrecht => 'waagrecht';

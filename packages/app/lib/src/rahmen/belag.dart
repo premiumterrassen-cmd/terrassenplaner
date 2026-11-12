@@ -587,8 +587,9 @@ class KurzeStueckeWahl extends StatelessWidget {
 }
 
 /// Unterpunkt „Verlegearten“ (Fachkonzept 2.3, M5-04): Fugenschnitt
-/// (Vorgabe), Halb-, Drittel- und Wechselverband mit Hinweis als Tooltip.
-/// Die Stoßlinien rechnet der Server (`Verlegeart.stoesse`).
+/// (Vorgabe), Halb-, Drittel-, Viertel- und Wechselverband (Planungskern
+/// v7 Regel 9.3, R-B18) mit Hinweis als Tooltip. Die Stoßlinien rechnet der
+/// Server (`Verbandwahl`).
 class VerlegeartWahl extends StatelessWidget {
   const VerlegeartWahl({
     required this.planung,
@@ -636,6 +637,7 @@ String verlegeartText(PlanerTexte t, Verlegeart v) => switch (v) {
   Verlegeart.fugenschnitt => t.verlegeartFugenschnitt,
   Verlegeart.halbverband => t.verlegeartHalbverband,
   Verlegeart.drittelverband => t.verlegeartDrittelverband,
+  Verlegeart.viertelverband => t.verlegeartViertelverband,
   Verlegeart.wechselverband => t.verlegeartWechselverband,
 };
 
@@ -643,6 +645,7 @@ String verlegeartHinweis(PlanerTexte t, Verlegeart v) => switch (v) {
   Verlegeart.fugenschnitt => t.verlegeartFugenschnittHinweis,
   Verlegeart.halbverband => t.verlegeartHalbverbandHinweis,
   Verlegeart.drittelverband => t.verlegeartDrittelverbandHinweis,
+  Verlegeart.viertelverband => t.verlegeartViertelverbandHinweis,
   Verlegeart.wechselverband => t.verlegeartWechselverbandHinweis,
 };
 
