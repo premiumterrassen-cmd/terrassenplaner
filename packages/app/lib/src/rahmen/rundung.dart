@@ -5,7 +5,6 @@ import '../design/planer_design.dart';
 import '../sprache/sprache.dart';
 import 'grundriss_eingabe.dart';
 import 'steuerung.dart';
-import 'zeichnung.dart';
 
 /// Was im Rundungsmodus ausgewählt ist: eine Ecke (Radius) oder eine Seite
 /// (Stich).
@@ -135,6 +134,7 @@ class RundungsEingabe extends StatelessWidget {
           );
         }
         final auswahl = bedienung.auswahl;
+        final name = bedienung.planung.aktuell.grundriss.eckname;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -143,8 +143,8 @@ class RundungsEingabe extends StatelessWidget {
               const SizedBox(height: PlanerAbstand.klein),
               Text(
                 auswahl.ecke
-                    ? t.rundungEcke(ZeichnungsMaler.punktname(auswahl.nummer))
-                    : t.rundungSeite(ZeichnungsMaler.punktname(auswahl.nummer)),
+                    ? t.rundungEcke(name(auswahl.nummer))
+                    : t.rundungSeite(name(auswahl.nummer)),
                 key: const ValueKey('rundung-auswahl'),
                 style: const TextStyle(fontWeight: FontWeight.w500),
               ),

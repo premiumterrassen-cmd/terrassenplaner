@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import '../artikel/artikel.dart';
 import '../artikel/einheiten.dart';
+import '../geometrie/eckbuchstaben.dart';
 import '../geometrie/punkt.dart';
 import '../konfiguration/belagverlegung.dart';
 import '../konfiguration/berechnung.dart';
@@ -10,6 +11,7 @@ import '../konfiguration/planung.dart';
 import '../konfiguration/planungsstand.dart';
 import '../regeln/auflager.dart';
 import 'materialliste.dart';
+import 'planbild.dart';
 import 'stueckliste.dart';
 import 'unterlagentexte.dart';
 
@@ -57,13 +59,15 @@ final class Tabelle extends Baustein {
 }
 
 /// Ein Linienzug der Zeichnung in Planungskoordinaten (mm); [staerke] in
-/// Punkt auf dem Papier, [gefuellt] füllt ihn in der Farbe [argb].
+/// Punkt auf dem Papier, [gefuellt] füllt ihn in der Farbe [argb],
+/// [gestrichelt] zeichnet ihn gestrichelt (Stoßlinien, R-E01).
 final class Planlinie {
   Planlinie(
     List<Punkt> punkte, {
     required this.argb,
     this.geschlossen = true,
     this.gefuellt = false,
+    this.gestrichelt = false,
     this.staerke = 0.5,
   }) : punkte = List.unmodifiable(punkte);
 
@@ -71,6 +75,7 @@ final class Planlinie {
   final int argb;
   final bool geschlossen;
   final bool gefuellt;
+  final bool gestrichelt;
   final double staerke;
 }
 
@@ -164,6 +169,12 @@ final class Planungsunterlagen {
 
 const _schwarz = 0xFF000000;
 const _grau = 0xFF9E9E9E;
+
+/// Rot der Stoßlinien (R-E01) wie im Planungskern.
+const stossfarbe = 0xFFC30624;
+
+/// Blau der Achsmaßkette (R-E02).
+const achsmassfarbe = 0xFF1565C0;
 
 /// Stellt die Planungsunterlagen zusammen (M9-06) – Kapitel wie in den
 /// Planungsunterlagen des alten Planers: Deckblatt mit Kundendaten,
@@ -259,16 +270,22 @@ List<Kapitel> _flaeche(
   final b = f.berechnung;
   final unterbau = b.unterbau;
   final v = f.verlegung;
+  // keine eigene Draufsicht (R-E04): Umriss, Ecken und Kantenmaße stehen
+  // im Verlegeplan und im UK-Plan; nur ohne beide zeigt die Terrasse den
+  // Grundriss
+  final ohnePlan = v == null && unterbau.hoelzer.isEmpty;
+  final hoehen = b.hoehenpunkte.hoehen.isNotEmpty;
   return [
     Kapitel(titel, [
       _eckdaten(t, f, flaeche),
-      Absatz(t.geometrie, fett: true),
-      _grundriss(t, b),
-      if (b.hoehenpunkte.hoehen.isNotEmpty) _hoehen(t, b),
+      if (ohnePlan || hoehen) Absatz(t.geometrie, fett: true),
+      if (ohnePlan) _grundriss(t, b),
+      if (hoehen) _hoehen(t, b),
     ]),
     if (unterbau.hoelzer.isNotEmpty)
       Kapitel('$titel – ${t.ukKapitel}', [
-        _ukPlan(b),
+        _ukPlan(t, b),
+        if (b.planbild.achsen != null) Absatz(t.achsmassHinweis),
         Absatz(t.stuecklisteUk, fett: true),
         _stueckliste(t, b.stueckliste, ohne: f.belag?.nummer),
       ]),
@@ -288,7 +305,8 @@ List<Kapitel> _flaeche(
     if (v != null) ...[
       Kapitel('$titel – ${t.belagKapitel}', [
         Absatz(t.dielenHinweis),
-        _belagPlan(b),
+        if (b.planbild.stoesse.isNotEmpty) Absatz(t.stossHinweis),
+        _belagPlan(t, b),
         Absatz(t.dielenNachNummer, fett: true),
         _sorten(t, v, f.belag!),
         Absatz(t.lieferung, fett: true),
@@ -338,43 +356,83 @@ Wertepaare _eckdaten(
   ]);
 }
 
-/// „A, waagrecht 0 cm, senkrecht 0 cm“ wie im alten Planer.
+/// „A, waagrecht 0 cm, senkrecht 0 cm“ wie im alten Planer; der Name der
+/// Ecke wie in der Zeichnung (R-E03).
 String _ausgangspunkt(Unterlagentexte t, Planungsstand s) =>
-    '${eckname(s.ausgangsecke)} (${t.cm(s.verschiebungX)} cm | '
+    '${s.grundriss.eckname(s.ausgangsecke)} (${t.cm(s.verschiebungX)} cm | '
     '${t.cm(s.verschiebungY)} cm)';
 
-/// Name des Eckpunkts [i]: A, B, … wie in der Zeichnung der App.
-String eckname(int i) => _buchstaben[i % _buchstaben.length];
+/// Name des Eckpunkts [i] der Berechnung [b] (R-E03); über die Ecken
+/// hinaus (Kreis: nur A) in Reihenfolge.
+String _eckname(Berechnung b, int i) {
+  final namen = b.eckbuchstaben;
+  return i < namen.length ? namen[i] : eckbuchstabe(i);
+}
 
-const _buchstaben = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+/// Grundriss nur für eine Fläche ohne Verlegeplan und UK-Plan (R-E04).
+Plan _grundriss(Unterlagentexte t, Berechnung b) => Plan([
+  Planlinie(b.umriss, argb: _schwarz, geschlossen: b.geschlossen, staerke: 1),
+  for (final a in b.ausschnitte) Planlinie(a, argb: _grau),
+], umrissbeschriftung(t, b));
 
-Plan _grundriss(Unterlagentexte t, Berechnung b) {
+/// Abstand der Beschriftungen außen vom Umriss als Anteil der größten
+/// Ausdehnung, damit er in jedem Maßstab gleich aussieht.
+const beschriftungsanteil = 0.04;
+
+/// Eckbuchstaben und Kantenmaße außen am Umriss (Planungskern Regel 6.2,
+/// R-E03): Buchstaben auf der Winkelhalbierenden vor der Ecke, Kantenmaße
+/// in m vor der Mitte jeder Kante.
+List<Planbeschriftung> umrissbeschriftung(Unterlagentexte t, Berechnung b) {
   final ecken = b.ecken;
-  // Namen etwas außerhalb der Ecken, damit der Umriss sie nicht verdeckt
-  final mitte = ecken.isEmpty ? Punkt.ursprung : _mitte(ecken);
-  return Plan(
-    [
-      Planlinie(
-        b.umriss,
-        argb: _schwarz,
-        geschlossen: b.geschlossen,
-        staerke: 1,
+  if (ecken.length < 2) return const [];
+  final a = _beschriftungsabstand(b.umriss);
+  final n = ecken.length;
+  final kanten = b.geschlossen ? n : n - 1;
+  final normalen = [for (var i = 0; i < kanten; i++) _aussen(ecken, i)];
+  return [
+    for (var i = 0; i < n; i++)
+      (
+        ort: ecken[i] + _eckrichtung(normalen, i, b.geschlossen) * a,
+        text: _eckname(b, i),
       ),
-      for (final a in b.ausschnitte) Planlinie(a, argb: _grau),
-    ],
-    [
-      for (final (i, e) in ecken.indexed)
-        (ort: mitte + (e - mitte) * 1.06, text: eckname(i)),
-      // Kantenmaße in m an der Mitte jeder Kante
-      for (var i = 0; i < ecken.length; i++)
-        if (b.geschlossen || i < ecken.length - 1)
-          (
-            ort: (ecken[i] + ecken[(i + 1) % ecken.length]) * 0.5,
-            text:
-                '${t.zahl(ecken[i].abstand(ecken[(i + 1) % ecken.length]) / 1000, 2)} m',
-          ),
-    ],
-  );
+    for (var i = 0; i < kanten; i++)
+      (
+        ort: (ecken[i] + ecken[(i + 1) % n]) * 0.5 + normalen[i] * a,
+        text: '${t.zahl(ecken[i].abstand(ecken[(i + 1) % n]) / 1000, 2)} m',
+      ),
+  ];
+}
+
+double _beschriftungsabstand(List<Punkt> umriss) {
+  final h = Huellrechteck.um(umriss);
+  return math.max(h.breite, h.hoehe) * beschriftungsanteil;
+}
+
+/// Einheitsnormale der Kante [i] → [i]+1, die aus der Fläche zeigt (y nach
+/// unten: positive Fläche = im Uhrzeigersinn, außen liegt dann links der
+/// Kante im Sinn von `Punkt.links` gespiegelt).
+Punkt _aussen(List<Punkt> ecken, int i) {
+  var flaeche = 0.0;
+  for (var k = 0; k < ecken.length; k++) {
+    flaeche += ecken[k].kreuz(ecken[(k + 1) % ecken.length]);
+  }
+  final links = (ecken[(i + 1) % ecken.length] - ecken[i]).einheit.links;
+  return flaeche > 0 ? links * -1 : links;
+}
+
+/// Richtung von der Ecke [i] nach außen: Mittel der Normalen der beiden
+/// Kanten an ihr; am Ende eines offenen Linienzugs die Normale der einen
+/// Kante, bei einer Spitze (Normalen gegenläufig) die der folgenden.
+Punkt _eckrichtung(List<Punkt> normalen, int i, bool geschlossen) {
+  final m = normalen.length;
+  final nach = normalen[math.min(i, m - 1)];
+  final vor = i > 0
+      ? normalen[i - 1]
+      : geschlossen
+      ? normalen[m - 1]
+      : nach;
+  final summe = vor + nach;
+  return summe.laenge < 1e-9 ? nach : summe.einheit;
 }
 
 Tabelle _hoehen(Unterlagentexte t, Berechnung b) {
@@ -384,7 +442,11 @@ Tabelle _hoehen(Unterlagentexte t, Berechnung b) {
     [t.eckpunkt, '${t.aufbauhoehe} (cm)', t.winkel],
     [
       for (final (i, h) in hoehen.indexed)
-        [eckname(i), t.cm(h), if (i < winkel.length) '${winkel[i]}°' else ''],
+        [
+          _eckname(b, i),
+          t.cm(h),
+          if (i < winkel.length) '${winkel[i]}°' else '',
+        ],
     ],
     rechts: {1, 2},
   );
@@ -413,27 +475,75 @@ int _winkel(Punkt a, Punkt b, Punkt c, double sinn) {
   return (180 - sinn * drehung * 180 / math.pi).round();
 }
 
-Plan _ukPlan(Berechnung b) {
+Plan _ukPlan(Unterlagentexte t, Berechnung b) {
   final u = b.unterbau;
   final halb = (u.holzbreite?.mm ?? 40) / 2;
-  return Plan([
-    Planlinie(b.umriss, argb: _grau, geschlossen: b.geschlossen),
-    for (final h in u.hoelzer)
-      Planlinie(
-        _balken(h.von, h.bis, halb),
-        argb: h.farbe.argb,
-        gefuellt: true,
-      ),
-    for (final s in b.querstreben)
-      Planlinie(
-        [s.von, s.bis],
-        argb: Stueckfarbe.gruen.argb,
-        geschlossen: false,
-        staerke: 1.5,
-      ),
-    for (final a in u.auflagerpunkte)
-      Planlinie(_balken(a.ort, a.ort, 25), argb: _schwarz, gefuellt: true),
-  ]);
+  final kette = switch (b.planbild.achsen) {
+    final k? => _achsmasskette(k, _beschriftungsabstand(b.umriss)),
+    null => null,
+  };
+  return Plan(
+    [
+      Planlinie(b.umriss, argb: _grau, geschlossen: b.geschlossen),
+      for (final h in u.hoelzer)
+        Planlinie(
+          _balken(h.von, h.bis, halb),
+          argb: h.farbe.argb,
+          gefuellt: true,
+        ),
+      for (final s in b.querstreben)
+        Planlinie(
+          [s.von, s.bis],
+          argb: Stueckfarbe.gruen.argb,
+          geschlossen: false,
+          staerke: 1.5,
+        ),
+      for (final a in u.auflagerpunkte)
+        Planlinie(_balken(a.ort, a.ort, 25), argb: _schwarz, gefuellt: true),
+      ...?kette?.linien,
+    ],
+    [...umrissbeschriftung(t, b), ...?kette?.texte],
+  );
+}
+
+/// Die Achsmaßkette liegt so viele Beschriftungsabstände außen –
+/// außerhalb der Kantenmaße.
+const achsmassabstand = 2.5;
+
+/// Abstände unter dieser Länge (mm) bekommen keine Zahl – etwa zwischen
+/// den Hölzern einer Doppel-UK; die Marken stehen trotzdem.
+const kleinsterAchsabstand = 100.0;
+
+/// Linien und Zahlen der Achsmaßkette [k] (R-E02) im
+/// Beschriftungsabstand [a]: Kettenlinie, Marke je Achse und Rand,
+/// Abstand in cm neben der Mitte.
+({List<Planlinie> linien, List<Planbeschriftung> texte}) _achsmasskette(
+  Masskette k,
+  double a,
+) {
+  final versatz = k.normale * (a * achsmassabstand);
+  final marke = k.normale * (a * 0.3);
+  final punkte = [for (final m in k.marken) m + versatz];
+  final abstaende = k.abstaende;
+  return (
+    linien: [
+      Planlinie(punkte, argb: achsmassfarbe, geschlossen: false),
+      for (final p in punkte)
+        Planlinie(
+          [p - marke, p + marke],
+          argb: achsmassfarbe,
+          geschlossen: false,
+        ),
+    ],
+    texte: [
+      for (var i = 0; i < abstaende.length; i++)
+        if (abstaende[i] >= kleinsterAchsabstand)
+          (
+            ort: (punkte[i] + punkte[i + 1]) * 0.5 + k.normale * (a * 0.7),
+            text: '${(abstaende[i] / 10).round()}',
+          ),
+    ],
+  );
 }
 
 /// Rechteck der Breite 2 × [halb] um die Strecke [von]–[bis], an den Enden
@@ -450,15 +560,25 @@ List<Punkt> _balken(Punkt von, Punkt bis, double halb) {
   ];
 }
 
-Plan _belagPlan(Berechnung b) => Plan(
+Plan _belagPlan(Unterlagentexte t, Berechnung b) => Plan(
   [
     Planlinie(b.umriss, argb: _schwarz, geschlossen: b.geschlossen),
     for (final (i, d) in b.dielen.indexed)
       Planlinie(d, argb: b.stueckfarben[i].argb, staerke: 0.3),
+    // Stoßlinien rot gestrichelt über den Dielen (R-E01)
+    for (final s in b.planbild.stoesse)
+      Planlinie(
+        [s.von, s.bis],
+        argb: stossfarbe,
+        geschlossen: false,
+        gestrichelt: true,
+        staerke: 1,
+      ),
   ],
   [
     for (final (i, d) in b.dielen.indexed)
       (ort: _mitte(d), text: '${b.nummern[i]}'),
+    ...umrissbeschriftung(t, b),
   ],
 );
 

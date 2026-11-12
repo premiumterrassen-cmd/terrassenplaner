@@ -187,5 +187,30 @@ void main() {
     expect(text, contains('0 0 1 rg'));
     expect(RegExp(r'\bf\b').allMatches(text), hasLength(1));
     expect(text, isNot(contains('0 1 0')));
+    expect(text, isNot(contains(' d')));
+  });
+
+  test('Zeichnen: gestrichelte Linie (Stoßlinie, R-E01), danach '
+      'wieder durchgezogen', () {
+    final puffer = PdfStream();
+    final leinwand = PdfGraphics(PdfPage(PdfDocument()), puffer);
+    final plan = Plan([
+      Planlinie(
+        const [Punkt(0, 0), Punkt(0, 1000)],
+        argb: stossfarbe,
+        geschlossen: false,
+        gestrichelt: true,
+      ),
+      Planlinie(const [Punkt(0, 0), Punkt(1000, 0)], argb: 0),
+    ]);
+    zeichne(leinwand, plan, Planmassstab.fuer(plan));
+    final text = latin1.decode(puffer.output());
+    expect(
+      text.indexOf('[4 2] 0 d'),
+      allOf(greaterThan(-1), lessThan(text.indexOf(' S'))),
+    );
+    expect(text.indexOf('[] 0 d'), greaterThan(text.indexOf(' S')));
+    expect(text.indexOf('[] 0 d'), lessThan(text.lastIndexOf(' S')));
+    expect(RegExp(r'\bd\b').allMatches(text), hasLength(2));
   });
 }
