@@ -214,9 +214,10 @@ final class Rundungen {
     if (radien[i] case final r?) {
       final halb = sehne / 2;
       final betrag = r.mm.abs().toDouble();
-      final h = betrag <= halb
-          ? halb
-          : betrag - math.sqrt(betrag * betrag - halb * halb);
+      // unter der halben Sehne der Halbkreis (Stich = halbe Sehne)
+      final h =
+          math.max(halb, betrag) -
+          math.sqrt(math.max(0, betrag * betrag - halb * halb));
       stich = r.mm < 0 ? -h : h;
     } else {
       stich = (seiten[i]?.mm ?? 0).toDouble();

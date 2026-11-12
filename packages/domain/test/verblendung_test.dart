@@ -951,12 +951,16 @@ void _blendeAmBogen() {
         (von: Millimeter(0), bis: Millimeter(1000)),
         (von: Millimeter(3000), bis: Millimeter(5000)),
         (von: Millimeter(4000), bis: Millimeter(5000)),
+        (von: Millimeter(2000), bis: Millimeter(2001)),
       ]);
       final strecken = blendenstrecken(teil, _vier);
-      expect([for (final s in strecken) s.bogen], [true, true, false]);
+      expect([for (final s in strecken) s.bogen], [true, true, true, false]);
+      // nach dem Anfang sortiert; 1 mm bleibt (ein Stück), leere Teile
+      // fallen weg
       expect(strecken[0].laenge, 1000);
-      expect(strecken[1].laenge, closeTo(laenge - 3000, 1e-6));
-      expect(strecken[2].laenge, 4800);
+      expect(strecken[1].laenge, 1);
+      expect(strecken[2].laenge, closeTo(laenge - 3000, 1e-6));
+      expect(strecken[3].laenge, 4800);
       final b = verblendungsbedarf(
         teil,
         hoehen: _vier,
@@ -964,10 +968,10 @@ void _blendeAmBogen() {
         regelwerk: _serie,
         uk: _uk,
       );
-      // 10 + 6 Stücke am Bogen, C — D gerade mit Trägern
-      expect(b.blenden.where((x) => x.$1 == _b100), hasLength(16));
+      // 10 + 6 + 1 Stücke am Bogen, C — D gerade mit Trägern
+      expect(b.blenden.where((x) => x.$1 == _b100), hasLength(17));
       expect(b.stuecke, hasLength(13));
-      expect(schrauben(b), 2 * 16 + 2 * 13);
+      expect(schrauben(b), 2 * 17 + 2 * 13);
       // gelb: der Bogen als Sehnenzug je Teil, die gerade Seite einmal
       final e = anschlussergebnis(teil);
       final amBogen = [
@@ -983,7 +987,7 @@ void _blendeAmBogen() {
       }
       expect(amBogen.first.von.gleich(const Punkt(4800, 0)), isTrue);
       final laengen = amBogen.fold(0.0, (a, s) => a + s.von.abstand(s.bis));
-      expect(laengen, closeTo(1000 + laenge - 3000, 0.5));
+      expect(laengen, closeTo(1000 + laenge - 3000 + 1, 0.5));
       expect(e.seiten.where((s) => s.seite == 2), hasLength(1));
       expect(
         bogenzug(b0, 0, laenge).last.gleich(const Punkt(4800, 3090)),
