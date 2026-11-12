@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import 'package:test/test.dart';
 
@@ -152,15 +154,45 @@ void main() {
       expect(u.kapitel[1].titel, 'Your terrace');
     });
 
-    test('Grundriss: Namen außerhalb der Ecken, Kanten in m', () {
+    test('ohne Verlegeplan und UK-Plan: Grundriss mit Namen auf der '
+        'Winkelhalbierenden außen und Kanten in m außen (R-E03, R-E04)', () {
       final plan = baustein<Plan>(erzeuge().kapitel[1]);
       expect(plan.linien.single.punkte, rechteck);
       expect(plan.linien.single.staerke, 1);
       expect(plan.linien.single.geschlossen, isTrue);
-      expect(plan.texte.first.ort.x, closeTo(2400 - 2400 * 1.06, 1e-9));
-      expect(plan.texte.first.ort.y, closeTo(1545 - 1545 * 1.06, 1e-9));
-      expect(plan.texte[4].ort, const Punkt(2400, 0));
-      expect(plan.texte[7].ort, const Punkt(0, 1545));
+      // 4 % der größten Ausdehnung: 192 mm
+      const a = 4800 * beschriftungsanteil;
+      final diagonal = a / math.sqrt2;
+      for (final (i, (x, y)) in [
+        (-diagonal, -diagonal),
+        (4800 + diagonal, -diagonal),
+        (4800 + diagonal, 3090 + diagonal),
+        (-diagonal, 3090 + diagonal),
+      ].indexed) {
+        expect(plan.texte[i].ort.x, closeTo(x, 1e-9));
+        expect(plan.texte[i].ort.y, closeTo(y, 1e-9));
+      }
+      expect(
+        [for (final t in plan.texte.skip(4)) t.ort],
+        const [
+          Punkt(2400, -a),
+          Punkt(4800 + a, 1545),
+          Punkt(2400, 3090 + a),
+          Punkt(-a, 1545),
+        ],
+      );
+      // gegen den Uhrzeigersinn gezeichnet: außen bleibt außen
+      final links = Berechnung(umriss: rechteck.reversed.toList(), flaeche: 1);
+      final andersrum = baustein<Plan>(
+        planungsunterlagen(
+          planung: Planung.start,
+          gesamt: links,
+          flaechen: [Flaechenunterlage(links)],
+          datum: datum,
+        ).kapitel[1],
+      );
+      expect(andersrum.texte[4].ort, const Punkt(2400, 3090 + a));
+      expect(andersrum.texte[0].text, 'D');
     });
   });
 
@@ -220,8 +252,10 @@ void main() {
       List<Auflagermeldung> auflagermeldungen = const [],
       double flaeche = 4800 * 3090,
       List<Millimeter> randErgaenzt = const [],
+      Planbild? planbild,
     }) => Berechnung(
       umriss: rechteck,
+      planbild: planbild,
       flaeche: flaeche,
       gesamtflaeche: 2 * 4800 * 3090,
       dielen: [for (final s in stuecke) s.umriss],
@@ -349,6 +383,8 @@ void main() {
         'Feldbreite (UK-Achsabstand): 40 cm',
         'Terrassengeometrie',
       ]);
+      // keine eigene Draufsicht neben Verlegeplan und UK-Plan (R-E04)
+      expect(k.inhalt.whereType<Plan>(), isEmpty);
       final hoehen = baustein<Tabelle>(k);
       expect(hoehen.kopf, ['Eckpunkt', 'Aufbauhöhe (cm)', 'Winkel']);
       expect(hoehen.zeilen, [
@@ -574,6 +610,152 @@ void main() {
     });
   });
 
+  group('Pläne nach dem Planungskern (Abschnitt 6)', () {
+    final stand = Planungsstand.start;
+    final verlegung = verlegeBelag(stand, diele)!;
+    Planungsunterlagen erzeuge(Berechnung b, {Planungsstand? stand}) =>
+        planungsunterlagen(
+          planung: Planung([Terrassenflaeche(stand ?? Planungsstand.start)]),
+          gesamt: b,
+          flaechen: [
+            Flaechenunterlage(b, belag: diele, uk: uk, verlegung: verlegung),
+          ],
+          datum: datum,
+        );
+    final hoelzer = <UkHolz>[
+      (
+        von: const Punkt(20, 0),
+        bis: const Punkt(20, 3090),
+        farbe: Stueckfarbe.blau,
+      ),
+    ];
+
+    test('ohne Stöße und Achsmaßkette: keine Legende, keine Kette', () {
+      final u = erzeuge(
+        Berechnung(
+          umriss: rechteck,
+          flaeche: 1,
+          dielen: const [],
+          unterbau: Unterbau(hoelzer: hoelzer),
+        ),
+      );
+      final ukKapitel = u.kapitel[2];
+      expect(
+        texte(ukKapitel),
+        isNot(contains(Unterlagentexte.deutsch.achsmassHinweis)),
+      );
+      expect(baustein<Plan>(ukKapitel).linien, hasLength(2));
+      final belag = u.kapitel.singleWhere(
+        (k) => k.titel.endsWith('Terrassenbelag'),
+      );
+      expect(
+        texte(belag),
+        isNot(contains(Unterlagentexte.deutsch.stossHinweis)),
+      );
+    });
+
+    test('Verlegeplan: Stoßlinien rot gestrichelt, Legende, Eckbuchstaben '
+        'und Kantenmaße (R-E01, R-E03)', () {
+      final u = erzeuge(
+        Berechnung(
+          umriss: rechteck,
+          flaeche: 1,
+          planbild: Planbild(
+            stoesse: const [(von: Punkt(3000, 0), bis: Punkt(3000, 66))],
+          ),
+        ),
+      );
+      final k = u.kapitel.singleWhere(
+        (k) => k.titel.endsWith('Terrassenbelag'),
+      );
+      expect(baustein<Absatz>(k, 1).text, Unterlagentexte.deutsch.stossHinweis);
+      final plan = baustein<Plan>(k);
+      final stoss = plan.linien.last;
+      expect(stoss.punkte, const [Punkt(3000, 0), Punkt(3000, 66)]);
+      expect(stoss.argb, stossfarbe);
+      expect(stoss.gestrichelt, isTrue);
+      expect(stoss.geschlossen, isFalse);
+      expect(stoss.staerke, 1);
+      expect(plan.linien.first.gestrichelt, isFalse);
+      expect(
+        [for (final t in plan.texte) t.text],
+        ['A', 'B', 'C', 'D', '4,80 m', '3,09 m', '4,80 m', '3,09 m'],
+      );
+    });
+
+    test('UK-Plan: Achsmaßkette blau außen, Zahlen in cm ab 10 cm, '
+        'Legende (R-E02)', () {
+      final b = Berechnung(
+        umriss: rechteck,
+        flaeche: 1,
+        unterbau: Unterbau(hoelzer: hoelzer),
+        planbild: Planbild(
+          achsen: Masskette(const [
+            Punkt(0, 3090),
+            Punkt(20, 3090),
+            Punkt(420, 3090),
+            Punkt(4800, 3090),
+          ], const Punkt(0, 1)),
+        ),
+      );
+      final k = erzeuge(b).kapitel[2];
+      expect(baustein<Absatz>(k).text, Unterlagentexte.deutsch.achsmassHinweis);
+      final plan = baustein<Plan>(k);
+      const a = 4800 * beschriftungsanteil;
+      const y = 3090 + a * achsmassabstand;
+      final kette = plan.linien.skip(2).toList();
+      expect(kette, hasLength(5));
+      expect(kette.first.punkte, const [
+        Punkt(0, y),
+        Punkt(20, y),
+        Punkt(420, y),
+        Punkt(4800, y),
+      ]);
+      expect(
+        kette.every((l) => l.argb == achsmassfarbe && !l.geschlossen),
+        isTrue,
+      );
+      expect(kette[2].punkte, const [
+        Punkt(20, y - a * 0.3),
+        Punkt(20, y + a * 0.3),
+      ]);
+      final zahlen = plan.texte.skip(8).toList();
+      expect([for (final t in zahlen) t.text], ['40', '438']);
+      expect(zahlen.first.ort, const Punkt(220, y + a * 0.7));
+      expect(
+        [for (final t in plan.texte.take(4)) t.text],
+        ['A', 'B', 'C', 'D'],
+      );
+    });
+
+    test('Eckbuchstaben oben links im Uhrzeigersinn in Höhen und '
+        'Ausgangspunkt (R-E03)', () {
+      // gedreht: der Umriss beginnt unten links und läuft andersherum
+      const ecken = [
+        Punkt(0, 3090),
+        Punkt(4800, 3090),
+        Punkt(4800, 0),
+        Punkt(0, 0),
+      ];
+      final b = Berechnung(
+        umriss: ecken,
+        flaeche: 1,
+        hoehenpunkte: Hoehenpunkte(
+          hoehen: List.filled(5, const Millimeter(100)),
+        ),
+      );
+      final gedreht = Planungsstand.start
+          .mitGrundriss(FreiformGrundriss(ecken, geschlossen: true))
+          .mitAusgangspunkt(ecke: 0);
+      final k = erzeuge(b, stand: gedreht).kapitel[1];
+      expect(
+        [for (final z in baustein<Tabelle>(k).zeilen) z.first],
+        ['D', 'C', 'B', 'A', 'E'],
+      );
+      expect(texte(k), contains('Ausgangspunkt: D (0 cm | 0 cm)'));
+    });
+  });
+
   test('Innenwinkel unabhängig vom Umlaufsinn; L-Form 270°', () {
     const l = [
       Punkt(0, 0),
@@ -591,12 +773,6 @@ void main() {
       37,
     ]);
     expect(innenwinkel(const [Punkt(0, 0), Punkt(1, 0)]), isEmpty);
-  });
-
-  test('Eckname A–Z, dann von vorn', () {
-    expect(eckname(0), 'A');
-    expect(eckname(25), 'Z');
-    expect(eckname(26), 'A');
   });
 
   group('Kundendaten', () {

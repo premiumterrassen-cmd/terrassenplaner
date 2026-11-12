@@ -5,7 +5,6 @@ import '../design/planer_design.dart';
 import '../sprache/sprache.dart';
 import 'berechnung_steuerung.dart';
 import 'steuerung.dart';
-import 'zeichnung.dart';
 
 /// Ändert den Ausgangspunkt der Verlegung (M5-07, Fachkonzept 2.5): Ecke
 /// wählen und die erste ganze Diele verschieben – über Eingabefeld,
@@ -104,7 +103,7 @@ class AusgangspunktWahl extends StatelessWidget {
               for (var i = 0; i < stand.ausgangsecken; i++)
                 ChoiceChip(
                   key: ValueKey('ausgangsecke-$i'),
-                  label: Text(ZeichnungsMaler.punktname(i)),
+                  label: Text(stand.grundriss.eckname(i)),
                   selected: i == stand.ausgangsecke,
                   onSelected: (an) {
                     if (an) bedienung.waehleEcke(i);

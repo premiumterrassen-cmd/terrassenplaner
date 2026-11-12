@@ -5,8 +5,10 @@ import 'package:flat_buffers/flat_buffers.dart' as fb;
 import '../artikel/artikel.dart';
 import '../artikel/einheiten.dart';
 import '../ergebnisse/materialliste.dart';
+import '../ergebnisse/planbild.dart';
 import '../ergebnisse/stueckliste.dart';
 import '../ergebnisse/zuschnittplan.dart';
+import '../geometrie/eckbuchstaben.dart';
 import '../geometrie/punkt.dart';
 import '../regeln/befestigungsbedarf.dart';
 import '../regeln/belagmeldungen.dart';
@@ -29,7 +31,8 @@ import 'unterbau.dart';
 /// seit M6-08 die Unterkonstruktion ([unterbau]), seit M6-10 das
 /// Holzvolumen der ganzen Planung, seit M7 der Terrassenanschluss
 /// ([anschluss]), seit M9-01 die Verschnittvarianten mit der gewählten,
-/// seit M9-02 die Zuschnittpläne.
+/// seit M9-02 die Zuschnittpläne, seit Planungskern v6 Abschnitt 6 die
+/// Geometrie der Pläne ([planbild]).
 final class Berechnung {
   Berechnung({
     required List<Punkt> umriss,
@@ -63,7 +66,9 @@ final class Berechnung {
     Zuschnittplan? zuschnittBelag,
     Zuschnittplan? zuschnittUk,
     Anschlussergebnis? anschluss,
+    Planbild? planbild,
   }) : anschluss = anschluss ?? Anschlussergebnis.leer,
+       planbild = planbild ?? Planbild.leer,
        unterbau = unterbau ?? Unterbau.leer,
        zuschnittBelag = zuschnittBelag ?? Zuschnittplan.leer,
        zuschnittUk = zuschnittUk ?? Zuschnittplan.leer,
@@ -263,6 +268,14 @@ final class Berechnung {
         wurzel,
         _versatz(_volumenPlatz),
       ),
+      planbild: switch (const _Tabellenort().vTableGetNullable(
+        puffer,
+        wurzel,
+        _versatz(_planbildPlatz),
+      )) {
+        final ort? => Planbild.lies(puffer, ort),
+        null => null,
+      },
       anschluss: switch (const _Tabellenort().vTableGetNullable(
         puffer,
         wurzel,
@@ -400,6 +413,11 @@ final class Berechnung {
   /// [umriss], beim Kreis leer.
   final List<Punkt> ecken;
 
+  /// Name je Eckpunkt der [ecken] (R-E03, `eckenBenennen`): A oben links,
+  /// weiter im Uhrzeigersinn; beim offenen Linienzug in Punktreihenfolge.
+  List<String> get eckbuchstaben =>
+      eckenBenennen(ecken, geschlossen: geschlossen);
+
   /// Ob der Umriss eine Fläche umschließt; eine offene Freiform (M4-08) hat
   /// keine Fläche.
   final bool geschlossen;
@@ -529,6 +547,10 @@ final class Berechnung {
   /// Terrassenanschluss der bearbeiteten Fläche (M7): Seiten mit Rolle.
   final Anschlussergebnis anschluss;
 
+  /// Stoßlinien und Achsmaßkette der bearbeiteten Fläche für Verlegeplan
+  /// und UK-Plan (R-E01, R-E02).
+  final Planbild planbild;
+
   /// Kopie mit den Werten der ganzen Planung (M4-14, M5-08, M9-01, M9-02).
   Berechnung mitPlanung(
     double gesamtflaeche, {
@@ -572,6 +594,7 @@ final class Berechnung {
     zuschnittBelag: zuschnittBelag,
     zuschnittUk: zuschnittUk,
     anschluss: anschluss,
+    planbild: planbild,
   );
 
   /// FlatBuffer für den Weg zur App (#110):
@@ -606,7 +629,8 @@ final class Berechnung {
   /// verschnitt (float64), 1: dielen (wie dielenliste) }]), 166:
   /// verschnittvariante (uint8; fehlt = nicht optimiert) (M9-01),
   /// 167: zuschnittBelag, 168: zuschnittUk (Tabellen,
-  /// `Zuschnittplan.schreibe`, M9-02) }`. Die Plätze 18–34 sind für die
+  /// `Zuschnittplan.schreibe`, M9-02), 63: planbild (Tabelle,
+  /// `Planbild.schreibe`, R-E01/R-E02) }`. Die Plätze 18–34 sind für die
   /// Unterkonstruktion (M6) frei gehalten, 50–59 für das Zubehör (M8),
   /// 60–69 für die Ergebnisse (M9), 110–119 für die UK ab M6-08, 150–159
   /// für den Anschluss, die Höhenreferenzpunkte und die Treppen (M7),
@@ -667,6 +691,7 @@ final class Berechnung {
     ]);
     final belagOrt = zuschnittBelag.schreibe(fbb);
     final ukOrt = zuschnittUk.schreibe(fbb);
+    final planbildOrt = planbild.schreibe(fbb);
     fbb
       ..startTable(_zuschnittUkPlatz + 1)
       ..addOffset(_umrissPlatz, umrissOrt)
@@ -705,7 +730,8 @@ final class Berechnung {
       ..addOffset(_verschnittvariantenPlatz, variantenOrt)
       ..addUint8(_verschnittvariantePlatz, verschnittvariante)
       ..addOffset(_zuschnittBelagPlatz, belagOrt)
-      ..addOffset(_zuschnittUkPlatz, ukOrt);
+      ..addOffset(_zuschnittUkPlatz, ukOrt)
+      ..addOffset(_planbildPlatz, planbildOrt);
     if (verschnitt case final v?) fbb.addFloat64(_verschnittPlatz, v);
     if (volumen case final v?) fbb.addFloat64(_volumenPlatz, v);
     fbb.finish(fbb.endTable());
@@ -838,6 +864,7 @@ final class Berechnung {
   static const _materiallistePlatz = 60;
   static const _stuecklistePlatz = 61;
   static const _stueckfarbenPlatz = 62;
+  static const _planbildPlatz = 63;
   static const _querstrebenPlatz = 90;
   static const _querstrebenReihenPlatz = 91;
   static const _stellfuessePlatz = 92;

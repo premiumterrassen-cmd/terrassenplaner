@@ -81,6 +81,8 @@ final class Unterlagentexte {
     required this.anzahl,
     required this.belagKapitel,
     required this.dielenHinweis,
+    required this.stossHinweis,
+    required this.achsmassHinweis,
     required this.dielenNachNummer,
     required this.nr,
     required this.masse,
@@ -163,6 +165,10 @@ final class Unterlagentexte {
     dielenHinweis:
         'Hinweis: Die Zahl in den Dielen/Platten ist die Nummer in der '
         'nachstehenden Tabelle.',
+    stossHinweis:
+        'Rot gestrichelt: Stoß – jedes Dielenende liegt auf einer eigenen '
+        'UK (Doppel-UK).',
+    achsmassHinweis: 'Blau: Achsmaße der UK in cm.',
     dielenNachNummer: 'Dielen/Platten nach Nummer',
     nr: 'Nr.',
     masse: 'Maße in cm',
@@ -268,6 +274,10 @@ final class Unterlagentexte {
     dielenHinweis:
         'Note: the number in the boards/tiles is the number in the table '
         'below.',
+    stossHinweis:
+        'Red dashed: butt joint – each board end rests on its own joist '
+        '(double joist).',
+    achsmassHinweis: 'Blue: joist centre distances in cm.',
     dielenNachNummer: 'Boards/tiles by number',
     nr: 'No.',
     masse: 'Size in cm',
@@ -377,6 +387,12 @@ final class Unterlagentexte {
   final String anzahl;
   final String belagKapitel;
   final String dielenHinweis;
+
+  /// Legende der Stoßlinien im Verlegeplan (R-E01).
+  final String stossHinweis;
+
+  /// Legende der Achsmaßkette im UK-Plan (R-E02).
+  final String achsmassHinweis;
   final String dielenNachNummer;
   final String nr;
   final String masse;

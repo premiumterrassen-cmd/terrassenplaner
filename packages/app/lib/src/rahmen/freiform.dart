@@ -5,7 +5,6 @@ import '../design/planer_design.dart';
 import '../sprache/sprache.dart';
 import 'grundriss_eingabe.dart';
 import 'steuerung.dart';
-import 'zeichnung.dart';
 
 /// Maßeingabe der Freiform (Fachkonzept 1.1): Strecke (Länge und Winkel vom
 /// vorletzten Punkt) oder Koordinaten des letzten Punkts.
@@ -276,7 +275,7 @@ extension on FreiformEingabe {
     }
     return [
       Text(
-        t.punktAusgewaehlt(ZeichnungsMaler.punktname(i)),
+        t.punktAusgewaehlt(bedienung.planung.aktuell.grundriss.eckname(i)),
         key: const ValueKey('punkt-ausgewaehlt'),
         style: const TextStyle(fontWeight: FontWeight.w500),
       ),

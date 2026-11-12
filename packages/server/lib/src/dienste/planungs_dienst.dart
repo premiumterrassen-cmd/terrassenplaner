@@ -322,6 +322,16 @@ class PlanungsDienst {
         final reihen? when reihen > 0 => reihen,
         _ => null,
       },
+      // Geometrie der Pläne (Planungskern v6 Abschnitt 6, R-E01/R-E02)
+      planbild: Planbild(
+        stoesse: stosslinien([
+          for (final t in v.teile) t.stuecke,
+        ], stand.dielenwinkel.toDouble()),
+        achsen: switch (uk) {
+          final u? => achsmasskette(u, flaeche.umriss),
+          null => null,
+        },
+      ),
     );
   }
 
