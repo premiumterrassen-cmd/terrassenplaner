@@ -98,4 +98,58 @@ class UkVerlegungBenchmark extends BenchmarkBase {
   }
 }
 
-void main() => UkVerlegungBenchmark().report();
+/// UK am Bogen (Planungskern v12, Regel 14.2): Kreis R 3,50 m und ein
+/// Rechteck 9 × 5 m mit Bogen R 4,00 m – Knicke an den Lattenenden,
+/// Zwischenknicke, Riegel.
+class UkAmBogenBenchmark extends BenchmarkBase {
+  UkAmBogenBenchmark() : super('domain.UkVerlegung.bogen');
+
+  late final List<(Planungsstand, List<Dielenstueck>)> _faelle;
+  var _summe = 0;
+
+  @override
+  void setup() {
+    _faelle = [
+      for (final s in [
+        Planungsstand.start.mitGrundriss(
+          KreisGrundriss(const Millimeter(3500)),
+        ),
+        Planungsstand.start
+            .mitGrundriss(
+              RechteckGrundriss(const Millimeter(9000), const Millimeter(5000)),
+            )
+            .mitRundungen(Rundungen.keine.mitRadius(1, const Millimeter(4000))),
+      ])
+        (
+          s,
+          [
+            for (final t in verlegeBelag(s, UkVerlegungBenchmark._belag)!.teile)
+              ...t.stuecke,
+          ],
+        ),
+    ];
+  }
+
+  @override
+  void run() {
+    for (final (stand, dielen) in _faelle) {
+      final v = ukVerlegung(
+        stand,
+        UkVerlegungBenchmark._uk,
+        abstand: const Millimeter(400),
+        dielen: dielen,
+      );
+      _summe += v.stuecke.length + v.riegel.length;
+    }
+  }
+
+  @override
+  void teardown() {
+    if (_summe == 0) throw StateError('Benchmark hat nichts berechnet');
+  }
+}
+
+void main() {
+  UkVerlegungBenchmark().report();
+  UkAmBogenBenchmark().report();
+}

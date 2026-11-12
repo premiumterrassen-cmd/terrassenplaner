@@ -55,6 +55,11 @@ const _gruende = {
       'Mehrlänge die Verteilung mit den wenigsten Dielen (F04: 152 Stücke '
       'brauchen mindestens 51 Dielen und damit nach der Staffel R-B09 '
       '2 Freidielen)',
+  'Planungskern v12':
+      'Planungskern v12, Regel 14.2 (UK am Bogen wie im GS-Planer): Latten '
+      'bis an den Bogen, Rand-UK als Polygonzug von Lattenende zu '
+      'Lattenende (höchstens 1,2 cm vom Bogen), Riegel am Knick – F19: '
+      '32 Rand-UK-Stücke und 16 Riegel statt 38 Sehnen à 25,7 cm',
   'Frage 2': 'offen: vorhandene UK – alt 2 × 473 cm zusätzlich',
   'Frage 3': 'offen: Alu-UK – Anzahl der Schienen',
 };
@@ -109,7 +114,7 @@ const _konfigurationen = <String, Map<String, String>>{
     'Fläche': 'M4-07',
     'Verschnitt': 'B-035',
     'Dielen': 'B-035',
-    'UK': 'Rand-UK',
+    'UK': 'Planungskern v12',
   },
   'F20': {'Dielen': 'Fuge', 'UK': 'UK-Lage'},
   'F21': {'Verschnitt': 'Rechenweg', 'Dielen': 'Fuge', 'UK': 'Rand-UK'},
