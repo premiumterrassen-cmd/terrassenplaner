@@ -350,6 +350,7 @@ void main() {
           ('Ihre Terrasse', true),
           ('Ihre Terrasse – Unterkonstruktion', true),
           ('Ihre Terrasse – Höhenzuordnung der Auflager', false),
+          ('Ihre Terrasse – Bemaßung und Höhen', true),
           ('Ihre Terrasse – Terrassenbelag', true),
           ('Ihre Terrasse – Zuschnittsplan Belag', false),
           ('Materialliste', true),
@@ -436,7 +437,7 @@ void main() {
         ['1', 'UK 40 x 60 mm', '309', '1', 'blau'],
         ['2', 'UK 40 x 60 mm', '36', '1', 'grün'],
       ]);
-      expect(liste.farben, [Stueckfarbe.blau, Stueckfarbe.gruen]);
+      expect(liste.farben, [Stueckfarbe.blau.argb, Stueckfarbe.gruen.argb]);
     });
 
     test('UK ohne Holzbreite: 40 mm', () {
@@ -471,10 +472,119 @@ void main() {
       ]);
     });
 
+    test('Bemaßung und Höhen (Planungskern v7, Regel 9.2, R-E05): H je Ecke, '
+        'Höhe je Auflager, Farbe je Fußtyp mit Legende', () {
+      final b = berechnung(
+        planbild: Planbild(
+          achsen: Masskette(const [
+            Punkt(0, 3090),
+            Punkt(20, 3090),
+            Punkt(4800, 3090),
+          ], const Punkt(0, 1)),
+        ),
+      );
+      final punkte = const <Auflagerpunkt>[
+        (ort: Punkt(20, 50), spalt: Millimeter(5), zeile: 0),
+        (ort: Punkt(20, 600), spalt: Millimeter(45), zeile: 1),
+        (ort: Punkt(20, 1200), spalt: Millimeter(46), zeile: 1),
+        (ort: Punkt(20, 3040), spalt: Millimeter(900), zeile: null),
+      ];
+      final mit = Berechnung(
+        umriss: b.umriss,
+        flaeche: b.flaeche,
+        planbild: b.planbild,
+        hoehenpunkte: b.hoehenpunkte,
+        unterbau: Unterbau(
+          hoelzer: b.unterbau.hoelzer,
+          holzbreite: b.unterbau.holzbreite,
+          auflagerpunkte: punkte,
+          zuordnung: b.unterbau.zuordnung,
+        ),
+      );
+      final u = planungsunterlagen(
+        planung: Planung.start,
+        gesamt: mit,
+        flaechen: [Flaechenunterlage(mit)],
+        datum: datum,
+      );
+      final k = kapitel(u, 'Ihre Terrasse – Bemaßung und Höhen');
+      expect(k.neueSeite, isTrue);
+      final plan = baustein<Plan>(k);
+      expect(plan.linien.first.argb, 0xFF000000);
+      expect(plan.linien[1].argb, ukHellfarbe);
+      expect(plan.linien[1].gefuellt, isTrue);
+      expect(
+        [for (final l in plan.linien.skip(2).take(4)) l.argb],
+        [auflagerfarben[0], auflagerfarben[1], auflagerfarben[1], 0xFF000000],
+      );
+      expect(plan.linien[2].punkte.first, const Punkt(-10, 20));
+      // Achsmaßkette: Linie und drei Marken
+      expect(plan.linien.skip(6), hasLength(4));
+      expect(plan.linien.last.argb, achsmassfarbe);
+      final texte = [for (final t in plan.texte) t.text];
+      expect(
+        texte,
+        containsAll(['A', 'H = 15 cm', 'H = 8,6 cm', '0,5', '4,5', '90']),
+      );
+      expect(texte.where((t) => t.startsWith('H = ')), hasLength(4));
+      // Höhe des Auflagers unter dem Punkt, H außen hinter dem Buchstaben
+      final a = plan.texte.firstWhere((t) => t.text == 'A').ort;
+      final h = plan.texte.firstWhere((t) => t.text == 'H = 15 cm').ort;
+      expect(h.abstand(Punkt.ursprung), greaterThan(a.abstand(Punkt.ursprung)));
+      final spalt = plan.texte.firstWhere((t) => t.text == '0,5').ort;
+      expect(spalt.x, 20);
+      expect(spalt.y, greaterThan(50));
+      expect(baustein<Absatz>(k).text, startsWith('H = Höhe Oberkante'));
+      final legende = baustein<Tabelle>(k);
+      expect(legende.kopf, ['Auflager', 'Anzahl']);
+      expect(legende.zeilen, [
+        ['Pad', '1'],
+        ['Stelzfuß', '2'],
+        ['Kein passendes Auflager', '1'],
+      ]);
+      expect(legende.farben, [
+        auflagerfarben[0],
+        auflagerfarben[1],
+        0xFF000000,
+      ]);
+      expect(legende.rechts, {1});
+      expect(auflagerfarbe(auflagerfarben.length + 2), auflagerfarben[2]);
+    });
+
+    test('Bemaßung: ohne Auflager keine Seite, beim Kreis kein H im Plan', () {
+      final ohne = erzeuge([Berechnung(umriss: rechteck, flaeche: 1)]).kapitel
+          .map((k) => k.titel);
+      expect(ohne.where((t) => t.contains('Bemaßung')), isEmpty);
+      final kreis = Berechnung(
+        umriss: rechteck,
+        ecken: const [Punkt.ursprung],
+        flaeche: 1,
+        hoehenpunkte: Hoehenpunkte(hoehen: const [Millimeter(86)]),
+        unterbau: Unterbau(
+          auflagerpunkte: const [
+            (ort: Punkt(20, 50), spalt: Millimeter(3), zeile: 0),
+          ],
+          zuordnung: const [
+            (titel: 'Pad', anzahl: 1, von: Millimeter(3), bis: Millimeter(3)),
+          ],
+        ),
+      );
+      final u = planungsunterlagen(
+        planung: Planung.start,
+        gesamt: kreis,
+        flaechen: [Flaechenunterlage(kreis)],
+        datum: datum,
+      );
+      final plan = baustein<Plan>(
+        kapitel(u, 'Ihre Terrasse – Bemaßung und Höhen'),
+      );
+      expect([for (final t in plan.texte) t.text], ['0,3']);
+    });
+
     test('Belag: Verlegeplan mit Nummern, Dielen nach Nummer, Lieferung und '
         'Zuschnitt', () {
       final u = erzeuge([berechnung()]);
-      final k = u.kapitel[4];
+      final k = u.kapitel[5];
       expect(baustein<Absatz>(k).text, startsWith('Hinweis: Die Zahl'));
       final plan = baustein<Plan>(k);
       expect(plan.linien, hasLength(stuecke.length + 1));
@@ -497,7 +607,7 @@ void main() {
       expect(baustein<Tabelle>(k, 1).zeilen, [
         ['500', '47'],
       ]);
-      expect(baustein<Tabelle>(u.kapitel[5]).zeilen, [
+      expect(baustein<Tabelle>(u.kapitel[6]).zeilen, [
         ['Diele 60 x 21 mm', '500', '47', '480'],
       ]);
     });

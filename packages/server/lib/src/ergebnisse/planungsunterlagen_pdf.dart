@@ -175,9 +175,8 @@ pw.Widget _tabelle(Tabelle t) {
   );
 }
 
-pw.Widget _farbfeld(Stueckfarbe farbe) => _zelle(
-  pw.Container(width: 14, height: 8, color: PdfColor.fromInt(farbe.argb)),
-);
+pw.Widget _farbfeld(int argb) =>
+    _zelle(pw.Container(width: 14, height: 8, color: PdfColor.fromInt(argb)));
 
 /// Anteil jeder Spalte an der Breite nach ihrem längsten Inhalt (Kopf
 /// nur nach dem längsten Wort, er darf umbrechen), zwischen 3 und 40
