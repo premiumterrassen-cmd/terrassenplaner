@@ -508,6 +508,12 @@ abstract class PlanerTexte {
   /// **'Bitte {min} bis {max} cm eingeben'**
   String massUngueltig(int min, int max);
 
+  /// No description provided for @massInCm.
+  ///
+  /// In de, this message translates to:
+  /// **'Über 50 m – bitte das Maß in cm angeben'**
+  String get massInCm;
+
   /// No description provided for @berechnungFehler.
   ///
   /// In de, this message translates to:
@@ -1972,6 +1978,18 @@ abstract class PlanerTexte {
   /// **'Hinweis: Die Fläche liegt außerhalb der üblichen 1 bis 300 m² – bitte prüfen Sie die Maße.'**
   String get flaechenmeldungUngewoehnlich;
 
+  /// No description provided for @kantenwarnungZuKurz.
+  ///
+  /// In de, this message translates to:
+  /// **'Hinweis: Kante {kante} ist nur {cm} cm lang (unter 10 cm) – bitte prüfen Sie die Maße.'**
+  String kantenwarnungZuKurz(String kante, String cm);
+
+  /// No description provided for @kantenwarnungZuLang.
+  ///
+  /// In de, this message translates to:
+  /// **'Hinweis: Kante {kante} ist {cm} cm lang (über 30 m) – bitte prüfen Sie die Maße.'**
+  String kantenwarnungZuLang(String kante, String cm);
+
   /// No description provided for @belagmeldungBombierung.
   ///
   /// In de, this message translates to:
@@ -2404,6 +2422,18 @@ abstract class PlanerTexte {
   /// **'Optional – nicht in der Summe'**
   String get materialOptional;
 
+  /// No description provided for @materialNichtImAngebot.
+  ///
+  /// In de, this message translates to:
+  /// **'Nicht im Angebot: {titel}'**
+  String materialNichtImAngebot(String titel);
+
+  /// No description provided for @materialImAngebot.
+  ///
+  /// In de, this message translates to:
+  /// **'Im Angebot'**
+  String get materialImAngebot;
+
   /// No description provided for @materialBerechnet.
   ///
   /// In de, this message translates to:
@@ -2655,6 +2685,72 @@ abstract class PlanerTexte {
   /// In de, this message translates to:
   /// **'Die Blende ist aus der Serie des Belags, glattkant und so stark wie die Diele. Ihre Breite richtet sich nach der Höhe (höchstens 100 mm, über ca. 13 cm zwei Blenden à 60 mm); die Ecken werden auf Gehrung geschnitten.'**
   String get verblendungHinweis;
+
+  /// No description provided for @blendeSeite.
+  ///
+  /// In de, this message translates to:
+  /// **'Blende {seite}'**
+  String blendeSeite(String seite);
+
+  /// No description provided for @blendenhoehe.
+  ///
+  /// In de, this message translates to:
+  /// **'Blendenhöhe'**
+  String get blendenhoehe;
+
+  /// No description provided for @blendenhoeheAutomatisch.
+  ///
+  /// In de, this message translates to:
+  /// **'automatisch'**
+  String get blendenhoeheAutomatisch;
+
+  /// No description provided for @blendenhoeheZuruecksetzen.
+  ///
+  /// In de, this message translates to:
+  /// **'Blendenhöhe automatisch (niedrigste Stelle der Seite)'**
+  String get blendenhoeheZuruecksetzen;
+
+  /// No description provided for @blendenteil.
+  ///
+  /// In de, this message translates to:
+  /// **'Teilstück {nummer}'**
+  String blendenteil(int nummer);
+
+  /// No description provided for @blendenteilVon.
+  ///
+  /// In de, this message translates to:
+  /// **'Von (ab {ecke})'**
+  String blendenteilVon(String ecke);
+
+  /// No description provided for @blendenteilBis.
+  ///
+  /// In de, this message translates to:
+  /// **'Bis (ab {ecke})'**
+  String blendenteilBis(String ecke);
+
+  /// No description provided for @blendenteilHinzufuegen.
+  ///
+  /// In de, this message translates to:
+  /// **'Nur einen Teil der Seite verblenden'**
+  String get blendenteilHinzufuegen;
+
+  /// No description provided for @blendenteilEntfernen.
+  ///
+  /// In de, this message translates to:
+  /// **'Teilstück entfernen'**
+  String get blendenteilEntfernen;
+
+  /// No description provided for @blendenteilUngueltig.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte von 0 bis 5000 cm eingeben, der Anfang vor dem Ende'**
+  String get blendenteilUngueltig;
+
+  /// No description provided for @blendeJeSeiteHilfe.
+  ///
+  /// In de, this message translates to:
+  /// **'Ohne Angabe gilt die niedrigste Stelle der Seite – die Blende steht nirgends auf, an höheren Stellen bleibt unten Luft. Ohne Teilstück wird die ganze Seite verblendet.'**
+  String get blendeJeSeiteHilfe;
 
   /// No description provided for @meldungUnterlueftung.
   ///
@@ -2919,6 +3015,30 @@ abstract class PlanerTexte {
   /// In de, this message translates to:
   /// **'Eine Treppe liegt an einer Seite am Bauelement oder mit Rinne – sie wird nicht gerechnet.'**
   String get meldungTreppeNichtFrei;
+
+  /// No description provided for @treppeMeldungSteigung.
+  ///
+  /// In de, this message translates to:
+  /// **'Prüfliste: Eine Steigung liegt außerhalb von 15–19 cm.'**
+  String get treppeMeldungSteigung;
+
+  /// No description provided for @treppeMeldungSchrittmass.
+  ///
+  /// In de, this message translates to:
+  /// **'Prüfliste: Das Schrittmaß (2 × Steigung + Auftritt) liegt außerhalb von 59–67 cm.'**
+  String get treppeMeldungSchrittmass;
+
+  /// No description provided for @treppeMeldungZuSchmal.
+  ///
+  /// In de, this message translates to:
+  /// **'Prüfliste: Die Treppe ist schmaler als 50 cm.'**
+  String get treppeMeldungZuSchmal;
+
+  /// No description provided for @treppeMeldungUeberSeite.
+  ///
+  /// In de, this message translates to:
+  /// **'Prüfliste: Die Treppe reicht über das Ende der Seite hinaus.'**
+  String get treppeMeldungUeberSeite;
 }
 
 class _PlanerTexteDelegate extends LocalizationsDelegate<PlanerTexte> {

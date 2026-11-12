@@ -286,6 +286,35 @@ void main() {
       expect(ohnePreis.summe, const Cent(1999));
     });
 
+    test('nicht im Angebot (Planungskern v7 Regel 9.7): bleibt stehen, '
+        'nicht in der Summe; ohne Preis bleibt die Summe vollständig', () {
+      final clip = (nummer: _clips.first.nummer, laenge: null, zusatz: null);
+      final liste = Materialliste.aus(
+        [
+          Materialbedarf([_montagehilfe], 1),
+          Materialbedarf([_clips.first], 50),
+          Materialbedarf([_diele(preis: null)], 1, laenge: _m4),
+        ],
+        ausserhalbAngebot: {
+          clip,
+          (nummer: _diele().nummer, laenge: _m4, zusatz: null),
+        },
+      );
+      expect(
+        [for (final p in liste.positionen) p.imAngebot],
+        [false, false, true],
+      );
+      expect(liste.positionen[1].positionspreis, const Cent(2500));
+      expect(liste.summe, const Cent(1999));
+      expect(liste.vollstaendig, isTrue);
+      expect(
+        Materialliste.aus([
+          Materialbedarf([_clips.first], 50),
+        ]).summe,
+        const Cent(2500),
+      );
+    });
+
     test('Artikel ohne Preis: Position ohne Preise, Summe unvollständig', () {
       final liste = Materialliste.aus([
         Materialbedarf([_diele(preis: null)], 2, laenge: _m5),
@@ -370,15 +399,20 @@ void main() {
     });
 
     test('Zeile: Gleichheit, Text, Schlüssel', () {
-      Materialzeile zeile({int anzahl = 2}) => Materialzeile(
-        position: 1,
-        nummer: const Artikelnummer('1'),
-        titel: 'T',
-        bereich: Bereich.zubehoer,
-        einheit: Mengeneinheit.karton,
-        anzahl: anzahl,
-      );
+      Materialzeile zeile({int anzahl = 2, bool imAngebot = true}) =>
+          Materialzeile(
+            position: 1,
+            nummer: const Artikelnummer('1'),
+            titel: 'T',
+            bereich: Bereich.zubehoer,
+            einheit: Mengeneinheit.karton,
+            anzahl: anzahl,
+            imAngebot: imAngebot,
+          );
       expect(zeile(), zeile());
+      expect(zeile().imAngebot, isTrue);
+      expect(zeile(), isNot(zeile(imAngebot: false)));
+      expect(zeile().hashCode, isNot(zeile(imAngebot: false).hashCode));
       expect(zeile().hashCode, zeile().hashCode);
       expect(zeile(), isNot(zeile(anzahl: 3)));
       expect(zeile(), isNot(Object()));
@@ -453,6 +487,9 @@ void main() {
             zusatz: null,
           ): 2,
         },
+        ausserhalbAngebot: {
+          (nummer: _diele().nummer, laenge: _m5, zusatz: null),
+        },
       );
       final fbb = fb.Builder();
       fbb.finish(liste.schreibe(fbb));
@@ -462,6 +499,10 @@ void main() {
       expect(gelesen.vollstaendig, isFalse);
       expect(gelesen.positionen.last.berechnet, 1);
       expect(gelesen.positionen[3].bild, isNull);
+      expect(
+        [for (final p in gelesen.positionen) p.imAngebot],
+        [true, false, true, true, true, true],
+      );
     });
 
     test('Transport: leere Tabelle gibt eine leere Liste', () {

@@ -269,9 +269,17 @@ Die Abweichungen im Test bleiben dieselben bis auf **F03 Freidielen** (jetzt gle
 
 **Offen:** Fragen 26–31 in [Fachkonzept 10](../fachkonzept/10-offene-fragen.md) – vor allem, ob die Grenze von 3 Stücken je Diele streng gelten soll (F04 bleibt bei 2 Freidielen, F22 +4 m, 2026-04-29-164 +28 m).
 
+## Nachtrag Höhe je Ecke, Bemaßungsplan, Seitenblende je Kante (Planungskern v7, 12.11.2026)
+
+Branch `feature/planungskern-v7-hoehe` auf `main` (9f2b2d1). Planungsregeln Alexander (Planungskern v7, 12.11.2026), Abschnitt 9.1, 9.2 und 9.4; R-C18, R-D30, R-E05.
+
+**Verglichene Werte:** Alle F01–F43 und alle 26 Referenzfälle rechnen **genau wie `main`**; der Paritätstest bleibt unverändert. Die Fälle haben ebene Höhen (eine Höhe oder eine geneigte Ebene wie F30), dort sind Ausgleichsebene und die bisherigen Dreiecke gleich; keiner hat eine eigene Blendenhöhe oder Teilverblendung. Die Referenzunterlagen haben je Fläche die neue Seite „Bemaßung und Höhen“.
+
+**Nicht im Vergleich, aber geändert** (Unit-Tests, Planungskern v7): Höhen zwischen den Punkten bei verwundenem Untergrund und mit Abläufen (Ablauf 5 cm in der Mitte, Ecken 10 cm: auf halbem Weg 8,0 statt 7,5 cm; L- und U-Form mit unebenen Ecken je Punkt bis 4 mm anders).
+
 ## Nachtrag Verlegemuster (Planungskern v7, 12.11.2026)
 
-Branch `feature/planungskern-v7-verband`. Grund: **Planungskern v7** – Planungsregeln Alexander (Planungskern v7, 11.11.2026) Regel 9.3 mit 2.1, im Planer R-B18: Verband nur, wenn die Fläche länger als eine Diele ist; Stoßlinien je Reihe um ½ / ⅓ / ¼ der Stoßweite versetzt, Wechselverband unregelmäßig (nie wie die beiden Reihen davor), Stücke 40 cm bis Lieferlänge, jede benutzte Stoßlinie mit Doppel-UK. Der Fugenschnitt (Standard) ist unverändert – alle Fälle im Fugenschnitt rechnen wie auf `main` (dbf6f95). Vergleich mit `main`:
+Branch `feature/planungskern-v7-verband`. Grund: **Planungskern v7** – Planungsregeln Alexander (Planungskern v7, 11.11.2026) Regel 9.3 mit 2.1, im Planer R-B18: Verband nur, wenn die Fläche länger als eine Diele ist; Stoßlinien je Reihe um ½ / ⅓ / ¼ der Stoßweite versetzt, Wechselverband unregelmäßig (nie wie die beiden Reihen davor), Stücke 40 cm bis Lieferlänge, jede benutzte Stoßlinie mit Doppel-UK. Der Fugenschnitt (Standard) ist unverändert – alle Fälle im Fugenschnitt rechnen wie auf `main` (dbf6f95, nach dem Einmergen von Treppe und Höhe je Ecke auch wie `fc1007f`). Treppendielen gehen unverändert in den gemeinsamen Zuschnitt (Test im Planungsdienst: Halbverband mit Treppe). Vergleich mit `main`:
 
 | Fall | Größe | `main` | jetzt | alter Planer | Grund |
 |---|---|---|---|---|---|

@@ -1175,6 +1175,33 @@ void main() {
           true,
         ).materialliste.positionen.first;
         expect((mit.anzahl, mit.berechnet), (50, 47));
+        // Häkchen „im Angebot“ weg (Planungskern v7 Regel 9.7): nur
+        // Mitarbeiter
+        final ohne = planung.mitImAngebot(schluessel, an: false);
+        final liste = PlanungsDienst.berechnePlanung(
+          ohne,
+          (_) => diele,
+          regelwerk,
+          true,
+        ).materialliste;
+        expect(liste.positionen.first.imAngebot, isFalse);
+        expect(
+          liste.summe,
+          liste.positionen
+              .skip(1)
+              .fold(
+                const Cent(0),
+                (s, p) => s + (p.positionspreis ?? const Cent(0)),
+              ),
+        );
+        expect(
+          PlanungsDienst.berechnePlanung(
+            ohne,
+            (_) => diele,
+            regelwerk,
+          ).materialliste.positionen.first.imAngebot,
+          isTrue,
+        );
         expect(
           PlanungsDienst.berechnePlanung(
             planung,
@@ -2879,6 +2906,26 @@ void main() {
       expect(belegt.anschluss.treppen.single.frei, isFalse);
       expect(belegt.anschluss.meldungen, [Anschlussmeldung.treppeNichtFrei]);
       expect(belegt.materialliste, f01.materialliste);
+      // Verlegemuster (Planungskern v7 Regel 9.3, R-B18) mit Treppe: die
+      // Treppendielen bleiben 16 × 100 cm, die Stöße des Halbverbands
+      // (300 cm) kommen dazu, beides im gemeinsamen Zuschnitt
+      final halb = mit(
+        Planungsstand.start
+            .mitGrundriss(
+              RechteckGrundriss(const Millimeter(8000), const Millimeter(3090)),
+            )
+            .mitVerlegeart(Verlegeart.halbverband)
+            .mitNeuerTreppe()
+            .mitTreppe(0, const Treppe(seite: 2)),
+      );
+      int stueck(Berechnung b, int laenge) => b.stueckliste.zeilen
+          .where(
+            (z) => z.nummer == diele.nummer && z.laenge == Millimeter(laenge),
+          )
+          .fold(0, (n, z) => n + z.stueck);
+      expect(stueck(halb, 1000), 16);
+      expect(stueck(halb, 3000), greaterThan(0));
+      expect(halb.anschluss.treppen.single.frei, isTrue);
     });
   });
 

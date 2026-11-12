@@ -143,6 +143,36 @@ List<String> _verteileJeStueck(List<int> stuecke, List<int> laengen, int u) {
 }
 
 void main() {
+  test('Verband (R-B18): Dielenstücke ab 40 cm, Fliesenstücke ab einer '
+      'halben Fliese', () {
+    List<List<int>> reihen(Belagverlegung v) {
+      final je = <int, List<int>>{};
+      for (final st in v.teile.single.stuecke) {
+        je.putIfAbsent(st.reihe, () => []).add(st.laenge.mm);
+      }
+      return [for (final r in (je.keys.toList()..sort())) je[r]!];
+    }
+
+    // 4 Fliesen lang: die zweite Reihe um eine halbe Fliese versetzt
+    final fliesen = reihen(
+      _verlegt(
+        _rechteck(2424, 1200).mitVerlegeart(Verlegeart.halbverband),
+        _fliese,
+      ),
+    );
+    expect(fliesen.first, [606, 606, 606, 606]);
+    expect(fliesen[1], [303, 606, 606, 606, 303]);
+    // Dielen 6 m auf 6,40 m: Endstück 40 cm bleibt, mit ½ 3 + 3,4 m
+    final dielen = reihen(
+      _verlegt(
+        _rechteck(6400, 1000).mitVerlegeart(Verlegeart.halbverband),
+        _diele(60),
+      ),
+    );
+    expect(dielen.first, [6000, 400]);
+    expect(dielen[1], [3000, 3400]);
+  });
+
   group('Musterverfahren (R-B17, Planungskern v6 Regeln 1.3, 1.4)', () {
     const u = dielenUeberlaenge;
     const muster = Musterregel.dielen;

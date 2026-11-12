@@ -307,6 +307,72 @@ void main() {
       ]);
     });
 
+    test('Grenzen: Stück genau 40 cm und genau Lieferlänge sind gültig', () {
+      final w = Verbandwahl(
+        Verlegeart.halbverband,
+        von: _null,
+        bis: const Millimeter(20000),
+        raster: _m6,
+        hoechstlaenge: _m6,
+      );
+      // 600 + 40 cm ohne Versatz (39,9 cm nicht: gespiegelt von 20 m 200 cm)
+      expect(_reihe(w, 0, [(0, 6400)]), [
+        [6000],
+      ]);
+      expect(_reihe(w, 0, [(0, 6399)]), [
+        [2000],
+      ]);
+    });
+
+    test('Abstand zur Vorreihe: genau der halbe Versatz reicht', () {
+      // Reihe 0 gespiegelt von 13,5 m (Linie 1,5 m), dann ½: 3 m – genau
+      // 1,5 m daneben ist erlaubt, 1,499 m nicht (gespiegelt 4,501 m)
+      for (final (bis, erste, zweite) in [
+        (13500, 1500, 3000),
+        (13501, 1501, 4501),
+      ]) {
+        final w = _wahl(Verlegeart.halbverband, bis);
+        expect(_reihe(w, 0, [(0, 6200)]).single, [erste]);
+        expect(_reihe(w, 1, [(0, 6200)]).single, [zweite]);
+      }
+    });
+
+    test('Wie viele Vorreihen zählen: Halb eine, Drittel zwei', () {
+      final halb = _wahl(Verlegeart.halbverband, 13500);
+      expect(_reihe(halb, 1, [(0, 6200)]).single, [3000]);
+      expect(_reihe(halb, 0, [(0, 12000)]).single, [6000]);
+      // 3 m lag zwei Reihen davor: im Halbverband egal
+      expect(_reihe(halb, 1, [(0, 6200)]).single, [3000]);
+      final drittel = _wahl(Verlegeart.drittelverband, 13500);
+      expect(_reihe(drittel, 1, [(0, 6200)]).single, [2000]);
+      expect(_reihe(drittel, 2, [(0, 6200)]).single, [4000]);
+      // 2 m lag zwei Reihen davor: im Drittelverband gespiegelt (5,5 m)
+      expect(_reihe(drittel, 1, [(0, 6200)]).single, [5500]);
+    });
+
+    test('Wechselverband: feste Folge der Versätze', () {
+      final w = _wahl(Verlegeart.wechselverband, 13000);
+      expect(
+        [
+          for (var r = 0; r < 12; r++) _reihe(w, r, [(0, 13000)]).single.first,
+        ],
+        [
+          1500,
+          4500,
+          3000,
+          6000,
+          4500,
+          3000,
+          1500,
+          4500,
+          6000,
+          3000,
+          1500,
+          6000,
+        ],
+      );
+    });
+
     test('ohne gültige Lage: gleich lange Stücke', () {
       final w = Verbandwahl(
         Verlegeart.halbverband,

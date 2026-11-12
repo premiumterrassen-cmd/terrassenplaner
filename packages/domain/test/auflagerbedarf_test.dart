@@ -89,8 +89,8 @@ void main() {
       expect((aussen.mm - hoehen.first).abs(), lessThan(2));
     });
 
-    test('Dreiecke der Ecken (Ohrenschnitt) bei nicht ebenen Höhen: L und U '
-        'in beiden Umlaufrichtungen, Dreieck', () {
+    test('Planungskern v7 (Regel 9.1): Ausgleichsebene, Abweichung nach '
+        'Abstand verteilt – L und U in beiden Umlaufrichtungen, Dreieck', () {
       List<int> werte(Hoehenflaeche f, List<Punkt> punkte) => [
         for (final p in punkte) f.bei(p).mm,
       ];
@@ -104,20 +104,14 @@ void main() {
         Punkt(800, 1500),
         Punkt(1700, 1700),
       ];
-      expect(werte(Hoehenflaeche(l, hl), innenL), [
-        86,
-        117,
-        101,
-        106,
-        101,
-        117,
-      ]);
+      // vorher Dreiecke (Ohrenschnitt): 86, 117, 101, 106, 101, 117
+      const sollL = [85, 117, 104, 110, 104, 121];
+      expect(werte(Hoehenflaeche(l, hl), innenL), sollL);
       expect(
         werte(Hoehenflaeche(l.reversed.toList(), hl.reversed.toList()), innenL),
-        [86, 117, 101, 106, 101, 117],
+        sollL,
       );
-      // Kerbe von oben: die Spitze liegt genau auf der Diagonale des
-      // Dreiecks unten links – es ist kein Ohr, die Höhe der Spitze zählt
+      // Kerbe von oben: die Spitze zählt nach ihrem Abstand
       const kerbe = [
         Punkt(0, 0),
         Punkt(4000, 0),
@@ -126,34 +120,72 @@ void main() {
         Punkt(0, 4000),
       ];
       final k = Hoehenflaeche(kerbe, _mm([100, 100, 100, 300, 100]));
-      expect(k.bei(const Punkt(2000, 500)), const Millimeter(150));
+      expect(k.bei(const Punkt(2000, 2000)), const Millimeter(300));
+      expect(k.bei(const Punkt(2000, 500)), const Millimeter(186));
       final u = UGrundriss.vorgabe.ecken;
       final hu = _mm([80, 133, 172, 197, 88, 85, 188, 157]);
-      expect(
-        werte(Hoehenflaeche(u, hu), const [
-          Punkt(200, 200),
-          Punkt(900, 900),
-          Punkt(200, 2300),
-          Punkt(1600, 1600),
-          Punkt(3000, 1600),
-          Punkt(3700, 900),
-          Punkt(3700, 2300),
-          Punkt(2300, 2300),
-        ]),
-        [94, 141, 153, 181, 192, 139, 190, 179],
-      );
+      for (final (i, e) in u.indexed) {
+        expect(Hoehenflaeche(u, hu).bei(e), hu[i]);
+      }
       // jedes Auflager der Fläche liegt zwischen der kleinsten und der
-      // größten Eckhöhe (keine Hochrechnung über ein falsches Dreieck)
+      // größten Eckhöhe
       for (var x = 100.0; x < 4000; x += 300) {
         for (var y = 950.0; y < 2700; y += 300) {
           final h = Hoehenflaeche(u, hu).bei(Punkt(x, y)).mm;
           expect(h, inInclusiveRange(80, 197), reason: '($x|$y)');
         }
       }
-      // Dreieck: drei Ecken genügen
+      // Dreieck: drei Ecken bilden die Ebene genau
       const dreieck = [Punkt(0, 0), Punkt(3000, 0), Punkt(0, 3000)];
       final d = Hoehenflaeche(dreieck, _mm([100, 160, 220]));
       expect(d.bei(const Punkt(1000, 1000)), const Millimeter(160));
+    });
+
+    test('Planungskern v7 (Regel 9.1): ein Punkt flach, zwei als Verlauf, '
+        'alle auf einer Linie, doppelte Punkte', () {
+      // ein Punkt (offener Linienzug mit einer Ecke)
+      expect(
+        Hoehenflaeche(const [Punkt(500, 500)], _mm([70])).bei(Punkt.ursprung),
+        const Millimeter(70),
+      );
+      // zwei Punkte: Verlauf entlang der Verbindung, quer dazu gleich
+      final zwei = Hoehenflaeche(const [
+        Punkt(0, 0),
+        Punkt(2000, 0),
+      ], _mm([100, 200]));
+      expect(zwei.bei(const Punkt(1000, 0)), const Millimeter(150));
+      expect(zwei.bei(const Punkt(1000, 900)), const Millimeter(150));
+      expect(zwei.bei(const Punkt(3000, 0)), const Millimeter(250));
+      // zwei gleiche Punkte: flach im Mittel
+      expect(
+        Hoehenflaeche(const [
+          Punkt(0, 0),
+          Punkt(0.5, 0),
+        ], _mm([100, 120])).bei(const Punkt(5000, 0)),
+        const Millimeter(110),
+      );
+      // drei Punkte auf einer Linie (auch quer zur Diagonale): Verlauf
+      // zwischen den äußeren, der mittlere stimmt genau
+      final linie = Hoehenflaeche(const [
+        Punkt(0, 2000),
+        Punkt(1000, 1000),
+        Punkt(2000, 0),
+      ], _mm([100, 130, 200]));
+      expect(linie.bei(const Punkt(0, 2000)), const Millimeter(100));
+      expect(linie.bei(const Punkt(1000, 1000)), const Millimeter(130));
+      expect(linie.bei(const Punkt(2000, 0)), const Millimeter(200));
+      expect(linie.bei(const Punkt(1500, 500)), const Millimeter(166));
+      // ein Punkt auf dem Rand zählt, einer knapp außerhalb nicht
+      final rand = Hoehenflaeche(_ecken, _mm([100, 100, 100, 100, 40]), const [
+        Punkt(2400, 0),
+      ]);
+      expect(rand.bei(const Punkt(2400, 0)), const Millimeter(40));
+      final draussen = Hoehenflaeche(
+        _ecken,
+        _mm([100, 100, 100, 100, 40]),
+        const [Punkt(2400, -2)],
+      );
+      expect(draussen.bei(const Punkt(2400, 0)), const Millimeter(100));
     });
   });
 

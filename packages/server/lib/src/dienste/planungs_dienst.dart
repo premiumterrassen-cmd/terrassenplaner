@@ -658,6 +658,7 @@ class PlanungsDienst {
       materialliste: Materialliste.aus(
         alle,
         mengen: mitMengen ? planung.mengen : const {},
+        ausserhalbAngebot: mitMengen ? planung.ausserhalbAngebot : const {},
       ),
       volumen: holzvolumen(alle),
       verschnittvarianten: [

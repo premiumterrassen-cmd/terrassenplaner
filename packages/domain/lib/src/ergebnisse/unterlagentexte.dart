@@ -1,4 +1,5 @@
 import '../artikel/einheiten.dart';
+import '../konfiguration/anschlussergebnis.dart';
 import '../konfiguration/auflagen.dart';
 import '../konfiguration/befestigungsart.dart';
 import '../konfiguration/nutzungsart.dart';
@@ -9,6 +10,7 @@ import '../konfiguration/verlegerichtung.dart';
 import '../regeln/auflager.dart';
 import '../regeln/belagmeldungen.dart';
 import '../regeln/flaechenpruefung.dart';
+import '../regeln/kantenpruefung.dart';
 import 'materialliste.dart';
 import 'stueckliste.dart';
 
@@ -83,6 +85,9 @@ final class Unterlagentexte {
     required this.dielenHinweis,
     required this.stossHinweis,
     required this.achsmassHinweis,
+    required this.massKapitel,
+    required this.massHinweis,
+    required this.ohneAuflager,
     required this.dielenNachNummer,
     required this.nr,
     required this.masse,
@@ -169,6 +174,12 @@ final class Unterlagentexte {
         'Rot gestrichelt: Stoß – jedes Dielenende liegt auf einer eigenen '
         'UK (Doppel-UK).',
     achsmassHinweis: 'Blau: Achsmaße der UK in cm.',
+    massKapitel: 'Bemaßung und Höhen',
+    massHinweis:
+        'H = Höhe Oberkante Diele über Boden je Ecke in cm. An jedem '
+        'Auflager die Höhe des Stellfußes bzw. der Unterleger in cm, die '
+        'Farbe nach der Legende.',
+    ohneAuflager: 'Kein passendes Auflager',
     dielenNachNummer: 'Dielen/Platten nach Nummer',
     nr: 'Nr.',
     masse: 'Maße in cm',
@@ -278,6 +289,12 @@ final class Unterlagentexte {
         'Red dashed: butt joint – each board end rests on its own joist '
         '(double joist).',
     achsmassHinweis: 'Blue: joist centre distances in cm.',
+    massKapitel: 'Dimensions and heights',
+    massHinweis:
+        'H = height of the top of the boards above ground per corner in cm. '
+        'At every support the height of the adjustable foot or pads in cm, '
+        'coloured as in the legend.',
+    ohneAuflager: 'No matching support',
     dielenNachNummer: 'Boards/tiles by number',
     nr: 'No.',
     masse: 'Size in cm',
@@ -393,6 +410,15 @@ final class Unterlagentexte {
 
   /// Legende der Achsmaßkette im UK-Plan (R-E02).
   final String achsmassHinweis;
+
+  /// Seite „Bemaßung und Höhen“ (Planungskern v7, Regel 9.2, R-E05):
+  /// Titel, Legende und Zeile für Auflager ohne passenden Artikel.
+  final String massKapitel;
+  final String massHinweis;
+  final String ohneAuflager;
+
+  /// „H = 8,6 cm“: Höhe einer Ecke im Bemaßungsplan.
+  String eckhoehe(Millimeter hoehe) => 'H = ${cm(hoehe)} cm';
   final String dielenNachNummer;
   final String nr;
   final String masse;
@@ -683,4 +709,46 @@ final class Unterlagentexte {
             'ohne UK darunter.'
       : 'Edge substructure of ${cm(laenge)} cm added: boards ended at an edge '
             'without substructure underneath.';
+
+  /// Warnung zu einer Kante (Planungskern v7 Regel 9.6).
+  String kantenwarnung(Kantenwarnung k) => switch ((k.art, _de)) {
+    (Kantenmeldung.zuKurz, true) =>
+      'Kante ${k.kante} ist nur ${cm(k.laenge)} cm lang (unter 10 cm) – '
+          'bitte die Maße prüfen.',
+    (Kantenmeldung.zuKurz, false) =>
+      'Edge ${k.kante} is only ${cm(k.laenge)} cm long (under 10 cm) – '
+          'please check the dimensions.',
+    (Kantenmeldung.zuLang, true) =>
+      'Kante ${k.kante} ist ${cm(k.laenge)} cm lang (über 30 m) – bitte die '
+          'Maße prüfen.',
+    (Kantenmeldung.zuLang, false) =>
+      'Edge ${k.kante} is ${cm(k.laenge)} cm long (over 30 m) – please check '
+          'the dimensions.',
+  };
+
+  /// Hinweis der Prüfliste zur Treppe [nummer] (ab 1, Planungskern v7
+  /// Regel 9.5.5).
+  String treppenmeldung(int nummer, Treppenmeldung m) => switch ((m, _de)) {
+    (Treppenmeldung.steigung, true) =>
+      'Treppe $nummer: Eine Steigung liegt außerhalb von 15–19 cm.',
+    (Treppenmeldung.steigung, false) =>
+      'Stairs $nummer: a riser height is outside 15–19 cm.',
+    (Treppenmeldung.schrittmass, true) =>
+      'Treppe $nummer: Das Schrittmaß (2 × Steigung + Auftritt) liegt '
+          'außerhalb von 59–67 cm.',
+    (Treppenmeldung.schrittmass, false) =>
+      'Stairs $nummer: the step dimension (2 × riser + tread) is outside '
+          '59–67 cm.',
+    (Treppenmeldung.zuSchmal, true) => 'Treppe $nummer: schmaler als 50 cm.',
+    (Treppenmeldung.zuSchmal, false) => 'Stairs $nummer: narrower than 50 cm.',
+    (Treppenmeldung.ueberSeite, true) =>
+      'Treppe $nummer: reicht über das Ende der Seite hinaus.',
+    (Treppenmeldung.ueberSeite, false) =>
+      'Stairs $nummer: extends beyond the end of the side.',
+  };
+
+  /// Name einer Position, die nicht im Angebot ist (Planungskern v7 Regel
+  /// 9.7).
+  String nichtImAngebot(String titel) =>
+      _de ? 'Nicht im Angebot: $titel' : 'Not in the offer: $titel';
 }

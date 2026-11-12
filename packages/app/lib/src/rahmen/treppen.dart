@@ -57,6 +57,9 @@ class TreppenWahl extends StatelessWidget {
                 treppe: treppe,
                 stand: stand,
                 masse: anschluss?.treppen.elementAtOrNull(i)?.masse,
+                meldungen:
+                    anschluss?.treppen.elementAtOrNull(i)?.meldungen ??
+                    const [],
                 onGeaendert: (neu) => _setze(planung.aktuell.mitTreppe(i, neu)),
                 onEntfernen: () => _setze(planung.aktuell.ohneTreppe(i)),
               ),
@@ -89,6 +92,7 @@ class TreppenBlock extends StatelessWidget {
     required this.onGeaendert,
     required this.onEntfernen,
     this.masse,
+    this.meldungen = const [],
     super.key,
   });
 
@@ -101,6 +105,9 @@ class TreppenBlock extends StatelessWidget {
 
   /// Treppenmaße vom Server; `null`, solange keine Berechnung vorliegt.
   final Treppenmasse? masse;
+
+  /// Prüfliste der Treppe vom Server (Planungskern v7 Regel 9.5.5).
+  final List<Treppenmeldung> meldungen;
   final ValueChanged<Treppe> onGeaendert;
   final VoidCallback onEntfernen;
 
@@ -298,6 +305,11 @@ class TreppenBlock extends StatelessWidget {
                 key: ValueKey('$_k-masse'),
               ),
             ),
+          for (final m in meldungen)
+            Hinweis(
+              key: ValueKey('$_k-${m.name}'),
+              text: treppenmeldungText(t, m),
+            ),
         ],
       ),
     );
@@ -328,3 +340,12 @@ class TreppenBlock extends StatelessWidget {
     ),
   ];
 }
+
+/// Text eines Hinweises der Prüfliste zur Treppe (Planungskern v7 Regel
+/// 9.5.5).
+String treppenmeldungText(PlanerTexte t, Treppenmeldung m) => switch (m) {
+  Treppenmeldung.steigung => t.treppeMeldungSteigung,
+  Treppenmeldung.schrittmass => t.treppeMeldungSchrittmass,
+  Treppenmeldung.zuSchmal => t.treppeMeldungZuSchmal,
+  Treppenmeldung.ueberSeite => t.treppeMeldungUeberSeite,
+};

@@ -156,6 +156,15 @@ class VerblendungWahl extends StatelessWidget {
               waehlbar: (seite) => !anschluss.grenztAn(seite),
               onGewaehlt: _setze,
             ),
+          for (final seite in anschluss.verblendet)
+            BlendeJeSeite(
+              key: ValueKey('blende-$seite'),
+              planung: planung,
+              seite: seite,
+              onGeaendert: onGeaendert,
+            ),
+          if (anschluss.verblendet.isNotEmpty)
+            Hinweis(text: t.blendeJeSeiteHilfe),
           Hinweis(text: t.verblendungHinweis),
           for (final m in meldungen)
             if (zurVerblendung.contains(m))
@@ -168,6 +177,122 @@ class VerblendungWahl extends StatelessWidget {
       );
     },
   );
+}
+
+/// Seitenblende je Seite (Planungskern v7, Regel 9.4): eigene Blendenhöhe
+/// (leer = automatisch, die niedrigste Stelle der Seite) und Teilstücke von
+/// … bis … cm ab der ersten Ecke der Seite; beim Kreis nur die Höhe. Was
+/// daraus folgt, rechnet der Server. Jede Änderung ist ein Schritt für
+/// Rückgängig/Wiederherstellen.
+class BlendeJeSeite extends StatelessWidget {
+  const BlendeJeSeite({
+    required this.planung,
+    required this.seite,
+    required this.onGeaendert,
+    super.key,
+  });
+
+  final PlanungsSteuerung planung;
+  final int seite;
+
+  /// Meldet eine Änderung (Standardwert-Hinweis, M3-05).
+  final VoidCallback onGeaendert;
+
+  void _setze(Planungsstand stand) {
+    planung.setze(stand);
+    onGeaendert();
+  }
+
+  void _teile(List<({Millimeter von, Millimeter bis})> teile) =>
+      _setze(planung.aktuell.mitBlendenteilen(seite, teile));
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.texte;
+    final stand = planung.aktuell;
+    final kreis = stand.grundriss is KreisGrundriss;
+    final hoehe = stand.anschluss.blendenhoeheAn(seite);
+    final teile = stand.anschluss.teileAn(seite);
+    final ecke = kreis ? '' : stand.grundriss.eckname(seite);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: PlanerAbstand.klein),
+        Text(
+          kreis ? t.flaecheVerblenden : t.blendeSeite(seitenname(stand, seite)),
+        ),
+        Row(
+          children: [
+            Expanded(
+              child: CmFeld(
+                key: ValueKey('blende-$seite-hoehe'),
+                titel: t.blendenhoehe,
+                wert: hoehe,
+                ohneWert: t.blendenhoeheAutomatisch,
+                gueltig: Planungsstand.hoeheGueltig,
+                fehler: t.hoeheUngueltig,
+                onGeaendert: (mm) =>
+                    _setze(planung.aktuell.mitBlendenhoehe(seite, mm)),
+              ),
+            ),
+            if (hoehe != null)
+              IconButton(
+                key: ValueKey('blende-$seite-automatisch'),
+                tooltip: t.blendenhoeheZuruecksetzen,
+                icon: const Icon(Icons.undo),
+                onPressed: () =>
+                    _setze(planung.aktuell.mitBlendenhoehe(seite, null)),
+              ),
+          ],
+        ),
+        if (!kreis) ...[
+          for (final (i, teil) in teile.indexed) ...[
+            Row(
+              children: [
+                Expanded(child: Text(t.blendenteil(i + 1))),
+                IconButton(
+                  key: ValueKey('blende-$seite-teil-$i-entfernen'),
+                  tooltip: t.blendenteilEntfernen,
+                  icon: const Icon(Icons.delete_outline),
+                  onPressed: () => _teile([...teile]..removeAt(i)),
+                ),
+              ],
+            ),
+            CmFeld(
+              key: ValueKey('blende-$seite-teil-$i-von'),
+              titel: t.blendenteilVon(ecke),
+              wert: teil.von,
+              gueltig: (mm) => Planungsstand.blendenteilGueltig(mm, teil.bis),
+              fehler: t.blendenteilUngueltig,
+              onGeaendert: (mm) =>
+                  _teile([...teile]..[i] = (von: mm, bis: teil.bis)),
+            ),
+            CmFeld(
+              key: ValueKey('blende-$seite-teil-$i-bis'),
+              titel: t.blendenteilBis(ecke),
+              wert: teil.bis,
+              gueltig: (mm) => Planungsstand.blendenteilGueltig(teil.von, mm),
+              fehler: t.blendenteilUngueltig,
+              onGeaendert: (mm) =>
+                  _teile([...teile]..[i] = (von: teil.von, bis: mm)),
+            ),
+          ],
+          TextButton.icon(
+            key: ValueKey('blende-$seite-teil-hinzufuegen'),
+            icon: const Icon(Icons.add),
+            label: Text(t.blendenteilHinzufuegen),
+            onPressed: () => _teile([
+              ...teile,
+              (
+                von: const Millimeter(0),
+                bis: Millimeter(stand.seitenlaenge(seite).round()),
+              ),
+            ]),
+          ),
+        ],
+      ],
+    );
+  }
 }
 
 /// Hinweise, die unter 4.2 Verblendung stehen.

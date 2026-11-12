@@ -46,18 +46,22 @@ final _clip = _artikel(
 /// Materialliste wie vom Server (M9-03); die Planung bringt die geänderten
 /// Mengen mit, die der Server hier immer übernimmt.
 Materialliste _liste(Planung planung, {bool mitOhnePreis = false}) =>
-    Materialliste.aus([
-      Materialbedarf([_diele], 48, laenge: _m5),
-      Materialbedarf(
-        [_diele],
-        1,
-        laenge: _m5,
-        zusatz: Materialzusatz.freidiele,
-      ),
-      Materialbedarf([_clip], 2),
-      if (mitOhnePreis)
-        Materialbedarf([_artikel('50-60-001', Artikelart.gummiband)], 3),
-    ], mengen: planung.mengen);
+    Materialliste.aus(
+      [
+        Materialbedarf([_diele], 48, laenge: _m5),
+        Materialbedarf(
+          [_diele],
+          1,
+          laenge: _m5,
+          zusatz: Materialzusatz.freidiele,
+        ),
+        Materialbedarf([_clip], 2),
+        if (mitOhnePreis)
+          Materialbedarf([_artikel('50-60-001', Artikelart.gummiband)], 3),
+      ],
+      mengen: planung.mengen,
+      ausserhalbAngebot: planung.ausserhalbAngebot,
+    );
 
 Future<Berechnung> _berechne(Planung planung) async => Berechnung(
   umriss: planung.aktuell.grundriss.ecken,
@@ -435,6 +439,52 @@ void main() {
     await tester.pump();
     await tester.pump();
     expect(planung.planung.mengen[schluessel], 50);
+  });
+
+  testWidgets('Mitarbeiter: Häkchen „Im Angebot“ (Planungskern v7 Regel '
+      '9.7)', (tester) async {
+    tester.view
+      ..physicalSize = const Size(1440, 900)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final (:planung, :berechnung) = _steuerung(_berechne);
+    Widget ansicht({required bool mitarbeiter}) => testApp(
+      home: Scaffold(
+        body: SingleChildScrollView(
+          child: MateriallisteAnsicht(
+            berechnung: berechnung,
+            planung: planung,
+            mitarbeiter: mitarbeiter,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpWidget(ansicht(mitarbeiter: true));
+    await tester.pump();
+    expect(find.text('Im Angebot'), findsOneWidget);
+    final haken = find.byKey(const ValueKey('im-angebot-3'));
+    expect(tester.widget<Checkbox>(haken).value, isTrue);
+    final summe = berechnung.materialliste.summe;
+    await tester.tap(haken);
+    await tester.pump();
+    await tester.pump();
+    final clip = (nummer: _clip.nummer, laenge: null, zusatz: null);
+    expect(planung.planung.ausserhalbAngebot, {clip});
+    expect(tester.widget<Checkbox>(haken).value, isFalse);
+    expect(find.text('Nicht im Angebot: ${_clip.titel}'), findsOneWidget);
+    expect(berechnung.materialliste.summe.cent, summe.cent - 21980);
+    // Kunde: kein Häkchen, der Name bleibt
+    await tester.pumpWidget(ansicht(mitarbeiter: false));
+    await tester.pump();
+    expect(find.byType(Checkbox), findsNothing);
+    expect(find.text('Nicht im Angebot: ${_clip.titel}'), findsOneWidget);
+    await tester.pumpWidget(ansicht(mitarbeiter: true));
+    await tester.pump();
+    await tester.tap(haken);
+    await tester.pump();
+    await tester.pump();
+    expect(planung.planung.ausserhalbAngebot, isEmpty);
+    expect(find.textContaining('Nicht im Angebot'), findsNothing);
   });
 
   testWidgets('im Rahmen: Knopf unter den Kennzahlen, erst der '

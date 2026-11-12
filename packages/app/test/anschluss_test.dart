@@ -131,10 +131,12 @@ void main() {
       await tester.pumpWidget(
         testApp(
           home: Scaffold(
-            body: VerblendungWahl(
-              planung: planung,
-              berechnung: berechnung,
-              onGeaendert: () => aenderungen.add(aenderungen.length),
+            body: SingleChildScrollView(
+              child: VerblendungWahl(
+                planung: planung,
+                berechnung: berechnung,
+                onGeaendert: () => aenderungen.add(aenderungen.length),
+              ),
             ),
           ),
         ),
@@ -176,6 +178,91 @@ void main() {
       await tester.pump();
       expect(s.planung.aktuell.anschluss.verblendet, [0]);
       expect(chip(tester, 'verblendet-flaeche').selected, isTrue);
+    });
+
+    testWidgets('Seitenblende je Seite (Planungskern v7, Regel 9.4): Höhe, '
+        'automatisch, Teilstücke', (tester) async {
+      final s = await zeige(
+        tester,
+        stand: Planungsstand.start.mitVerblendet(1, an: true),
+      );
+      expect(find.text(de.blendeSeite('B — C')), findsOneWidget);
+      expect(find.text(de.blendeJeSeiteHilfe), findsOneWidget);
+      expect(find.text(de.blendenhoeheAutomatisch), findsOneWidget);
+      expect(find.byKey(const ValueKey('blende-1-automatisch')), findsNothing);
+      Finder feld(String schluessel) => find.descendant(
+        of: find.byKey(ValueKey(schluessel)),
+        matching: find.byType(TextField),
+      );
+      await tester.enterText(feld('blende-1-hoehe'), '14');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+      expect(
+        s.planung.aktuell.anschluss.blendenhoeheAn(1),
+        const Millimeter(140),
+      );
+      await tester.tap(find.byKey(const ValueKey('blende-1-automatisch')));
+      await tester.pump();
+      expect(s.planung.aktuell.anschluss.blendenhoeheAn(1), isNull);
+      // Teilstück: ganze Seite vorbelegt, dann ändern und entfernen
+      await tester.tap(find.byKey(const ValueKey('blende-1-teil-hinzufuegen')));
+      await tester.pump();
+      expect(s.planung.aktuell.anschluss.teileAn(1), const [
+        (von: Millimeter(0), bis: Millimeter(3090)),
+      ]);
+      expect(find.text(de.blendenteil(1)), findsOneWidget);
+      expect(find.text(de.blendenteilVon('B')), findsOneWidget);
+      await tester.enterText(feld('blende-1-teil-0-von'), '100');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+      await tester.enterText(feld('blende-1-teil-0-bis'), '250');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+      expect(s.planung.aktuell.anschluss.teileAn(1), const [
+        (von: Millimeter(1000), bis: Millimeter(2500)),
+      ]);
+      // Anfang hinter dem Ende: Fehler, nichts übernommen
+      await tester.enterText(feld('blende-1-teil-0-von'), '300');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+      expect(find.text(de.blendenteilUngueltig), findsOneWidget);
+      await tester.enterText(feld('blende-1-teil-0-bis'), '50');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+      expect(find.text(de.blendenteilUngueltig), findsNWidgets(2));
+      expect(s.planung.aktuell.anschluss.teileAn(1).single.von.mm, 1000);
+      await tester.tap(find.byKey(const ValueKey('blende-1-teil-0-entfernen')));
+      await tester.pump();
+      expect(s.planung.aktuell.anschluss.teileAn(1), isEmpty);
+      expect(s.aenderungen, hasLength(6));
+    });
+
+    testWidgets('Kreis: nur die Höhe, keine Teilstücke', (tester) async {
+      final s = await zeige(
+        tester,
+        stand: Planungsstand.start
+            .mitForm(Terrassenform.kreis)
+            .mitVerblendet(0, an: true),
+      );
+      expect(find.byKey(const ValueKey('blende-0-hoehe')), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('blende-0-teil-hinzufuegen')),
+        findsNothing,
+      );
+      await tester.enterText(
+        find.descendant(
+          of: find.byKey(const ValueKey('blende-0-hoehe')),
+          matching: find.byType(TextField),
+        ),
+        '20',
+      );
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+      expect(
+        s.planung.aktuell.anschluss.blendenhoeheAn(0),
+        const Millimeter(200),
+      );
+      expect(en.blendeSeite('A — B'), 'Cladding A — B');
     });
 
     testWidgets('Hinweise vom Server als Warnung', (tester) async {

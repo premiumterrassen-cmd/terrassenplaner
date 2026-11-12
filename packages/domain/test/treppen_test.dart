@@ -544,6 +544,201 @@ void main() {
       );
     });
   });
+  group('Treppe nach dem Planungskern v7 (Regel 9.5)', () {
+    Artikel diele(String nummer, Profil profil, {int breite = 140}) => Artikel(
+      nummer: Artikelnummer(nummer),
+      titel: 'Diele $nummer',
+      art: Artikelart.diele,
+      einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+      abmessungen: Abmessungen(
+        breite: Millimeter(breite),
+        staerke: const Millimeter(21),
+        laengen: const [Millimeter(4000)],
+      ),
+      holzart: robinie,
+      serie: basic,
+      profil: profil,
+    );
+    final genutet = diele('10-10-100', Profil.genutet);
+    final glatt = diele('10-10-101', Profil.glattkant);
+    final regelwerk = Regelwerk(
+      Artikeldatei(
+        quelle: 'test',
+        version: '1',
+        eintraege: [
+          Artikeleintrag(artikel: genutet),
+          Artikeleintrag(artikel: glatt),
+        ],
+      ),
+    );
+
+    test('Prüfliste: Steigung, Schrittmaß, Breite, Seite', () {
+      expect(treppenUkAbstand, _mm(400));
+      expect(treppenSteigung, (von: _mm(150), bis: _mm(190)));
+      expect(treppenSchrittmass, (von: _mm(590), bis: _mm(670)));
+      expect(treppenMindestbreite, _mm(500));
+      // Vorgabe des alten Planers 27 × 15,6: Schrittmaß 58,2 cm
+      expect(treppenpruefung(_f39, _f39.treppen.single), [
+        Treppenmeldung.schrittmass,
+      ]);
+      Treppe stufe(int tiefe, int hoehe) => Treppe(
+        seite: 2,
+        stufe: (tiefe: Millimeter(tiefe), hoehe: Millimeter(hoehe)),
+      );
+      // Grenzen selbst ohne Hinweis: 15 cm + 29 cm = 59, 19 + 29 = 67
+      expect(treppenpruefung(_f39, stufe(290, 150)), isEmpty);
+      expect(treppenpruefung(_f39, stufe(290, 190)), isEmpty);
+      expect(treppenpruefung(_f39, stufe(290, 149)), [
+        Treppenmeldung.steigung,
+        Treppenmeldung.schrittmass,
+      ]);
+      expect(treppenpruefung(_f39, stufe(300, 191)), [
+        Treppenmeldung.steigung,
+        Treppenmeldung.schrittmass,
+      ]);
+      expect(treppenpruefung(_f39, stufe(291, 190)), [
+        Treppenmeldung.schrittmass,
+      ]);
+      // Podest der Fächertreppe zählt als Steigung
+      final faecher = stufe(290, 170).mit(
+        art: Treppenart.zweiteilig,
+        podest: (tiefe: _mm(500), breite: _mm(540), hoehe: _mm(140)),
+      );
+      expect(treppenpruefung(_f39, faecher), [Treppenmeldung.steigung]);
+      // schmaler als 50 cm, über das Ende der Seite (C — D 480 cm)
+      final eng = stufe(290, 170).mit(breite: _mm(499));
+      expect(treppenpruefung(_f39, eng), [Treppenmeldung.zuSchmal]);
+      expect(
+        treppenpruefung(_f39, eng.mit(breite: _mm(500), abstand: _mm(4300))),
+        isEmpty,
+      );
+      expect(
+        treppenpruefung(_f39, eng.mit(breite: _mm(500), abstand: _mm(4301))),
+        [Treppenmeldung.ueberSeite],
+      );
+      // Seite gibt es nicht (mehr): ohne Prüfung der Länge – auch genau
+      // eine hinter der letzten
+      expect(_f39.seitenzahl, 4);
+      expect(
+        treppenpruefung(_f39, Treppe(seite: 4, stufe: stufe(290, 170).stufe)),
+        isEmpty,
+      );
+      expect(
+        treppenpruefung(_f39, Treppe(seite: 9, stufe: stufe(290, 170).stufe)),
+        isEmpty,
+      );
+      expect(Treppenmeldung.ausNummer(4), Treppenmeldung.ueberSeite);
+      expect(() => Treppenmeldung.ausNummer(0), throwsFormatException);
+    });
+
+    test('Meldungen im Treppenbild und im Transportformat', () {
+      final [bild] = treppenbilder(_f39);
+      expect(bild.meldungen, [Treppenmeldung.schrittmass]);
+      final zurueck = Berechnung.ausBytes(
+        Berechnung(
+          umriss: const [],
+          flaeche: 0,
+          anschluss: anschlussergebnis(_f39),
+        ).zuBytes(),
+      ).anschluss.treppen.single;
+      expect(zurueck.meldungen, [Treppenmeldung.schrittmass]);
+      final ohne = _f39.mitTreppe(
+        0,
+        const Treppe(
+          seite: 2,
+          stufe: (tiefe: Millimeter(290), hoehe: Millimeter(170)),
+        ),
+      );
+      expect(
+        Berechnung.ausBytes(
+          Berechnung(
+            umriss: const [],
+            flaeche: 0,
+            anschluss: anschlussergebnis(ohne),
+          ).zuBytes(),
+        ).anschluss.treppen.single.meldungen,
+        isEmpty,
+      );
+    });
+
+    test('UK unter dem Auftritt höchstens 40 cm Achsabstand', () {
+      int ukLinien(Millimeter abstand) => _laengen(
+        treppenstuecke(
+          const Treppe(bau: Treppenbau.fundament, anzahl: 1),
+          belag: _belag,
+          uk: _uk,
+          ukAbstand: abstand,
+        ),
+        _uk.nummer,
+      ).length;
+      // 100 cm: mit 40 cm 4 Linien, mit 50 cm wären es 3
+      expect(ukLinien(_mm(500)), 4);
+      expect(ukLinien(_mm(400)), 4);
+      expect(ukLinien(_mm(300)), 5);
+    });
+
+    test('Setzstufen aus dem glattkanten Brett der Serie', () {
+      expect(setzstufenbrett(genutet, regelwerk), glatt);
+      expect(setzstufenbrett(genutet, null), genutet);
+      expect(setzstufenbrett(glatt, regelwerk), glatt);
+      expect(
+        setzstufenbrett(
+          genutet,
+          Regelwerk(
+            Artikeldatei(
+              quelle: 'test',
+              version: '1',
+              eintraege: [Artikeleintrag(artikel: genutet)],
+            ),
+          ),
+        ),
+        genutet,
+      );
+      expect(setzstufenbrett(_belag, regelwerk), _belag);
+      // 2 Stufen 27 × 15,6 cm: Auftritt 2 Reihen genutet (14 cm + 6 mm),
+      // Setzstufe 2 Reihen glattkant (14 cm)
+      final stuecke = treppenstuecke(
+        const Treppe(),
+        belag: genutet,
+        setzstufe: glatt,
+      );
+      expect(_laengen(stuecke, genutet.nummer), List.filled(4, 1000));
+      expect(_laengen(stuecke, glatt.nummer), List.filled(4, 1000));
+      expect(
+        treppenstuecke(
+          const Treppe(),
+          belag: genutet,
+          setzstufe: Artikel(
+            nummer: const Artikelnummer('x'),
+            titel: 'ohne Maße',
+            art: Artikelart.verblendung,
+            einheit: Verkaufseinheit(Mengeneinheit.stueck),
+          ),
+        ),
+        isEmpty,
+      );
+      final bedarf = treppenbedarf(_f39, belag: genutet, regelwerk: regelwerk);
+      expect(
+        {for (final b in bedarf.bedarf) b.einheiten.single},
+        {genutet, glatt},
+      );
+      final ohneRegelwerk = treppenbedarf(_f39, belag: genutet);
+      expect(
+        {for (final b in ohneRegelwerk.bedarf) b.einheiten.single},
+        {genutet},
+      );
+      // über den ganzen Anschluss
+      expect({
+        for (final b in anschlussbedarf(
+          _f39,
+          hoehen: const [_mm86, _mm86, _mm86, _mm86],
+          belag: genutet,
+          regelwerk: regelwerk,
+        ).bedarf)
+          b.einheiten.single,
+      }, containsAll([genutet, glatt]));
+    });
+  });
 }
 
 const _mm86 = Millimeter(86);

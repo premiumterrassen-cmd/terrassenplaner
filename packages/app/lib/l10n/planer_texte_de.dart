@@ -246,6 +246,9 @@ class PlanerTexteDe extends PlanerTexte {
   }
 
   @override
+  String get massInCm => 'Über 50 m – bitte das Maß in cm angeben';
+
+  @override
   String get berechnungFehler =>
       'Berechnung nicht möglich – bitte Verbindung prüfen';
 
@@ -1073,6 +1076,16 @@ class PlanerTexteDe extends PlanerTexte {
       'Hinweis: Die Fläche liegt außerhalb der üblichen 1 bis 300 m² – bitte prüfen Sie die Maße.';
 
   @override
+  String kantenwarnungZuKurz(String kante, String cm) {
+    return 'Hinweis: Kante $kante ist nur $cm cm lang (unter 10 cm) – bitte prüfen Sie die Maße.';
+  }
+
+  @override
+  String kantenwarnungZuLang(String kante, String cm) {
+    return 'Hinweis: Kante $kante ist $cm cm lang (über 30 m) – bitte prüfen Sie die Maße.';
+  }
+
+  @override
   String get belagmeldungBombierung =>
       'Ab 8 cm Breite empfehlen wir bombierte (leicht gewölbte) Dielen.';
 
@@ -1344,6 +1357,14 @@ class PlanerTexteDe extends PlanerTexte {
   String get materialOptional => 'Optional – nicht in der Summe';
 
   @override
+  String materialNichtImAngebot(String titel) {
+    return 'Nicht im Angebot: $titel';
+  }
+
+  @override
+  String get materialImAngebot => 'Im Angebot';
+
+  @override
   String materialBerechnet(int anzahl) {
     return 'berechnet: $anzahl';
   }
@@ -1486,6 +1507,50 @@ class PlanerTexteDe extends PlanerTexte {
   @override
   String get verblendungHinweis =>
       'Die Blende ist aus der Serie des Belags, glattkant und so stark wie die Diele. Ihre Breite richtet sich nach der Höhe (höchstens 100 mm, über ca. 13 cm zwei Blenden à 60 mm); die Ecken werden auf Gehrung geschnitten.';
+
+  @override
+  String blendeSeite(String seite) {
+    return 'Blende $seite';
+  }
+
+  @override
+  String get blendenhoehe => 'Blendenhöhe';
+
+  @override
+  String get blendenhoeheAutomatisch => 'automatisch';
+
+  @override
+  String get blendenhoeheZuruecksetzen =>
+      'Blendenhöhe automatisch (niedrigste Stelle der Seite)';
+
+  @override
+  String blendenteil(int nummer) {
+    return 'Teilstück $nummer';
+  }
+
+  @override
+  String blendenteilVon(String ecke) {
+    return 'Von (ab $ecke)';
+  }
+
+  @override
+  String blendenteilBis(String ecke) {
+    return 'Bis (ab $ecke)';
+  }
+
+  @override
+  String get blendenteilHinzufuegen => 'Nur einen Teil der Seite verblenden';
+
+  @override
+  String get blendenteilEntfernen => 'Teilstück entfernen';
+
+  @override
+  String get blendenteilUngueltig =>
+      'Bitte von 0 bis 5000 cm eingeben, der Anfang vor dem Ende';
+
+  @override
+  String get blendeJeSeiteHilfe =>
+      'Ohne Angabe gilt die niedrigste Stelle der Seite – die Blende steht nirgends auf, an höheren Stellen bleibt unten Luft. Ohne Teilstück wird die ganze Seite verblendet.';
 
   @override
   String get meldungUnterlueftung =>
@@ -1639,4 +1704,20 @@ class PlanerTexteDe extends PlanerTexte {
   @override
   String get meldungTreppeNichtFrei =>
       'Eine Treppe liegt an einer Seite am Bauelement oder mit Rinne – sie wird nicht gerechnet.';
+
+  @override
+  String get treppeMeldungSteigung =>
+      'Prüfliste: Eine Steigung liegt außerhalb von 15–19 cm.';
+
+  @override
+  String get treppeMeldungSchrittmass =>
+      'Prüfliste: Das Schrittmaß (2 × Steigung + Auftritt) liegt außerhalb von 59–67 cm.';
+
+  @override
+  String get treppeMeldungZuSchmal =>
+      'Prüfliste: Die Treppe ist schmaler als 50 cm.';
+
+  @override
+  String get treppeMeldungUeberSeite =>
+      'Prüfliste: Die Treppe reicht über das Ende der Seite hinaus.';
 }

@@ -245,6 +245,9 @@ class PlanerTexteEn extends PlanerTexte {
   }
 
   @override
+  String get massInCm => 'Over 50 m – please enter the dimension in cm';
+
+  @override
   String get berechnungFehler =>
       'Calculation not possible – please check the connection';
 
@@ -1072,6 +1075,16 @@ class PlanerTexteEn extends PlanerTexte {
       'Note: the area is outside the usual 1 to 300 m² – please check the dimensions.';
 
   @override
+  String kantenwarnungZuKurz(String kante, String cm) {
+    return 'Note: edge $kante is only $cm cm long (under 10 cm) – please check the dimensions.';
+  }
+
+  @override
+  String kantenwarnungZuLang(String kante, String cm) {
+    return 'Note: edge $kante is $cm cm long (over 30 m) – please check the dimensions.';
+  }
+
+  @override
   String get belagmeldungBombierung =>
       'From 8 cm width we recommend crowned (slightly curved) boards.';
 
@@ -1341,6 +1354,14 @@ class PlanerTexteEn extends PlanerTexte {
   String get materialOptional => 'Optional – not included in the total';
 
   @override
+  String materialNichtImAngebot(String titel) {
+    return 'Not in the offer: $titel';
+  }
+
+  @override
+  String get materialImAngebot => 'In the offer';
+
+  @override
   String materialBerechnet(int anzahl) {
     return 'calculated: $anzahl';
   }
@@ -1483,6 +1504,50 @@ class PlanerTexteEn extends PlanerTexte {
   @override
   String get verblendungHinweis =>
       'The cladding board comes from the decking series, smooth-edged and as thick as the decking board. Its width depends on the height (at most 100 mm, above approx. 13 cm two boards of 60 mm); the corners are mitred.';
+
+  @override
+  String blendeSeite(String seite) {
+    return 'Cladding $seite';
+  }
+
+  @override
+  String get blendenhoehe => 'Cladding height';
+
+  @override
+  String get blendenhoeheAutomatisch => 'automatic';
+
+  @override
+  String get blendenhoeheZuruecksetzen =>
+      'Cladding height automatic (lowest point of the side)';
+
+  @override
+  String blendenteil(int nummer) {
+    return 'Section $nummer';
+  }
+
+  @override
+  String blendenteilVon(String ecke) {
+    return 'From (from $ecke)';
+  }
+
+  @override
+  String blendenteilBis(String ecke) {
+    return 'To (from $ecke)';
+  }
+
+  @override
+  String get blendenteilHinzufuegen => 'Clad only part of the side';
+
+  @override
+  String get blendenteilEntfernen => 'Remove section';
+
+  @override
+  String get blendenteilUngueltig =>
+      'Please enter 0 to 5000 cm, the start before the end';
+
+  @override
+  String get blendeJeSeiteHilfe =>
+      'Without a value the lowest point of the side applies – the cladding never touches the ground, at higher points there is a gap below. Without a section the whole side is clad.';
 
   @override
   String get meldungUnterlueftung =>
@@ -1635,4 +1700,20 @@ class PlanerTexteEn extends PlanerTexte {
   @override
   String get meldungTreppeNichtFrei =>
       'A staircase lies on a side at a building element or with a channel – it is not calculated.';
+
+  @override
+  String get treppeMeldungSteigung =>
+      'Checklist: a riser height is outside 15–19 cm.';
+
+  @override
+  String get treppeMeldungSchrittmass =>
+      'Checklist: the step dimension (2 × riser + tread) is outside 59–67 cm.';
+
+  @override
+  String get treppeMeldungZuSchmal =>
+      'Checklist: the stairs are narrower than 50 cm.';
+
+  @override
+  String get treppeMeldungUeberSeite =>
+      'Checklist: the stairs extend beyond the end of the side.';
 }
