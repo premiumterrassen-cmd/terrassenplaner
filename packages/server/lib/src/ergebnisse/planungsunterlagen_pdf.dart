@@ -262,8 +262,10 @@ pw.Widget _plan(Plan plan) {
   );
 }
 
-/// Schriftgröße der weiß hinterlegten Zahlen neben den Bauteilen (R-E06).
-const nebentextGroesse = 6.0;
+/// Schriftgröße der weiß hinterlegten Zahlen neben den Bauteilen (R-E06):
+/// klein genug, dass „0,5“ auch bei 12 m Fläche zwischen zwei UK-Achsen
+/// (40 cm) passt.
+const nebentextGroesse = 5.5;
 
 /// Abstand eines Nebentexts von seinem Bauteil in Punkt.
 const nebentextAbstand = 1.0;
@@ -278,7 +280,7 @@ typedef Feld = ({double links, double unten, double breite, double hoehe});
 /// Richtung mittig.
 Feld nebentextLage(Nebentext n, Planmassstab m, [Punkt? richtung]) {
   final r = richtung ?? n.richtung;
-  final breite = n.text.length * nebentextGroesse * 0.55 + 2;
+  final breite = n.text.length * nebentextGroesse * 0.55 + 1;
   const hoehe = nebentextGroesse + 2;
   final p = m.abbild(n.ort + r * n.abstand);
   // y nach oben wie im PDF

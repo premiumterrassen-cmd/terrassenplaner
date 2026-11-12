@@ -194,10 +194,10 @@ void main() {
     );
     test('rechts neben dem Punkt: linke Kante 1 pt daneben, mittig in y', () {
       final lage = nebentextLage(neben(const Punkt(1, 0), '4,5'), m);
-      expect(lage.breite, closeTo(3 * 6 * 0.55 + 2, 1e-9));
-      expect(lage.hoehe, 8);
+      expect(lage.breite, closeTo(3 * 5.5 * 0.55 + 1, 1e-9));
+      expect(lage.hoehe, 7.5);
       expect(lage.links, closeTo(p.x + 1, 1e-9));
-      expect(lage.unten, closeTo(p.y - 4, 1e-9));
+      expect(lage.unten, closeTo(p.y - 3.75, 1e-9));
     });
     test('Abstand vom Bauteil in mm, im Maßstab', () {
       final lage = nebentextLage(
@@ -324,7 +324,7 @@ void main() {
       expect(felder[3].$2.links, closeTo(x(1280) + 1, 1e-9));
     });
 
-    test('im PDF weiß hinterlegt in 6 pt', () async {
+    test('im PDF weiß hinterlegt in 5,5 pt', () async {
       final pdf = await roh(
         Planungsunterlagen(
           texte: Unterlagentexte.deutsch,
@@ -349,7 +349,7 @@ void main() {
       );
       expect(pdf, contains('(8,6)'));
       expect(pdf, contains('1 1 1 rg'));
-      expect(pdf, contains(RegExp(r'/F\d+ 6 Tf')));
+      expect(pdf, contains(RegExp(r'/F\d+ 5.5 Tf')));
     });
   });
 
