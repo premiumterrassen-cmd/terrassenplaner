@@ -31,7 +31,7 @@ Alle holzabhängigen Planungseigenschaften sind **Daten**: `Holzart` mit Recheng
 
 - `robinie` wird aus dem Datensatz `robinieDaten` gelesen (Quellen B-030 ff., Regelkatalog 14). Serien heißen nur BASIC, ECO SELECT, PREMIUM SELECT, MASSIV – keine Werke (B-020).
 - Eine weitere Holzart (z. B. Kastanie) entsteht nur aus Daten über `Holzart.ausJson` – ein Test mit einer Beispiel-Holzart belegt das.
-- Holzunabhängige Firmenregeln (Fuge 6 mm, Wandabstand 2 cm, Querstreben 60 cm, Freidielen-Staffel) stehen in `lib/src/regeln/planungsregeln.dart`.
+- Holzunabhängige Firmenregeln (Fuge 6 mm, Querholz-Raster 75 cm, UK-Reststück 50 cm, Auflager 5 cm vom UK-Ende, Freidielen-Staffel) stehen in `lib/src/regeln/planungsregeln.dart`.
 
 ## Regelwerk „was passt zu was“ (`lib/src/regeln/regelwerk.dart`, M2-04)
 

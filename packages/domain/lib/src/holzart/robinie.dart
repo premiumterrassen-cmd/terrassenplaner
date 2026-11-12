@@ -48,6 +48,9 @@ const robinieDaten = <String, Object?>{
         },
       },
       'lieferlaengen_mm': [4000, 5000, 6000, 7000],
+      // B-230: UK nur 4/5/6 m, keine 7 m (Planungsregeln Alexander
+      // (Planungskern v6, 11.11.2026), Regel 1.1).
+      'uk_lieferlaengen_mm': [4000, 5000, 6000],
       // B-212: getrocknet nur mit 40 mm auf einer Seite.
       'uk_seiten': [
         [

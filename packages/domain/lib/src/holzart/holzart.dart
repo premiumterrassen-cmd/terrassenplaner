@@ -59,13 +59,13 @@ final class Serienregeln {
     required this.serie,
     required Map<Profil, Dielenformate> dielen,
     required Iterable<Millimeter> lieferlaengen,
+    Iterable<Millimeter>? ukLieferlaengen,
     required Iterable<(Set<Millimeter>, Set<Millimeter>)> ukSeiten,
     Iterable<UkMasse> ukUngetrocknet = const [],
     this.duoClipAb,
   }) : dielen = Map.unmodifiable(dielen),
-       lieferlaengen = List.unmodifiable(
-         lieferlaengen.toList()..sort((x, y) => x.mm.compareTo(y.mm)),
-       ),
+       lieferlaengen = _aufsteigend(lieferlaengen),
+       ukLieferlaengen = _aufsteigend(ukLieferlaengen ?? lieferlaengen),
        ukSeiten = List.unmodifiable(ukSeiten),
        ukUngetrocknet = Set.unmodifiable(ukUngetrocknet.map(_sortiert));
 
@@ -74,6 +74,10 @@ final class Serienregeln {
 
   /// Lieferlängen aufsteigend (R-A06).
   final List<Millimeter> lieferlaengen;
+
+  /// Lieferlängen der UK aufsteigend; ohne eigene Angabe die der Dielen
+  /// (R-A06). ECO SELECT: UK nur 4/5/6 m, die Dielen bis 7 m (B-230).
+  final List<Millimeter> ukLieferlaengen;
 
   /// Gültige UK-Formate: eine Seite aus der ersten, die andere aus der
   /// zweiten Menge (R-A08).
@@ -114,6 +118,9 @@ final class Serienregeln {
         : UkFormat.ungueltig;
   }
 }
+
+List<Millimeter> _aufsteigend(Iterable<Millimeter> laengen) =>
+    List.unmodifiable(laengen.toList()..sort((x, y) => x.mm.compareTo(y.mm)));
 
 UkMasse _sortiert(UkMasse m) => (
   a: Millimeter(math.min(m.a.mm, m.b.mm)),
@@ -203,6 +210,7 @@ Serienregeln _serieAusJson(Map<String, Object?> json) {
   };
   final dielen = json['dielen']! as Map<String, Object?>;
   final duo = json['duo_clip_ab_mm'] as int?;
+  final ukLaengen = json['uk_lieferlaengen_mm'];
   return Serienregeln(
     serie: Serie(json['name']! as String),
     dielen: {
@@ -210,6 +218,7 @@ Serienregeln _serieAusJson(Map<String, Object?> json) {
         Profil.values.byName(key): _formate(value! as Map<String, Object?>, mm),
     },
     lieferlaengen: mm(json['lieferlaengen_mm']),
+    ukLieferlaengen: ukLaengen == null ? null : mm(ukLaengen),
     ukSeiten: [
       for (final paar in json['uk_seiten']! as List<Object?>) _paar(paar, mm),
     ],

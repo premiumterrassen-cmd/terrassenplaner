@@ -1,3 +1,6 @@
+import 'dart:math' as math;
+
+import '../regeln/planungsregeln.dart';
 import 'artikel.dart';
 import 'einheiten.dart';
 
@@ -32,13 +35,42 @@ List<Millimeter> lieferlaengenFuer(
   ];
 }
 
+/// Stücke einer UK-Linie der Länge [laenge] aus den Lieferlängen [laengen]
+/// (aufsteigend; Planungsregeln Alexander (Planungskern v6, 11.11.2026),
+/// Regel 3.5): bis zur längsten Lieferlänge ein Stück, länger ganze
+/// längste Lieferlängen und der Rest. Wäre der Rest kürzer als
+/// [ukMindestReststueck], wird das letzte ganze Stück so weit gekürzt, dass
+/// der Rest gerade so lang ist: 610 cm → 560 + 50 cm statt 600 + 10 cm. Der
+/// Stoß liegt auf einem Auflager. Liefert die UK die Wunschlänge [fest],
+/// wird nur sie verwendet. Bei Lieferlängen unter dem doppelten
+/// Mindestrest gilt höchstens die halbe längste Länge als Rest.
+List<Millimeter> ukStueckelung(
+  Millimeter laenge,
+  List<Millimeter> laengen, {
+  Millimeter? fest,
+}) {
+  if (laenge.mm <= 0) return const [];
+  if (laengen.isEmpty) return [laenge];
+  final laengste = (laengen.contains(fest) ? fest! : laengen.last).mm;
+  final mindest = math.min(ukMindestReststueck.mm, laengste ~/ 2);
+  final stuecke = <Millimeter>[];
+  var rest = laenge.mm;
+  while (rest > laengste) {
+    final stueck = laengste - math.max<int>(0, mindest - rest + laengste);
+    stuecke.add(Millimeter(stueck));
+    rest -= stueck;
+  }
+  return [...stuecke, Millimeter(rest)];
+}
+
 /// Dielenstücke einer Reihe von [von] bis [bis], geschnitten an den
 /// Stoßlinien [stoesse] der Verlegeart (M5-03, Fachkonzept 2.3).
 ///
 /// Mit [verbinden] („Sollen kurze Dielenstücke miteinander verbunden
 /// werden?“ = Ja) ersetzt eine ganze Diele ein Endstück samt Nachbarstück,
-/// wenn beide zusammen in die längste erlaubte Länge [laengste] passen; der
-/// Stoß ist dann nicht mehr durchgehend (R-B12). Beim Rechteck liegen die
+/// wenn beide zusammen in die längste erlaubte Länge [laengste] samt
+/// [ueberlaenge] (`dielenUeberlaenge`) passen; der Stoß ist dann nicht mehr
+/// durchgehend (R-B12). Beim Rechteck liegen die
 /// Stöße eine ganze Lieferlänge auseinander, dort wirkt das nie (F13).
 List<Millimeter> reihenstuecke(
   Millimeter von,
@@ -46,8 +78,10 @@ List<Millimeter> reihenstuecke(
   Iterable<Millimeter> stoesse, {
   required Millimeter laengste,
   bool verbinden = false,
+  Millimeter ueberlaenge = const Millimeter(0),
 }) {
   if (bis <= von) return const [];
+  final platz = laengste + ueberlaenge;
   final schnitte = [
     von,
     ...[
@@ -60,11 +94,11 @@ List<Millimeter> reihenstuecke(
     for (var i = 1; i < schnitte.length; i++) schnitte[i] - schnitte[i - 1],
   ];
   if (!verbinden || stuecke.length < 2) return stuecke;
-  if (stuecke[0] + stuecke[1] <= laengste) {
+  if (stuecke[0] + stuecke[1] <= platz) {
     stuecke.replaceRange(0, 2, [stuecke[0] + stuecke[1]]);
   }
   final n = stuecke.length;
-  if (n > 1 && stuecke[n - 2] + stuecke[n - 1] <= laengste) {
+  if (n > 1 && stuecke[n - 2] + stuecke[n - 1] <= platz) {
     stuecke.replaceRange(n - 2, n, [stuecke[n - 2] + stuecke[n - 1]]);
   }
   return stuecke;

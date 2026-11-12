@@ -106,6 +106,22 @@ void main() {
       expect(l(massiv), [800, 1200, 1600, 2000]);
     });
 
+    test('UK-Lieferlängen: ECO SELECT nur 4/5/6 m (B-230), sonst wie die '
+        'Dielen', () {
+      List<int> l(Serie s) => [
+        for (final m in robinie.serie(s).ukLieferlaengen) m.mm,
+      ];
+      expect(l(ecoSelect), [4000, 5000, 6000]);
+      expect(l(premiumSelect), [4000, 5000, 6000]);
+      expect(
+        () => robinie
+            .serie(ecoSelect)
+            .ukLieferlaengen
+            .add(const Millimeter(7000)),
+        throwsUnsupportedError,
+      );
+    });
+
     test('Befestigung (R-B01 B-094, R-B02 B-090)', () {
       Befestigung b(Serie s, Profil p, int breite) =>
           robinie.serie(s).befestigung(p, Millimeter(breite));
@@ -225,6 +241,11 @@ void main() {
         const Millimeter(2500),
         const Millimeter(3000),
       ], reason: 'aufsteigend sortiert');
+      expect(
+        regeln.ukLieferlaengen,
+        regeln.lieferlaengen,
+        reason: 'ohne eigene UK-Längen die der Dielen',
+      );
       expect(regeln.dielen.keys, [Profil.glattkant]);
       expect(
         regeln.dielenformatGueltig(

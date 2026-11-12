@@ -1171,7 +1171,7 @@ class PlanerTexteDe extends PlanerTexte {
 
   @override
   String get querstrebenAbstand =>
-      'Querstreben kommen als Leiterverband zwischen die UK-Hölzer; automatisch alle 60 cm.';
+      'Querstreben kommen als Leiterverband zwischen die UK-Hölzer; automatisch im 75-cm-Raster, von Feld zu Feld versetzt.';
 
   @override
   String get querstrebenAnzahl => 'Anzahl der Quertraversen';

@@ -104,16 +104,19 @@ void main() {
       expect(ukPasstZuBelag(_uk('c', ecoSelect, 60, 90), eco), isFalse);
     });
 
-    test('Lieferlängen: Artikeldaten und Serie (B-035)', () {
+    test('Lieferlängen: Artikeldaten und UK-Längen der Serie (B-035, '
+        'B-230)', () {
       expect(ukLieferlaengen(_uk('a', premiumSelect, 45, 60)), const [
         Millimeter(4000),
         Millimeter(5000),
         Millimeter(6000),
       ]);
-      expect(
-        ukLieferlaengen(_uk('b', ecoSelect, 40, 60)).last,
-        const Millimeter(7000),
-      );
+      // B-230: ECO-SELECT-UK nur 4/5/6 m, die Dielen bis 7 m
+      expect(ukLieferlaengen(_uk('b', ecoSelect, 40, 60)), const [
+        Millimeter(4000),
+        Millimeter(5000),
+        Millimeter(6000),
+      ]);
       final alu = _uk(
         '50-20-007',
         null,

@@ -15,6 +15,7 @@ import '../konfiguration/belagverlegung.dart';
 import '../konfiguration/planungsstand.dart';
 import '../konfiguration/terrassenart.dart';
 import 'auflager.dart';
+import 'planungsregeln.dart';
 import 'regelwerk.dart';
 import 'uk_verlegung.dart';
 import 'uk_zusatz.dart';
@@ -209,10 +210,13 @@ List<(int, int, int)> _ohrenschnitt(List<Punkt> p) {
 
 /// Auflager der UK-Verlegung [verlegung] (M6-11):
 ///
-/// - **Lage:** längs jedes UK-Holzes von Ende zu Ende höchstens [abstand]
-///   (`auflagerabstand`, M6-08) auseinander, gleichmäßig verteilt, und an
-///   jedem Stoß der UK eins, auf dem beide Enden liegen – F01: 13 Linien à
-///   309 cm mit 60 cm → je 7 (91; F28: 91 Bodenanker wie im alten Planer).
+/// - **Lage** (`_stellen`, Planungsregeln Alexander (Planungskern v6,
+///   11.11.2026), Regel 3.6): das erste und letzte Auflager 5 cm vom Ende
+///   der UK, dazwischen gleichmäßig höchstens [abstand]
+///   (`auflagerabstand`, M6-08) auseinander, an jedem Stoß der UK eins, auf
+///   dem beide Enden liegen; eine UK bis 12 cm hat eins in der Mitte – F01:
+///   13 Linien à 309 cm mit 60 cm → je 7 (91; F28: 91 Bodenanker wie im
+///   alten Planer).
 ///   Die Rand-UK (Planungsregeln 3.3) trägt ihre Auflager genauso.
 /// - **Höhe:** [flaeche] am Auflager minus [aufbauhoehe] ist der Spalt
 ///   zwischen UK und Boden.
@@ -277,23 +281,31 @@ Auflagerbedarf auflagerbedarf(
 }
 
 /// Stellen der Auflager auf den [abschnitte]n einer Linie oder Rand-UK
-/// (y bzw. Abstand vom Anfang) mit den [stoesse]n: je Holz zwischen den Enden
-/// bzw. Stößen gleichmäßig höchstens [abstand] auseinander, gemeinsame
-/// Stellen nur einmal.
+/// (y bzw. Abstand vom Anfang) mit den [stoesse]n (Planungsregeln Alexander
+/// (Planungskern v6, 11.11.2026), Regel 3.5/3.6): das erste und das letzte
+/// [auflagerRandabstand] vom Ende der UK, an jedem Stoß eins für beide
+/// Enden, dazwischen je Holz gleichmäßig höchstens [abstand] auseinander –
+/// die Anzahl je Holz richtet sich nach seiner ganzen Länge. Ein Abschnitt
+/// bis [auflagerEinzelnBis] bekommt eins in der Mitte.
 List<double> _stellen(
   List<(double, double)> abschnitte,
   List<double> stoesse,
   double abstand,
 ) {
+  final rand = auflagerRandabstand.mm.toDouble();
   final stellen = <double>[];
   for (final (von, bis) in abschnitte) {
+    if (bis - von <= auflagerEinzelnBis.mm) {
+      stellen.add((von + bis) / 2);
+      continue;
+    }
     final grenzen = [
       von,
       for (final s in stoesse)
         if (s > von && s < bis) s,
       bis,
     ];
-    stellen.add(von);
+    stellen.add(von + rand);
     for (var i = 1; i < grenzen.length; i++) {
       final (a, b) = (grenzen[i - 1], grenzen[i]);
       // feste Obergrenze wie bei den Hölzern (`hoechsteFelder`)
@@ -301,8 +313,10 @@ List<double> _stellen(
         hoechsteFelder,
         math.max(1, ((b - a) / abstand - 1e-6).ceil()),
       );
+      final anfang = i == 1 ? von + rand : a;
+      final ende = i == grenzen.length - 1 ? bis - rand : b;
       for (var k = 1; k <= felder; k++) {
-        stellen.add(a + (b - a) * k / felder);
+        stellen.add(anfang + (ende - anfang) * k / felder);
       }
     }
   }

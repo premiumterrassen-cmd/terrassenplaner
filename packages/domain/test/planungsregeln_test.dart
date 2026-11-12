@@ -2,11 +2,10 @@ import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import 'package:test/test.dart';
 
 void main() {
-  test('Abstände (R-C03, R-B06, R-C10)', () {
-    expect(querstrebenAbstand, const Millimeter(600));
+  test('Abstände (R-C03, R-B06)', () {
+    expect(querstrebenAbstand, const Millimeter(750));
     // Planungskern v6, Entscheidung Alexander 11.11.2026 (vorher 5 mm)
     expect(fuge, const Millimeter(6));
-    expect(wandabstand, const Millimeter(20));
   });
 
   test('Clips: Kreuzungen + 5 %, aufgerundet; Bits nach Packungsgröße '

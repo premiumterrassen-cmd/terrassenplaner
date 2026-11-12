@@ -128,17 +128,20 @@ final class UkVerlegung {
 ///   2026-05-03-4381, 2026-07-07-2794). Nahe Stöße (unter dem halben
 ///   Abstand) teilen sich ein Paar.
 /// - **Abschnitte:** jede Linie liegt nur, wo Belag ist – in der Fläche ohne
-///   leere Ausschnitte (Fachkonzept 1.4).
+///   leere Ausschnitte (Fachkonzept 1.4). Endet sie an einer Kante mit
+///   Rand-UK, ist sie dort um die UK-Breite kürzer und läuft nicht über die
+///   Rand-UK (`_vorRandUk`).
 /// - **Rand-UK** (Planungsregeln Alexander (Planungskern v6, 11.11.2026),
 ///   Regel 3.3/3.4, `randbelegung`): an jeder Kante, an der Dielen enden und
 ///   keine Linie liegt – schräge Ränder, Kanten leerer Ausschnitte (auf der
 ///   Terrassenseite), Innenecken, Bogenstücke, Kanten bei diagonaler
 ///   Verlegung – ein Holz bündig entlang der Kante; Bögen in Sehnen, die
 ///   höchstens [randBogenToleranz] vom Bogen abweichen, je Sehne eine.
-/// - **Stöße der UK und Lieferlängen:** ein Abschnitt bekommt Hölzer wie
-///   eine Dielenreihe (`lieferlaengenFuer`, R-B10: kürzeste Länge, die ihn
-///   abdeckt, längere gestückelt; 1000 cm → 600 + 400 cm wie 2026-07-07);
-///   eine erzwungene UK-Länge (3.4, M6-03) gilt. Die Lieferstücke rechnet
+/// - **Stöße der UK und Lieferlängen:** ein Abschnitt über der längsten
+///   Lieferlänge wird gestückelt (`ukStueckelung`, 1000 cm → 600 + 400 cm
+///   wie 2026-07-07), das Reststück ist mindestens 50 cm (Planungsregeln
+///   Alexander (Planungskern v6, 11.11.2026), Regel 3.5: 610 cm → 560 +
+///   50 cm); eine erzwungene UK-Länge (3.4, M6-03) gilt. Die Lieferstücke rechnet
 ///   `lieferhoelzer` (kurze Reste aus gemeinsamen Hölzern).
 /// - **Längsverbinder:** je Stoß einer aus den Längsverbindern der UK im
 ///   [regelwerk] (Spalte „mögliche Längsverbinder“), wenn es welche gibt –
@@ -176,18 +179,28 @@ UkVerlegung ukVerlegung(
     w,
     abstand.mm.toDouble(),
   );
+  final roh = <UkLinie>[
+    for (final x in lagen)
+      (
+        x: x,
+        abschnitte: _ohne(_schnitte(flaeche, x), [
+          for (final s in aussparungen) ..._schnitte(s, x),
+        ]),
+        stoesse: const [],
+      ),
+  ];
+  final belegung = randbelegung(_randkanten(stand, drehung, w), roh);
+  final randkanten = [for (final r in belegung) r.kante];
   final laengen = ukLieferlaengen(uk);
   final holz = _Holzleger(uk, laengen, stand.ukLaenge, drehung);
   final linien = <UkLinie>[];
-  for (final x in lagen) {
-    final abschnitte = _ohne(_schnitte(flaeche, x), [
-      for (final s in aussparungen) ..._schnitte(s, x),
-    ]);
+  for (final l in roh) {
+    final abschnitte = _vorRandUk(l.x, l.abschnitte, randkanten, w);
     final stoesse = [
       for (final (von, bis) in abschnitte)
-        for (final s in holz.lege(Punkt(x, von), Punkt(x, bis))) von + s,
+        for (final s in holz.lege(Punkt(l.x, von), Punkt(l.x, bis))) von + s,
     ];
-    linien.add((x: x, abschnitte: abschnitte, stoesse: stoesse));
+    linien.add((x: l.x, abschnitte: abschnitte, stoesse: stoesse));
   }
   UkRand randholz(Randbelegung r) {
     // bündig: die Achse eine halbe Breite auf der Belagseite
@@ -201,10 +214,7 @@ UkVerlegung ukVerlegung(
     );
   }
 
-  final rand = [
-    for (final r in randbelegung(_randkanten(stand, drehung, w), linien))
-      randholz(r),
-  ];
+  final rand = [for (final r in belegung) randholz(r)];
   final stossanzahl = _stossanzahl(linien, rand);
   final verbinder = regelwerk?.datei[uk.nummer] == null
       ? const <Artikel>[]
@@ -383,6 +393,33 @@ List<double> _lagen(List<double> grenzen, double w, double abstand) {
   return lagen;
 }
 
+/// Ein Ende einer Linie liegt höchstens so weit (mm) von einer Kante mit
+/// Rand-UK entfernt, dann endet die Linie an ihr – Bögen sind für die
+/// Rand-UK in Sehnen zerlegt ([randBogenToleranz]).
+const _amRand = randBogenToleranz + 1;
+
+/// [abschnitte] der Linie bei [x] ohne die Rand-UK: endet ein Abschnitt an
+/// einer der [randkanten], wird er dort um die UK-Breite [w] gekürzt – die
+/// Linie läuft nicht über die Rand-UK (Planungsregeln Alexander
+/// (Planungskern v6, 11.11.2026), Regel 3.3; Zuschnitt und Längen
+/// stimmen). Zu kurze Reste fallen weg.
+List<(double, double)> _vorRandUk(
+  double x,
+  List<(double, double)> abschnitte,
+  List<Randkante> randkanten,
+  double w,
+) {
+  bool amRand(double y) => randkanten.any(
+    (k) => Kante(k.von, k.bis).abstand(Punkt(x, y)) <= _amRand,
+  );
+  return [
+    for (final (von, bis) in abschnitte)
+      if ((amRand(von) ? von + w : von, amRand(bis) ? bis - w : bis)
+          case (final a, final b) when b - a >= _mindestAbschnitt)
+        (a, b),
+  ];
+}
+
 /// Abschnitte (von, bis) in y, in denen die senkrechte Linie bei [x] im
 /// Vieleck [p] liegt.
 List<(double, double)> _schnitte(List<Punkt> p, double x) {
@@ -419,18 +456,18 @@ List<(double, double)> _ohne(
   ];
 }
 
-/// Zuschnitte eines Abschnitts der Länge [laenge]: ganze Lieferlängen und
-/// der Rest (`lieferlaengenFuer`, mit erzwungener Länge [fest]); ohne
-/// Lieferlängen ein Stück.
+/// Zuschnitte eines Abschnitts der Länge [laenge] (`ukStueckelung`,
+/// Regel 3.5: Reststück mindestens 50 cm, mit erzwungener Länge [fest]);
+/// ohne Lieferlängen ein Stück.
 List<double> _teile(double laenge, List<Millimeter> laengen, Millimeter? fest) {
-  final lieferung = lieferlaengenFuer(
+  final stuecke = ukStueckelung(
     Millimeter(laenge.round()),
     laengen,
     fest: fest,
   );
-  if (lieferung.length < 2) return [laenge];
+  if (stuecke.length < 2) return [laenge];
   final ganze = [
-    for (final l in lieferung.take(lieferung.length - 1)) l.mm.toDouble(),
+    for (final l in stuecke.take(stuecke.length - 1)) l.mm.toDouble(),
   ];
   return [...ganze, laenge - ganze.fold(0.0, (a, b) => a + b)];
 }

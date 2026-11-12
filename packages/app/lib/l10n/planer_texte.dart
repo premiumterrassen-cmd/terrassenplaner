@@ -2137,7 +2137,7 @@ abstract class PlanerTexte {
   /// No description provided for @querstrebenAbstand.
   ///
   /// In de, this message translates to:
-  /// **'Querstreben kommen als Leiterverband zwischen die UK-Hölzer; automatisch alle 60 cm.'**
+  /// **'Querstreben kommen als Leiterverband zwischen die UK-Hölzer; automatisch im 75-cm-Raster, von Feld zu Feld versetzt.'**
   String get querstrebenAbstand;
 
   /// No description provided for @querstrebenAnzahl.

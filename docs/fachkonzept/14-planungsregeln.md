@@ -1,6 +1,6 @@
 # 14 Planungsregeln aus Firmenwissen (M1-04)
 
-Fachregeln für den neuen Planer aus dem Firmenwissen von ALTO HOLZ. Abgleich mit den **Planungsregeln Alexander (Planungskern v6, 11.11.2026)** Abschnitte 1 und 4 am 11.11.2026 (R-B01, R-B06, R-B09, R-B14, R-B15, R-D07, R-D09; Rand-UK aus Abschnitt 3: R-C11, R-C12). Gelesen am 19.10.2026: Beschlussregister **v129** (`Claude-Wissen/00_Zentral`), Sortimentsmatrix 2027_07 (mit Korrektur B-212), Unternehmensprofil, technisches Merkblatt mit Klärungsliste M-01–M-15, Montagehinweise (10 Regeln) und die Antworten von Alexander aus [10](10-offene-fragen.md).
+Fachregeln für den neuen Planer aus dem Firmenwissen von ALTO HOLZ. Abgleich mit den **Planungsregeln Alexander (Planungskern v6, 11.11.2026)** Abschnitte 1 und 4 am 11.11.2026 (R-B01, R-B06, R-B09, R-B14, R-B15, R-D07, R-D09; Rand-UK aus Abschnitt 3: R-C11, R-C12) sowie Abschnitte 1 und 3 zur UK (R-B16 Überlänge, R-C03, R-C10, R-C13, R-C14; ECO-UK B-230). Gelesen am 19.10.2026: Beschlussregister **v129** (`Claude-Wissen/00_Zentral`), Sortimentsmatrix 2027_07 (mit Korrektur B-212), Unternehmensprofil, technisches Merkblatt mit Klärungsliste M-01–M-15, Montagehinweise (10 Regeln) und die Antworten von Alexander aus [10](10-offene-fragen.md).
 
 **Vertraulichkeit (B-020 ff.):** Hier stehen nur Planungsregeln. Werke, Herkunftsländer, Lieferanten, Einkaufspreise, Margen und Hersteller der Eigenmarken stehen nicht in diesem öffentlichen Repository – die Serien heißen nur BASIC, ECO SELECT, PREMIUM SELECT und MASSIV.
 
@@ -44,6 +44,7 @@ Die mit ⚙ markierten Regeln sind im domain-Paket ausführbar und mit Tests bel
 | R-B13 | Die letzte Dielenreihe wird längs auf Restbreite aufgeschnitten und markiert (rote Kante). | Alexander (Frage 1) | gilt |
 | R-B14 ⚙ | **Befestigung umschaltbar:** von oben ↔ sichtverdeckt tauscht die Diele derselben Serie und Breite glattkant ↔ genutet (`gegenstueck`, `Befestigungsbedarf.wechsel`); ohne Gegenstück in den Artikeldaten bleibt es bei den Arten des Profils und der Meldung „nicht möglich“. | Planungsregeln Alexander (Planungskern v6, 11.11.2026) Regel 4.4 | gilt |
 | R-B15 ⚙ | **Bohrsenker immer als optionale Position** (50-80-008, 1 Stück, Preis aus den Artikeldaten): in Materialliste, Planungsunterlagen und GrandTotal-Export als „optional – nicht in der Summe“, nicht im Warenkorb-Link; nicht, wenn er schon fest gewählt ist (`bohrsenkerAngebot`, `Materialzusatz.optional`). | Planungsregeln Alexander (Planungskern v6, 11.11.2026) Regel 4.5 | gilt |
+| R-B16 ⚙ | **Überlänge 3 cm:** Dielen kommen mit 3 cm Überlänge; eine Lieferlänge nimmt Stücke bis zu ihrer Länge plus 3 cm auf, ein Dielenstoß ist erst darüber nötig (6,00 m Fläche = eine 6-m-Diele, 2 × 3,00 m aus einer 6-m-Diele). Holzfliesen ohne. Sägeschnitt (Kern 0,5 cm) offen. | Planungsregeln Alexander (Planungskern v6, 11.11.2026), Kern-Konstante Überlänge; Entscheidung 11.11.2026; vgl. B-111 | gilt – Fachkonzept 2.3/2.7 |
 
 ## C Unterkonstruktion
 
@@ -51,16 +52,18 @@ Die mit ⚙ markierten Regeln sind im domain-Paket ausführbar und mit Tests bel
 |---|---|---|---|
 | R-C01 ⚙ | **UK-Achsabstand höchstens 40 cm**, sicherer unter 35 cm. | Montagehinweise Regel 3, Antwort 4 | gilt – max. 40 cm im Planer (auch PREMIUM-UK) |
 | R-C02 | UK auf den Auflagern verschrauben (Ecken, Ränder, ausgewählte Punkte). | Montagehinweise Regel 2 | gilt (Hinweis) |
-| R-C03 | Aussteifung: Leiterverband (Querstreben) oder Kopfband 45°. **Querstreben-Abstand 60 cm.** | Montagehinweise Regel 5, Alexander (Frage 17) | gilt |
+| R-C03 ⚙ | Aussteifung (nur optional, kein Standard): Leiterverband (Querstreben) oder Kopfband 45°. **Querhölzer im 75-cm-Raster, von Feld zu Feld versetzt** (bis 11.11.2026: 60 cm). | Montagehinweise Regel 5, Alexander (Frage 17); Planungsregeln Alexander (Planungskern v6, 11.11.2026), Regel 3.7; Entscheidung Alexander 11.11.2026 | gilt – Fachkonzept 3.7 |
 | R-C04 | Gummiband/Pads (GUMO) zwischen Diele und UK bzw. unter der UK. | Montagehinweise Regel 8, B-039 | gilt |
 | R-C05 ⚙ | Blendenträger: bei Verblendung senkrechte Hölzer aus dem UK-Holz der Serie an den Sichtseiten, höchstens 40 cm auseinander (an den Stirnenden der UK und an der anderen Seite), Länge = Höhe − 2 cm − Dielenstärke, 2 Schrauben je Holz (`verblendungsbedarf`, [04 · 4.2](04-terrassenanschluss.md)). | Alexander; Planungsregeln Alexander (Planungskern v6, 11.11.2026), Abschnitt 4a.6 | gilt · früher: kurze Stücke 8,6–11 cm über die ganze Höhe im UK-Achsabstand |
 | R-C06 | Vorhandene UK: neue UK wird darauf gebaut – UK-Holz und Bodenanker bleiben. | Alexander (Frage 7) | gilt |
 | R-C07 | Untergrund ist nur Information für die Beratung, keine Wirkung auf die Berechnung. | Alexander (Frage 6) | gilt |
 | R-C08 | Unter einer Rinne geht die UK bis 1–2 cm vor die Hauswand; darunter Auflageprofile, darauf Ventilationsprofile. | Alexander (Frage 14) | gilt |
 | R-C09 | Gewerbliche Nutzung bleibt wie im alten Planer (nur mehr Gummiband); „UK zwingend versteift, nur PREMIUM SELECT“ ist zurückgestellt. | Alexander (Frage 13) | gilt |
-| R-C10 ⚙ | Unterlüftung mind. 12 cm und Gefälle 1–2 % in Dielenlängsrichtung als **Hinweise**; der Planer rechnet mit **2 cm Wandabstand**. | Merkblatt M-07, Antwort 5 | gilt |
+| R-C10 | Unterlüftung mind. 12 cm und Gefälle 1–2 % in Dielenlängsrichtung als **Hinweise**. **Wandabstand: im Plan und in den Unterlagen nur „Abstand lassen“, kein fester Wert** – der Planer rechnet mit keinem Wandabstand (die frühere Konstante 2 cm ist entfernt). Stellfüße an der Hauswand (UK 1 cm vor der Wand, Regel 3.11) folgen später. | Merkblatt M-07, Antwort 5; Planungsregeln Alexander (Planungskern v6, 11.11.2026), Regel 3.9 | gilt |
 | R-C11 ⚙ | **Rand-UK an jeder Kante mit Dielenenden**, bündig entlang der Kante, kein Überstand: schräge Ränder (über 12° zur UK, über 8 cm quer zur Diele), Ausschnittkanten auf der Terrassenseite, Innenecken L/T/U, Bögen je Sehne, Ränder bei diagonaler/freier Verlegung – wo keine UK-Linie höchstens 6 cm daneben liegt. Kanten parallel zur Diele: keine. | Planungsregeln Alexander (Planungskern v6, 11.11.2026), Regel 3.3; offene Frage 19 | gilt – Fachkonzept 3.11 |
 | R-C12 ⚙ | **Selbstkontrolle:** Prüfpunkte alle 10 cm entlang jeder Kante mit Dielenenden, Toleranz 6 cm; fehlt die UK an mehr als 10 % der Punkte, wird die Rand-UK ergänzt und in den Hinweisen gemeldet. | Planungsregeln Alexander (Planungskern v6, 11.11.2026), Regel 3.4 | gilt – Fachkonzept 3.11 |
+| R-C13 ⚙ | **UK-Stoß mit Reststück mindestens 50 cm:** UK-Linien über der längsten Lieferlänge werden gestückelt (ganze Längen und der Rest), der Rest ist mindestens 50 cm (610 cm → 560 + 50 cm); der Stoß liegt auf einem Auflager. | Planungsregeln Alexander (Planungskern v6, 11.11.2026), Regel 3.5 | gilt – Fachkonzept 3.11 |
+| R-C14 ⚙ | **Auflager an den Enden:** das erste und letzte Auflager jeder UK 5 cm vom Ende, dazwischen gleichmäßig höchstens im Auflagerabstand (60 cm); eine UK bis 12 cm bekommt ein Auflager in der Mitte. | Planungsregeln Alexander (Planungskern v6, 11.11.2026), Regel 3.6 | gilt – Fachkonzept 3.12 |
 
 ## D Anschluss, Treppen, Zubehör
 
@@ -86,5 +89,5 @@ Werden **nicht** übernommen (Liste in [09](09-nicht-teil-der-kopie.md)): einsei
 2. **Zwischenlängen:** gibt es nicht mehr, es gilt B-035 → R-A06.
 3. **Fuge:** überall 5 mm, „da sind wir auf der sicheren Seite“ → R-B06. *Ersetzt am 11.11.2026: 6 mm (Planungskern v6, Entscheidung Alexander).*
 4. **UK-Achsabstand:** maximal 40 cm im Planer → R-C01.
-5. **Unterlüftung, Gefälle:** nur Hinweise; Wandabstand im Planer 2 cm → R-C10.
+5. **Unterlüftung, Gefälle:** nur Hinweise; Wandabstand ohne festen Wert („Abstand lassen“, Planungskern v6 Regel 3.9) → R-C10.
 6. **Längsstoß 0–2 mm, keine Verschraubung von unten:** beides korrekt (Hinweise) → R-B07, R-B05.

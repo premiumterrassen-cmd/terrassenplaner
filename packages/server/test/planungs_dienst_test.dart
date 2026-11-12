@@ -1548,18 +1548,21 @@ void main() {
         'bearbeiteten Fläche', () {
       final stand = Planungsstand.start.mitQuerstreben(true);
       final b = rechne(Planung.start.mitStand(stand), mitUk: uk);
-      expect(b.querstreben, hasLength(60));
+      // 75-cm-Raster versetzt, je Feld 4 (Planungskern v6 / Entscheidung
+      // 11.11.2026; vorher 60 cm, 5 Reihen = 60)
+      expect(b.querstreben, hasLength(48));
       // zwischen den UK-Hölzern der Verlegung (M6-10): Achsen 20 mm vom Rand,
-      // 4760 / 12 = 396,7 mm auseinander, Strebe 356,7 mm
-      expect(b.querstreben.first.von, const Punkt(40, 515));
-      expect(b.querstrebenReihen, 5);
+      // 4760 / 12 = 396,7 mm auseinander, Strebe 356,7 mm; das erste Feld ab
+      // einem Viertel Raster
+      expect(b.querstreben.first.von, const Punkt(40, 187.5));
+      expect(b.querstrebenReihen, 4);
       expect(
         b.stueckliste.zeilen.singleWhere((z) => z.farbe == Stueckfarbe.gruen),
         const Stuecklistenzeile(
           nummer: Artikelnummer('10-10-031'),
           titel: '10-10-031',
           laenge: Millimeter(357),
-          stueck: 60,
+          stueck: 48,
           farbe: Stueckfarbe.gruen,
         ),
       );
@@ -2217,12 +2220,14 @@ void main() {
           .mitEckhoehe(1, const Millimeter(150));
       final b = rechne(Planung.start.mitStand(stand));
       final titel = {for (final z in b.unterbau.zuordnung) z.titel: z.anzahl};
-      // Spalt je Holz 69, 58, 48, 37, 26, 16, 5 mm: 55–95 mm passt für die
-      // ersten beiden, 48 und 37 liegen näher am Fuß, 26 und 16 näher am
-      // Pad (Lücke: der nächste Bereich, M6-08), 5 mm ist das Pad
+      // Spalt je Holz 68, 58, 47, 37, 27, 16, 6 mm (erstes und letztes
+      // Auflager 5 cm vom UK-Ende, Planungskern v6 / Entscheidung
+      // 11.11.2026; vorher 69 … 5): 55–95 mm passt für die ersten beiden,
+      // 47 und 37 liegen näher am Fuß, 27 und 16 näher am Pad (Lücke: der
+      // nächste Bereich, M6-08), 6 mm ist das Pad
       expect(
         [for (final p in b.unterbau.auflagerpunkte.take(7)) p.spalt.mm],
-        [69, 58, 48, 37, 26, 16, 5],
+        [68, 58, 47, 37, 27, 16, 6],
       );
       expect(titel, {'Artikel 50-60-005': 39, 'Artikel 60-55-136': 52});
       expect(b.unterbau.auflagerpunkte.every((p) => p.zeile != null), isTrue);

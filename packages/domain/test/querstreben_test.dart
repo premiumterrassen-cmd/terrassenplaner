@@ -107,15 +107,16 @@ void main() {
   });
 
   group('Reihen der Querstreben (M6-06, R-C03)', () {
-    test('automatisch höchstens 60 cm auseinander, mindestens eine', () {
+    test('automatisch im 75-cm-Raster (Planungskern v6 / Entscheidung '
+        '11.11.2026, vorher 60 cm), mindestens eine', () {
       final mit = f01.mitQuerstreben(true);
       for (final (mm, reihen) in [
         (300, 1),
-        (1200, 1),
-        (1201, 2),
-        (3090, 5),
-        (3600, 5),
-        (3601, 6),
+        (1500, 1),
+        (1501, 2),
+        (3000, 3),
+        (3001, 4),
+        (3090, 4),
       ]) {
         expect(strebenreihen(mit, Millimeter(mm)), reihen, reason: '$mm');
       }
@@ -125,7 +126,7 @@ void main() {
       final versteift = f01.mitNutzungsart(Nutzungsart.versteifungMitRahmen);
       expect(strebenreihen(versteift, const Millimeter(3090)), 2);
       final mit = versteift.mitQuerstreben(true);
-      expect(strebenreihen(mit, const Millimeter(3090)), 5);
+      expect(strebenreihen(mit, const Millimeter(3090)), 4);
       expect(
         strebenreihen(mit.mitQuerstrebenReihen(3), const Millimeter(3090)),
         3,
@@ -141,31 +142,35 @@ void main() {
           f01.mitTerrassenart(Terrassenart.hochterrasse).mitQuerstreben(true),
           const Millimeter(3090),
         ),
-        5,
+        4,
       );
     });
 
-    test('F01 mit Querstreben: 5 Reihen à 12 Streben; Mengen und '
-        'Zeichnung folgen der Anzahl', () {
+    test('F01 mit Querstreben: 75-cm-Raster versetzt, je Feld 4 – 48 '
+        'statt 60 Querhölzer (Planungskern v6 / Entscheidung 11.11.2026); '
+        'Mengen und Zeichnung folgen der Anzahl', () {
       final z = ukZusatz(
         f01.mitQuerstreben(true),
         _uk,
         ukAbstand: const Millimeter(400),
       );
-      expect(z.reihen, 5);
-      expect(z.streben, hasLength(60));
-      expect(z.stuecke, hasLength(60));
+      expect(z.reihen, 4);
+      expect(z.streben, hasLength(48));
+      expect(z.stuecke, hasLength(48));
       expect(z.stuecke.every((s) => s.lage == Stuecklage.quer), isTrue);
-      // 60 × 36 cm = 21,6 m: drei 6-m-Hölzer à 16, der Rest (12 × 36 cm)
-      // aus einem 5-m-Holz
-      expect(
-        {for (final b in z.bedarf) b.laenge!.mm: b.stueck},
-        {5000: 1, 6000: 3},
-      );
-      expect(
-        {for (final s in z.streben) s.von.y},
-        {515.0, 1030.0, 1545.0, 2060.0, 2575.0},
-      );
+      // 48 × 36 cm = 17,28 m: drei 6-m-Hölzer à 16 (vorher 3 × 6000 +
+      // 5000 mm)
+      expect({for (final b in z.bedarf) b.laenge!.mm: b.stueck}, {6000: 3});
+      // Feld 0 ab 18,75 cm, Feld 1 ab 37,5 cm, je 75 cm, mehr als 10 cm
+      // vor dem Ende (309 cm)
+      final xs = {for (final s in z.streben) s.von.x}.toList()..sort();
+      List<double> feld(int i) => [
+        for (final s in z.streben)
+          if (s.von.x == xs[i]) s.von.y,
+      ];
+      expect(feld(0), [187.5, 937.5, 1687.5, 2437.5]);
+      expect(feld(1), [375, 1125, 1875, 2625]);
+      expect(feld(2), feld(0));
       final drei = ukZusatz(
         f01.mitQuerstreben(true).mitQuerstrebenReihen(3),
         _uk,
@@ -173,8 +178,42 @@ void main() {
       );
       expect(drei.reihen, 3);
       expect(drei.streben, hasLength(36));
+      // eingegebene Anzahl: Raster 309 / 3 cm, ebenso versetzt
+      expect(drei.streben.first.von.y, closeTo(1030 / 4, 1e-9));
+      expect(
+        strebenraster(f01.mitQuerstreben(true), const Millimeter(3090)),
+        750,
+      );
+      expect(strebenraster(f01, const Millimeter(3090)), isNull);
       expect(Ukzusatz.keiner.reihen, 0);
     });
+  });
+
+  test('Querhölzer (Planungskern): Felder ab 40 cm, das letzte mehr als '
+      '10 cm vor dem Ende', () {
+    List<double> ys(double hoehe) => [
+      for (final s in ukZusatz(
+        f01
+            .mitGrundriss(
+              FreiformGrundriss([
+                const Punkt(0, 0),
+                const Punkt(4800, 0),
+                Punkt(4800, hoehe),
+                Punkt(0, hoehe),
+              ], geschlossen: true),
+            )
+            .mitQuerstreben(true),
+        _uk,
+        ukAbstand: const Millimeter(400),
+      ).streben)
+        s.von.y,
+    ];
+    // 40 cm: nur die Felder ab 18,75 cm (bis 30 cm erlaubt)
+    expect(ys(400), List.filled(6, 187.5));
+    expect(ys(399), isEmpty);
+    // 103,75 cm: 93,75 cm liegt genau 10 cm vor dem Ende – nicht mehr
+    expect(ys(1037.5).where((y) => y > 900), isEmpty);
+    expect(ys(1037.6).where((y) => y > 900), hasLength(6));
   });
 
   group('Berechnung mit Querstreben (M6-06)', () {

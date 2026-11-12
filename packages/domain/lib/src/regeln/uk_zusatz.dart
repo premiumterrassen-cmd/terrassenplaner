@@ -17,7 +17,6 @@ import '../artikel/einheiten.dart';
 import '../artikel/ukauswahl.dart';
 import '../ergebnisse/materialliste.dart';
 import '../ergebnisse/stueckliste.dart';
-import '../geometrie/kontur.dart';
 import '../geometrie/punkt.dart';
 import '../holzart/holzart.dart';
 import '../konfiguration/belagverlegung.dart';
@@ -62,12 +61,13 @@ final class Ukzusatz {
 }
 
 /// Reihen der Querstreben bei einer Ausdehnung [laenge] quer zu den
-/// Dielen (längs der UK-Linien):
+/// Dielen (längs der UK-Linien) – so viele Querhölzer hat ein Feld zwischen
+/// zwei UK-Linien:
 ///
-/// - mit zusätzlichen Querstreben (3.7, M6-06) die eingegebene Anzahl der
-///   Quertraversen oder automatisch so viele, dass sie höchstens
-///   [querstrebenAbstand] (60 cm, R-C03) auseinander liegen – sie ersetzen
-///   dann die Reihen der Versteifung;
+/// - mit zusätzlichen Querstreben (3.7, M6-06, Aussteifung) die eingegebene
+///   Anzahl der Quertraversen oder automatisch so viele, wie in das Raster
+///   [querstrebenAbstand] (75 cm, R-C03) passen – sie ersetzen dann die
+///   Reihen der Versteifung;
 /// - sonst bei Versteifung (3.6, M6-05) höchstens [versteifungsAbstand];
 /// - jeweils mindestens eine Reihe, ohne beides keine.
 int strebenreihen(Planungsstand stand, Millimeter laenge) {
@@ -83,6 +83,19 @@ int strebenreihen(Planungsstand stand, Millimeter laenge) {
   return math.max(1, _felder(laenge.mm.toDouble(), abstand) - 1);
 }
 
+/// Raster der Querhölzer längs der UK-Linien bei einer Ausdehnung [laenge]
+/// (Planungsregeln Alexander (Planungskern v6, 11.11.2026), Regel 3.7):
+/// automatische Querstreben im festen Raster [querstrebenAbstand] (75 cm),
+/// eine eingegebene Anzahl und die Versteifung teilen die Ausdehnung durch
+/// ihre [strebenreihen]; ohne beides `null`.
+double? strebenraster(Planungsstand stand, Millimeter laenge) {
+  final reihen = strebenreihen(stand, laenge);
+  if (reihen == 0) return null;
+  return stand.querstreben && stand.querstrebenReihen == null
+      ? querstrebenAbstand.mm.toDouble()
+      : laenge.mm / reihen;
+}
+
 /// Zusätzliches Holz der UK [uk] für [stand] mit dem UK-Achsabstand
 /// [ukAbstand]:
 ///
@@ -93,10 +106,11 @@ int strebenreihen(Planungsstand stand, Millimeter laenge) {
 /// - **Zweite Lage** (doppelte UK, Hochterrasse): Hölzer parallel zu den
 ///   Dielen unter der ersten Lage im selben Achsabstand (F34, F28: 9 × 480
 ///   cm → 9 × 5000 mm).
-/// - **Leiterverband** (Versteifung, `strebenreihen`): Querstreben zwischen
-///   benachbarten UK-Linien in Reihen quer zu ihnen; eine Strebe ist so lang
-///   wie der lichte Abstand der Linien (Achsabstand minus der schmalen Seite
-///   der hochkant stehenden UK).
+/// - **Leiterverband** (Aussteifung, `strebenraster`): Querhölzer zwischen
+///   benachbarten UK-Linien im Raster längs der Linien, von Feld zu Feld
+///   versetzt (`_streben`); ein Querholz ist so lang wie der lichte Abstand
+///   der Linien (Achsabstand minus der schmalen Seite der hochkant stehenden
+///   UK).
 ///
 /// Die Lieferhölzer rechnet `lieferhoelzer`; eine erzwungene UK-Länge (3.4)
 /// gilt auch hier. [linien] sind die Lagen der UK-Hölzer in der gedrehten
@@ -114,7 +128,8 @@ Ukzusatz ukZusatz(
   final drehung = -stand.dielenwinkel * math.pi / 180;
   final flaeche = [for (final p in stand.kontur.vieleck()) p.gedreht(drehung)];
   final huelle = Huellrechteck.um(flaeche);
-  final reihen = strebenreihen(stand, Millimeter(huelle.hoehe.round()));
+  final hoehe = Millimeter(huelle.hoehe.round());
+  final reihen = strebenreihen(stand, hoehe);
   if (!rahmen && !stand.doppelteUk && reihen == 0) return Ukzusatz.keiner;
   final laengs = [
     if (rahmen)
@@ -127,13 +142,15 @@ Ukzusatz ukZusatz(
           y.clamp(huelle.min.y + _innen, huelle.max.y - _innen),
         ),
   ];
-  final streben = _streben(
-    flaeche,
-    huelle,
-    linien ?? _linien(huelle.min.x, huelle.max.x, ukAbstand),
-    math.min(breite.mm, staerke.mm).toDouble(),
-    reihen,
-  );
+  final raster = strebenraster(stand, hoehe);
+  final streben = raster == null
+      ? const <Strebe>[]
+      : _streben(
+          flaeche,
+          linien ?? _linien(huelle.min.x, huelle.max.x, ukAbstand),
+          math.min(breite.mm, staerke.mm).toDouble(),
+          raster,
+        );
   final laengen = ukLieferlaengen(uk);
   Planstueck stueck(double laenge, Stuecklage lage) => Planstueck(
     uk.nummer,
@@ -184,10 +201,12 @@ Map<Millimeter, int> lieferstuecke(
 /// Welche Lieferhölzer für die Zuschnitte [stuecke] aus den Lieferlängen
 /// [laengen] (aufsteigend) geschnitten werden (M9-02, UK-Zuschnittplan):
 ///
+/// - Ein Stück über der längsten Lieferlänge wird zuerst gestückelt
+///   (`ukStueckelung`, Regel 3.5: ganze Hölzer, Reststück mindestens
+///   50 cm).
 /// - Lange Stücke (ab der halben kürzesten Lieferlänge) bekommen eigene
-///   Hölzer wie eine Dielenreihe (R-B10, `lieferlaengenFuer`): 480 cm →
-///   5000 mm; ein Stück über der längsten wird gestückelt (ganze Hölzer
-///   und der Rest aus dem letzten).
+///   Hölzer in der kürzesten Lieferlänge, die sie aufnimmt (R-B10): 480 cm
+///   → 5000 mm.
 /// - Kurze Stücke (Querstreben, Stützen) werden der Größe nach aus
 ///   gemeinsamen Hölzern geschnitten: zuerst in den Rest eines langen
 ///   Stücks oder ein angeschnittenes Holz, in das sie passen (wie im alten
@@ -206,20 +225,16 @@ List<Lieferdiele> lieferhoelzer(
   final moeglich = laengen.contains(fest) ? [fest!] : laengen;
   if (moeglich.isEmpty) return const [];
   final grenze = moeglich.first.mm / 2;
+  final teile = [for (final s in stuecke) ...ukStueckelung(s, moeglich)];
   // lange Stücke zuerst, ihre Reste nehmen kurze auf (M10-01)
-  final offen = <({int laenge, List<Millimeter> schnitte, int rest})>[];
-  for (final s in stuecke) {
-    if (s.mm < grenze) continue;
-    final lieferung = lieferlaengenFuer(s, moeglich);
-    var rest = s;
-    for (final (i, l) in lieferung.indexed) {
-      final schnitt = i == lieferung.length - 1 ? rest : l;
-      offen.add((laenge: l.mm, schnitte: [schnitt], rest: l.mm - schnitt.mm));
-      rest -= schnitt;
-    }
-  }
+  final offen = <({int laenge, List<Millimeter> schnitte, int rest})>[
+    for (final s in teile)
+      if (s.mm >= grenze)
+        if (moeglich.firstWhere((l) => l >= s).mm case final holz)
+          (laenge: holz, schnitte: [s], rest: holz - s.mm),
+  ];
   final kurz = [
-    for (final s in stuecke)
+    for (final s in teile)
       if (s.mm < grenze) s.mm,
   ]..sort((a, b) => b.compareTo(a));
   var summe = kurz.fold(0, (a, b) => a + b);
@@ -317,27 +332,62 @@ List<double> _abschnitte(List<Punkt> flaeche, double y) {
   return [for (var i = 0; i < xs.length ~/ 2; i++) xs[2 * i + 1] - xs[2 * i]];
 }
 
-/// Querstreben in [reihen] gleichmäßig verteilten Reihen zwischen den
-/// UK-Linien [linien] (in der gedrehten [flaeche]); eine Strebe gibt es nur,
-/// wo ihre Mitte in der Fläche liegt. [uk] ist die Breite der UK in der
+/// Querhölzer zwischen den UK-Linien [linien] (in der gedrehten
+/// [flaeche]) als Leiter im [raster] längs der Linien, von Feld zu Feld
+/// versetzt (Planungsregeln Alexander (Planungskern v6, 11.11.2026), Regel
+/// 3.7): Je Feld – der Abschnitt der Fläche auf der Mitte zwischen zwei
+/// Linien – liegt das erste Querholz ein Viertel Raster (gerade Felder,
+/// das erste ist Feld 0) bzw. ein halbes Raster (ungerade) vom Anfang,
+/// die weiteren je ein Raster dahinter, das letzte mehr als
+/// [_strebeVorEnde] vor dem Ende. Felder unter [_strebeFeld] Länge und die
+/// zwei Hölzer einer doppelten UK am Stoß (lichter Abstand unter
+/// [mindestStrebe]) bekommen keine. [uk] ist die Breite der UK in der
 /// Draufsicht.
 List<Strebe> _streben(
   List<Punkt> flaeche,
-  Huellrechteck huelle,
   List<double> linien,
   double uk,
-  int reihen,
+  double raster,
 ) => [
-  for (var r = 1; r <= reihen; r++)
-    for (var i = 1; i < linien.length; i++)
-      if (huelle.min.y + huelle.hoehe * r / (reihen + 1) case final y
-          when linien[i] - linien[i - 1] - uk >= mindestStrebe.mm &&
-              sehnenzugEnthaelt(
-                flaeche,
-                Punkt((linien[i - 1] + linien[i]) / 2, y),
-              ))
-        (
-          von: Punkt(linien[i - 1] + uk / 2, y),
-          bis: Punkt(linien[i] - uk / 2, y),
-        ),
+  for (var i = 1; i < linien.length; i++)
+    if (linien[i] - linien[i - 1] - uk >= mindestStrebe.mm)
+      for (final (von, bis) in _spalte(
+        flaeche,
+        (linien[i - 1] + linien[i]) / 2,
+      ))
+        if (bis - von >= _strebeFeld)
+          for (final y in _rasterstellen(
+            von + raster / (i.isOdd ? 4 : 2),
+            bis - _strebeVorEnde,
+            raster,
+          ))
+            (
+              von: Punkt(linien[i - 1] + uk / 2, y),
+              bis: Punkt(linien[i] - uk / 2, y),
+            ),
 ];
+
+/// Stellen ab [anfang] je [raster] auseinander, alle vor [ende].
+List<double> _rasterstellen(double anfang, double ende, double raster) {
+  final anzahl = math.max(0, ((ende - anfang) / raster).ceil());
+  // Zählschleife mit k++ (docs/erkenntnisse/mutation-tests.md)
+  return [for (var k = 0; k < anzahl; k++) anfang + k * raster];
+}
+
+/// Felder, die kürzer sind (mm), bekommen kein Querholz (Planungskern).
+const _strebeFeld = 400.0;
+
+/// Das letzte Querholz eines Felds liegt mehr als so weit (mm) vor seinem
+/// Ende (Planungskern).
+const _strebeVorEnde = 100.0;
+
+/// Abschnitte (von, bis) in y, in denen die senkrechte Linie bei [x] in der
+/// [flaeche] liegt.
+List<(double, double)> _spalte(List<Punkt> flaeche, double x) {
+  final ys = [
+    for (final (a, b) in _kanten(flaeche))
+      if ((a.x <= x) != (b.x <= x)) a.y + (x - a.x) * (b.y - a.y) / (b.x - a.x),
+  ]..sort();
+  // Zählschleife mit i++ (docs/erkenntnisse/mutation-tests.md)
+  return [for (var i = 0; i < ys.length ~/ 2; i++) (ys[2 * i], ys[2 * i + 1])];
+}

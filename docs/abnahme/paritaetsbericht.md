@@ -1,6 +1,8 @@
 # Paritätsbericht (M10-01)
 
-> **Nachtrag 11.11.2026 (Planungskern v6, Branch `feature/planungskern-belag-befestigung`):** Fuge 6 statt 5 mm und neue Befestigung (Anfangs- und Enddiele verschraubt, Clips + 5 %) – Abschnitt [Planungskern v6](#nachtrag-planungskern-v6-11112026) unten. Die Tabellen darunter zeigen den Stand vom 07.11.2026.
+> **Nachtrag 11.11.2026 (Planungskern v6, Branch `feature/planungskern-belag-befestigung`):** Fuge 6 statt 5 mm und neue Befestigung (Anfangs- und Enddiele verschraubt, Clips + 5 %) – Abschnitt [Planungskern v6](#nachtrag-planungskern-v6-11112026) unten.
+>
+> **Nachtrag 11.11.2026 (UK-Regeln und Überlänge, Branch `feature/planungskern-uk-regeln`):** Abschnitt [UK-Regeln und Überlänge](#nachtrag-uk-regeln-und-überlänge-planungskern-v6-11112026) unten, gerechnet auf dem Stand mit Fuge 6 mm. Die Tabellen darunter zeigen den Stand vom 07.11.2026.
 
 Stand 07.11.2026, Branch `feature/m10-01-paritaetsnachweis`. Alle Referenzkonfigurationen F01–F43 (M1-03, [12](../fachkonzept/12-referenzkonfigurationen.md)) und alle rechenbaren Referenzfälle aus den Planungsunterlagen (M1-02, [11](../fachkonzept/11-referenzfaelle.md)) werden im neuen Planer gerechnet und mit den Ergebnissen des alten Planers verglichen.
 
@@ -55,6 +57,7 @@ Stand 07.11.2026, Branch `feature/m10-01-paritaetsnachweis`. Alle Referenzkonfig
 | Rechenweg | Verschnitt mit Teilflächen: der alte Rechenweg ist aus den Daten nicht nachvollziehbar (F21, Fachkonzept 2.7). |
 | Eingaben | Die Unterlage ist unvollständig: Nutzungsart (grüne Querstücke), Terrassenart (Stützen 39,9 cm) oder die verblendeten Seiten (Blendenhalter 8,6 cm) sind nicht erfasst. Die UK-Hölzer der Verlegung selbst stimmen (M6-10: 2810, 1275, 1823, 347, 4381). |
 | Rand-UK | Planungsregeln 3.3/3.4 (Fachkonzept 3.11): an jeder Kante mit Dielenenden eine UK – Rand-UK bündig an der Kante, wo keine UK-Linie höchstens 6 cm daneben liegt (schräge Ränder, Ausschnitte, Innenecken, Bögen). Stücke und Lieferlängen weichen vom alten Planer ab (neu nur 4/5/6 m, B-035); die Dielenenden auf der Rand-UK werden befestigt. |
+| Überlänge | *Seit 11.11.2026:* Dielen kommen mit 3 cm Überlänge; eine Lieferlänge nimmt Stücke bis zu ihrer Länge plus 3 cm auf (R-B16, Planungskern v6 / Entscheidung 11.11.2026). Weniger Meter; bei F04 aber 52 statt 46 Dielen und damit nach der Staffel 2 Freidielen. |
 | Frage 2–3 | offen, siehe unten |
 
 ## Referenzkonfigurationen F01–F43
@@ -65,9 +68,9 @@ Werte alt → neu. „gleich“ heißt: alle verglichenen Größen stimmen.
 |---|---|---|---|---|---|
 | F01 | Startkonfiguration | 14,832 | 4 | 0,435 → 0,433 | gleich: 48 × 5000 + 1 Freidiele, UK 13 × 4000, 637 Clips |
 | F02 | senkrecht | 14,832 | 22,75 | 0,499 → 0,491 | gleich (74 × 4000, UK 9 × 5000) |
-| F03 | diagonal 45° | 14,832 | 2,2 → 5,75 | 0,457 → 0,469 | Dielen B-035 (alt 4,5/5,5 m); UK 12 Stück (davon 5 in 4,5/5,5 m) → 6 × 5000 + 8 × 4000 mit vier Rand-UK (Rand-UK); Clips 750 gleich (vorher 600) |
-| F04 | diagonal 135° | 14,832 | 0,32 → 0,96 | 0,462 → 0,471 | Dielen B-035; Freidielen 1 → 2 (R-B09); UK 13 → 7 × 5000 + 8 × 4000 (Rand-UK); Clips 850 gleich (vorher 750) |
-| F05 | 30° | 14,832 | 3,76 | 0,473 → 0,467 | Dielen B-035; UK 14 → 6000 + 2 × 5000 + 12 × 4000 (Rand-UK); Clips 750 gleich (vorher 650) |
+| F03 | diagonal 45° | 14,832 | 2,2 → 4,69 (vor 11.11.: 5,75) | 0,457 → 0,453 | Dielen B-035 (alt 4,5/5,5 m; seit Überlänge 16 × 6000 + 17 × 5000 + 16 × 4000); UK 12 Stück (davon 5 in 4,5/5,5 m) → 5 × 5000 + 8 × 4000 mit vier Rand-UK, Linien enden vor der Rand-UK (Rand-UK; vor 11.11.: 6 × 5000 + 8 × 4000); Clips 750 gleich |
+| F04 | diagonal 135° | 14,832 | 0,32 → 0,11 (vor 11.11.: 0,96) | 0,462 → 0,470 | Dielen B-035; Freidielen 1 → 2 (R-B09); UK 13 → 7 × 5000 + 8 × 4000 (Rand-UK); Clips 850 → 900 (Planungskern v6: 846 → 851 Punkte, eine Packung mehr; vor 11.11. gleich) |
+| F05 | 30° | 14,832 | 3,76 → 2,42 (Überlänge; vor 11.11. gleich) | 0,473 → 0,462 | Dielen B-035 (seit Überlänge 35 × 6000 + 5000 + 6 × 4000); UK 14 → 6000 + 2 × 5000 + 12 × 4000 (Rand-UK); Clips 750 gleich |
 | F06 | Halbverband | 14,832 | 4 | 0,445 → 0,443 | gleich |
 | F07 | Drittelverband | 14,832 | 4 | 0,454 → 0,453 | gleich |
 | F08 | Wechselverband | 14,832 | 4 | 0,435 → 0,433 | gleich |
@@ -81,7 +84,7 @@ Werte alt → neu. „gleich“ heißt: alle verglichenen Größen stimmen.
 | F16 | T-Form | 6,84 | 0,96 → 10,75 | 0,196 → 0,214 | Dielen 4,5/5,5 m → 30 × 4000 (B-035, 90er-Teilung); Freidielen 0 → 1 (R-B09); UK 6 × 4000 → 2 × 6000 + 3 × 4000 (Rand-UK an beiden Innenecken); Clips 400 gleich (vorher 300) |
 | F17 | U-Form | 6,84 | 1,74 → 11,5 | 0,194 → 0,228 | wie F16; UK 8 × 3000 → 6000 + 6 × 4000, Clips 350 → 400 (Rand-UK an den Innenecken, Dielenenden darauf befestigt) |
 | F18 | O-Form | 13,68 | 0,54 → 4,36 | 0,329 → 0,331 | Dielen B-035; UK 10 Stück (alt mit 2 × 190 cm an den Ausschnittkanten) → 9 × 4000: an beiden Ausschnittkanten liegt eine UK-Linie 2,8 cm daneben, also keine Rand-UK (Rand-UK) |
-| F19 | Kreis | 10,15 → 10,179 | 7,44 → 4,68 | 0,340 → 0,308 | Fläche M4-07; Dielen B-035; UK 9 Stück mit vielen 4–36-cm-Stücken am Bogen → 5000 + 8 × 4000: 38 Rand-UK à 25,7 cm am Bogen, 6 davon von der Selbstkontrolle ergänzt (Rand-UK); Clips 500 gleich (vorher 400) |
+| F19 | Kreis | 10,15 → 10,179 | 7,44 → 4,68 | 0,340 → 0,306 | Fläche M4-07; Dielen B-035; UK 9 Stück mit vielen 4–36-cm-Stücken am Bogen → 9 × 4000 (vor 11.11.: 5000 + 8 × 4000; Linien enden vor der Rand-UK): 38 Rand-UK à 25,7 cm am Bogen, 6 davon von der Selbstkontrolle ergänzt (Rand-UK); Clips 500 gleich |
 | F20 | 360 × 400 | 14,4 | 10 | 0,443 → 0,419 | UK 12 → 10 × 4000 (UK-Lage) |
 | F21 | Ausschnitt leer | 14,4 | 4,36 → 4,57 | 0,385 → 0,367 | Verschnitt: Rechenweg; UK (alt 133-cm-Stücke an den Ausschnittkanten) → 2 × 6000 + 7 × 4000 mit Rand-UK 133 cm an beiden Ausschnittkanten, Clips 600 → 650 (Rand-UK) |
 | F22 | Ausschnitt anderer Belag | 14,4 | 4,36 → 5,21 | 0,434 → 0,432 | Dielen 3000 → 4000 (B-035); Verschnitt: Rechenweg; UK 12 → 13 Hölzer, Clips 700 → 850: an den Kanten des anderen Belags enden die Dielen auf der doppelten UK (Rand-UK) |
@@ -187,3 +190,27 @@ Werte gegenüber `main` mit Rand-UK und Seitenblende (Stand 3bfb094; die Seitenb
 | Referenzfälle | 87, 100, 90, 54, 42, 294 + 294, 77 Dielen (719, 2412, 347, 1823, 4655, 2295, 2810) | je eine Reihe weniger: 86, 99, 89, 53, 41, 291 + 291, 76 | wie main |
 
 Die übrigen Referenzfälle mit schon begründeter Abweichung „Dielen“ ändern nur die Zahlen (z. B. 2026-05-19-3958 49 → 48 × 4000, 2026-06-11-3389 30 × 6000 → 29 × 6000 + 4000).
+
+## Nachtrag UK-Regeln und Überlänge (Planungskern v6, 11.11.2026)
+
+Branch `feature/planungskern-uk-regeln`, gerechnet nach dem Einmergen von `main` (Fuge 6 mm, Befestigung). Planungsregeln Alexander (Planungskern v6, 11.11.2026), Regeln 1.1, 3.3, 3.5–3.7, 3.9 und Kern-Konstante Überlänge; Entscheidung 11.11.2026. Vergleich mit `main` (a56cea4) – alle übrigen F01–F43 und alle 26 Referenzfälle bleiben gleich:
+
+| Fall | Größe | `main` (Fuge 6 mm) | jetzt (dazu Überlänge und UK-Regeln) | alter Planer | Ursache |
+|---|---|---|---|---|---|
+| F03 | Verschnitt | 6,76 % | 5,99 % | 2,2 % | Überlänge (R-B16) |
+| F03 | Dielen | 13 × 6000 + 21 × 5000 + 16 × 4000 | 24 × 5000 + 31 × 4000 | 4,5/5,5 m | Überlänge |
+| F03 | UK | 6 × 5000 + 8 × 4000 | 5 × 5000 + 8 × 4000 | 12 Stück | Linien enden vor der Rand-UK |
+| F03 | Volumen | 0,475 m³ | 0,457 m³ | 0,457 m³ | Folge |
+| F04 | Verschnitt | 1,58 % | 0,90 % | 0,32 % | Überlänge |
+| F04 | Dielen | 19 × 6000 + 12 × 5000 + 15 × 4000 (234 m) | 3 × 6000 + 17 × 5000 + 32 × 4000 (231 m) | 4,5/5,5 m | Überlänge |
+| F04 | Freidielen | 1 (gleich) | 2 | 1 | Überlänge: 52 statt 46 Dielen, Staffel ab 50 (R-B09) |
+| F05 | Verschnitt | 5,55 % | 4,20 % | 3,76 % | Überlänge (Grund im Test weiter „Fuge“) |
+| F05 | Dielen | 20 × 6000 + 20 × 5000 + 6 × 4000 | 12 × 6000 + 32 × 5000 + 2 × 4000 | 4,5/5,5 m | Überlänge |
+| F19 | UK | 5000 + 8 × 4000 | 9 × 4000 | 9 Stück | Linien enden vor der Rand-UK |
+| F19 | Volumen | 0,308 m³ | 0,306 m³ | 0,340 m³ | Folge |
+
+Die Clips sind mit Fuge 6 mm und neuer Befestigung gleich wie auf `main` (F04 900). Vor dem Einmergen (Fuge 5 mm) hatte das Kürzen der Linien F04 von 850 auf 900 Clips gebracht (846 → 851 Punkte); mit der neuen Befestigung fällt das nicht mehr ins Gewicht.
+
+Nicht im Vergleich, aber geändert: Lage der Auflager (erstes und letztes 5 cm vom UK-Ende, F30-Spalte 67 … 5 statt 68 … 4 mm), Querstreben (F01 mit Querstreben 48 statt 60 Querhölzer im 75-cm-Raster versetzt; F31/F33 weiter 24 Streben, nur versetzt), UK-Stöße mit Reststück mindestens 50 cm (kein Fall hat UK-Linien zwischen 6 und 6,5 m), ECO-SELECT-UK nur 4/5/6 m (das Testsortiment ist BASIC).
+
+**Offen:** Die Verteilung zählt nach Metern; bei F04 bringt die Überlänge 3 m weniger, aber 6 Dielen mehr und damit eine Freidiele mehr. Ob bei gleicher oder fast gleicher Länge weniger Dielen zählen sollen (Planungskern Regel 1.3: bei ≤ 1 % Mehrlänge die Lösung mit den wenigsten Dielen), ist eine Frage an Alexander.
