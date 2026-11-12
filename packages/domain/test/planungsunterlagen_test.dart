@@ -1131,6 +1131,37 @@ void main() {
     });
   });
 
+  test('Richtung der Fußhöhe: quer zum Holz nach rechts bzw. oben, egal wie '
+      'das Holz gezogen ist (Planungskern v8 Regel 10.1.3)', () {
+    UkHolz holz(Punkt von, Punkt bis) =>
+        (von: von, bis: bis, farbe: Stueckfarbe.rot);
+    const mitte = Punkt(0, 0);
+    for (final (von, bis, richtung) in const [
+      (Punkt(0, -100), Punkt(0, 100), Punkt(1, 0)),
+      (Punkt(0, 100), Punkt(0, -100), Punkt(1, 0)),
+      (Punkt(-100, 0), Punkt(100, 0), Punkt(0, -1)),
+      (Punkt(100, 0), Punkt(-100, 0), Punkt(0, -1)),
+    ]) {
+      final r = fusshoehenRichtung(mitte, [holz(von, bis)], 20);
+      expect(r.x, closeTo(richtung.x, 1e-12));
+      expect(r.y, closeTo(richtung.y, 1e-12));
+    }
+    // schräg: quer zum Holz, nach rechts
+    final schraeg = fusshoehenRichtung(mitte, [
+      holz(const Punkt(-100, -100), const Punkt(100, 100)),
+    ], 20);
+    expect(schraeg.x, closeTo(math.sqrt(0.5), 1e-12));
+    expect(schraeg.y, closeTo(-math.sqrt(0.5), 1e-12));
+    // das erste Holz, auf dem der Punkt liegt, zählt
+    final erstes = fusshoehenRichtung(mitte, [
+      holz(const Punkt(500, 0), const Punkt(600, 0)),
+      holz(const Punkt(-100, 0), const Punkt(100, 0)),
+      holz(const Punkt(0, -100), const Punkt(0, 100)),
+    ], 20);
+    expect(erstes.y, closeTo(-1, 1e-12));
+    expect(fusshoehenRichtung(mitte, const [], 20), const Punkt(0, -1));
+  });
+
   test('Innenwinkel unabhängig vom Umlaufsinn; L-Form 270°', () {
     const l = [
       Punkt(0, 0),

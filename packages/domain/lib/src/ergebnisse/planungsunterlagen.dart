@@ -599,29 +599,37 @@ Absatz? _einheitlicheHoehe(Unterlagentexte t, Berechnung b) {
 }
 
 /// Fußhöhe des Auflagers [p] in cm neben dem Holz aus [hoelzer], auf dem
-/// es liegt: vom Rand des Auflagers ([halb] von der Achse) quer zum Holz
-/// nach rechts bzw. oben – nie auf dem Holz (Regel 10.1.3). Liegt es auf
-/// keinem Holz, steht die Zahl über ihm. Ein negativer Spalt (UK tiefer
-/// als die Aufbauhöhe) hat keine Fußhöhe und bekommt keine Zahl – wie im
-/// Planungskern.
+/// es liegt (`fusshoehenRichtung`), vom Rand des Auflagers ([halb] von der
+/// Achse) aus – nie auf dem Holz (Regel 10.1.3). Ein negativer Spalt (UK
+/// tiefer als die Aufbauhöhe) hat keine Fußhöhe und bekommt keine Zahl –
+/// wie im Planungskern.
 Nebentext _fusshoehe(
   Unterlagentexte t,
   Auflagerpunkt p,
   List<UkHolz> hoelzer,
   double halb,
-) {
-  var richtung = const Punkt(0, -1);
+) => (
+  ort: p.ort,
+  richtung: fusshoehenRichtung(p.ort, hoelzer, halb),
+  abstand: halb,
+  text: t.cm(p.spalt),
+);
+
+/// Richtung der Fußhöhe eines Auflagers bei [ort] (Planungsregeln
+/// Alexander (Planungskern v8, 12.11.2026), Regel 10.1.3; UK-Plan und
+/// Projektansicht): quer zum ersten Holz aus [hoelzer], auf dem es liegt
+/// (bis [halb] von der Achse), nach rechts bzw. oben (y nach unten), damit
+/// die Zahlen einer Latte auf derselben Seite stehen; auf keinem Holz nach
+/// oben.
+Punkt fusshoehenRichtung(Punkt ort, List<UkHolz> hoelzer, double halb) {
   for (final h in hoelzer) {
-    if (!_aufHolz(p.ort, h, halb)) continue;
+    if (!_aufHolz(ort, h, halb)) continue;
     final quer = (h.bis - h.von).einheit.links;
-    // nach rechts bzw. oben (y nach unten), damit die Zahlen einer Latte
-    // auf derselben Seite stehen
-    richtung = quer.x > 1e-9 || (quer.x.abs() <= 1e-9 && quer.y < 0)
+    return quer.x > 1e-9 || (quer.x.abs() <= 1e-9 && quer.y < 0)
         ? quer
         : quer * -1;
-    break;
   }
-  return (ort: p.ort, richtung: richtung, abstand: halb, text: t.cm(p.spalt));
+  return const Punkt(0, -1);
 }
 
 /// Ob [ort] auf dem Holz [h] (Achse mit [halb] Abstand) liegt; ein Holz
