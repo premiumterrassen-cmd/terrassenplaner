@@ -415,21 +415,32 @@ List<Planbeschriftung> umrissbeschriftung(Unterlagentexte t, Berechnung b) {
   if (ecken.length < 2) return const [];
   final a = _beschriftungsabstand(b.umriss);
   final n = ecken.length;
-  final kanten = b.geschlossen ? n : n - 1;
-  final normalen = [for (var i = 0; i < kanten; i++) _aussen(ecken, i)];
+  final normalen = _kantennormalen(b);
+  final richtungen = _eckrichtungen(b, normalen);
   return [
     for (var i = 0; i < n; i++)
-      (
-        ort: ecken[i] + _eckrichtung(normalen, i, b.geschlossen) * a,
-        text: _eckname(b, i),
-      ),
-    for (var i = 0; i < kanten; i++)
+      (ort: ecken[i] + richtungen[i] * a, text: _eckname(b, i)),
+    for (var i = 0; i < normalen.length; i++)
       (
         ort: (ecken[i] + ecken[(i + 1) % n]) * 0.5 + normalen[i] * a,
         text: '${t.zahl(ecken[i].abstand(ecken[(i + 1) % n]) / 1000, 2)} m',
       ),
   ];
 }
+
+/// Normale je Kante der Ecken von [b] (ein offener Linienzug hat eine
+/// Kante weniger als Ecken).
+List<Punkt> _kantennormalen(Berechnung b) {
+  final ecken = b.ecken;
+  final kanten = b.geschlossen ? ecken.length : ecken.length - 1;
+  return [for (var i = 0; i < kanten; i++) _aussen(ecken, i)];
+}
+
+/// Richtung nach außen je Ecke von [b] aus den [normalen] der Kanten.
+List<Punkt> _eckrichtungen(Berechnung b, List<Punkt> normalen) => [
+  for (var i = 0; i < b.ecken.length; i++)
+    _eckrichtung(normalen, i, b.geschlossen),
+];
 
 double _beschriftungsabstand(List<Punkt> umriss) {
   final h = Huellrechteck.um(umriss);
@@ -586,15 +597,10 @@ List<Planbeschriftung> _eckhoehen(Unterlagentexte t, Berechnung b, double a) {
   final ecken = b.ecken;
   final hoehen = b.hoehenpunkte.hoehen;
   if (ecken.length < 2) return const [];
-  final n = ecken.length;
-  final kanten = b.geschlossen ? n : n - 1;
-  final normalen = [for (var i = 0; i < kanten; i++) _aussen(ecken, i)];
+  final richtungen = _eckrichtungen(b, _kantennormalen(b));
   return [
-    for (var i = 0; i < n && i < hoehen.length; i++)
-      (
-        ort: ecken[i] + _eckrichtung(normalen, i, b.geschlossen) * (a * 1.9),
-        text: t.eckhoehe(hoehen[i]),
-      ),
+    for (var i = 0; i < ecken.length && i < hoehen.length; i++)
+      (ort: ecken[i] + richtungen[i] * (a * 1.9), text: t.eckhoehe(hoehen[i])),
   ];
 }
 

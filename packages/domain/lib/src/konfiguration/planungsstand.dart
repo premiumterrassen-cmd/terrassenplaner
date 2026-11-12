@@ -579,7 +579,7 @@ final class Planungsstand {
         throw ArgumentError.value(
           '${t.von.mm}–${t.bis.mm}',
           'teile',
-          'von 0 bis 50 m, von vor bis',
+          'ungültiges Teilstück',
         );
       }
     }

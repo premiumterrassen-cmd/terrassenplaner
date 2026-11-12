@@ -582,6 +582,50 @@ void main() {
       expect([for (final t in plan.texte) t.text], ['0,3']);
     });
 
+    test('Bemaßung ohne Holzbreite: Hölzer 40 mm breit; Verlegeplan ohne UK '
+        'zeigt keinen eigenen Grundriss', () {
+      final b = Berechnung(
+        umriss: rechteck,
+        flaeche: 1,
+        unterbau: Unterbau(
+          hoelzer: const [
+            (von: Punkt(0, 0), bis: Punkt(0, 100), farbe: Stueckfarbe.rot),
+          ],
+          auflagerpunkte: const [
+            (ort: Punkt(0, 50), spalt: Millimeter(3), zeile: 0),
+          ],
+          zuordnung: const [
+            (titel: 'Pad', anzahl: 1, von: Millimeter(3), bis: Millimeter(3)),
+          ],
+        ),
+      );
+      final u = planungsunterlagen(
+        planung: Planung.start,
+        gesamt: b,
+        flaechen: [Flaechenunterlage(b, belag: diele, verlegung: verlegung)],
+        datum: datum,
+      );
+      final mass = baustein<Plan>(
+        kapitel(u, 'Ihre Terrasse – Bemaßung und Höhen'),
+      );
+      expect(mass.linien[1].punkte.first, const Punkt(20, -20));
+      final ohneUk = Berechnung(umriss: rechteck, flaeche: 1);
+      final nurBelag = planungsunterlagen(
+        planung: Planung.start,
+        gesamt: ohneUk,
+        flaechen: [
+          Flaechenunterlage(ohneUk, belag: diele, verlegung: verlegung),
+        ],
+        datum: datum,
+      );
+      expect(nurBelag.kapitel[1].inhalt.whereType<Plan>(), isEmpty);
+      expect(
+        Unterlagentexte.deutsch.stossHinweis,
+        'Rot gestrichelt: Stoß – jedes Dielenende liegt auf einer eigenen '
+        'UK (Doppel-UK).',
+      );
+    });
+
     test('Belag: Verlegeplan mit Nummern, Dielen nach Nummer, Lieferung und '
         'Zuschnitt', () {
       final u = erzeuge([berechnung()]);

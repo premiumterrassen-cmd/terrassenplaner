@@ -109,106 +109,103 @@ final class Hoehenflaeche {
 
   Hoehenflaeche._(List<(Punkt, double)> punkte)
     : _punkte = punkte,
-      _ebene = _ausgleichsebene(punkte) {
-    _rest = [for (final (p, h) in punkte) h - _ebene.bei(p)];
-    _verwunden = _rest.any((r) => r.abs() > _ebenBis);
+      _gefaelle = _ausgleichsgefaelle(punkte) {
+    _rest = [for (final (p, h) in punkte) h - _gefaelle.bei(p)];
   }
 
   final List<(Punkt, double)> _punkte;
-  final _Ebene _ebene;
+  final _Gefaelle _gefaelle;
   late final List<double> _rest;
-  late final bool _verwunden;
 
-  /// Höhe am Punkt [p] in mm (auf ganze mm gerundet).
+  /// Höhe am Punkt [p] in mm (auf ganze mm gerundet): das Gefälle der
+  /// Ausgleichsebene plus die Abweichungen der Punkte nach Abstand – die
+  /// Höhenlage der Ebene steckt in den Abweichungen (bei ebenen Punkten
+  /// sind alle gleich).
   Millimeter bei(Punkt p) {
-    var h = _ebene.bei(p);
-    if (_verwunden) {
-      var summe = 0.0;
-      var gewichte = 0.0;
-      for (final (i, (q, hq)) in _punkte.indexed) {
-        final d2 = _quadrat(p.x - q.x) + _quadrat(p.y - q.y);
-        if (d2 < _gleichBis * _gleichBis) return Millimeter(hq.round());
-        gewichte += 1 / d2;
-        summe += _rest[i] / d2;
-      }
-      h += summe / gewichte;
+    var summe = 0.0;
+    var gewichte = 0.0;
+    for (final (i, (q, hq)) in _punkte.indexed) {
+      final abstand = p.abstand(q);
+      if (abstand < _gleichBis) return Millimeter(hq.round());
+      final gewicht = 1 / (abstand * abstand);
+      gewichte += gewicht;
+      summe += _rest[i] * gewicht;
     }
-    return Millimeter(h.round());
+    return Millimeter((_gefaelle.bei(p) + summe / gewichte).round());
   }
 }
 
 /// Punkte näher als dies (mm) gelten als derselbe Punkt.
 const _gleichBis = 1.0;
 
-/// Weicht kein Punkt mehr als dies (mm) von der Ausgleichsebene ab, gilt
-/// die Ebene allein.
-const _ebenBis = 0.5;
+/// Gefälle einer Ebene: Höhe a·x + b·y bis auf die Höhenlage.
+typedef _Gefaelle = ({double a, double b});
 
-double _quadrat(double x) => x * x;
-
-/// Ebene h = a·x + b·y + c.
-typedef _Ebene = ({double a, double b, double c});
-
-extension on _Ebene {
-  double bei(Punkt p) => a * p.x + b * p.y + c;
+extension on _Gefaelle {
+  double bei(Punkt p) => a * p.x + b * p.y;
 }
 
-/// Ausgleichsebene der [punkte] (Regel 9.1): einer flach, zwei als Verlauf
-/// entlang ihrer Verbindung, ab drei kleinste Quadrate – liegen sie auf
-/// einer Linie, der Verlauf zwischen den beiden äußeren.
-_Ebene _ausgleichsebene(List<(Punkt, double)> punkte) {
+const _Gefaelle _flach = (a: 0, b: 0);
+
+/// Gefälle der Ausgleichsebene der [punkte] (Regel 9.1): einer flach, zwei
+/// als Verlauf entlang ihrer Verbindung, ab drei kleinste Quadrate – liegen
+/// sie auf einer Linie, der Verlauf zwischen den beiden äußeren.
+_Gefaelle _ausgleichsgefaelle(List<(Punkt, double)> punkte) {
   final n = punkte.length;
-  var (mx, my, mh) = (0.0, 0.0, 0.0);
-  for (final (p, h) in punkte) {
+  if (n == 1) return _flach;
+  if (n == 2) return _verlauf(punkte);
+  var (mx, my) = (0.0, 0.0);
+  for (final (p, _) in punkte) {
     mx += p.x / n;
     my += p.y / n;
-    mh += h / n;
   }
-  _Ebene durch(double a, double b) => (a: a, b: b, c: mh - a * mx - b * my);
-  _Ebene verlauf((Punkt, double) von, (Punkt, double) bis) {
-    final d = bis.$1 - von.$1;
-    final d2 = d.punktprodukt(d);
-    if (d2 < _gleichBis * _gleichBis) return durch(0, 0);
-    final g = (bis.$2 - von.$2) / d2;
-    return durch(g * d.x, g * d.y);
-  }
-
-  if (n == 1) return durch(0, 0);
-  if (n == 2) return verlauf(punkte.first, punkte.last);
   var (sxx, sxy, syy, sxh, syh) = (0.0, 0.0, 0.0, 0.0, 0.0);
   for (final (p, h) in punkte) {
-    final (x, y, z) = (p.x - mx, p.y - my, h - mh);
+    final (x, y) = (p.x - mx, p.y - my);
     sxx += x * x;
     sxy += x * y;
     syy += y * y;
-    sxh += x * z;
-    syh += y * z;
+    sxh += x * h;
+    syh += y * h;
   }
   final det = sxx * syy - sxy * sxy;
   if (det.abs() > 1e-6 * math.max(1, sxx * syy)) {
-    return durch((sxh * syy - syh * sxy) / det, (syh * sxx - sxh * sxy) / det);
+    return (a: (sxh * syy - syh * sxy) / det, b: (syh * sxx - sxh * sxy) / det);
   }
   // alle auf einer Linie: die beiden am weitesten auseinander
-  var (von, bis) = (punkte.first, punkte.last);
+  var paar = [punkte.first, punkte.last];
   for (final u in punkte) {
     for (final w in punkte) {
-      if (u.$1.abstand(w.$1) > von.$1.abstand(bis.$1)) (von, bis) = (u, w);
+      if (u.$1.abstand(w.$1) > paar.first.$1.abstand(paar.last.$1)) {
+        paar = [u, w];
+      }
     }
   }
-  return verlauf(von, bis);
+  return _verlauf(paar);
+}
+
+/// Verlauf zwischen dem ersten und letzten der [paar]: das Gefälle entlang
+/// ihrer Verbindung, quer dazu flach; liegen sie aufeinander, flach.
+_Gefaelle _verlauf(List<(Punkt, double)> paar) {
+  final (von, hv) = paar.first;
+  final (bis, hb) = paar.last;
+  final d = bis - von;
+  if (d.laenge < _gleichBis) return _flach;
+  final g = (hb - hv) / d.punktprodukt(d);
+  return (a: g * d.x, b: g * d.y);
 }
 
 /// Ob [p] in dem Vieleck der [ecken] oder auf seinem Rand liegt.
 bool _inFlaeche(List<Punkt> ecken, Punkt p) {
-  final n = ecken.length;
   var innen = false;
-  for (var i = 0; i < n; i++) {
-    final (a, b) = (ecken[i], ecken[(i + 1) % n]);
+  var a = ecken.last;
+  for (final b in ecken) {
     if (_streckenabstand(a, b, p) < _gleichBis) return true;
     if ((a.y > p.y) != (b.y > p.y) &&
         p.x < a.x + (p.y - a.y) * (b.x - a.x) / (b.y - a.y)) {
       innen = !innen;
     }
+    a = b;
   }
   return innen;
 }
