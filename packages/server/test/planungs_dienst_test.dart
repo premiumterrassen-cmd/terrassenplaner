@@ -2135,6 +2135,75 @@ void main() {
       expect(clips(geaendert), 5);
     });
 
+    test('Öl (R-D10, Planungskern v6 Regel 5.2) auf der Ölfläche: Dielen und '
+        'Blenden allseitig plus Deckseite, alle UK-Hölzer allseitig', () {
+      final oel = Artikel(
+        nummer: const Artikelnummer('562-010'),
+        titel: 'Holzschutz-Öl NATUR, 0,1 Liter',
+        art: Artikelart.pflege,
+        einheit: Verkaufseinheit(Mengeneinheit.stueck),
+        abmessungen: Abmessungen(),
+        preisBrutto: const Cent(100),
+      );
+      final blende = Artikel(
+        nummer: const Artikelnummer('10-10-080'),
+        titel: 'Blende',
+        art: Artikelart.diele,
+        einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+        abmessungen: Abmessungen(
+          breite: const Millimeter(80),
+          staerke: const Millimeter(21),
+          laengen: const [Millimeter(5000)],
+        ),
+        holzart: robinie,
+        serie: basic,
+        profil: Profil.glattkant,
+      );
+      final mitOel = Regelwerk(
+        Artikeldatei(
+          quelle: 'test',
+          version: '3',
+          eintraege: [
+            Artikeleintrag(
+              artikel: diele,
+              verweise: {
+                Beziehung.befestigung.spalte: [clip.nummer],
+                Beziehung.zubehoer.spalte: [oel.nummer],
+              },
+            ),
+            Artikeleintrag(artikel: clip),
+            Artikeleintrag(artikel: oel),
+            Artikeleintrag(artikel: uk),
+            Artikeleintrag(artikel: blende),
+          ],
+        ),
+      );
+      int liter(Planungsstand stand, {Artikel? mitUk}) =>
+          PlanungsDienst.berechnePlanung(
+            Planung.start.mitStand(stand),
+            (_) => diele,
+            mitOel,
+            false,
+            (_) => mitUk,
+          ).zubehoer.singleWhere((z) => z.nummer == oel.nummer).menge;
+      // F01 ohne UK: 47 Reihen 4800 × 60 × 21 mm und die Randreihe, rund
+      // 51 m² × 44 ml = 2,24 l → 23 × 0,1 l
+      expect(liter(Planungsstand.start), 23);
+      // dazu 13 UK-Hölzer 3090 × 40 × 60 mm allseitig: + 8,10 m² → 2,6 l
+      expect(liter(Planungsstand.start, mitUk: uk), 26);
+      // dazu die Blende an B — C (86 mm hoch): 3140 × 80 × 21 mm (+ 0,89 m²)
+      // und ihre Träger aus UK-Holz → 2,64 l
+      expect(
+        liter(
+          Planungsstand.start
+              .mitHoehe(const Millimeter(86))
+              .mitVerblendet(1, an: true),
+          mitUk: uk,
+        ),
+        27,
+      );
+    });
+
     test('einzelne Fläche (berechne) mit UK-Verlegung', () {
       final b = PlanungsDienst.berechne(
         Planungsstand.start,

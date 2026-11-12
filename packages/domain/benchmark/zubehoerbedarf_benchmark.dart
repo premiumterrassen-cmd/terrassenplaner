@@ -108,6 +108,7 @@ class ZubehoerbedarfBenchmark extends BenchmarkBase {
           befestigung,
           stuecke,
           winkel: winkel,
+          oelflaeche: oelflaeche(oelteile(belag: _belag, dielen: stuecke)),
         ),
         {const Artikelnummer('568-250'): 1},
       );

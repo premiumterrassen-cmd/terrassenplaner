@@ -616,7 +616,13 @@ void main() {
         treppenpruefung(_f39, eng.mit(breite: _mm(500), abstand: _mm(4301))),
         [Treppenmeldung.ueberSeite],
       );
-      // Seite gibt es nicht (mehr): ohne Prüfung der Länge
+      // Seite gibt es nicht (mehr): ohne Prüfung der Länge – auch genau
+      // eine hinter der letzten
+      expect(_f39.seitenzahl, 4);
+      expect(
+        treppenpruefung(_f39, Treppe(seite: 4, stufe: stufe(290, 170).stufe)),
+        isEmpty,
+      );
       expect(
         treppenpruefung(_f39, Treppe(seite: 9, stufe: stufe(290, 170).stufe)),
         isEmpty,

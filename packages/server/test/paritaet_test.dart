@@ -49,11 +49,12 @@ const _gruende = {
       'UK – Rand-UK, wo keine UK-Linie höchstens 6 cm daneben liegt '
       '(schräge Ränder, Ausschnitte, Innenecken, Bögen); Stücke und '
       'Lieferlängen anders als im alten Planer, Dielenenden darauf befestigt',
-  'Überlänge':
-      'Planungskern v6 / Entscheidung 11.11.2026: Dielen kommen mit 3 cm '
-      'Überlänge – eine Lieferlänge nimmt Stücke bis zu ihrer Länge plus '
-      '3 cm auf, ein Stoß ist erst darüber nötig (weniger Meter, F04 aber '
-      '52 statt 46 Dielen und damit nach der Staffel R-B09 2 Freidielen)',
+  'Planungskern v6':
+      'Planungskern v6 / Musterverfahren R-B17: höchstens 3 Stücke je '
+      'Diele, 5 mm Sägeschnitt, Reste ab 30 cm, bei höchstens 1 % '
+      'Mehrlänge die Verteilung mit den wenigsten Dielen (F04: 152 Stücke '
+      'brauchen mindestens 51 Dielen und damit nach der Staffel R-B09 '
+      '2 Freidielen)',
   'Frage 2': 'offen: vorhandene UK – alt 2 × 473 cm zusätzlich',
   'Frage 3': 'offen: Alu-UK – Anzahl der Schienen',
 };
@@ -62,16 +63,11 @@ const _gruende = {
 const _konfigurationen = <String, Map<String, String>>{
   'F01': {'Dielen': 'Fuge'},
   'F02': {'Dielen': 'Fuge'},
-  'F03': {
-    'Verschnitt': 'B-035',
-    'Dielen': 'B-035',
-    'Freidielen': 'Fuge',
-    'UK': 'Rand-UK',
-  },
+  'F03': {'Verschnitt': 'B-035', 'Dielen': 'B-035', 'UK': 'Rand-UK'},
   'F04': {
     'Verschnitt': 'B-035',
     'Dielen': 'B-035',
-    'Freidielen': 'Überlänge',
+    'Freidielen': 'Planungskern v6',
     'UK': 'Rand-UK',
     'Clips': 'Befestigung',
   },

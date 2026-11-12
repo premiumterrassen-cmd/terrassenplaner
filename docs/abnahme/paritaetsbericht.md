@@ -4,6 +4,8 @@
 >
 > **Nachtrag 12.11.2026 (Auflager aus der Höhe und Stellfüße an der Hauswand, Branch `feature/planungskern-auflager-hoehe`):** keine Änderung der verglichenen Werte – Abschnitt [Auflager aus der Höhe](#nachtrag-auflager-aus-der-höhe-planungskern-v6-12112026) unten.
 >
+> **Nachtrag 12.11.2026 (Musterverfahren und RIBOL, Branch `feature/planungskern-ribol-muster`):** Abschnitt [Musterverfahren](#nachtrag-musterverfahren-planungskern-v6-12112026) unten.
+>
 > **Nachtrag 11.11.2026 (UK-Regeln und Überlänge, Branch `feature/planungskern-uk-regeln`):** Abschnitt [UK-Regeln und Überlänge](#nachtrag-uk-regeln-und-überlänge-planungskern-v6-11112026) unten, gerechnet auf dem Stand mit Fuge 6 mm. Die Tabellen darunter zeigen den Stand vom 07.11.2026.
 
 Stand 07.11.2026, Branch `feature/m10-01-paritaetsnachweis`. Alle Referenzkonfigurationen F01–F43 (M1-03, [12](../fachkonzept/12-referenzkonfigurationen.md)) und alle rechenbaren Referenzfälle aus den Planungsunterlagen (M1-02, [11](../fachkonzept/11-referenzfaelle.md)) werden im neuen Planer gerechnet und mit den Ergebnissen des alten Planers verglichen.
@@ -59,7 +61,8 @@ Stand 07.11.2026, Branch `feature/m10-01-paritaetsnachweis`. Alle Referenzkonfig
 | Rechenweg | Verschnitt mit Teilflächen: der alte Rechenweg ist aus den Daten nicht nachvollziehbar (F21, Fachkonzept 2.7). |
 | Eingaben | Die Unterlage ist unvollständig: Nutzungsart (grüne Querstücke), Terrassenart (Stützen 39,9 cm) oder die verblendeten Seiten (Blendenhalter 8,6 cm) sind nicht erfasst. Die UK-Hölzer der Verlegung selbst stimmen (M6-10: 2810, 1275, 1823, 347, 4381). |
 | Rand-UK | Planungsregeln 3.3/3.4 (Fachkonzept 3.11): an jeder Kante mit Dielenenden eine UK – Rand-UK bündig an der Kante, wo keine UK-Linie höchstens 6 cm daneben liegt (schräge Ränder, Ausschnitte, Innenecken, Bögen). Stücke und Lieferlängen weichen vom alten Planer ab (neu nur 4/5/6 m, B-035); die Dielenenden auf der Rand-UK werden befestigt. |
-| Überlänge | *Seit 11.11.2026:* Dielen kommen mit 3 cm Überlänge; eine Lieferlänge nimmt Stücke bis zu ihrer Länge plus 3 cm auf (R-B16, Planungskern v6 / Entscheidung 11.11.2026). Weniger Meter; bei F04 aber 52 statt 46 Dielen und damit nach der Staffel 2 Freidielen. |
+| Überlänge | *11.11.–12.11.2026:* Dielen kommen mit 3 cm Überlänge (R-B16) – weniger Meter; bei F04 aber 52 statt 46 Dielen und damit 2 Freidielen. Seit dem Musterverfahren ist das keine eigene Abweichung mehr (Grund „Planungskern v6“). |
+| Planungskern v6 | *Seit 12.11.2026:* Musterverfahren R-B17 (Planungskern v6 Regeln 1.3/1.4): höchstens 3 Stücke je Diele, 5 mm Sägeschnitt, Reste ab 30 cm, bei höchstens 1 % Mehrlänge die Verteilung mit den wenigsten Dielen. F04: 152 Stücke brauchen mindestens 51 Dielen, nach der Staffel 2 Freidielen. |
 | Frage 2–3 | offen, siehe unten |
 
 ## Referenzkonfigurationen F01–F43
@@ -229,3 +232,36 @@ Branch `feature/planungskern-auflager-hoehe` auf `main` (187d400). Planungsregel
 - Kein Fall einer normalen Terrasse liegt über der Höchsthöhe 52,4 cm. Die 54,2 cm im Referenzfall 2026-06-15-1093 sind die Vorgabehöhe der Hochterrasse (Terrassenart nicht in der Unterlage); die Höhenprüfung der Referenzfälle rechnet ihn deshalb als Hochterrasse (offene Frage 24).
 
 **Nicht im Vergleich, aber geändert** (Testdaten der Unit-Tests, Belag 21/22 mm, UK 40 × 60 mm): F30 Spalte 66 … 4 statt 67 … 5 mm, an C/D 2 + 2 mm statt Unterleger 5 mm, 8 + 8 mm statt Keil 14–22; F01 alle 91 Auflager auf 2 + 2 mm statt auf einem 5-mm-Pad (mit 23-mm-Diele: ein 2-mm-Pad).
+
+## Nachtrag Musterverfahren (Planungskern v6, 12.11.2026)
+
+Branch `feature/planungskern-ribol-muster`. Grund: **Planungskern v6** – Planungsregeln Alexander (Planungskern v6, 11.11.2026) Regeln 1.3 und 1.4, im Planer R-B17: Jeder Zuschnitt der Dielen (auch ohne gewählte Verschnittvariante) schneidet höchstens 3 Stücke je Diele mit 5 mm Sägeschnitt dazwischen, verwendet nur Reste ab 30 cm weiter und nimmt unter den gerechneten Verteilungen bei höchstens 1 % Mehrlänge die mit den wenigsten Dielen. Vergleich mit `main` (187d400) – UK, Clips, Verblendung und Fläche bleiben überall gleich, alle übrigen F01–F43 und Referenzfälle auch:
+
+| Fall | Größe | `main` (187d400) | jetzt | alter Planer | Ursache |
+|---|---|---|---|---|---|
+| F03 | Dielen | 24 × 5000 + 31 × 4000 (244 m, 55 Dielen) | 30 × 6000 + 10 × 5000 + 4000 (234 m, 41 Dielen) | 4,5/5,5 m | Musterverfahren (Diele für Diele) |
+| F03 | Verschnitt | 5,99 % | 1,68 % | 2,2 % | Folge |
+| F03 | Freidielen | 2 | 1 (**gleich**, Abweichung „Fuge“ entfällt) | 1 | 41 statt 55 Dielen |
+| F04 | Dielen | 3 × 6000 + 17 × 5000 + 32 × 4000 (231 m, 52 Dielen) | 7 × 6000 + 19 × 5000 + 25 × 4000 (237 m, 51 Dielen) | 4,5/5,5 m | höchstens 3 Stücke je Diele: 152 Stücke brauchen mindestens 51 Dielen |
+| F04 | Verschnitt | 0,90 % | 2,91 % | 0,32 % | Folge |
+| F04 | Freidielen | 2 (Grund „Überlänge“) | 2 (Grund „Planungskern v6“) | 1 | 51 Dielen, Staffel ab 50 (R-B09) |
+| F05 | Dielen | 12 × 6000 + 32 × 5000 + 2 × 4000 (240 m) | 39 × 6000 (234 m) | 4,5/5,5 m | 1-%-Regel/je Lieferlänge |
+| F05 | Verschnitt | 4,20 % | 1,51 % | 3,76 % | Folge |
+| F09, F12 | Dielen | 47 × 6000 + 24 × 4000 (378 m, 71 Dielen), 0,53 % | 62 × 6000 + 4000 (376 m, 63 Dielen), 0 % | 48 × 6000 + 24 × 4000 | Musterverfahren (3 Stücke à 2 m aus 6 m) |
+| F10 | Dielen | 24 × 6000 + 46 × 5000 + 4000 (378 m, 71 Dielen), 0,53 % | 41 × 6000 + 26 × 5000 (376 m, 67 Dielen), 0 % | – | Musterverfahren |
+| F11 | Dielen | 32 × 6000 + 46 × 4000 (376 m, 78 Dielen) | 62 × 6000 + 4000 (376 m, 63 Dielen) | 32 × 6000 + 48 × 4000 | 1-%-Regel: gleiche Länge, weniger Dielen |
+| F14 | Dielen | 48 × 6000 + 24 × 4000 (72 Dielen) | 64 × 6000 (64 Dielen) | Fehler | 1-%-Regel |
+| F18 | Dielen | 36 × 5000 + 4000 (184 m), 3,72 % | 29 × 5000 + 10 × 4000 (185 m), 4,24 % | – | höchstens 3 Stücke, Sägeschnitt |
+| F19 | Dielen | 13 × 6000 + 6 × 5000 + 15 × 4000 (168 m), 5,96 % | 13 × 6000 + 5 × 5000 + 16 × 4000 (167 m), 5,49 % | – | Musterverfahren |
+| F21 | Dielen | 38 × 5000 + 4 × 4000 (206 m) | 19 × 6000 + 23 × 4000 (206 m), Verschnitt gleich | 38 × 5000 + 5 × 4000 | gleiche Länge und Anzahl, andere Mischung |
+| F22 | Dielen | 4 × 6000 + 38 × 5000 + 4 × 4000 (230 m), 4,0 % | 19 × 6000 + 30 × 4000 (234 m), 5,64 % | 4,36 % | Teilfläche A1: 20 × 1,20 m in 7 × 4 m statt 4 × 6 m (höchstens 3 Stücke) |
+| 2026-04-29-164-v4 | Dielen | 142 × 6000 + 4000 (856 m) | 128 × 6000 + 29 × 4000 (884 m) | Fehler | höchstens 3 Stücke je Diele |
+| 2026-05-19-3958-v4 | Dielen | 48 × 4000 (192 m) | 32 × 6000 (192 m) | 194,5 m | 1-%-Regel: gleiche Länge, weniger Dielen |
+| 2026-06-07-4340-v4 | Dielen | 48 × 5000 + 5 × 4000 (260 m) | 48 × 5000 + 3 × 6000 (258 m) | 264 m | Musterverfahren |
+| 2026-07-31-3374-v3 | Dielen | 59 × 5000 + 4000 (299 m) | 53 × 5000 + 9 × 4000 (301 m) | – | höchstens 3 Stücke je Diele |
+
+Die Abweichungen im Test bleiben dieselben bis auf **F03 Freidielen** (jetzt gleich wie der alte Planer); der Grund von **F04 Freidielen** ist jetzt „Planungskern v6“, der Grund „Überlänge“ wird von keinem Fall mehr gebraucht. Die domain-Paritätstests des Rechenwegs rechnen weiter wie der alte Planer ohne Musterverfahren (`altplanerMuster`). Die Verschnittoptimierung (F43, Variante 2) ist gleich geblieben.
+
+**RIBOL (R-D10):** Das Öl rechnet sich jetzt aus der Ölfläche (Dielen und Blenden allseitig plus Deckseite, UK allseitig) × 44 ml/m² statt 0,2 l je m² Belagfläche. Das Zubehör des Altsortiments wird nicht verglichen (der alte Planer rechnet kein Öl), der Paritätstest ändert sich dadurch nicht.
+
+**Offen:** Fragen 26–31 in [Fachkonzept 10](../fachkonzept/10-offene-fragen.md) – vor allem, ob die Grenze von 3 Stücken je Diele streng gelten soll (F04 bleibt bei 2 Freidielen, F22 +4 m, 2026-04-29-164 +28 m).

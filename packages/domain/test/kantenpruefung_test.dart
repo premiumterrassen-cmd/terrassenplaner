@@ -51,6 +51,10 @@ void main() {
       // geschlossen: auch C–A (3000,4 mm)
       expect(pruefeKanten(ecken), hasLength(1));
       expect(pruefeKanten(const []), isEmpty);
+      // zwei Ecken: auch geschlossen nur eine Kante
+      expect(pruefeKanten(const [Punkt(0, 0), Punkt(50, 0)]), [
+        (kante: 'A–B', laenge: const Millimeter(50), art: Kantenmeldung.zuKurz),
+      ]);
       expect(
         Berechnung(
           umriss: ecken,

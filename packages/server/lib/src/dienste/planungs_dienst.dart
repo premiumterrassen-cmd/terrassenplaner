@@ -108,7 +108,18 @@ class PlanungsDienst {
       regelwerk,
       verlegung,
       befestigung,
-      _zubehoer(stand, belag, regelwerk, verlegung, befestigung, uk),
+      _zubehoer(
+        stand,
+        belag,
+        regelwerk,
+        verlegung,
+        befestigung,
+        uk,
+        ukArtikel: unterkonstruktion,
+        ukStuecke: [
+          for (final d in [...?uk?.zuschnitt]) ...d.schnitte,
+        ],
+      ),
       null,
       uk,
     );
@@ -342,24 +353,41 @@ class PlanungsDienst {
   /// (M8-03): was der Belag (je Diele), die Befestigung, das berechnete und
   /// das eingegebene Zubehör laut Artikeldaten benötigen. Das Gummiband
   /// liegt auf der UK-Verlegung [uk] (M6-10), ohne sie auf der Übergangs-UK
-  /// im Abstand der Feldbreite (M6-09). Ohne Verlegung oder Befestigung nur
-  /// die Eingaben und deren Pflichtzubehör.
+  /// im Abstand der Feldbreite (M6-09). Das Öl rechnet sich aus der
+  /// Ölfläche (R-D10): die Dielen der Verlegung, Dielen und Blenden des
+  /// [anschluss] und die [ukStuecke] des [ukArtikel]. Ohne Verlegung oder
+  /// Befestigung nur die Eingaben und deren Pflichtzubehör.
   static List<Zubehoerposition> _zubehoer(
     Planungsstand stand,
     Artikel? belag,
     Regelwerk? regelwerk,
     Belagverlegung? v,
     Befestigungsbedarf? befestigung,
-    UkVerlegung? uk,
-  ) {
+    UkVerlegung? uk, {
+    Artikel? ukArtikel,
+    List<Millimeter> ukStuecke = const [],
+    Anschlussbedarf? anschluss,
+  }) {
+    final dielen = [
+      for (final t in [...?v?.teile]) ...t.stuecke,
+    ];
     final berechnet = befestigung == null
         ? const <Artikelnummer, int>{}
         : berechnetesZubehoer(
             regelwerk!,
             belag!,
             befestigung,
-            [for (final t in v!.teile) ...t.stuecke],
+            dielen,
             winkel: stand.dielenwinkel.toDouble(),
+            oelflaeche: oelflaeche(
+              oelteile(
+                belag: belag,
+                dielen: dielen,
+                anschluss: anschluss,
+                uk: ukArtikel,
+                ukStuecke: ukStuecke,
+              ),
+            ),
             feldbreite: stand.feldbreite,
             uk: uk,
           );
@@ -466,14 +494,6 @@ class PlanungsDienst {
         verlegung,
         ukv,
       );
-      final zubehoer = _zubehoer(
-        f.stand,
-        artikel,
-        regelwerk,
-        verlegung,
-        befestigung,
-        ukv,
-      );
       final zusatz = _ukZusatz(f.stand, artikel, regelwerk, uk, verlegung, ukv);
       final auflager = _auflager(f.stand, regelwerk, uk, ukv, hoehen);
       final anschluss = _anschluss(
@@ -483,6 +503,18 @@ class PlanungsDienst {
         uk,
         ukv,
         hoehen,
+      );
+      final ukStuecke = _ukStuecke(uk, ukv, zusatz, auflager, anschluss);
+      final zubehoer = _zubehoer(
+        f.stand,
+        artikel,
+        regelwerk,
+        verlegung,
+        befestigung,
+        ukv,
+        ukArtikel: uk,
+        ukStuecke: ukStuecke,
+        anschluss: anschluss,
       );
       final bearbeitet = i == planung.aktiv;
       // Höhenpunkte nur für die bearbeitete Fläche (M6-02)
@@ -522,6 +554,7 @@ class PlanungsDienst {
               laengen: verlegung.lieferlaengen,
               stuecke: <Millimeter>[],
               ueberlaenge: verlegung.ueberlaenge,
+              muster: verlegung.muster,
             ),
           );
           for (var k = 0; k < f.haeufigkeit; k++) {
@@ -538,14 +571,7 @@ class PlanungsDienst {
                 (artikel: artikel, stueck: d, anzahl: f.haeufigkeit),
           ]);
         }
-        final hoelzer = _ukHoelzer(
-          f.stand,
-          uk,
-          ukv,
-          zusatz,
-          auflager,
-          anschluss,
-        );
+        final hoelzer = _ukHoelzer(f.stand, uk, ukStuecke);
         zuschnittUk.addAll([
           for (final d in hoelzer)
             // UK-Holz gibt es nur mit UK
@@ -654,36 +680,41 @@ class PlanungsDienst {
         (belag: nummer, laenge: laenge, anzahl: anzahl),
   ];
 
-  /// Lieferhölzer der UK einer Fläche aus einem gemeinsamen Zuschnitt
-  /// (M10-01, Paritätsnachweis): UK-Verlegung, zusätzliches Holz der
-  /// Nutzungsart, Stützen der Hochterrasse und die UK-Stücke des
-  /// Anschlusses (Blendenträger, Treppe). Kurze Stücke kommen so zuerst in
+  /// Lieferhölzer der UK einer Fläche aus einem gemeinsamen Zuschnitt aller
+  /// UK-[stuecke] (`_ukStuecke`, M10-01, Paritätsnachweis): UK-Verlegung,
+  /// zusätzliches Holz der Nutzungsart, Stützen der Hochterrasse und die
+  /// UK-Stücke des Anschlusses (Blendenträger, Treppe). Kurze Stücke kommen
+  /// so zuerst in
   /// die Reste der langen (`lieferhoelzer`) – wie im alten Planer (F28: 13
   /// × 400 cm für 309 + 39,9 + 39,9 cm) statt je Quelle eigene Hölzer.
   static List<Lieferdiele> _ukHoelzer(
     Planungsstand stand,
     Artikel? uk,
+    List<Millimeter> stuecke,
+  ) {
+    if (uk == null) return const [];
+    return lieferhoelzer(stuecke, ukLieferlaengen(uk), fest: stand.ukLaenge);
+  }
+
+  /// Alle UK-Zuschnitte einer Fläche: UK-Verlegung, zusätzliches Holz der
+  /// Nutzungsart, Stützen der Hochterrasse und die UK-Stücke des Anschlusses
+  /// (Blendenträger, Treppe) – für die Lieferhölzer und die Ölfläche.
+  static List<Millimeter> _ukStuecke(
+    Artikel? uk,
     UkVerlegung? ukv,
     Ukzusatz zusatz,
     Auflagerbedarf? auflager,
     Anschlussbedarf anschluss,
-  ) {
-    if (uk == null) return const [];
-    return lieferhoelzer(
-      [
-        for (final d in [
-          ...?ukv?.zuschnitt,
-          ...zusatz.zuschnitt,
-          ...?auflager?.zuschnitt,
-        ])
-          ...d.schnitte,
-        for (final s in anschluss.stuecke)
-          if (s.nummer == uk.nummer) s.laenge,
-      ],
-      ukLieferlaengen(uk),
-      fest: stand.ukLaenge,
-    );
-  }
+  ) => [
+    for (final d in [
+      ...?ukv?.zuschnitt,
+      ...zusatz.zuschnitt,
+      ...?auflager?.zuschnitt,
+    ])
+      ...d.schnitte,
+    for (final s in anschluss.stuecke)
+      if (s.nummer == uk?.nummer) s.laenge,
+  ];
 
   /// Ob [b] Lieferholz der UK [uk] ist (mit Länge).
   static bool _istUkHolz(Materialbedarf b, Artikel? uk) =>
