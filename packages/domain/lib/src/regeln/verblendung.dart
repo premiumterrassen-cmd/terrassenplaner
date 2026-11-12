@@ -114,7 +114,7 @@ final class Anschlussbedarf {
 typedef Blendenstrecke = ({double laenge, Millimeter hoehe, bool ecke});
 
 /// Verblendete Strecken der Fläche (Planungsregeln Alexander
-/// (Planungskern v7, 12.11.2026), Regel 9.4, R-C15): je verblendeter Seite
+/// (Planungskern v7, 12.11.2026), Regel 9.4, R-D30): je verblendeter Seite
 /// die ganze Seite oder ihre Teilstücke (`Anschluss.teileAn`, auf die Seite
 /// gekürzt). Die Höhe ist die eigene Blendenhöhe der Seite
 /// (`Anschluss.blendenhoeheAn`), sonst die niedrigste Stelle der Strecke

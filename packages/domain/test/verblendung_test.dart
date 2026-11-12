@@ -705,7 +705,6 @@ void _seitenblendeJeKante() {
         ),
         isFalse,
       );
-      expect(hoechsteKante, const Millimeter(50000));
       final kreis = f01
           .mitForm(Terrassenform.kreis)
           .mitVerblendet(0, an: true)

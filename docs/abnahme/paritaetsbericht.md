@@ -229,3 +229,11 @@ Branch `feature/planungskern-auflager-hoehe` auf `main` (187d400). Planungsregel
 - Kein Fall einer normalen Terrasse liegt über der Höchsthöhe 52,4 cm. Die 54,2 cm im Referenzfall 2026-06-15-1093 sind die Vorgabehöhe der Hochterrasse (Terrassenart nicht in der Unterlage); die Höhenprüfung der Referenzfälle rechnet ihn deshalb als Hochterrasse (offene Frage 24).
 
 **Nicht im Vergleich, aber geändert** (Testdaten der Unit-Tests, Belag 21/22 mm, UK 40 × 60 mm): F30 Spalte 66 … 4 statt 67 … 5 mm, an C/D 2 + 2 mm statt Unterleger 5 mm, 8 + 8 mm statt Keil 14–22; F01 alle 91 Auflager auf 2 + 2 mm statt auf einem 5-mm-Pad (mit 23-mm-Diele: ein 2-mm-Pad).
+
+## Nachtrag Höhe je Ecke, Bemaßungsplan, Seitenblende je Kante (Planungskern v7, 12.11.2026)
+
+Branch `feature/planungskern-v7-hoehe` auf `main` (9f2b2d1). Planungsregeln Alexander (Planungskern v7, 12.11.2026), Abschnitt 9.1, 9.2 und 9.4; R-C18, R-D30, R-E05.
+
+**Verglichene Werte:** Alle F01–F43 und alle 26 Referenzfälle rechnen **genau wie `main`**; der Paritätstest bleibt unverändert. Die Fälle haben ebene Höhen (eine Höhe oder eine geneigte Ebene wie F30), dort sind Ausgleichsebene und die bisherigen Dreiecke gleich; keiner hat eine eigene Blendenhöhe oder Teilverblendung. Die Referenzunterlagen haben je Fläche die neue Seite „Bemaßung und Höhen“.
+
+**Nicht im Vergleich, aber geändert** (Unit-Tests, Planungskern v7): Höhen zwischen den Punkten bei verwundenem Untergrund und mit Abläufen (Ablauf 5 cm in der Mitte, Ecken 10 cm: auf halbem Weg 8,0 statt 7,5 cm; L- und U-Form mit unebenen Ecken je Punkt bis 4 mm anders).

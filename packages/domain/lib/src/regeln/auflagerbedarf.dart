@@ -68,7 +68,7 @@ final class Auflagerbedarf {
 
 /// Höhe von Oberkante Belag bis Boden über der Fläche aus Höhenpunkten
 /// (M6-11, Planungsregeln Alexander (Planungskern v7, 12.11.2026), Regel
-/// 9.1, R-C14): je Eckpunkt die geprüfte Höhe, dazu die weiteren
+/// 9.1, R-C18): je Eckpunkt die geprüfte Höhe, dazu die weiteren
 /// Höhenreferenzpunkte (M7-04, [weitere], ihre Höhen folgen in [hoehen] auf
 /// die der Ecken; Punkte außerhalb der Fläche wirken nicht, ein Punkt auf
 /// einer Ecke ersetzt deren Höhe).

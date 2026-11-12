@@ -20,14 +20,14 @@ import 'untergrund.dart';
 import 'verlegeart.dart';
 import 'verlegerichtung.dart';
 
+/// Längstes Teilstück einer Seitenblende (Planungskern v7, Regel 9.6: eine
+/// Maß-Vorgabe über 50 m wird nicht angewendet).
+const _blendenteilBis = Millimeter(50000);
+
 /// Weiterer Höhenreferenzpunkt (M7-04, Fachkonzept 3.2), z. B. ein Ablauf:
 /// Lage ab Punkt A waagerecht ([x], nach rechts) und senkrecht ([y], nach
 /// unten wie in der Zeichnung) – negative Werte erlaubt – und die Höhe dort
 /// von Oberkante Belag bis Boden.
-/// Längste Maß-Vorgabe an einer Kante (Planungskern v7, Regel 9.6: über
-/// 50 m wird sie nicht angewendet).
-const hoechsteKante = Millimeter(50000);
-
 typedef Hoehenreferenzpunkt = ({Millimeter x, Millimeter y, Millimeter hoehe});
 
 /// Eingaben einer Planung zu einem Zeitpunkt (M3-03) – unveränderlich, damit
@@ -589,7 +589,7 @@ final class Planungsstand {
   /// Ob ein Teilstück [von]–[bis] als Eingabe gilt: ab 0, Anfang vor dem
   /// Ende, höchstens 50 m (Planungskern v7, Regel 9.6).
   static bool blendenteilGueltig(Millimeter von, Millimeter bis) =>
-      von >= const Millimeter(0) && von < bis && bis <= hoechsteKante;
+      von >= const Millimeter(0) && von < bis && bis <= _blendenteilBis;
 
   /// Länge der Seite [seite] in mm (gerade von Ecke zu Ecke).
   double seitenlaenge(int seite) {
