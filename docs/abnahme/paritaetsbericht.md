@@ -273,3 +273,20 @@ Branch `feature/planungskern-v7-hoehe` auf `main` (9f2b2d1). Planungsregeln Alex
 **Verglichene Werte:** Alle F01–F43 und alle 26 Referenzfälle rechnen **genau wie `main`**; der Paritätstest bleibt unverändert. Die Fälle haben ebene Höhen (eine Höhe oder eine geneigte Ebene wie F30), dort sind Ausgleichsebene und die bisherigen Dreiecke gleich; keiner hat eine eigene Blendenhöhe oder Teilverblendung. Die Referenzunterlagen haben je Fläche die neue Seite „Bemaßung und Höhen“.
 
 **Nicht im Vergleich, aber geändert** (Unit-Tests, Planungskern v7): Höhen zwischen den Punkten bei verwundenem Untergrund und mit Abläufen (Ablauf 5 cm in der Mitte, Ecken 10 cm: auf halbem Weg 8,0 statt 7,5 cm; L- und U-Form mit unebenen Ecken je Punkt bis 4 mm anders).
+
+## Nachtrag Rundungen, UK und Blende am Bogen (Planungskern v12, 12.11.2026)
+
+Branch `feature/planungskern-v12-bogen` auf `main` (fc1007f). Planungsregeln Alexander (Planungskern v12, 12.11.2026), Abschnitt 14; R-C40, R-D40, R-E40.
+
+**Geänderter Vergleichswert:** nur **F19 (Kreis Ø 360 cm), UK**, Grund im Test jetzt **„Planungskern v12“** (vorher „Rand-UK“). Regel 14.2 plant die UK am Bogen wie der GS-Terrassenplaner: die 10 Latten laufen bis an den Bogen (vorher 2 cm vor einer Rand-UK je Sehne gekürzt), die Rand-UK ist ein Polygonzug von Lattenende zu Lattenende (32 Stücke, 22–41 cm, höchstens 1,2 cm vom Bogen) statt 38 Sehnen à 25,7 cm (davon 6 von der Selbstkontrolle ergänzt), dazu 16 Riegel à 35,6 cm.
+
+| Fall | Größe | alt | `main` | neu |
+|---|---|---|---|---|
+| F19 | UK | 2 × 5500 + 5 × 5000 + 4500 + 3000 (43,5 m) | 9 × 4000 (36 m) | 6000 + 5000 + 8 × 4000 (43 m) |
+
+Fläche, Verschnitt, Dielen, Freidielen und Clips von F19 bleiben wie in `main` (Clips 500, die Rand-UK-Stücke tragen weiter Dielenenden). Alle anderen F01–F43 und die 26 Referenzfälle rechnen genau wie `main` – keiner hat Rundungen (Referenzfälle mit Rundungen sind nicht rechenbar, siehe oben), und Bögen leerer Ausschnitte behalten die Rand-UK je Sehne. Die Blende am Bogen (R-D40) ändert keinen verglichenen Wert (F19 ist nicht verblendet; keine Referenzkonfiguration verblendet einen Kreis).
+
+**Frage 19** (UK an Bogenkanten) bleibt beantwortet (11.11.2026, Regel 3.3/3.4); Planungskern v12 präzisiert sie für Bögen des Umrisses (Regel 14.2 statt „je Sehne eine Rand-UK“).
+
+**Offen:** Fragen 90–97 in [Fachkonzept 10](../fachkonzept/10-offene-fragen.md).
+

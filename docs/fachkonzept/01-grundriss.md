@@ -42,6 +42,7 @@ Eingabefelder je Form (Tabelle oben), Einheit cm.
 - Ecke abrunden: Griff nach innen ziehen, der Zugweg bestimmt den Radius.
 - Knöpfe werden zu „Rundungen Übernehmen“ und „Rundungen Zurücksetzen“; unten „Änderungen übernehmen (ESC)“.
 - Beispiel 540 × 360 mit gerundeter Ecke A: Fläche 19,099 m², Verschnitt 2,56 %, Volumen 0,575 m³.
+- **Neuer Planer – Bogen mit Radius je Seite** (Planungsregeln Alexander (Planungskern v12, 12.11.2026), Regel 14.1): Ist eine Seite gewählt, gibt es neben dem Stich (wie im alten Planer) das Feld **Radius** und den Haken **„innen“**; Radius leer bzw. „Rundung entfernen“ = gerade. Stich und Radius ersetzen sich je Seite (`Rundungen.mitRadius`, Transportformat Art 2 in den Dreiergruppen der Rundungen, negativ = innen – kein neuer Platz). Der Bogen liegt zwischen den Rundungen der Ecken; seine Richtung „außen“ ergibt sich aus dem Umlaufsinn der Ecken. Ein Radius unter der halben Seite ergibt einen **Halbkreis** mit Hinweis im Rundungsmodus (`zuKleineRadien`); ein Halbkreis ist mit Radius erlaubt, mit Stich weiter nur bis knapp darunter. Der Griff auf der Seite sitzt am Scheitel (`stichAn`); Ziehen macht aus dem Radius wieder einen Stich. Die Kontur führt Bögen über 180° ohne Teilung (die Wölbung ist eindeutig); die Teilung am Scheitel aus dem Kern ist dort nur technisch nötig. Plan: „Bogen ‹Länge› · R ‹Radius›“ statt der Sehne (R-E40). Ein Halbkreis an der Wand mit nur zwei Punkten geht nicht (Freiform ab 3 Punkten), siehe Frage 90.
 
 ## 1.4 Ausschnitte und Teilflächen in der Fläche
 
