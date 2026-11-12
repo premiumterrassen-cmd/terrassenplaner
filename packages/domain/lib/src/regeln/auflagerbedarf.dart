@@ -335,39 +335,35 @@ Auflagerbedarf _stelzfuesse(
 ) {
   final wahlen = auflagerwahlen(bereiche);
   final wahl = [for (final s in spalte) auflagerFuer(s, wahlen)];
+  // Spalte je Lage, in der Reihenfolge der Punkte
+  final spalteJe = <Auflagerwahl, List<Millimeter>>{};
+  for (final (i, w) in wahl.indexed) {
+    if (w != null) spalteJe.putIfAbsent(w, () => []).add(spalte[i]);
+  }
   final zeilen = [
     for (final w in wahlen)
-      if (wahl.contains(w)) w,
+      if (spalteJe.containsKey(w)) w,
   ];
-  final teile = [
-    for (final w in wahl)
-      if (w != null) ...w.teile,
-  ];
+  final index = {for (final (i, w) in zeilen.indexed) w: i};
+  final stueck = <Auflagerbereich, int>{};
+  for (final MapEntry(key: w, value: s) in spalteJe.entries) {
+    for (final t in w.teile) {
+      stueck[t] = (stueck[t] ?? 0) + s.length;
+    }
+  }
   return Auflagerbedarf(
     punkte: [
       for (final (i, o) in orte.indexed)
-        (
-          ort: o,
-          spalt: spalte[i],
-          zeile: switch (wahl[i]) {
-            final w? => zeilen.indexOf(w),
-            null => null,
-          },
-        ),
+        (ort: o, spalt: spalte[i], zeile: index[wahl[i]]),
     ],
     zeilen: [
       for (final w in zeilen)
-        if ([
-              for (final (i, x) in wahl.indexed)
-                if (x == w) spalte[i],
-            ]
-            case final s)
+        if (spalteJe[w]! case final s)
           (titel: w.titel, anzahl: s.length, von: _min(s), bis: _max(s)),
     ],
     bedarf: [
       for (final b in bereiche)
-        if (teile.where((t) => t == b).length case final n when n > 0)
-          Materialbedarf(b.einheiten, n),
+        if (stueck[b] case final n?) Materialbedarf(b.einheiten, n),
     ],
   );
 }
