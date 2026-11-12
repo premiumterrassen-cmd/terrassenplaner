@@ -2803,7 +2803,7 @@ abstract class PlanerTexte {
   /// No description provided for @rinnenHinweis.
   ///
   /// In de, this message translates to:
-  /// **'Lage und bodentiefes Element sind im Artikel festgelegt; die Lage wählt die Rinne. Die Unterkonstruktion reicht bis an die Seite.'**
+  /// **'Rinne RELO V innen an der Seite – nur an geraden, waagerechten oder senkrechten Seiten ab 30 cm; der Belag endet 15,7 cm davor. Längs der Dielen läuft die Unterkonstruktion unter der Rinne bis an die Seite, quer dazu tragen Stützhölzer die Rinne. Lage und bodentiefes Element sind im Artikel festgelegt; die Lage wählt die Rinne.'**
   String get rinnenHinweis;
 
   /// No description provided for @meldungOhneRinnenartikel.
@@ -2811,6 +2811,48 @@ abstract class PlanerTexte {
   /// In de, this message translates to:
   /// **'Zu diesem Belag ist keine Entwässerungsrinne hinterlegt.'**
   String get meldungOhneRinnenartikel;
+
+  /// No description provided for @rinnenFarbe.
+  ///
+  /// In de, this message translates to:
+  /// **'Farbe der Rinnen'**
+  String get rinnenFarbe;
+
+  /// No description provided for @rinnenfarbeEloxiert.
+  ///
+  /// In de, this message translates to:
+  /// **'eloxiert'**
+  String get rinnenfarbeEloxiert;
+
+  /// No description provided for @rinnenfarbeAnthrazit.
+  ///
+  /// In de, this message translates to:
+  /// **'anthrazit'**
+  String get rinnenfarbeAnthrazit;
+
+  /// No description provided for @meldungRinneNichtMoeglich.
+  ///
+  /// In de, this message translates to:
+  /// **'Rinne nicht geplant: nur an geraden, waagerechten oder senkrechten Seiten ab 30 cm möglich.'**
+  String get meldungRinneNichtMoeglich;
+
+  /// No description provided for @meldungRinnenfarbeFehlt.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Rinne in Anthrazit ist im Planer noch nicht hinterlegt – sie wird ohne Material gerechnet. Bitte sprechen Sie uns an.'**
+  String get meldungRinnenfarbeFehlt;
+
+  /// No description provided for @meldungRinnenmontage.
+  ///
+  /// In de, this message translates to:
+  /// **'Annahme: Befestigung mit Systemschrauben UNIA 4,2 × 22 mm und 2 Endkappen RELO VB je Rinne – beides nicht in der Materialliste. Höhenausgleich mit GUMO.'**
+  String get meldungRinnenmontage;
+
+  /// No description provided for @meldungEckwinkelFehlt.
+  ///
+  /// In de, this message translates to:
+  /// **'Eckverbundwinkel RELO E für die Stützhölzer unter der Rinne (2 je Stützholz) sind nicht in der Materialliste – bitte gesondert anfragen.'**
+  String get meldungEckwinkelFehlt;
 
   /// No description provided for @hoehenpunktName.
   ///

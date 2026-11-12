@@ -211,8 +211,8 @@ void main() {
     test('nur gerade waagerechte oder senkrechte Seiten ab 30 cm', () {
       const s = Planungsstand.start;
       expect(
-        [for (var i = -1; i <= 4; i++) rinneMoeglich(s, i)],
-        [false, true, true, true, true, false],
+        [for (var i = -1; i <= 5; i++) rinneMoeglich(s, i)],
+        [false, true, true, true, true, false, false],
       );
       // genau 30 cm ja, 29,9 cm nein
       for (final (breite, erwartet) in [(300.0, true), (299.0, false)]) {
@@ -353,6 +353,21 @@ void main() {
           Punkt(0, 3000),
         ],
       );
+    });
+
+    test('schräge Nachbarseiten: die Ecken wandern auf ihnen mit', () {
+      final trapez = freiform(const [
+        Punkt(0, 0),
+        Punkt(4000, 0),
+        Punkt(3000, 2000),
+        Punkt(1000, 2000),
+      ]).mitRinne(2, Rinnenlage.gesamteSeite);
+      final ecken = belagstand(trapez, rinnenkanten(trapez)).grundriss.ecken;
+      expect(ecken.take(2), const [Punkt(0, 0), Punkt(4000, 0)]);
+      expect(ecken[2].x, closeTo(3078.5, 1e-9));
+      expect(ecken[2].y, closeTo(1843, 1e-9));
+      expect(ecken[3].x, closeTo(921.5, 1e-9));
+      expect(ecken[3].y, closeTo(1843, 1e-9));
     });
 
     test('zu schmal für die Rinne: Stand bleibt', () {

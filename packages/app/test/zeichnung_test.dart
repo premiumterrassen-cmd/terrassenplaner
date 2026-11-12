@@ -295,6 +295,76 @@ void main() {
       expect(_texte(_maler(z, o)), ['D', 'C', 'B', 'A']);
     });
 
+    test('Rinne RELO V (Planungskern v11, R-E07): Band deckend mit Belag, '
+        'durchscheinend nur mit UK; Schlitze mit Belag, Auflagerprofile mit '
+        'UK', () {
+      final band = Rinnenband(const [
+        Punkt(0, 0),
+        Punkt(1000, 0),
+        Punkt(1000, 151),
+        Punkt(0, 151),
+      ]);
+      final z = Zeichnung(rinnen: [band]);
+      expect(() => z.rinnen.add(band), throwsUnsupportedError);
+      final o = AnsichtsOptionen();
+      final m = _maler(z, o);
+      expect(m.rinnenbaender().single.$2, ZeichnungsMaler.rinnenbandFarbe);
+      expect(m.rinnenschlitze(), hasLength(band.schlitze.length));
+      expect(m.rinnenschlitze().first, (
+        Offset(
+          band.schlitze.first.von.x * 0.1,
+          band.schlitze.first.von.y * 0.1,
+        ),
+        Offset(
+          band.schlitze.first.bis.x * 0.1,
+          band.schlitze.first.bis.y * 0.1,
+        ),
+      ));
+      expect(m.auflagerprofillinien(), hasLength(2));
+      o.setzeEbenen({Ebene.unterkonstruktion});
+      expect(
+        m.rinnenbaender().single.$2.a,
+        closeTo(ZeichnungsMaler.rinnenDeckkraftUk, 0.01),
+      );
+      expect(m.rinnenschlitze(), isEmpty);
+      expect(m.auflagerprofillinien(), hasLength(2));
+      o.setzeEbenen({Ebene.belag});
+      expect(m.auflagerprofillinien(), isEmpty);
+      expect(m.rinnenbaender(), hasLength(1));
+      o.setzeEbenen({});
+      expect(m.rinnenbaender(), isEmpty);
+      // gezeichnet: Band mit Rand, Schlitze, zwei Auflagerprofile 2 px
+      final aufnahme = PictureRecorder();
+      final leinwand = _ZaehlendeLeinwand(Canvas(aufnahme));
+      _maler(z, AnsichtsOptionen()).paint(leinwand, const Size(800, 600));
+      aufnahme.endRecording();
+      final rand = leinwand.pfadStifte.where(
+        (p) => p.color.toARGB32() == ZeichnungsMaler.rinnenrandFarbe.toARGB32(),
+      );
+      expect(rand.single.style, PaintingStyle.stroke);
+      expect(
+        leinwand.pfadStifte.where(
+          (p) =>
+              p.color.toARGB32() == ZeichnungsMaler.rinnenbandFarbe.toARGB32(),
+        ),
+        hasLength(1),
+      );
+      expect(
+        leinwand.linienStifte.where(
+          (p) =>
+              p.color.toARGB32() == ZeichnungsMaler.rinnenrandFarbe.toARGB32(),
+        ),
+        hasLength(band.schlitze.length),
+      );
+      final va = leinwand.linienStifte.where(
+        (p) =>
+            p.color.toARGB32() ==
+            ZeichnungsMaler.auflagerprofilFarbe.toARGB32(),
+      );
+      expect(va, hasLength(2));
+      expect(va.first.strokeWidth, 2);
+    });
+
     test('Stoßlinien (R-E01): rot gestrichelt auf der Ebene Belag', () {
       final z = Zeichnung(
         stoesse: const [(Offset(1000, 0), Offset(1000, 200))],

@@ -927,10 +927,9 @@ void main() {
       expect(va.first.geschlossen, isFalse);
       expect(ukPlan.texte.last.text, 'Rinne RELO V');
       // nur Hinweise zur Rinne stehen in den Unterlagen
-      expect(
-        texte(kapitel(u, 'Hinweise zur Planung')).skip(2),
-        ['• ${de.rinnenmeldung(Anschlussmeldung.rinnenmontage)}'],
-      );
+      expect(texte(kapitel(u, 'Hinweise zur Planung')).skip(2), [
+        '• ${de.rinnenmeldung(Anschlussmeldung.rinnenmontage)}',
+      ]);
     });
 
     test('Verlegeplan: Stoßlinien rot gestrichelt, Legende, Eckbuchstaben '

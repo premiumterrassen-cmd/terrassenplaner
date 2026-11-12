@@ -256,7 +256,19 @@ void main() {
       expect(r.laenge, 4800);
       expect(r.mitte, const Punkt(2400, 75.5));
       expect(r.ecken.clear, throwsUnsupportedError);
-      expect(() => Rinnenband(const [Punkt.ursprung]), throwsArgumentError);
+      expect(
+        () => Rinnenband(const [Punkt.ursprung]),
+        throwsA(isA<ArgumentError>().having((e) => e.name, 'name', 'ecken')),
+      );
+      // nicht im Ursprung: Auflagerprofile parallel zur Kante
+      final versetzt = Rinnenband.an((
+        seite: 0,
+        von: const Punkt(100, 200),
+        bis: const Punkt(1100, 200),
+        innen: const Punkt(0, 1),
+      ));
+      expect(versetzt.auflagerprofile.first.von.x, closeTo(100, 1e-9));
+      expect(versetzt.auflagerprofile.first.von.y, closeTo(225, 1e-9));
     });
 
     test('zwei Auflagerprofile 2,5 cm vom Rand, Schlitze alle 5 cm', () {

@@ -94,6 +94,7 @@ class BerechnungsSteuerung extends ChangeNotifier {
         ),
         null => null,
       },
+      rinnen: b.planbild.rinnen,
     ),
     null => Zeichnung.leer,
   };
