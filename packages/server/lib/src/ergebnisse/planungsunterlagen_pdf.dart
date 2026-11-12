@@ -255,7 +255,8 @@ pw.Widget _plan(Plan plan) {
                 child: pw.Center(child: _text(t.text, groesse: 7)),
               ),
             ),
-          for (final (n, lage) in nebentextFelder(plan, m)) _nebentext(n, lage),
+          for (final (n, lage) in nebentextFelder(plan, m))
+            nebentextWidget(n, lage),
         ],
       ),
     ),
@@ -296,7 +297,7 @@ Feld nebentextLage(Nebentext n, Planmassstab m, [Punkt? richtung]) {
 }
 
 /// Feld einer Beschriftung [t] (7 pt, mittig um ihren Ort).
-Feld _beschriftungsfeld(Planbeschriftung t, Planmassstab m) {
+Feld beschriftungsfeld(Planbeschriftung t, Planmassstab m) {
   final p = m.abbild(t.ort);
   final breite = t.text.length * 7 * 0.55;
   return (links: p.x - breite / 2, unten: p.y - 4.5, breite: breite, hoehe: 9);
@@ -312,7 +313,7 @@ List<(Nebentext, Feld)> nebentextFelder(Plan plan, Planmassstab m) {
     for (final l in plan.linien)
       if (l.gefuellt) [for (final p in l.punkte) m.abbild(p)],
   ];
-  final belegt = [for (final t in plan.texte) _beschriftungsfeld(t, m)];
+  final belegt = [for (final t in plan.texte) beschriftungsfeld(t, m)];
   final gesetzt = <(Nebentext, Feld)>[];
   for (final n in plan.nebentexte) {
     for (final r in [n.richtung, n.richtung * -1]) {
@@ -365,7 +366,9 @@ bool feldBeruehrt(Feld f, List<PdfPoint> q) {
   return true;
 }
 
-pw.Widget _nebentext(Nebentext n, Feld lage) => pw.Positioned(
+/// Der weiß hinterlegte Nebentext [n] in seinem Feld [lage], auf dem Papier
+/// um [planrand] verschoben.
+pw.Positioned nebentextWidget(Nebentext n, Feld lage) => pw.Positioned(
   left: lage.links + planrand,
   bottom: lage.unten + planrand,
   child: pw.Container(

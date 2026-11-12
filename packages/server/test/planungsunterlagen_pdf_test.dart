@@ -266,6 +266,55 @@ void main() {
       );
     });
 
+    test('Feld berührt Vieleck: Projektion auf schräge Kantennormale', () {
+      const f = (links: 0.0, unten: 0.0, breite: 10.0, hoehe: 10.0);
+      // Hypotenuse x + y = 21 knapp hinter der Ecke (10, 10); nur ihre
+      // Normale (1, 1) trennt, die gespiegelte (1, -1) nicht.
+      expect(
+        feldBeruehrt(f, const [
+          PdfPoint(6, 15),
+          PdfPoint(15, 6),
+          PdfPoint(15, 15),
+        ]),
+        isFalse,
+      );
+    });
+
+    test('Feld berührt Vieleck: nur die Achse des Felds trennt, auf beiden '
+        'Seiten, mit Abstand und bündig', () {
+      const f = (links: 0.0, unten: 0.0, breite: 10.0, hoehe: 10.0);
+      // Dreiecke ohne senkrechte Kante: keine Kantennormale trennt
+      List<PdfPoint> dreieck(double dx, {bool gespiegelt = false}) => [
+        for (final (x, y) in [(10.0, 5.0), (20.0, -5.0), (25.0, 15.0)])
+          PdfPoint(gespiegelt ? 10 - x - dx : x + dx, y),
+      ];
+      expect(feldBeruehrt(f, dreieck(1)), isFalse);
+      expect(feldBeruehrt(f, dreieck(0)), isFalse);
+      expect(feldBeruehrt(f, dreieck(1, gespiegelt: true)), isFalse);
+      expect(feldBeruehrt(f, dreieck(0, gespiegelt: true)), isFalse);
+      // ein Stück hineingeschoben berührt es
+      expect(feldBeruehrt(f, dreieck(-1)), isTrue);
+      expect(feldBeruehrt(f, dreieck(-1, gespiegelt: true)), isTrue);
+    });
+
+    test('Feld einer Beschriftung: 7 pt, mittig um ihren Ort', () {
+      final b = beschriftungsfeld((
+        ort: const Punkt(1000, 500),
+        text: 'Stufe',
+      ), m);
+      expect(b.breite, closeTo(5 * 7 * 0.55, 1e-9));
+      expect(b.hoehe, 9);
+      expect(b.links, closeTo(p.x - 5 * 7 * 0.55 / 2, 1e-9));
+      expect(b.unten, closeTo(p.y - 4.5, 1e-9));
+    });
+
+    test('Nebentext auf dem Papier um den Planrand verschoben', () {
+      const lage = (links: 12.0, unten: 34.0, breite: 8.0, hoehe: 7.5);
+      final w = nebentextWidget(neben(const Punkt(1, 0), '1'), lage);
+      expect(w.left, 12 + planrand);
+      expect(w.bottom, 34 + planrand);
+    });
+
     test('Platz: eigene Richtung, sonst Gegenrichtung, sonst entfällt; nie '
         'über Holz, Beschriftung oder einem anderen Nebentext', () {
       // Hölzer senkrecht bei x = 1000 und 1240 (40 mm breit)
