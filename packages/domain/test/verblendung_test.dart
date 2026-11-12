@@ -105,6 +105,7 @@ int _anzahl(Anschlussbedarf b, Artikel a, int laenge) => b.bedarf
     .fold(0, (s, m) => s + m.stueck);
 
 void main() {
+  _seitenblendeJeKante();
   group('Verblendete Seiten im Planungsstand (M7-02)', () {
     const f01 = Planungsstand.start;
 
@@ -426,7 +427,7 @@ void main() {
       expect(b.stuecke, hasLength(29));
       expect(b.meldungen, [Anschlussmeldung.unterlueftung]);
       expect(blendenstrecken(kreis, const [Millimeter(200), Millimeter(86)]), [
-        (laenge: kreis.kontur.umfang, hoehe: const Millimeter(86)),
+        (laenge: kreis.kontur.umfang, hoehe: const Millimeter(86), ecke: false),
       ]);
       expect(
         blendenstrecken(kreis.mitVerblendet(0, an: false), const [
@@ -600,6 +601,217 @@ void main() {
         ),
         isEmpty,
       );
+    });
+  });
+}
+
+void _seitenblendeJeKante() {
+  group('Seitenblende je Kante (Planungskern v7, Regel 9.4)', () {
+    const f01 = Planungsstand.start;
+    final bc = f01.mitVerblendet(1, an: true);
+
+    test('Blendenhöhe und Teilstücke setzen, lösen, nur an verblendeten '
+        'Seiten, Transportformat', () {
+      final b = bc.mitBlendenhoehe(1, const Millimeter(120)).mitBlendenteilen(
+        1,
+        const [
+          (von: Millimeter(2000), bis: Millimeter(3000)),
+          (von: Millimeter(0), bis: Millimeter(500)),
+        ],
+      );
+      expect(b.anschluss.blendenhoeheAn(1), const Millimeter(120));
+      expect(b.anschluss.blendenhoeheAn(2), isNull);
+      // nach dem Anfang sortiert
+      expect(b.anschluss.teileAn(1), const [
+        (von: Millimeter(0), bis: Millimeter(500)),
+        (von: Millimeter(2000), bis: Millimeter(3000)),
+      ]);
+      expect(b.anschluss.teileAn(0), isEmpty);
+      expect(Planungsstand.ausBytes(b.zuBytes()), b);
+      expect(b == bc, isFalse);
+      expect(b.anschluss.hashCode == bc.anschluss.hashCode, isFalse);
+      expect(
+        b.mitBlendenteilen(1, const []).anschluss.hashCode ==
+            b.anschluss.hashCode,
+        isFalse,
+      );
+      // zurück auf automatisch und ganze Seite
+      expect(b.mitBlendenhoehe(1, null).mitBlendenteilen(1, const []), bc);
+      // zwei Seiten: nach Seite sortiert
+      final zwei = b
+          .mitVerblendet(0, an: true)
+          .mitBlendenhoehe(0, const Millimeter(90))
+          .mitBlendenteilen(0, const [
+            (von: Millimeter(100), bis: Millimeter(200)),
+          ]);
+      expect([for (final h in zwei.anschluss.blendenhoehen) h.seite], [0, 1]);
+      expect([for (final t in zwei.anschluss.blendenteile) t.seite], [0, 1, 1]);
+      expect(Planungsstand.ausBytes(zwei.zuBytes()), zwei);
+      // an einer nicht verblendeten Seite wirkungslos; Abwählen, Bauelement
+      // oder Rinne nehmen Höhe und Teilstücke mit
+      expect(f01.mitBlendenhoehe(1, const Millimeter(120)), f01);
+      expect(
+        f01.mitBlendenteilen(1, const [
+          (von: Millimeter(0), bis: Millimeter(500)),
+        ]),
+        f01,
+      );
+      expect(b.mitVerblendet(1, an: false), f01);
+      expect(
+        b.mitAngrenzend(1, an: true).anschluss,
+        const Anschluss(angrenzend: [1]),
+      );
+      expect(
+        b.mitRinne(1, Rinnenlage.gesamteSeite).anschluss.blendenteile,
+        isEmpty,
+      );
+    });
+
+    test('Prüfung: Seite, Höhe wie die Höhenpunkte, Teilstück 0 bis 50 m; '
+        'Kreis nur Höhe; Seitenlänge', () {
+      expect(
+        () => bc.mitBlendenhoehe(4, const Millimeter(100)),
+        throwsRangeError,
+      );
+      expect(
+        () => bc.mitBlendenhoehe(1, const Millimeter(0)),
+        throwsArgumentError,
+      );
+      expect(
+        () => bc.mitBlendenteilen(1, const [
+          (von: Millimeter(500), bis: Millimeter(500)),
+        ]),
+        throwsArgumentError,
+      );
+      expect(() => bc.mitBlendenteilen(-1, const []), throwsRangeError);
+      expect(
+        Planungsstand.blendenteilGueltig(
+          const Millimeter(0),
+          const Millimeter(50000),
+        ),
+        isTrue,
+      );
+      expect(
+        Planungsstand.blendenteilGueltig(
+          const Millimeter(-1),
+          const Millimeter(10),
+        ),
+        isFalse,
+      );
+      expect(
+        Planungsstand.blendenteilGueltig(
+          const Millimeter(0),
+          const Millimeter(50001),
+        ),
+        isFalse,
+      );
+      expect(hoechsteKante, const Millimeter(50000));
+      final kreis = f01
+          .mitForm(Terrassenform.kreis)
+          .mitVerblendet(0, an: true)
+          .mitBlendenhoehe(0, const Millimeter(150));
+      expect(kreis.anschluss.blendenhoeheAn(0), const Millimeter(150));
+      expect(
+        () => kreis.mitBlendenteilen(0, const [
+          (von: Millimeter(0), bis: Millimeter(1)),
+        ]),
+        throwsRangeError,
+      );
+      expect(bc.seitenlaenge(1), 3090);
+      expect(bc.seitenlaenge(0), 4800);
+      expect(() => bc.seitenlaenge(4), throwsRangeError);
+    });
+
+    test('Höhe je Kante ersetzt die Höhe der Fläche; ohne Angabe die '
+        'niedrigste Stelle der Kante, auch zwischen den Ecken', () {
+      final hoch = bc.mitBlendenhoehe(1, const Millimeter(140));
+      // Ecken 86 mm, die Kante bekommt 14 cm → zwei Reihen à 60 mm
+      final b = verblendungsbedarf(
+        hoch,
+        hoehen: _vier,
+        belag: _belag,
+        regelwerk: _serie,
+        uk: _uk,
+      );
+      expect(_anzahl(b, _b60, 4000), 2);
+      expect(b.stuecke.first.laenge, const Millimeter(140 - 20 - 21));
+      // verwundener Untergrund: Ablauf (weiterer Höhenpunkt) auf der Kante
+      // B — C in der Mitte – die Kante ist dort am niedrigsten
+      final ablauf = bc.mitGefaelle(true).mitNeuemHoehenpunkt().mitHoehenpunkt(
+        0,
+        (
+          x: const Millimeter(4800),
+          y: const Millimeter(1545),
+          hoehe: const Millimeter(100),
+        ),
+      );
+      final strecken = blendenstrecken(ablauf, const [
+        Millimeter(200),
+        Millimeter(200),
+        Millimeter(200),
+        Millimeter(200),
+        Millimeter(100),
+      ]);
+      expect(strecken.single.hoehe, const Millimeter(100));
+      expect(strecken.single.laenge, 3090);
+      expect(strecken.single.ecke, isTrue);
+      // nur Ecken (ohne weitere Höhen): wie bisher die niedrigere Ecke
+      expect(
+        blendenstrecken(ablauf, const [
+          Millimeter(300),
+          Millimeter(86),
+          Millimeter(200),
+          Millimeter(300),
+        ]).single.hoehe,
+        const Millimeter(86),
+      );
+      expect(blendeAbtastung, const Millimeter(100));
+    });
+
+    test('Teilverblendung: je Stück eigene Blende und Träger, Gehrung nur '
+        'an der Ecke, auf die Kante gekürzt, gelb nur die Stücke', () {
+      final teil = bc.mitBlendenteilen(1, const [
+        (von: Millimeter(0), bis: Millimeter(1000)),
+        (von: Millimeter(1500), bis: Millimeter(2500)),
+        (von: Millimeter(2800), bis: Millimeter(9000)),
+        (von: Millimeter(4000), bis: Millimeter(5000)),
+      ]);
+      final strecken = blendenstrecken(teil, _vier);
+      expect([for (final s in strecken) s.laenge], [1000, 1000, 290]);
+      expect([for (final s in strecken) s.ecke], [true, false, true]);
+      final b = verblendungsbedarf(
+        teil,
+        hoehen: _vier,
+        belag: _belag,
+        regelwerk: _serie,
+        uk: _uk,
+      );
+      // 105 + 100 + 34 cm → eine Diele 4000 mm reicht nicht für alle drei
+      // (Lieferstücke wie bei der UK)
+      final blenden = b.bedarf.where((m) => m.laenge != null);
+      expect(
+        blenden.fold(0, (s, m) => s + m.stueck * m.laenge!.mm),
+        greaterThanOrEqualTo(1050 + 1000 + 340),
+      );
+      // Träger je Stück höchstens 40 cm auseinander: 4 + 4 + 2
+      expect(b.stuecke, hasLength(10));
+      final e = anschlussergebnis(teil);
+      expect(
+        [for (final s in e.seiten) (s.von, s.bis)],
+        const [
+          (Punkt(4800, 0), Punkt(4800, 1000)),
+          (Punkt(4800, 1500), Punkt(4800, 2500)),
+          (Punkt(4800, 2800), Punkt(4800, 3090)),
+        ],
+      );
+      // ein Stück ohne Höhenunterschied meldet sich
+      final flach = verblendungsbedarf(
+        teil.mitBlendenhoehe(1, const Millimeter(20)),
+        hoehen: _vier,
+        belag: _belag,
+        regelwerk: _serie,
+      );
+      expect(flach.meldungen, [Anschlussmeldung.keinHoehenunterschied]);
     });
   });
 }

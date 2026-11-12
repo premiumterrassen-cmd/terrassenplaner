@@ -2,6 +2,8 @@
 /// welche Rolle hat und was daraus für Zeichnung und Material folgt.
 library;
 
+import 'dart:math' as math;
+
 import '../artikel/einheiten.dart';
 import '../geometrie/punkt.dart';
 import '../konfiguration/anschlussergebnis.dart';
@@ -16,9 +18,38 @@ import 'treppen.dart';
   return (von: ecken[seite], bis: ecken[(seite + 1) % ecken.length]);
 }
 
+/// Verblendete Stücke der Seite [seite]: ohne Teilstücke die ganze Seite,
+/// sonst jedes Teilstück auf die Seite gekürzt (leere fallen weg;
+/// Planungskern v7, Regel 9.4). [ecke]: das Stück beginnt oder endet an
+/// einer Ecke der Seite.
+List<({Punkt von, Punkt bis, bool ecke})> blendenstuecke(
+  Planungsstand stand,
+  int seite,
+) {
+  final (:von, :bis) = seitenstrecke(stand, seite);
+  final teile = stand.anschluss.teileAn(seite);
+  if (teile.isEmpty) return [(von: von, bis: bis, ecke: true)];
+  final laenge = von.abstand(bis);
+  final richtung = (bis - von).einheit;
+  return [
+    for (final t in teile)
+      if ((
+            math.min(t.von.mm.toDouble(), laenge),
+            math.min(t.bis.mm.toDouble(), laenge),
+          )
+          case (final a, final b) when b - a >= 1)
+        (
+          von: von + richtung * a,
+          bis: von + richtung * b,
+          ecke: a <= 0 || b >= laenge,
+        ),
+  ];
+}
+
 /// Anschluss der bearbeiteten Fläche (M7) mit den [meldungen]:
-/// angrenzende Seiten grau (M7-01, 4.1), verblendete gelb (M7-02, 4.2) –
-/// beim Kreis („Fläche verblenden“) der ganze Umriss als Sehnenzug –,
+/// angrenzende Seiten grau (M7-01, 4.1), verblendete gelb (M7-02, 4.2;
+/// bei Teilverblendung je Teilstück, Planungskern v7, Regel 9.4) – beim
+/// Kreis („Fläche verblenden“) der ganze Umriss als Sehnenzug –,
 /// Seiten mit Rinne blau (M7-03, 4.3).
 ///
 /// Mit den geprüften [hoehen] (Ecken, dann die weiteren Höhenreferenzpunkte,
@@ -42,7 +73,9 @@ Anschlussergebnis anschlussergebnis(
     seiten: [
       ...linien(stand.anschluss.angrenzend, Seitenrolle.bauelement),
       if (!kreis)
-        ...linien(stand.anschluss.verblendet, Seitenrolle.verblendung)
+        for (final seite in stand.anschluss.verblendet)
+          for (final (:von, :bis, ecke: _) in blendenstuecke(stand, seite))
+            (seite: seite, rolle: Seitenrolle.verblendung, von: von, bis: bis)
       else if (stand.anschluss.verblendetAn(0))
         for (var i = 0; i < umriss.length; i++)
           (
