@@ -532,8 +532,9 @@ void main() {
       final h = plan.texte.firstWhere((t) => t.text == 'H = 15 cm').ort;
       expect(h.abstand(Punkt.ursprung), greaterThan(a.abstand(Punkt.ursprung)));
       final spalt = plan.texte.firstWhere((t) => t.text == '0,5').ort;
-      expect(spalt.x, 20);
-      expect(spalt.y, greaterThan(50));
+      // neben dem Holz (quer zur UK), nicht darauf
+      expect(spalt.x, lessThan(20));
+      expect(spalt.y, closeTo(50, 1e-9));
       expect(baustein<Absatz>(k).text, startsWith('H = Höhe Oberkante'));
       final legende = baustein<Tabelle>(k);
       expect(legende.kopf, ['Auflager', 'Anzahl']);

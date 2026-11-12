@@ -568,11 +568,18 @@ Plan _massPlan(Unterlagentexte t, Berechnung b) {
       ...umrissbeschriftung(t, b),
       ..._eckhoehen(t, b, a),
       for (final p in u.auflagerpunkte)
-        (ort: p.ort + const Punkt(0, 1) * (a * 0.6), text: t.cm(p.spalt)),
+        (ort: p.ort + _neben(u) * (a * 0.6), text: t.cm(p.spalt)),
       ...?kette?.texte,
     ],
   );
 }
+
+/// Richtung quer zur UK (die Höhe steht neben dem Holz, nicht darauf);
+/// ohne Hölzer nach unten.
+Punkt _neben(Unterbau u) => switch (u.hoelzer) {
+  [final h, ...] when !h.bis.gleich(h.von) => (h.bis - h.von).einheit.links,
+  _ => const Punkt(0, 1),
+};
 
 /// „H = … cm“ je Ecke (R-E05) außen hinter dem Eckbuchstaben.
 List<Planbeschriftung> _eckhoehen(Unterlagentexte t, Berechnung b, double a) {

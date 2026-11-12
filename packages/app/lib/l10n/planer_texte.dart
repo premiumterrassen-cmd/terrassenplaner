@@ -2644,6 +2644,72 @@ abstract class PlanerTexte {
   /// **'Die Blende ist aus der Serie des Belags, glattkant und so stark wie die Diele. Ihre Breite richtet sich nach der Höhe (höchstens 100 mm, über ca. 13 cm zwei Blenden à 60 mm); die Ecken werden auf Gehrung geschnitten.'**
   String get verblendungHinweis;
 
+  /// No description provided for @blendeSeite.
+  ///
+  /// In de, this message translates to:
+  /// **'Blende {seite}'**
+  String blendeSeite(String seite);
+
+  /// No description provided for @blendenhoehe.
+  ///
+  /// In de, this message translates to:
+  /// **'Blendenhöhe'**
+  String get blendenhoehe;
+
+  /// No description provided for @blendenhoeheAutomatisch.
+  ///
+  /// In de, this message translates to:
+  /// **'automatisch'**
+  String get blendenhoeheAutomatisch;
+
+  /// No description provided for @blendenhoeheZuruecksetzen.
+  ///
+  /// In de, this message translates to:
+  /// **'Blendenhöhe automatisch (niedrigste Stelle der Seite)'**
+  String get blendenhoeheZuruecksetzen;
+
+  /// No description provided for @blendenteil.
+  ///
+  /// In de, this message translates to:
+  /// **'Teilstück {nummer}'**
+  String blendenteil(int nummer);
+
+  /// No description provided for @blendenteilVon.
+  ///
+  /// In de, this message translates to:
+  /// **'Von (ab {ecke})'**
+  String blendenteilVon(String ecke);
+
+  /// No description provided for @blendenteilBis.
+  ///
+  /// In de, this message translates to:
+  /// **'Bis (ab {ecke})'**
+  String blendenteilBis(String ecke);
+
+  /// No description provided for @blendenteilHinzufuegen.
+  ///
+  /// In de, this message translates to:
+  /// **'Nur einen Teil der Seite verblenden'**
+  String get blendenteilHinzufuegen;
+
+  /// No description provided for @blendenteilEntfernen.
+  ///
+  /// In de, this message translates to:
+  /// **'Teilstück entfernen'**
+  String get blendenteilEntfernen;
+
+  /// No description provided for @blendenteilUngueltig.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte von 0 bis 5000 cm eingeben, der Anfang vor dem Ende'**
+  String get blendenteilUngueltig;
+
+  /// No description provided for @blendeJeSeiteHilfe.
+  ///
+  /// In de, this message translates to:
+  /// **'Ohne Angabe gilt die niedrigste Stelle der Seite – die Blende steht nirgends auf, an höheren Stellen bleibt unten Luft. Ohne Teilstück wird die ganze Seite verblendet.'**
+  String get blendeJeSeiteHilfe;
+
   /// No description provided for @meldungUnterlueftung.
   ///
   /// In de, this message translates to:

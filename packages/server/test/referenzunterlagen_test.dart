@@ -156,6 +156,8 @@ void main() {
         'Ihre Terrasse – Unterkonstruktion',
         if (titel.contains('Ihre Terrasse – Höhenzuordnung der Auflager'))
           'Ihre Terrasse – Höhenzuordnung der Auflager',
+        // Planungskern v7, Regel 9.2: Seite „Bemaßung und Höhen“
+        'Ihre Terrasse – Bemaßung und Höhen',
         'Ihre Terrasse – Terrassenbelag',
         'Ihre Terrasse – Zuschnittsplan Belag',
         'Materialliste',
