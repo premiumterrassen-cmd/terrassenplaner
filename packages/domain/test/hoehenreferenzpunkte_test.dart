@@ -139,8 +139,11 @@ void main() {
         const [Punkt(2000, 1500)],
       );
       expect(f.bei(const Punkt(2000, 1500)), const Millimeter(50));
-      expect(f.bei(const Punkt(1000, 750)), const Millimeter(75));
-      expect(f.bei(const Punkt(3000, 750)), const Millimeter(75));
+      // Planungskern v7 (Regel 9.1): Ausgleichsebene 90 mm, die Abweichung
+      // nach Abstand verteilt (vorher Dreiecke: 75 mm)
+      expect(f.bei(const Punkt(1000, 750)), const Millimeter(80));
+      expect(f.bei(const Punkt(3000, 750)), const Millimeter(80));
+      expect(f.bei(const Punkt(2000, 1000)), const Millimeter(57));
       expect(f.bei(Punkt.ursprung), const Millimeter(100));
       expect(f.bei(const Punkt(4000, 3000)), const Millimeter(100));
     });
@@ -152,7 +155,10 @@ void main() {
         const [Punkt(3000, 500)],
       );
       expect(innen.bei(const Punkt(3000, 500)), const Millimeter(40));
-      expect(innen.bei(const Punkt(3500, 2500)), const Millimeter(100));
+      // Planungskern v7 (Regel 9.1): der Ablauf wirkt nach Abstand auf die
+      // ganze Fläche, weit weg kaum (vorher nur in seinem Dreieck)
+      expect(innen.bei(const Punkt(3500, 2500)), const Millimeter(95));
+      expect(innen.bei(const Punkt(0, 3000)), const Millimeter(100));
       final aussen = Hoehenflaeche(
         ecken,
         [...hundert, const Millimeter(40)],

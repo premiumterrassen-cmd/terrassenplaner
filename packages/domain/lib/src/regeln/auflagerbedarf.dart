@@ -66,146 +66,157 @@ final class Auflagerbedarf {
   final List<Lieferdiele> zuschnitt;
 }
 
-/// Höhe von Oberkante Belag bis Boden über der Fläche aus den Höhenpunkten
-/// (M6-11): je Eckpunkt die geprüfte Höhe, dazwischen linear über Dreiecke
-/// der Ecken (Ohrenschnitt) – eine geneigte Ebene (F30) wird exakt
-/// wiedergegeben, an jedem Eckpunkt gilt seine Höhe. Ohne Gefälle, mit nur
-/// einem Punkt (Kreis) oder ohne passende Ecken überall die erste Höhe.
+/// Höhe von Oberkante Belag bis Boden über der Fläche aus Höhenpunkten
+/// (M6-11, Planungsregeln Alexander (Planungskern v7, 12.11.2026), Regel
+/// 9.1, R-C14): je Eckpunkt die geprüfte Höhe, dazu die weiteren
+/// Höhenreferenzpunkte (M7-04, [weitere], ihre Höhen folgen in [hoehen] auf
+/// die der Ecken; Punkte außerhalb der Fläche wirken nicht, ein Punkt auf
+/// einer Ecke ersetzt deren Höhe).
 ///
-/// Weitere Höhenreferenzpunkte (M7-04, [weitere], ihre Höhen folgen in
-/// [hoehen] auf die der Ecken) teilen die Dreiecke, in denen sie liegen –
-/// auch auf einer Kante –, in Dreiecke zu ihnen; dort gilt ihre Höhe (ein
-/// Ablauf als tiefster Punkt). Punkte außerhalb der Fläche wirken nicht.
+/// - **ein Punkt:** überall gleich;
+/// - **zwei Punkte:** Verlauf entlang ihrer Verbindung, quer dazu gleich;
+/// - **ab drei Punkten** die Ausgleichsebene (kleinste Quadrate); liegen
+///   alle auf einer Linie, der Verlauf zwischen den äußeren.
+///
+/// Liegen die Punkte nicht in dieser Ebene (Untergrund verwunden, Ablauf),
+/// wird die Abweichung je Punkt nach Abstand verteilt (Gewicht 1 / Abstand²)
+/// – jeder angegebene Punkt stimmt genau, eine geneigte Ebene (F30) bleibt
+/// exakt. Passen Ecken und Höhen nicht zusammen, gilt überall die erste
+/// Höhe.
 final class Hoehenflaeche {
-  Hoehenflaeche(
+  factory Hoehenflaeche(
     List<Punkt> ecken,
     List<Millimeter> hoehen, [
     List<Punkt> weitere = const [],
-  ]) : _ecken = [...ecken, ...weitere],
-       _hoehen = [for (final h in hoehen) h.mm.toDouble()],
-       _dreiecke =
-           ecken.length >= 3 &&
-               ecken.length + weitere.length == hoehen.length &&
-               hoehen.toSet().length > 1
-           ? _mitPunkten(_ohrenschnitt(ecken), [
-               ...ecken,
-               ...weitere,
-             ], ecken.length)
-           : const [];
+  ]) {
+    final werte = [for (final h in hoehen) h.mm.toDouble()];
+    if (ecken.length + weitere.length != hoehen.length || ecken.isEmpty) {
+      return Hoehenflaeche._([(Punkt.ursprung, werte.first)]);
+    }
+    final punkte = [for (final (i, e) in ecken.indexed) (e, werte[i])];
+    for (final (i, p) in weitere.indexed) {
+      if (ecken.length >= 3 && !_inFlaeche(ecken, p)) continue;
+      final h = werte[ecken.length + i];
+      final gleich = punkte.indexWhere((q) => q.$1.abstand(p) < _gleichBis);
+      if (gleich >= 0) {
+        punkte[gleich] = (p, h);
+      } else {
+        punkte.add((p, h));
+      }
+    }
+    return Hoehenflaeche._(punkte);
+  }
 
-  final List<Punkt> _ecken;
-  final List<double> _hoehen;
-  final List<(int, int, int)> _dreiecke;
+  Hoehenflaeche._(List<(Punkt, double)> punkte)
+    : _punkte = punkte,
+      _ebene = _ausgleichsebene(punkte) {
+    _rest = [for (final (p, h) in punkte) h - _ebene.bei(p)];
+    _verwunden = _rest.any((r) => r.abs() > _ebenBis);
+  }
+
+  final List<(Punkt, double)> _punkte;
+  final _Ebene _ebene;
+  late final List<double> _rest;
+  late final bool _verwunden;
 
   /// Höhe am Punkt [p] in mm (auf ganze mm gerundet).
   Millimeter bei(Punkt p) {
-    if (_dreiecke.isEmpty) return Millimeter(_hoehen.first.round());
-    // das Dreieck, in dem p am tiefsten liegt (größtes kleinstes Gewicht)
-    (double, double, double)? bestes;
-    var guete = double.negativeInfinity;
-    (int, int, int)? wahl;
-    for (final d in _dreiecke) {
-      final g = _gewichte(_ecken, p, d);
-      final kleinstes = math.min(g.$1, math.min(g.$2, g.$3));
-      if (kleinstes > guete) {
-        guete = kleinstes;
-        bestes = g;
-        wahl = d;
+    var h = _ebene.bei(p);
+    if (_verwunden) {
+      var summe = 0.0;
+      var gewichte = 0.0;
+      for (final (i, (q, hq)) in _punkte.indexed) {
+        final d2 = _quadrat(p.x - q.x) + _quadrat(p.y - q.y);
+        if (d2 < _gleichBis * _gleichBis) return Millimeter(hq.round());
+        gewichte += 1 / d2;
+        summe += _rest[i] / d2;
       }
+      h += summe / gewichte;
     }
-    final (g1, g2, g3) = bestes!;
-    final (i, j, k) = wahl!;
-    return Millimeter(
-      (g1 * _hoehen[i] + g2 * _hoehen[j] + g3 * _hoehen[k]).round(),
-    );
+    return Millimeter(h.round());
   }
 }
 
-/// Baryzentrische Gewichte von [p] im Dreieck [d] der [punkte].
-(double, double, double) _gewichte(
-  List<Punkt> punkte,
-  Punkt p,
-  (int, int, int) d,
-) {
-  final (a, b, c) = (punkte[d.$1], punkte[d.$2], punkte[d.$3]);
-  final flaeche = (b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y);
-  final wb = ((p.x - a.x) * (c.y - a.y) - (c.x - a.x) * (p.y - a.y)) / flaeche;
-  final wc = ((b.x - a.x) * (p.y - a.y) - (p.x - a.x) * (b.y - a.y)) / flaeche;
-  return (1 - wb - wc, wb, wc);
+/// Punkte näher als dies (mm) gelten als derselbe Punkt.
+const _gleichBis = 1.0;
+
+/// Weicht kein Punkt mehr als dies (mm) von der Ausgleichsebene ab, gilt
+/// die Ebene allein.
+const _ebenBis = 0.5;
+
+double _quadrat(double x) => x * x;
+
+/// Ebene h = a·x + b·y + c.
+typedef _Ebene = ({double a, double b, double c});
+
+extension on _Ebene {
+  double bei(Punkt p) => a * p.x + b * p.y + c;
 }
 
-/// [dreiecke] der [punkte], geteilt an jedem Punkt ab [ab] (M7-04): ein
-/// Dreieck, in dem oder auf dessen Rand der Punkt liegt, wird zu drei
-/// Dreiecken mit dem Punkt als Spitze; flache Dreiecke (Punkt auf einer
-/// Kante) fallen weg.
-List<(int, int, int)> _mitPunkten(
-  List<(int, int, int)> dreiecke,
-  List<Punkt> punkte,
-  int ab,
-) {
-  var ergebnis = dreiecke;
-  for (var m = ab; m < punkte.length; m++) {
-    ergebnis = [for (final d in ergebnis) ..._geteilt(punkte, d, m)];
+/// Ausgleichsebene der [punkte] (Regel 9.1): einer flach, zwei als Verlauf
+/// entlang ihrer Verbindung, ab drei kleinste Quadrate – liegen sie auf
+/// einer Linie, der Verlauf zwischen den beiden äußeren.
+_Ebene _ausgleichsebene(List<(Punkt, double)> punkte) {
+  final n = punkte.length;
+  var (mx, my, mh) = (0.0, 0.0, 0.0);
+  for (final (p, h) in punkte) {
+    mx += p.x / n;
+    my += p.y / n;
+    mh += h / n;
   }
-  return ergebnis;
-}
+  _Ebene durch(double a, double b) => (a: a, b: b, c: mh - a * mx - b * my);
+  _Ebene verlauf((Punkt, double) von, (Punkt, double) bis) {
+    final d = bis.$1 - von.$1;
+    final d2 = d.punktprodukt(d);
+    if (d2 < _gleichBis * _gleichBis) return durch(0, 0);
+    final g = (bis.$2 - von.$2) / d2;
+    return durch(g * d.x, g * d.y);
+  }
 
-/// Das Dreieck [d] geteilt am Punkt [m], wenn er in ihm oder auf seinem
-/// Rand liegt (ohne flache Teile); sonst [d] selbst.
-List<(int, int, int)> _geteilt(List<Punkt> punkte, (int, int, int) d, int m) {
-  final (g1, g2, g3) = _gewichte(punkte, punkte[m], d);
-  if (math.min(g1, math.min(g2, g3)) < -_rand) return [d];
-  return [
-    for (final t in [(d.$1, d.$2, m), (d.$2, d.$3, m), (d.$3, d.$1, m)])
-      if (_doppelteFlaeche(punkte, t).abs() > _flach) t,
-  ];
-}
-
-/// Toleranz der Gewichte für Punkte auf dem Rand eines Dreiecks.
-const _rand = 1e-9;
-
-/// Dreiecke mit weniger doppelter Fläche (mm²) gelten als flach.
-const _flach = 1e-6;
-
-double _doppelteFlaeche(List<Punkt> p, (int, int, int) d) =>
-    (p[d.$2].x - p[d.$1].x) * (p[d.$3].y - p[d.$1].y) -
-    (p[d.$3].x - p[d.$1].x) * (p[d.$2].y - p[d.$1].y);
-
-/// Zerlegt das einfache Vieleck [p] in Dreiecke (Ohrenschnitt); die Ecken
-/// werden dazu gegen den Uhrzeigersinn umlaufen (positive Fläche).
-List<(int, int, int)> _ohrenschnitt(List<Punkt> p) {
-  double kreuz(int a, int b, int c) =>
-      (p[b].x - p[a].x) * (p[c].y - p[a].y) -
-      (p[c].x - p[a].x) * (p[b].y - p[a].y);
-  final flaeche = [for (var i = 1; i < p.length - 1; i++) kreuz(0, i, i + 1)]
-      .fold(0.0, (a, b) => a + b);
-  final rest = [for (var i = 0; i < p.length; i++) i];
-  final umlauf = flaeche > 0 ? rest : rest.reversed.toList();
-  // auf oder links jeder Kante des Dreiecks (a, b, c)
-  bool innen(int q, int a, int b, int c) =>
-      kreuz(a, b, q) >= 0 && kreuz(b, c, q) >= 0 && kreuz(c, a, q) >= 0;
-  final dreiecke = <(int, int, int)>[];
-  // feste Obergrenze: jede Runde schneidet ein Ohr ab (ein einfaches
-  // Vieleck hat immer eins)
-  for (var runde = 0; runde < p.length && umlauf.length > 3; runde++) {
-    final n = umlauf.length;
-    final ohr = [
-      for (var i = 0; i < n; i++)
-        if ((umlauf[(i + n - 1) % n], umlauf[i], umlauf[(i + 1) % n])
-            case (final a, final b, final c)
-            when kreuz(a, b, c) > 0 &&
-                !umlauf.any(
-                  (q) => q != a && q != b && q != c && innen(q, a, b, c),
-                ))
-          (i, (a, b, c)),
-    ].firstOrNull;
-    if (ohr case (final i, final dreieck)?) {
-      dreiecke.add(dreieck);
-      umlauf.removeAt(i);
+  if (n == 1) return durch(0, 0);
+  if (n == 2) return verlauf(punkte.first, punkte.last);
+  var (sxx, sxy, syy, sxh, syh) = (0.0, 0.0, 0.0, 0.0, 0.0);
+  for (final (p, h) in punkte) {
+    final (x, y, z) = (p.x - mx, p.y - my, h - mh);
+    sxx += x * x;
+    sxy += x * y;
+    syy += y * y;
+    sxh += x * z;
+    syh += y * z;
+  }
+  final det = sxx * syy - sxy * sxy;
+  if (det.abs() > 1e-6 * math.max(1, sxx * syy)) {
+    return durch((sxh * syy - syh * sxy) / det, (syh * sxx - sxh * sxy) / det);
+  }
+  // alle auf einer Linie: die beiden am weitesten auseinander
+  var (von, bis) = (punkte.first, punkte.last);
+  for (final u in punkte) {
+    for (final w in punkte) {
+      if (u.$1.abstand(w.$1) > von.$1.abstand(bis.$1)) (von, bis) = (u, w);
     }
   }
-  if (umlauf.length == 3) dreiecke.add((umlauf[0], umlauf[1], umlauf[2]));
-  return dreiecke;
+  return verlauf(von, bis);
+}
+
+/// Ob [p] in dem Vieleck der [ecken] oder auf seinem Rand liegt.
+bool _inFlaeche(List<Punkt> ecken, Punkt p) {
+  final n = ecken.length;
+  var innen = false;
+  for (var i = 0; i < n; i++) {
+    final (a, b) = (ecken[i], ecken[(i + 1) % n]);
+    if (_streckenabstand(a, b, p) < _gleichBis) return true;
+    if ((a.y > p.y) != (b.y > p.y) &&
+        p.x < a.x + (p.y - a.y) * (b.x - a.x) / (b.y - a.y)) {
+      innen = !innen;
+    }
+  }
+  return innen;
+}
+
+double _streckenabstand(Punkt a, Punkt b, Punkt p) {
+  final d = b - a;
+  final t = ((p - a).punktprodukt(d) / d.punktprodukt(d)).clamp(0.0, 1.0);
+  return (a + d * t).abstand(p);
 }
 
 /// Auflager der UK-Verlegung [verlegung] (M6-11):
