@@ -671,7 +671,8 @@ class ZeichnungsMaler extends CustomPainter {
         ..save()
         ..translate(ort.dx, ort.dy)
         ..rotate(winkel);
-      maler.paint(canvas, textLage(Offset.zero, Offset.zero, maler.size));
+      // mittig um den gedrehten Ursprung
+      maler.paint(canvas, -maler.size.center(Offset.zero));
       canvas.restore();
     }
     for (final (pfad, farbe) in rinnenbaender()) {

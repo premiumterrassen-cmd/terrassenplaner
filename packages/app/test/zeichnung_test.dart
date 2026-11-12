@@ -408,6 +408,7 @@ void main() {
       final o = AnsichtsOptionen();
       final kette = _maler(z, o).achsmasskette();
       const y = 300 + ZeichnungsMaler.achsmassAbstand;
+      expect(y, 370);
       expect(kette.linien.take(3), const [
         (Offset(0, y), Offset(2, y)),
         (Offset(2, y), Offset(42, y)),
@@ -518,6 +519,57 @@ void main() {
       expect(leinwand.aufrufe['drawParagraph'], greaterThanOrEqualTo(1));
     });
 
+    test('Linien in Zeichenrichtung, Texte der Achsmaßkette an ihrem Ort', () {
+      final z = Zeichnung(
+        stoesse: const [(Offset(1000, 0), Offset(1000, 60))],
+        querstreben: const [(Offset(20, 500), Offset(380, 500))],
+        achsen: (
+          marken: const [Offset(0, 0), Offset(400, 0)],
+          normale: const Offset(0, 1),
+        ),
+        rinnen: [
+          Rinnenband(const [
+            Punkt(0, 0),
+            Punkt(1000, 0),
+            Punkt(1000, 151),
+            Punkt(0, 151),
+          ]),
+        ],
+      );
+      final m = _maler(z, AnsichtsOptionen());
+      final aufnahme = PictureRecorder();
+      final leinwand = _ZaehlendeLeinwand(Canvas(aufnahme));
+      m.paint(leinwand, const Size(800, 600));
+      aufnahme.endRecording();
+      expect(leinwand.linienIn(ZeichnungsMaler.stossFarbe), m.stossstriche());
+      expect(
+        leinwand.linienIn(ZeichnungsMaler.strebenFarbe),
+        m.strebenlinien(),
+      );
+      final kette = m.achsmasskette();
+      expect(leinwand.linienIn(ZeichnungsMaler.achsmassFarbe), kette.linien);
+      expect(
+        leinwand.linienIn(ZeichnungsMaler.rinnenrandFarbe),
+        m.rinnenschlitze(),
+      );
+      expect(
+        leinwand.linienIn(ZeichnungsMaler.auflagerprofilFarbe),
+        m.auflagerprofillinien(),
+      );
+      final text = kette.texte.single;
+      final maler = TextPainter(
+        text: TextSpan(
+          text: text.text,
+          style: const TextStyle(fontSize: ZeichnungsMaler.nummerGroesse),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      expect(
+        leinwand.textOrte,
+        contains(ZeichnungsMaler.textLage(text.ort, text.richtung, maler.size)),
+      );
+    });
+
     test('Querstreben (M6-06): grün über dem Belag, nur mit der Ebene UK', () {
       final z = Zeichnung(
         dielen: const [
@@ -626,10 +678,18 @@ void main() {
       final leinwand = _ZaehlendeLeinwand(Canvas(aufnahme));
       m.paint(leinwand, const Size(800, 600));
       aufnahme.endRecording();
+      // der Spalt steht rechts neben dem Quadrat
+      expect(leinwand.textOrte, [
+        for (final (ort, _, _) in m.auflagerpunkte())
+          ort + const Offset(ZeichnungsMaler.auflagerGroesse, 0),
+      ]);
       a.zoomeAuf(1);
       final ohneText = PictureRecorder();
-      m.paint(_ZaehlendeLeinwand(Canvas(ohneText)), const Size(800, 600));
+      final ohne = _ZaehlendeLeinwand(Canvas(ohneText));
+      m.paint(ohne, const Size(800, 600));
       ohneText.endRecording();
+      expect(ohne.aufrufe['drawParagraph'], isNull);
+      expect(ohne.aufrufe['drawRect'], 2);
       o.setzeEbenen({Ebene.belag});
       expect(m.auflagerpunkte(), isEmpty);
     });
@@ -715,12 +775,26 @@ void main() {
             Offset(300, 1450),
             Offset(0, 1450),
           ],
+          // 10 px schmal: unter Schrift + 2 px
+          [
+            Offset(0, 1500),
+            Offset(1000, 1500),
+            Offset(1000, 1600),
+            Offset(0, 1600),
+          ],
+          // 70 px: knapp zu kurz für zwölf Ziffern (12 × 6 + 4 = 76 px)
+          [
+            Offset(0, 1700),
+            Offset(700, 1700),
+            Offset(700, 2350),
+            Offset(0, 2350),
+          ],
           // ohne Fläche
           [Offset(5000, 0), Offset(5000, 0)],
           // ohne Nummer
           [Offset(0, 2000), Offset(1000, 2000), Offset(1000, 2650)],
         ],
-        nummern: const [1, 2, 3, 4, 123456789012, 6],
+        nummern: const [1, 2, 3, 4, 123456789012, 5, 123456789012, 6],
       );
       expect(() => z.nummern.add(1), throwsUnsupportedError);
       final o = AnsichtsOptionen();
@@ -745,6 +819,31 @@ void main() {
       aufnahme.endRecording();
       expect(leinwand.aufrufe['drawParagraph'], 3);
       expect(leinwand.aufrufe['rotate'], 3);
+      // mittig um den Ort der Nummer: vor dem Ursprung
+      final eins = TextPainter(
+        text: const TextSpan(
+          text: '1',
+          style: TextStyle(fontSize: ZeichnungsMaler.nummerGroesse),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      expect(leinwand.textOrte.first, -eins.size.center(Offset.zero));
+      // längste Kante nach links oben: nicht auf dem Kopf
+      final links = _maler(
+        Zeichnung(
+          dielen: const [
+            [
+              Offset(0, 0),
+              Offset(900, 10),
+              Offset(900, 175),
+              Offset(-100, 165),
+            ],
+          ],
+          nummern: const [7],
+        ),
+        o,
+      ).dielennummern();
+      expect(links.single.winkel, closeTo(math.atan2(10, 1000), 1e-9));
       expect(leinwand.aufrufe['save'], leinwand.aufrufe['restore']);
       o.setzeEbenen({Ebene.unterkonstruktion});
       expect(m.dielennummern(), isEmpty);
@@ -988,7 +1087,14 @@ class _ZaehlendeLeinwand implements Canvas {
   final stifte = <Paint>[];
   final pfadStifte = <Paint>[];
   final linienStifte = <Paint>[];
+  final linien = <(Offset, Offset)>[];
   final textOrte = <Offset>[];
+
+  /// Gezeichnete Linien in der Farbe [farbe], in Zeichenrichtung.
+  List<(Offset, Offset)> linienIn(Color farbe) => [
+    for (final (i, p) in linienStifte.indexed)
+      if (p.color.toARGB32() == farbe.toARGB32()) linien[i],
+  ];
 
   void _zaehle(String name) => aufrufe[name] = (aufrufe[name] ?? 0) + 1;
 
@@ -1010,6 +1116,7 @@ class _ZaehlendeLeinwand implements Canvas {
   void drawLine(Offset p1, Offset p2, Paint paint) {
     _zaehle('drawLine');
     linienStifte.add(paint);
+    linien.add((p1, p2));
     _ziel.drawLine(p1, p2, paint);
   }
 
