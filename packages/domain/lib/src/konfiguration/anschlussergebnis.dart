@@ -51,7 +51,17 @@ enum Anschlussmeldung {
   /// Rückfrage statt raten, an dieser Seite kein Material. Ersetzt die
   /// früheren Meldungen 3 (Belagstärke 19–23 mm) und 4 (kein
   /// Verblendungsartikel).
-  blendeFehlt(7);
+  blendeFehlt(7),
+
+  /// Blende am Bogen aus senkrechten Stücken (Planungsregeln Alexander
+  /// (Planungskern v12, 12.11.2026), Regel 14.3.5): unten ca. 1 cm Luft,
+  /// Hirnholz oben und unten mit Stirnkantenschutz streichen, je Stück
+  /// 2 Schrauben in die Rand-UK, vorbohren.
+  bogenblende(20),
+
+  /// Ein Stück der Blende am Bogen ist höher als 30 cm: unten zusätzlich
+  /// an einem Riegel befestigen (nicht in der Stückliste, Regel 14.3.5).
+  bogenblendeRiegel(21);
 
   const Anschlussmeldung(this.nummer);
 

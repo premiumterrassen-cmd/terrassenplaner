@@ -300,6 +300,8 @@ const zurVerblendung = {
   Anschlussmeldung.unterlueftung,
   Anschlussmeldung.keinHoehenunterschied,
   Anschlussmeldung.blendeFehlt,
+  Anschlussmeldung.bogenblende,
+  Anschlussmeldung.bogenblendeRiegel,
 };
 
 /// Text eines Hinweises zum Terrassenanschluss.
@@ -309,6 +311,8 @@ String anschlussmeldungText(PlanerTexte t, Anschlussmeldung m) => switch (m) {
   Anschlussmeldung.ohneRinnenartikel => t.meldungOhneRinnenartikel,
   Anschlussmeldung.treppeNichtFrei => t.meldungTreppeNichtFrei,
   Anschlussmeldung.blendeFehlt => t.meldungBlendeFehlt,
+  Anschlussmeldung.bogenblende => t.meldungBogenblende,
+  Anschlussmeldung.bogenblendeRiegel => t.meldungBogenblendeRiegel,
 };
 
 /// Text einer Rinnenlage wie im alten Planer.
