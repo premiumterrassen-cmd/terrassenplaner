@@ -45,6 +45,25 @@ const auflagerEinzelnBis = Millimeter(120);
 /// plus Überlänge nötig. Holzfliesen haben keine.
 const dielenUeberlaenge = Millimeter(30);
 
+/// Sägeschnitt zwischen zwei Stücken einer Diele (R-B17, Planungsregeln
+/// Alexander (Planungskern v6, 11.11.2026) Regel 1.3): Zwei Stücke à 3,00 m
+/// brauchen 6,005 m – sie passen dank Überlänge in eine 6-m-Diele.
+const saegeschnitt = Millimeter(5);
+
+/// Höchstens so viele Stücke werden aus einer Diele geschnitten (R-B17,
+/// Planungskern v6 Regel 1.3).
+const stueckeJeDiele = 3;
+
+/// Ein Reststück einer Diele wird nur ab dieser Länge für weitere Stücke
+/// verwendet (R-B17, Planungskern v6 Regel 1.4) – kürzere Reste sind
+/// Verschnitt.
+const mindestrest = Millimeter(300);
+
+/// Höchstens so viel Mehrlänge (Anteil) nimmt der Zuschnitt für weniger
+/// Dielen in Kauf (R-B17, Planungskern v6 Regel 1.3): Unter den Verteilungen
+/// bis 1 % über der kürzesten gewinnt die mit den wenigsten Dielen.
+const mehrlaengeFuerWenigerDielen = 0.01;
+
 /// Fuge zwischen zwei Dielen (R-B06): 6 mm, eine Reihe ist Dielenbreite
 /// plus Fuge – Planungsregeln Alexander (Planungskern v6, 11.11.2026),
 /// Regel 1.2; Entscheidung Alexander 11.11.2026 ersetzt die 5 mm vom
@@ -69,9 +88,10 @@ const duoClipBitAbVpe = 250;
 /// Planungskern v6 Regel 4.3).
 const schraubenBitAbVpe = 600;
 
-/// Terrassenöl je m² Holzfläche (R-D05, Mengenfaktor aus realen Projekten;
-/// automatische Menge im Zubehör, M8-02).
-const oelJeQuadratmeter = 0.2;
+/// Terrassenöl in Litern je m² Ölfläche (R-D10, Planungsregeln Alexander
+/// (Planungskern v6, 11.11.2026) Regel 5.2.2; Merkblatt RIBOL: 44 ml/m²) –
+/// automatische Menge im Zubehör (M8-02, `oelflaeche`).
+const oelJeQuadratmeter = 0.044;
 
 /// Ab dieser Anzahl Hauptdielen gibt es Freidielen (R-B09, B-079).
 const freidielenAbDielen = 25;

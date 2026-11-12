@@ -16,6 +16,7 @@ import 'planungsregeln.dart';
 import 'regelwerk.dart';
 import 'uk_verlegung.dart';
 import 'uk_zusatz.dart';
+import 'verblendung.dart';
 
 /// Eine Zeile im Schritt „Zubehör“: vom Planer berechnete Menge und die
 /// Menge „Tatsächlich“ – eingegeben oder, ohne Eingabe, die berechnete
@@ -75,8 +76,9 @@ final class Zubehoerposition {
 ///   (M6-09); die Rollen eines Kartons stehen im Titel („10 Rollen à
 ///   10 m“).
 /// - **Terrassenöl** (RIBOL): die erste Sorte aus dem Zubehör des Belags,
-///   [oelJeQuadratmeter] je m² Belagfläche der [stuecke] (R-D05), in ihren
-///   Gebinden mit möglichst wenig Überhang ([verpackt]).
+///   [oelJeQuadratmeter] (44 ml) je m² der [oelflaeche] (R-D10,
+///   `oelflaeche`), in der günstigsten Kombination ihrer Gebinde
+///   ([oelgebinde]).
 ///
 /// Clips und Schrauben zählt die Befestigung auf denselben UK-Hölzern
 /// (`befestigungspunkteAufUk`).
@@ -86,6 +88,7 @@ Map<Artikelnummer, int> berechnetesZubehoer(
   Befestigungsbedarf befestigung,
   List<Dielenstueck> stuecke, {
   required double winkel,
+  required double oelflaeche,
   Millimeter? feldbreite,
   UkVerlegung? uk,
 }) {
@@ -117,8 +120,7 @@ Map<Artikelnummer, int> berechnetesZubehoer(
                       )) /
                   je)
               .ceil(),
-    for (final (a, anzahl) in _oel(zubehoer, belagflaeche(stuecke)))
-      a.nummer: anzahl,
+    for (final (a, anzahl) in _oel(zubehoer, oelflaeche)) a.nummer: anzahl,
   };
 }
 
@@ -189,10 +191,66 @@ Map<Artikelnummer, int> pflichtzubehoer(
 /// Stufen des Pflichtzubehörs (Pflichtartikel eines Pflichtartikels …).
 const _stufen = 5;
 
-/// Fläche des Belags in m²: je Stück Länge mal Breite samt Fuge – die
-/// Terrassenfläche, auf die sich der Ölverbrauch bezieht (R-D05).
-double belagflaeche(List<Dielenstueck> stuecke) =>
-    stuecke.fold(0.0, (summe, s) => summe + s.laenge.mm * s.breite) / 1e6;
+/// Ein Holzteil für die Ölfläche: Länge, Breite (Deckseite) und Stärke in
+/// mm.
+typedef Oelteil = ({double laenge, double breite, double staerke});
+
+/// Ölteile einer Fläche (`oelteile`): Deckholz (Dielen, Blenden) und
+/// Unterkonstruktion.
+typedef Oelteile = ({List<Oelteil> deckholz, List<Oelteil> unterkonstruktion});
+
+/// Ölfläche in m² (R-D10, Planungsregeln Alexander (Planungskern v6,
+/// 11.11.2026) Regel 5.2.1; Alexander 10.11.2026 „Die Unterkonstruktion muss
+/// allseitig geölt werden. Die Diele muss allseitig geölt werden und am
+/// Ende noch ein zweites Mal auf der Deckseite.“): jedes Teil allseitig
+/// (Ober- und Unterseite, Längskanten, Stirnseiten), das Deckholz der
+/// [teile] (Dielen und Blenden) dazu die Deckseite (Länge × Breite) ein
+/// zweites Mal; die Unterkonstruktion nur allseitig.
+double oelflaeche(Oelteile teile) {
+  double allseitig(Oelteil t) =>
+      2 * (t.laenge * t.breite + t.laenge * t.staerke + t.breite * t.staerke);
+  var summe = 0.0;
+  for (final t in teile.deckholz) {
+    summe += allseitig(t) + t.laenge * t.breite;
+  }
+  for (final t in teile.unterkonstruktion) {
+    summe += allseitig(t);
+  }
+  return summe / 1e6;
+}
+
+/// Ölteile einer Fläche (R-D10): Deckholz sind die verlegten [dielen] des
+/// [belag] in ihrer zugeschnittenen Breite (Stück ohne [fuge]), die Dielen
+/// des [belag] im [anschluss] (Treppe) und die Blenden (Seitenblende);
+/// Unterkonstruktion sind die [ukStuecke] – alle Zuschnitte der [uk] samt
+/// Anschluss (Blendenträger, Treppen-UK). Fehlt ein Maß, zählt es mit 0.
+Oelteile oelteile({
+  required Artikel belag,
+  List<Dielenstueck> dielen = const [],
+  Anschlussbedarf? anschluss,
+  Artikel? uk,
+  List<Millimeter> ukStuecke = const [],
+  Millimeter fuge = fuge,
+}) {
+  Oelteil teil(Artikel a, Millimeter laenge, [double? breite]) => (
+    laenge: laenge.mm.toDouble(),
+    breite: breite ?? (a.abmessungen.breite?.mm ?? 0).toDouble(),
+    staerke: (a.abmessungen.staerke?.mm ?? 0).toDouble(),
+  );
+  return (
+    deckholz: [
+      for (final s in dielen)
+        teil(belag, s.laenge, math.max(0, s.breite - fuge.mm)),
+      for (final s in [...?anschluss?.stuecke])
+        if (s.nummer == belag.nummer) teil(belag, s.laenge),
+      for (final (a, laenge) in [...?anschluss?.blenden]) teil(a, laenge),
+    ],
+    unterkonstruktion: [
+      if (uk != null)
+        for (final l in ukStuecke) teil(uk, l),
+    ],
+  );
+}
 
 /// Bandlänge je Verkaufseinheit in mm: Rollenlänge ([Abmessungen.laengste])
 /// mal Rollen im Karton laut Titel; ohne Rollenlänge `null`.
@@ -203,9 +261,9 @@ int? _bandlaenge(Artikel band) {
   return rolle.mm * (rollen == null ? 1 : int.parse(rollen.group(1)!));
 }
 
-/// Inhalt eines Ölgebindes laut Titel („2,5 Liter“) und die Sorte (der
-/// Titel davor); `null` ohne Literangabe.
-({String sorte, int zentiliter})? _gebinde(Artikel a) {
+/// Inhalt eines Ölgebindes laut Titel („2,5 Liter“) in ml und die Sorte
+/// (der Titel davor); `null` ohne Literangabe.
+({String sorte, int milliliter})? _gebinde(Artikel a) {
   final treffer = RegExp(r'(\d+(?:,\d+)?)\s*Liter').firstMatch(a.titel);
   if (treffer == null) return null;
   final liter = double.parse(treffer.group(1)!.replaceFirst(',', '.'));
@@ -213,11 +271,11 @@ int? _bandlaenge(Artikel band) {
     sorte: a.titel
         .substring(0, treffer.start)
         .replaceFirst(RegExp(r'[\s,]+$'), ''),
-    zentiliter: (liter * 100).round(),
+    milliliter: (liter * 1000).round(),
   );
 }
 
-/// Gebinde der ersten Ölsorte für [quadratmeter] Belagfläche.
+/// Gebinde der ersten Ölsorte für [quadratmeter] Ölfläche.
 List<(Artikel, int)> _oel(List<Artikel> zubehoer, double quadratmeter) {
   final oele = [
     for (final a in zubehoer)
@@ -226,15 +284,64 @@ List<(Artikel, int)> _oel(List<Artikel> zubehoer, double quadratmeter) {
   ];
   if (oele.isEmpty) return const [];
   final sorte = oele.first.$2.sorte;
-  final gebinde = [
+  return oelgebinde((quadratmeter * oelJeQuadratmeter * 1000).ceil(), [
     for (final (a, g) in oele)
       if (g.sorte == sorte) a,
+  ]);
+}
+
+/// Gebinde für [milliliter] Öl aus den [gebinde]n einer Sorte (Inhalt laut
+/// Titel, „2,5 Liter“) – Planungsregeln Alexander (Planungskern v6,
+/// 11.11.2026) Regel 5.2.2: die günstigste Kombination (Preis laut
+/// Artikeldaten, B-055 nur Anzeige), bei gleichem Preis die mit weniger
+/// Inhalt, dann mit weniger Gebinden. Fehlt einem Gebinde der Preis: so
+/// wenig Überhang wie möglich, dann so wenige Gebinde wie möglich
+/// ([verpackt]). Ergebnis in der Reihenfolge der [gebinde].
+List<(Artikel, int)> oelgebinde(int milliliter, List<Artikel> gebinde) {
+  int inhalt(Artikel a) => _gebinde(a)!.milliliter;
+  final preise = [for (final a in gebinde) a.preisBrutto?.cent];
+  if (milliliter == 0 || gebinde.isEmpty) return const [];
+  if (preise.contains(null)) {
+    return verpackt(milliliter, gebinde, inhalt: inhalt);
+  }
+  // gerechnet in Einheiten des größten gemeinsamen Teilers der Inhalte
+  final einheit = gebinde.map(inhalt).reduce((a, b) => a.gcd(b));
+  final teile = [for (final a in gebinde) inhalt(a) ~/ einheit];
+  final ziel = (milliliter + einheit - 1) ~/ einheit;
+  // mehr als ein größtes Gebinde über dem Bedarf ist nie günstiger
+  final grenze = ziel + teile.reduce(math.max);
+  final preis = List<int?>.filled(grenze, null)..[0] = 0;
+  final anzahl = List.filled(grenze, 0);
+  final letztes = List.filled(grenze, 0);
+  for (var t = 1; t < grenze; t++) {
+    for (final (i, n) in teile.indexed) {
+      if (n > t) continue;
+      final vorher = preis[t - n];
+      if (vorher == null) continue;
+      final (p, z) = (vorher + preise[i]!, anzahl[t - n] + 1);
+      if (preis[t] case final bisher?
+          when bisher < p || bisher == p && anzahl[t] <= z) {
+        continue;
+      }
+      preis[t] = p;
+      anzahl[t] = z;
+      letztes[t] = i;
+    }
+  }
+  var beste = ziel;
+  for (var t = ziel; t < grenze; t++) {
+    if (preis[t] case final p? when preis[beste] == null || p < preis[beste]!) {
+      beste = t;
+    }
+  }
+  final stueck = List.filled(gebinde.length, 0);
+  for (var t = beste; t > 0; t -= teile[letztes[t]]) {
+    stueck[letztes[t]]++;
+  }
+  return [
+    for (final (i, a) in gebinde.indexed)
+      if (stueck[i] > 0) (a, stueck[i]),
   ];
-  return verpackt(
-    (quadratmeter * oelJeQuadratmeter * 100).ceil(),
-    gebinde,
-    inhalt: (a) => _gebinde(a)!.zentiliter,
-  );
 }
 
 /// Bits zur [befestigung] (Planungsregeln Alexander (Planungskern v6,
