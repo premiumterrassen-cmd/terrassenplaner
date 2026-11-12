@@ -2,6 +2,8 @@
 
 > **Nachtrag 11.11.2026 (Planungskern v6, Branch `feature/planungskern-belag-befestigung`):** Fuge 6 statt 5 mm und neue Befestigung (Anfangs- und Enddiele verschraubt, Clips + 5 %) – Abschnitt [Planungskern v6](#nachtrag-planungskern-v6-11112026) unten.
 >
+> **Nachtrag 12.11.2026 (Auflager aus der Höhe und Stellfüße an der Hauswand, Branch `feature/planungskern-auflager-hoehe`):** keine Änderung der verglichenen Werte – Abschnitt [Auflager aus der Höhe](#nachtrag-auflager-aus-der-höhe-planungskern-v6-12112026) unten.
+>
 > **Nachtrag 11.11.2026 (UK-Regeln und Überlänge, Branch `feature/planungskern-uk-regeln`):** Abschnitt [UK-Regeln und Überlänge](#nachtrag-uk-regeln-und-überlänge-planungskern-v6-11112026) unten, gerechnet auf dem Stand mit Fuge 6 mm. Die Tabellen darunter zeigen den Stand vom 07.11.2026.
 
 Stand 07.11.2026, Branch `feature/m10-01-paritaetsnachweis`. Alle Referenzkonfigurationen F01–F43 (M1-03, [12](../fachkonzept/12-referenzkonfigurationen.md)) und alle rechenbaren Referenzfälle aus den Planungsunterlagen (M1-02, [11](../fachkonzept/11-referenzfaelle.md)) werden im neuen Planer gerechnet und mit den Ergebnissen des alten Planers verglichen.
@@ -214,3 +216,16 @@ Die Clips sind mit Fuge 6 mm und neuer Befestigung gleich wie auf `main` (F04 90
 Nicht im Vergleich, aber geändert: Lage der Auflager (erstes und letztes 5 cm vom UK-Ende, F30-Spalte 67 … 5 statt 68 … 4 mm), Querstreben (F01 mit Querstreben 48 statt 60 Querhölzer im 75-cm-Raster versetzt; F31/F33 weiter 24 Streben, nur versetzt), UK-Stöße mit Reststück mindestens 50 cm (kein Fall hat UK-Linien zwischen 6 und 6,5 m), ECO-SELECT-UK nur 4/5/6 m (das Testsortiment ist BASIC).
 
 **Offen:** Die Verteilung zählt nach Metern; bei F04 bringt die Überlänge 3 m weniger, aber 6 Dielen mehr und damit eine Freidiele mehr. Ob bei gleicher oder fast gleicher Länge weniger Dielen zählen sollen (Planungskern Regel 1.3: bei ≤ 1 % Mehrlänge die Lösung mit den wenigsten Dielen), ist eine Frage an Alexander.
+
+## Nachtrag Auflager aus der Höhe (Planungskern v6, 12.11.2026)
+
+Branch `feature/planungskern-auflager-hoehe` auf `main` (187d400). Planungsregeln Alexander (Planungskern v6, 11.11.2026), Abschnitt 3a (Auflager aus der Höhe, Höchsthöhe, Fehleingaben) und Regel 3.11 (Stellfüße an der Hauswand); Fachkonzept 3.2, 3.9, 3.11, 3.12, R-C15–R-C17.
+
+**Verglichene Werte:** Alle F01–F43 und alle 26 Referenzfälle rechnen in Fläche, Verschnitt, Dielen, Freidielen, UK und Clips **genau wie `main`** (Vergleich aller Abweichungen vorher → nachher ohne Unterschied); der Paritätstest bleibt unverändert. Gründe:
+
+- Auflager, Pads und Stellfüße vergleicht der Test nicht (Testsortiment ohne sie, siehe Verfahren).
+- Die Stützen der Hochterrasse sind 1 mm kürzer (Ausgleichshöhe mit 1 mm Gummiband: F28 40,0 statt 40,1 cm, Begründung „Stützen“ – der alte Planer hat 39,9 cm); die Lieferlängen der UK bleiben gleich.
+- Kein Fall hat eine Seite an Bauelementen **und** Stellfüße (F36 hat die Hauswand, aber 8,6 cm Höhe – auf Pads bleibt die UK bündig).
+- Kein Fall einer normalen Terrasse liegt über der Höchsthöhe 52,4 cm. Die 54,2 cm im Referenzfall 2026-06-15-1093 sind die Vorgabehöhe der Hochterrasse (Terrassenart nicht in der Unterlage); die Höhenprüfung der Referenzfälle rechnet ihn deshalb als Hochterrasse (offene Frage 24).
+
+**Nicht im Vergleich, aber geändert** (Testdaten der Unit-Tests, Belag 21/22 mm, UK 40 × 60 mm): F30 Spalte 66 … 4 statt 67 … 5 mm, an C/D 2 + 2 mm statt Unterleger 5 mm, 8 + 8 mm statt Keil 14–22; F01 alle 91 Auflager auf 2 + 2 mm statt auf einem 5-mm-Pad (mit 23-mm-Diele: ein 2-mm-Pad).

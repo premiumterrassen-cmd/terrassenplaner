@@ -1024,6 +1024,16 @@ class PlanerTexteDe extends PlanerTexte {
   }
 
   @override
+  String hoeheUeberHoechsthoehe(String cm) {
+    return 'Höhe ungültig: höchstens $cm cm mit Stellfüßen. Gerechnet wird mit dem Standardaufbau.';
+  }
+
+  @override
+  String hoeheVorschlag(String cm) {
+    return 'Meintest du $cm cm?';
+  }
+
+  @override
   String get belagmeldungBelagErsetzt =>
       'Der gewählte Belag ist nicht mehr im Sortiment. Geplant wird mit dem Vorgabebelag – wählen Sie bei Bedarf über „Produktauswahl“ einen anderen.';
 

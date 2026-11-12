@@ -569,6 +569,9 @@ void main() {
           mindesthoehe: const Millimeter(63),
           korrigiert: true,
           gedreht: true,
+          hoechsthoehe: const Millimeter(524),
+          ungueltig: true,
+          vorschlag: const Millimeter(113),
         ),
         auflagermeldungen: Auflagermeldung.values,
         // 0,5 m²: Hinweis zur Fläche (Planungskern v6 Regel 1.7)
@@ -598,6 +601,7 @@ void main() {
         '• ${Unterlagentexte.deutsch.belagmeldung(Belagmeldung.laengeNichtLieferbar, const Millimeter(7000))}',
         '• ${Unterlagentexte.deutsch.ukGedreht}',
         '• ${Unterlagentexte.deutsch.hoeheKorrigiert(const Millimeter(63))}',
+        '• ${Unterlagentexte.deutsch.hoeheUngueltig(const Millimeter(524), const Millimeter(113))}',
         '• ${Unterlagentexte.deutsch.auflagermeldung(Auflagermeldung.unterMindesthoehe, const Millimeter(55))}',
         '• ${Unterlagentexte.deutsch.auflagermeldung(Auflagermeldung.ueberHoechsthoehe, const Millimeter(950))}',
         '• ${Unterlagentexte.deutsch.randUkErgaenzt(const Millimeter(2570))}',

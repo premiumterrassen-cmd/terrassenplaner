@@ -167,6 +167,27 @@ void main() {
       en.hoeheKorrigiert(const Millimeter(63)),
       contains('6.3 cm and has been corrected'),
     );
+    // Planungskern v6 Regel 3a.5: Höhe ungültig, Rückfrage
+    expect(
+      de.hoeheUngueltig(const Millimeter(524), const Millimeter(113)),
+      'Höhe ungültig: höchstens 52,4 cm mit Stellfüßen. Gerechnet wird mit '
+      'dem Standardaufbau. Meintest du 11,3 cm?',
+    );
+    expect(
+      de.hoeheUngueltig(const Millimeter(524), null),
+      'Höhe ungültig: höchstens 52,4 cm mit Stellfüßen. Gerechnet wird mit '
+      'dem Standardaufbau.',
+    );
+    expect(
+      en.hoeheUngueltig(const Millimeter(524), const Millimeter(113)),
+      'Invalid height: at most 52.4 cm with adjustable feet. The standard '
+      'build-up is used. Did you mean 11.3 cm?',
+    );
+    expect(
+      en.hoeheUngueltig(const Millimeter(524), null),
+      'Invalid height: at most 52.4 cm with adjustable feet. The standard '
+      'build-up is used.',
+    );
     // Planungsregeln 3.4: Selbstkontrolle der Rand-UK
     expect(
       de.randUkErgaenzt(const Millimeter(2570)),

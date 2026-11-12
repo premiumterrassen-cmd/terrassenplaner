@@ -155,7 +155,9 @@ class PlanungsDienst {
 
   /// UK-Verlegung (M6-10) – nur mit verlegtem Belag aus Holz und bekannter
   /// [uk]; Abstand ist die wirksame Feldbreite (M6-09), die Lage folgt der
-  /// Drehung der UK aus den Höhenpunkten (M6-02, B-034).
+  /// Drehung der UK aus den Höhenpunkten (M6-02, B-034); auf Stellfüßen
+  /// gilt der Wandabstand an der Hauswand (Planungskern v6, Regel 3.11,
+  /// `mitStellfuessen`).
   static UkVerlegung? _ukVerlegung(
     Planungsstand stand,
     Artikel? belag,
@@ -172,6 +174,7 @@ class PlanungsDienst {
       abstand: wirksameFeldbreite(stand.feldbreite, hoechste),
       dielen: [for (final t in v.teile) ...t.stuecke],
       gedreht: hoehen.gedreht,
+      stellfuesse: mitStellfuessen(stand, hoehen),
       regelwerk: regelwerk,
     );
   }

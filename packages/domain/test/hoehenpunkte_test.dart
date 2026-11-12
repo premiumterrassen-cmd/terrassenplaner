@@ -170,7 +170,13 @@ void main() {
         final belag = _masse(fall.belag);
         final p = pruefeHoehen(
           eingabe,
-          art: Terrassenart.normal,
+          // 54,2 cm ist die Vorgabehöhe der Hochterrasse (2026-06-15-1093:
+          // Terrassenart nicht in der Unterlage) – als normale Terrasse
+          // läge sie über der Höchsthöhe mit Stellfüßen (Planungskern v6,
+          // Regel 3a.4; offene Frage 24)
+          art: eingabe.every((h) => h == const Millimeter(542))
+              ? Terrassenart.hochterrasse
+              : Terrassenart.normal,
           // „60 x 22 mm“: Breite x Stärke
           dielenstaerke: belag?.b,
           uk: fall.unterkonstruktion?.contains('Robinie') ?? false
@@ -199,6 +205,58 @@ void main() {
       expect(p.hoehen, _mm([150, 150, 86, 86]));
       expect(p.gedreht, isFalse);
       expect(p.korrigiert, isFalse);
+      // Höchsthöhe: 21 + 60 + 1 + 440 mm
+      expect(p.hoechsthoehe, const Millimeter(522));
+      expect(p.ungueltig, isFalse);
+      expect(p.vorschlag, isNull);
+    });
+
+    test('Höchsthöhe mit Stellfüßen (Planungskern v6, Regel 3a.4/3a.5): '
+        'darüber Standardaufbau und Rückfrage „Meintest du …?“', () {
+      Hoehenpunkte pruefe(
+        List<int> mm, [
+        Terrassenart art = Terrassenart.normal,
+      ]) => pruefeHoehen(
+        _mm(mm),
+        art: art,
+        dielenstaerke: const Millimeter(23),
+        uk: _uk40x60,
+      );
+      // 23-mm-Diele, 60er UK: (440 + 60 + 1 + 23) mm = 52,4 cm
+      expect(stellfussAusgleichBis, const Millimeter(440));
+      final grenze = pruefe([524, 86]);
+      expect(grenze.hoechsthoehe, const Millimeter(524));
+      expect(grenze.ungueltig, isFalse);
+      expect(grenze.hoehen, _mm([524, 86]));
+      // 113 cm statt 11,3 cm: Standardaufbau (83 + 1 mm), Vorschlag 11,3 cm
+      final gross = pruefe([86, 1130, 1500, 50]);
+      expect(gross.ungueltig, isTrue);
+      expect(gross.hoehen, _mm([84, 84, 84, 84]));
+      expect(gross.hoehen.clear, throwsUnsupportedError);
+      expect(gross.aufbauhoehe, const Millimeter(83));
+      expect(gross.mindesthoehe, const Millimeter(63));
+      expect(gross.hoechsthoehe, const Millimeter(524));
+      expect(gross.vorschlag, const Millimeter(113));
+      expect(gross.korrigiert, isFalse);
+      expect(gross.gedreht, isFalse);
+      // ein Zehntel knapp über der Grenze bzw. unter der Mindesthöhe: keine
+      // Rückfrage; auf der Grenze schon
+      expect(pruefe([5250]).vorschlag, isNull);
+      expect(pruefe([5240]).vorschlag, const Millimeter(524));
+      expect(pruefe([624]).vorschlag, isNull);
+      expect(pruefe([630]).vorschlag, const Millimeter(63));
+      expect(pruefe([525]).ungueltig, isTrue);
+      // Hochterrasse und vorhandene UK: keine Höchsthöhe (Stützen bzw.
+      // vorhandene UK)
+      for (final art in [
+        Terrassenart.hochterrasse,
+        Terrassenart.vorhandeneUk,
+      ]) {
+        final p = pruefe([1130], art);
+        expect(p.hoechsthoehe, isNull, reason: art.name);
+        expect(p.ungueltig, isFalse, reason: art.name);
+        expect(p.hoehen, _mm([1130]), reason: art.name);
+      }
     });
   });
 
@@ -358,6 +416,9 @@ void main() {
           mindesthoehe: const Millimeter(62),
           korrigiert: true,
           gedreht: true,
+          hoechsthoehe: const Millimeter(524),
+          ungueltig: true,
+          vorschlag: const Millimeter(113),
         ),
       );
       for (final k in [Berechnung.ausBytes(b.zuBytes()), b.mitPlanung(2)]) {
@@ -367,6 +428,9 @@ void main() {
         expect(p.mindesthoehe, const Millimeter(62));
         expect(p.korrigiert, isTrue);
         expect(p.gedreht, isTrue);
+        expect(p.hoechsthoehe, const Millimeter(524));
+        expect(p.ungueltig, isTrue);
+        expect(p.vorschlag, const Millimeter(113));
       }
     });
 
@@ -380,6 +444,9 @@ void main() {
       expect(p.mindesthoehe, isNull);
       expect(p.korrigiert, isFalse);
       expect(p.gedreht, isFalse);
+      expect(p.hoechsthoehe, isNull);
+      expect(p.ungueltig, isFalse);
+      expect(p.vorschlag, isNull);
     });
   });
 }

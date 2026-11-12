@@ -1815,9 +1815,10 @@ void main() {
         [for (final a in u.auflager) a.titel],
         ['Artikel 50-60-005', 'Artikel 60-55-110'],
       );
-      // Belag 21 mm + UK 60 mm = 81 mm; Pads ab 0, Füße bis 55 mm
+      // Belag 21 mm + UK 60 mm = 81 mm; Pads ab 0, Füße bis 55 mm über
+      // dem Gummiband 1 mm (Planungskern v6 Regel 3a.2.1)
       expect(u.hoeheVon, const Millimeter(81));
-      expect(u.hoeheBis, const Millimeter(136));
+      expect(u.hoeheBis, const Millimeter(137));
       expect(u.meldungen, isEmpty);
     });
 
@@ -2240,8 +2241,8 @@ void main() {
         'über alle Flächen', () {
       final b = rechne(Planung.start);
       expect(b.unterbau.auflagerpunkte, hasLength(91));
-      // 86 − 21 − 60 = 5 mm
-      expect(b.unterbau.auflagerpunkte.first.spalt, const Millimeter(5));
+      // 86 − 21 − 60 − 1 mm Gummiband = 4 mm (Planungskern v6 Regel 3a.2.1)
+      expect(b.unterbau.auflagerpunkte.first.spalt, const Millimeter(4));
       expect(b.unterbau.zuordnung.single.titel, 'Artikel 50-60-005');
       expect(b.unterbau.zuordnung.single.anzahl, 91);
       expect(anzahl(b, pad), 2);
@@ -2257,16 +2258,21 @@ void main() {
           .mitEckhoehe(1, const Millimeter(150));
       final b = rechne(Planung.start.mitStand(stand));
       final titel = {for (final z in b.unterbau.zuordnung) z.titel: z.anzahl};
-      // Spalt je Holz 68, 58, 47, 37, 27, 16, 6 mm (erstes und letztes
+      // Spalt je Holz 67, 57, 46, 36, 26, 15, 5 mm (erstes und letztes
       // Auflager 5 cm vom UK-Ende, Planungskern v6 / Entscheidung
-      // 11.11.2026; vorher 69 … 5): 55–95 mm passt für die ersten beiden,
-      // 47 und 37 liegen näher am Fuß, 27 und 16 näher am Pad (Lücke: der
-      // nächste Bereich, M6-08), 6 mm ist das Pad
+      // 11.11.2026; abzüglich 1 mm Gummiband, Regel 3a.2.1): ab 18 mm
+      // Stellfüße – 55–95 mm passt für die ersten beiden, 46 bis 26 mm
+      // nehmen den nächsten Fuß (Lücke, M6-08); bis 17 mm Pads, auch zwei
+      // übereinander (Regel 3a.2.2: 15 mm → 5 + 5 mm, 5 mm → 5 mm)
       expect(
         [for (final p in b.unterbau.auflagerpunkte.take(7)) p.spalt.mm],
-        [68, 58, 47, 37, 27, 16, 6],
+        [67, 57, 46, 36, 26, 15, 5],
       );
-      expect(titel, {'Artikel 50-60-005': 39, 'Artikel 60-55-136': 52});
+      expect(titel, {
+        'Artikel 50-60-005': 13,
+        '2 × Artikel 50-60-005': 13,
+        'Artikel 60-55-136': 65,
+      });
       expect(b.unterbau.auflagerpunkte.every((p) => p.zeile != null), isTrue);
       // zu hoch (über 95 mm Spalt): ohne Auflager
       final hoch = rechne(
@@ -2276,7 +2282,29 @@ void main() {
         hoch.unterbau.auflagerpunkte.where((p) => p.zeile == null),
         isNotEmpty,
       );
-      expect(anzahl(b, fuss), 3);
+      // 65 Füße in Packungen zu 20
+      expect(anzahl(b, fuss), 4);
+    });
+
+    test('Stellfüße an der Hauswand (Planungskern v6, Regel 3.11): auf '
+        'Füßen endet die UK 1 cm vor der Wand, auf Pads nicht', () {
+      final wand = Planungsstand.start.mitAngrenzend(0, an: true);
+      double anfang(Planungsstand s) {
+        final h = rechne(Planung.start.mitStand(s)).unterbau.hoelzer.first;
+        return math.min(h.von.y, h.bis.y);
+      }
+
+      expect(anfang(wand), 0);
+      expect(anfang(wand.mitHoehe(const Millimeter(150))), 10);
+      expect(
+        rechne(Planung.start.mitStand(wand.mitHoehe(const Millimeter(150))))
+            .unterbau
+            .auflagerpunkte
+            .first
+            .ort
+            .y,
+        60,
+      );
     });
 
     test('Zuschnittpläne (M9-02): Belag und alle UK-Hölzer – Verlegung, '
@@ -2312,7 +2340,8 @@ void main() {
             ]),
       );
       // je Fläche: 13 Hölzer à 309 cm, zweite Lage 9 × 480 cm, 91 Stützen
-      // à 40,1 cm – je zwei im Rest der 309-cm-Hölzer wie im alten Planer
+      // à 40,0 cm (54,2 − 14,1 cm − 1 mm Gummiband, Planungskern v6 Regel
+      // 3a.2.1) – je zwei im Rest der 309-cm-Hölzer wie im alten Planer
       // (M10-01), die übrigen aus gemeinsamen Hölzern
       expect(
         [
@@ -2321,10 +2350,10 @@ void main() {
                 '${[for (final s in z.schnitte) s.mm].join(' + ')}',
         ],
         [
-          '8 × 6000: ${List.filled(14, 401).join(' + ')}',
+          '8 × 6000: ${List.filled(15, 400).join(' + ')}',
           '18 × 5000: 4800',
-          '26 × 4000: 3090 + 401 + 401',
-          '2 × 4000: ${List.filled(9, 401).join(' + ')}',
+          '26 × 4000: 3090 + 400 + 400',
+          '2 × 4000: ${List.filled(5, 400).join(' + ')}',
         ],
       );
       // ohne UK kein UK-Zuschnitt, mit Optimierung der Belag gemeinsam

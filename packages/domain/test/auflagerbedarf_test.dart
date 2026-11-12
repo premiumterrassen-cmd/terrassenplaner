@@ -158,8 +158,9 @@ void main() {
   });
 
   group('Auflager mit Höhenzuordnung (M6-11)', () {
-    test('F01: 13 Linien à 309 cm mit 60 cm → je 7, alle mit Pad 5 mm '
-        '(Spalt 4 mm wie F30 an C/D)', () {
+    test('F01: 13 Linien à 309 cm mit 60 cm → je 7, alle auf zwei Pads '
+        '2 mm (Spalt 86 − 82 − 1 mm Gummiband = 3 mm, Planungskern v6 '
+        'Regel 3a.2)', () {
       final b = _bedarf(_f01);
       expect(b.punkte, hasLength(91));
       // Planungskern v6 / Entscheidung 11.11.2026 (Regel 3.6): erstes und
@@ -167,18 +168,19 @@ void main() {
       expect(b.punkte.first.ort, const Punkt(20, 50));
       expect(b.punkte[1].ort.y, closeTo(50 + 2990 / 6, 1e-9));
       expect(b.punkte[6].ort.y, closeTo(3040, 1e-9));
-      expect(b.punkte.first.spalt, const Millimeter(4));
+      expect(b.punkte.first.spalt, const Millimeter(3));
       expect(b.punkte.first.zeile, 0);
       expect(b.zeilen, [
         (
-          titel: 'Unterleger 5 mm',
+          titel: '2 × Unterleger 2 mm',
           anzahl: 91,
-          von: const Millimeter(4),
-          bis: const Millimeter(4),
+          von: const Millimeter(3),
+          bis: const Millimeter(3),
         ),
       ]);
-      expect(b.bedarf.single.einheiten, [pad5]);
-      expect(b.bedarf.single.stueck, 91);
+      // zwei Pads je Auflager
+      expect(b.bedarf.single.einheiten, [pad2]);
+      expect(b.bedarf.single.stueck, 182);
       expect(b.stuecke, isEmpty);
       expect(b.punkte.clear, throwsUnsupportedError);
       expect(b.zeilen.clear, throwsUnsupportedError);
@@ -192,26 +194,61 @@ void main() {
       final b = _bedarf(s, hoehen: [150, 150, 86, 86]);
       // je Linie von A–B (150) nach D–C (86), erstes und letztes Auflager
       // 5 cm vom Ende (Planungskern v6 / Entscheidung 11.11.2026; vorher
-      // 68, 57, 47, 36, 25, 15, 4)
+      // 68, 57, 47, 36, 25, 15, 4), abzüglich 1 mm Gummiband (Regel 3a.2.1;
+      // vorher 67, 57, 46, 36, 26, 15, 5)
       expect(
         [for (final p in b.punkte.take(7)) p.spalt.mm],
-        [67, 57, 46, 36, 26, 15, 5],
+        [66, 56, 45, 35, 25, 14, 4],
       );
+      // bis 17 mm Pads, auch zwei übereinander (14 → 8 + 8, 4 → 2 + 2),
+      // ab 18 mm Stelzfüße (Regel 3a.2.2/3a.2.3); vorher Unterleger 5 mm
+      // und Keil 14-22
       expect(_zeilen(b), {
-        'Unterleger 5 mm': 13,
-        'Keil 14-22': 13,
+        '2 × Unterleger 2 mm': 13,
+        '2 × Unterleger 8 mm': 13,
         'Keil 18-32': 13,
         'Fuß 35-55 (10)': 26,
         'Fuß 55-95 (20)': 26,
       });
       final fuss = b.zeilen.firstWhere((z) => z.titel == 'Fuß 55-95 (20)');
-      expect(fuss.von, const Millimeter(57));
-      expect(fuss.bis, const Millimeter(67));
+      expect(fuss.von, const Millimeter(56));
+      expect(fuss.bis, const Millimeter(66));
+      final pads = {for (final m in b.bedarf) m.einheiten.first: m.stueck};
+      expect(pads[pad2], 26);
+      expect(pads[pad8], 26);
+      expect(pads.containsKey(pad5), isFalse);
       // Zeile je Auflager zeigt in die Tabelle
       expect(b.zeilen[b.punkte.first.zeile!].titel, 'Fuß 55-95 (20)');
       final bedarf35 = b.bedarf.firstWhere((m) => m.einheiten.first == fuss35);
       expect(bedarf35.einheiten, [fuss35, fuss35gross]);
       expect(bedarf35.stueck, 26);
+    });
+
+    test('Stellfüße an der Hauswand (Planungskern v6, Regel 3.11): die UK '
+        'endet 1 cm vor der Wand, der erste Fuß steht 6 cm von ihr', () {
+      final s = _f01.mitAngrenzend(0, an: true);
+      final b = auflagerbedarf(
+        s,
+        ukVerlegung(
+          s,
+          ukArtikel,
+          abstand: const Millimeter(400),
+          stellfuesse: true,
+        ),
+        uk: ukArtikel,
+        abstand: const Millimeter(600),
+        flaeche: Hoehenflaeche(s.grundriss.ecken, _mm([150])),
+        aufbauhoehe: _aufbau,
+        bereiche: auflagerbereiche(
+          auflagerRegelwerk,
+          ukArtikel,
+          gewerblich: false,
+          auflagen: s.auflagen,
+        ),
+      );
+      expect(b.punkte.first.ort, const Punkt(20, 60));
+      expect(b.punkte[6].ort.y, closeTo(3040, 1e-9));
+      expect(_zeilen(b), {'Fuß 55-95 (20)': 91});
     });
 
     test('Stöße der UK bekommen ein Auflager; gewerblich zwei Drittel des '
@@ -322,17 +359,17 @@ void main() {
       final s = _f01.mitTerrassenart(Terrassenart.hochterrasse);
       final b = _bedarf(s, hoehen: [542]);
       expect(b.punkte, hasLength(91));
-      // 542 − 82 = 460 mm je Stütze
-      expect(b.punkte.first.spalt, const Millimeter(460));
+      // 542 − 82 − 1 mm Gummiband = 459 mm je Stütze
+      expect(b.punkte.first.spalt, const Millimeter(459));
       expect(_zeilen(b), {'UK 40 x 60': 91, 'Bodenanker L': 91});
       expect(b.stuecke, hasLength(91));
-      expect(b.stuecke.first.laenge, const Millimeter(460));
+      expect(b.stuecke.first.laenge, const Millimeter(459));
       expect(b.stuecke.first.farbe, Stueckfarbe.gruen);
       final holz = b.bedarf.where((m) => m.laenge != null);
       // 91 × 46 cm = 41,9 m aus 6-m-Hölzern (13 Stützen je Holz)
       expect(
         holz.fold(0, (n, m) => n + m.stueck * m.laenge!.mm),
-        greaterThanOrEqualTo(91 * 460),
+        greaterThanOrEqualTo(91 * 459),
       );
       expect(b.bedarf.last.einheiten, [bodenanker]);
       expect(b.bedarf.last.stueck, 91);
@@ -341,7 +378,7 @@ void main() {
       expect(_zeilen(ohne), {'UK 40 x 60': 91});
       expect(ohne.bedarf.every((m) => m.laenge != null), isTrue);
       // Spalt 0: keine Stütze
-      final null0 = _bedarf(s, hoehen: [82]);
+      final null0 = _bedarf(s, hoehen: [83]);
       expect(null0.stuecke, isEmpty);
     });
 
@@ -351,7 +388,7 @@ void main() {
       expect(b.punkte, hasLength(65));
       expect(_zeilen(b), {'Bodenanker L': 65});
       expect(b.punkte.first.zeile, 0);
-      expect(b.zeilen.single.von, const Millimeter(60));
+      expect(b.zeilen.single.von, const Millimeter(59));
       expect(b.bedarf.single.stueck, 65);
       final ohne = _bedarf(
         s,

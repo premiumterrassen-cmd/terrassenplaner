@@ -35,6 +35,11 @@ Aus den Plänen nach dem Planungskern v6 (Abschnitt 6, `feature/planungskern-pla
 22. **Eckbuchstaben über mehrere Flächen:** Der Kern benennt die Ecken „um alle Flächen zusammen“ (gleiche Ecke zweier Flächen = gleicher Buchstabe, Nahtpunkte danach). Die Flächen des Planers (Reiter 1, 2 …) haben aber keine gemeinsame Lage zueinander – umgesetzt ist darum je Fläche ihr Umriss (A oben links, im Uhrzeigersinn, R-E03), jede Fläche beginnt bei A; Ecken von Ausschnitten bleiben ohne Buchstaben. Reicht das, oder sollen Flächen zueinander platziert werden (dann gemeinsamer Umriss wie im Kern)?
 23. **Weitere Darstellungsregeln aus Abschnitt 6** noch nicht übernommen: „Haus oben“ (Plan so drehen, dass die Hauswand oben liegt), Winkel nur im UK-Plan statt in der Eckpunkt-Tabelle der Terrasse, Länge je UK im UK-Plan. Gewünscht für den Go-Live oder später?
 
+Aus dem Abgleich mit dem Planungskern v6 (Auflager aus der Höhe, 12.11.2026):
+
+24. **Hochterrasse 54,2 cm vs. Höchsthöhe 52,4 cm:** Der Planungskern (Regel 3a.4/3a.5) nennt als Höchsthöhe mit Stellfüßen 52,4 cm und will darüber eine Fehlermeldung. Der Planer hat wie der alte Planer die Terrassenart Hochterrasse mit Vorgabehöhe 54,2 cm (Stützen aus UK-Holz und Bodenanker, keine Stellfüße). Umgesetzt ist die Höchsthöhe nur für die normale Terrasse; die Hochterrasse bleibt unverändert. Soll es die Hochterrasse weiter geben (dann gilt 52,4 cm nur auf Stellfüßen), soll der Planer über 52,4 cm statt „Höhe ungültig“ auf die Hochterrasse hinweisen – oder fällt sie weg?
+25. **Auflager-Details aus Regel 3a.2:** (a) Für 3–4 mm Ausgleich nimmt der Planer 2 + 2 mm (genau passend) statt eines 5-mm-Pads, für 17 mm 8 + 8 mm – so gewollt? (b) Über 200 mm nennt die Regel „Adapter 120 mm“; die Artikeldaten haben keinen Adapter, die Höchsthöhe rechnet mit 440 mm (zwei Adapter), die Materialliste zeigt die Adapter noch nicht. (c) Welche Stellfüße gelten, kommt aus den Artikeldaten der UK (Spalten Stellfuß privat/gewerblich) – stehen dort nur die ROBI-LIFT der Serie F (keine Justierkeile mehr)?
+
 ## Beantwortet
 
 - **Kurze UK-Stücke 8,6 / 8,7 / 11 cm im UK-Zuschnitt** (aus M1-02): im 90°-Winkel an den Sichtseiten angesetzte UK-Stücke, an denen die Blenden befestigt werden (Alexander, 19.10.2026).

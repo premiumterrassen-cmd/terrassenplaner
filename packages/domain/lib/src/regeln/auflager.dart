@@ -10,6 +10,7 @@ import '../artikel/einheiten.dart';
 import '../konfiguration/auflagen.dart';
 import '../konfiguration/planungsstand.dart';
 import '../konfiguration/terrassenart.dart';
+import 'hoehenpunkte.dart';
 import 'planungsregeln.dart';
 import 'regelwerk.dart';
 
@@ -110,45 +111,118 @@ List<Auflagerbereich> auflagerbereiche(
   ];
 }
 
-/// Auflager für einen [spalt] zwischen UK und Boden (M6-08/M6-11):
-///
-/// - **Pads** zuerst: das dünnste Pad, das mindestens so dick ist wie der
-///   Spalt – F30: 4 mm → GUMO 5 mm wie im alten Planer; liegt die UK genau
-///   auf Höhe, das dünnste Pad (Gummi unter der UK, R-C04).
-/// - sonst der erste **Stelzfuß** in Datenreihenfolge, dessen Bereich den
-///   Spalt enthält;
-/// - sonst (Lücke zwischen zwei Bereichen) der nächstgelegene Bereich – die
-///   Abweichung gleicht man mit Pads oder Keilen aus;
-/// - `null` ohne Bereiche, unter dem niedrigsten Stelzfuß ohne Pads und
-///   über dem höchsten Bereich ([auflagermeldungen] meldet das).
-Auflagerbereich? auflagerFuer(
-  Millimeter spalt,
-  List<Auflagerbereich> bereiche,
-) {
+/// Auflager an einer Stelle (Planungsregeln Alexander (Planungskern v6,
+/// 11.11.2026), Regel 3a.2): ein Stelzfuß, ein Pad oder zwei Pads
+/// übereinander ([teile], das dickere zuerst).
+final class Auflagerwahl {
+  Auflagerwahl(List<Auflagerbereich> teile)
+    : teile = List.unmodifiable(teile),
+      _pad = teile.first.pad,
+      _hoehe = teile.fold(0, (s, t) => s + t.bis.mm);
+
+  /// Die Bereiche, aus denen das Auflager besteht (mindestens einer).
+  final List<Auflagerbereich> teile;
+
+  /// Titel für die Höhenzuordnung: „Unterleger 8 mm + Unterleger 5 mm“,
+  /// zwei gleiche als „2 × Unterleger 5 mm“.
+  String get titel => teile.length > 1 && teile.first == teile.last
+      ? '${teile.length} × ${teile.first.titel}'
+      : teile.map((t) => t.titel).join(' + ');
+
+  /// Ob es Pads sind (sonst ein Stelzfuß).
+  final bool _pad;
+
+  /// Höhe der Pads zusammen.
+  final int _hoehe;
+}
+
+/// Mögliche Auflager aus den [bereiche]n in der Reihenfolge der Tabelle:
+/// zuerst die Pads einzeln und zu zweit übereinander (Planungsregeln
+/// Alexander (Planungskern v6, 11.11.2026), Regel 3a.2.2: 2, 2 + 2, 5,
+/// 5 + 2, 8, 5 + 5, 8 + 5, 8 + 8 mm – nach der Höhe, bei gleicher Höhe
+/// erst eins, dann das ausgeglichenere Paar: 10 mm = 5 + 5, nicht 8 + 2),
+/// dann die Stelzfüße in Datenreihenfolge.
+List<Auflagerwahl> auflagerwahlen(List<Auflagerbereich> bereiche) {
   final pads = [
     for (final b in bereiche)
       if (b.pad) b,
-  ]..sort((a, b) => a.bis.mm.compareTo(b.bis.mm));
-  for (final p in pads) {
-    if (spalt <= p.bis) return p;
-  }
-  for (final b in bereiche) {
-    if (b.von <= spalt && spalt <= b.bis) return b;
-  }
-  final grenzen = _grenzen(bereiche);
-  if (grenzen == null || spalt < grenzen.von || spalt > grenzen.bis) {
-    return null;
-  }
-  return bereiche.reduce(
-    (a, b) => _entfernung(spalt, b) < _entfernung(spalt, a) ? b : a,
-  );
+  ]..sort((a, b) => b.bis.mm.compareTo(a.bis.mm));
+  final stapel = [
+    for (final (i, a) in pads.indexed) ...[
+      Auflagerwahl([a]),
+      for (final b in pads.skip(i)) Auflagerwahl([a, b]),
+    ],
+  ]..sort(_stapelfolge);
+  return [
+    ...stapel,
+    for (final b in bereiche)
+      if (!b.pad) Auflagerwahl([b]),
+  ];
 }
 
-int _entfernung(Millimeter spalt, Auflagerbereich b) =>
-    math.max(b.von.mm - spalt.mm, spalt.mm - b.bis.mm);
+/// Pads nach Höhe, dann Anzahl, dann dem dünneren Teil (größer zuerst).
+int _stapelfolge(Auflagerwahl a, Auflagerwahl b) {
+  final hoehe = a._hoehe.compareTo(b._hoehe);
+  if (hoehe != 0) return hoehe;
+  final anzahl = a.teile.length.compareTo(b.teile.length);
+  if (anzahl != 0) return anzahl;
+  return b.teile.last.bis.mm.compareTo(a.teile.last.bis.mm);
+}
+
+/// Auflager für einen [spalt] (Ausgleichshöhe) zwischen UK und Boden aus
+/// den [wahlen] (`auflagerwahlen`, M6-08/M6-11, Planungsregeln Alexander
+/// (Planungskern v6, 11.11.2026), Regel 3a.2):
+///
+/// - **Pads** bis [padAusgleichBis] (17 mm): die niedrigste Lage aus einem
+///   oder zwei Pads, die mindestens so hoch ist wie der Spalt (F30: 2 mm →
+///   Unterleger 2 mm, 4 mm → 2 + 2 mm); reicht keine, die höchste (17 mm →
+///   8 + 8 mm). Liegt die UK genau auf Höhe, das dünnste Pad (Gummi unter
+///   der UK, R-C04).
+/// - sonst (ab 18 mm, oder ohne Pads) der erste **Stelzfuß** in
+///   Datenreihenfolge, dessen Bereich den Spalt enthält;
+/// - sonst (Lücke zwischen zwei Bereichen) der nächstgelegene Stelzfuß –
+///   die Abweichung gleicht man mit Pads oder Keilen aus;
+/// - `null` ohne Auflager, unter dem niedrigsten Stelzfuß ohne Pads und
+///   über dem höchsten ([auflagermeldungen] meldet das).
+Auflagerwahl? auflagerFuer(Millimeter spalt, List<Auflagerwahl> wahlen) {
+  // je Auflager gerufen: ohne Zwischenlisten (Benchmark Auflager)
+  if (spalt <= padAusgleichBis) {
+    Auflagerwahl? hoechste;
+    for (final w in wahlen) {
+      if (!w._pad) continue;
+      if (w._hoehe >= spalt.mm) return w;
+      hoechste = w;
+    }
+    if (hoechste != null) return hoechste;
+  }
+  // Lücke: der nächste Fuß – nicht über dem höchsten, ohne Pads nicht
+  // unter dem niedrigsten (wie `_grenzen`)
+  Auflagerwahl? naechster;
+  var mitPads = false;
+  var darunter = true;
+  var darueber = true;
+  for (final w in wahlen) {
+    if (w._pad) {
+      mitPads = true;
+      continue;
+    }
+    final abstand = _entfernung(spalt, w);
+    if (abstand <= 0) return w;
+    darunter = darunter && spalt < w.teile.first.von;
+    darueber = darueber && spalt > w.teile.first.bis;
+    if (naechster == null || abstand < _entfernung(spalt, naechster)) {
+      naechster = w;
+    }
+  }
+  return darueber || (darunter && !mitPads) ? null : naechster;
+}
+
+int _entfernung(Millimeter spalt, Auflagerwahl w) =>
+    math.max(w.teile.first.von.mm - spalt.mm, spalt.mm - w.teile.first.bis.mm);
 
 /// Niedrigster und höchster Spalt, den die [bereiche] tragen – mit Pads
-/// ab 0; `null` ohne Bereiche.
+/// ab 0 und mindestens bis [padAusgleichBis] (zwei Pads übereinander,
+/// Regel 3a.2.2); `null` ohne Bereiche.
 ({Millimeter von, Millimeter bis})? _grenzen(List<Auflagerbereich> bereiche) {
   if (bereiche.isEmpty) return null;
   final mitPads = bereiche.any((b) => b.pad);
@@ -156,18 +230,27 @@ int _entfernung(Millimeter spalt, Auflagerbereich b) =>
     von: mitPads
         ? const Millimeter(0)
         : Millimeter(bereiche.map((b) => b.von.mm).reduce(math.min)),
-    bis: Millimeter(bereiche.map((b) => b.bis.mm).reduce(math.max)),
+    bis: Millimeter(
+      bereiche
+          .map((b) => b.bis.mm)
+          .fold(mitPads ? padAusgleichBis.mm : 0, math.max),
+    ),
   );
 }
 
 /// Höhengrenzen der Auflager für die Anzeige: niedrigste und höchste Höhe
-/// von Oberkante Belag bis Boden bei der [aufbauhoehe]; `null` ohne
-/// Bereiche.
+/// von Oberkante Belag bis Boden bei der [aufbauhoehe] und dem
+/// [gummiband] (Regel 3a.2.1: Ausgleichshöhe = Höhe − Aufbauhöhe − 1 mm);
+/// mit Pads ab der Aufbauhöhe selbst (das dünnste Pad liegt immer unter
+/// der UK); `null` ohne Bereiche.
 ({Millimeter von, Millimeter bis})? auflagergrenzen(
   List<Auflagerbereich> bereiche,
   Millimeter aufbauhoehe,
 ) => switch (_grenzen(bereiche)) {
-  final g? => (von: aufbauhoehe + g.von, bis: aufbauhoehe + g.bis),
+  final g? => (
+    von: g.von.mm > 0 ? aufbauhoehe + gummiband + g.von : aufbauhoehe,
+    bis: aufbauhoehe + gummiband + g.bis,
+  ),
   null => null,
 };
 
@@ -203,4 +286,19 @@ Millimeter auflagerabstand(Planungsstand stand, Millimeter? artikel) {
   if (stand.terrassenart == Terrassenart.vorhandeneUk) return stand.spannweite;
   final abstand = artikel ?? auflagerAbstandVorgabe;
   return stand.gewerblich ? Millimeter(abstand.mm * 2 ~/ 3) : abstand;
+}
+
+/// Steht die Fläche auf Stellfüßen (Planungsregeln Alexander (Planungskern
+/// v6, 11.11.2026), Regel 3.11, im Kern je Fläche)? Bei der normalen
+/// Terrasse mit Aufbauhöhe: ohne Pads immer, sonst wenn an einem der
+/// geprüften [hoehen] die Ausgleichshöhe über [padAusgleichBis] liegt (ab
+/// 18 mm Stellfüße, Regel 3a.2.3) – dann gilt der Wandabstand an der
+/// Hauswand (`ukVerlegung`).
+bool mitStellfuessen(Planungsstand stand, Hoehenpunkte hoehen) {
+  final aufbau = hoehen.aufbauhoehe;
+  if (stand.terrassenart != Terrassenart.normal || aufbau == null) {
+    return false;
+  }
+  return !stand.auflagen.mitPads ||
+      hoehen.hoehen.any((h) => h - aufbau - gummiband > padAusgleichBis);
 }

@@ -722,6 +722,7 @@ List<String> _meldungen(
     for (final m in b.belagmeldungen) t.belagmeldung(m, stand.dielenlaenge),
     if (h.gedreht) t.ukGedreht,
     if (h.korrigiert) t.hoeheKorrigiert(h.mindesthoehe!),
+    if (h.ungueltig) t.hoeheUngueltig(h.hoechsthoehe!, h.vorschlag),
     for (final m in u.meldungen)
       t.auflagermeldung(
         m,

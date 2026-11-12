@@ -49,6 +49,7 @@ UkVerlegung _verlege(
   Artikel? belag,
   Artikel? uk,
   bool gedreht = false,
+  bool stellfuesse = false,
   Regelwerk? regelwerk,
 }) => ukVerlegung(
   s,
@@ -56,6 +57,7 @@ UkVerlegung _verlege(
   abstand: _abstand,
   dielen: _dielen(s, belag),
   gedreht: gedreht,
+  stellfuesse: stellfuesse,
   regelwerk: regelwerk,
 );
 
@@ -612,6 +614,99 @@ void main() {
       expect(v.ergaenzt, hasLength(6));
       // die ergänzten stehen nach denen der Regel
       expect(v.rand.skip(32).every((r) => r.ergaenzt), isTrue);
+    });
+  });
+
+  group('Stellfüße an der Hauswand (Planungsregeln Alexander, Planungskern '
+      'v6, Regel 3.11)', () {
+    // F01 480 × 309 cm: A (0|0) – B (4800|0) – C (4800|3090) – D (0|3090),
+    // Seite 0 = A–B, 1 = B–C, 3 = D–A; Linien senkrecht (x fest)
+    Planungsstand wand(List<int> seiten, [Planungsstand? s]) {
+      var stand = s ?? Planungsstand.start;
+      for (final i in seiten) {
+        stand = stand.mitAngrenzend(i, an: true);
+      }
+      return stand;
+    }
+
+    test('UK, die auf die Wand zuläuft, endet 1 cm davor; ohne Stellfüße '
+        'oder Wand bündig', () {
+      final v = _verlege(wand([0]), stellfuesse: true);
+      expect(v.lagen.first, 20);
+      expect(v.lagen.last, 4780);
+      for (final l in v.linien) {
+        expect(l.abschnitte, [(10.0, 3090.0)]);
+      }
+      expect(v.hoelzer.first.von, const Punkt(20, 10));
+      expect(_liste(v), ['13x3080 blau']);
+      expect(wandabstandBeiStellfuessen, const Millimeter(10));
+      // ohne Stellfüße (GUMO) bleibt die UK an der Wand
+      expect(_verlege(wand([0])).linien.first.abschnitte, [(0.0, 3090.0)]);
+      // Stellfüße ohne Hauswand: alles bündig
+      final frei = _verlege(Planungsstand.start, stellfuesse: true);
+      expect(frei.linien.first.abschnitte, [(0.0, 3090.0)]);
+      expect(frei.lagen.first, 20);
+      // Wand unten (C–D): das andere Ende
+      expect(_verlege(wand([2]), stellfuesse: true).linien.first.abschnitte, [
+        (0.0, 3080.0),
+      ]);
+    });
+
+    test('UK parallel zur Wand: Achse 6 cm von der Wand, die übrigen '
+        'gleichmäßig', () {
+      final links = _verlege(wand([3]), stellfuesse: true);
+      expect(wandachseBeiStellfuessen, const Millimeter(60));
+      expect(links.lagen.first, 60);
+      expect(links.lagen.last, 4780);
+      expect(links.lagen[1], closeTo(60 + 4720 / 12, 1e-9));
+      // die Linien laufen nicht auf die Wand zu
+      expect(links.linien.first.abschnitte, [(0.0, 3090.0)]);
+      final rechts = _verlege(wand([1]), stellfuesse: true);
+      expect(rechts.lagen.first, 20);
+      expect(rechts.lagen.last, 4740);
+      final beide = _verlege(wand([1, 3]), stellfuesse: true);
+      expect([beide.lagen.first, beide.lagen.last], [60, 4740]);
+      // Seitennummer ohne Ecke (veralteter Anschluss) wirkt nicht
+      final fremd = _verlege(
+        wand([1]).mitGrundriss(KreisGrundriss.vorgabe),
+        stellfuesse: true,
+      );
+      expect(fremd.linien, isNotEmpty);
+    });
+
+    test('Rand-UK an der Wand mit Achse 6 cm, Linien enden davor; Rand-UK, '
+        'die an die Wand stößt, endet 1 cm davor', () {
+      final s = wand([
+        0,
+      ], Planungsstand.start.mitVerlegerichtung(Verlegerichtung.diagonal45));
+      final ohne = _verlege(s);
+      final mit = _verlege(s, stellfuesse: true);
+      expect(mit.rand, hasLength(4));
+      // A–B: Achse 6 statt 2 cm unter der Kante, volle Länge
+      final ab = mit.hoelzer.firstWhere(
+        (h) => (h.von.y - 60).abs() < 1e-6 && (h.bis.y - 60).abs() < 1e-6,
+      );
+      expect(ab.von.x, closeTo(0, 1e-6));
+      expect(ab.bis.x, closeTo(4800, 1e-6));
+      // B–C und D–A stoßen an die Wand: 1 cm kürzer, C–D nicht
+      expect(
+        [for (final r in mit.rand) r.von.abstand(r.bis).round()],
+        [4800, 3080, 4800, 3080],
+      );
+      final bc = mit.hoelzer.firstWhere(
+        (h) => (h.von.x - 4780).abs() < 1e-6 && (h.bis.x - 4780).abs() < 1e-6,
+      );
+      expect(math.min(bc.von.y, bc.bis.y), closeTo(10, 1e-6));
+      // die Linien an A–B enden 4 cm früher (vor der Rand-UK mit Achse 6
+      // statt 2 cm), an den anderen Rändern wie ohne Stellfüße
+      expect(mit.linien.length, ohne.linien.length);
+      final kuerzer = [
+        for (final (i, l) in mit.linien.indexed)
+          for (final (j, (von, bis)) in l.abschnitte.indexed)
+            if (ohne.linien[i].abschnitte[j] case (final v0, final b0))
+              ((von - v0) + (b0 - bis)).round(),
+      ];
+      expect(kuerzer.toSet(), {0, 40});
     });
   });
 
