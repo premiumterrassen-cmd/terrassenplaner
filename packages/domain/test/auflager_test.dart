@@ -226,6 +226,11 @@ void main() {
       // gleich weit: der frühere
       expect(wahl(51, luecke), 'Keil 14-22');
       expect(wahl(52, luecke), 'Fuß 80-200 (5)');
+      // mit Pads ab 18 mm unter dem niedrigsten Fuß: der nächste Fuß;
+      // ohne Pads keiner
+      final hoch = [...nurPads, ohnePads.last];
+      expect(wahl(30, hoch), 'Fuß 80-200 (5)');
+      expect(wahl(30, [ohnePads.last]), isNull);
     });
   });
 

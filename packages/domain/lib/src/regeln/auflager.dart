@@ -115,7 +115,10 @@ List<Auflagerbereich> auflagerbereiche(
 /// 11.11.2026), Regel 3a.2): ein Stelzfuß, ein Pad oder zwei Pads
 /// übereinander ([teile], das dickere zuerst).
 final class Auflagerwahl {
-  Auflagerwahl(List<Auflagerbereich> teile) : teile = List.unmodifiable(teile);
+  Auflagerwahl(List<Auflagerbereich> teile)
+    : teile = List.unmodifiable(teile),
+      _pad = teile.first.pad,
+      _hoehe = teile.fold(0, (s, t) => s + t.bis.mm);
 
   /// Die Bereiche, aus denen das Auflager besteht (mindestens einer).
   final List<Auflagerbereich> teile;
@@ -126,8 +129,11 @@ final class Auflagerwahl {
       ? '${teile.length} × ${teile.first.titel}'
       : teile.map((t) => t.titel).join(' + ');
 
+  /// Ob es Pads sind (sonst ein Stelzfuß).
+  final bool _pad;
+
   /// Höhe der Pads zusammen.
-  int get _hoehe => teile.fold(0, (s, t) => s + t.bis.mm);
+  final int _hoehe;
 }
 
 /// Mögliche Auflager aus den [bereiche]n in der Reihenfolge der Tabelle:
@@ -179,30 +185,36 @@ int _stapelfolge(Auflagerwahl a, Auflagerwahl b) {
 /// - `null` ohne Auflager, unter dem niedrigsten Stelzfuß ohne Pads und
 ///   über dem höchsten ([auflagermeldungen] meldet das).
 Auflagerwahl? auflagerFuer(Millimeter spalt, List<Auflagerwahl> wahlen) {
-  final pads = [
-    for (final w in wahlen)
-      if (w.teile.first.pad) w,
-  ];
-  if (pads.isNotEmpty && spalt <= padAusgleichBis) {
-    return pads.firstWhere(
-      (p) => p._hoehe >= spalt.mm,
-      orElse: () => pads.last,
-    );
+  // je Auflager gerufen: ohne Zwischenlisten (Benchmark Auflager)
+  if (spalt <= padAusgleichBis) {
+    Auflagerwahl? hoechste;
+    for (final w in wahlen) {
+      if (!w._pad) continue;
+      if (w._hoehe >= spalt.mm) return w;
+      hoechste = w;
+    }
+    if (hoechste != null) return hoechste;
   }
-  final fuesse = [
-    for (final w in wahlen)
-      if (!w.teile.first.pad) w,
-  ];
-  for (final w in fuesse) {
-    if (w.teile.first.von <= spalt && spalt <= w.teile.first.bis) return w;
+  // Lücke: der nächste Fuß – nicht über dem höchsten, ohne Pads nicht
+  // unter dem niedrigsten (wie `_grenzen`)
+  Auflagerwahl? naechster;
+  var mitPads = false;
+  var darunter = true;
+  var darueber = true;
+  for (final w in wahlen) {
+    if (w._pad) {
+      mitPads = true;
+      continue;
+    }
+    final abstand = _entfernung(spalt, w);
+    if (abstand <= 0) return w;
+    darunter = darunter && spalt < w.teile.first.von;
+    darueber = darueber && spalt > w.teile.first.bis;
+    if (naechster == null || abstand < _entfernung(spalt, naechster)) {
+      naechster = w;
+    }
   }
-  final grenzen = _grenzen([for (final w in wahlen) ...w.teile]);
-  if (fuesse.isEmpty || spalt < grenzen!.von || spalt > grenzen.bis) {
-    return null;
-  }
-  return fuesse.reduce(
-    (a, b) => _entfernung(spalt, b) < _entfernung(spalt, a) ? b : a,
-  );
+  return darueber || (darunter && !mitPads) ? null : naechster;
 }
 
 int _entfernung(Millimeter spalt, Auflagerwahl w) =>
