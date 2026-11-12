@@ -55,6 +55,11 @@ const _gruende = {
       'Mehrlänge die Verteilung mit den wenigsten Dielen (F04: 152 Stücke '
       'brauchen mindestens 51 Dielen und damit nach der Staffel R-B09 '
       '2 Freidielen)',
+  'Planungskern v11':
+      'Planungskern v11 / Regel 13.1.1 (R-D11): die Rinne RELO V liegt '
+      'innen an der Kante, der Belag endet 15,7 cm (Profil 15,1 cm und '
+      '6 mm Fuge) statt der Artikelbreite 12 cm vor der Kante '
+      '(F38: 480 × 293,3 cm = 14,078 m²)',
   'Frage 2': 'offen: vorhandene UK – alt 2 × 473 cm zusätzlich',
   'Frage 3': 'offen: Alu-UK – Anzahl der Schienen',
 };
@@ -133,7 +138,7 @@ const _konfigurationen = <String, Map<String, String>>{
   'F35': {'Dielen': 'Fuge'},
   'F36': {'Dielen': 'Fuge'},
   'F37': {'Dielen': 'Fuge'},
-  'F38': {'Dielen': 'Fuge'},
+  'F38': {'Fläche': 'Planungskern v11', 'Dielen': 'Fuge'},
   'F39': {'Verschnitt': 'Treppe', 'Dielen': 'Treppe', 'UK': 'Treppe'},
   'F40': {'Verschnitt': 'Fehler', 'Dielen': 'Fehler', 'UK': 'Fehler'},
   'F41': {'Verschnitt': 'Treppe', 'Dielen': 'Treppe', 'UK': 'Treppe'},

@@ -178,6 +178,15 @@ const stossfarbe = 0xFFC30624;
 /// Blau der Achsmaßkette (R-E02).
 const achsmassfarbe = 0xFF1565C0;
 
+/// Grau des Rinnenbandes RELO V (R-E07) wie im Planungskern.
+const rinnenfarbe = 0xFFD5DADE;
+
+/// Rand und Schlitze des Rinnenbandes (R-E07).
+const rinnenrandfarbe = 0xFF7D8790;
+
+/// Auflagerprofile RELO VA im UK-Plan (R-E07).
+const auflagerprofilfarbe = 0xFF4F5A66;
+
 /// Hellgrau der UK im Bemaßungsplan (R-E05).
 const ukHellfarbe = 0xFFD0D0D0;
 
@@ -308,6 +317,7 @@ List<Kapitel> _flaeche(
       Kapitel('$titel – ${t.ukKapitel}', [
         _ukPlan(t, b),
         if (b.planbild.achsen != null) Absatz(t.achsmassHinweis),
+        if (b.planbild.rinnen.isNotEmpty) Absatz(t.rinnenUkHinweis),
         Absatz(t.stuecklisteUk, fett: true),
         _stueckliste(t, b.stueckliste, ohne: f.belag?.nummer),
       ]),
@@ -334,6 +344,7 @@ List<Kapitel> _flaeche(
       Kapitel('$titel – ${t.belagKapitel}', [
         Absatz(t.dielenHinweis),
         if (b.planbild.stoesse.isNotEmpty) Absatz(t.stossHinweis),
+        if (b.planbild.rinnen.isNotEmpty) Absatz(t.rinnenBelagHinweis),
         _belagPlan(t, b),
         Absatz(t.dielenNachNummer, fett: true),
         _sorten(t, v, f.belag!),
@@ -524,6 +535,9 @@ Plan _ukPlan(Unterlagentexte t, Berechnung b) {
   return Plan(
     [
       Planlinie(b.umriss, argb: _grau, geschlossen: b.geschlossen),
+      // Rinne unter den Hölzern, die Auflagerprofile darüber (R-E07)
+      for (final r in b.planbild.rinnen)
+        Planlinie(r.ecken, argb: rinnenfarbe, gefuellt: true),
       for (final h in u.hoelzer)
         Planlinie(
           _balken(h.von, h.bis, halb),
@@ -537,13 +551,41 @@ Plan _ukPlan(Unterlagentexte t, Berechnung b) {
           geschlossen: false,
           staerke: 1.5,
         ),
+      for (final r in b.planbild.rinnen)
+        for (final s in r.auflagerprofile)
+          Planlinie(
+            [s.von, s.bis],
+            argb: auflagerprofilfarbe,
+            geschlossen: false,
+            staerke: 1.5,
+          ),
       for (final a in u.auflagerpunkte)
         Planlinie(_balken(a.ort, a.ort, 25), argb: _schwarz, gefuellt: true),
       ...?kette?.linien,
     ],
-    [...umrissbeschriftung(t, b), ...?kette?.texte],
+    [...umrissbeschriftung(t, b), ...?kette?.texte, ..._rinnenetiketten(t, b)],
   );
 }
+
+/// Etikett „Rinne RELO V“ in der Mitte jeder Rinne (R-E07).
+List<Planbeschriftung> _rinnenetiketten(Unterlagentexte t, Berechnung b) => [
+  for (final r in b.planbild.rinnen) (ort: r.mitte, text: t.rinneEtikett),
+];
+
+/// Rinnenbänder des Verlegeplans (R-E07): grau mit Rand und Schlitzen.
+List<Planlinie> _rinnenbaender(Berechnung b) => [
+  for (final r in b.planbild.rinnen) ...[
+    Planlinie(r.ecken, argb: rinnenfarbe, gefuellt: true),
+    Planlinie(r.ecken, argb: rinnenrandfarbe, staerke: 0.5),
+    for (final s in r.schlitze)
+      Planlinie(
+        [s.von, s.bis],
+        argb: rinnenrandfarbe,
+        geschlossen: false,
+        staerke: 0.3,
+      ),
+  ],
+];
 
 /// Bemaßungsplan (Planungsregeln Alexander (Planungskern v7, 12.11.2026),
 /// Regel 9.2, R-E05): Umriss mit Eckbuchstaben und Kantenmaßen, die UK
@@ -696,11 +738,13 @@ Plan _belagPlan(Unterlagentexte t, Berechnung b) => Plan(
         gestrichelt: true,
         staerke: 1,
       ),
+    ..._rinnenbaender(b),
   ],
   [
     for (final (i, d) in b.dielen.indexed)
       (ort: _mitte(d), text: '${b.nummern[i]}'),
     ...umrissbeschriftung(t, b),
+    ..._rinnenetiketten(t, b),
   ],
 );
 
@@ -852,6 +896,7 @@ List<String> _meldungen(
         m == Auflagermeldung.unterMindesthoehe ? u.hoeheVon! : u.hoeheBis!,
       ),
     for (final l in u.randErgaenzt) t.randUkErgaenzt(l),
+    for (final m in b.anschluss.meldungen) ?t.rinnenmeldung(m),
     for (final (i, treppe) in b.anschluss.treppen.indexed)
       for (final m in treppe.meldungen) t.treppenmeldung(i + 1, m),
   ];

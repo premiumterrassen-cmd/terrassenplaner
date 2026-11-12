@@ -552,6 +552,11 @@ final class Planungsstand {
     return _mit(anschluss: anschluss.mitRinne(seite, lage));
   }
 
+  /// Kopie mit der Farbe [farbe] aller Rinnen (Planungsregeln Alexander,
+  /// Planungskern v11, Regel 13.1.5).
+  Planungsstand mitRinnenfarbe(Rinnenfarbe farbe) =>
+      _mit(anschluss: anschluss.mitRinnenfarbe(farbe));
+
   /// Kopie mit der Blendenhöhe [hoehe] an der verblendeten Seite [seite]
   /// (Planungskern v7, Regel 9.4; `null` = automatisch, die niedrigste
   /// Stelle der Seite); beim Kreis steht Seite 0 für die ganze Fläche. An

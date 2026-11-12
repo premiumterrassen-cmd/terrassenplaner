@@ -121,6 +121,42 @@ void main() {
       en.treppenmeldung(2, Treppenmeldung.zuSchmal),
       startsWith('Stairs 2'),
     );
+    // Rinne (Planungskern v11, Regel 13.1)
+    for (final t in [de, en]) {
+      final rinne = [
+        Anschlussmeldung.rinneNichtMoeglich,
+        Anschlussmeldung.rinnenfarbeFehlt,
+        Anschlussmeldung.rinnenmontage,
+        Anschlussmeldung.eckwinkelFehlt,
+      ];
+      expect({for (final m in rinne) t.rinnenmeldung(m)}, hasLength(4));
+      expect(t.rinnenmeldung(Anschlussmeldung.unterlueftung), isNull);
+      expect(t.rinneEtikett, 'Rinne RELO V');
+    }
+    expect(
+      de.rinnenmeldung(Anschlussmeldung.rinnenmontage),
+      contains('UNIA 4,2 × 22 mm'),
+    );
+    expect(
+      en.rinnenmeldung(Anschlussmeldung.rinnenmontage),
+      contains('UNIA 4.2 × 22 mm'),
+    );
+    expect(
+      de.rinnenmeldung(Anschlussmeldung.rinneNichtMoeglich),
+      startsWith('Rinne nicht geplant'),
+    );
+    expect(
+      en.rinnenmeldung(Anschlussmeldung.eckwinkelFehlt),
+      startsWith('Corner brackets'),
+    );
+    expect(
+      de.rinnenmeldung(Anschlussmeldung.rinnenfarbeFehlt),
+      startsWith('Rinne in Anthrazit'),
+    );
+    expect(de.rinnenBelagHinweis, contains('15,7 cm'));
+    expect(en.rinnenBelagHinweis, contains('15.7 cm'));
+    expect(de.rinnenUkHinweis, startsWith('Rinne RELO V: 2 Auflagerprofile'));
+    expect(en.rinnenUkHinweis, startsWith('Channel RELO V'));
     expect(de.nichtImAngebot('X'), 'Nicht im Angebot: X');
     expect(en.nichtImAngebot('X'), 'Not in the offer: X');
     expect(

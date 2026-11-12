@@ -194,7 +194,7 @@ void main() {
       }
       expect(
         [for (final m in Anschlussmeldung.values) m.nummer],
-        [1, 2, 5, 6, 7],
+        [1, 2, 5, 6, 7, 8, 9, 10, 11],
       );
       expect(() => Anschlussmeldung.ausNummer(0), throwsFormatException);
       final fbb = fb.Builder()..startTable(1);
