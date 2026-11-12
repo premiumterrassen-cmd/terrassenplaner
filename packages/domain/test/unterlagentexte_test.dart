@@ -88,7 +88,41 @@ void main() {
           t.belagmeldung(m, const Millimeter(7000)),
       ];
       expect(texte.toSet(), hasLength(Belagmeldung.values.length));
+      expect({
+        for (final m in Kantenmeldung.values)
+          t.kantenwarnung((kante: 'A–B', laenge: const Millimeter(55), art: m)),
+      }, hasLength(Kantenmeldung.values.length));
+      expect({
+        for (final m in Treppenmeldung.values) t.treppenmeldung(2, m),
+      }, hasLength(Treppenmeldung.values.length));
+      expect(t.nichtImAngebot('X'), endsWith(': X'));
     }
+    expect(
+      de.kantenwarnung((
+        kante: 'A–B',
+        laenge: const Millimeter(55),
+        art: Kantenmeldung.zuKurz,
+      )),
+      'Kante A–B ist nur 5,5 cm lang (unter 10 cm) – bitte die Maße prüfen.',
+    );
+    expect(
+      en.kantenwarnung((
+        kante: 'A–B',
+        laenge: const Millimeter(31000),
+        art: Kantenmeldung.zuLang,
+      )),
+      contains('3100 cm'),
+    );
+    expect(
+      de.treppenmeldung(2, Treppenmeldung.ueberSeite),
+      startsWith('Treppe 2: '),
+    );
+    expect(
+      en.treppenmeldung(2, Treppenmeldung.zuSchmal),
+      startsWith('Stairs 2'),
+    );
+    expect(de.nichtImAngebot('X'), 'Nicht im Angebot: X');
+    expect(en.nichtImAngebot('X'), 'Not in the offer: X');
     expect(
       de.belagmeldung(
         Belagmeldung.laengeNichtLieferbar,

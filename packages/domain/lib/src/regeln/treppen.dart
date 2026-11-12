@@ -9,11 +9,14 @@ import '../artikel/ukauswahl.dart';
 import '../ergebnisse/materialliste.dart';
 import '../ergebnisse/stueckliste.dart';
 import '../geometrie/punkt.dart';
+import '../holzart/holzart.dart';
 import '../konfiguration/anschlussergebnis.dart';
 import '../konfiguration/planungsstand.dart';
 import '../konfiguration/treppe.dart';
 import 'anschlussregeln.dart';
+import 'gegenstueck.dart';
 import 'planungsregeln.dart';
+import 'regelwerk.dart';
 import 'uk_zusatz.dart';
 import 'verblendung.dart';
 
@@ -177,32 +180,43 @@ bool treppeErlaubt(Planungsstand stand, Treppe t) =>
 ///   bei der Konstruktion dazu unter jedem UK-Holz eine Stütze an der
 ///   Vorderkante bis zum Boden (Oberkante minus Dielenstärke minus UK
 ///   hochkant). Beim Fundament liegt die UK auf der Betontreppe (R-D02).
+///   Der Achsabstand ist höchstens [treppenUkAbstand] (Planungskern v7
+///   Regel 9.5.3).
+/// - **Setzstufen** aus der [setzstufe] (Vorgabe: der [belag]) – bei
+///   genuteten Dielen das glattkante Gegenstück der Serie
+///   (`setzstufenbrett`, Planungskern v7 Regel 9.5.4).
 List<Planstueck> treppenstuecke(
   Treppe t, {
   required Artikel belag,
+  Artikel? setzstufe,
   Artikel? uk,
   Millimeter? ukAbstand,
 }) {
-  final (breite, staerke) = (
+  final brett = setzstufe ?? belag;
+  final (breite, staerke, brettbreite) = (
     belag.abmessungen.breite,
     belag.abmessungen.staerke,
+    brett.abmessungen.breite,
   );
-  if (breite == null || staerke == null) return const [];
-  final ganzeDiele = belag.abmessungen.laengen.lastOrNull;
+  if (breite == null || staerke == null || brettbreite == null) {
+    return const [];
+  }
   final ukMasse = (uk?.abmessungen.breite, uk?.abmessungen.staerke);
   final ukHoehe = switch (ukMasse) {
     (final a?, final b?) => a > b ? a : b,
     _ => null,
   };
-  Planstueck diele(double laenge) {
+  Planstueck stueck(Artikel artikel, double laenge) {
     final mm = Millimeter(laenge.round());
     return Planstueck(
-      belag.nummer,
-      belag.titel,
+      artikel.nummer,
+      artikel.titel,
       mm,
-      ganzeLaenge: ganzeDiele ?? mm,
+      ganzeLaenge: artikel.abmessungen.laengen.lastOrNull ?? mm,
     );
   }
+
+  Planstueck diele(double laenge) => stueck(belag, laenge);
 
   final stuecke = <Planstueck>[];
   for (final teil in treppenteile(t)) {
@@ -215,9 +229,9 @@ List<Planstueck> treppenstuecke(
         );
       }
     }
-    final reihen = (teil.steigung.mm / breite.mm - 1e-9).ceil();
+    final reihen = (teil.steigung.mm / brettbreite.mm - 1e-9).ceil();
     for (final kante in teil.stirnkanten) {
-      stuecke.addAll(List.filled(reihen, diele(kante)));
+      stuecke.addAll(List.filled(reihen, stueck(brett, kante)));
     }
   }
   return stuecke;
@@ -242,7 +256,8 @@ List<Planstueck> _unterbau(
     mm,
     ganzeLaenge: ganze.isEmpty ? mm : ganze.last,
   );
-  final linien = math.max(1, (laenge / abstand.mm - 1e-6).ceil()) + 1;
+  final achse = math.min(abstand.mm, treppenUkAbstand.mm);
+  final linien = math.max(1, (laenge / achse - 1e-6).ceil()) + 1;
   final stuetze = teil.oberkante - aufbau;
   return [
     ...List.filled(linien, holz(Millimeter(tiefe.round()))),
@@ -251,15 +266,75 @@ List<Planstueck> _unterbau(
   ];
 }
 
-/// Treppen der Fläche für Zeichnung und Anzeige (M7-05).
+/// Treppen der Fläche für Zeichnung und Anzeige (M7-05) samt Prüfliste
+/// (`treppenpruefung`).
 List<Treppenbild> treppenbilder(Planungsstand stand) => [
   for (final t in stand.treppen)
     (
       teile: treppenumrisse(stand, t),
       masse: t.masse,
       frei: treppeErlaubt(stand, t),
+      meldungen: treppenpruefung(stand, t),
     ),
 ];
+
+/// Höchster Achsabstand der UK unter einem Auftritt (Planungskern v7
+/// Regel 9.5.3): 40 cm, auch wenn die Terrasse weiter auseinander liegt.
+const treppenUkAbstand = Millimeter(400);
+
+/// Steigung, die die Prüfliste ohne Hinweis lässt (Planungskern v7 Regel
+/// 9.5.1/9.5.5): 15–19 cm.
+const treppenSteigung = (von: Millimeter(150), bis: Millimeter(190));
+
+/// Schrittmaß 2 × Steigung + Auftritt ohne Hinweis (Regel 9.5.5): 59–67 cm
+/// (Sollwert 63 cm).
+const treppenSchrittmass = (von: Millimeter(590), bis: Millimeter(670));
+
+/// Kleinste Breite einer Treppe längs der Seite (Regel 9.5.5): 50 cm.
+const treppenMindestbreite = Millimeter(500);
+
+/// Prüfliste der Treppe [t] (Planungskern v7 Regel 9.5.5): Steigung einer
+/// Stufe (beim Podest auch dessen Höhe) außerhalb [treppenSteigung],
+/// Schrittmaß einer Stufe außerhalb [treppenSchrittmass], Treppe längs der
+/// Seite schmaler als [treppenMindestbreite] oder über das Ende der Seite
+/// hinaus. Nur Hinweise: Die Stufenmaße gibt der Planer ein (R-D03,
+/// Fachkonzept 5.1), gerechnet wird trotzdem.
+List<Treppenmeldung> treppenpruefung(Planungsstand stand, Treppe t) {
+  bool ausserhalb(Millimeter wert, ({Millimeter von, Millimeter bis}) b) =>
+      wert < b.von || wert > b.bis;
+  final stufen = t.stufenmasse;
+  final steigungen = [
+    for (final s in stufen) s.hoehe,
+    if (t.art.mitPodest) t.podest.hoehe,
+  ];
+  final laenge = t.masse.laenge;
+  double? seite;
+  if (t.seite < stand.seitenzahl) {
+    final (:von, :bis) = seitenstrecke(stand, t.seite);
+    seite = von.abstand(bis);
+  }
+  return [
+    if (steigungen.any((h) => ausserhalb(h, treppenSteigung)))
+      Treppenmeldung.steigung,
+    if (stufen.any(
+      (s) => ausserhalb(s.hoehe * 2 + s.tiefe, treppenSchrittmass),
+    ))
+      Treppenmeldung.schrittmass,
+    if (laenge < treppenMindestbreite) Treppenmeldung.zuSchmal,
+    if (seite != null && (t.abstand + laenge).mm > seite + 0.5)
+      Treppenmeldung.ueberSeite,
+  ];
+}
+
+/// Brett der Setzstufen zum [belag] (Planungskern v7 Regel 9.5.4):
+/// glattkantig aus der Serie – bei genuteten Dielen das Gegenstück
+/// (`gegenstueck`), sonst der Belag selbst; ohne Gegenstück bleibt der
+/// Belag.
+Artikel setzstufenbrett(Artikel belag, Regelwerk? regelwerk) =>
+    switch ((belag.profil, regelwerk)) {
+      (Profil.genutet, final r?) => gegenstueck(r, belag) ?? belag,
+      _ => belag,
+    };
 
 /// Material der Treppen an freien Seiten (M7-05, `treppenstuecke`): die
 /// Dielen als Lieferstücke des Belags (`lieferstuecke`, eine erzwungene
@@ -268,6 +343,7 @@ List<Treppenbild> treppenbilder(Planungsstand stand) => [
 Anschlussbedarf treppenbedarf(
   Planungsstand stand, {
   Artikel? belag,
+  Regelwerk? regelwerk,
   Artikel? uk,
   Millimeter? ukAbstand,
 }) {
@@ -279,23 +355,30 @@ Anschlussbedarf treppenbedarf(
     if (frei.length < stand.treppen.length) Anschlussmeldung.treppeNichtFrei,
   ];
   if (belag == null) return Anschlussbedarf(meldungen: meldungen);
+  final brett = setzstufenbrett(belag, regelwerk);
   final stuecke = [
     for (final t in frei)
-      ...treppenstuecke(t, belag: belag, uk: uk, ukAbstand: ukAbstand),
-  ];
-  final dielen = [
-    for (final s in stuecke)
-      if (s.nummer == belag.nummer) s.laenge,
+      ...treppenstuecke(
+        t,
+        belag: belag,
+        setzstufe: brett,
+        uk: uk,
+        ukAbstand: ukAbstand,
+      ),
   ];
   return Anschlussbedarf(
     stuecke: stuecke,
     bedarf: [
-      for (final MapEntry(key: laenge, value: anzahl) in lieferstuecke(
-        dielen,
-        belag.abmessungen.laengen,
-        fest: stand.dielenlaenge,
-      ).entries)
-        Materialbedarf([belag], anzahl, laenge: laenge),
+      for (final artikel in {belag, brett})
+        for (final MapEntry(key: laenge, value: anzahl) in lieferstuecke(
+          [
+            for (final s in stuecke)
+              if (s.nummer == artikel.nummer) s.laenge,
+          ],
+          artikel.abmessungen.laengen,
+          fest: stand.dielenlaenge,
+        ).entries)
+          Materialbedarf([artikel], anzahl, laenge: laenge),
     ],
     meldungen: meldungen,
   );

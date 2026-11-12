@@ -65,6 +65,33 @@ enum Anschlussmeldung {
   );
 }
 
+/// Hinweis der Prüfliste zu einer Treppe – Planungsregeln Alexander
+/// (Planungskern v7, 11.11.2026) Regel 9.5.5 (`treppenpruefung`).
+enum Treppenmeldung {
+  /// Eine Steigung liegt außerhalb 15–19 cm.
+  steigung(1),
+
+  /// Ein Schrittmaß 2 × Steigung + Auftritt liegt außerhalb 59–67 cm.
+  schrittmass(2),
+
+  /// Die Treppe ist längs der Seite schmaler als 50 cm.
+  zuSchmal(3),
+
+  /// Die Treppe reicht über das Ende ihrer Seite hinaus.
+  ueberSeite(4);
+
+  const Treppenmeldung(this.nummer);
+
+  /// Nummer im Transportformat.
+  final int nummer;
+
+  /// Meldung zur [nummer] aus dem Transportformat.
+  static Treppenmeldung ausNummer(int nummer) => values.firstWhere(
+    (m) => m.nummer == nummer,
+    orElse: () => throw FormatException('unbekannte Treppenmeldung $nummer'),
+  );
+}
+
 /// Eine Seite mit Rolle für die Zeichnung: Nummer der Seite, Rolle und die
 /// Strecke von Ecke zu Ecke in mm.
 typedef Seitenlinie = ({int seite, Seitenrolle rolle, Punkt von, Punkt bis});
@@ -75,11 +102,13 @@ typedef Hoehenpunktort = ({Punkt ort, Millimeter hoehe});
 
 /// Eine Treppe für Zeichnung und Anzeige (M7-05): Umrisse ihrer Teile
 /// (Podest, Stufen) in Planungskoordinaten, Treppenmaße L × B × H und ob
-/// sie an einer freien Seite liegt.
+/// sie an einer freien Seite liegt, dazu die Hinweise der Prüfliste
+/// (Planungskern v7 Regel 9.5.5).
 typedef Treppenbild = ({
   List<List<Punkt>> teile,
   Treppenmasse masse,
   bool frei,
+  List<Treppenmeldung> meldungen,
 });
 
 /// Was der Server zum Terrassenanschluss der bearbeiteten Fläche rechnet
@@ -156,6 +185,12 @@ final class Anschlussergebnis {
         hoehe: Millimeter(masse[2]),
       ),
       frei: const fb.BoolReader().vTableGet(puffer, ort, _versatz(1), true),
+      meldungen: [
+        for (final n in const fb.ListReader<int>(
+          fb.Uint8Reader(),
+        ).vTableGet(puffer, ort, _versatz(3), const []))
+          Treppenmeldung.ausNummer(n),
+      ],
     );
   }
 
@@ -186,8 +221,9 @@ final class Anschlussergebnis {
   /// 2: linien ([float64] von x, y, bis x, y je Seite), 3: meldungen
   /// ([uint8], M7-02), 4: Orte der Höhenreferenzpunkte ([float64] x, y),
   /// 5: ihre Höhen ([int32] mm) (M7-04), 6: treppen ([{ 0: masse ([int32]
-  /// L, B, H mm), 1: frei (bool), 2: teile ([{ 0: punkte ([float64]) }]) }],
-  /// M7-05) }` und gibt ihren Ort zurück. Neue Felder nur anhängen.
+  /// L, B, H mm), 1: frei (bool), 2: teile ([{ 0: punkte ([float64]) }]),
+  /// 3: meldungen ([uint8], Planungskern v7 Regel 9.5.5) }], M7-05) }` und
+  /// gibt ihren Ort zurück. Neue Felder nur anhängen.
   int schreibe(fb.Builder fbb) {
     final seitenOrt = fbb.writeListUint16([for (final s in seiten) s.seite]);
     final rollenOrt = fbb.writeListUint8([
@@ -229,11 +265,15 @@ final class Anschlussergebnis {
     final teileOrt = fbb.writeList([
       for (final teil in t.teile) _schreibePunkte(fbb, teil),
     ]);
+    final meldungenOrt = t.meldungen.isEmpty
+        ? null
+        : fbb.writeListUint8([for (final m in t.meldungen) m.nummer]);
     fbb
-      ..startTable(3)
+      ..startTable(4)
       ..addOffset(0, masseOrt)
       ..addBool(1, t.frei)
-      ..addOffset(2, teileOrt);
+      ..addOffset(2, teileOrt)
+      ..addOffset(3, meldungenOrt);
     return fbb.endTable();
   }
 

@@ -34,6 +34,8 @@ Sieben Formen als Bildknöpfe. Kennzahlen jeweils mit Vorgabebelag (Diele 60 × 
 
 Eingabefelder je Form (Tabelle oben), Einheit cm.
 
+**Plausibilität (Planungsregeln Alexander (Planungskern v7, 11.11.2026) Regel 9.6, R-D23):** Ein Maß über 50 m wird nicht angewendet – vermutlich in mm eingegeben; das Feld bittet „Über 50 m – bitte das Maß in cm angeben“ (`groesstesEingabemass`). Daneben gelten die Grenzen der Seitenlängen 50–3000 cm weiter (Frage 18; 0 cm ist damit gesperrt). Kanten zwischen den Ecken unter 10 cm oder über 30 m – auch abgeleitete, z. B. bei der Freiform – erscheinen als Hinweis unter den Maßen und in den Hinweisen der Planungsunterlagen („Kante B–C ist nur 5,5 cm lang …“, `pruefeKanten`, `Berechnung.kantenwarnungen`). Gelbe Warnung „wirklich?“ ab 30 m bei der Eingabe: siehe Frage 50 in [10](10-offene-fragen.md).
+
 ## 1.3 Ecken und Seiten abrunden
 
 - „Rundungen Hinzufügen“ öffnet einen Bearbeitungsmodus: Griffpunkte innen an jeder Ecke und auf jeder Seitenmitte.

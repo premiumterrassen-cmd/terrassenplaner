@@ -779,7 +779,7 @@ Kapitel _materialliste(Unterlagentexte t, Materialliste liste) =>
             [
               '${p.position}',
               [
-                p.titel,
+                if (p.imAngebot) p.titel else t.nichtImAngebot(p.titel),
                 if (p.laenge case final l?) '${t.laenge}: ${l.mm} mm',
                 if (p.zusatz == Materialzusatz.freidiele) t.freidiele,
                 if (p.zusatz == Materialzusatz.optional) t.optional,
@@ -841,6 +841,7 @@ List<String> _meldungen(
   final u = b.unterbau;
   return [
     if (b.flaechenmeldung case final m?) t.flaechenmeldung(m),
+    for (final k in b.kantenwarnungen) t.kantenwarnung(k),
     for (final m in b.belagmeldungen) t.belagmeldung(m, stand.dielenlaenge),
     if (h.gedreht) t.ukGedreht,
     if (h.korrigiert) t.hoeheKorrigiert(h.mindesthoehe!),
@@ -851,6 +852,8 @@ List<String> _meldungen(
         m == Auflagermeldung.unterMindesthoehe ? u.hoeheVon! : u.hoeheBis!,
       ),
     for (final l in u.randErgaenzt) t.randUkErgaenzt(l),
+    for (final (i, treppe) in b.anschluss.treppen.indexed)
+      for (final m in treppe.meldungen) t.treppenmeldung(i + 1, m),
   ];
 }
 

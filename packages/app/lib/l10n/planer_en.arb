@@ -71,6 +71,7 @@
   "feldLaenge": "Length",
   "feldBreite": "Width",
   "massUngueltig": "Please enter {min} to {max} cm",
+  "massInCm": "Over 50 m – please enter the dimension in cm",
   "berechnungFehler": "Calculation not possible – please check the connection",
   "planungZuAufwendig": "The plan is too extensive to calculate – please plan fewer or smaller areas or switch off the cutting optimisation",
 
@@ -325,6 +326,8 @@
   "flaechenmeldungMasseFalsch": "Dimensions are missing or wrong: the area is at most 0.05 m². Please check the dimensions.",
   "flaechenmeldungUnplausibelGross": "The area is implausibly large (over 1,000 m²). Please check the dimensions.",
   "flaechenmeldungUngewoehnlich": "Note: the area is outside the usual 1 to 300 m² – please check the dimensions.",
+  "kantenwarnungZuKurz": "Note: edge {kante} is only {cm} cm long (under 10 cm) – please check the dimensions.",
+  "kantenwarnungZuLang": "Note: edge {kante} is {cm} cm long (over 30 m) – please check the dimensions.",
   "belagmeldungBombierung": "From 8 cm width we recommend crowned (slightly curved) boards.",
   "belagmeldungLaengeNichtLieferbar": "The selected length of {cm} cm is not available for this decking. The board length is determined automatically.",
   "belagmeldungBefestigungsart": "Grooved boards are fixed invisibly with clips. The selected screw fixing only applies to smooth-edged boards.",
@@ -400,6 +403,8 @@
   "materialLaenge": "Length: {laenge} mm",
   "materialFreidiele": "Free board",
   "materialOptional": "Optional – not included in the total",
+  "materialNichtImAngebot": "Not in the offer: {titel}",
+  "materialImAngebot": "In the offer",
   "materialBerechnet": "calculated: {anzahl}",
   "materialSumme": "Total: {betrag}",
   "materialMehrwertsteuer": "incl. {satz} % VAT: {betrag}",
@@ -505,5 +510,9 @@
   "treppeMasse": "Stair dimensions in cm (L x W x H): {laenge} x {breite} x {hoehe}",
   "@treppeMasse": {"placeholders": {"laenge": {"type": "String"}, "breite": {"type": "String"}, "hoehe": {"type": "String"}}},
   "treppeUngueltig": "Please enter a value within the permitted range",
-  "meldungTreppeNichtFrei": "A staircase lies on a side at a building element or with a channel – it is not calculated."
+  "meldungTreppeNichtFrei": "A staircase lies on a side at a building element or with a channel – it is not calculated.",
+  "treppeMeldungSteigung": "Checklist: a riser height is outside 15–19 cm.",
+  "treppeMeldungSchrittmass": "Checklist: the step dimension (2 × riser + tread) is outside 59–67 cm.",
+  "treppeMeldungZuSchmal": "Checklist: the stairs are narrower than 50 cm.",
+  "treppeMeldungUeberSeite": "Checklist: the stairs extend beyond the end of the side."
 }

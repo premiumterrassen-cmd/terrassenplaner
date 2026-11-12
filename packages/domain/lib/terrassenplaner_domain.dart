@@ -71,6 +71,7 @@ export 'src/regeln/flaechenpruefung.dart';
 export 'src/regeln/freidielen.dart';
 export 'src/regeln/gegenstueck.dart';
 export 'src/regeln/hoehenpunkte.dart';
+export 'src/regeln/kantenpruefung.dart';
 export 'src/regeln/planungsregeln.dart';
 export 'src/regeln/rand_uk.dart';
 export 'src/regeln/regelwerk.dart';

@@ -76,7 +76,9 @@ class GrundrissMasse extends StatelessWidget {
 /// Maßfelder in cm (M4-02): wie im alten Planer zeigen sie nur Platzhalter,
 /// die aktuellen Maße stehen in der Zeichnung; Enter übernimmt den Wert.
 /// Wirft [uebernimm] (keine Zahl, Grenze verletzt), erscheint ein Hinweis
-/// mit den Grenzen [kleinstes] bis [Grundriss.groessteSeite].
+/// mit den Grenzen [kleinstes] bis [Grundriss.groessteSeite]. Ein Maß über
+/// 50 m (`groesstesEingabemass`) war vermutlich in mm gemeint: es wird
+/// nicht angewendet, der Hinweis bittet um cm (Planungskern v7 Regel 9.6).
 class MassFelder extends StatefulWidget {
   const MassFelder({
     required this.namen,
@@ -119,6 +121,10 @@ class _MassFelderState extends State<MassFelder> {
 
   void _uebernimm(int index, String text) {
     final cm = num.tryParse(text.trim().replaceAll(',', '.'));
+    if (cm != null && cm * 10 > groesstesEingabemass.mm) {
+      setState(() => _fehler[index] = context.texte.massInCm);
+      return;
+    }
     try {
       widget.uebernimm(index, Millimeter.ausCm(cm!));
     } on Object catch (fehler) {

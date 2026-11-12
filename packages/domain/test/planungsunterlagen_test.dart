@@ -767,6 +767,61 @@ void main() {
       ], planung: Planung([planung.flaechen.last]));
       expect(texte(kapitel(eine, 'Hinweise zur Planung'))[1], startsWith('• '));
     });
+    test('Materialliste: Position nicht im Angebot (Planungskern v7 Regel '
+        '9.7) bleibt mit Namen stehen, nicht in der Summe', () {
+      final liste = Materialliste.aus(
+        [
+          Materialbedarf([diele], 48, laenge: const Millimeter(5000)),
+          Materialbedarf([pad], 2),
+        ],
+        ausserhalbAngebot: {(nummer: pad.nummer, laenge: null, zusatz: null)},
+      );
+      final k = kapitel(
+        erzeuge([
+          Berechnung(
+            umriss: rechteck,
+            flaeche: 4800 * 3090,
+            materialliste: liste,
+          ),
+        ]),
+        'Materialliste',
+      );
+      final tabelle = baustein<Tabelle>(k);
+      expect(tabelle.zeilen.first[1], startsWith('Diele'));
+      expect(tabelle.zeilen.last[1], 'Nicht im Angebot: ${pad.titel}');
+      expect(tabelle.zeilen.last.last, '25,00');
+      expect(texte(k), contains('Summe gesamt: ${liste.summe.anzeige}'));
+      expect(liste.summe, liste.positionen.first.positionspreis);
+    });
+
+    test('Hinweise: Kanten und Treppen aus der Prüfliste (Planungskern v7 '
+        'Regel 9.5/9.6)', () {
+      final treppe = Planungsstand.start.mitNeuerTreppe().mitTreppe(
+        0,
+        const Treppe(seite: 2),
+      );
+      const ecken = [
+        Punkt(0, 0),
+        Punkt(4800, 0),
+        Punkt(4800, 50),
+        Punkt(4800, 3090),
+        Punkt(0, 3090),
+      ];
+      final u = erzeuge([
+        Berechnung(
+          umriss: ecken,
+          ecken: ecken,
+          flaeche: 4800 * 3090,
+          anschluss: anschlussergebnis(treppe),
+        ),
+      ], planung: Planung([Terrassenflaeche(treppe)]));
+      final de = Unterlagentexte.deutsch;
+      expect(texte(kapitel(u, 'Hinweise zur Planung')), [
+        'Hinweise zur Planung',
+        '• ${de.kantenwarnung((kante: 'B–C', laenge: const Millimeter(50), art: Kantenmeldung.zuKurz))}',
+        '• ${de.treppenmeldung(1, Treppenmeldung.schrittmass)}',
+      ]);
+    });
   });
 
   group('Pläne nach dem Planungskern (Abschnitt 6)', () {

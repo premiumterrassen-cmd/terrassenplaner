@@ -49,9 +49,11 @@ final class Planung {
     List<Terrassenflaeche> flaechen, {
     this.aktiv = 0,
     Map<Positionsschluessel, int> mengen = const {},
+    Set<Positionsschluessel> ausserhalbAngebot = const {},
     this.verschnittvariante = 0,
   }) : flaechen = List.unmodifiable(flaechen),
-       mengen = Map.unmodifiable(mengen) {
+       mengen = Map.unmodifiable(mengen),
+       ausserhalbAngebot = Set.unmodifiable(ausserhalbAngebot) {
     if (flaechen.isEmpty) {
       throw ArgumentError.value(flaechen, 'flaechen', 'mindestens eine Fläche');
     }
@@ -72,6 +74,7 @@ final class Planung {
   const Planung._(this.flaechen)
     : aktiv = 0,
       mengen = const {},
+      ausserhalbAngebot = const {},
       verschnittvariante = 0;
 
   /// Liest eine Planung aus dem Transportformat ([zuBytes]).
@@ -99,6 +102,15 @@ final class Planung {
             _versatz(3),
             0,
           ),
+      },
+      ausserhalbAngebot: {
+        for (final ort in const fb.ListReader<int>(_Tabellenort()).vTableGet(
+          puffer,
+          wurzel,
+          _versatz(_ausserhalbAngebotPlatz),
+          const [],
+        ))
+          _schluessel(puffer, ort),
       },
       verschnittvariante: const fb.Uint8Reader().vTableGet(
         puffer,
@@ -142,6 +154,12 @@ final class Planung {
   /// übernimmt sie nur von Mitarbeitern (M9-10).
   final Map<Positionsschluessel, int> mengen;
 
+  /// Positionen der Materialliste ohne Häkchen „im Angebot“ (Planungskern
+  /// v7 Regel 9.7): Sie bleiben stehen, zählen aber nicht zur Summe und
+  /// gehen nicht in den Export. Wie [mengen] für die ganze Planung und nur
+  /// von Mitarbeitern übernommen (M9-10).
+  final Set<Positionsschluessel> ausserhalbAngebot;
+
   /// Gewählte Verschnittvariante (M9-01, Fachkonzept 7.1) ab 1; 0 = nicht
   /// optimiert – dann wird jede Teilfläche für sich zugeschnitten (M5-08).
   /// Sie gilt für die ganze Planung und bleibt bei Änderungen gewählt;
@@ -167,6 +185,7 @@ final class Planung {
     [...flaechen, Terrassenflaeche.start],
     aktiv: flaechen.length,
     mengen: mengen,
+    ausserhalbAngebot: ausserhalbAngebot,
     verschnittvariante: verschnittvariante,
   );
 
@@ -175,6 +194,7 @@ final class Planung {
     flaechen,
     aktiv: index,
     mengen: mengen,
+    ausserhalbAngebot: ausserhalbAngebot,
     verschnittvariante: verschnittvariante,
   );
 
@@ -190,6 +210,7 @@ final class Planung {
       [...flaechen]..removeAt(index),
       aktiv: index > aktiv || aktiv == 0 ? aktiv : aktiv - 1,
       mengen: mengen,
+      ausserhalbAngebot: ausserhalbAngebot,
       verschnittvariante: verschnittvariante,
     );
   }
@@ -204,8 +225,24 @@ final class Planung {
         if (key != schluessel) key: value,
       schluessel: ?anzahl,
     },
+    ausserhalbAngebot: ausserhalbAngebot,
     verschnittvariante: verschnittvariante,
   );
+
+  /// Setzt das Häkchen „im Angebot“ der Position [schluessel]
+  /// (Mitarbeiter-Ansicht, Planungskern v7 Regel 9.7).
+  Planung mitImAngebot(Positionsschluessel schluessel, {required bool an}) =>
+      Planung(
+        flaechen,
+        aktiv: aktiv,
+        mengen: mengen,
+        ausserhalbAngebot: {
+          for (final s in ausserhalbAngebot)
+            if (s != schluessel) s,
+          if (!an) schluessel,
+        },
+        verschnittvariante: verschnittvariante,
+      );
 
   /// „Optimierung erstellen“ (1), Variante wählen (1–3) oder „zurücksetzen“
   /// (0) – M9-01.
@@ -213,6 +250,7 @@ final class Planung {
     flaechen,
     aktiv: aktiv,
     mengen: mengen,
+    ausserhalbAngebot: ausserhalbAngebot,
     verschnittvariante: variante,
   );
 
@@ -220,6 +258,7 @@ final class Planung {
     [...flaechen]..[aktiv] = flaeche,
     aktiv: aktiv,
     mengen: mengen,
+    ausserhalbAngebot: ausserhalbAngebot,
     verschnittvariante: verschnittvariante,
   );
 
@@ -227,7 +266,9 @@ final class Planung {
   /// als eigener FlatBuffer), 1: haeufigkeit (uint16) }]), 2: aktiv (uint16),
   /// 70: mengen ([{ 0: nummer (string), 1: laenge (int32 mm, fehlt ohne
   /// Länge), 2: zusatz (uint8), 3: anzahl (uint32) }], M9-03),
-  /// 160: verschnittvariante (uint8, fehlt = 0, M9-01) }`. Neue Felder
+  /// 71: ausserhalbAngebot ([{ 0: nummer, 1: laenge, 2: zusatz }] wie
+  /// mengen, Planungskern v7 Regel 9.7), 160: verschnittvariante (uint8,
+  /// fehlt = 0, M9-01) }`. Neue Felder
   /// nur anhängen (docs/architektur/datenmodell.md); die Plätze 70–79 sind
   /// für die Ergebnisse (M9) vorgesehen.
   Uint8List zuBytes() {
@@ -241,12 +282,18 @@ final class Planung {
             for (final MapEntry(:key, :value) in mengen.entries)
               _menge(fbb, key, value),
           ]);
+    final ausserhalbOrt = ausserhalbAngebot.isEmpty
+        ? null
+        : fbb.writeList([
+            for (final s in ausserhalbAngebot) _menge(fbb, s, null),
+          ]);
     fbb
       ..startTable(_verschnittvariantePlatz + 1)
       ..addUint16(_schemaPlatz, schema)
       ..addOffset(_flaechenPlatz, flaechenOrt)
       ..addUint16(_aktivPlatz, aktiv)
       ..addOffset(_mengenPlatz, mengenOrt)
+      ..addOffset(_ausserhalbAngebotPlatz, ausserhalbOrt)
       ..addUint8(
         _verschnittvariantePlatz,
         verschnittvariante == 0 ? null : verschnittvariante,
@@ -264,7 +311,7 @@ final class Planung {
     return fbb.endTable();
   }
 
-  static int _menge(fb.Builder fbb, Positionsschluessel s, int anzahl) {
+  static int _menge(fb.Builder fbb, Positionsschluessel s, int? anzahl) {
     final nummerOrt = fbb.writeString(s.nummer.wert);
     fbb
       ..startTable(4)
@@ -282,6 +329,7 @@ final class Planung {
   static const _flaechenPlatz = 1;
   static const _aktivPlatz = 2;
   static const _mengenPlatz = 70;
+  static const _ausserhalbAngebotPlatz = 71;
   static const _verschnittvariantePlatz = 160;
 
   @override
@@ -290,7 +338,9 @@ final class Planung {
         other.aktiv != aktiv ||
         other.verschnittvariante != verschnittvariante ||
         other.flaechen.length != flaechen.length ||
-        other.mengen.length != mengen.length) {
+        other.mengen.length != mengen.length ||
+        !other.ausserhalbAngebot.containsAll(ausserhalbAngebot) ||
+        other.ausserhalbAngebot.length != ausserhalbAngebot.length) {
       return false;
     }
     for (final MapEntry(:key, :value) in mengen.entries) {
@@ -310,6 +360,7 @@ final class Planung {
     Object.hashAllUnordered([
       for (final MapEntry(:key, :value) in mengen.entries) (key, value),
     ]),
+    Object.hashAllUnordered(ausserhalbAngebot),
   );
 }
 
