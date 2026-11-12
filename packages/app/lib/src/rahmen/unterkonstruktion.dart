@@ -181,6 +181,17 @@ class HoehenpunkteWahl extends StatelessWidget {
               text: t.hoeheKorrigiert(cmText(t, punkte.mindesthoehe!)),
               warnung: true,
             ),
+          // Planungskern v6 Regel 3a.5: über der Höchsthöhe mit Stellfüßen
+          if (punkte != null && punkte.ungueltig)
+            Hinweis(
+              key: const ValueKey('hoehe-ueber-hoechsthoehe'),
+              text: [
+                t.hoeheUeberHoechsthoehe(cmText(t, punkte.hoechsthoehe!)),
+                if (punkte.vorschlag case final v?)
+                  t.hoeheVorschlag(cmText(t, v)),
+              ].join(' '),
+              warnung: true,
+            ),
         ],
       );
     },
