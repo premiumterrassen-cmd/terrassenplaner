@@ -273,3 +273,10 @@ Branch `feature/planungskern-v7-hoehe` auf `main` (9f2b2d1). Planungsregeln Alex
 **Verglichene Werte:** Alle F01–F43 und alle 26 Referenzfälle rechnen **genau wie `main`**; der Paritätstest bleibt unverändert. Die Fälle haben ebene Höhen (eine Höhe oder eine geneigte Ebene wie F30), dort sind Ausgleichsebene und die bisherigen Dreiecke gleich; keiner hat eine eigene Blendenhöhe oder Teilverblendung. Die Referenzunterlagen haben je Fläche die neue Seite „Bemaßung und Höhen“.
 
 **Nicht im Vergleich, aber geändert** (Unit-Tests, Planungskern v7): Höhen zwischen den Punkten bei verwundenem Untergrund und mit Abläufen (Ablauf 5 cm in der Mitte, Ecken 10 cm: auf halbem Weg 8,0 statt 7,5 cm; L- und U-Form mit unebenen Ecken je Punkt bis 4 mm anders).
+
+## Nachtrag UK-Plan und Vorgabe Dielenlänge (Planungskern v8/v9, 12.11.2026)
+
+Branch `feature/planungskern-v9-ukplan` auf `main` (fc1007f). Planungsregeln Alexander (Planungskern v8/v9, 12.11.2026), Abschnitte 10 und 11; R-B19, R-E06.
+
+**Verglichene Werte:** Alle F01–F43 und alle Referenzfälle rechnen **genau wie `main`** – die Vorgabe Dielenlänge ist ohne Eingabe leer, die übrigen Änderungen betreffen nur die Darstellung. In den Referenzunterlagen entfällt die Seite „Bemaßung und Höhen“, der UK-Plan trägt die Höhen.
+
