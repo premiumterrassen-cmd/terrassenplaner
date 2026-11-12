@@ -184,12 +184,19 @@ void main() {
 
     testWidgets('ungültige Eingaben: Hinweis, Planung bleibt', (tester) async {
       final s = await zeige(tester);
-      for (final text in ['abc', '49', '3001', '', '-']) {
+      for (final text in ['abc', '49', '3001', '5000', '', '-', '0']) {
         await tester.enterText(find.byKey(const ValueKey('mass-1')), text);
         await tester.testTextInput.receiveAction(TextInputAction.done);
         await tester.pump();
         expect(find.text('Bitte 50 bis 3000 cm eingeben'), findsOneWidget);
       }
+      // über 50 m: vermutlich mm – nicht angewendet, Bitte um cm
+      // (Planungskern v7 Regel 9.6)
+      await tester.enterText(find.byKey(const ValueKey('mass-1')), '5000,1');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+      expect(find.text(de.massInCm), findsOneWidget);
+      expect(find.text('Bitte 50 bis 3000 cm eingeben'), findsNothing);
       expect(s.planung.aktuell, Planungsstand.start);
       expect(s.geaendert, isEmpty);
       await tester.enterText(find.byKey(const ValueKey('mass-1')), '50');
@@ -590,6 +597,7 @@ void main() {
   test('englische Texte der Maßeingabe', () {
     expect(en.massPlatzhalter('A — B'), 'A — B: cm');
     expect(en.massUngueltig(50, 3000), 'Please enter 50 to 3000 cm');
+    expect(en.massInCm, 'Over 50 m – please enter the dimension in cm');
     expect(
       en.berechnungFehler,
       'Calculation not possible – please check the connection',

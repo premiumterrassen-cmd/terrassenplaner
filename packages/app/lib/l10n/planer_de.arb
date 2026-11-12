@@ -85,6 +85,7 @@
   "@massPlatzhalter": {"placeholders": {"kante": {"type": "String"}}},
   "massUngueltig": "Bitte {min} bis {max} cm eingeben",
   "@massUngueltig": {"placeholders": {"min": {"type": "int"}, "max": {"type": "int"}}},
+  "massInCm": "Über 50 m – bitte das Maß in cm angeben",
   "berechnungFehler": "Berechnung nicht möglich – bitte Verbindung prüfen",
   "planungZuAufwendig": "Die Planung ist zu umfangreich für die Berechnung – bitte weniger oder kleinere Flächen planen oder die Verschnittoptimierung ausschalten",
 
@@ -367,6 +368,10 @@
   "flaechenmeldungMasseFalsch": "Maße fehlen oder sind falsch: Die Fläche ist höchstens 0,05 m² groß. Bitte prüfen Sie die Maße.",
   "flaechenmeldungUnplausibelGross": "Die Fläche ist unplausibel groß (über 1.000 m²). Bitte prüfen Sie die Maße.",
   "flaechenmeldungUngewoehnlich": "Hinweis: Die Fläche liegt außerhalb der üblichen 1 bis 300 m² – bitte prüfen Sie die Maße.",
+  "kantenwarnungZuKurz": "Hinweis: Kante {kante} ist nur {cm} cm lang (unter 10 cm) – bitte prüfen Sie die Maße.",
+  "@kantenwarnungZuKurz": {"placeholders": {"kante": {"type": "String"}, "cm": {"type": "String"}}},
+  "kantenwarnungZuLang": "Hinweis: Kante {kante} ist {cm} cm lang (über 30 m) – bitte prüfen Sie die Maße.",
+  "@kantenwarnungZuLang": {"placeholders": {"kante": {"type": "String"}, "cm": {"type": "String"}}},
   "belagmeldungBombierung": "Ab 8 cm Breite empfehlen wir bombierte (leicht gewölbte) Dielen.",
   "belagmeldungLaengeNichtLieferbar": "Die gewählte Länge von {cm} cm gibt es für diesen Belag nicht. Die Dielenlänge wird automatisch ermittelt.",
   "@belagmeldungLaengeNichtLieferbar": {"placeholders": {"cm": {"type": "int"}}},
@@ -459,6 +464,9 @@
   "@materialLaenge": {"placeholders": {"laenge": {"type": "int"}}},
   "materialFreidiele": "Freidiele",
   "materialOptional": "Optional – nicht in der Summe",
+  "materialNichtImAngebot": "Nicht im Angebot: {titel}",
+  "@materialNichtImAngebot": {"placeholders": {"titel": {"type": "String"}}},
+  "materialImAngebot": "Im Angebot",
   "materialBerechnet": "berechnet: {anzahl}",
   "@materialBerechnet": {"placeholders": {"anzahl": {"type": "int"}}},
   "materialSumme": "Summe gesamt: {betrag}",
@@ -553,5 +561,9 @@
   "treppeMasse": "Treppenmaße in cm (L x B x H): {laenge} x {breite} x {hoehe}",
   "@treppeMasse": {"placeholders": {"laenge": {"type": "String"}, "breite": {"type": "String"}, "hoehe": {"type": "String"}}},
   "treppeUngueltig": "Bitte einen Wert im erlaubten Bereich eingeben",
-  "meldungTreppeNichtFrei": "Eine Treppe liegt an einer Seite am Bauelement oder mit Rinne – sie wird nicht gerechnet."
+  "meldungTreppeNichtFrei": "Eine Treppe liegt an einer Seite am Bauelement oder mit Rinne – sie wird nicht gerechnet.",
+  "treppeMeldungSteigung": "Prüfliste: Eine Steigung liegt außerhalb von 15–19 cm.",
+  "treppeMeldungSchrittmass": "Prüfliste: Das Schrittmaß (2 × Steigung + Auftritt) liegt außerhalb von 59–67 cm.",
+  "treppeMeldungZuSchmal": "Prüfliste: Die Treppe ist schmaler als 50 cm.",
+  "treppeMeldungUeberSeite": "Prüfliste: Die Treppe reicht über das Ende der Seite hinaus."
 }

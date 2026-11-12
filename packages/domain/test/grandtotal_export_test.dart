@@ -58,19 +58,20 @@ final _alle = {
 
 final _basis = Uri.parse('https://planer.example/app/');
 
-Materialliste _liste({Map<Positionsschluessel, int> mengen = const {}}) =>
-    Materialliste.aus([
-      Materialbedarf([_diele], 48, laenge: _m5),
-      Materialbedarf(
-        [_diele],
-        1,
-        laenge: _m5,
-        zusatz: Materialzusatz.freidiele,
-      ),
-      Materialbedarf([_uk], 13, laenge: _m4),
-      Materialbedarf([_clip], 300),
-      Materialbedarf([_montagehilfe], 1, jePlanung: true),
-    ], mengen: mengen);
+Materialliste _liste({
+  Map<Positionsschluessel, int> mengen = const {},
+  Set<Positionsschluessel> ausserhalbAngebot = const {},
+}) => Materialliste.aus(
+  [
+    Materialbedarf([_diele], 48, laenge: _m5),
+    Materialbedarf([_diele], 1, laenge: _m5, zusatz: Materialzusatz.freidiele),
+    Materialbedarf([_uk], 13, laenge: _m4),
+    Materialbedarf([_clip], 300),
+    Materialbedarf([_montagehilfe], 1, jePlanung: true),
+  ],
+  mengen: mengen,
+  ausserhalbAngebot: ausserhalbAngebot,
+);
 
 void main() {
   group('Export für GrandTotal (M9-08)', () {
@@ -251,6 +252,24 @@ void main() {
       ]);
       expect(zeilen.first.anzahl, 50);
       expect(zeilen.first.felder[14], '250');
+    });
+
+    test('Positionen nicht im Angebot entfallen (Planungskern v7 Regel '
+        '9.7)', () {
+      final zeilen = grandTotalZeilen(
+        _liste(
+          ausserhalbAngebot: {
+            (nummer: _uk.nummer, laenge: _m4, zusatz: null),
+            (nummer: _montagehilfe.nummer, laenge: null, zusatz: null),
+          },
+        ),
+        (n) => _alle[n],
+      );
+      expect(zeilen.map((z) => z.artikelnummer.wert), [
+        '10-10-073-R',
+        '10-10-073-R',
+        '80-10-001-250',
+      ]);
     });
 
     test('unbekannter Artikel: ohne Maße, Gewicht und Artikeltyp', () {

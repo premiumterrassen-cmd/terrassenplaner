@@ -157,6 +157,7 @@ final class Materialzeile {
     this.positionspreis,
     this.preisJeLfm,
     this.gesamtlaenge,
+    this.imAngebot = true,
   });
 
   /// Positionsnummer ab 1.
@@ -197,6 +198,12 @@ final class Materialzeile {
   /// Gesamtlänge ([anzahl] × [laenge]) für „Gesamt-lfm“.
   final Millimeter? gesamtlaenge;
 
+  /// Ob die Position im Angebot ist (Planungsregeln Alexander,
+  /// Planungskern v7 Regel 9.7). Ohne Häkchen bleibt sie mit dem Namen
+  /// „Nicht im Angebot: …“ stehen, zählt nicht zur [Materialliste.summe]
+  /// und geht nicht in den Export für die Angebotssoftware.
+  final bool imAngebot;
+
   Positionsschluessel get schluessel =>
       (nummer: nummer, laenge: laenge, zusatz: zusatz);
 
@@ -216,7 +223,8 @@ final class Materialzeile {
       other.einzelpreis == einzelpreis &&
       other.positionspreis == positionspreis &&
       other.preisJeLfm == preisJeLfm &&
-      other.gesamtlaenge == gesamtlaenge;
+      other.gesamtlaenge == gesamtlaenge &&
+      other.imAngebot == imAngebot;
 
   @override
   int get hashCode => Object.hash(
@@ -234,6 +242,7 @@ final class Materialzeile {
     positionspreis,
     preisJeLfm,
     gesamtlaenge,
+    imAngebot,
   );
 
   @override
@@ -260,11 +269,16 @@ final class Materialliste {
   /// in [Materialzeile.berechnet] sichtbar; 0 wählt die Position ab.
   /// Mengen zu Positionen, die es nicht mehr gibt, wirken nicht.
   ///
+  /// Positionen in [ausserhalbAngebot] (Planungskern v7 Regel 9.7) bleiben
+  /// stehen ([Materialzeile.imAngebot] falsch), zählen aber nicht zur
+  /// Summe.
+  ///
   /// Reihenfolge: Bereich (Belag, Unterkonstruktion, Befestigung, Auflager,
   /// Anschluss, Zubehör), dann Artikelnummer, Länge und Zusatz.
   factory Materialliste.aus(
     Iterable<Materialbedarf> bedarfe, {
     Map<Positionsschluessel, int> mengen = const {},
+    Set<Positionsschluessel> ausserhalbAngebot = const {},
   }) {
     final gruppen = <String, Materialbedarf>{};
     for (final b in bedarfe) {
@@ -296,9 +310,18 @@ final class Materialliste {
     final schluessel = anzahl.keys.toList()..sort(_vergleiche(anzahl));
     final positionen = [
       for (final (i, s) in schluessel.indexed)
-        _position(i + 1, s, anzahl[s]!.$1, anzahl[s]!.$2, mengen[s]),
+        _position(
+          i + 1,
+          s,
+          anzahl[s]!.$1,
+          anzahl[s]!.$2,
+          mengen[s],
+          imAngebot: !ausserhalbAngebot.contains(s),
+        ),
     ];
-    final fest = positionen.where((p) => p.zusatz != Materialzusatz.optional);
+    final fest = positionen.where(
+      (p) => p.zusatz != Materialzusatz.optional && p.imAngebot,
+    );
     final summe = fest.fold(
       const Cent(0),
       (summe, p) => summe + (p.positionspreis ?? const Cent(0)),
@@ -339,7 +362,8 @@ final class Materialliste {
   final List<Materialzeile> positionen;
 
   /// Summe der Positionspreise brutto ohne die optionalen Positionen
-  /// ([Materialzusatz.optional]).
+  /// ([Materialzusatz.optional]) und ohne die, die nicht im Angebot sind
+  /// ([Materialzeile.imAngebot]).
   final Cent summe;
 
   /// In der [summe] enthaltene Mehrwertsteuer ([mehrwertsteuerSatz]).
@@ -356,9 +380,10 @@ final class Materialliste {
   /// (string), 4: bereich (uint8), 5: einheit (uint8), 6: laenge (int32 mm),
   /// 7: anzahl (uint32), 8: berechnet (uint32), 9: zusatz (uint8), 10:
   /// einzelpreis, 11: positionspreis, 12: preisJeLfm (int64 Cent), 13:
-  /// gesamtlaenge (int32 mm) }]; fehlende Werte fehlen), 1: summe, 2:
-  /// mehrwertsteuer (int64 Cent), 3: vollstaendig (bool) }` und gibt ihren
-  /// Ort zurück.
+  /// gesamtlaenge (int32 mm), 14: nicht im Angebot (bool, fehlt = im
+  /// Angebot, Planungskern v7 Regel 9.7) }]; fehlende Werte fehlen), 1:
+  /// summe, 2: mehrwertsteuer (int64 Cent), 3: vollstaendig (bool) }` und
+  /// gibt ihren Ort zurück.
   int schreibe(fb.Builder fbb) {
     final orte = fbb.writeList([
       for (final p in positionen) _schreibePosition(fbb, p),
@@ -401,8 +426,9 @@ Materialzeile _position(
   Positionsschluessel s,
   Artikel artikel,
   int berechnet,
-  int? geaendert,
-) {
+  int? geaendert, {
+  required bool imAngebot,
+}) {
   final anzahl = geaendert ?? berechnet;
   final laenge = s.laenge;
   final (:einzel, :gesamt, :jeLfm) = _preise(artikel, laenge, anzahl, s.zusatz);
@@ -421,6 +447,7 @@ Materialzeile _position(
     positionspreis: gesamt,
     preisJeLfm: jeLfm,
     gesamtlaenge: laenge == null ? null : laenge * anzahl,
+    imAngebot: imAngebot,
   );
 }
 
@@ -491,7 +518,7 @@ int _schreibePosition(fb.Builder fbb, Materialzeile p) {
     null => null,
   };
   fbb
-    ..startTable(14)
+    ..startTable(15)
     ..addUint32(0, p.position)
     ..addOffset(1, nummerOrt)
     ..addOffset(2, titelOrt)
@@ -505,7 +532,8 @@ int _schreibePosition(fb.Builder fbb, Materialzeile p) {
     ..addInt64(10, p.einzelpreis?.cent)
     ..addInt64(11, p.positionspreis?.cent)
     ..addInt64(12, p.preisJeLfm?.cent)
-    ..addInt32(13, p.gesamtlaenge?.mm);
+    ..addInt32(13, p.gesamtlaenge?.mm)
+    ..addBool(14, p.imAngebot ? null : true);
   return fbb.endTable();
 }
 
@@ -547,6 +575,12 @@ Materialzeile _liesPosition(fb.BufferContext puffer, int ort) {
     positionspreis: cent(11),
     preisJeLfm: cent(12),
     gesamtlaenge: mm(13),
+    imAngebot: !const fb.BoolReader().vTableGet(
+      puffer,
+      ort,
+      _versatz(14),
+      false,
+    ),
   );
 }
 

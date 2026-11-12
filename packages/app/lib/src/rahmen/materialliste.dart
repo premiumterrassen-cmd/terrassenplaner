@@ -21,7 +21,10 @@ import 'zuschnittplan.dart';
 /// je Position änderbar und wird mit dem Häkchen übernommen; die Planung
 /// merkt sich die Menge, der Server rechnet mit ihr – aber nur für
 /// angemeldete Mitarbeiter (M9-10). Dort gibt es auch den Export für
-/// GrandTotal (M9-08), wenn ein [export] angeschlossen ist.
+/// GrandTotal (M9-08), wenn ein [export] angeschlossen ist, und je Position
+/// das Häkchen „Im Angebot“ (Planungskern v7 Regel 9.7): ohne Häkchen
+/// bleibt die Position als „Nicht im Angebot: …“ stehen; Summe und Export
+/// rechnet der Server ohne sie.
 class MateriallisteAnsicht extends StatelessWidget {
   const MateriallisteAnsicht({
     required this.berechnung,
@@ -99,6 +102,7 @@ class MateriallisteAnsicht extends StatelessWidget {
             dataRowMinHeight: 56,
             dataRowMaxHeight: mitarbeiter ? 120 : 88,
             columns: [
+              if (mitarbeiter) DataColumn(label: Text(t.materialImAngebot)),
               DataColumn(label: Text(t.materialSpaltePosition), numeric: true),
               DataColumn(label: Text(t.materialSpalteBild)),
               DataColumn(label: Text(t.materialSpalteArtikel)),
@@ -122,6 +126,7 @@ class MateriallisteAnsicht extends StatelessWidget {
                 DataRow(
                   key: ValueKey('position-${p.position}'),
                   cells: [
+                    if (mitarbeiter) DataCell(_imAngebot(p)),
                     DataCell(Text('${p.position}')),
                     DataCell(Artikelbild.datei(p.bild, p.titel, groesse: 48)),
                     DataCell(_artikel(t, p)),
@@ -183,7 +188,11 @@ class MateriallisteAnsicht extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(p.titel, maxLines: 2, overflow: TextOverflow.ellipsis),
+        Text(
+          p.imAngebot ? p.titel : t.materialNichtImAngebot(p.titel),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
         if (p.laenge case final l?)
           Text(t.materialLaenge(l.mm), style: const TextStyle(fontSize: 12)),
         if (switch (p.zusatz) {
@@ -198,6 +207,15 @@ class MateriallisteAnsicht extends StatelessWidget {
             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
           ),
       ],
+    ),
+  );
+
+  /// Häkchen „Im Angebot“ der Position (Mitarbeiter-Ansicht).
+  Widget _imAngebot(Materialzeile p) => Checkbox(
+    key: ValueKey('im-angebot-${p.position}'),
+    value: p.imAngebot,
+    onChanged: (an) => planung.setzePlanung(
+      planung.planung.mitImAngebot(p.schluessel, an: an!),
     ),
   );
 

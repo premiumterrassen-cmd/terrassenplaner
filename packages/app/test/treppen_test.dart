@@ -92,6 +92,8 @@ void main() {
     expect(treppe(s.planung).seite, 2);
     expect(find.text(de.treppeName(1)), findsOneWidget);
     expect(find.text(de.treppeMasse('100', '54', '31,2')), findsOneWidget);
+    // Prüfliste (Planungskern v7 Regel 9.5.5): Schrittmaß 58,2 cm
+    expect(find.text(de.treppeMeldungSchrittmass), findsOneWidget);
     expect(find.byKey(const ValueKey('treppe-0-seite-0')), findsNothing);
     expect(find.byKey(const ValueKey('treppe-0-seite-1')), findsNothing);
     await tippe(tester, 'treppe-0-seite-3');
@@ -176,6 +178,32 @@ void main() {
     ));
     await tippe(tester, 'treppe-0-entfernen');
     expect(s.planung.aktuell.treppen, isEmpty);
+  });
+
+  testWidgets('Prüfliste der Treppe: alle Hinweise in beiden Sprachen', (
+    tester,
+  ) async {
+    final stand = Planungsstand.start.mitNeuerTreppe().mitTreppe(
+      0,
+      const Treppe(
+        seite: 2,
+        abstand: Millimeter(4500),
+        breite: Millimeter(400),
+        stufe: (tiefe: Millimeter(400), hoehe: Millimeter(200)),
+      ),
+    );
+    await zeige(tester, stand: stand);
+    for (final text in [
+      de.treppeMeldungSteigung,
+      de.treppeMeldungSchrittmass,
+      de.treppeMeldungZuSchmal,
+      de.treppeMeldungUeberSeite,
+    ]) {
+      expect(find.text(text), findsOneWidget);
+    }
+    expect(find.byKey(const ValueKey('treppe-0-ueberSeite')), findsOneWidget);
+    await zeige(tester, stand: stand, sprache: const Locale('en'));
+    expect(find.textContaining('Checklist'), findsNWidgets(4));
   });
 
   testWidgets('Kreis: keine Seiten', (tester) async {

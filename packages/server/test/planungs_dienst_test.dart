@@ -1175,6 +1175,33 @@ void main() {
           true,
         ).materialliste.positionen.first;
         expect((mit.anzahl, mit.berechnet), (50, 47));
+        // Häkchen „im Angebot“ weg (Planungskern v7 Regel 9.7): nur
+        // Mitarbeiter
+        final ohne = planung.mitImAngebot(schluessel, an: false);
+        final liste = PlanungsDienst.berechnePlanung(
+          ohne,
+          (_) => diele,
+          regelwerk,
+          true,
+        ).materialliste;
+        expect(liste.positionen.first.imAngebot, isFalse);
+        expect(
+          liste.summe,
+          liste.positionen
+              .skip(1)
+              .fold(
+                const Cent(0),
+                (s, p) => s + (p.positionspreis ?? const Cent(0)),
+              ),
+        );
+        expect(
+          PlanungsDienst.berechnePlanung(
+            ohne,
+            (_) => diele,
+            regelwerk,
+          ).materialliste.positionen.first.imAngebot,
+          isTrue,
+        );
         expect(
           PlanungsDienst.berechnePlanung(
             planung,

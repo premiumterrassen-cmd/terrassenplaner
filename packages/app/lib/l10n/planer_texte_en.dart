@@ -245,6 +245,9 @@ class PlanerTexteEn extends PlanerTexte {
   }
 
   @override
+  String get massInCm => 'Over 50 m – please enter the dimension in cm';
+
+  @override
   String get berechnungFehler =>
       'Calculation not possible – please check the connection';
 
@@ -1065,6 +1068,16 @@ class PlanerTexteEn extends PlanerTexte {
       'Note: the area is outside the usual 1 to 300 m² – please check the dimensions.';
 
   @override
+  String kantenwarnungZuKurz(String kante, String cm) {
+    return 'Note: edge $kante is only $cm cm long (under 10 cm) – please check the dimensions.';
+  }
+
+  @override
+  String kantenwarnungZuLang(String kante, String cm) {
+    return 'Note: edge $kante is $cm cm long (over 30 m) – please check the dimensions.';
+  }
+
+  @override
   String get belagmeldungBombierung =>
       'From 8 cm width we recommend crowned (slightly curved) boards.';
 
@@ -1332,6 +1345,14 @@ class PlanerTexteEn extends PlanerTexte {
 
   @override
   String get materialOptional => 'Optional – not included in the total';
+
+  @override
+  String materialNichtImAngebot(String titel) {
+    return 'Not in the offer: $titel';
+  }
+
+  @override
+  String get materialImAngebot => 'In the offer';
 
   @override
   String materialBerechnet(int anzahl) {
@@ -1628,4 +1649,20 @@ class PlanerTexteEn extends PlanerTexte {
   @override
   String get meldungTreppeNichtFrei =>
       'A staircase lies on a side at a building element or with a channel – it is not calculated.';
+
+  @override
+  String get treppeMeldungSteigung =>
+      'Checklist: a riser height is outside 15–19 cm.';
+
+  @override
+  String get treppeMeldungSchrittmass =>
+      'Checklist: the step dimension (2 × riser + tread) is outside 59–67 cm.';
+
+  @override
+  String get treppeMeldungZuSchmal =>
+      'Checklist: the stairs are narrower than 50 cm.';
+
+  @override
+  String get treppeMeldungUeberSeite =>
+      'Checklist: the stairs extend beyond the end of the side.';
 }
