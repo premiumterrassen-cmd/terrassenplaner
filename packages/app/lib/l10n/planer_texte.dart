@@ -1900,6 +1900,18 @@ abstract class PlanerTexte {
   /// **'Der Höhenreferenzpunkt unterschreitet die minimale Höhe von {cm} cm. Er wurde korrigiert.'**
   String hoeheKorrigiert(String cm);
 
+  /// No description provided for @hoeheUeberHoechsthoehe.
+  ///
+  /// In de, this message translates to:
+  /// **'Höhe ungültig: höchstens {cm} cm mit Stellfüßen. Gerechnet wird mit dem Standardaufbau.'**
+  String hoeheUeberHoechsthoehe(String cm);
+
+  /// No description provided for @hoeheVorschlag.
+  ///
+  /// In de, this message translates to:
+  /// **'Meintest du {cm} cm?'**
+  String hoeheVorschlag(String cm);
+
   /// No description provided for @belagmeldungBelagErsetzt.
   ///
   /// In de, this message translates to:

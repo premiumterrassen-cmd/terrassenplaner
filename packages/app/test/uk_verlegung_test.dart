@@ -24,6 +24,14 @@ Future<Berechnung> _server(Planung planung) async => Berechnung(
       (ort: Punkt(20, 515), spalt: Millimeter(300), zeile: null),
     ],
   ),
+  planbild: Planbild(
+    stoesse: const [(von: Punkt(3000, 0), bis: Punkt(3000, 66))],
+    achsen: Masskette(const [
+      Punkt(0, 3090),
+      Punkt(20, 3090),
+      Punkt(4800, 3090),
+    ], const Punkt(0, 1)),
+  ),
 );
 
 void main() {
@@ -61,6 +69,15 @@ void main() {
       (const Offset(20, 0), const Millimeter(5), true),
       (const Offset(20, 515), const Millimeter(300), false),
     ]);
+    // Pläne nach dem Planungskern (R-E01 bis R-E03)
+    expect(z.namen, ['A', 'B', 'C']);
+    expect(z.stoesse, [(const Offset(3000, 0), const Offset(3000, 66))]);
+    expect(z.achsen!.marken, const [
+      Offset(0, 3090),
+      Offset(20, 3090),
+      Offset(4800, 3090),
+    ]);
+    expect(z.achsen!.normale, const Offset(0, 1));
   });
 
   testWidgets('ohne Hölzer Breite 0', (tester) async {
@@ -76,6 +93,8 @@ void main() {
     planung.setze(planung.aktuell.mitGewerblich(true));
     await tester.pump();
     expect(berechnung.zeichnung.ukBreite, 0);
+    expect(berechnung.zeichnung.achsen, isNull);
+    expect(berechnung.zeichnung.stoesse, isEmpty);
   });
 
   testWidgets('Kennzahlen zeigen das Volumen der Berechnung', (tester) async {

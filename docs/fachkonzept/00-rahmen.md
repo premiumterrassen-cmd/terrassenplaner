@@ -18,7 +18,7 @@ Logo, Titel „TERRASSENKONFIGURATOR“, „Video Beratung buchen“, SPEICHERN,
 
 ## Zeichenfläche
 
-- Draufsicht mit Eckpunktnamen und Kantenmaßen in cm, Dielenbild maßstäblich.
+- Draufsicht mit Eckpunktnamen und Kantenmaßen in cm, Dielenbild maßstäblich. Neuer Planer (Planungskern v6 Abschnitt 6): Eckpunkt A oben links, weiter im Uhrzeigersinn (R-E03); auf der Ebene Belag die Dielenstöße rot gestrichelt (R-E01), auf der Ebene UK die Achsmaßkette in cm (R-E02).
 - Werkzeuge links oben (Symbole für Punkt hinzufügen, Punkt entfernen, Auswahl).
 - Unten: „Form drehen“, Zentrieren, Zoom −/Regler/+, Ebenen-Schalter **Belag | UK | Maße**, Hinweis „Zoom“ (Mausrad) und „verschieben“ (Maus).
 - Rechts oben Kennzahlen: Fläche, Verschnitt, Volumen.

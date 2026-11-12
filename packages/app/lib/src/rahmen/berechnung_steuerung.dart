@@ -81,6 +81,19 @@ class BerechnungsSteuerung extends ChangeNotifier {
         final p? => Offset(p.x, p.y),
         null => null,
       },
+      // Pläne nach dem Planungskern (R-E01 bis R-E03)
+      namen: b.eckbuchstaben,
+      stoesse: [
+        for (final s in b.planbild.stoesse)
+          (Offset(s.von.x, s.von.y), Offset(s.bis.x, s.bis.y)),
+      ],
+      achsen: switch (b.planbild.achsen) {
+        final k? => (
+          marken: _offsets(k.marken),
+          normale: Offset(k.normale.x, k.normale.y),
+        ),
+        null => null,
+      },
     ),
     null => Zeichnung.leer,
   };

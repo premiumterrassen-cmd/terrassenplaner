@@ -23,6 +23,35 @@ const versteifungsAbstand = Millimeter(1200);
 /// (13 × 7 = 91 Bodenanker wie im alten Planer).
 const auflagerAbstandVorgabe = Millimeter(600);
 
+/// Stärke des Gummibands (GUMO) zwischen UK und Diele: Es liegt im
+/// Standardaufbau und hebt die Diele (Planungsregeln Alexander
+/// (Planungskern v6, 11.11.2026), Regel 3a.1/3a.2.1): Ausgleichshöhe =
+/// Höhe − Dielenstärke − UK-Höhe − 1 mm.
+const gummiband = Millimeter(1);
+
+/// Bis zu dieser Ausgleichshöhe liegt die UK auf Unterlegpads, auch zwei
+/// übereinander (2 / 5 / 8, 2 + 2, 5 + 2, 5 + 5, 8 + 5, 8 + 8 mm); ab der
+/// nächsten (18 mm) auf Stellfüßen – Planungsregeln Alexander (Planungskern
+/// v6, 11.11.2026), Regel 3a.2.2/3a.2.3.
+const padAusgleichBis = Millimeter(17);
+
+/// Größte Ausgleichshöhe mit Stellfüßen: der höchste Fuß 80–200 mm mit zwei
+/// Adaptern à 120 mm (Planungsregeln Alexander (Planungskern v6,
+/// 11.11.2026), Regel 3a.2.3/3a.4) – Höchsthöhe = (440 + UK-Höhe + 1 +
+/// Dielenstärke) mm, bei 23-mm-Diele und 60er UK 52,4 cm.
+const stellfussAusgleichBis = Millimeter(440);
+
+/// Abstand der UK von der Hauswand bei Stellfüßen (Planungsregeln Alexander
+/// (Planungskern v6, 11.11.2026), Regel 3.11.1/3.11.4): UK, die auf die
+/// Wand zuläuft, endet 1 cm vor ihr – mit dem ersten Fuß 5 cm vom UK-Ende
+/// steht seine Mitte 6 cm von der Wand.
+const wandabstandBeiStellfuessen = Millimeter(10);
+
+/// Achse einer UK parallel zur Hauswand bei Stellfüßen: 6 cm von der Wand,
+/// damit der Fuß (Teller ca. 10 cm) nicht an der Wand ansteht
+/// (Planungsregeln Alexander (Planungskern v6, 11.11.2026), Regel 3.11.2).
+const wandachseBeiStellfuessen = Millimeter(60);
+
 /// Kürzestes Reststück, wenn eine UK-Linie länger als die längste
 /// Lieferlänge gestückelt wird (Planungsregeln Alexander (Planungskern v6,
 /// 11.11.2026), Regel 3.5; `ukStueckelung`).

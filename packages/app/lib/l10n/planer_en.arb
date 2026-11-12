@@ -315,6 +315,8 @@
   "aufbauhoehe": "Construction height (decking and substructure): {cm} cm",
   "ukGedreht": "The substructure is turned (width and thickness swapped) to keep to the construction height.",
   "hoeheKorrigiert": "The height reference point is below the minimum height of {cm} cm. It has been corrected.",
+  "hoeheUeberHoechsthoehe": "Invalid height: at most {cm} cm with adjustable feet. The standard build-up is used.",
+  "hoeheVorschlag": "Did you mean {cm} cm?",
   "belagmeldungBelagErsetzt": "The selected decking is no longer available. The plan uses the default decking – choose another one via “Product selection” if needed.",
   "belagmeldungOhneMasse": "Width or delivery lengths are missing for this decking, so it cannot be laid. Please choose another decking.",
   "belagmeldungSystemdiele": "System boards are laid endlessly in mixed lengths – the planner does not draw this yet.",

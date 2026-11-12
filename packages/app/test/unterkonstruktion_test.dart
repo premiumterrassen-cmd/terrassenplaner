@@ -252,6 +252,31 @@ void main() {
       expect(find.byIcon(Icons.info_outline), findsOneWidget);
     });
 
+    testWidgets('über der Höchsthöhe mit Stellfüßen: Meldung mit Rückfrage '
+        '(Planungskern v6 Regel 3a.5)', (tester) async {
+      await zeige(tester, berechne: server);
+      expect(
+        find.byKey(const ValueKey('hoehe-ueber-hoechsthoehe')),
+        findsNothing,
+      );
+      await gib(tester, 'alle', '113');
+      expect(
+        find.text(
+          'Höhe ungültig: höchstens 52,4 cm mit Stellfüßen. Gerechnet wird '
+          'mit dem Standardaufbau. Meintest du 11,3 cm?',
+        ),
+        findsOneWidget,
+      );
+      await gib(tester, 'alle', '53');
+      expect(
+        find.text(
+          'Höhe ungültig: höchstens 52,4 cm mit Stellfüßen. Gerechnet wird '
+          'mit dem Standardaufbau.',
+        ),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('ohne Berechnung nur die Eingaben', (tester) async {
       await zeige(tester);
       expect(feld('alle'), findsOneWidget);

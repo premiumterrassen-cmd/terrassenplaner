@@ -81,6 +81,8 @@ final class Unterlagentexte {
     required this.anzahl,
     required this.belagKapitel,
     required this.dielenHinweis,
+    required this.stossHinweis,
+    required this.achsmassHinweis,
     required this.dielenNachNummer,
     required this.nr,
     required this.masse,
@@ -163,6 +165,10 @@ final class Unterlagentexte {
     dielenHinweis:
         'Hinweis: Die Zahl in den Dielen/Platten ist die Nummer in der '
         'nachstehenden Tabelle.',
+    stossHinweis:
+        'Rot gestrichelt: Stoß – jedes Dielenende liegt auf einer eigenen '
+        'UK (Doppel-UK).',
+    achsmassHinweis: 'Blau: Achsmaße der UK in cm.',
     dielenNachNummer: 'Dielen/Platten nach Nummer',
     nr: 'Nr.',
     masse: 'Maße in cm',
@@ -268,6 +274,10 @@ final class Unterlagentexte {
     dielenHinweis:
         'Note: the number in the boards/tiles is the number in the table '
         'below.',
+    stossHinweis:
+        'Red dashed: butt joint – each board end rests on its own joist '
+        '(double joist).',
+    achsmassHinweis: 'Blue: joist centre distances in cm.',
     dielenNachNummer: 'Boards/tiles by number',
     nr: 'No.',
     masse: 'Size in cm',
@@ -377,6 +387,12 @@ final class Unterlagentexte {
   final String anzahl;
   final String belagKapitel;
   final String dielenHinweis;
+
+  /// Legende der Stoßlinien im Verlegeplan (R-E01).
+  final String stossHinweis;
+
+  /// Legende der Achsmaßkette im UK-Plan (R-E02).
+  final String achsmassHinweis;
   final String dielenNachNummer;
   final String nr;
   final String masse;
@@ -645,6 +661,17 @@ final class Unterlagentexte {
             '${cm(mindesthoehe)} cm und wurde korrigiert.'
       : 'A height point was below the minimum height of '
             '${cm(mindesthoehe)} cm and has been corrected.';
+
+  /// Höhe ungültig (Planungsregeln Alexander (Planungskern v6, 11.11.2026),
+  /// Regel 3a.5): über der [hoechsthoehe] mit Stellfüßen, gerechnet mit dem
+  /// Standardaufbau; mit [vorschlag] die Rückfrage „Meintest du … cm?“.
+  String hoeheUngueltig(Millimeter hoechsthoehe, Millimeter? vorschlag) => _de
+      ? 'Höhe ungültig: höchstens ${cm(hoechsthoehe)} cm mit Stellfüßen. '
+            'Gerechnet wird mit dem Standardaufbau.'
+            '${vorschlag == null ? '' : ' Meintest du ${cm(vorschlag)} cm?'}'
+      : 'Invalid height: at most ${cm(hoechsthoehe)} cm with adjustable '
+            'feet. The standard build-up is used.'
+            '${vorschlag == null ? '' : ' Did you mean ${cm(vorschlag)} cm?'}';
 
   /// Die Selbstkontrolle hat an einer Kante mit Dielenenden eine Rand-UK der
   /// Länge [laenge] ergänzt (Planungsregeln Alexander (Planungskern v6,

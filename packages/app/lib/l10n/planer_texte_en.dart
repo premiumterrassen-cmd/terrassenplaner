@@ -1023,6 +1023,16 @@ class PlanerTexteEn extends PlanerTexte {
   }
 
   @override
+  String hoeheUeberHoechsthoehe(String cm) {
+    return 'Invalid height: at most $cm cm with adjustable feet. The standard build-up is used.';
+  }
+
+  @override
+  String hoeheVorschlag(String cm) {
+    return 'Did you mean $cm cm?';
+  }
+
+  @override
   String get belagmeldungBelagErsetzt =>
       'The selected decking is no longer available. The plan uses the default decking – choose another one via “Product selection” if needed.';
 

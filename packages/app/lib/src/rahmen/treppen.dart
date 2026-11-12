@@ -160,7 +160,7 @@ class TreppenBlock extends StatelessWidget {
           Text(t.treppeStart),
           Seitenwahl(
             name: '$_k-seite',
-            seitenzahl: stand.seitenzahl,
+            stand: stand,
             gewaehlt: (seite) => seite == treppe.seite,
             waehlbar: (seite) =>
                 !anschluss.grenztAn(seite) && anschluss.rinneAn(seite) == null,

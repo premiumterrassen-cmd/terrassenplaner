@@ -268,11 +268,104 @@ void main() {
       expect(englisch.zentimeter(125), '12.5 cm');
       expect(
         [
-          for (final i in [0, 1, 25, 26]) ZeichnungsMaler.punktname(i),
+          for (final i in [0, 1, 25, 26]) Zeichnung.leer.name(i),
         ],
-        ['A', 'B', 'Z', 'A'],
+        ['A', 'B', 'Z', 'AA'],
       );
+      expect(Zeichnung(namen: const ['C', 'D']).name(1), 'D');
+      expect(Zeichnung(namen: const ['C', 'D']).name(2), 'C');
       expect(de.ablauf, 'Ablauf');
+    });
+
+    test('Punktnamen vom Server (R-E03) an den Ecken', () {
+      final z = Zeichnung(
+        umriss: const [
+          Offset(0, 3000),
+          Offset(4000, 3000),
+          Offset(4000, 0),
+          Offset(0, 0),
+        ],
+        namen: const ['D', 'C', 'B', 'A'],
+      );
+      final o = AnsichtsOptionen();
+      for (final b in Beschriftung.values) {
+        if (b != Beschriftung.punkte) o.schalte(b);
+      }
+      o.setzeEbenen({});
+      expect(_texte(_maler(z, o)), ['D', 'C', 'B', 'A']);
+    });
+
+    test('Stoßlinien (R-E01): rot gestrichelt auf der Ebene Belag', () {
+      final z = Zeichnung(
+        stoesse: const [(Offset(1000, 0), Offset(1000, 200))],
+      );
+      final o = AnsichtsOptionen();
+      final striche = _maler(z, o).stossstriche();
+      // 20 px bei 100 %: Striche 6 px, Lücken 3 px → 0–6, 9–15, 18–20
+      expect(striche, const [
+        (Offset(100, 0), Offset(100, 6)),
+        (Offset(100, 9), Offset(100, 15)),
+        (Offset(100, 18), Offset(100, 20)),
+      ]);
+      expect(ZeichnungsMaler.stossFarbe, const Color(0xFFC30624));
+      expect(ZeichnungsMaler.gestrichelt(Offset.zero, Offset.zero), isEmpty);
+      final veraenderlich = Zeichnung(
+        namen: ['A'],
+        stoesse: [(Offset.zero, Offset.zero)],
+      );
+      expect(
+        () => veraenderlich.stoesse.add((Offset.zero, Offset.zero)),
+        throwsUnsupportedError,
+      );
+      expect(() => veraenderlich.namen.add('B'), throwsUnsupportedError);
+      o.setzeEbenen({Ebene.unterkonstruktion, Ebene.masse});
+      expect(_maler(z, o).stossstriche(), isEmpty);
+    });
+
+    test('Achsmaßkette (R-E02): blau außen auf der Ebene UK, Zahlen in cm '
+        'ab 14 px Abstand', () {
+      final z = Zeichnung(
+        achsen: (
+          marken: const [
+            Offset(0, 3000),
+            Offset(20, 3000),
+            Offset(420, 3000),
+            Offset(4000, 3000),
+          ],
+          normale: const Offset(0, 1),
+        ),
+      );
+      final o = AnsichtsOptionen();
+      final kette = _maler(z, o).achsmasskette();
+      const y = 300 + ZeichnungsMaler.achsmassAbstand;
+      expect(kette.linien.take(3), const [
+        (Offset(0, y), Offset(2, y)),
+        (Offset(2, y), Offset(42, y)),
+        (Offset(42, y), Offset(400, y)),
+      ]);
+      expect(kette.linien[3], const (Offset(0, y - 4), Offset(0, y + 4)));
+      expect(kette.linien, hasLength(7));
+      // 2 px zwischen Rand und erster Achse: keine Zahl
+      expect([for (final t in kette.texte) t.text], ['40', '358']);
+      expect(kette.texte.first.ort, const Offset(22, y + 6));
+      expect(kette.texte.first.richtung, const Offset(0, 1));
+      expect(ZeichnungsMaler.achsmassFarbe, const Color(0xFF1565C0));
+      // 14 px genau reicht
+      final knapp = Zeichnung(
+        achsen: (
+          marken: const [Offset(0, 0), Offset(140, 0)],
+          normale: const Offset(0, 1),
+        ),
+      );
+      expect(_maler(knapp, o).achsmasskette().texte, hasLength(1));
+      o.setzeEbenen({Ebene.belag, Ebene.masse});
+      final aus = _maler(z, o).achsmasskette();
+      expect(aus.linien, isEmpty);
+      expect(aus.texte, isEmpty);
+      expect(
+        _maler(Zeichnung.leer, AnsichtsOptionen()).achsmasskette().linien,
+        isEmpty,
+      );
     });
 
     test('Dielenstücke (M5-05): auf der Ebene Belag, im Zoom', () {
@@ -326,6 +419,33 @@ void main() {
       expect(rand.style, PaintingStyle.stroke);
       expect(rand.strokeWidth, 1.5);
       expect(fuge.color.a, closeTo(0.3, 0.01));
+    });
+
+    test('Stoßlinien und Achsmaßkette gezeichnet: rote Striche 2 px, blaue '
+        'Kette mit Zahlen', () {
+      final z = Zeichnung(
+        stoesse: const [(Offset(1000, 0), Offset(1000, 60))],
+        achsen: (
+          marken: const [Offset(0, 0), Offset(400, 0)],
+          normale: const Offset(0, 1),
+        ),
+      );
+      final aufnahme = PictureRecorder();
+      final leinwand = _ZaehlendeLeinwand(Canvas(aufnahme));
+      _maler(z, AnsichtsOptionen()).paint(leinwand, const Size(800, 600));
+      aufnahme.endRecording();
+      final rot = leinwand.linienStifte.where(
+        (p) => p.color.toARGB32() == ZeichnungsMaler.stossFarbe.toARGB32(),
+      );
+      // 6 px: ein Strich
+      expect(rot, hasLength(1));
+      expect(rot.single.strokeWidth, 2);
+      final blau = leinwand.linienStifte.where(
+        (p) => p.color.toARGB32() == ZeichnungsMaler.achsmassFarbe.toARGB32(),
+      );
+      // Kette und zwei Marken
+      expect(blau, hasLength(3));
+      expect(leinwand.aufrufe['drawParagraph'], greaterThanOrEqualTo(1));
     });
 
     test('Querstreben (M6-06): grün über dem Belag, nur mit der Ebene UK', () {

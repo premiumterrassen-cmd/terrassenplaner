@@ -6,12 +6,12 @@ import '../sprache/sprache.dart';
 import 'berechnung_steuerung.dart';
 import 'steuerung.dart';
 import 'unterkonstruktion.dart';
-import 'zeichnung.dart';
 
-/// Name der Seite [seite] wie in der Zeichnung: „A — B“.
-String seitenname(int seite, int seitenzahl) =>
-    '${ZeichnungsMaler.punktname(seite)} — '
-    '${ZeichnungsMaler.punktname((seite + 1) % seitenzahl)}';
+/// Name der Seite [seite] von [stand] wie in der Zeichnung: „A — B“
+/// (Eckbuchstaben R-E03).
+String seitenname(Planungsstand stand, int seite) =>
+    '${stand.grundriss.eckname(seite)} — '
+    '${stand.grundriss.eckname((seite + 1) % stand.seitenzahl)}';
 
 /// Schalter je Seite des Grundrisses als Chips: [gewaehlt] sagt, ob eine
 /// Seite an ist, [waehlbar], ob sie in dieser Frage zur Wahl steht (eine
@@ -20,7 +20,7 @@ String seitenname(int seite, int seitenzahl) =>
 class Seitenwahl extends StatelessWidget {
   const Seitenwahl({
     required this.name,
-    required this.seitenzahl,
+    required this.stand,
     required this.gewaehlt,
     required this.onGewaehlt,
     this.waehlbar = _alle,
@@ -29,7 +29,9 @@ class Seitenwahl extends StatelessWidget {
 
   /// Teil der Schlüssel der Chips (`<name>-<seite>`).
   final String name;
-  final int seitenzahl;
+
+  /// Planungsstand mit den Seiten und den Namen ihrer Ecken.
+  final Planungsstand stand;
   final bool Function(int seite) gewaehlt;
   final bool Function(int seite) waehlbar;
   final void Function(int seite, bool an) onGewaehlt;
@@ -38,6 +40,7 @@ class Seitenwahl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final seitenzahl = stand.seitenzahl;
     if (seitenzahl == 0) {
       return Text(context.texte.ohneSeiten, key: ValueKey('$name-leer'));
     }
@@ -48,7 +51,7 @@ class Seitenwahl extends StatelessWidget {
           if (waehlbar(i) || gewaehlt(i))
             FilterChip(
               key: ValueKey('$name-$i'),
-              label: Text(seitenname(i, seitenzahl)),
+              label: Text(seitenname(stand, i)),
               selected: gewaehlt(i),
               onSelected: (an) => onGewaehlt(i, an),
             ),
@@ -84,7 +87,7 @@ class AngrenzendWahl extends StatelessWidget {
           Text(context.texte.angrenzendFrage),
           Seitenwahl(
             name: 'angrenzend',
-            seitenzahl: stand.seitenzahl,
+            stand: stand,
             gewaehlt: stand.anschluss.grenztAn,
             onGewaehlt: (seite, an) {
               planung.setze(planung.aktuell.mitAngrenzend(seite, an: an));
@@ -148,7 +151,7 @@ class VerblendungWahl extends StatelessWidget {
           else
             Seitenwahl(
               name: 'verblendet',
-              seitenzahl: stand.seitenzahl,
+              stand: stand,
               gewaehlt: anschluss.verblendetAn,
               waehlbar: (seite) => !anschluss.grenztAn(seite),
               onGewaehlt: _setze,
@@ -236,7 +239,7 @@ class RinnenWahl extends StatelessWidget {
           Text(t.rinnenFrage),
           Seitenwahl(
             name: 'rinne',
-            seitenzahl: stand.seitenzahl,
+            stand: stand,
             gewaehlt: (seite) => anschluss.rinneAn(seite) != null,
             waehlbar: (seite) => !anschluss.verblendetAn(seite),
             onGewaehlt: (seite, an) =>
@@ -244,7 +247,7 @@ class RinnenWahl extends StatelessWidget {
           ),
           for (final (:seite, :lage) in anschluss.rinnen) ...[
             const SizedBox(height: PlanerAbstand.klein),
-            Text(t.rinnenLage(seitenname(seite, stand.seitenzahl))),
+            Text(t.rinnenLage(seitenname(stand, seite))),
             Wrap(
               spacing: PlanerAbstand.klein,
               children: [
