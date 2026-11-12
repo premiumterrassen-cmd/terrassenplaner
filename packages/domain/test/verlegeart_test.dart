@@ -373,6 +373,14 @@ void main() {
       );
     });
 
+    test('Reihenfolge der Ausweichversätze: der nächste zuerst', () {
+      // Drittel, Reihe 0: ohne Versatz Endstück 2 cm, gespiegelt 1 cm –
+      // dann ⅓ (2 m) vor ⅔ (4 m)
+      expect(_reihe(_wahl(Verlegeart.drittelverband, 12100), 0, [(0, 6200)]), [
+        [2000],
+      ]);
+    });
+
     test('ohne gültige Lage: gleich lange Stücke', () {
       final w = Verbandwahl(
         Verlegeart.halbverband,
@@ -387,6 +395,18 @@ void main() {
       ]);
       expect(_reihe(w, 1, [(0, 12100)]), [
         [4033, 8067],
+      ]);
+      // Abschnitt nicht ab 0: 7 bis 13,1 m in zwei Stücke
+      final weiter = Verbandwahl(
+        Verlegeart.halbverband,
+        von: _null,
+        bis: const Millimeter(20000),
+        raster: _m6,
+        hoechstlaenge: const Millimeter(6030),
+        mindeststueck: const Millimeter(3100),
+      );
+      expect(_reihe(weiter, 0, [(7000, 13100)]), [
+        [10050],
       ]);
     });
   });

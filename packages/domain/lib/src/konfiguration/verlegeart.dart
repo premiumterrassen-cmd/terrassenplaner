@@ -222,10 +222,8 @@ final class Verbandwahl {
       raster.mm ~/ (2 * art.teilung),
     );
     // Wechsel: die beiden Reihen davor (Regel 9.3), sonst so viele Reihen,
-    // wie es weitere Versätze gibt
-    final reihen = art == Verlegeart.wechselverband
-        ? 2
-        : math.max(1, art.teilung - 1);
+    // wie es weitere Versätze gibt (Halb 1, Drittel 2, Viertel 3)
+    final reihen = art == Verlegeart.wechselverband ? 2 : art.teilung - 1;
     for (final vor in _vorher.reversed.take(reihen)) {
       for (final j in js) {
         for (final k in vor) {
