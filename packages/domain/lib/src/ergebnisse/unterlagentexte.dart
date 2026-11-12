@@ -633,6 +633,9 @@ final class Unterlagentexte {
     (Belagmeldung.laengeNichtLieferbar, true) =>
       'Die gewählte Länge von ${cm(laenge!)} cm gibt es für diesen Belag '
           'nicht. Die Dielenlänge wird automatisch ermittelt.',
+    (Belagmeldung.laengenvorgabeNichtErfuellbar, true) =>
+      'Keine Lieferlänge dieses Belags erfüllt die Vorgabe Dielenlänge. '
+          'Geplant wird mit allen Lagerlängen.',
     (Belagmeldung.befestigungsartNichtMoeglich, true) =>
       'Genutete Dielen werden verdeckt mit Clips befestigt. Die gewählte '
           'Verschraubung gilt nur für glattkante Dielen.',
@@ -663,6 +666,9 @@ final class Unterlagentexte {
     (Belagmeldung.laengeNichtLieferbar, false) =>
       'The selected length of ${cm(laenge!)} cm is not available for this '
           'decking. The board length is determined automatically.',
+    (Belagmeldung.laengenvorgabeNichtErfuellbar, false) =>
+      'No delivery length of this decking meets the board length '
+          'requirement. All stock lengths are used.',
     (Belagmeldung.befestigungsartNichtMoeglich, false) =>
       'Grooved boards are fixed invisibly with clips. The selected screw '
           'fixing only applies to smooth-edged boards.',

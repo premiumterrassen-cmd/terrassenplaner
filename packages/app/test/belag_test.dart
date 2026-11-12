@@ -483,7 +483,64 @@ void main() {
       await tester.pumpAndSettle();
       expect(planung.aktuell.dielenlaenge, isNull);
       expect(aenderungen, 3);
-      expect(find.text('300 cm'), findsNothing);
+      // automatisch: nur die Grenzen der Vorgabe Dielenlänge
+      expect(find.text('Mögliche Originallängen (in cm):'), findsNothing);
+      expect(find.text('300 cm'), findsNWidgets(2));
+    });
+
+    testWidgets('Vorgabe Dielenlänge höchstens/mindestens (Planungskern v9 '
+        'Regel 11.1): beliebig oder eine Lieferlänge, nur automatisch', (
+      tester,
+    ) async {
+      await zeige(tester, _auswahl);
+      expect(find.text('Dielen höchstens (in cm):'), findsOneWidget);
+      expect(find.text('Dielen mindestens (in cm):'), findsOneWidget);
+      expect(find.text('beliebig'), findsNWidgets(2));
+      expect(gewaehlt(tester, 'dielenlaenge-hoechstens-beliebig'), isTrue);
+      expect(gewaehlt(tester, 'dielenlaenge-mindestens-beliebig'), isTrue);
+      expect(gewaehlt(tester, 'dielenlaenge-hoechstens-3000'), isFalse);
+      await tester.tap(
+        find.byKey(const ValueKey('dielenlaenge-hoechstens-3000')),
+      );
+      await tester.pumpAndSettle();
+      expect(planung.aktuell.dielenlaengeHoechstens, const Millimeter(3000));
+      expect(planung.aktuell.dielenlaengeMindestens, isNull);
+      expect(aenderungen, 1);
+      expect(gewaehlt(tester, 'dielenlaenge-hoechstens-3000'), isTrue);
+      expect(gewaehlt(tester, 'dielenlaenge-hoechstens-beliebig'), isFalse);
+      // erneuter Klick ändert nichts
+      await tester.tap(
+        find.byKey(const ValueKey('dielenlaenge-hoechstens-3000')),
+      );
+      await tester.pumpAndSettle();
+      expect(aenderungen, 1);
+      await tester.tap(
+        find.byKey(const ValueKey('dielenlaenge-mindestens-4000')),
+      );
+      await tester.pumpAndSettle();
+      expect(planung.aktuell.dielenlaengeMindestens, const Millimeter(4000));
+      expect(planung.aktuell.dielenlaengeHoechstens, const Millimeter(3000));
+      expect(aenderungen, 2);
+      await tester.tap(
+        find.byKey(const ValueKey('dielenlaenge-hoechstens-beliebig')),
+      );
+      await tester.pumpAndSettle();
+      expect(planung.aktuell.dielenlaengeHoechstens, isNull);
+      expect(aenderungen, 3);
+      await tester.tap(
+        find.byKey(const ValueKey('dielenlaenge-hoechstens-beliebig')),
+      );
+      await tester.pumpAndSettle();
+      expect(aenderungen, 3);
+      await tester.tap(
+        find.byKey(const ValueKey('dielenlaenge-mindestens-beliebig')),
+      );
+      await tester.pumpAndSettle();
+      expect(planung.aktuell.dielenlaengeMindestens, isNull);
+      // feste Länge: keine Grenzen
+      await tester.tap(find.byKey(const ValueKey('dielenlaenge-fest')));
+      await tester.pumpAndSettle();
+      expect(find.text('Dielen höchstens (in cm):'), findsNothing);
     });
 
     testWidgets('erneuter Klick auf die Wahl ändert nichts', (tester) async {
@@ -783,8 +840,17 @@ void main() {
     expect(zustand.unveraendert, isNot(contains(PlanerSchritt.terrassenbelag)));
     await tester.tap(find.byKey(const ValueKey('dielenlaenge-automatisch')));
     await tester.pumpAndSettle();
-    await tester.ensureVisible(
+    // die Grenzen der Vorgabe Dielenlänge (Regel 11.1) machen den Schritt
+    // länger: bis zur Verlegeart blättern
+    await tester.scrollUntilVisible(
       find.byKey(const ValueKey('verlegeart-halbverband')),
+      200,
+      scrollable: find
+          .ancestor(
+            of: find.byKey(const ValueKey('dielenlaenge-wahl')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
     );
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('verlegeart-halbverband')));
