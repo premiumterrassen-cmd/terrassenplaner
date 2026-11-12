@@ -28,7 +28,7 @@ void main() {
           [
             ['Diele – „Test“', '2.066,57 €'],
           ],
-          farben: [Stueckfarbe.rot],
+          farben: [Stueckfarbe.rot.argb],
           rechts: {1},
         ),
         Plan(
@@ -102,7 +102,7 @@ void main() {
         [
           ['1', '5', 'x' * 60],
         ],
-        farben: [Stueckfarbe.blau],
+        farben: [Stueckfarbe.blau.argb],
       ),
     );
     expect(breiten, hasLength(4));

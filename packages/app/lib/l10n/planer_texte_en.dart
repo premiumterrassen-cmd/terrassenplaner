@@ -1499,6 +1499,50 @@ class PlanerTexteEn extends PlanerTexte {
       'The cladding board comes from the decking series, smooth-edged and as thick as the decking board. Its width depends on the height (at most 100 mm, above approx. 13 cm two boards of 60 mm); the corners are mitred.';
 
   @override
+  String blendeSeite(String seite) {
+    return 'Cladding $seite';
+  }
+
+  @override
+  String get blendenhoehe => 'Cladding height';
+
+  @override
+  String get blendenhoeheAutomatisch => 'automatic';
+
+  @override
+  String get blendenhoeheZuruecksetzen =>
+      'Cladding height automatic (lowest point of the side)';
+
+  @override
+  String blendenteil(int nummer) {
+    return 'Section $nummer';
+  }
+
+  @override
+  String blendenteilVon(String ecke) {
+    return 'From (from $ecke)';
+  }
+
+  @override
+  String blendenteilBis(String ecke) {
+    return 'To (from $ecke)';
+  }
+
+  @override
+  String get blendenteilHinzufuegen => 'Clad only part of the side';
+
+  @override
+  String get blendenteilEntfernen => 'Remove section';
+
+  @override
+  String get blendenteilUngueltig =>
+      'Please enter 0 to 5000 cm, the start before the end';
+
+  @override
+  String get blendeJeSeiteHilfe =>
+      'Without a value the lowest point of the side applies – the cladding never touches the ground, at higher points there is a gap below. Without a section the whole side is clad.';
+
+  @override
   String get meldungUnterlueftung =>
       'Attention: please make sure the decking is ventilated from below!';
 

@@ -9,6 +9,7 @@ import '../konfiguration/berechnung.dart';
 import '../konfiguration/konfigurationsnummer.dart';
 import '../konfiguration/planung.dart';
 import '../konfiguration/planungsstand.dart';
+import '../konfiguration/unterbau.dart';
 import '../regeln/auflager.dart';
 import 'materialliste.dart';
 import 'planbild.dart';
@@ -37,13 +38,14 @@ final class Wertepaare extends Baustein {
   final List<(String, String)> zeilen;
 }
 
-/// Eine Tabelle mit Kopfzeile; [farben] (leer oder je Zeile) zeigt die
-/// Farbe im Plan (M9-04), [rechts] die rechtsbündigen Spalten (Zahlen).
+/// Eine Tabelle mit Kopfzeile; [farben] (leer oder je Zeile, ARGB) zeigt
+/// die Farbe im Plan (M9-04, Fußtypen R-E05), [rechts] die rechtsbündigen
+/// Spalten (Zahlen).
 final class Tabelle extends Baustein {
   Tabelle(
     List<String> kopf,
     List<List<String>> zeilen, {
-    List<Stueckfarbe> farben = const [],
+    List<int> farben = const [],
     Set<int> rechts = const {},
   }) : kopf = List.unmodifiable(kopf),
        zeilen = List.unmodifiable([
@@ -54,7 +56,7 @@ final class Tabelle extends Baustein {
 
   final List<String> kopf;
   final List<List<String>> zeilen;
-  final List<Stueckfarbe> farben;
+  final List<int> farben;
   final Set<int> rechts;
 }
 
@@ -175,6 +177,26 @@ const stossfarbe = 0xFFC30624;
 
 /// Blau der Achsmaßkette (R-E02).
 const achsmassfarbe = 0xFF1565C0;
+
+/// Hellgrau der UK im Bemaßungsplan (R-E05).
+const ukHellfarbe = 0xFFD0D0D0;
+
+/// Farben der Auflager im Bemaßungsplan (R-E05) je Zeile der
+/// Höhenzuordnung, ab der neunten wieder von vorn.
+const auflagerfarben = [
+  0xFF2E7D32,
+  0xFFEF6C00,
+  0xFF6A1B9A,
+  0xFF00838F,
+  0xFFC62828,
+  0xFF795548,
+  0xFFAD1457,
+  0xFF827717,
+];
+
+/// Farbe der Auflager der Zeile [zeile]; ohne passendes Auflager schwarz.
+int auflagerfarbe(int? zeile) =>
+    zeile == null ? _schwarz : auflagerfarben[zeile % auflagerfarben.length];
 
 /// Stellt die Planungsunterlagen zusammen (M9-06) – Kapitel wie in den
 /// Planungsunterlagen des alten Planers: Deckblatt mit Kundendaten,
@@ -302,6 +324,12 @@ List<Kapitel> _flaeche(
           rechts: {1, 2},
         ),
       ], neueSeite: false),
+    if (unterbau.auflagerpunkte.isNotEmpty)
+      Kapitel('$titel – ${t.massKapitel}', [
+        _massPlan(t, b),
+        Absatz(t.massHinweis),
+        _fusslegende(t, unterbau),
+      ]),
     if (v != null) ...[
       Kapitel('$titel – ${t.belagKapitel}', [
         Absatz(t.dielenHinweis),
@@ -387,21 +415,32 @@ List<Planbeschriftung> umrissbeschriftung(Unterlagentexte t, Berechnung b) {
   if (ecken.length < 2) return const [];
   final a = _beschriftungsabstand(b.umriss);
   final n = ecken.length;
-  final kanten = b.geschlossen ? n : n - 1;
-  final normalen = [for (var i = 0; i < kanten; i++) _aussen(ecken, i)];
+  final normalen = _kantennormalen(b);
+  final richtungen = _eckrichtungen(b, normalen);
   return [
     for (var i = 0; i < n; i++)
-      (
-        ort: ecken[i] + _eckrichtung(normalen, i, b.geschlossen) * a,
-        text: _eckname(b, i),
-      ),
-    for (var i = 0; i < kanten; i++)
+      (ort: ecken[i] + richtungen[i] * a, text: _eckname(b, i)),
+    for (var i = 0; i < normalen.length; i++)
       (
         ort: (ecken[i] + ecken[(i + 1) % n]) * 0.5 + normalen[i] * a,
         text: '${t.zahl(ecken[i].abstand(ecken[(i + 1) % n]) / 1000, 2)} m',
       ),
   ];
 }
+
+/// Normale je Kante der Ecken von [b] (ein offener Linienzug hat eine
+/// Kante weniger als Ecken).
+List<Punkt> _kantennormalen(Berechnung b) {
+  final ecken = b.ecken;
+  final kanten = b.geschlossen ? ecken.length : ecken.length - 1;
+  return [for (var i = 0; i < kanten; i++) _aussen(ecken, i)];
+}
+
+/// Richtung nach außen je Ecke von [b] aus den [normalen] der Kanten.
+List<Punkt> _eckrichtungen(Berechnung b, List<Punkt> normalen) => [
+  for (var i = 0; i < b.ecken.length; i++)
+    _eckrichtung(normalen, i, b.geschlossen),
+];
 
 double _beschriftungsabstand(List<Punkt> umriss) {
   final h = Huellrechteck.um(umriss);
@@ -506,6 +545,89 @@ Plan _ukPlan(Unterlagentexte t, Berechnung b) {
   );
 }
 
+/// Bemaßungsplan (Planungsregeln Alexander (Planungskern v7, 12.11.2026),
+/// Regel 9.2, R-E05): Umriss mit Eckbuchstaben und Kantenmaßen, die UK
+/// hell, die Achsmaßkette, „H = … cm“ je Ecke und an jedem Auflager seine
+/// Höhe (Spalt unter der UK) in cm, farbig nach seiner Zeile der
+/// Höhenzuordnung.
+Plan _massPlan(Unterlagentexte t, Berechnung b) {
+  final u = b.unterbau;
+  final halb = (u.holzbreite?.mm ?? 40) / 2;
+  final a = _beschriftungsabstand(b.umriss);
+  final kette = switch (b.planbild.achsen) {
+    final k? => _achsmasskette(k, a),
+    null => null,
+  };
+  return Plan(
+    [
+      Planlinie(b.umriss, argb: _schwarz, geschlossen: b.geschlossen),
+      for (final h in u.hoelzer)
+        Planlinie(
+          _balken(h.von, h.bis, halb),
+          argb: ukHellfarbe,
+          gefuellt: true,
+        ),
+      for (final p in u.auflagerpunkte)
+        Planlinie(
+          _balken(p.ort, p.ort, 30),
+          argb: auflagerfarbe(p.zeile),
+          gefuellt: true,
+        ),
+      ...?kette?.linien,
+    ],
+    [
+      ...umrissbeschriftung(t, b),
+      ..._eckhoehen(t, b, a),
+      for (final p in u.auflagerpunkte)
+        (ort: p.ort + _neben(u) * (a * 0.6), text: t.cm(p.spalt)),
+      ...?kette?.texte,
+    ],
+  );
+}
+
+/// Richtung quer zur UK (die Höhe steht neben dem Holz, nicht darauf);
+/// ohne Hölzer nach unten.
+Punkt _neben(Unterbau u) => switch (u.hoelzer) {
+  [final h, ...] when !h.bis.gleich(h.von) => (h.bis - h.von).einheit.links,
+  _ => const Punkt(0, 1),
+};
+
+/// „H = … cm“ je Ecke (R-E05) außen hinter dem Eckbuchstaben.
+List<Planbeschriftung> _eckhoehen(Unterlagentexte t, Berechnung b, double a) {
+  final ecken = b.ecken;
+  final hoehen = b.hoehenpunkte.hoehen;
+  if (ecken.length < 2) return const [];
+  final richtungen = _eckrichtungen(b, _kantennormalen(b));
+  return [
+    for (var i = 0; i < ecken.length && i < hoehen.length; i++)
+      (ort: ecken[i] + richtungen[i] * (a * 1.9), text: t.eckhoehe(hoehen[i])),
+  ];
+}
+
+/// Legende der Fußtypen (R-E05): je Zeile der Höhenzuordnung mit
+/// Auflagern ihre Farbe, ihr Titel und die Anzahl; Auflager ohne
+/// passenden Artikel schwarz.
+Tabelle _fusslegende(Unterlagentexte t, Unterbau u) {
+  final ohne = u.auflagerpunkte.where((p) => p.zeile == null).length;
+  final zeilen = {for (final p in u.auflagerpunkte) ?p.zeile}.toList()..sort();
+  return Tabelle(
+    [t.auflager, t.anzahl],
+    [
+      for (final z in zeilen)
+        [
+          u.zuordnung[z].titel,
+          '${u.auflagerpunkte.where((p) => p.zeile == z).length}',
+        ],
+      if (ohne > 0) [t.ohneAuflager, '$ohne'],
+    ],
+    farben: [
+      for (final z in zeilen) auflagerfarbe(z),
+      if (ohne > 0) auflagerfarbe(null),
+    ],
+    rechts: {1},
+  );
+}
+
 /// Die Achsmaßkette liegt so viele Beschriftungsabstände außen –
 /// außerhalb der Kantenmaße.
 const achsmassabstand = 2.5;
@@ -607,7 +729,7 @@ Tabelle _stueckliste(
           t.stueckfarbe(z.farbe),
         ],
     ],
-    farben: [for (final z in zeilen) z.farbe],
+    farben: [for (final z in zeilen) z.farbe.argb],
     rechts: {0, 2, 3},
   );
 }

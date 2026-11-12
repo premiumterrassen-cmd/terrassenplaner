@@ -1502,6 +1502,50 @@ class PlanerTexteDe extends PlanerTexte {
       'Die Blende ist aus der Serie des Belags, glattkant und so stark wie die Diele. Ihre Breite richtet sich nach der Höhe (höchstens 100 mm, über ca. 13 cm zwei Blenden à 60 mm); die Ecken werden auf Gehrung geschnitten.';
 
   @override
+  String blendeSeite(String seite) {
+    return 'Blende $seite';
+  }
+
+  @override
+  String get blendenhoehe => 'Blendenhöhe';
+
+  @override
+  String get blendenhoeheAutomatisch => 'automatisch';
+
+  @override
+  String get blendenhoeheZuruecksetzen =>
+      'Blendenhöhe automatisch (niedrigste Stelle der Seite)';
+
+  @override
+  String blendenteil(int nummer) {
+    return 'Teilstück $nummer';
+  }
+
+  @override
+  String blendenteilVon(String ecke) {
+    return 'Von (ab $ecke)';
+  }
+
+  @override
+  String blendenteilBis(String ecke) {
+    return 'Bis (ab $ecke)';
+  }
+
+  @override
+  String get blendenteilHinzufuegen => 'Nur einen Teil der Seite verblenden';
+
+  @override
+  String get blendenteilEntfernen => 'Teilstück entfernen';
+
+  @override
+  String get blendenteilUngueltig =>
+      'Bitte von 0 bis 5000 cm eingeben, der Anfang vor dem Ende';
+
+  @override
+  String get blendeJeSeiteHilfe =>
+      'Ohne Angabe gilt die niedrigste Stelle der Seite – die Blende steht nirgends auf, an höheren Stellen bleibt unten Luft. Ohne Teilstück wird die ganze Seite verblendet.';
+
+  @override
   String get meldungUnterlueftung =>
       'Achtung: Bitte beachten Sie, dass eine Unterlüftung der Terrasse gewährleistet sein muss!';
 

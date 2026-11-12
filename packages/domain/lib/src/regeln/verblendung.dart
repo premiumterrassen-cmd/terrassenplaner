@@ -11,11 +11,13 @@ import '../artikel/einheiten.dart';
 import '../artikel/ukauswahl.dart';
 import '../ergebnisse/materialliste.dart';
 import '../ergebnisse/stueckliste.dart';
+import '../geometrie/punkt.dart';
 import '../holzart/holzart.dart';
 import '../konfiguration/anschlussergebnis.dart';
 import '../konfiguration/grundriss.dart';
 import '../konfiguration/planungsstand.dart';
 import 'anschlussregeln.dart';
+import 'auflagerbedarf.dart';
 import 'regelwerk.dart';
 import 'uk_zusatz.dart';
 
@@ -114,33 +116,63 @@ final class Anschlussbedarf {
   );
 }
 
-/// Eine verblendete Strecke: Länge in mm und die Terrassenhöhe dort.
-typedef Blendenstrecke = ({double laenge, Millimeter hoehe});
+/// Eine verblendete Strecke: Länge in mm, die Höhe der Blende dort und ob
+/// sie an einer Ecke der Seite beginnt oder endet (dort Gehrung, 4a.5).
+typedef Blendenstrecke = ({double laenge, Millimeter hoehe, bool ecke});
 
-/// Verblendete Strecken der Fläche: je verblendeter Seite ihre Länge und
-/// die kleinere Höhe ihrer Ecken ([hoehen] je Ecke, geprüft) – dort darf
-/// die Blende nicht auf dem Boden aufstehen (4a.2); beim Kreis („Fläche
-/// verblenden“) der Umfang und die kleinste Höhe.
+/// Verblendete Strecken der Fläche (Planungsregeln Alexander
+/// (Planungskern v7, 12.11.2026), Regel 9.4, R-D30): je verblendeter Seite
+/// die ganze Seite oder ihre Teilstücke (`Anschluss.teileAn`, auf die Seite
+/// gekürzt). Die Höhe ist die eigene Blendenhöhe der Seite
+/// (`Anschluss.blendenhoeheAn`), sonst die niedrigste Stelle der Strecke
+/// über der Höhenfläche aus den geprüften [hoehen] (Ecken, dann die
+/// wirksamen Höhenreferenzpunkte) – dort darf die Blende nicht auf dem
+/// Boden aufstehen (4a.2), an höheren Stellen bleibt unten Luft. Beim Kreis
+/// („Fläche verblenden“) der Umfang und die kleinste Höhe.
 List<Blendenstrecke> blendenstrecken(
   Planungsstand stand,
   List<Millimeter> hoehen,
 ) {
+  final anschluss = stand.anschluss;
   if (stand.grundriss is KreisGrundriss) {
     return [
-      if (stand.anschluss.verblendet.isNotEmpty)
-        (laenge: stand.kontur.umfang, hoehe: hoehen.reduce(_niedriger)),
+      if (anschluss.verblendet.isNotEmpty)
+        (
+          laenge: stand.kontur.umfang,
+          hoehe: anschluss.blendenhoeheAn(0) ?? hoehen.reduce(_niedriger),
+          ecke: false,
+        ),
     ];
   }
-  final n = stand.seitenzahl;
+  final ecken = stand.grundriss.ecken;
+  final flaeche = Hoehenflaeche(ecken, hoehen, [
+    if (hoehen.length > ecken.length)
+      for (final p in stand.wirksameHoehenpunkte) stand.ortVon(p),
+  ]);
   return [
-    for (final seite in stand.anschluss.verblendet)
-      if (seitenstrecke(stand, seite) case (:final von, :final bis))
+    for (final seite in anschluss.verblendet)
+      for (final (:von, :bis, :ecke) in blendenstuecke(stand, seite))
         (
           laenge: von.abstand(bis),
-          hoehe: _niedriger(hoehen[seite], hoehen[(seite + 1) % n]),
+          hoehe: anschluss.blendenhoeheAn(seite) ?? _tiefste(flaeche, von, bis),
+          ecke: ecke,
         ),
   ];
 }
+
+/// Niedrigste Höhe der [flaeche] auf der Strecke [von]–[bis], abgetastet
+/// alle [blendeAbtastung].
+Millimeter _tiefste(Hoehenflaeche flaeche, Punkt von, Punkt bis) {
+  final n = math.max(1, (von.abstand(bis) / blendeAbtastung.mm).ceil());
+  var tiefste = flaeche.bei(von);
+  for (var k = 1; k <= n; k++) {
+    tiefste = _niedriger(tiefste, flaeche.bei(von + (bis - von) * (k / n)));
+  }
+  return tiefste;
+}
+
+/// Abstand, in dem die Höhe längs einer Blende abgetastet wird.
+const blendeAbtastung = Millimeter(100);
 
 Millimeter _niedriger(Millimeter a, Millimeter b) => a < b ? a : b;
 
@@ -168,7 +200,7 @@ bool ohneUnterlueftung(Planungsstand stand) {
 ///   seiner Stärke aus dem [regelwerk] (`blendenZumBelag`), Reihen je
 ///   verblendeter Strecke nach `blendenreihen`. Jede Reihe ist so lang wie
 ///   die Strecke plus 5 cm je Kante für die Gehrung (4a.5, beim Kreis ohne
-///   Ecken keine); die Lieferlängen rechnet `lieferstuecke` (F37: 314, 485,
+///   Ecken keine, ein Teilstück nur, wenn es an einer Ecke liegt); die Lieferlängen rechnet `lieferstuecke` (F37: 314, 485,
 ///   314 cm → 2 × 4000 + 1 × 5000 mm). Sie stehen nur in der Materialliste,
 ///   mit Zusatz „Verblendung“ (Fachkonzept 08).
 /// - **Träger** (4a.6, R-C05): senkrechte Stücke aus UK-Holz ([uk], aus
@@ -197,20 +229,18 @@ Anschlussbedarf verblendungsbedarf(
     return Anschlussbedarf(meldungen: meldungen);
   }
   final staerke = belag.abmessungen.staerke ?? const Millimeter(0);
+  final alle = blendenstrecken(stand, hoehen);
   final strecken = [
-    for (final s in blendenstrecken(stand, hoehen))
+    for (final s in alle)
       if (s.hoehe > staerke) s,
   ];
-  if (strecken.length < stand.anschluss.verblendet.length) {
+  if (strecken.length < alle.length) {
     meldungen.add(Anschlussmeldung.keinHoehenunterschied);
   }
   final blenden = blendenZumBelag(
     belag,
     regelwerk?.imBereich(Bereich.belag) ?? const [],
   );
-  final zugabe = stand.grundriss is KreisGrundriss
-      ? const Millimeter(0)
-      : blendeGehrungszugabe;
   final reihen = <Artikel, List<Millimeter>>{};
   final traeger = <Planstueck>[];
   var fehlt = false;
@@ -221,7 +251,10 @@ Anschlussbedarf verblendungsbedarf(
       continue;
     }
     for (final blende in auswahl) {
-      (reihen[blende] ??= []).add(Millimeter(s.laenge.round()) + zugabe);
+      (reihen[blende] ??= []).add(
+        Millimeter(s.laenge.round()) +
+            (s.ecke ? blendeGehrungszugabe : const Millimeter(0)),
+      );
     }
     if (uk != null) traeger.addAll(_traeger(stand, s, uk, staerke));
   }

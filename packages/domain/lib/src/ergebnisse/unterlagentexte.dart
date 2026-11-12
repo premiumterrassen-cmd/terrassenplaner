@@ -85,6 +85,9 @@ final class Unterlagentexte {
     required this.dielenHinweis,
     required this.stossHinweis,
     required this.achsmassHinweis,
+    required this.massKapitel,
+    required this.massHinweis,
+    required this.ohneAuflager,
     required this.dielenNachNummer,
     required this.nr,
     required this.masse,
@@ -171,6 +174,12 @@ final class Unterlagentexte {
         'Rot gestrichelt: Stoß – jedes Dielenende liegt auf einer eigenen '
         'UK (Doppel-UK).',
     achsmassHinweis: 'Blau: Achsmaße der UK in cm.',
+    massKapitel: 'Bemaßung und Höhen',
+    massHinweis:
+        'H = Höhe Oberkante Diele über Boden je Ecke in cm. An jedem '
+        'Auflager die Höhe des Stellfußes bzw. der Unterleger in cm, die '
+        'Farbe nach der Legende.',
+    ohneAuflager: 'Kein passendes Auflager',
     dielenNachNummer: 'Dielen/Platten nach Nummer',
     nr: 'Nr.',
     masse: 'Maße in cm',
@@ -280,6 +289,12 @@ final class Unterlagentexte {
         'Red dashed: butt joint – each board end rests on its own joist '
         '(double joist).',
     achsmassHinweis: 'Blue: joist centre distances in cm.',
+    massKapitel: 'Dimensions and heights',
+    massHinweis:
+        'H = height of the top of the boards above ground per corner in cm. '
+        'At every support the height of the adjustable foot or pads in cm, '
+        'coloured as in the legend.',
+    ohneAuflager: 'No matching support',
     dielenNachNummer: 'Boards/tiles by number',
     nr: 'No.',
     masse: 'Size in cm',
@@ -395,6 +410,15 @@ final class Unterlagentexte {
 
   /// Legende der Achsmaßkette im UK-Plan (R-E02).
   final String achsmassHinweis;
+
+  /// Seite „Bemaßung und Höhen“ (Planungskern v7, Regel 9.2, R-E05):
+  /// Titel, Legende und Zeile für Auflager ohne passenden Artikel.
+  final String massKapitel;
+  final String massHinweis;
+  final String ohneAuflager;
+
+  /// „H = 8,6 cm“: Höhe einer Ecke im Bemaßungsplan.
+  String eckhoehe(Millimeter hoehe) => 'H = ${cm(hoehe)} cm';
   final String dielenNachNummer;
   final String nr;
   final String masse;

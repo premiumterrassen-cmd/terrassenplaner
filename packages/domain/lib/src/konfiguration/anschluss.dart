@@ -1,5 +1,7 @@
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 
+import '../artikel/einheiten.dart';
+
 /// Lage einer Entwässerungsrinne (Fachkonzept 4.3, M7-03). Lage und
 /// bodentiefes Element sind fest im Artikel verankert: die Lage wählt die
 /// Artikelvariante (R-D01).
@@ -31,6 +33,13 @@ enum Rinnenlage {
 /// Rinne an einer Seite.
 typedef Rinne = ({int seite, Rinnenlage lage});
 
+/// Blendenhöhe einer verblendeten Seite (Planungskern v7, Regel 9.4).
+typedef Blendenhoehe = ({int seite, Millimeter hoehe});
+
+/// Ein verblendetes Stück einer Seite (Teilverblendung, Planungskern v7,
+/// Regel 9.4): [von] bis [bis] in mm ab der ersten Ecke der Seite.
+typedef Blendenteil = ({int seite, Millimeter von, Millimeter bis});
+
 /// Eingaben zum Terrassenanschluss einer Fläche (Fachkonzept 04, M7): je
 /// Seite eine Rolle. Seite `i` läuft von Ecke `i` zur nächsten Ecke (A — B
 /// ist Seite 0), wie die Beschriftung der Zeichnung.
@@ -41,6 +50,9 @@ typedef Rinne = ({int seite, Rinnenlage lage});
 /// - **Verblendete Seiten** (M7-02, 4.2): gelb dargestellt; beim Kreis
 ///   steht Seite 0 für „Fläche verblenden“.
 /// - **Rinnen** (M7-03, 4.3): je Seite eine Entwässerungsrinne mit Lage.
+/// - **Seitenblende je Seite** (Planungskern v7, Regel 9.4): je verblendeter
+///   Seite eine eigene Blendenhöhe und Teilstücke; ohne sie gilt die Höhe
+///   der Fläche an der Seite und die ganze Seite.
 ///
 /// Eine Seite hat nur eine Rolle: wer sie in einer Frage wählt, nimmt sie
 /// aus den anderen (Fachkonzept 04). Nur die Rinne bleibt an Seiten an
@@ -50,6 +62,8 @@ final class Anschluss {
     this.angrenzend = const [],
     this.verblendet = const [],
     this.rinnen = const [],
+    this.blendenhoehen = const [],
+    this.blendenteile = const [],
   });
 
   /// Liest die Tabelle am Ort [ort] ([schreibe]).
@@ -66,7 +80,29 @@ final class Anschluss {
       const fb.ListReader<int>(fb.Uint16Reader())
           .vTableGet(puffer, ort, _versatz(_rinnenPlatz), const []),
     ),
+    blendenhoehen: _liesHoehen(
+      const fb.ListReader<int>(fb.Int32Reader())
+          .vTableGet(puffer, ort, _versatz(_blendenhoehenPlatz), const []),
+    ),
+    blendenteile: _liesTeile(
+      const fb.ListReader<int>(fb.Int32Reader())
+          .vTableGet(puffer, ort, _versatz(_blendenteilePlatz), const []),
+    ),
   );
+
+  static List<Blendenhoehe> _liesHoehen(List<int> werte) => List.unmodifiable([
+    for (var i = 0; i < werte.length ~/ 2; i++)
+      (seite: werte[2 * i], hoehe: Millimeter(werte[2 * i + 1])),
+  ]);
+
+  static List<Blendenteil> _liesTeile(List<int> werte) => List.unmodifiable([
+    for (var i = 0; i < werte.length ~/ 3; i++)
+      (
+        seite: werte[3 * i],
+        von: Millimeter(werte[3 * i + 1]),
+        bis: Millimeter(werte[3 * i + 2]),
+      ),
+  ]);
 
   static List<Rinne> _liesRinnen(List<int> werte) => List.unmodifiable([
     for (var i = 0; i < werte.length ~/ 2; i++)
@@ -85,6 +121,14 @@ final class Anschluss {
   /// Rinnen nach Seiten aufsteigend, je Seite höchstens eine.
   final List<Rinne> rinnen;
 
+  /// Eigene Blendenhöhen verblendeter Seiten, nach Seiten aufsteigend, je
+  /// Seite höchstens eine (Regel 9.4).
+  final List<Blendenhoehe> blendenhoehen;
+
+  /// Teilstücke verblendeter Seiten nach Seite und Anfang (Regel 9.4);
+  /// eine Seite ohne Teilstücke ist ganz verblendet.
+  final List<Blendenteil> blendenteile;
+
   /// Ob gar keine Seite eine Rolle hat.
   bool get leer => angrenzend.isEmpty && verblendet.isEmpty && rinnen.isEmpty;
 
@@ -93,7 +137,7 @@ final class Anschluss {
 
   /// Kopie, in der die Seite [seite] an ein Bauelement grenzt ([an]) oder
   /// nicht.
-  Anschluss mitAngrenzend(int seite, {required bool an}) => Anschluss(
+  Anschluss mitAngrenzend(int seite, {required bool an}) => _neu(
     angrenzend: _mitSeite(angrenzend, seite, an: an),
     verblendet: an ? _mitSeite(verblendet, seite, an: false) : verblendet,
     rinnen: rinnen,
@@ -104,7 +148,7 @@ final class Anschluss {
 
   /// Kopie, in der die Seite [seite] verblendet ist ([an]) oder nicht; sie
   /// grenzt dann nicht mehr an ein Bauelement.
-  Anschluss mitVerblendet(int seite, {required bool an}) => Anschluss(
+  Anschluss mitVerblendet(int seite, {required bool an}) => _neu(
     angrenzend: an ? _mitSeite(angrenzend, seite, an: false) : angrenzend,
     verblendet: _mitSeite(verblendet, seite, an: an),
     rinnen: an ? _mitRinne(seite, null) : rinnen,
@@ -116,13 +160,83 @@ final class Anschluss {
 
   /// Kopie mit einer Rinne in der Lage [lage] an der Seite [seite]
   /// (`null` = ohne Rinne); die Seite ist dann nicht mehr verblendet.
-  Anschluss mitRinne(int seite, Rinnenlage? lage) => Anschluss(
+  Anschluss mitRinne(int seite, Rinnenlage? lage) => _neu(
     angrenzend: angrenzend,
     verblendet: lage == null
         ? verblendet
         : _mitSeite(verblendet, seite, an: false),
     rinnen: _mitRinne(seite, lage),
   );
+
+  /// Eigene Blendenhöhe der Seite [seite]; `null` = die Höhe der Fläche
+  /// an ihrer niedrigsten Stelle (Regel 9.4).
+  Millimeter? blendenhoeheAn(int seite) =>
+      blendenhoehen.where((h) => h.seite == seite).firstOrNull?.hoehe;
+
+  /// Teilstücke der Seite [seite] (`von`, `bis` ab ihrer ersten Ecke); leer
+  /// = die ganze Seite.
+  List<({Millimeter von, Millimeter bis})> teileAn(int seite) => [
+    for (final t in blendenteile)
+      if (t.seite == seite) (von: t.von, bis: t.bis),
+  ];
+
+  /// Kopie mit der Blendenhöhe [hoehe] an der verblendeten Seite [seite]
+  /// (`null` = automatisch); an einer nicht verblendeten Seite unverändert.
+  Anschluss mitBlendenhoehe(int seite, Millimeter? hoehe) => _neu(
+    angrenzend: angrenzend,
+    verblendet: verblendet,
+    rinnen: rinnen,
+    blendenhoehen: [
+      ...blendenhoehen.where((h) => h.seite != seite),
+      if (hoehe != null) (seite: seite, hoehe: hoehe),
+    ],
+  );
+
+  /// Kopie mit den Teilstücken [teile] an der verblendeten Seite [seite]
+  /// (leer = ganze Seite); an einer nicht verblendeten Seite unverändert.
+  Anschluss mitBlendenteilen(
+    int seite,
+    List<({Millimeter von, Millimeter bis})> teile,
+  ) => _neu(
+    angrenzend: angrenzend,
+    verblendet: verblendet,
+    rinnen: rinnen,
+    blendenteile: [
+      ...blendenteile.where((t) => t.seite != seite),
+      for (final t in teile) (seite: seite, von: t.von, bis: t.bis),
+    ],
+  );
+
+  /// Neuer Anschluss; Blendenhöhen und Teilstücke bleiben nur an
+  /// verblendeten Seiten, sortiert nach Seite (und Anfang).
+  Anschluss _neu({
+    required List<int> angrenzend,
+    required List<int> verblendet,
+    required List<Rinne> rinnen,
+    List<Blendenhoehe>? blendenhoehen,
+    List<Blendenteil>? blendenteile,
+  }) => Anschluss(
+    angrenzend: angrenzend,
+    verblendet: verblendet,
+    rinnen: rinnen,
+    blendenhoehen: List<Blendenhoehe>.unmodifiable(
+      <Blendenhoehe>[
+        for (final h in blendenhoehen ?? this.blendenhoehen)
+          if (verblendet.contains(h.seite)) h,
+      ]..sort((a, b) => a.seite.compareTo(b.seite)),
+    ),
+    blendenteile: List<Blendenteil>.unmodifiable(
+      <Blendenteil>[
+        for (final t in blendenteile ?? this.blendenteile)
+          if (verblendet.contains(t.seite)) t,
+      ]..sort(_teilfolge),
+    ),
+  );
+
+  static int _teilfolge(Blendenteil a, Blendenteil b) {
+    final seite = a.seite.compareTo(b.seite);
+    return seite != 0 ? seite : a.von.mm.compareTo(b.von.mm);
+  }
 
   List<Rinne> _mitRinne(int seite, Rinnenlage? lage) => List.unmodifiable(
     <Rinne>[
@@ -139,16 +253,26 @@ final class Anschluss {
 
   /// Schreibt die Tabelle `{ 0: angrenzend ([uint16] Seiten), 1: verblendet
   /// ([uint16] Seiten, M7-02), 2: rinnen ([uint16] Seite und Lage je Rinne,
-  /// M7-03) }` und gibt ihren Ort zurück. Neue Felder nur anhängen.
+  /// M7-03), 3: blendenhoehen ([int32] Seite und Höhe in mm, Regel 9.4),
+  /// 4: blendenteile ([int32] Seite, von und bis in mm, Regel 9.4) }` und
+  /// gibt ihren Ort zurück. Neue Felder nur anhängen.
   int schreibe(fb.Builder fbb) {
     final angrenzendOrt = fbb.writeListUint16(angrenzend);
     final verblendetOrt = fbb.writeListUint16(verblendet);
     final rinnenOrt = fbb.writeListUint16(_rinnenwerte);
+    final hoehenOrt = blendenhoehen.isEmpty
+        ? null
+        : fbb.writeListInt32(_hoehenwerte);
+    final teileOrt = blendenteile.isEmpty
+        ? null
+        : fbb.writeListInt32(_teilwerte);
     fbb
-      ..startTable(_rinnenPlatz + 1)
+      ..startTable(_blendenteilePlatz + 1)
       ..addOffset(_angrenzendPlatz, angrenzendOrt)
       ..addOffset(_verblendetPlatz, verblendetOrt)
-      ..addOffset(_rinnenPlatz, rinnenOrt);
+      ..addOffset(_rinnenPlatz, rinnenOrt)
+      ..addOffset(_blendenhoehenPlatz, hoehenOrt)
+      ..addOffset(_blendenteilePlatz, teileOrt);
     return fbb.endTable();
   }
 
@@ -156,22 +280,36 @@ final class Anschluss {
     for (final r in rinnen) ...[r.seite, r.lage.nummer],
   ];
 
+  List<int> get _hoehenwerte => [
+    for (final h in blendenhoehen) ...[h.seite, h.hoehe.mm],
+  ];
+
+  List<int> get _teilwerte => [
+    for (final t in blendenteile) ...[t.seite, t.von.mm, t.bis.mm],
+  ];
+
   static const _angrenzendPlatz = 0;
   static const _verblendetPlatz = 1;
   static const _rinnenPlatz = 2;
+  static const _blendenhoehenPlatz = 3;
+  static const _blendenteilePlatz = 4;
 
   @override
   bool operator ==(Object other) =>
       other is Anschluss &&
       _gleich(other.angrenzend, angrenzend) &&
       _gleich(other.verblendet, verblendet) &&
-      _gleich(other._rinnenwerte, _rinnenwerte);
+      _gleich(other._rinnenwerte, _rinnenwerte) &&
+      _gleich(other._hoehenwerte, _hoehenwerte) &&
+      _gleich(other._teilwerte, _teilwerte);
 
   @override
   int get hashCode => Object.hash(
     Object.hashAll(angrenzend),
     Object.hashAll(verblendet),
     Object.hashAll(_rinnenwerte),
+    Object.hashAll(_hoehenwerte),
+    Object.hashAll(_teilwerte),
   );
 }
 

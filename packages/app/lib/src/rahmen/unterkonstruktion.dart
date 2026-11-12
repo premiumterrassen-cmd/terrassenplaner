@@ -778,13 +778,17 @@ class CmFeld extends StatefulWidget {
     required this.gueltig,
     required this.fehler,
     required this.onGeaendert,
+    this.ohneWert = '',
     super.key,
   });
 
   final String titel;
 
-  /// Aktueller Wert.
-  final Millimeter wert;
+  /// Aktueller Wert; `null` = keiner, dann steht [ohneWert] als Platzhalter
+  /// darin (z. B. „automatisch“).
+  final Millimeter? wert;
+
+  final String ohneWert;
 
   /// Prüft eine Eingabe in mm.
   final bool Function(Millimeter mm) gueltig;
@@ -832,7 +836,10 @@ class _CmFeldState extends State<CmFeld> {
           isDense: true,
           border: const OutlineInputBorder(),
           labelText: widget.titel,
-          hintText: cmText(t, widget.wert),
+          hintText: switch (widget.wert) {
+            final w? => cmText(t, w),
+            null => widget.ohneWert,
+          },
           suffixText: 'cm',
           errorText: _fehler,
         ),

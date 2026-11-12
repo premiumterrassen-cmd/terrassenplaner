@@ -7,6 +7,7 @@ import '../artikel/artikel.dart';
 import '../artikel/einheiten.dart';
 import '../geometrie/kontur.dart';
 import '../geometrie/punkt.dart';
+import '../regeln/kantenpruefung.dart';
 import 'anschluss.dart';
 import 'auflagen.dart';
 import 'ausschnitt.dart';
@@ -549,6 +550,49 @@ final class Planungsstand {
   Planungsstand mitRinne(int seite, Rinnenlage? lage) {
     _pruefeSeite(seite);
     return _mit(anschluss: anschluss.mitRinne(seite, lage));
+  }
+
+  /// Kopie mit der Blendenhöhe [hoehe] an der verblendeten Seite [seite]
+  /// (Planungskern v7, Regel 9.4; `null` = automatisch, die niedrigste
+  /// Stelle der Seite); beim Kreis steht Seite 0 für die ganze Fläche. An
+  /// einer nicht verblendeten Seite unverändert.
+  Planungsstand mitBlendenhoehe(int seite, Millimeter? hoehe) {
+    if (grundriss is! KreisGrundriss || seite != 0) _pruefeSeite(seite);
+    if (hoehe != null) _pruefeHoehe(hoehe);
+    return _mit(anschluss: anschluss.mitBlendenhoehe(seite, hoehe));
+  }
+
+  /// Kopie mit den verblendeten Teilstücken [teile] der Seite [seite]
+  /// (Teilverblendung, Planungskern v7, Regel 9.4): je Stück von und bis ab
+  /// der ersten Ecke der Seite (`blendenteilGueltig`); leer = die ganze
+  /// Seite. An einer nicht verblendeten Seite unverändert.
+  Planungsstand mitBlendenteilen(
+    int seite,
+    List<({Millimeter von, Millimeter bis})> teile,
+  ) {
+    _pruefeSeite(seite);
+    for (final t in teile) {
+      if (!blendenteilGueltig(t.von, t.bis)) {
+        throw ArgumentError.value(
+          '${t.von.mm}–${t.bis.mm}',
+          'teile',
+          'ungültiges Teilstück',
+        );
+      }
+    }
+    return _mit(anschluss: anschluss.mitBlendenteilen(seite, teile));
+  }
+
+  /// Ob ein Teilstück [von]–[bis] als Eingabe gilt: ab 0, Anfang vor dem
+  /// Ende, höchstens 50 m (Planungskern v7, Regel 9.6).
+  static bool blendenteilGueltig(Millimeter von, Millimeter bis) =>
+      von >= const Millimeter(0) && von < bis && bis <= groesstesEingabemass;
+
+  /// Länge der Seite [seite] in mm (gerade von Ecke zu Ecke).
+  double seitenlaenge(int seite) {
+    _pruefeSeite(seite);
+    final ecken = grundriss.ecken;
+    return ecken[seite].abstand(ecken[(seite + 1) % ecken.length]);
   }
 
   void _pruefeSeite(int seite) {
