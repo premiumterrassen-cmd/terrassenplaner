@@ -246,6 +246,9 @@ class PlanerTexteDe extends PlanerTexte {
   }
 
   @override
+  String get massInCm => 'Über 50 m – bitte das Maß in cm angeben';
+
+  @override
   String get berechnungFehler =>
       'Berechnung nicht möglich – bitte Verbindung prüfen';
 
@@ -1066,6 +1069,16 @@ class PlanerTexteDe extends PlanerTexte {
       'Hinweis: Die Fläche liegt außerhalb der üblichen 1 bis 300 m² – bitte prüfen Sie die Maße.';
 
   @override
+  String kantenwarnungZuKurz(String kante, String cm) {
+    return 'Hinweis: Kante $kante ist nur $cm cm lang (unter 10 cm) – bitte prüfen Sie die Maße.';
+  }
+
+  @override
+  String kantenwarnungZuLang(String kante, String cm) {
+    return 'Hinweis: Kante $kante ist $cm cm lang (über 30 m) – bitte prüfen Sie die Maße.';
+  }
+
+  @override
   String get belagmeldungBombierung =>
       'Ab 8 cm Breite empfehlen wir bombierte (leicht gewölbte) Dielen.';
 
@@ -1335,6 +1348,14 @@ class PlanerTexteDe extends PlanerTexte {
 
   @override
   String get materialOptional => 'Optional – nicht in der Summe';
+
+  @override
+  String materialNichtImAngebot(String titel) {
+    return 'Nicht im Angebot: $titel';
+  }
+
+  @override
+  String get materialImAngebot => 'Im Angebot';
 
   @override
   String materialBerechnet(int anzahl) {
@@ -1632,4 +1653,20 @@ class PlanerTexteDe extends PlanerTexte {
   @override
   String get meldungTreppeNichtFrei =>
       'Eine Treppe liegt an einer Seite am Bauelement oder mit Rinne – sie wird nicht gerechnet.';
+
+  @override
+  String get treppeMeldungSteigung =>
+      'Prüfliste: Eine Steigung liegt außerhalb von 15–19 cm.';
+
+  @override
+  String get treppeMeldungSchrittmass =>
+      'Prüfliste: Das Schrittmaß (2 × Steigung + Auftritt) liegt außerhalb von 59–67 cm.';
+
+  @override
+  String get treppeMeldungZuSchmal =>
+      'Prüfliste: Die Treppe ist schmaler als 50 cm.';
+
+  @override
+  String get treppeMeldungUeberSeite =>
+      'Prüfliste: Die Treppe reicht über das Ende der Seite hinaus.';
 }

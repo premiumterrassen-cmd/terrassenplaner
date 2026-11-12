@@ -37,7 +37,13 @@ Anschlussbedarf anschlussbedarf(
           )
           .und(rinnenbedarf(stand, belag: belag, regelwerk: regelwerk))
           .und(
-            treppenbedarf(stand, belag: belag, uk: uk, ukAbstand: ukAbstand),
+            treppenbedarf(
+              stand,
+              belag: belag,
+              regelwerk: regelwerk,
+              uk: uk,
+              ukAbstand: ukAbstand,
+            ),
           );
   if (uk == null) return teile;
   final holz = [

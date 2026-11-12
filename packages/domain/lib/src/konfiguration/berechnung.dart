@@ -14,6 +14,7 @@ import '../regeln/befestigungsbedarf.dart';
 import '../regeln/belagmeldungen.dart';
 import '../regeln/flaechenpruefung.dart';
 import '../regeln/hoehenpunkte.dart';
+import '../regeln/kantenpruefung.dart';
 import '../regeln/uk_zusatz.dart';
 import '../regeln/zubehoerbedarf.dart';
 import 'anschlussergebnis.dart';
@@ -439,6 +440,11 @@ final class Berechnung {
   /// Regel 1.7, `pruefeFlaeche`); eine offene Freiform hat keine.
   Flaechenmeldung? get flaechenmeldung =>
       geschlossen ? pruefeFlaeche(flaecheQuadratmeter) : null;
+
+  /// Plausibilität der Kanten zwischen den benannten [ecken] (Planungskern
+  /// v7 Regel 9.6, `pruefeKanten`): Warnungen für die Prüfliste.
+  List<Kantenwarnung> get kantenwarnungen =>
+      pruefeKanten(ecken, geschlossen: geschlossen);
 
   /// Summe aller Flächen der Planung in mm², jede mal ihrer Häufigkeit
   /// (M4-14); bei nur einer Fläche gleich [flaeche].

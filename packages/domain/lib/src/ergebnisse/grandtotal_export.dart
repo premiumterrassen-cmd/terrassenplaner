@@ -139,8 +139,9 @@ final class GrandTotalZeile {
   String toString() => felder.join(';');
 }
 
-/// Zeilen der Importdatei aus der [liste] (Reihenfolge der Materialliste,
-/// abgewählte Positionen mit Menge 0 entfallen). [artikel] liefert Maße,
+/// Zeilen der Importdatei aus der [liste] (Reihenfolge der Materialliste;
+/// abgewählte Positionen mit Menge 0 und Positionen, die nicht im Angebot
+/// sind – Planungskern v7 Regel 9.7 –, entfallen). [artikel] liefert Maße,
 /// Art, Holzart und Gewicht; [bilder] ist die Adresse der Web-App, neben
 /// der die Artikelbilder liegen (M2-07) – ohne sie bleibt der Bild-Link
 /// leer.
@@ -150,7 +151,7 @@ List<GrandTotalZeile> grandTotalZeilen(
   Uri? bilder,
 }) => [
   for (final p in liste.positionen)
-    if (p.anzahl > 0) _zeile(p, artikel(p.nummer), bilder),
+    if (p.anzahl > 0 && p.imAngebot) _zeile(p, artikel(p.nummer), bilder),
 ];
 
 /// Importdatei aus [zeilen]: Spaltenköpfe und Zeilen, getrennt durch `;`,

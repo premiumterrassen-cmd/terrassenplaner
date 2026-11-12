@@ -304,6 +304,84 @@ void main() {
     });
   });
 
+  group('Positionen „im Angebot“ (Planungskern v7 Regel 9.7)', () {
+    const diele = (
+      nummer: Artikelnummer('10-10-073-R'),
+      laenge: Millimeter(5000),
+      zusatz: null,
+    );
+    const clip = (
+      nummer: Artikelnummer('80-10-001-50'),
+      laenge: null,
+      zusatz: Materialzusatz.optional,
+    );
+
+    test('abwählen, wieder anwählen; Start alle im Angebot', () {
+      expect(Planung.start.ausserhalbAngebot, isEmpty);
+      final p = Planung.start
+          .mitImAngebot(diele, an: false)
+          .mitImAngebot(clip, an: false);
+      expect(p.ausserhalbAngebot, {diele, clip});
+      expect(p.mitImAngebot(diele, an: true).ausserhalbAngebot, {clip});
+      expect(p.mitImAngebot(clip, an: false).ausserhalbAngebot, {diele, clip});
+      expect(() => p.ausserhalbAngebot.add(diele), throwsUnsupportedError);
+    });
+
+    test('bleiben bei allen Änderungen der Planung erhalten', () {
+      final p = Planung.start.mitImAngebot(diele, an: false);
+      final zwei = p.mitNeuerFlaeche();
+      for (final q in [
+        zwei,
+        zwei.gewaehlt(0),
+        zwei.ohneFlaeche(1),
+        p.mitHaeufigkeit(3),
+        p.mitStand(Planungsstand.start.mitVerlegeart(Verlegeart.halbverband)),
+        p.mitMenge(clip, 2),
+        p.mitVerschnittvariante(1),
+      ]) {
+        expect(q.ausserhalbAngebot, {diele});
+      }
+      expect(p.mitImAngebot(clip, an: false).mengen, isEmpty);
+      expect(
+        Planung.start
+            .mitMenge(clip, 3)
+            .mitVerschnittvariante(2)
+            .mitImAngebot(diele, an: false),
+        Planung(
+          Planung.start.flaechen,
+          mengen: {clip: 3},
+          ausserhalbAngebot: {diele},
+          verschnittvariante: 2,
+        ),
+      );
+    });
+
+    test('Gleichheit, Hash und Transport auf Platz 71', () {
+      final p = Planung.start
+          .mitImAngebot(diele, an: false)
+          .mitImAngebot(clip, an: false);
+      final q = Planung.start
+          .mitImAngebot(clip, an: false)
+          .mitImAngebot(diele, an: false);
+      expect(p, q);
+      expect(p.hashCode, q.hashCode);
+      expect(p, isNot(Planung.start));
+      expect(
+        Planung.start.mitImAngebot(diele, an: false),
+        isNot(Planung.start.mitImAngebot(clip, an: false)),
+      );
+      expect(p, isNot(Planung.start.mitImAngebot(diele, an: false)));
+      final zurueck = Planung.ausBytes(p.zuBytes());
+      expect(zurueck, p);
+      expect(zurueck.ausserhalbAngebot, {diele, clip});
+      expect(Planung.start.zuBytes().length, lessThan(p.zuBytes().length));
+      expect(
+        Planung.ausBytes(Planung.start.zuBytes()).ausserhalbAngebot,
+        isEmpty,
+      );
+    });
+  });
+
   group('Verschnittvariante (M9-01)', () {
     test('Start nicht optimiert; 0 bis 3', () {
       expect(Planung.start.verschnittvariante, 0);
