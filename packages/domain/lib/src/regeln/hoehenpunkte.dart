@@ -72,7 +72,7 @@ final class Hoehenpunkte {
 /// die Rückfrage „Meintest du … cm?“ mit einem Zehntel der Eingabe, wenn es
 /// zwischen Mindest- und Höchsthöhe liegt. Hochterrasse und vorhandene UK
 /// stehen auf Stützen bzw. der vorhandenen UK – dort keine Höchsthöhe
-/// (offene Frage 22).
+/// (offene Frage 24).
 Hoehenpunkte pruefeHoehen(
   List<Millimeter> hoehen, {
   required Terrassenart art,

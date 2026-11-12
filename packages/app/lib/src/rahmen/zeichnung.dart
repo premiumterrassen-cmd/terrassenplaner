@@ -30,7 +30,12 @@ final class Zeichnung {
     List<(Offset, Offset, Seitenrolle)> seiten = const [],
     List<List<Offset>> treppen = const [],
     this.ausgangspunkt,
+    List<String> namen = const [],
+    List<(Offset, Offset)> stoesse = const [],
+    this.achsen,
   }) : umriss = List.unmodifiable(umriss),
+       namen = List.unmodifiable(namen),
+       stoesse = List.unmodifiable(stoesse),
        treppen = List.unmodifiable(treppen),
        seiten = List.unmodifiable(seiten),
        auflager = List.unmodifiable(auflager),
@@ -103,6 +108,19 @@ final class Zeichnung {
   /// Ausgangspunkt der Verlegung in mm (M5-07): Ecke plus Verschiebung, dort
   /// liegt der Griff der ersten ganzen Diele; `null` ohne Dielen.
   final Offset? ausgangspunkt;
+
+  /// Namen der [ecken] vom Server (R-E03: A oben links, im Uhrzeigersinn).
+  final List<String> namen;
+
+  /// Name der Ecke [i]; ohne Namen vom Server in Reihenfolge.
+  String name(int i) => i < namen.length ? namen[i] : eckbuchstabe(i);
+
+  /// Dielenstöße in mm (R-E01), je Stoß Anfang und Ende – rot gestrichelt.
+  final List<(Offset, Offset)> stoesse;
+
+  /// Achsmaßkette der UK in mm (R-E02): Marken am Rand des Umrisses und
+  /// die Richtung nach außen; `null` ohne.
+  final ({List<Offset> marken, Offset normale})? achsen;
 }
 
 /// Ein Text der Zeichnung: [ort] ist der Ankerpunkt auf dem Bildschirm,
@@ -257,6 +275,81 @@ class ZeichnungsMaler extends CustomPainter {
   /// Farbe der Querstreben: grün wie Querstücke in der Stückliste (M9-04).
   static final strebenFarbe = Color(Stueckfarbe.gruen.argb);
 
+  /// Rot der Stoßlinien (R-E01) wie im Planungskern und in den Unterlagen.
+  static const stossFarbe = Color(stossfarbe);
+
+  /// Strich und Lücke der Stoßlinien in Pixeln.
+  static const stossStrich = 6.0;
+  static const stossLuecke = 3.0;
+
+  /// Stoßlinien auf dem Bildschirm (R-E01), wenn die Ebene Belag sichtbar
+  /// ist – in Striche zerlegt (Canvas zeichnet nicht gestrichelt).
+  List<(Offset, Offset)> stossstriche() => [
+    if (optionen.zeigt(Ebene.belag))
+      for (final (von, bis) in zeichnung.stoesse)
+        ...gestrichelt(bildschirm(von), bildschirm(bis)),
+  ];
+
+  /// Die Strecke [von]–[bis] in Striche von [stossStrich] mit Lücken von
+  /// [stossLuecke] Pixeln; der letzte Strich endet am Ende.
+  static List<(Offset, Offset)> gestrichelt(Offset von, Offset bis) {
+    final laenge = (bis - von).distance;
+    if (laenge == 0) return const [];
+    final richtung = (bis - von) / laenge;
+    final striche = <(Offset, Offset)>[];
+    for (var a = 0.0; a < laenge; a += stossStrich + stossLuecke) {
+      striche.add((
+        von + richtung * a,
+        von + richtung * math.min(a + stossStrich, laenge),
+      ));
+    }
+    return striche;
+  }
+
+  /// Blau der Achsmaßkette (R-E02) wie in den Unterlagen.
+  static const achsmassFarbe = Color(achsmassfarbe);
+
+  /// Abstand der Achsmaßkette vom Umriss in Pixeln – außerhalb der
+  /// Gesamtmaße ([masslinienAbstand]).
+  static const achsmassAbstand = 70.0;
+
+  /// Halbe Länge der Marken der Achsmaßkette in Pixeln.
+  static const achsmassMarke = 4.0;
+
+  /// Unter diesem Abstand (Pixel) zweier Marken steht keine Zahl.
+  static const achsmassTextAb = 14.0;
+
+  /// Achsmaßkette auf dem Bildschirm (R-E02), wenn die Ebene UK sichtbar
+  /// ist: Kettenlinie und Marken als Strecken, dazu die Abstände in cm
+  /// außen neben der Kette.
+  ({List<(Offset, Offset)> linien, List<Zeichentext> texte}) achsmasskette() {
+    final k = zeichnung.achsen;
+    if (k == null || !optionen.zeigt(Ebene.unterkonstruktion)) {
+      return (linien: const [], texte: const []);
+    }
+    final versatz = k.normale * achsmassAbstand;
+    final quer = k.normale * achsmassMarke;
+    final punkte = [for (final m in k.marken) bildschirm(m) + versatz];
+    return (
+      linien: [
+        for (var i = 1; i < punkte.length; i++) (punkte[i - 1], punkte[i]),
+        for (final p in punkte) (p - quer, p + quer),
+      ],
+      texte: [
+        for (var i = 1; i < punkte.length; i++)
+          if ((punkte[i] - punkte[i - 1]).distance >= achsmassTextAb)
+            (
+              text:
+                  '${((k.marken[i] - k.marken[i - 1]).distance / 10).round()}',
+              ort:
+                  Offset.lerp(punkte[i - 1], punkte[i], 0.5)! +
+                  k.normale * beschriftungsAbstand,
+              richtung: k.normale,
+            ),
+      ],
+    );
+  }
+
   /// Rand des Dielenstücks [index] in der Farbe der Stückliste (M9-04);
   /// `null` = normale Fuge.
   Color? dielenrand(int index) => zeichnung.dielenfarben.elementAtOrNull(index);
@@ -316,7 +409,7 @@ class ZeichnungsMaler extends CustomPainter {
       if (optionen.beschriftet(Beschriftung.punkte))
         for (var i = 0; i < n; i++)
           (
-            text: punktname(i),
+            text: zeichnung.name(i),
             ort: schirm[i] - innen(punkte, i) * beschriftungsAbstand,
             richtung: -innen(punkte, i),
           ),
@@ -362,7 +455,7 @@ class ZeichnungsMaler extends CustomPainter {
       if (optionen.beschriftet(Beschriftung.punkte))
         for (var i = 0; i < punkte.length; i++)
           (
-            text: punktname(i),
+            text: zeichnung.name(i),
             ort: schirm[i] + oben * beschriftungsAbstand,
             richtung: oben,
           ),
@@ -430,9 +523,6 @@ class ZeichnungsMaler extends CustomPainter {
     punkte.map((p) => p.dx).reduce(math.max),
     punkte.map((p) => p.dy).reduce(math.max),
   );
-
-  /// Eckpunktnamen wie im alten Planer: A, B, C …
-  static String punktname(int i) => String.fromCharCode(0x41 + i.remainder(26));
 
   /// Länge in mm als Zentimeter, auf den Millimeter gerundet
   /// („480 cm“, „12,5 cm“ – auf Englisch „12.5 cm“).
@@ -527,6 +617,12 @@ class ZeichnungsMaler extends CustomPainter {
       maler.paint(canvas, textLage(Offset.zero, Offset.zero, maler.size));
       canvas.restore();
     }
+    final stoss = Paint()
+      ..color = stossFarbe
+      ..strokeWidth = 2;
+    for (final (von, bis) in stossstriche()) {
+      canvas.drawLine(von, bis, stoss);
+    }
     for (final (von, bis, farbe, breite) in holzlinien()) {
       canvas.drawLine(
         von,
@@ -561,6 +657,21 @@ class ZeichnungsMaler extends CustomPainter {
       ..strokeWidth = 3;
     for (final (von, bis) in strebenlinien()) {
       canvas.drawLine(von, bis, strebe);
+    }
+    final kette = achsmasskette();
+    final blau = Paint()..color = achsmassFarbe;
+    for (final (von, bis) in kette.linien) {
+      canvas.drawLine(von, bis, blau);
+    }
+    for (final (:text, :ort, :richtung) in kette.texte) {
+      final maler = TextPainter(
+        text: TextSpan(
+          text: text,
+          style: const TextStyle(fontSize: nummerGroesse, color: achsmassFarbe),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      maler.paint(canvas, textLage(ort, richtung, maler.size));
     }
     final linie = Paint()
       ..color = strich

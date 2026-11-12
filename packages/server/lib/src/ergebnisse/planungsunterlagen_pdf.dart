@@ -56,6 +56,9 @@ const planhoehe = 420.0;
 /// Rand um eine Zeichnung für Beschriftungen an ihrem Rand, in Punkt.
 const planrand = 25.0;
 
+/// Strich und Lücke gestrichelter Linien in Punkt (Stoßlinien, R-E01).
+const strichmuster = [4, 2];
+
 /// [text] in Latin-1 – mehr kennen die Standardschriften des PDF nicht:
 /// typografische Zeichen werden ersetzt, alles andere wird „?“.
 String latin1Text(String text) {
@@ -277,8 +280,11 @@ void zeichne(PdfGraphics leinwand, Plan plan, Planmassstab m) {
     } else {
       leinwand
         ..setStrokeColor(farbe)
-        ..setLineWidth(l.staerke)
-        ..strokePath();
+        ..setLineWidth(l.staerke);
+      // gestrichelt (Stoßlinien, R-E01), danach wieder durchgezogen
+      if (l.gestrichelt) leinwand.setLineDashPattern(strichmuster);
+      leinwand.strokePath();
+      if (l.gestrichelt) leinwand.setLineDashPattern();
     }
   }
 }

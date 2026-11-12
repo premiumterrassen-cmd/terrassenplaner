@@ -2122,6 +2122,43 @@ void main() {
         hasLength(1),
       );
     });
+
+    test('Pläne (Planungskern v6 Abschnitt 6): Achsmaßkette der UK, '
+        'Stoßlinien erst über der Dielenlänge (R-E01, R-E02)', () {
+      final f01 = PlanungsDienst.berechne(
+        Planungsstand.start,
+        diele,
+        regelwerk,
+        uk,
+      );
+      final kette = f01.planbild.achsen!;
+      // Rand, 13 Achsen, Rand – unten am Umriss
+      expect(kette.marken, hasLength(15));
+      expect(kette.marken.first, const Punkt(0, 3090));
+      expect(kette.marken.last, const Punkt(4800, 3090));
+      expect(kette.marken[1], const Punkt(20, 3090));
+      expect(f01.planbild.stoesse, isEmpty);
+      // ohne UK keine Kette
+      expect(
+        PlanungsDienst.berechne(
+          Planungsstand.start,
+          diele,
+          regelwerk,
+        ).planbild.achsen,
+        isNull,
+      );
+      // 8 m mit 5-m-Dielen: Stöße wie die Verlegung sie legt
+      final lang = Planungsstand.start.mitGrundriss(
+        RechteckGrundriss(const Millimeter(8000), const Millimeter(1000)),
+      );
+      final b = PlanungsDienst.berechne(lang, diele, regelwerk, uk);
+      final v = verlegeBelag(lang, diele)!;
+      expect(b.planbild.stoesse, isNotEmpty);
+      expect(
+        b.planbild.stoesse,
+        stosslinien([for (final t in v.teile) t.stuecke], 0),
+      );
+    });
   });
 
   group('Stelzfüße und Pads mit Höhenzuordnung (M6-11)', () {

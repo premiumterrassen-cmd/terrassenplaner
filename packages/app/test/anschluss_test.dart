@@ -11,9 +11,15 @@ import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import 'hilfe.dart';
 
 void main() {
-  test('Seitenname wie in der Zeichnung', () {
-    expect(seitenname(0, 4), 'A — B');
-    expect(seitenname(3, 4), 'D — A');
+  test('Seitenname wie in der Zeichnung (Eckbuchstaben R-E03)', () {
+    expect(seitenname(Planungsstand.start, 0), 'A — B');
+    expect(seitenname(Planungsstand.start, 3), 'D — A');
+    // um 90° gedreht: der erste Punkt liegt oben rechts und heißt B
+    final gedreht = Planungsstand.start.mitGrundriss(
+      Planungsstand.start.grundriss.gedreht(90),
+    );
+    expect(seitenname(gedreht, 0), 'B — C');
+    expect(seitenname(gedreht, 3), 'A — B');
   });
 
   group('Angrenzende Bauelemente (M7-01)', () {

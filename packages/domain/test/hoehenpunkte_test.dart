@@ -173,7 +173,7 @@ void main() {
           // 54,2 cm ist die Vorgabehöhe der Hochterrasse (2026-06-15-1093:
           // Terrassenart nicht in der Unterlage) – als normale Terrasse
           // läge sie über der Höchsthöhe mit Stellfüßen (Planungskern v6,
-          // Regel 3a.4; offene Frage 22)
+          // Regel 3a.4; offene Frage 24)
           art: eingabe.every((h) => h == const Millimeter(542))
               ? Terrassenart.hochterrasse
               : Terrassenart.normal,

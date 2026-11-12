@@ -226,6 +226,6 @@ Branch `feature/planungskern-auflager-hoehe` auf `main` (187d400). Planungsregel
 - Auflager, Pads und Stellfüße vergleicht der Test nicht (Testsortiment ohne sie, siehe Verfahren).
 - Die Stützen der Hochterrasse sind 1 mm kürzer (Ausgleichshöhe mit 1 mm Gummiband: F28 40,0 statt 40,1 cm, Begründung „Stützen“ – der alte Planer hat 39,9 cm); die Lieferlängen der UK bleiben gleich.
 - Kein Fall hat eine Seite an Bauelementen **und** Stellfüße (F36 hat die Hauswand, aber 8,6 cm Höhe – auf Pads bleibt die UK bündig).
-- Kein Fall einer normalen Terrasse liegt über der Höchsthöhe 52,4 cm. Die 54,2 cm im Referenzfall 2026-06-15-1093 sind die Vorgabehöhe der Hochterrasse (Terrassenart nicht in der Unterlage); die Höhenprüfung der Referenzfälle rechnet ihn deshalb als Hochterrasse (offene Frage 22).
+- Kein Fall einer normalen Terrasse liegt über der Höchsthöhe 52,4 cm. Die 54,2 cm im Referenzfall 2026-06-15-1093 sind die Vorgabehöhe der Hochterrasse (Terrassenart nicht in der Unterlage); die Höhenprüfung der Referenzfälle rechnet ihn deshalb als Hochterrasse (offene Frage 24).
 
 **Nicht im Vergleich, aber geändert** (Testdaten der Unit-Tests, Belag 21/22 mm, UK 40 × 60 mm): F30 Spalte 66 … 4 statt 67 … 5 mm, an C/D 2 + 2 mm statt Unterleger 5 mm, 8 + 8 mm statt Keil 14–22; F01 alle 91 Auflager auf 2 + 2 mm statt auf einem 5-mm-Pad (mit 23-mm-Diele: ein 2-mm-Pad).

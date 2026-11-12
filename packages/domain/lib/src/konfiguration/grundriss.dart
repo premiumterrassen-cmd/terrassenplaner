@@ -1,4 +1,5 @@
 import '../artikel/einheiten.dart';
+import '../geometrie/eckbuchstaben.dart';
 import '../geometrie/kontur.dart';
 import '../geometrie/punkt.dart';
 
@@ -94,6 +95,20 @@ sealed class Grundriss {
   List<Punkt> get ecken;
 
   Kontur get kontur => Kontur(ecken);
+
+  /// Name des Eckpunkts [i] in App und Planungsunterlagen (R-E03,
+  /// `eckenBenennen`): A oben links, weiter im Uhrzeigersinn; die offene
+  /// Freiform in Punktreihenfolge, der Kreis hat nur A.
+  String eckname(int i) {
+    final namen = eckenBenennen(
+      ecken,
+      geschlossen: switch (this) {
+        FreiformGrundriss(:final geschlossen) => geschlossen,
+        _ => true,
+      },
+    );
+    return i < namen.length ? namen[i] : eckbuchstabe(i);
+  }
 
   /// Als geschlossene Freiform zum freien Bearbeiten der Ecken (M4-09);
   /// der Kreis hat keine Ecken und bleibt ein Kreis (`null`).

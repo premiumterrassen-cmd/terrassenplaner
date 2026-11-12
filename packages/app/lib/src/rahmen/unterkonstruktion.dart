@@ -6,7 +6,6 @@ import '../sprache/sprache.dart';
 import 'berechnung_steuerung.dart';
 import 'hoehenpunkte.dart';
 import 'steuerung.dart';
-import 'zeichnung.dart';
 
 /// Wert in cm mit höchstens einer Nachkommastelle im Format der Sprache
 /// („8,6“).
@@ -148,7 +147,7 @@ class HoehenpunkteWahl extends StatelessWidget {
             for (final (i, hoehe) in stand.hoehen.indexed)
               CmFeld(
                 key: ValueKey('hoehe-$i'),
-                titel: ZeichnungsMaler.punktname(i),
+                titel: stand.grundriss.eckname(i),
                 wert: hoehe,
                 gueltig: Planungsstand.hoeheGueltig,
                 fehler: t.hoeheUngueltig,
