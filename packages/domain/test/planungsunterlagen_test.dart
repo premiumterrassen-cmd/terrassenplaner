@@ -1171,9 +1171,18 @@ void main() {
         Punkt(20, y - a * 0.3),
         Punkt(20, y + a * 0.3),
       ]);
-      final zahlen = plan.texte.skip(8).toList();
-      expect([for (final t in zahlen) t.text], ['40', '438']);
-      expect(zahlen.first.ort, const Punkt(220, y + a * 0.7));
+      // die Zahlen setzt der Satz im Maßstab (Masskette.zahlen)
+      expect(plan.texte, hasLength(8));
+      final zahlen = plan.ketten.single;
+      expect(zahlen.marken, const [
+        Punkt(0, y + a * 0.7),
+        Punkt(20, y + a * 0.7),
+        Punkt(420, y + a * 0.7),
+        Punkt(4800, y + a * 0.7),
+      ]);
+      expect(zahlen.normale, const Punkt(0, 1));
+      expect(plan.ketten.clear, throwsUnsupportedError);
+      expect(Plan(const []).ketten, isEmpty);
       expect(
         [for (final t in plan.texte.take(4)) t.text],
         ['A', 'B', 'C', 'D'],
