@@ -66,6 +66,8 @@ void main() {
     }
     expect(de.art(Verlegeart.halbverband), 'Halbverband');
     expect(en.art(Verlegeart.halbverband), 'Half bond');
+    expect(de.art(Verlegeart.viertelverband), 'Viertelverband');
+    expect(en.art(Verlegeart.viertelverband), 'Quarter bond');
     expect(de.befestigungsart(Befestigungsart.clips), 'mit Clips');
     expect(en.befestigungsart(Befestigungsart.clips), 'with clips');
     expect(de.terrassenartText(Terrassenart.hochterrasse), 'Hochterrasse');
@@ -120,6 +122,42 @@ void main() {
     expect(
       en.treppenmeldung(2, Treppenmeldung.zuSchmal),
       startsWith('Stairs 2'),
+    );
+    // vollständige Texte (Planungskern v7 Regeln 9.5.5 und 9.6)
+    Kantenwarnung kw(Kantenmeldung art, int mm) =>
+        (kante: 'A–B', laenge: Millimeter(mm), art: art);
+    expect(
+      en.kantenwarnung(kw(Kantenmeldung.zuKurz, 55)),
+      'Edge A–B is only 5.5 cm long (under 10 cm) – please check the '
+      'dimensions.',
+    );
+    expect(
+      de.kantenwarnung(kw(Kantenmeldung.zuLang, 31000)),
+      'Kante A–B ist 3100 cm lang (über 30 m) – bitte die Maße prüfen.',
+    );
+    expect(
+      en.kantenwarnung(kw(Kantenmeldung.zuLang, 31000)),
+      'Edge A–B is 3100 cm long (over 30 m) – please check the dimensions.',
+    );
+    expect(
+      [for (final m in Treppenmeldung.values) de.treppenmeldung(2, m)],
+      [
+        'Treppe 2: Eine Steigung liegt außerhalb von 15–19 cm.',
+        'Treppe 2: Das Schrittmaß (2 × Steigung + Auftritt) liegt außerhalb '
+            'von 59–67 cm.',
+        'Treppe 2: schmaler als 50 cm.',
+        'Treppe 2: reicht über das Ende der Seite hinaus.',
+      ],
+    );
+    expect(
+      [for (final m in Treppenmeldung.values) en.treppenmeldung(2, m)],
+      [
+        'Stairs 2: a riser height is outside 15–19 cm.',
+        'Stairs 2: the step dimension (2 × riser + tread) is outside '
+            '59–67 cm.',
+        'Stairs 2: narrower than 50 cm.',
+        'Stairs 2: extends beyond the end of the side.',
+      ],
     );
     expect(de.nichtImAngebot('X'), 'Nicht im Angebot: X');
     expect(en.nichtImAngebot('X'), 'Not in the offer: X');

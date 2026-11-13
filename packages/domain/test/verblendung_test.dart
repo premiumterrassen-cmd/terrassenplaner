@@ -930,6 +930,18 @@ void _blendeAmBogen() {
       expect(_anzahl(hoch(440), _b100, 4000), 4);
       expect(_anzahl(hoch(441), _b100, 4000), 0);
       expect(_anzahl(hoch(441), _b100, 6000), 3);
+      // Vorgabe Dielenlänge höchstens 5 m (R-B19): 6 m entfällt, 4 m
+      // (5 × 8 Stücke) und 5 m (4 × 11) gleich viel Holz – die kürzere
+      final kurz = verblendungsbedarf(
+        bogen
+            .mitBlendenhoehe(1, const Millimeter(441))
+            .mitDielenlaengeHoechstens(const Millimeter(5000)),
+        hoehen: _vier,
+        belag: _belag,
+        regelwerk: _serie,
+      );
+      expect(_anzahl(kurz, _b100, 6000), 0);
+      expect(_anzahl(kurz, _b100, 4000), 5);
     });
 
     test('kein Brett in 100 mm: Rückfrage', () {

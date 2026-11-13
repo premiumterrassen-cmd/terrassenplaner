@@ -11,6 +11,9 @@ import '../konfiguration/planung.dart';
 import '../konfiguration/planungsstand.dart';
 import '../konfiguration/unterbau.dart';
 import '../regeln/auflager.dart';
+import '../regeln/auflagerbedarf.dart';
+import '../regeln/treppen.dart';
+import '../regeln/uk_verlegung.dart';
 import 'materialliste.dart';
 import 'planbild.dart';
 import 'stueckliste.dart';
@@ -84,15 +87,29 @@ final class Planlinie {
 /// Eine Beschriftung der Zeichnung, mittig um [ort].
 typedef Planbeschriftung = ({Punkt ort, String text});
 
+/// Eine weiß hinterlegte Zahl neben einem Bauteil (Planungsregeln Alexander
+/// (Planungskern v8/v9, 12.11.2026), Regeln 10.1.3 und 11.2, R-E06): der
+/// Text liegt von der Mitte [ort] des Bauteils um [abstand] (mm) in
+/// [richtung] (Einheitsvektor in Planungskoordinaten) und von dort aus
+/// weiter in [richtung] – so berührt er das Bauteil nie, egal wie groß er
+/// gesetzt wird; ist dort kein Platz, darf der Satz die Gegenrichtung
+/// nehmen. [richtung] (0, 0) setzt ihn mittig um [ort].
+typedef Nebentext = ({Punkt ort, Punkt richtung, double abstand, String text});
+
 /// Eine Zeichnung (Grundriss, UK-Plan, Verlegeplan) – maßstäblich auf die
-/// Seitenbreite gesetzt.
+/// Seitenbreite gesetzt; [nebentexte] stehen weiß hinterlegt über allem.
 final class Plan extends Baustein {
-  Plan(List<Planlinie> linien, [List<Planbeschriftung> texte = const []])
-    : linien = List.unmodifiable(linien),
-      texte = List.unmodifiable(texte);
+  Plan(
+    List<Planlinie> linien, [
+    List<Planbeschriftung> texte = const [],
+    List<Nebentext> nebentexte = const [],
+  ]) : linien = List.unmodifiable(linien),
+       texte = List.unmodifiable(texte),
+       nebentexte = List.unmodifiable(nebentexte);
 
   final List<Planlinie> linien;
   final List<Planbeschriftung> texte;
+  final List<Nebentext> nebentexte;
 }
 
 /// Ein Kapitel; [neueSeite] beginnt es oben auf einer neuen Seite.
@@ -178,11 +195,12 @@ const stossfarbe = 0xFFC30624;
 /// Blau der Achsmaßkette (R-E02).
 const achsmassfarbe = 0xFF1565C0;
 
-/// Hellgrau der UK im Bemaßungsplan (R-E05).
-const ukHellfarbe = 0xFFD0D0D0;
+/// Strichstärke der Stoßlinien im Verlegeplan in Punkt (R-E01, dünn nach
+/// Planungsregeln Alexander (Planungskern v8, 12.11.2026), Regel 10.3).
+const stossstaerke = 0.6;
 
-/// Farben der Auflager im Bemaßungsplan (R-E05) je Zeile der
-/// Höhenzuordnung, ab der neunten wieder von vorn.
+/// Farben der Auflager im UK-Plan (R-E05) je Zeile der Höhenzuordnung –
+/// dieselbe Wahl wie in den Positionen –, ab der neunten wieder von vorn.
 const auflagerfarben = [
   0xFF2E7D32,
   0xFFEF6C00,
@@ -306,9 +324,14 @@ List<Kapitel> _flaeche(
     ]),
     if (unterbau.hoelzer.isNotEmpty)
       Kapitel('$titel – ${t.ukKapitel}', [
-        _ukPlan(t, b),
+        ?_einheitlicheHoehe(t, b),
+        _ukPlan(t, b, flaeche.stand),
         if (b.planbild.achsen != null) Absatz(t.achsmassHinweis),
         if (b.planbild.riegel.isNotEmpty) Absatz(t.riegelHinweis),
+        if (unterbau.auflagerpunkte.isNotEmpty) ...[
+          Absatz(t.ukHoehenHinweis),
+          _fusslegende(t, unterbau),
+        ],
         Absatz(t.stuecklisteUk, fett: true),
         _stueckliste(t, b.stueckliste, ohne: f.belag?.nummer),
       ]),
@@ -325,12 +348,6 @@ List<Kapitel> _flaeche(
           rechts: {1, 2},
         ),
       ], neueSeite: false),
-    if (unterbau.auflagerpunkte.isNotEmpty)
-      Kapitel('$titel – ${t.massKapitel}', [
-        _massPlan(t, b),
-        Absatz(t.massHinweis),
-        _fusslegende(t, unterbau),
-      ]),
     if (v != null) ...[
       Kapitel('$titel – ${t.belagKapitel}', [
         Absatz(t.dielenHinweis),
@@ -399,10 +416,14 @@ String _eckname(Berechnung b, int i) {
 }
 
 /// Grundriss nur für eine Fläche ohne Verlegeplan und UK-Plan (R-E04).
-Plan _grundriss(Unterlagentexte t, Berechnung b) => Plan([
-  Planlinie(b.umriss, argb: _schwarz, geschlossen: b.geschlossen, staerke: 1),
-  for (final a in b.ausschnitte) Planlinie(a, argb: _grau),
-], umrissbeschriftung(t, b));
+Plan _grundriss(Unterlagentexte t, Berechnung b) => Plan(
+  [
+    Planlinie(b.umriss, argb: _schwarz, geschlossen: b.geschlossen, staerke: 1),
+    for (final a in b.ausschnitte) Planlinie(a, argb: _grau),
+  ],
+  umrissbeschriftung(t, b),
+  bogenbeschriftungen(t, b),
+);
 
 /// Abstand der Beschriftungen außen vom Umriss als Anteil der größten
 /// Ausdehnung, damit er in jedem Maßstab gleich aussieht.
@@ -410,8 +431,8 @@ const beschriftungsanteil = 0.04;
 
 /// Eckbuchstaben und Kantenmaße außen am Umriss (Planungskern Regel 6.2,
 /// R-E03): Buchstaben auf der Winkelhalbierenden vor der Ecke, Kantenmaße
-/// in m vor der Mitte jeder Kante – am Bogen statt der Sehne „Bogen … ·
-/// R …“ außen am Scheitel (Planungskern v12, Regel 14.1.3).
+/// in m vor der Mitte jeder Kante – an einer Seite mit Bogen keines, dort
+/// steht `bogenbeschriftungen` (Planungskern v12, Regel 14.1.3).
 List<Planbeschriftung> umrissbeschriftung(Unterlagentexte t, Berechnung b) {
   final ecken = b.ecken;
   if (ecken.length < 2) return const [];
@@ -419,14 +440,12 @@ List<Planbeschriftung> umrissbeschriftung(Unterlagentexte t, Berechnung b) {
   final n = ecken.length;
   final normalen = _kantennormalen(b);
   final richtungen = _eckrichtungen(b, normalen);
-  final boegen = {for (final g in b.planbild.boegen) g.seite: g};
+  final boegen = {for (final g in b.planbild.boegen) g.seite};
   return [
     for (var i = 0; i < n; i++)
       (ort: ecken[i] + richtungen[i] * a, text: _eckname(b, i)),
     for (var i = 0; i < normalen.length; i++)
-      if (boegen[i] case final g?)
-        _bogenbeschriftung(t.bogen(g.laenge, g.radius), g, a)
-      else
+      if (!boegen.contains(i))
         (
           ort: (ecken[i] + ecken[(i + 1) % n]) * 0.5 + normalen[i] * a,
           text: '${t.zahl(ecken[i].abstand(ecken[(i + 1) % n]) / 1000, 2)} m',
@@ -434,24 +453,20 @@ List<Planbeschriftung> umrissbeschriftung(Unterlagentexte t, Berechnung b) {
   ];
 }
 
-/// „Bogen … · R …“ [text] außen am Scheitel des Bogens [g]: so weit vom
-/// Bogen, dass der Text ihn nicht berührt – quer zur Schrift um die halbe
-/// Textbreite (je Zeichen etwa [zeichenbreite] Beschriftungsabstände [a]),
-/// längs um die halbe Zeilenhöhe.
-Planbeschriftung _bogenbeschriftung(String text, Bogenmass g, double a) => (
-  ort:
-      g.scheitel +
-      g.aussen *
-          (a *
-              (1 +
-                  g.aussen.x.abs() * text.length * zeichenbreite / 2 +
-                  g.aussen.y.abs() / 4)),
-  text: text,
-);
-
-/// Breite eines Zeichens der Beschriftung (7 pt) in Beschriftungsabständen
-/// (etwa 19 pt auf der Seitenbreite).
-const zeichenbreite = 0.2;
+/// „Bogen ‹Länge› m · R ‹Radius› m“ je Bogen von [b] außen am Scheitel
+/// statt der Sehne (Planungskern v12, Regel 14.1.3): als Nebentext mit der
+/// Platzsuche der Pläne (Regel 12.1) – das Feld liegt ganz außerhalb, einen
+/// halben Beschriftungsabstand vom Scheitel. Steht in jedem Plan vor den
+/// übrigen Nebentexten, damit es seinen Platz zuerst bekommt.
+List<Nebentext> bogenbeschriftungen(Unterlagentexte t, Berechnung b) => [
+  for (final g in b.planbild.boegen)
+    (
+      ort: g.scheitel,
+      richtung: g.aussen,
+      abstand: _beschriftungsabstand(b.umriss) / 2,
+      text: t.bogen(g.laenge, g.radius),
+    ),
+];
 
 /// Normale je Kante der Ecken von [b] (ein offener Linienzug hat eine
 /// Kante weniger als Ecken).
@@ -539,16 +554,28 @@ int _winkel(Punkt a, Punkt b, Punkt c, double sinn) {
   return (180 - sinn * drehung * 180 / math.pi).round();
 }
 
-Plan _ukPlan(Unterlagentexte t, Berechnung b) {
+/// UK-Plan (R-E02, R-E05; Planungsregeln Alexander (Planungskern v8/v9,
+/// 12.11.2026), Regeln 10.1 und 11.2 – ersetzt die eigene Seite
+/// „Bemaßung und Höhen“): Umriss mit Eckbuchstaben und Kantenmaßen, die
+/// Hölzer in ihrer Stückfarbe ohne Längen, Querstreben, Achsmaßkette,
+/// „H = … cm“ je Ecke (bei gleicher Höhe überall einmal über dem Plan,
+/// Regel 12.2), die Treppen mit der Höhe jeder Stufe und jedes Auflager in
+/// der Farbe seines Zubehörs (Zeile der Höhenzuordnung) mit der Fußhöhe
+/// (Spalt unter der UK) in cm weiß hinterlegt neben dem Holz.
+Plan _ukPlan(Unterlagentexte t, Berechnung b, Planungsstand stand) {
   final u = b.unterbau;
   final halb = (u.holzbreite?.mm ?? 40) / 2;
+  final a = _beschriftungsabstand(b.umriss);
   final kette = switch (b.planbild.achsen) {
-    final k? => _achsmasskette(k, _beschriftungsabstand(b.umriss)),
+    final k? => _achsmasskette(k, a),
     null => null,
   };
+  final stufen = _stufen(t, b, stand);
   return Plan(
     [
       Planlinie(b.umriss, argb: _grau, geschlossen: b.geschlossen),
+      for (final teil in stufen.umrisse)
+        Planlinie(teil, argb: _grau, gestrichelt: true),
       for (final h in u.hoelzer)
         Planlinie(
           _balken(h.von, h.bis, halb),
@@ -565,39 +592,9 @@ Plan _ukPlan(Unterlagentexte t, Berechnung b) {
       // Riegel am Bogen grün umrandet (Planungskern v12, Regel 14.2.3)
       for (final r in b.planbild.riegel)
         Planlinie(_balken(r.von, r.bis, halb), argb: Stueckfarbe.gruen.argb),
-      for (final a in u.auflagerpunkte)
-        Planlinie(_balken(a.ort, a.ort, 25), argb: _schwarz, gefuellt: true),
-      ...?kette?.linien,
-    ],
-    [...umrissbeschriftung(t, b), ...?kette?.texte],
-  );
-}
-
-/// Bemaßungsplan (Planungsregeln Alexander (Planungskern v7, 12.11.2026),
-/// Regel 9.2, R-E05): Umriss mit Eckbuchstaben und Kantenmaßen, die UK
-/// hell, die Achsmaßkette, „H = … cm“ je Ecke und an jedem Auflager seine
-/// Höhe (Spalt unter der UK) in cm, farbig nach seiner Zeile der
-/// Höhenzuordnung.
-Plan _massPlan(Unterlagentexte t, Berechnung b) {
-  final u = b.unterbau;
-  final halb = (u.holzbreite?.mm ?? 40) / 2;
-  final a = _beschriftungsabstand(b.umriss);
-  final kette = switch (b.planbild.achsen) {
-    final k? => _achsmasskette(k, a),
-    null => null,
-  };
-  return Plan(
-    [
-      Planlinie(b.umriss, argb: _schwarz, geschlossen: b.geschlossen),
-      for (final h in u.hoelzer)
-        Planlinie(
-          _balken(h.von, h.bis, halb),
-          argb: ukHellfarbe,
-          gefuellt: true,
-        ),
       for (final p in u.auflagerpunkte)
         Planlinie(
-          _balken(p.ort, p.ort, 30),
+          _balken(p.ort, p.ort, halb + 5),
           argb: auflagerfarbe(p.zeile),
           gefuellt: true,
         ),
@@ -605,20 +602,104 @@ Plan _massPlan(Unterlagentexte t, Berechnung b) {
     ],
     [
       ...umrissbeschriftung(t, b),
-      ..._eckhoehen(t, b, a),
-      for (final p in u.auflagerpunkte)
-        (ort: p.ort + _neben(u) * (a * 0.6), text: t.cm(p.spalt)),
+      if (_einheitlicheHoehe(t, b) == null) ..._eckhoehen(t, b, a),
       ...?kette?.texte,
+    ],
+    [
+      ...bogenbeschriftungen(t, b),
+      for (final p in u.auflagerpunkte)
+        if (p.spalt.mm >= 0) _fusshoehe(t, p, u.hoelzer, halb + 5),
+      ...stufen.texte,
     ],
   );
 }
 
-/// Richtung quer zur UK (die Höhe steht neben dem Holz, nicht darauf);
-/// ohne Hölzer nach unten.
-Punkt _neben(Unterbau u) => switch (u.hoelzer) {
-  [final h, ...] when !h.bis.gleich(h.von) => (h.bis - h.von).einheit.links,
-  _ => const Punkt(0, 1),
-};
+/// Absatz „Aufbauhöhe H = … cm (überall)“ über dem UK-Plan, wenn alle
+/// Ecken gleich hoch sind (Planungsregeln Alexander (Planungskern v10,
+/// 12.11.2026), Regel 12.2); sonst `null` – dann steht H an jeder Ecke.
+Absatz? _einheitlicheHoehe(Unterlagentexte t, Berechnung b) {
+  final hoehen = b.hoehenpunkte.hoehen;
+  if (hoehen.isEmpty || b.ecken.length < 2) return null;
+  return hoehen.every((h) => h == hoehen.first)
+      ? Absatz(t.aufbauhoeheUeberall(hoehen.first))
+      : null;
+}
+
+/// Fußhöhe des Auflagers [p] in cm neben dem Holz aus [hoelzer], auf dem
+/// es liegt (`fusshoehenRichtung`), vom Rand des Auflagers ([halb] von der
+/// Achse) aus – nie auf dem Holz (Regel 10.1.3). Ein negativer Spalt (UK
+/// tiefer als die Aufbauhöhe) hat keine Fußhöhe und bekommt keine Zahl –
+/// wie im Planungskern.
+Nebentext _fusshoehe(
+  Unterlagentexte t,
+  Auflagerpunkt p,
+  List<UkHolz> hoelzer,
+  double halb,
+) => (
+  ort: p.ort,
+  richtung: fusshoehenRichtung(p.ort, hoelzer, halb),
+  abstand: halb,
+  text: t.cm(p.spalt),
+);
+
+/// Richtung der Fußhöhe eines Auflagers bei [ort] (Planungsregeln
+/// Alexander (Planungskern v8, 12.11.2026), Regel 10.1.3; UK-Plan und
+/// Projektansicht): quer zum ersten Holz aus [hoelzer], auf dem es liegt
+/// (bis [halb] von der Achse), nach rechts bzw. oben (y nach unten), damit
+/// die Zahlen einer Latte auf derselben Seite stehen; auf keinem Holz nach
+/// oben.
+Punkt fusshoehenRichtung(Punkt ort, List<UkHolz> hoelzer, double halb) {
+  for (final h in hoelzer) {
+    if (!_aufHolz(ort, h, halb)) continue;
+    final quer = (h.bis - h.von).einheit.links;
+    return quer.x > 1e-9 || (quer.x.abs() <= 1e-9 && quer.y < 0)
+        ? quer
+        : quer * -1;
+  }
+  return const Punkt(0, -1);
+}
+
+/// Ob [ort] auf dem Holz [h] (Achse mit [halb] Abstand) liegt; ein Holz
+/// ohne Länge trägt nichts.
+bool _aufHolz(Punkt ort, UkHolz h, double halb) {
+  final d = h.bis - h.von;
+  final laenge = d.laenge;
+  if (laenge < 1e-9) return false;
+  final r = d * (1 / laenge);
+  final t = (ort - h.von).punktprodukt(r);
+  return t >= -halb &&
+      t <= laenge + halb &&
+      (ort - h.von).kreuz(r).abs() <= halb;
+}
+
+/// Umrisse der Treppenteile und je Teil die Höhe seiner Oberkante über dem
+/// Boden („Stufe 1 · H 30 cm“, beim Podest „Podest · H …“; Planungsregeln
+/// Alexander (Planungskern v8, 12.11.2026), Regel 10.1.1).
+({List<List<Punkt>> umrisse, List<Nebentext> texte}) _stufen(
+  Unterlagentexte t,
+  Berechnung b,
+  Planungsstand stand,
+) {
+  final umrisse = <List<Punkt>>[];
+  final texte = <Nebentext>[];
+  final bilder = b.anschluss.treppen;
+  for (var i = 0; i < bilder.length && i < stand.treppen.length; i++) {
+    final treppe = stand.treppen[i];
+    final teile = treppenteile(treppe);
+    final podest = treppe.art.mitPodest ? 1 : 0;
+    for (var k = 0; k < bilder[i].teile.length && k < teile.length; k++) {
+      final umriss = bilder[i].teile[k];
+      umrisse.add(umriss);
+      texte.add((
+        ort: _mitte(umriss),
+        richtung: Punkt.ursprung,
+        abstand: 0,
+        text: t.stufenhoehe(k + 1 - podest, teile[k].oberkante),
+      ));
+    }
+  }
+  return (umrisse: umrisse, texte: texte);
+}
 
 /// „H = … cm“ je Ecke (R-E05) außen hinter dem Eckbuchstaben.
 List<Planbeschriftung> _eckhoehen(Unterlagentexte t, Berechnung b, double a) {
@@ -632,27 +713,33 @@ List<Planbeschriftung> _eckhoehen(Unterlagentexte t, Berechnung b, double a) {
   ];
 }
 
-/// Legende der Fußtypen (R-E05): je Zeile der Höhenzuordnung mit
-/// Auflagern ihre Farbe, ihr Titel und die Anzahl; Auflager ohne
-/// passenden Artikel schwarz.
+/// Legende der Auflager im UK-Plan (R-E05, Regel 10.1.2): je Zeile der
+/// Höhenzuordnung mit Auflagern ihre Farbe, Bezeichnung, Fußhöhe (Spalt
+/// der Auflager von–bis in cm) und Anzahl; Auflager ohne passenden
+/// Artikel schwarz.
 Tabelle _fusslegende(Unterlagentexte t, Unterbau u) {
-  final ohne = u.auflagerpunkte.where((p) => p.zeile == null).length;
-  final zeilen = {for (final p in u.auflagerpunkte) ?p.zeile}.toList()..sort();
+  final zeilen = <int?>{for (final p in u.auflagerpunkte) p.zeile}.toList()
+    ..sort((a, b) => (a ?? 1 << 30).compareTo(b ?? 1 << 30));
+  List<String> zeile(int? z) {
+    final spalte = [
+      for (final p in u.auflagerpunkte)
+        if (p.zeile == z) p.spalt.mm,
+    ];
+    // ein negativer Spalt hat keine Fußhöhe
+    final von = Millimeter(math.max(0, spalte.reduce(math.min)));
+    final bis = Millimeter(spalte.reduce(math.max));
+    return [
+      if (z == null) t.ohneAuflager else u.zuordnung[z].titel,
+      von == bis ? t.cm(von) : '${t.cm(von)} – ${t.cm(bis)}',
+      '${spalte.length}',
+    ];
+  }
+
   return Tabelle(
-    [t.auflager, t.anzahl],
-    [
-      for (final z in zeilen)
-        [
-          u.zuordnung[z].titel,
-          '${u.auflagerpunkte.where((p) => p.zeile == z).length}',
-        ],
-      if (ohne > 0) [t.ohneAuflager, '$ohne'],
-    ],
-    farben: [
-      for (final z in zeilen) auflagerfarbe(z),
-      if (ohne > 0) auflagerfarbe(null),
-    ],
-    rechts: {1},
+    [t.auflager, '${t.fusshoehe} (cm)', t.anzahl],
+    [for (final z in zeilen) zeile(z)],
+    farben: [for (final z in zeilen) auflagerfarbe(z)],
+    rechts: {1, 2},
   );
 }
 
@@ -722,7 +809,7 @@ Plan _belagPlan(Unterlagentexte t, Berechnung b) => Plan(
         argb: stossfarbe,
         geschlossen: false,
         gestrichelt: true,
-        staerke: 1,
+        staerke: stossstaerke,
       ),
   ],
   [
@@ -730,6 +817,7 @@ Plan _belagPlan(Unterlagentexte t, Berechnung b) => Plan(
       (ort: _mitte(d), text: '${b.nummern[i]}'),
     ...umrissbeschriftung(t, b),
   ],
+  bogenbeschriftungen(t, b),
 );
 
 Punkt _mitte(List<Punkt> punkte) =>

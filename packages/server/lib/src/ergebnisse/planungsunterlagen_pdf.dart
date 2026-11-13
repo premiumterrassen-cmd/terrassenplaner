@@ -202,22 +202,22 @@ final class Planmassstab {
     final punkte = [
       for (final l in plan.linien) ...l.punkte,
       for (final t in plan.texte) t.ort,
+      for (final t in plan.nebentexte) t.ort,
     ];
     if (punkte.isEmpty) return Planmassstab._(Punkt.ursprung, 0, 0, 0, 0);
     double massstab(Huellrechteck h) => math.min(
       (satzbreite - 2 * planrand) / math.max(h.breite, 1),
       planhoehe / math.max(h.hoehe, 1),
     );
-    // breite Beschriftungen (über den Rand hinaus) ganz auf die Seite
+    // Nebentexte, die weiter als der Rand hinausragen (etwa „Bogen … · R …“
+    // am Scheitel, Planungskern v12), ganz auf die Seite
     final vorlaeufig = massstab(Huellrechteck.um(punkte));
     final huelle = Huellrechteck.um([
       ...punkte,
-      for (final t in plan.texte)
-        if ((beschriftungsbreite(t.text) / 2 - planrand) / vorlaeufig
-            case final ueber when ueber > 0) ...[
-          t.ort - Punkt(ueber, 0),
-          t.ort + Punkt(ueber, 0),
-        ],
+      for (final n in plan.nebentexte)
+        if ((nebentextReichweite(n) - planrand) / vorlaeufig case final ueber
+            when ueber > 0)
+          n.ort + n.richtung * (n.abstand + ueber),
     ]);
     final faktor = massstab(huelle);
     return Planmassstab._(
@@ -240,12 +240,6 @@ final class Planmassstab {
       PdfPoint((p.x - _min.x) * faktor, (_maxY - p.y) * faktor);
 }
 
-/// Breite des Felds einer Beschriftung (7 pt) in Punkt: mindestens 40,
-/// längere Texte („Bogen 3,74 m · R 3,00 m“, Planungskern v12) aus der
-/// Zeichenzahl geschätzt, damit sie nicht umbrechen.
-double beschriftungsbreite(String text) =>
-    math.max(40, text.length * 7 * 0.55 + 2);
-
 pw.Widget _plan(Plan plan) {
   final m = Planmassstab.fuer(plan);
   return pw.Center(
@@ -263,20 +257,145 @@ pw.Widget _plan(Plan plan) {
             ),
           ),
           for (final t in plan.texte)
-            if (beschriftungsbreite(t.text) case final breite)
-              pw.Positioned(
-                left: m.abbild(t.ort).x + planrand - breite / 2,
-                bottom: m.abbild(t.ort).y + planrand - 4,
-                child: pw.SizedBox(
-                  width: breite,
-                  child: pw.Center(child: _text(t.text, groesse: 7)),
-                ),
+            pw.Positioned(
+              left: m.abbild(t.ort).x + planrand - 20,
+              bottom: m.abbild(t.ort).y + planrand - 4,
+              child: pw.SizedBox(
+                width: 40,
+                child: pw.Center(child: _text(t.text, groesse: 7)),
               ),
+            ),
+          for (final (n, lage) in nebentextFelder(plan, m))
+            nebentextWidget(n, lage),
         ],
       ),
     ),
   );
 }
+
+/// Schriftgröße der weiß hinterlegten Zahlen neben den Bauteilen (R-E06):
+/// klein genug, dass „0,5“ auch bei 12 m Fläche zwischen zwei UK-Achsen
+/// (40 cm) passt.
+const nebentextGroesse = 5.5;
+
+/// Abstand eines Nebentexts von seinem Bauteil in Punkt.
+const nebentextAbstand = 1.0;
+
+/// Ein Feld auf dem Papier in Punkt (ohne [planrand], y nach oben).
+typedef Feld = ({double links, double unten, double breite, double hoehe});
+
+/// Feld des weiß hinterlegten Texts [n] auf dem Papier, in [richtung]
+/// (Planungskoordinaten, ohne Angabe die des Texts) vom Bauteil: die
+/// Breite aus der Zeichenzahl geschätzt, das Feld so weit verschoben, dass
+/// es das Bauteil nie berührt (Planungskern v8 Regel 10.1.3) – ohne
+/// Richtung mittig.
+Feld nebentextLage(Nebentext n, Planmassstab m, [Punkt? richtung]) {
+  final r = richtung ?? n.richtung;
+  final breite = n.text.length * nebentextGroesse * 0.55 + 1;
+  const hoehe = nebentextGroesse + 2;
+  final p = m.abbild(n.ort + r * n.abstand);
+  // y nach oben wie im PDF
+  final (rx, ry) = (r.x, -r.y);
+  final abstand =
+      nebentextAbstand + rx.abs() * breite / 2 + ry.abs() * hoehe / 2;
+  return (
+    links: p.x + rx * abstand - breite / 2,
+    unten: p.y + ry * abstand - hoehe / 2,
+    breite: breite,
+    hoehe: hoehe,
+  );
+}
+
+/// Wie weit (Punkt) das Feld des Nebentexts [n] in seiner Richtung über
+/// seinen Anker (Ort + Abstand) hinausreicht (`nebentextLage`).
+double nebentextReichweite(Nebentext n) =>
+    nebentextAbstand +
+    n.richtung.x.abs() * (n.text.length * nebentextGroesse * 0.55 + 1) +
+    n.richtung.y.abs() * (nebentextGroesse + 2);
+
+/// Feld einer Beschriftung [t] (7 pt, mittig um ihren Ort).
+Feld beschriftungsfeld(Planbeschriftung t, Planmassstab m) {
+  final p = m.abbild(t.ort);
+  final breite = t.text.length * 7 * 0.55;
+  return (links: p.x - breite / 2, unten: p.y - 4.5, breite: breite, hoehe: 9);
+}
+
+/// Die Nebentexte von [plan] mit ihrem Feld (Planungsregeln Alexander
+/// (Planungskern v10, 12.11.2026), Regel 12.1 – nie übereinander, nie auf
+/// einem Bauteil): zuerst in ihrer Richtung, sonst in der Gegenrichtung;
+/// berührt das Feld dort eine gefüllte Fläche (Holz, Auflager), eine
+/// Beschriftung oder einen schon gesetzten Nebentext, entfällt die Zahl.
+List<(Nebentext, Feld)> nebentextFelder(Plan plan, Planmassstab m) {
+  final flaechen = [
+    for (final l in plan.linien)
+      if (l.gefuellt) [for (final p in l.punkte) m.abbild(p)],
+  ];
+  final belegt = [for (final t in plan.texte) beschriftungsfeld(t, m)];
+  final gesetzt = <(Nebentext, Feld)>[];
+  for (final n in plan.nebentexte) {
+    for (final r in [n.richtung, n.richtung * -1]) {
+      final f = nebentextLage(n, m, r);
+      if (flaechen.any((q) => feldBeruehrt(f, q)) ||
+          belegt.any((b) => _ueberlappen(f, b))) {
+        continue;
+      }
+      belegt.add(f);
+      gesetzt.add((n, f));
+      break;
+    }
+  }
+  return gesetzt;
+}
+
+bool _ueberlappen(Feld a, Feld b) =>
+    a.links < b.links + b.breite &&
+    b.links < a.links + a.breite &&
+    a.unten < b.unten + b.hoehe &&
+    b.unten < a.unten + a.hoehe;
+
+/// Ob das Feld [f] das konvexe Vieleck [q] berührt (Trennachsen: die
+/// Achsen des Felds und die Normalen der Kanten von [q]).
+bool feldBeruehrt(Feld f, List<PdfPoint> q) {
+  final ecken = [
+    PdfPoint(f.links, f.unten),
+    PdfPoint(f.links + f.breite, f.unten),
+    PdfPoint(f.links + f.breite, f.unten + f.hoehe),
+    PdfPoint(f.links, f.unten + f.hoehe),
+  ];
+  final achsen = [
+    const PdfPoint(1, 0),
+    const PdfPoint(0, 1),
+    for (var i = 0; i < q.length; i++)
+      PdfPoint(
+        q[(i + 1) % q.length].y - q[i].y,
+        q[i].x - q[(i + 1) % q.length].x,
+      ),
+  ];
+  for (final a in achsen) {
+    double projektion(PdfPoint p) => p.x * a.x + p.y * a.y;
+    final feld = ecken.map(projektion);
+    final viel = q.map(projektion);
+    if (feld.reduce(math.max) <= viel.reduce(math.min) ||
+        viel.reduce(math.max) <= feld.reduce(math.min)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/// Der weiß hinterlegte Nebentext [n] in seinem Feld [lage], auf dem Papier
+/// um [planrand] verschoben.
+pw.Positioned nebentextWidget(Nebentext n, Feld lage) => pw.Positioned(
+  left: lage.links + planrand,
+  bottom: lage.unten + planrand,
+  child: pw.Container(
+    width: lage.breite,
+    height: lage.hoehe,
+    color: PdfColors.white,
+    alignment: pw.Alignment.center,
+    child: _text(n.text, groesse: nebentextGroesse),
+  ),
+);
 
 /// Zeichnet die Linien von [plan] im Maßstab [m] auf die [leinwand].
 void zeichne(PdfGraphics leinwand, Plan plan, Planmassstab m) {

@@ -26,7 +26,7 @@ final class Zeichnung {
     List<(Offset, Offset)> querstreben = const [],
     List<(Offset, Offset, Color)> ukHoelzer = const [],
     this.ukBreite = 0,
-    List<(Offset, Millimeter, bool)> auflager = const [],
+    List<Auflagerbild> auflager = const [],
     List<(Offset, Offset, Seitenrolle)> seiten = const [],
     List<List<Offset>> treppen = const [],
     this.ausgangspunkt,
@@ -99,9 +99,10 @@ final class Zeichnung {
   /// Breite der UK-Hölzer in der Draufsicht in mm.
   final double ukBreite;
 
-  /// Auflager in mm (M6-11) mit dem Spalt unter der UK und ob ein passendes
-  /// Auflager gefunden wurde.
-  final List<(Offset, Millimeter, bool)> auflager;
+  /// Auflager in mm (M6-11) mit dem Spalt unter der UK, der Zeile der
+  /// Höhenzuordnung (`null`: kein passendes Auflager) und der Richtung der
+  /// Fußhöhe neben dem Holz (Planungskern v8 Regel 10.1.3).
+  final List<Auflagerbild> auflager;
 
   /// Seiten mit Rolle im Terrassenanschluss (M7) in mm: von, bis, Rolle.
   final List<(Offset, Offset, Seitenrolle)> seiten;
@@ -142,6 +143,17 @@ typedef Bogenangabe = ({
   double radius,
   Offset scheitel,
   Offset aussen,
+});
+
+/// Ein Auflager der Zeichnung (M6-11, Planungskern v8 Regel 10.1): Ort in
+/// mm, Spalt unter der UK, Zeile der Höhenzuordnung (`null`: kein
+/// passendes Auflager) und Richtung der Fußhöhe quer zum Holz
+/// (`fusshoehenRichtung`).
+typedef Auflagerbild = ({
+  Offset ort,
+  Millimeter spalt,
+  int? zeile,
+  Offset richtung,
 });
 
 /// Ein Text der Zeichnung: [ort] ist der Ankerpunkt auf dem Bildschirm,
@@ -247,25 +259,56 @@ class ZeichnungsMaler extends CustomPainter {
   ];
 
   /// Auflager auf dem Bildschirm (M6-11), wenn die Ebene UK sichtbar ist:
-  /// Mitte, Farbe (rot ohne passendes Auflager) und – ab [hoeheAbZoom] –
-  /// der Spalt in cm als Beschriftung.
-  List<(Offset, Color, String?)> auflagerpunkte() => [
-    if (optionen.zeigt(Ebene.unterkonstruktion))
-      for (final (ort, spalt, passt) in zeichnung.auflager)
+  /// Mitte, Farbe des geplanten Zubehörs wie im UK-Plan (`auflagerfarbe`,
+  /// Planungskern v8 Regel 10.1.2; rot ohne passendes Auflager) und – ab
+  /// [hoeheAbZoom] – die Fußhöhe in cm neben dem Holz, nie darauf (Regel
+  /// 10.1.3): Anker am Rand von Holz bzw. Auflager und Richtung. Ein
+  /// negativer Spalt hat keine Fußhöhe.
+  List<(Offset, Color, Zeichentext?)> auflagerpunkte() {
+    if (!optionen.zeigt(Ebene.unterkonstruktion)) return const [];
+    final rand =
+        math.max(
+              zeichnung.ukBreite * pixelJeMm * ansicht.zoom,
+              auflagerGroesse,
+            ) /
+            2 +
+        fusshoehenAbstand;
+    return [
+      for (final a in zeichnung.auflager)
         (
-          bildschirm(ort),
-          passt ? auflagerFarbe : ohneFarbe,
-          ansicht.zoom >= hoeheAbZoom
-              ? zahlText(sprache, spalt.cm, '0.#')
+          bildschirm(a.ort),
+          switch (a.zeile) {
+            final z? => Color(auflagerfarbe(z)),
+            null => ohneFarbe,
+          },
+          ansicht.zoom >= hoeheAbZoom && a.spalt.mm >= 0
+              ? (
+                  text: zahlText(sprache, a.spalt.cm, '0.#'),
+                  ort: bildschirm(a.ort) + a.richtung * rand,
+                  richtung: a.richtung,
+                )
               : null,
         ),
-  ];
+    ];
+  }
 
-  /// Seiten mit Rolle auf dem Bildschirm in ihrer Farbe (M7): an
-  /// Bauelementen grau, verblendet gelb, mit Rinne blau. Unabhängig von den Ebenen – sie gehören zum Umriss.
-  List<(Offset, Offset, Color)> seitenlinien() => [
+  /// Abstand der Fußhöhe vom Rand des Holzes in Pixeln.
+  static const fusshoehenAbstand = 2.0;
+
+  /// Schrift der Fußhöhe: dunkel auf weißem Feld, auch im Dunkelmodus.
+  static const fusshoehenFarbe = Color(0xFF2B2F36);
+
+  /// Seiten mit Rolle auf dem Bildschirm in ihrer Farbe und Strichbreite
+  /// (M7): an Bauelementen grau, verblendet gelb (schmal), mit Rinne blau.
+  /// Unabhängig von den Ebenen – sie gehören zum Umriss.
+  List<(Offset, Offset, Color, double)> seitenlinien() => [
     for (final (von, bis, rolle) in zeichnung.seiten)
-      (bildschirm(von), bildschirm(bis), seitenfarbe(rolle)),
+      (
+        bildschirm(von),
+        bildschirm(bis),
+        seitenfarbe(rolle),
+        seitenstrich(rolle),
+      ),
   ];
 
   /// Farbe einer Seite nach ihrer Rolle (Fachkonzept 04).
@@ -292,14 +335,19 @@ class ZeichnungsMaler extends CustomPainter {
   /// Grau der Seiten an Bauelementen (Fachkonzept 4.1).
   static const bauelementFarbe = Color(0xFF9E9E9E);
 
-  /// Strichbreite der Seiten mit Rolle in Pixeln.
+  /// Strichbreite der Seiten mit Rolle in Pixeln; die Seitenblende nur als
+  /// schmaler Strich (Planungskern v8/v9 Regeln 10.3 und 11.2).
   static const seitenBreite = 8.0;
+  static const blendenBreite = 2.0;
 
-  /// Farbe der Auflager; ohne passendes Auflager rot wie ganze Stücke.
-  static const auflagerFarbe = Color(0xFF424242);
+  /// Strichbreite einer Seite nach ihrer Rolle.
+  static double seitenstrich(Seitenrolle rolle) =>
+      rolle == Seitenrolle.verblendung ? blendenBreite : seitenBreite;
 
   /// Rand der Riegel am Bogen (Planungskern v12: „im Plan grün umrandet“).
   static const riegelFarbe = Color(0xFF4CAF50);
+
+  /// Farbe der Auflager ohne passendes Auflager: rot wie ganze Stücke.
   static final ohneFarbe = Color(Stueckfarbe.rot.argb);
 
   /// Ab diesem Zoom steht der Spalt an jedem Auflager.
@@ -316,6 +364,10 @@ class ZeichnungsMaler extends CustomPainter {
 
   /// Rot der Stoßlinien (R-E01) wie im Planungskern und in den Unterlagen.
   static const stossFarbe = Color(stossfarbe);
+
+  /// Strichbreite der Stoßlinien in Pixeln (dünn nach Planungskern v8
+  /// Regel 10.3).
+  static const stossBreite = 1.2;
 
   /// Strich und Lücke der Stoßlinien in Pixeln.
   static const stossStrich = 6.0;
@@ -679,7 +731,7 @@ class ZeichnungsMaler extends CustomPainter {
     }
     final stoss = Paint()
       ..color = stossFarbe
-      ..strokeWidth = 2;
+      ..strokeWidth = stossBreite;
     for (final (von, bis) in stossstriche()) {
       canvas.drawLine(von, bis, stoss);
     }
@@ -699,7 +751,7 @@ class ZeichnungsMaler extends CustomPainter {
     for (final pfad in riegelpfade()) {
       canvas.drawPath(pfad, riegel);
     }
-    for (final (ort, farbe, text) in auflagerpunkte()) {
+    for (final (ort, farbe, _) in auflagerpunkte()) {
       canvas.drawRect(
         Rect.fromCenter(
           center: ort,
@@ -708,16 +760,26 @@ class ZeichnungsMaler extends CustomPainter {
         ),
         Paint()..color = farbe,
       );
-      if (text != null) {
-        final maler = TextPainter(
-          text: TextSpan(
-            text: text,
-            style: TextStyle(fontSize: nummerGroesse, color: strich),
+    }
+    // Fußhöhen über allen Auflagern, weiß hinterlegt (Regel 10.1.3)
+    for (final (_, _, text) in auflagerpunkte()) {
+      if (text == null) continue;
+      final maler = TextPainter(
+        text: TextSpan(
+          text: text.text,
+          style: const TextStyle(
+            fontSize: nummerGroesse,
+            color: fusshoehenFarbe,
           ),
-          textDirection: TextDirection.ltr,
-        )..layout();
-        maler.paint(canvas, ort + const Offset(auflagerGroesse, 0));
-      }
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      final lage = textLage(text.ort, text.richtung, maler.size);
+      canvas.drawRect(
+        (lage & maler.size).inflate(1),
+        Paint()..color = PlanerFarben.weiss,
+      );
+      maler.paint(canvas, lage);
     }
     final strebe = Paint()
       ..color = strebenFarbe
@@ -749,13 +811,13 @@ class ZeichnungsMaler extends CustomPainter {
         ..drawPath(pfad, Paint()..color = belagFarbe)
         ..drawPath(pfad, linie);
     }
-    for (final (von, bis, farbe) in seitenlinien()) {
+    for (final (von, bis, farbe, breite) in seitenlinien()) {
       canvas.drawLine(
         von,
         bis,
         Paint()
           ..color = farbe
-          ..strokeWidth = seitenBreite,
+          ..strokeWidth = breite,
       );
     }
     final umriss = [for (final p in zeichnung.umriss) bildschirm(p)];

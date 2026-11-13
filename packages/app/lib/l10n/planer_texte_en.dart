@@ -826,21 +826,28 @@ class PlanerTexteEn extends PlanerTexte {
 
   @override
   String get verlegeartHalbverbandHinweis =>
-      'Every second row offset by half a board';
+      'Every second row offset by half a board; each joint on a double joist';
 
   @override
   String get verlegeartDrittelverband => 'Third bond';
 
   @override
   String get verlegeartDrittelverbandHinweis =>
-      'Each row offset by a third of a board';
+      'Each row offset by a third of a board; each joint on a double joist';
+
+  @override
+  String get verlegeartViertelverband => 'Quarter bond';
+
+  @override
+  String get verlegeartViertelverbandHinweis =>
+      'Each row offset by a quarter of a board; each joint on a double joist';
 
   @override
   String get verlegeartWechselverband => 'Alternating bond';
 
   @override
   String get verlegeartWechselverbandHinweis =>
-      'Every second row starts at the opposite side';
+      'Joints offset irregularly, never as in the two rows before; each joint on a double joist';
 
   @override
   String get verlegerichtungWaagrecht => 'Horizontal';
@@ -1109,6 +1116,19 @@ class PlanerTexteEn extends PlanerTexte {
   @override
   String get belagmeldungSchraubeZuKurz =>
       'No stored screw is at least twice as long as the board is thick. The longest one is used – please check the screw length.';
+
+  @override
+  String get belagmeldungLaengenvorgabe =>
+      'No delivery length of this decking meets the board length requirement. All stock lengths are used.';
+
+  @override
+  String get dielenlaengeHoechstens => 'Boards at most (in cm):';
+
+  @override
+  String get dielenlaengeMindestens => 'Boards at least (in cm):';
+
+  @override
+  String get dielenlaengeBeliebig => 'any';
 
   @override
   String get zubehoerLaedt => 'Loading accessories …';

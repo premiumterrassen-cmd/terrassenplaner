@@ -109,11 +109,16 @@ void main() {
     );
     final plan = ukKapitel.inhalt.whereType<Plan>().single;
     expect([
-      for (final x in plan.texte) x.text,
+      for (final x in plan.nebentexte) x.text,
     ], contains(startsWith('Bogen ')));
     expect([
-      for (final x in plan.texte) x.text,
+      for (final x in plan.nebentexte) x.text,
     ], contains(endsWith(' · R 3,00 m')));
+    // die Platzsuche setzt das Bogenmaß (Planungskern v10, Regel 12.1)
+    expect([
+      for (final (n, _) in nebentextFelder(plan, Planmassstab.fuer(plan)))
+        n.text,
+    ], contains(startsWith('Bogen ')));
     expect(
       ukKapitel.inhalt.whereType<Absatz>().map((a) => a.text),
       contains(t.riegelHinweis),
@@ -132,25 +137,45 @@ void main() {
     }
   });
 
-  test('breite Beschriftung ganz auf der Seite, ohne Umbruch', () {
-    expect(beschriftungsbreite('4,80 m'), 40);
-    expect(beschriftungsbreite('Bogen 3,74 m · R 3,00 m'), 23 * 7 * 0.55 + 2);
+  test('weit hinausragender Nebentext ganz auf der Seite', () {
+    Nebentext n(String text, Punkt richtung) => (
+      ort: const Punkt(10000, 0),
+      richtung: richtung,
+      abstand: 100,
+      text: text,
+    );
+    const lang = 'Bogen 3,74 m · R 3,00 m';
+    expect(
+      nebentextReichweite(n(lang, const Punkt(1, 0))),
+      nebentextAbstand + lang.length * nebentextGroesse * 0.55 + 1,
+    );
+    expect(
+      nebentextReichweite(n(lang, const Punkt(0, -1))),
+      nebentextAbstand + nebentextGroesse + 2,
+    );
     final linie = Planlinie(const [
       Punkt(0, 0),
       Punkt(10000, 0),
     ], argb: 0xFF000000);
     final kurz = Planmassstab.fuer(
-      Plan([linie], const [(ort: Punkt(10000, 0), text: '4,80 m')]),
+      Plan([linie], const [], [n('4,4', const Punkt(1, 0))]),
     );
-    expect(kurz.faktor, (satzbreite - 2 * planrand) / 10000);
-    const lang = 'Bogen 3,74 m · R 3,00 m · R 3,00 m';
+    final f = (satzbreite - 2 * planrand) / 10000;
+    // kurze Texte bleiben im Rand, der Plan reicht nur bis zum Anker
+    expect(kurz.faktor, closeTo(f, 1e-12));
     final breit = Planmassstab.fuer(
-      Plan([linie], const [(ort: Punkt(10000, 0), text: lang)]),
+      Plan([linie], const [], [n(lang, const Punkt(1, 0))]),
     );
-    // der Text ragt so weit über den Rand hinaus, wie er breiter als
-    // 2 × planrand ist – die Zeichnung wird entsprechend kleiner
-    final ueber = (beschriftungsbreite(lang) / 2 - planrand) / kurz.faktor;
-    expect(breit.faktor, closeTo(kurz.faktor * 10000 / (10000 + ueber), 1e-12));
+    final ueber =
+        (nebentextReichweite(n(lang, const Punkt(1, 0))) - planrand) / f;
+    // bis zum Anker (100 mm) plus dem Überstand
+    expect(breit.faktor, closeTo(f * 10000 / (10000 + 100 + ueber), 1e-12));
     expect(breit.abbild(Punkt.ursprung).x, 0);
+    // nach oben: die halbe Zeile reicht nicht über den Rand
+    expect(
+      Planmassstab.fuer(Plan([linie], const [], [n(lang, const Punkt(0, -1))]))
+          .faktor,
+      closeTo(f, 1e-12),
+    );
   });
 }

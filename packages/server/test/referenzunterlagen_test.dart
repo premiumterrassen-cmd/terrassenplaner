@@ -156,14 +156,17 @@ void main() {
         'Ihre Terrasse – Unterkonstruktion',
         if (titel.contains('Ihre Terrasse – Höhenzuordnung der Auflager'))
           'Ihre Terrasse – Höhenzuordnung der Auflager',
-        // Planungskern v7, Regel 9.2: Seite „Bemaßung und Höhen“
-        'Ihre Terrasse – Bemaßung und Höhen',
         'Ihre Terrasse – Terrassenbelag',
         'Ihre Terrasse – Zuschnittsplan Belag',
         'Materialliste',
         if (titel.contains('Hinweise zur Planung')) 'Hinweise zur Planung',
         'Rechtliche Hinweise',
       ]);
+      // Planungskern v8/v9 (Regeln 10.1, 11.2): keine eigene Seite
+      // „Bemaßung und Höhen“, die Fußhöhe steht an jedem Auflager im
+      // UK-Plan
+      final ukPlan = unterlagen.kapitel[2].inhalt.whereType<Plan>().single;
+      expect(ukPlan.nebentexte, isNotEmpty);
       final pdf = await planungsunterlagenPdf(unterlagen);
       expect(String.fromCharCodes(pdf.take(5)), '%PDF-');
       if (ausgabe != null) {

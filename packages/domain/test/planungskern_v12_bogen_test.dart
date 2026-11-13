@@ -131,55 +131,47 @@ void main() {
       datum: DateTime(2026, 11, 12),
     );
 
-    test('am Bogen „Bogen … · R …“ außen am Scheitel statt der Sehne', () {
+    test('am Bogen „Bogen … · R …“ als Nebentext außen am Scheitel statt '
+        'der Sehne, in jedem Plan zuerst', () {
       final b = berechnung();
-      final texte = umrissbeschriftung(de, b);
       expect(
-        [for (final t in texte) t.text],
-        [
-          'A',
-          'B',
-          'C',
-          'D',
-          '4,80 m',
-          'Bogen 3,53 m · R 2,00 m',
-          '4,80 m',
-          '3,09 m',
-        ],
+        [for (final t in umrissbeschriftung(de, b)) t.text],
+        ['A', 'B', 'C', 'D', '4,80 m', '4,80 m', '3,09 m'],
       );
       final h = Huellrechteck.um(umriss);
       final a = math.max(h.breite, h.hoehe) * beschriftungsanteil;
-      // quer zur Schrift um die halbe Textbreite (23 Zeichen à 0,2 a) weiter
-      expect(zeichenbreite, 0.2);
+      final bogen = bogenbeschriftungen(de, b).single;
+      expect(bogen.text, 'Bogen 3,53 m · R 2,00 m');
+      expect(bogen.ort.gleich(Punkt(4800 + stich, 1545), 1e-6), isTrue);
+      expect(bogen.richtung.gleich(const Punkt(1, 0), 1e-9), isTrue);
+      expect(bogen.abstand, closeTo(a / 2, 1e-9));
       expect(
-        texte[5].ort.gleich(
-          Punkt(4800 + stich + a * (1 + 23 * 0.1), 1545),
-          1e-6,
-        ),
-        isTrue,
+        bogenbeschriftungen(de, Berechnung(umriss: umriss, flaeche: 1)),
+        isEmpty,
       );
-      // nach oben bzw. unten nur um die halbe Zeile (a / 4)
-      final oben = umrissbeschriftung(
-        de,
+      final u = erzeuge(b);
+      for (final plan in [
+        for (final k in u.kapitel) ...k.inhalt.whereType<Plan>(),
+      ]) {
+        expect(plan.nebentexte.first.text, bogen.text);
+      }
+      // ohne Belag und UK: der Grundriss trägt das Bogenmaß
+      final grundriss = erzeuge(
         Berechnung(
           umriss: umriss,
           ecken: ecken,
           flaeche: 1,
-          planbild: Planbild(
-            boegen: const [
-              (
-                seite: 0,
-                laenge: 1000,
-                radius: 2000,
-                scheitel: Punkt(2400, -100),
-                aussen: Punkt(0, -1),
-              ),
-            ],
-          ),
+          planbild: Planbild(boegen: bogenmasse(aussen)),
         ),
       );
-      expect(oben[4].text, 'Bogen 1,00 m · R 2,00 m');
-      expect(oben[4].ort.gleich(Punkt(2400, -100 - a * 1.25), 1e-6), isTrue);
+      expect(
+        [
+          for (final k in grundriss.kapitel)
+            for (final p in k.inhalt.whereType<Plan>())
+              ...p.nebentexte.map((n) => n.text),
+        ],
+        [bogen.text],
+      );
     });
 
     test('UK-Plan: Riegel grün umrandet mit Hinweis; Hinweise zur Blende am '

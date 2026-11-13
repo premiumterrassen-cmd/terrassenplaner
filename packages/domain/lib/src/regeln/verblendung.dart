@@ -341,10 +341,10 @@ Anschlussbedarf verblendungsbedarf(
     stuecke: traeger,
     bedarf: [
       for (final MapEntry(key: blende, value: stuecke) in reihen.entries)
-        ..._blenden(blende, stuecke),
+        ..._blenden(stand, blende, stuecke),
       for (final MapEntry(key: (brett, hoehe), value: anzahl)
           in stuecke.entries)
-        ?_bogenblende(brett, hoehe, anzahl),
+        ?_bogenblende(stand, brett, hoehe, anzahl),
       if (regelwerk != null && traeger.isNotEmpty)
         ..._schrauben(
           regelwerk,
@@ -377,13 +377,19 @@ Artikel? bogenbrett(List<Artikel> blenden) =>
 
 /// Zuschnitt der [anzahl] Stücke à [hoehe] der Blende am Bogen aus dem
 /// [brett] (Regel 14.3.3): je Lieferlänge so viele Stücke, wie mit
-/// [bogenblendeSaegeschnitt] dazwischen hineinpassen; genommen wird die
+/// [bogenblendeSaegeschnitt] dazwischen hineinpassen (nur Lieferlängen der
+/// Vorgabe Dielenlänge, R-B19, wie die gerade Blende); genommen wird die
 /// Lieferlänge mit dem wenigsten Holz (bei gleich viel die kürzere).
 /// `null`, wenn kein Stück in eine Lieferlänge passt (Holzartikel haben
 /// immer die UK-Längen ihrer Serie, die Blendenhöhe ist höchstens 3 m).
-Materialbedarf? _bogenblende(Artikel brett, Millimeter hoehe, int anzahl) {
+Materialbedarf? _bogenblende(
+  Planungsstand stand,
+  Artikel brett,
+  Millimeter hoehe,
+  int anzahl,
+) {
   ({Millimeter laenge, int bretter})? beste;
-  for (final laenge in ukLieferlaengen(brett)) {
+  for (final laenge in stand.vorgabelaengen(brett, ukLieferlaengen(brett))) {
     final jeBrett =
         (laenge.mm + bogenblendeSaegeschnitt.mm) ~/
         (hoehe.mm + bogenblendeSaegeschnitt.mm);
@@ -404,11 +410,16 @@ Materialbedarf? _bogenblende(Artikel brett, Millimeter hoehe, int anzahl) {
 }
 
 /// Blenden [artikel] für die Reihen [stuecke] in den Lieferlängen der
-/// Serie wie bei der UK (lange Reihen eigene Bretter, kurze zusammen).
-List<Materialbedarf> _blenden(Artikel artikel, List<Millimeter> stuecke) => [
+/// Serie wie bei der UK (lange Reihen eigene Bretter, kurze zusammen),
+/// begrenzt durch die Vorgabe Dielenlänge des [stand]s (R-B19).
+List<Materialbedarf> _blenden(
+  Planungsstand stand,
+  Artikel artikel,
+  List<Millimeter> stuecke,
+) => [
   for (final MapEntry(key: laenge, value: anzahl) in lieferstuecke(
     stuecke,
-    ukLieferlaengen(artikel),
+    stand.vorgabelaengen(artikel, ukLieferlaengen(artikel)),
   ).entries)
     Materialbedarf(
       [artikel],

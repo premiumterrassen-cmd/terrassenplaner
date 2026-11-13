@@ -124,6 +124,8 @@ void main() {
         de.belagmeldungBombierung,
         'Die gewählte Länge von 700 cm gibt es für diesen Belag nicht. Die '
             'Dielenlänge wird automatisch ermittelt.',
+        'Keine Lieferlänge dieses Belags erfüllt die Vorgabe Dielenlänge. '
+            'Geplant wird mit allen Lagerlängen.',
         de.belagmeldungBefestigungsart,
         de.belagmeldungOhneBefestigung,
         de.belagmeldungSchraubeZuKurz,

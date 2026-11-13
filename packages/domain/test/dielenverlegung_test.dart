@@ -41,7 +41,8 @@ double _flaeche(List<Dielenstueck> stuecke) =>
         .fold(0, (a, b) => a + b);
 
 void main() {
-  test('Abgleich mit den Zuschnittlisten des alten Planers (F01–F13)', () {
+  test('Abgleich mit den Zuschnittlisten des alten Planers (F01–F13; '
+      'F06–F08 und F12 nach dem Planungskern v7, R-B18)', () {
     const richtungen = {
       'Waagrecht': Verlegerichtung.waagrecht,
       'Senkrecht': Verlegerichtung.senkrecht,
@@ -86,6 +87,17 @@ void main() {
             for (var i = 0; i < z.menge; i++)
               for (final s in z.schnitteCm) (s * 10).round(),
       ]..sort();
+      // Planungskern v7 Regel 9.3: kein Verband, wenn die Fläche (480 cm)
+      // nicht länger als eine Diele ist; Wechselverband unregelmäßig
+      if (const {'F06', 'F07', 'F08'}.contains(id)) {
+        expect(neu.toSet(), {4800}, reason: id);
+        continue;
+      }
+      if (id == 'F12') {
+        expect(neu, isNot(alt), reason: id);
+        expect(neu.reduce((a, b) => a + b), 48 * 8000, reason: id);
+        continue;
+      }
       expect(neu, hasLength(alt.length), reason: id);
       // schräge Längen auf 1 mm gerundet
       for (var i = 0; i < alt.length; i++) {
@@ -169,14 +181,15 @@ void main() {
       6000,
       1000,
     ]);
-    // Wechselverband: die zweite Reihe beginnt an der Gegenseite
-    final wechsel = _verlege(
+    // Verband: Versatz ab dem Ausgangspunkt (Halbverband: 7 m + 3 m),
+    // Stücke mindestens 40 cm (R-B18)
+    final halb = _verlege(
       Kontur.rechteck(8000, 130),
       ausgangspunkt: const Punkt(7000, 0),
-      verlegeart: Verlegeart.wechselverband,
+      verlegeart: Verlegeart.halbverband,
     );
-    expect(_laengen(wechsel), [1000, 6000, 1000, 2000, 6000]);
-    expect([for (final s in wechsel) s.reihe], [0, 0, 0, 1, 1]);
+    expect(_laengen(halb), [1000, 6000, 1000, 4000, 4000]);
+    expect([for (final s in halb) s.reihe], [0, 0, 0, 1, 1]);
   });
 
   test('Breite je Stück und Zuschnitte unter 5 cm (M5-07)', () {
