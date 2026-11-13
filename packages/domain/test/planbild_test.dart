@@ -266,6 +266,52 @@ void main() {
     });
   });
 
+  group('Zahlen der Achsmaßkette (R-E02, Regel 12.1 ohne Überlappung)', () {
+    test('passt jede Zahl, steht jede einzeln; unter 10 cm keine', () {
+      List<String> texte(List<Kettenzahl> z) => [for (final k in z) k.text];
+      final z = kettenzahlen(const [380, 400, 400, 20, 220], (t) => 100);
+      expect(texte(z), ['38', '40', '40', '22']);
+      expect(
+        [for (final k in z) (k.von, k.bis)],
+        [(0, 1), (1, 2), (2, 3), (4, 5)],
+      );
+      // genau passend und genau aneinander: beide stehen
+      expect(texte(kettenzahlen(const [400, 400], (t) => 400)), ['40', '40']);
+      expect(texte(kettenzahlen(const [100, 99.9], (t) => 0)), ['10']);
+      expect(kettenzahlen(const [], (t) => 0), isEmpty);
+    });
+
+    test('25 m Kante: gleiche Abstände zusammengefasst, nie übereinander', () {
+      // 38 / 61 × 40 / 22 cm; PDF-Maßstab ≈ 0,0186 pt/mm, 7 pt Schrift
+      final abstaende = [380.0, for (var i = 0; i < 61; i++) 400.0, 220.0];
+      double platz(String t) => t.length * 207.0 + 161;
+      final z = kettenzahlen(abstaende, platz);
+      expect([for (final k in z) k.text], ['38', '61 × 40', '22']);
+      expect([for (final k in z) (k.von, k.bis)], [(0, 1), (1, 62), (62, 63)]);
+    });
+
+    test('was dann noch die vorige Zahl berührt, entfällt', () {
+      // „2 × 40“ (700 breit) passt nicht neben „38“, „22“ schon
+      final z = kettenzahlen(const [
+        380,
+        400,
+        400,
+        20,
+        220,
+      ], (t) => t.length * 200.0);
+      expect([for (final k in z) k.text], ['38', '22']);
+    });
+
+    test('Masskette.zahlen rechnet mit ihren Abständen', () {
+      final k = Masskette(const [
+        Punkt(0, 0),
+        Punkt(0, 400),
+        Punkt(0, 800),
+      ], const Punkt(1, 0));
+      expect(k.zahlen((t) => 1000), [(von: 0, bis: 2, text: '2 × 40')]);
+    });
+  });
+
   group('Rinnenband (Planungskern v11, Regel 13.1.6, R-E07)', () {
     const kante = (
       seite: 0,
@@ -298,6 +344,37 @@ void main() {
       ));
       expect(versetzt.auflagerprofile.first.von.x, closeTo(100, 1e-9));
       expect(versetzt.auflagerprofile.first.von.y, closeTo(225, 1e-9));
+    });
+
+    test('mit Belag: innen bis an die versetzten Ecken (Trapez)', () {
+      // zweite Rinne an der rechten Seite: die Ecke rückt 15,7 cm nach
+      // innen, das Band endet anteilig (15,1 von 15,7 cm) davor
+      final r = Rinnenband.an(kante, const [
+        Punkt(0, 157),
+        Punkt(4643, 157),
+        Punkt(4643, 3090),
+        Punkt(0, 3090),
+      ]);
+      expect(r.ecken.take(3), const [
+        Punkt.ursprung,
+        Punkt(4800, 0),
+        Punkt(4649, 151),
+      ]);
+      expect(r.ecken[3].x, closeTo(0, 1e-9));
+      expect(r.ecken[3].y, closeTo(151, 1e-9));
+      expect(r.laenge, 4800);
+      // letzte Seite: die zweite Ecke ist die erste des Umrisses
+      final letzte = Rinnenband.an(
+        (
+          seite: 1,
+          von: const Punkt(100, 0),
+          bis: Punkt.ursprung,
+          innen: const Punkt(0, 1),
+        ),
+        const [Punkt(0, 157), Punkt(100, 157)],
+      );
+      expect(letzte.ecken[2], const Punkt(0, 151));
+      expect(letzte.ecken[3], const Punkt(100, 151));
     });
 
     test('zwei Auflagerprofile 2,5 cm vom Rand, Schlitze alle 5 cm', () {
