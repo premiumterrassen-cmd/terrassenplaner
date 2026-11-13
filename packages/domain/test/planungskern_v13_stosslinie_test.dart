@@ -284,7 +284,7 @@ void main() {
       }
       final massiv = _artikel(Artikelart.systemdiele);
       expect(belagmeldungen(stand, massiv, null), [
-        Belagmeldung.systemdieleOhneVerlegung,
+        Belagmeldung.systemdieleLaengenmix,
         Belagmeldung.stosslinieNichtImMuster,
       ]);
       final fliese = _artikel(Artikelart.holzfliese);
@@ -296,7 +296,7 @@ void main() {
       );
       // ohne Vorgabe keine dieser Meldungen
       expect(belagmeldungen(stand.mitStosslinie(const []), massiv, null), [
-        Belagmeldung.systemdieleOhneVerlegung,
+        Belagmeldung.systemdieleLaengenmix,
       ]);
     });
 

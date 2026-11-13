@@ -127,7 +127,10 @@ Befestigungspunkte befestigungspunkte(
 /// des Stücks quer liegt in einem Abschnitt der Linie. Am Stoß der Dielen
 /// liegt jedes Ende auf seinem Holz der doppelten UK; F01: 48 Reihen × 13
 /// Hölzer = 624 wie mit den gleichmäßigen Linien (M5-09). Dazu jedes Ende
-/// auf einer Rand-UK (`_randauflagen`, Planungsregeln 3.3).
+/// auf einer Rand-UK (`_randauflagen`, Planungsregeln 3.3). Im Längenmix
+/// (MASSIV, [UkVerlegung.laengenmix], Regel 1a.4, B-232) liegt ein Stoß
+/// mittig auf einer Linie: Beide Enden teilen sich dort einen Punkt – je
+/// Reihe zählt jede Linie einmal.
 Befestigungspunkte befestigungspunkteAufUk(
   List<Dielenstueck> stuecke,
   UkVerlegung uk,
@@ -138,6 +141,8 @@ Befestigungspunkte befestigungspunkteAufUk(
   final rand = _randreihen(stuecke);
   var punkte = 0;
   var randpunkte = 0;
+  // Längenmix: schon gezählte Linien je Reihe
+  final gezaehlt = <int, Set<double>>{};
   for (final s in stuecke) {
     final p = [for (final q in s.umriss) q.gedreht(drehung)];
     final anfang = p.map((q) => q.x).reduce(math.min);
@@ -153,8 +158,14 @@ Befestigungspunkte befestigungspunkteAufUk(
             ))
           l.x,
     ];
+    final neu = uk.laengenmix
+        ? [
+            for (final x in lagen)
+              if (gezaehlt.putIfAbsent(s.reihe, () => {}).add(x)) x,
+          ]
+        : lagen;
     final auflagen =
-        lagen.length +
+        neu.length +
         _randauflagen(uk.rand, anfang - halbe, ende + halbe, mitte, lagen);
     punkte += auflagen;
     if (rand.contains(s.reihe)) randpunkte += auflagen;

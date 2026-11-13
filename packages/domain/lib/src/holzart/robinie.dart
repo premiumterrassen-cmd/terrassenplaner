@@ -99,6 +99,10 @@ const robinieDaten = <String, Object?>{
         },
       },
       'lieferlaengen_mm': [800, 1200, 1600, 2000],
+      // Planungskern Regel 1a.7/1a.8 (B-232): UK aus ECO SELECT, 4/5/6 m
+      // (Kern UK_LAENGEN.MASSIV); MASSIV-UK siehe Frage 100.
+      'uk_serie': 'ECO SELECT',
+      'uk_lieferlaengen_mm': [4000, 5000, 6000],
       'uk_seiten': [
         [
           [40, 60],

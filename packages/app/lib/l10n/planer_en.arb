@@ -330,7 +330,7 @@
   "hoeheVorschlag": "Did you mean {cm} cm?",
   "belagmeldungBelagErsetzt": "The selected decking is no longer available. The plan uses the default decking – choose another one via “Product selection” if needed.",
   "belagmeldungOhneMasse": "Width or delivery lengths are missing for this decking, so it cannot be laid. Please choose another decking.",
-  "belagmeldungSystemdiele": "System boards are laid endlessly in mixed lengths – the planner does not draw this yet.",
+  "belagmeldungSystemdiele": "MASSIV system boards are laid in mixed lengths of 0.8 / 1.2 / 1.6 / 2.0 m with joints staggered row by row; every joint sits centred on one joist (grid 38 / 40 cm). Laying patterns and board length do not apply.",
   "belagmeldungFlaecheKleiner": "The area or a partial area is smaller than one board or tile: no full decking width fits, only a cut piece.",
   "belagmeldungFliesenSpitzeWinkel": "The area has corners below 90°. Wooden tiles must be cut at an angle there – boards are better suited for such shapes.",
   "flaechenmeldungMasseFalsch": "Dimensions are missing or wrong: the area is at most 0.05 m². Please check the dimensions.",

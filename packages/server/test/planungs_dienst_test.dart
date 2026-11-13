@@ -286,11 +286,6 @@ void main() {
 
     test('ohne Dielen keine Stücke', () {
       for (final b in [
-        belag(
-          Artikelart.systemdiele,
-          breite: const Millimeter(60),
-          laengen: const [800],
-        ),
         belag(Artikelart.diele, laengen: const [6000]),
         belag(Artikelart.diele, breite: const Millimeter(60)),
       ]) {
@@ -1323,10 +1318,10 @@ void main() {
       );
     });
 
-    test('ohne Verlegung: Systemdiele, Umriss und Fläche bleiben', () {
+    test('Systemdiele im Längenmix: Hinweis, Umriss und Fläche bleiben', () {
       final b = PlanungsDienst.berechne(Planungsstand.start, systemdiele);
-      expect(b.belagmeldungen, [Belagmeldung.systemdieleOhneVerlegung]);
-      expect(b.dielen, isEmpty);
+      expect(b.belagmeldungen, [Belagmeldung.systemdieleLaengenmix]);
+      expect(b.dielen, isNotEmpty);
       expect(b.flaeche, closeTo(4800 * 3090, 1e-6));
       expect(b.umriss, hasLength(4));
       expect(b.ecken, hasLength(4));
@@ -1365,7 +1360,7 @@ void main() {
       final antwort = await rufe(Planung.start.zuBytes());
       expect(
         Berechnung.ausBytes(antwort.payload.packedPayloadBytes!).belagmeldungen,
-        [Belagmeldung.systemdieleOhneVerlegung],
+        [Belagmeldung.systemdieleLaengenmix],
       );
     });
   });
@@ -2303,6 +2298,130 @@ void main() {
         ).any((z) => z.text.contains(' × ')),
         isFalse,
       );
+    });
+  });
+
+  group('MASSIV-Systemdielen (Planungskern Abschnitt 1a, B-232)', () {
+    final clip = Artikel(
+      nummer: const Artikelnummer('80-10-001-250'),
+      titel: 'CLIP-FIXX - VPE 250',
+      art: Artikelart.clip,
+      einheit: Verkaufseinheit(Mengeneinheit.verpackungseinheit, inhalt: 250),
+    );
+    final massivDiele = Artikel(
+      nummer: const Artikelnummer('10-15-004'),
+      titel: 'Systemdiele Robinie MASSIV 80 x 25 mm, genutet',
+      art: Artikelart.systemdiele,
+      einheit: Verkaufseinheit(
+        Mengeneinheit.verpackungseinheit,
+        inhalt: 1.5,
+        inhaltEinheit: Mengeneinheit.quadratmeter,
+      ),
+      abmessungen: Abmessungen(
+        breite: const Millimeter(80),
+        staerke: const Millimeter(25),
+      ),
+      preisBrutto: const Cent(14579),
+      holzart: robinie,
+      serie: massiv,
+      profil: Profil.genutet,
+    );
+    final ecoUk = Artikel(
+      nummer: const Artikelnummer('10-10-031-S'),
+      titel: 'UK',
+      art: Artikelart.unterkonstruktion,
+      einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+      abmessungen: Abmessungen(
+        breite: const Millimeter(40),
+        staerke: const Millimeter(60),
+      ),
+      holzart: robinie,
+      serie: ecoSelect,
+    );
+    final regelwerk = Regelwerk(
+      Artikeldatei(
+        quelle: 'test',
+        version: '1',
+        eintraege: [
+          Artikeleintrag(
+            artikel: massivDiele,
+            verweise: {
+              Beziehung.befestigung.spalte: [clip.nummer],
+            },
+          ),
+          Artikeleintrag(artikel: clip),
+          Artikeleintrag(artikel: ecoUk),
+        ],
+      ),
+    );
+    Planungsstand rechteck(int ab, int bc) => Planungsstand.start.mitGrundriss(
+      RechteckGrundriss(Millimeter(ab), Millimeter(bc)),
+    );
+    Berechnung rechne(Planung planung) => Berechnung.ausBytes(
+      PlanungsDienst.berechnePlanung(
+        planung,
+        (_) => massivDiele,
+        regelwerk,
+        false,
+        (_) => ecoUk,
+      ).zuBytes(),
+    );
+    Materialzeile massivZeile(Berechnung b) => b.materialliste.positionen
+        .singleWhere((p) => p.nummer == massivDiele.nummer);
+
+    test('Rechteck 5 × 3 m: 15 m² + 5 % = 11 Pakete, keine Freidiele, UK im '
+        'Raster, Clips je Reihe und Linie', () {
+      final b = rechne(Planung.start.mitStand(rechteck(5000, 3000)));
+      final z = massivZeile(b);
+      expect(z.anzahl, 11);
+      expect(z.laenge, isNull);
+      expect(z.einheit, Mengeneinheit.verpackungseinheit);
+      expect(z.positionspreis, const Cent(11 * 14579));
+      expect(
+        b.materialliste.positionen.where((p) => p.zusatz != null),
+        isEmpty,
+      );
+      expect(b.belagmeldungen, [Belagmeldung.systemdieleLaengenmix]);
+      // UK 2 / 40 / 80 … 480 / 498 cm: 14 Linien
+      expect(b.unterbau.hoelzer, hasLength(14));
+      // 35 Reihen (3000 ÷ 86) × 14 Linien
+      expect(b.befestigung.punkte, 35 * 14);
+      // Dielenliste im Längenmix (nur Anzeige)
+      expect(
+        {for (final p in b.dielenliste) p.laenge.mm},
+        {800, 1200, 1600, 2000},
+      );
+      // 11 Pakete × 1,5 m² × 25 mm Holz + UK
+      expect(b.volumen, greaterThan(11 * 1.5 * 0.025));
+    });
+
+    test('zwei Flächen: 10 %, gemeinsam aufgerundet; auch mit '
+        'Verschnittvariante', () {
+      final planung = Planung([
+        Terrassenflaeche(rechteck(5000, 3000)),
+        Terrassenflaeche(rechteck(2000, 1500)),
+      ]);
+      // (15 + 3) m² × 1,10 = 19,8 m² → 13,2 → 14 Pakete
+      expect(massivZeile(rechne(planung)).anzahl, 14);
+      final optimiert = rechne(planung.mitVerschnittvariante(1));
+      expect(massivZeile(optimiert).anzahl, 14);
+      expect(optimiert.verschnittvarianten, isEmpty);
+      // Häufigkeit 2 zählt wie zwei Flächen: 30 m² × 1,10 = 33 → 22 Pakete
+      expect(
+        massivZeile(
+          rechne(
+            Planung([Terrassenflaeche(rechteck(5000, 3000), haeufigkeit: 2)]),
+          ),
+        ).anzahl,
+        22,
+      );
+      // L-Form: 10 %
+      final l = rechne(
+        Planung.start.mitStand(
+          Planungsstand.start.mitForm(Terrassenform.lForm),
+        ),
+      );
+      expect(massivZeile(l).anzahl, greaterThan(0));
     });
   });
 

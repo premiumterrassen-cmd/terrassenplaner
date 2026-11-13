@@ -1135,6 +1135,72 @@ void main() {
       );
     });
 
+    test('MASSIV im Längenmix: Legenden nach Planungskern Regel 1a.5', () {
+      final systemdiele = Artikel(
+        nummer: const Artikelnummer('10-15-004'),
+        titel: 'Systemdiele Robinie MASSIV 80 x 25 mm, genutet',
+        art: Artikelart.systemdiele,
+        einheit: Verkaufseinheit(
+          Mengeneinheit.verpackungseinheit,
+          inhalt: 1.5,
+          inhaltEinheit: Mengeneinheit.quadratmeter,
+        ),
+        abmessungen: Abmessungen(
+          breite: const Millimeter(80),
+          staerke: const Millimeter(25),
+        ),
+        holzart: robinie,
+        serie: massiv,
+        profil: Profil.genutet,
+      );
+      final mix = verlegeBelag(Planungsstand.start, systemdiele)!;
+      final b = Berechnung(
+        umriss: rechteck,
+        flaeche: 1,
+        unterbau: Unterbau(hoelzer: hoelzer),
+        planbild: Planbild(
+          stoesse: const [(von: Punkt(400, 0), bis: Punkt(400, 86))],
+        ),
+      );
+      Planungsunterlagen mit(Unterlagensprache sprache) => planungsunterlagen(
+        planung: Planung.start,
+        gesamt: b,
+        flaechen: [
+          Flaechenunterlage(b, belag: systemdiele, uk: uk, verlegung: mix),
+        ],
+        datum: datum,
+        sprache: sprache,
+      );
+      for (final sprache in Unterlagensprache.values) {
+        final u = mit(sprache);
+        final t = u.texte;
+        final belag = u.kapitel.singleWhere(
+          (k) => k.titel.endsWith(t.belagKapitel),
+        );
+        expect(texte(belag), contains(t.stossHinweisLaengenmix));
+        expect(texte(belag), isNot(contains(t.stossHinweis)));
+        final ukPlan = u.kapitel.singleWhere(
+          (k) => k.titel.endsWith(t.ukKapitel),
+        );
+        expect(texte(ukPlan), contains(t.ukRasterLaengenmix));
+      }
+      expect(
+        Unterlagentexte.deutsch.stossHinweisLaengenmix,
+        'MASSIV im Längenmix 0,8 / 1,2 / 1,6 / 2,0 m · Stoß je Reihe '
+        'versetzt (rot) · jeder Stoß mittig auf einer UK.',
+      );
+      expect(
+        Unterlagentexte.deutsch.ukRasterLaengenmix,
+        'Stöße mittig auf UK (Raster 38/40 cm).',
+      );
+      // Dielen: kein Zusatz im UK-Plan
+      final dielen = erzeuge(b);
+      expect(
+        texte(dielen.kapitel[2]),
+        isNot(contains(Unterlagentexte.deutsch.ukRasterLaengenmix)),
+      );
+    });
+
     test('UK-Plan: Achsmaßkette blau außen, Zahlen in cm ab 10 cm, '
         'Legende (R-E02)', () {
       final b = Berechnung(

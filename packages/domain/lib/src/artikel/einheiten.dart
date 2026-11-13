@@ -84,7 +84,7 @@ enum Mengeneinheit {
         'stück' || 'stk.' || 'stk' || 'st.' || 'st' => stueck,
         'lfm' => laufmeter,
         'm²' || 'm2' || 'qm' => quadratmeter,
-        'vpe' || 've' => verpackungseinheit,
+        'vpe' || 've' || 'paket' => verpackungseinheit,
         'karton' => karton,
         'set' => set,
         'kiste' => kiste,

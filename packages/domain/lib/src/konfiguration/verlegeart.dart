@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import '../artikel/einheiten.dart';
+import 'laengenmix.dart';
 
 /// Verlegeart des Belags (Fachkonzept 2.3, M5-04; Verlegemuster nach den
 /// Planungsregeln Alexander (Planungskern v7, 11.11.2026) Regel 9.3,
@@ -113,7 +114,7 @@ const verbandMindestabstand = Millimeter(300);
 ///   lange Stücke geteilt.
 ///
 /// Jeder Stoß bekommt in der UK zwei Hölzer (`ukVerlegung`, Regel 2.1).
-final class Verbandwahl {
+final class Verbandwahl implements Stosswahl {
   Verbandwahl(
     this.art, {
     required this.von,
@@ -139,8 +140,7 @@ final class Verbandwahl {
   /// Ob die Fläche überhaupt Stöße bekommt.
   bool get _mitStoessen => bis - von > hoechstlaenge;
 
-  /// Stöße der Reihe [reihe] je Abschnitt in [abschnitte] (von, bis in
-  /// Verlegerichtung), in derselben Reihenfolge.
+  @override
   List<List<Millimeter>> stoesse(
     int reihe,
     List<(Millimeter, Millimeter)> abschnitte,

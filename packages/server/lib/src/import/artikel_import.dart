@@ -262,7 +262,16 @@ Artikeleintrag? _eintrag(
         nummer: Artikelnummer(nummer),
         titel: titel,
         art: art!,
-        einheit: Verkaufseinheit(einheit!, inhalt: inhalt),
+        einheit: Verkaufseinheit(
+          einheit!,
+          inhalt: inhalt,
+          // MASSIV-Systemdielen im Paket zu 1,5 m² (B-036)
+          inhaltEinheit:
+              art == Artikelart.systemdiele &&
+                  einheit == Mengeneinheit.verpackungseinheit
+              ? Mengeneinheit.quadratmeter
+              : null,
+        ),
         abmessungen: Abmessungen(
           breite: breite,
           staerke: staerke,

@@ -1080,7 +1080,7 @@ class PlanerTexteEn extends PlanerTexte {
 
   @override
   String get belagmeldungSystemdiele =>
-      'System boards are laid endlessly in mixed lengths – the planner does not draw this yet.';
+      'MASSIV system boards are laid in mixed lengths of 0.8 / 1.2 / 1.6 / 2.0 m with joints staggered row by row; every joint sits centred on one joist (grid 38 / 40 cm). Laying patterns and board length do not apply.';
 
   @override
   String get belagmeldungFlaecheKleiner =>

@@ -7,6 +7,8 @@ import 'einheiten.dart';
 /// UK-Holz derselben Holzart und Serie, dessen Format zur Serie gehört –
 /// Breite und Stärke tauschbar (R-A08, B-034), auch die nur ungetrocknet
 /// lieferbaren Formate (B-212). Alu-UK nicht: im Planer nur Robinie (B-122).
+/// Bestimmt die Serie des Belags eine andere UK-Serie
+/// ([Serienregeln.ukSerie]), gilt diese: MASSIV auf ECO SELECT (B-232).
 bool ukPasstZuBelag(Artikel uk, Artikel belag) {
   final (holzart, serie, breite, staerke) = (
     uk.holzart,
@@ -17,11 +19,15 @@ bool ukPasstZuBelag(Artikel uk, Artikel belag) {
   return uk.art == Artikelart.unterkonstruktion &&
       holzart != null &&
       holzart.id == belag.holzart?.id &&
-      serie == belag.serie &&
+      serie == _ukSerie(holzart, belag.serie) &&
       breite != null &&
       staerke != null &&
       holzart.serie(serie!).ukFormat(breite, staerke) != UkFormat.ungueltig;
 }
+
+/// UK-Serie zur Belagserie [serie] der [holzart].
+Serie? _ukSerie(Holzart holzart, Serie? serie) =>
+    serie == null ? null : holzart.serie(serie).ukSerie ?? serie;
 
 /// Lieferlängen einer UK (M6-03): die Längen der Artikeldaten und die
 /// UK-Lieferlängen ihrer Serie (R-A06, B-035; ECO SELECT nur 4/5/6 m,

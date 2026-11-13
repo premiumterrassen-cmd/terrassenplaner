@@ -634,20 +634,13 @@ void main() {
       expect(v.grenzen, (x: const Millimeter(4800), y: const Millimeter(66)));
     });
 
-    test('nichts zu verlegen: offene Freiform, kein Belag, Systemdiele, '
-        'unvollständige Abmessungen', () {
+    test('nichts zu verlegen: offene Freiform, kein Belag, unvollständige '
+        'Abmessungen', () {
       final offen = Planungsstand(
         grundriss: FreiformGrundriss(const [Punkt(0, 0), Punkt(1000, 0)]),
       );
       expect(verlegeBelag(offen, _diele(60)), isNull);
       expect(verlegeBelag(Planungsstand.start, null), isNull);
-      expect(
-        verlegeBelag(
-          Planungsstand.start,
-          _diele(60, const [_m4], Artikelart.systemdiele),
-        ),
-        isNull,
-      );
       expect(verlegeBelag(Planungsstand.start, _diele(60, const [])), isNull);
       final ohneBreite = Artikel(
         nummer: const Artikelnummer('1'),

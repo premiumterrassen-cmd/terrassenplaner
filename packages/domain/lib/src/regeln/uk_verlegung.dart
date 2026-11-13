@@ -18,6 +18,7 @@ import '../geometrie/punkt.dart';
 import '../konfiguration/ausschnitt.dart';
 import '../konfiguration/belagverlegung.dart';
 import '../konfiguration/dielenverlegung.dart';
+import '../konfiguration/laengenmix.dart';
 import '../konfiguration/planungsstand.dart';
 import 'planungsregeln.dart';
 import 'rand_uk.dart';
@@ -75,6 +76,7 @@ final class UkVerlegung {
     List<Strecke> riegel = const [],
     this.breite = const Millimeter(0),
     this.winkel = 0,
+    this.laengenmix = false,
   }) : linien = List.unmodifiable(linien),
        rand = List.unmodifiable(rand),
        riegel = List.unmodifiable(riegel),
@@ -123,6 +125,11 @@ final class UkVerlegung {
 
   /// Winkel der Dielen in Grad: um ihn ist die Fläche der [linien] gedreht.
   final double winkel;
+
+  /// Ob die UK im Raster des Längenmixes liegt (MASSIV, B-232): jeder Stoß
+  /// der Dielen liegt mittig auf einer Linie – beide Dielenenden teilen
+  /// sich dort einen Clip (Regel 1a.4: Clips = UK-Linien je Reihe).
+  final bool laengenmix;
 
   /// Lage der Linien (x in der gedrehten Fläche) – für Befestigung und
   /// Querstreben.
@@ -219,6 +226,7 @@ UkVerlegung ukVerlegung(
   Artikel uk, {
   required Millimeter abstand,
   List<Dielenstueck> dielen = const [],
+  Laengenmix? laengenmix,
   bool gedreht = false,
   bool stellfuesse = false,
   Regelwerk? regelwerk,
@@ -255,16 +263,19 @@ UkVerlegung ukVerlegung(
   final wand = stellfuesse ? _wand(stand, drehung) : const <Kante>[];
   double randachse(double x) =>
       wand.any((k) => _senkrechtBei(k, x)) ? _wandachse : w / 2;
-  final lagen = _lagen(
-    [
-      huelle.min.x,
-      ..._dielenstoesse(dielen, drehung, abstand.mm / 2, huelle, w),
-      huelle.max.x,
-    ],
-    w,
-    abstand.mm.toDouble(),
-    (randachse(huelle.min.x), randachse(huelle.max.x)),
-  );
+  final randachsen = (randachse(huelle.min.x), randachse(huelle.max.x));
+  final lagen = laengenmix == null
+      ? _lagen(
+          [
+            huelle.min.x,
+            ..._dielenstoesse(dielen, drehung, abstand.mm / 2, huelle, w),
+            huelle.max.x,
+          ],
+          w,
+          abstand.mm.toDouble(),
+          randachsen,
+        )
+      : _rasterlagen(laengenmix, huelle, w, randachsen);
   final roh = <UkLinie>[
     for (final x in lagen)
       (
@@ -376,6 +387,7 @@ UkVerlegung ukVerlegung(
     ],
     breite: breite,
     winkel: winkel,
+    laengenmix: laengenmix != null,
   );
 }
 
@@ -730,6 +742,38 @@ List<double> _lagen(
   }
   return lagen;
 }
+
+/// Achsen der UK im Raster des Längenmixes (MASSIV, Regel 1a.4, B-232):
+/// am Rand bündig (Achse [rand] innen, an der Hauswand bei Stellfüßen
+/// 6 cm), dazwischen auf jeder Rasterlinie ab dem Anfang des [mix] – bei
+/// 40 cm Raster und 40 mm UK also 38 / 40 / 40 … cm, das letzte Feld ist der
+/// Rest. Eine Rasterlinie, deren Holz das Randholz berühren würde (näher
+/// als eine UK-Breite [w]), entfällt; dort endet nie ein Stück
+/// (`laengenmixMindeststueck`).
+List<double> _rasterlagen(
+  Laengenmix mix,
+  Huellrechteck huelle,
+  double w,
+  (double, double) rand,
+) {
+  final anfang = mix.anfang ?? huelle.min.x;
+  final schritt = mix.raster.mm;
+  final links = huelle.min.x + rand.$1;
+  final rechts = huelle.max.x - rand.$2;
+  return [
+    links,
+    for (
+      var g = anfang + schritt;
+      g <= rechts - w + _rasterToleranz;
+      g += schritt
+    )
+      if (g >= links + w - _rasterToleranz) g,
+    rechts,
+  ];
+}
+
+/// Rundung der Rasterlinien am Rand (mm).
+const _rasterToleranz = 0.5;
 
 /// Ein Ende einer Linie liegt höchstens so weit (mm) von einer Kante mit
 /// Rand-UK entfernt, dann endet die Linie an ihr – Bögen sind für die

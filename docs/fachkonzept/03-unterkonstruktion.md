@@ -43,7 +43,7 @@ Neuer Planer (M6-03):
 - Unterpunkt 3.3 zeigt die gewählte UK mit Bild, Name und Maßen und den Knopf „Produktauswahl“; der Dialog „Unterkonstruktion auswählen“ zeigt wie beim Belag (2.1) Produktkarten mit Abmessungen, Preis je lfm (nur Anzeige, B-055) und Infobox, ohne Filter wie im alten Planer. Die Auswahl liefert der Artikeldienst (`unterkonstruktion.auswahl`, Argument der Belag) – die App hält nichts vor und lädt bei jedem Belagwechsel neu.
 - **Nur zum Belag passende UK** (Abnahme, `ukPasstZuBelag`): UK-Holz Robinie derselben Holzart und Serie wie der Belag, dessen Format zur Serie gehört – Breite und Stärke tauschbar (R-A08, B-034), bei ECO SELECT auch die nur ungetrocknet lieferbaren Formate (B-212), die entfallenen nicht. Alu-Schienen und -Systeme stehen nicht zur Wahl (Sortiment nur Robinie, B-122); UK ohne Maße in den Artikeldaten auch nicht. Reihenfolge wie in den Artikeldaten, die erste ist die Vorgabe. Planungsstand-Feld `unterkonstruktion` (Platz 25, fehlt = Vorgabe); passt die gewählte UK nach einem Belagwechsel nicht mehr, gilt die Vorgabe des neuen Belags, die Wahl bleibt gespeichert.
 - Die gewählte UK prüft die Höhenpunkte (3.2): Aufbauhöhe und Drehung richten sich nach ihren Maßen.
-- Ohne Belag aus Robinie (z. B. MASSIV-Systemdielen, solange es keine MASSIV-UK in den Artikeldaten gibt) erscheint „Zum gewählten Belag passt keine Unterkonstruktion aus dem Sortiment.“
+- Zu MASSIV-Systemdielen passt die UK aus ECO SELECT (Planungskern Regel 1a.7, R-C51, Frage 100), im Raster 38/40 cm mit jedem Stoß mittig auf einer UK (R-C50). Ohne Belag aus Robinie erscheint „Zum gewählten Belag passt keine Unterkonstruktion aus dem Sortiment.“
 
 ## 3.4 Länge der Unterkonstruktion
 

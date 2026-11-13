@@ -85,6 +85,8 @@ final class Unterlagentexte {
     required this.dielenHinweis,
     required this.stossHinweis,
     required this.achsmassHinweis,
+    required this.stossHinweisLaengenmix,
+    required this.ukRasterLaengenmix,
     required this.ukHoehenHinweis,
     required this.fusshoehe,
     required this.ohneAuflager,
@@ -174,6 +176,10 @@ final class Unterlagentexte {
         'Rot gestrichelt: Stoß – jedes Dielenende liegt auf einer eigenen '
         'UK (Doppel-UK).',
     achsmassHinweis: 'Blau: Achsmaße der UK in cm.',
+    stossHinweisLaengenmix:
+        'MASSIV im Längenmix 0,8 / 1,2 / 1,6 / 2,0 m · Stoß je Reihe '
+        'versetzt (rot) · jeder Stoß mittig auf einer UK.',
+    ukRasterLaengenmix: 'Stöße mittig auf UK (Raster 38/40 cm).',
     ukHoehenHinweis:
         'H = Höhe Oberkante Diele über Boden in cm. Neben jedem Auflager '
         'die Höhe des Stellfußes bzw. der Unterleger in cm, die Farbe nach '
@@ -289,6 +295,10 @@ final class Unterlagentexte {
         'Red dashed: butt joint – each board end rests on its own joist '
         '(double joist).',
     achsmassHinweis: 'Blue: joist centre distances in cm.',
+    stossHinweisLaengenmix:
+        'MASSIV in mixed lengths 0.8 / 1.2 / 1.6 / 2.0 m · joints staggered '
+        'row by row (red) · every joint centred on one joist.',
+    ukRasterLaengenmix: 'Joints centred on the joist (grid 38/40 cm).',
     ukHoehenHinweis:
         'H = height of the top of the boards above ground in cm. Next to '
         'every support the height of the adjustable foot or pads in cm, '
@@ -410,6 +420,13 @@ final class Unterlagentexte {
 
   /// Legende der Achsmaßkette im UK-Plan (R-E02).
   final String achsmassHinweis;
+
+  /// Legende des Verlegeplans bei MASSIV im Längenmix (Planungskern Regel
+  /// 1a.5, R-B50) statt [stossHinweis].
+  final String stossHinweisLaengenmix;
+
+  /// Zusatz im UK-Plan bei MASSIV im Längenmix (Regel 1a.5, R-C50).
+  final String ukRasterLaengenmix;
 
   /// Höhen im UK-Plan (R-E05, Planungskern v8/v9 Regeln 10.1 und 11.2):
   /// Legende, Spalte der Fußhöhe und Zeile für Auflager ohne passenden
@@ -626,9 +643,11 @@ final class Unterlagentexte {
     (Belagmeldung.belagOhneMasse, true) =>
       'Für diesen Belag fehlen Breite oder Lieferlängen, er kann nicht '
           'verlegt werden.',
-    (Belagmeldung.systemdieleOhneVerlegung, true) =>
-      'Systemdielen werden im Längenmix endlos verlegt – das zeichnet '
-          'der Planer noch nicht.',
+    (Belagmeldung.systemdieleLaengenmix, true) =>
+      'MASSIV-Systemdielen liegen im Längenmix 0,8 / 1,2 / 1,6 / 2,0 m mit '
+          'je Reihe versetzten Stößen; jeder Stoß liegt mittig auf einer UK '
+          '(Raster 38 / 40 cm). Verlegemuster und Dielenlänge gelten dafür '
+          'nicht.',
     (Belagmeldung.flaecheKleinerAlsBelag, true) =>
       'Die Fläche oder eine Teilfläche ist kleiner als eine Diele bzw. '
           'Fliese: Es passt keine ganze Belagbreite hinein, nur ein '
@@ -673,9 +692,11 @@ final class Unterlagentexte {
     (Belagmeldung.belagOhneMasse, false) =>
       'Width or delivery lengths are missing for this decking, so it '
           'cannot be laid.',
-    (Belagmeldung.systemdieleOhneVerlegung, false) =>
-      'System boards are laid endlessly in mixed lengths – the planner '
-          'does not draw this yet.',
+    (Belagmeldung.systemdieleLaengenmix, false) =>
+      'MASSIV system boards are laid in mixed lengths of 0.8 / 1.2 / 1.6 / '
+          '2.0 m with joints staggered row by row; every joint sits centred '
+          'on one joist (grid 38 / 40 cm). Laying patterns and board length '
+          'do not apply.',
     (Belagmeldung.flaecheKleinerAlsBelag, false) =>
       'The area or a partial area is smaller than one board or tile: no '
           'full decking width fits, only a cut piece.',

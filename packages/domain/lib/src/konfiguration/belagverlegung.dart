@@ -10,6 +10,7 @@ import '../regeln/planungsregeln.dart';
 import 'ausschnitt.dart';
 import 'dielenverlegung.dart';
 import 'grundriss.dart';
+import 'laengenmix.dart';
 import 'planungsstand.dart';
 import 'verlegeart.dart';
 
@@ -54,6 +55,10 @@ final class Musterregel {
     wiederverwendetAb: mindestrest,
     mehrlaenge: mehrlaengeFuerWenigerDielen,
   );
+
+  /// MASSIV-Systemdielen im Längenmix (Regel 1a.3): jedes Stück aus einer
+  /// eigenen Lieferlänge, der kürzesten, die es aufnimmt.
+  static const laengenmix = Musterregel._(hoechstens: 1);
 
   /// Sägeschnitt zwischen zwei Stücken einer Diele.
   final Millimeter schnitt;
@@ -127,6 +132,9 @@ List<Lieferdiele> zuschneiden(
   Musterregel muster = Musterregel.frei,
 }) {
   final liste = stuecke.toList();
+  if (muster.hoechstens == 1) {
+    return _einzeln(liste, lieferlaengen, ueberlaenge);
+  }
   final laengste = liste.fold(0, (m, s) => s.mm > m ? s.mm : m);
   final mit = verteile(
     liste,
@@ -168,6 +176,26 @@ List<Lieferdiele> zuschneiden(
           ],
     mehrlaenge: muster.mehrlaenge,
   );
+}
+
+/// Jedes der [stuecke] aus einer eigenen Diele: der kürzesten der
+/// [lieferlaengen], die es samt [ueberlaenge] aufnimmt (Längenmix,
+/// [Musterregel.laengenmix]).
+List<Lieferdiele> _einzeln(
+  List<Millimeter> stuecke,
+  List<Millimeter> lieferlaengen,
+  Millimeter ueberlaenge,
+) {
+  final laengen = _mm(lieferlaengen)..sort();
+  return [
+    for (final s in stuecke)
+      Lieferdiele(
+        Millimeter(
+          Musterregel.laengenmix.kuerzeste(laengen, ueberlaenge.mm, [s.mm]),
+        ),
+        [s],
+      ),
+  ];
 }
 
 /// Die [dielen] je in der kürzesten der [lieferlaengen], aus der ihre
@@ -542,9 +570,10 @@ final class Belagverlegung {
     List<Millimeter> lieferlaengen,
     this.ueberlaenge,
     this.muster,
-    List<Teilverlegung> teile,
-  ) : lieferlaengen = List.unmodifiable(lieferlaengen),
-      teile = List.unmodifiable(teile);
+    List<Teilverlegung> teile, {
+    this.laengenmix,
+  }) : lieferlaengen = List.unmodifiable(lieferlaengen),
+       teile = List.unmodifiable(teile);
 
   /// Gewählte Ecke plus (begrenzte) Verschiebung.
   final Punkt ausgangspunkt;
@@ -571,6 +600,11 @@ final class Belagverlegung {
   final Musterregel muster;
   final List<Teilverlegung> teile;
 
+  /// Längenmix der MASSIV-Systemdielen (Regel 1a.3, B-232) – Raster und
+  /// Anfang, auf denen auch die UK liegt (`ukVerlegung`); `null` für Dielen
+  /// und Holzfliesen.
+  final Laengenmix? laengenmix;
+
   /// Dielenliste aller Teilflächen.
   Dielenliste get dielenliste => teile.fold(
     Dielenliste.leer,
@@ -587,8 +621,16 @@ final class Belagverlegung {
 }
 
 /// Verlegt den [belag] auf der Fläche [stand] (M5-08); `null`, wenn nichts
-/// zu verlegen ist: offene Freiform, kein Belag, Systemdielen (Längenmix,
-/// Endlosverlegung) oder unvollständige Abmessungen.
+/// zu verlegen ist: offene Freiform, kein Belag oder unvollständige
+/// Abmessungen.
+///
+/// MASSIV-Systemdielen (Planungsregeln Alexander, Planungskern Abschnitt
+/// 1a, B-036, B-232) liegen im Längenmix aus den Lieferlängen ihrer Serie
+/// (0,8 / 1,2 / 1,6 / 2,0 m, [Laengenmixwahl]): Stöße je Reihe versetzt auf
+/// dem Raster ab dem Rand ([laengenmixRasterFuer] der Feldbreite), jedes
+/// Stück aus einer eigenen Lieferlänge ([Musterregel.laengenmix]).
+/// Verlegeart, Dielenlänge und Verschiebung in Verlegerichtung gelten dafür
+/// nicht (die Grenze ist dort 0).
 ///
 /// Dielen: Breite und Lieferlängen des Belags (erzwungene Länge, solange der
 /// Belag sie liefert, M5-02), [fuge] 6 mm (R-B06, Planungsregeln Alexander
@@ -626,8 +668,10 @@ Belagverlegung? verlegeBelag(
   if (stand.grundriss case FreiformGrundriss(geschlossen: false)) return null;
   final masse = belag?.abmessungen;
   final breite = masse?.breite;
-  if (breite == null || masse!.laengen.isEmpty) return null;
+  final laengen = belag == null ? const <Millimeter>[] : belaglaengen(belag);
+  if (breite == null || laengen.isEmpty) return null;
   final fest = stand.dielenlaenge;
+  final mix = belag!.art == Artikelart.systemdiele;
   final (
     List<Millimeter> lieferlaengen,
     bool verbinden,
@@ -635,19 +679,19 @@ Belagverlegung? verlegeBelag(
     Musterregel muster,
   )
   art;
-  switch (belag!.art) {
+  switch (belag.art) {
     case Artikelart.diele:
       art = (
         // erzwungene Lieferlänge vor der Vorgabe Dielenlänge (R-B19)
-        masse.laengen.contains(fest)
-            ? [fest!]
-            : stand.vorgabelaengen(belag, masse.laengen),
+        laengen.contains(fest) ? [fest!] : stand.vorgabelaengen(belag, laengen),
         stand.kurzeStueckeVerbinden,
         dielenUeberlaenge,
         dielenmuster,
       );
     case Artikelart.holzfliese:
-      art = (masse.laengen, false, const Millimeter(0), Musterregel.frei);
+      art = (laengen, false, const Millimeter(0), Musterregel.frei);
+    case Artikelart.systemdiele:
+      art = (laengen, false, laengenmixToleranz, Musterregel.laengenmix);
     default:
       return null;
   }
@@ -655,7 +699,7 @@ Belagverlegung? verlegeBelag(
   final kontur = stand.kontur;
   final winkel = stand.dielenwinkel.toDouble();
   final laengste = lieferlaengen.last;
-  final grenzen = verschiebungsgrenzen(
+  final frei = verschiebungsgrenzen(
     kontur,
     winkel: winkel,
     dielenbreite: breite,
@@ -663,6 +707,19 @@ Belagverlegung? verlegeBelag(
     ueberlaenge: ueberlaenge,
     fuge: fuge,
   );
+  // im Längenmix liegen die Stöße fest auf dem Raster ab dem Rand
+  final grenzen = !mix
+      ? frei
+      : winkel <= 45 || winkel >= 135
+      ? (x: const Millimeter(0), y: frei.y)
+      : (x: frei.x, y: const Millimeter(0));
+  final Laengenmix? laengenmix = mix
+      ? (
+          laengen: lieferlaengen,
+          raster: laengenmixRasterFuer(stand.feldbreite),
+          anfang: rasteranfang(kontur, winkel),
+        )
+      : null;
   final ausgangspunkt =
       stand.ausgangspunkt +
       Punkt(
@@ -698,6 +755,7 @@ Belagverlegung? verlegeBelag(
         winkel: winkel,
         ausgangspunkt: ab,
         ecke: ecke,
+        laengenmix: laengenmix,
         stosslinien: [...linien.fest, ...linien.zusatz]
           ..sort((a, b) => a.mm.compareTo(b.mm)),
         dielenbreite: breite,
@@ -744,7 +802,27 @@ Belagverlegung? verlegeBelag(
             bezeichnung: a.bezeichnung,
           ),
     ],
+    laengenmix: laengenmix,
   );
+}
+
+/// Lieferlängen des [belag]: bei MASSIV-Systemdielen die Längen ihrer Serie
+/// (Längenmix 0,8 / 1,2 / 1,6 / 2,0 m, R-A06 – die Artikeldaten führen je
+/// Artikel höchstens eine), sonst die der Artikeldaten.
+List<Millimeter> belaglaengen(Artikel belag) => switch (belag) {
+  Artikel(art: Artikelart.systemdiele, :final holzart?, :final serie?) =>
+    holzart.serie(serie).lieferlaengen,
+  _ => belag.abmessungen.laengen,
+};
+
+/// Anfang des Längenmix-Rasters (Regel 1a.4): der Rand der [kontur] in
+/// Verlegerichtung ([winkel] in Grad) – in der um den Ursprung gedrehten
+/// Planung, wie die UK-Verlegung sie rechnet.
+double rasteranfang(Kontur kontur, double winkel) {
+  final drehung = -winkel * math.pi / 180;
+  return Huellrechteck.um([
+    for (final p in kontur.vieleck()) p.gedreht(drehung),
+  ]).min.x;
 }
 
 double _begrenzt(Millimeter wert, Millimeter grenze) =>
