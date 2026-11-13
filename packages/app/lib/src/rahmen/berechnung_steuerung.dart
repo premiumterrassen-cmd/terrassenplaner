@@ -64,7 +64,19 @@ class BerechnungsSteuerung extends ChangeNotifier {
       ukBreite: (b.unterbau.holzbreite?.mm ?? 0).toDouble(),
       auflager: [
         for (final p in b.unterbau.auflagerpunkte)
-          (Offset(p.ort.x, p.ort.y), p.spalt, p.zeile != null),
+          (
+            ort: Offset(p.ort.x, p.ort.y),
+            spalt: p.spalt,
+            zeile: p.zeile,
+            // wie im UK-Plan der Unterlagen: Auflager 5 mm über das Holz
+            richtung: _offset(
+              fusshoehenRichtung(
+                p.ort,
+                b.unterbau.hoelzer,
+                (b.unterbau.holzbreite?.mm ?? 40) / 2 + 5,
+              ),
+            ),
+          ),
       ],
       seiten: [
         for (final s in b.anschluss.seiten)
@@ -111,8 +123,10 @@ class BerechnungsSteuerung extends ChangeNotifier {
   };
 
   static List<Offset> _offsets(List<Punkt> punkte) => [
-    for (final p in punkte) Offset(p.x, p.y),
+    for (final p in punkte) _offset(p),
   ];
+
+  static Offset _offset(Punkt p) => Offset(p.x, p.y);
 
   /// Terrassenfläche in m² für die Kennzahlen.
   /// Offene Freiform (M4-08): keine Fläche.

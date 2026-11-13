@@ -22,6 +22,9 @@ Future<Berechnung> _server(Planung planung) async => Berechnung(
     auflagerpunkte: const [
       (ort: Punkt(20, 0), spalt: Millimeter(5), zeile: 0),
       (ort: Punkt(20, 515), spalt: Millimeter(300), zeile: null),
+      // 25 mm neben der Achse: noch auf dem Holz (halbe Breite + 5 mm)
+      (ort: Punkt(45, 1000), spalt: Millimeter(30), zeile: 1),
+      (ort: Punkt(46, 1000), spalt: Millimeter(30), zeile: 1),
     ],
   ),
   planbild: Planbild(
@@ -72,10 +75,33 @@ void main() {
       ),
     ]);
     expect(z.ukBreite, 40);
-    // Auflager (M6-11): Ort, Spalt, ob passend
+    // Auflager (M6-11): Ort, Spalt, Zeile der Höhenzuordnung und Richtung
+    // der Fußhöhe quer zum Holz (Planungskern v8 Regel 10.1)
     expect(z.auflager, [
-      (const Offset(20, 0), const Millimeter(5), true),
-      (const Offset(20, 515), const Millimeter(300), false),
+      (
+        ort: const Offset(20, 0),
+        spalt: const Millimeter(5),
+        zeile: 0,
+        richtung: const Offset(1, 0),
+      ),
+      (
+        ort: const Offset(20, 515),
+        spalt: const Millimeter(300),
+        zeile: null,
+        richtung: const Offset(1, 0),
+      ),
+      (
+        ort: const Offset(45, 1000),
+        spalt: const Millimeter(30),
+        zeile: 1,
+        richtung: const Offset(1, 0),
+      ),
+      (
+        ort: const Offset(46, 1000),
+        spalt: const Millimeter(30),
+        zeile: 1,
+        richtung: const Offset(0, -1),
+      ),
     ]);
     // Pläne nach dem Planungskern (R-E01 bis R-E03)
     expect(z.namen, ['A', 'B', 'C']);
@@ -88,6 +114,36 @@ void main() {
     expect(z.achsen!.normale, const Offset(0, 1));
     // Rinne RELO V (Planungskern v11, R-E07)
     expect(z.rinnen.single.ecken.last, const Punkt(0, 151));
+  });
+
+  testWidgets('Fußhöhe ohne Holzbreite: Hölzer 40 mm breit', (tester) async {
+    final planung = PlanungsSteuerung();
+    final berechnung = BerechnungsSteuerung(
+      planung: planung,
+      berechne: (_) async => Berechnung(
+        umriss: const [],
+        flaeche: 0,
+        unterbau: Unterbau(
+          hoelzer: const [
+            (von: Punkt(0, 0), bis: Punkt(0, 1000), farbe: Stueckfarbe.rot),
+          ],
+          auflagerpunkte: const [
+            (ort: Punkt(25, 500), spalt: Millimeter(30), zeile: 0),
+            (ort: Punkt(26, 500), spalt: Millimeter(30), zeile: 0),
+          ],
+        ),
+      ),
+    );
+    addTearDown(() {
+      berechnung.dispose();
+      planung.dispose();
+    });
+    planung.setze(planung.aktuell.mitGewerblich(true));
+    await tester.pump();
+    expect(
+      [for (final a in berechnung.zeichnung.auflager) a.richtung],
+      const [Offset(1, 0), Offset(0, -1)],
+    );
   });
 
   testWidgets('ohne Hölzer Breite 0', (tester) async {

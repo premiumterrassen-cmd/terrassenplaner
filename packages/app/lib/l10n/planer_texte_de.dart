@@ -1100,6 +1100,19 @@ class PlanerTexteDe extends PlanerTexte {
       'Keine hinterlegte Schraube ist mindestens doppelt so lang, wie die Diele stark ist. Gerechnet wird mit der längsten – bitte prüfen Sie die Schraubenlänge.';
 
   @override
+  String get belagmeldungLaengenvorgabe =>
+      'Keine Lieferlänge dieses Belags erfüllt die Vorgabe Dielenlänge. Geplant wird mit allen Lagerlängen.';
+
+  @override
+  String get dielenlaengeHoechstens => 'Dielen höchstens (in cm):';
+
+  @override
+  String get dielenlaengeMindestens => 'Dielen mindestens (in cm):';
+
+  @override
+  String get dielenlaengeBeliebig => 'beliebig';
+
+  @override
   String get zubehoerLaedt => 'Zubehör wird geladen …';
 
   @override

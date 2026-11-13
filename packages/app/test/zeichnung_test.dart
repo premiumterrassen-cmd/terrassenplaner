@@ -510,7 +510,9 @@ void main() {
       );
       // 6 px: ein Strich
       expect(rot, hasLength(1));
-      expect(rot.single.strokeWidth, 2);
+      // dünn nach Planungskern v8 Regel 10.3
+      expect(rot.single.strokeWidth, closeTo(1.2, 1e-6));
+      expect(ZeichnungsMaler.stossBreite, 1.2);
       final blau = leinwand.linienStifte.where(
         (p) => p.color.toARGB32() == ZeichnungsMaler.achsmassFarbe.toARGB32(),
       );
@@ -648,48 +650,119 @@ void main() {
       expect(m.holzlinien(), isEmpty);
     });
 
-    test('Auflager (M6-11): Quadrate, rot ohne passendes Auflager, Spalt ab '
-        '150 % Zoom, nur mit der Ebene UK', () {
+    test('Auflager (M6-11, Planungskern v8 Regel 10.1): Quadrate in der Farbe '
+        'des Zubehörs, rot ohne passendes Auflager, Fußhöhe ab 150 % Zoom '
+        'neben dem Holz und weiß hinterlegt, nur mit der Ebene UK', () {
       final z = Zeichnung(
+        ukBreite: 100,
         auflager: const [
-          (Offset(20, 0), Millimeter(45), true),
-          (Offset(20, 515), Millimeter(300), false),
+          (
+            ort: Offset(20, 0),
+            spalt: Millimeter(45),
+            zeile: 1,
+            richtung: Offset(1, 0),
+          ),
+          (
+            ort: Offset(20, 515),
+            spalt: Millimeter(300),
+            zeile: null,
+            richtung: Offset(0, -1),
+          ),
+          // UK tiefer als die Aufbauhöhe: keine Fußhöhe
+          (
+            ort: Offset(20, 1000),
+            spalt: Millimeter(-1),
+            zeile: 0,
+            richtung: Offset(1, 0),
+          ),
+          (
+            ort: Offset(20, 1500),
+            spalt: Millimeter(0),
+            zeile: 0,
+            richtung: Offset(1, 0),
+          ),
         ],
       );
       expect(
-        () => z.auflager.add((Offset.zero, const Millimeter(0), true)),
+        () => z.auflager.add((
+          ort: Offset.zero,
+          spalt: const Millimeter(0),
+          zeile: null,
+          richtung: Offset.zero,
+        )),
         throwsUnsupportedError,
       );
       final o = AnsichtsOptionen();
       final a = AnsichtSteuerung();
       final m = _maler(z, o, a);
-      final [(ort, farbe, text), (_, rot, _)] = m.auflagerpunkte();
+      final [(ort, farbe, text), (_, rot, _), (_, gruen, _), _] = m
+          .auflagerpunkte();
       expect(ort, a.verschiebung + const Offset(2, 0));
-      expect(farbe, ZeichnungsMaler.auflagerFarbe);
+      expect(farbe, Color(auflagerfarben[1]));
+      expect(gruen, Color(auflagerfarben[0]));
       expect(rot.toARGB32(), Stueckfarbe.rot.argb);
       expect(ZeichnungsMaler.ohneFarbe.toARGB32(), Stueckfarbe.rot.argb);
       expect(text, isNull);
       expect(ZeichnungsMaler.hoeheAbZoom, 1.5);
       expect(ZeichnungsMaler.auflagerGroesse, 6);
+      expect(ZeichnungsMaler.fusshoehenAbstand, 2);
       a.zoomeAuf(1.5);
-      expect(m.auflagerpunkte().first.$3, '4,5');
-      expect(m.auflagerpunkte().last.$3, '30');
+      final texte = [for (final (_, _, t) in m.auflagerpunkte()) t];
+      expect([for (final t in texte) t?.text], ['4,5', '30', null, '0']);
+      // Holz 100 mm = 15 px breit: Anker 7,5 + 2 px neben der Achse
+      expect(
+        texte.first!.ort,
+        m.bildschirm(const Offset(20, 0)) + const Offset(9.5, 0),
+      );
+      expect(texte.first!.richtung, const Offset(1, 0));
+      expect(
+        texte[1]!.ort,
+        m.bildschirm(const Offset(20, 515)) + const Offset(0, -9.5),
+      );
       final aufnahme = PictureRecorder();
       final leinwand = _ZaehlendeLeinwand(Canvas(aufnahme));
       m.paint(leinwand, const Size(800, 600));
       aufnahme.endRecording();
-      // der Spalt steht rechts neben dem Quadrat
+      // weiße Felder hinter den drei Zahlen
+      expect(
+        leinwand.stifte.where((p) => p.color == PlanerFarben.weiss),
+        hasLength(3),
+      );
+      // schmales Holz: das Auflager bestimmt den Rand
+      final schmal = _maler(
+        Zeichnung(auflager: z.auflager),
+        AnsichtsOptionen(),
+        AnsichtSteuerung()..zoomeAuf(1.5),
+      );
+      expect(
+        schmal.auflagerpunkte().first.$3!.ort,
+        schmal.bildschirm(const Offset(20, 0)) + const Offset(5, 0),
+      );
+      // jede Zahl an ihrer Lage neben dem Auflager
       expect(leinwand.textOrte, [
-        for (final (ort, _, _) in m.auflagerpunkte())
-          ort + const Offset(ZeichnungsMaler.auflagerGroesse, 0),
+        for (final t in texte)
+          if (t != null)
+            ZeichnungsMaler.textLage(
+              t.ort,
+              t.richtung,
+              (TextPainter(
+                text: TextSpan(
+                  text: t.text,
+                  style: const TextStyle(
+                    fontSize: ZeichnungsMaler.nummerGroesse,
+                  ),
+                ),
+                textDirection: TextDirection.ltr,
+              )..layout()).size,
+            ),
       ]);
       a.zoomeAuf(1);
       final ohneText = PictureRecorder();
       final ohne = _ZaehlendeLeinwand(Canvas(ohneText));
       m.paint(ohne, const Size(800, 600));
       ohneText.endRecording();
+      expect(ohne.stifte.where((p) => p.color == PlanerFarben.weiss), isEmpty);
       expect(ohne.aufrufe['drawParagraph'], isNull);
-      expect(ohne.aufrufe['drawRect'], 2);
       o.setzeEbenen({Ebene.belag});
       expect(m.auflagerpunkte(), isEmpty);
     });
@@ -706,7 +779,8 @@ void main() {
       final o = AnsichtsOptionen();
       final a = AnsichtSteuerung();
       final m = _maler(z, o, a);
-      final [(von, bis, farbe)] = m.seitenlinien();
+      final [(von, bis, farbe, breite)] = m.seitenlinien();
+      expect(breite, ZeichnungsMaler.seitenBreite);
       expect(von, a.verschiebung);
       expect(bis, a.verschiebung + const Offset(480, 0));
       expect(farbe, ZeichnungsMaler.bauelementFarbe);
@@ -736,6 +810,10 @@ void main() {
         hasLength(1),
       );
       expect(ZeichnungsMaler.seitenBreite, 8);
+      // Seitenblende als schmaler Strich (Planungskern v8/v9)
+      expect(ZeichnungsMaler.seitenstrich(Seitenrolle.verblendung), 2);
+      expect(ZeichnungsMaler.blendenBreite, 2);
+      expect(ZeichnungsMaler.seitenstrich(Seitenrolle.rinne), 8);
       o.setzeEbenen({});
       expect(m.seitenlinien(), hasLength(1));
       expect(Zeichnung.leer.seiten, isEmpty);

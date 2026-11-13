@@ -274,9 +274,15 @@ Branch `feature/planungskern-v7-hoehe` auf `main` (9f2b2d1). Planungsregeln Alex
 
 **Nicht im Vergleich, aber geändert** (Unit-Tests, Planungskern v7): Höhen zwischen den Punkten bei verwundenem Untergrund und mit Abläufen (Ablauf 5 cm in der Mitte, Ecken 10 cm: auf halbem Weg 8,0 statt 7,5 cm; L- und U-Form mit unebenen Ecken je Punkt bis 4 mm anders).
 
+## Nachtrag UK-Plan und Vorgabe Dielenlänge (Planungskern v8/v9, 12.11.2026)
+
+Branch `feature/planungskern-v9-ukplan` auf `main` (fc1007f). Planungsregeln Alexander (Planungskern v8/v9, 12.11.2026), Abschnitte 10 und 11; R-B19, R-E06.
+
+**Verglichene Werte:** Alle F01–F43 und alle Referenzfälle rechnen **genau wie `main`** – die Vorgabe Dielenlänge ist ohne Eingabe leer, die übrigen Änderungen betreffen nur die Darstellung. In den Referenzunterlagen entfällt die Seite „Bemaßung und Höhen“, der UK-Plan trägt die Höhen.
+
 ## Nachtrag Entwässerungsrinne RELO V je Kante (Planungskern v11, 12.11.2026)
 
-Branch `feature/planungskern-v11-rinne` auf `main` (fc1007f). Planungsregeln Alexander (Planungskern v11, 12.11.2026), Abschnitt 13; R-C19, R-D11, R-E07.
+Branch `feature/planungskern-v11-rinne`, gerechnet nach dem Einmergen von `main` (a9ac3b4, Planungskern v8/v9). Planungsregeln Alexander (Planungskern v11, 12.11.2026), Abschnitt 13; R-C19, R-D11, R-E07.
 
 **Verglichene Werte:** Nur **F38** ändert sich, alle übrigen F01–F43 und alle 26 Referenzfälle rechnen genau wie `main` (keiner hat eine Rinne):
 

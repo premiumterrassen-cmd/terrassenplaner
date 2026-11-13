@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 
 import '../artikel/artikel.dart';
+import '../artikel/dielenlaenge.dart';
 import '../artikel/einheiten.dart';
 import '../geometrie/kontur.dart';
 import '../geometrie/punkt.dart';
@@ -49,6 +50,8 @@ final class Planungsstand {
     this.rundungen = Rundungen.keine,
     this.belag,
     this.dielenlaenge,
+    this.dielenlaengeHoechstens,
+    this.dielenlaengeMindestens,
     this.kurzeStueckeVerbinden = false,
     this.verlegeart = Verlegeart.fugenschnitt,
     this.verlegerichtung = Verlegerichtung.waagrecht,
@@ -124,6 +127,8 @@ final class Planungsstand {
         final mm? => Millimeter(mm),
         null => null,
       },
+      dielenlaengeHoechstens: _mmOder(puffer, wurzel, _hoechstensPlatz),
+      dielenlaengeMindestens: _mmOder(puffer, wurzel, _mindestensPlatz),
       kurzeStueckeVerbinden: const fb.BoolReader().vTableGet(
         puffer,
         wurzel,
@@ -309,6 +314,17 @@ final class Planungsstand {
         const fb.Int32Reader().vTableGet(puffer, wurzel, _versatz(platz), 0),
       );
 
+  /// Millimeter am Platz [platz]; `null`, wenn er fehlt.
+  static Millimeter? _mmOder(fb.BufferContext puffer, int wurzel, int platz) =>
+      switch (const fb.Int32Reader().vTableGetNullable(
+        puffer,
+        wurzel,
+        _versatz(platz),
+      )) {
+        final mm? => Millimeter(mm),
+        null => null,
+      };
+
   /// Startkonfiguration des alten Planers (F01) – auch nach „Zurücksetzen“.
   static const start = Planungsstand();
 
@@ -327,6 +343,13 @@ final class Planungsstand {
   /// Erzwungene Lieferlänge (M5-02, R-B10); `null` = automatisch. Gilt nur,
   /// solange der Belag sie liefert (`lieferlaengenFuer`).
   final Millimeter? dielenlaenge;
+
+  /// Vorgabe Dielenlänge höchstens bzw. mindestens (Planungsregeln
+  /// Alexander (Planungskern v9, 12.11.2026), Regel 11.1, R-B19): gilt im
+  /// Automatikbetrieb für Dielen und Blenden, nicht für die UK und nicht
+  /// für MASSIV (`lieferlaengenNachVorgabe`); `null` = ohne Grenze.
+  final Millimeter? dielenlaengeHoechstens;
+  final Millimeter? dielenlaengeMindestens;
 
   /// „Sollen kurze Dielenstücke miteinander verbunden werden?“ (M5-03,
   /// R-B12); Vorgabe Nein. Wirkung: `reihenstuecke`.
@@ -675,6 +698,8 @@ final class Planungsstand {
     Rundungen? rundungen,
     Artikelnummer? belag,
     ({Millimeter? wert})? dielenlaenge,
+    ({Millimeter? wert})? dielenlaengeHoechstens,
+    ({Millimeter? wert})? dielenlaengeMindestens,
     bool? kurzeStueckeVerbinden,
     Verlegeart? verlegeart,
     Verlegerichtung? verlegerichtung,
@@ -712,6 +737,12 @@ final class Planungsstand {
       dielenlaenge: dielenlaenge == null
           ? this.dielenlaenge
           : dielenlaenge.wert,
+      dielenlaengeHoechstens: dielenlaengeHoechstens == null
+          ? this.dielenlaengeHoechstens
+          : dielenlaengeHoechstens.wert,
+      dielenlaengeMindestens: dielenlaengeMindestens == null
+          ? this.dielenlaengeMindestens
+          : dielenlaengeMindestens.wert,
       kurzeStueckeVerbinden:
           kurzeStueckeVerbinden ?? this.kurzeStueckeVerbinden,
       verlegeart: verlegeart ?? this.verlegeart,
@@ -826,6 +857,23 @@ final class Planungsstand {
   /// Kopie mit erzwungener Lieferlänge; `null` = automatisch.
   Planungsstand mitDielenlaenge(Millimeter? dielenlaenge) =>
       _mit(dielenlaenge: (wert: dielenlaenge));
+
+  /// Kopie mit der Vorgabe Dielenlänge höchstens bzw. mindestens (Regel
+  /// 11.1, R-B19); `null` = ohne Grenze.
+  Planungsstand mitDielenlaengeHoechstens(Millimeter? laenge) =>
+      _mit(dielenlaengeHoechstens: (wert: laenge));
+  Planungsstand mitDielenlaengeMindestens(Millimeter? laenge) =>
+      _mit(dielenlaengeMindestens: (wert: laenge));
+
+  /// Lieferlängen [laengen] des [artikel] nach der Vorgabe Dielenlänge
+  /// dieses Stands (`lieferlaengenNachVorgabe`, R-B19).
+  List<Millimeter> vorgabelaengen(Artikel artikel, List<Millimeter> laengen) =>
+      lieferlaengenNachVorgabe(
+        artikel,
+        laengen,
+        hoechstens: dielenlaengeHoechstens,
+        mindestens: dielenlaengeMindestens,
+      );
 
   /// Kopie mit der Antwort auf „kurze Stücke verbinden“.
   Planungsstand mitKurzeStueckeVerbinden(bool verbinden) =>
@@ -975,6 +1023,8 @@ final class Planungsstand {
   /// 2: ausschnitte ([{ 0: bezeichnung (string), 1: masse ([int32] mm) }]),
   /// 3: rundungen ([int32] je Art, Nummer, mm), 4: belag (string),
   /// 5: dielenlaenge (int32 mm), 6: kurze Stücke verbinden (bool),
+  /// 14: dielenlaengeHoechstens, 15: dielenlaengeMindestens (int32 mm;
+  /// fehlen = ohne Grenze, Planungskern v9 Regel 11.1),
   /// 7: verlegeart (uint8), 8: verlegerichtung (uint8),
   /// 9: verlegewinkel (uint8 Grad), 10: ausgangsecke (uint16),
   /// 11: verschiebungX (int32 mm), 12: verschiebungY (int32 mm),
@@ -1038,6 +1088,8 @@ final class Planungsstand {
       ..addOffset(_rundungenPlatz, rundungenOrt)
       ..addOffset(_belagPlatz, belagOrt)
       ..addInt32(_dielenlaengePlatz, dielenlaenge?.mm)
+      ..addInt32(_hoechstensPlatz, dielenlaengeHoechstens?.mm)
+      ..addInt32(_mindestensPlatz, dielenlaengeMindestens?.mm)
       ..addBool(_kurzeStueckeVerbindenPlatz, kurzeStueckeVerbinden)
       ..addUint8(_verlegeartPlatz, verlegeart.nummer)
       ..addUint8(_verlegerichtungPlatz, verlegerichtung.nummer)
@@ -1107,6 +1159,8 @@ final class Planungsstand {
   static const _verschiebungXPlatz = 11;
   static const _verschiebungYPlatz = 12;
   static const _befestigungsartPlatz = 13;
+  static const _hoechstensPlatz = 14;
+  static const _mindestensPlatz = 15;
   static const _terrassenartPlatz = 20;
   static const _spannweitePlatz = 21;
   static const _gefaellePlatz = 22;
@@ -1133,6 +1187,8 @@ final class Planungsstand {
         other.rundungen != rundungen ||
         other.belag != belag ||
         other.dielenlaenge != dielenlaenge ||
+        other.dielenlaengeHoechstens != dielenlaengeHoechstens ||
+        other.dielenlaengeMindestens != dielenlaengeMindestens ||
         other.kurzeStueckeVerbinden != kurzeStueckeVerbinden ||
         other.verlegeart != verlegeart ||
         other.verlegerichtung != verlegerichtung ||
@@ -1186,7 +1242,7 @@ final class Planungsstand {
     Object.hashAll(ausschnitte),
     rundungen,
     belag,
-    dielenlaenge,
+    Object.hash(dielenlaenge, dielenlaengeHoechstens, dielenlaengeMindestens),
     kurzeStueckeVerbinden,
     verlegeart,
     verlegerichtung,
