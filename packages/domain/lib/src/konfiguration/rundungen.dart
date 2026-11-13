@@ -99,7 +99,7 @@ final class Rundungen {
   /// 17.1.6): beide Nachbarkanten gerade, die Ecke kein gestreckter Punkt.
   bool rundbar(Grundriss grundriss, int ecke) {
     final n = grundriss.ecken.length;
-    final vor = (ecke + n - 1) % n;
+    final vor = (ecke - 1) % n;
     return !_gewoelbt(vor) &&
         !_gewoelbt(ecke) &&
         _drehung(grundriss.ecken, ecke).abs() > _gestreckt;
@@ -121,7 +121,7 @@ final class Rundungen {
     if (!rundbar(grundriss, ecke)) return const Millimeter(0);
     final e = grundriss.ecken;
     final n = e.length;
-    final vor = (ecke + n - 1) % n;
+    final vor = (ecke - 1) % n;
     final nach = (ecke + 1) % n;
     final frei = math.min(
       e[ecke].abstand(e[vor]) - _tangente(e, vor),
@@ -233,7 +233,7 @@ final class Rundungen {
     final e = grundriss.ecken;
     final n = e.length;
     for (final MapEntry(key: i, value: r) in ecken.entries) {
-      if (_gewoelbt((i + n - 1) % n) || _gewoelbt(i)) {
+      if (_gewoelbt((i - 1) % n) || _gewoelbt(i)) {
         throw ArgumentError.value(
           r.mm,
           'ecke',
@@ -251,7 +251,7 @@ final class Rundungen {
                 (
                   ecke: ti > 0
                       ? Kante(
-                          e[i] - (e[i] - e[(i + n - 1) % n]).einheit * ti,
+                          e[i] - (e[i] - e[(i - 1) % n]).einheit * ti,
                           e[i] + seite.einheit * ti,
                           _eckwoelbung(e, i),
                         )
@@ -269,7 +269,7 @@ final class Rundungen {
   /// Drehung des Umrisses an der Ecke [i] der [e] (Bogenmaß, links positiv).
   static double _drehung(List<Punkt> e, int i) {
     final n = e.length;
-    final a = (e[i] - e[(i + n - 1) % n]).einheit;
+    final a = (e[i] - e[(i - 1) % n]).einheit;
     final b = (e[(i + 1) % n] - e[i]).einheit;
     return math.atan2(a.kreuz(b), a.punktprodukt(b));
   }

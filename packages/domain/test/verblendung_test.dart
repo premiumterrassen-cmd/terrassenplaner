@@ -1134,7 +1134,11 @@ void _eckenUndAussparungen() {
       );
       expect(
         () => rund.mitEckblende(1, an: true),
-        throwsA(isA<ArgumentError>()),
+        throwsA(
+          isA<ArgumentError>()
+              .having((e) => e.name, 'name', 'ecke')
+              .having((e) => e.message, 'message', 'ist nicht abgerundet'),
+        ),
       );
       expect(mitBogen.mitEckblende(2, an: false).anschluss, rund.anschluss);
     });
@@ -1200,11 +1204,25 @@ void _eckenUndAussparungen() {
       for (final falsch in [
         (ausschnitt: 1, kante: 0),
         (ausschnitt: 0, kante: 4),
+        (ausschnitt: 0, kante: 5),
         (ausschnitt: 0, kante: -1),
       ]) {
         expect(
           () => loch.mitAussparungsblende(falsch, an: true),
-          throwsA(isA<ArgumentError>()),
+          throwsA(
+            isA<ArgumentError>()
+                .having((e) => e.name, 'name', 'kante')
+                .having(
+                  (e) => e.invalidValue,
+                  'invalidValue',
+                  '${falsch.ausschnitt}/${falsch.kante}',
+                )
+                .having(
+                  (e) => e.message,
+                  'message',
+                  'keine Kante einer Aussparung',
+                ),
+          ),
         );
       }
       for (final anders in [

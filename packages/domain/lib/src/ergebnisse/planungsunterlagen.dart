@@ -497,9 +497,11 @@ List<Planbeschriftung> umrissbeschriftung(Unterlagentexte t, Berechnung b) {
 (Punkt, Punkt) _geradesStueck(Berechnung b, int i) {
   final ecken = b.ecken;
   final j = (i + 1) % ecken.length;
-  if (b.planbild.umrisspunkte.isEmpty) return (ecken[i], ecken[j]);
+  final punkte = b.planbild.umrisspunkte.isEmpty
+      ? [(ort: ecken[i], ecke: i), (ort: ecken[j], ecke: j)]
+      : [for (final p in b.planbild.umrisspunkte) (ort: p.ort, ecke: p.ecke)];
   final auf = [
-    for (final p in b.planbild.umrisspunkte)
+    for (final p in punkte)
       if ((p.ecke == i || p.ecke == j) &&
           _streckenabstand(ecken[i], ecken[j], p.ort) < 1)
         p.ort,
@@ -518,7 +520,7 @@ Punkt _punktrichtung(
   final ecken = b.ecken;
   final i = p.ecke;
   if (p.ort.abstand(ecken[i]) < 1) return richtungen[i];
-  final vor = (i + ecken.length - 1) % ecken.length;
+  final vor = (i - 1) % ecken.length;
   return _streckenabstand(ecken[vor], ecken[i], p.ort) < 1
       ? normalen[vor]
       : normalen[i];

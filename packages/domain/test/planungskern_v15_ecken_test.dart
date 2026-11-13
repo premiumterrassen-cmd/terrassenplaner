@@ -138,6 +138,13 @@ void main() {
       final b = Rundungen.keine.mitEcke(1, const Millimeter(1000));
       expect(b.groessterRadius(_r540, 2), const Millimeter(2600));
       expect(b.groessterRadius(_r540, 0), const Millimeter(3600));
+      // die folgende Ecke C kürzt B–C
+      expect(
+        Rundungen.keine
+            .mitEcke(2, const Millimeter(1000))
+            .groessterRadius(_r540, 1),
+        const Millimeter(2600),
+      );
       final d = Rundungen.keine.mitEcke(3, const Millimeter(1000));
       expect(d.groessterRadius(_r540, 2), const Millimeter(3600));
       expect(d.groessterRadius(_r540, 0), const Millimeter(2600));
@@ -245,6 +252,27 @@ void _formaenderung() {
       expect(stich.mitGrundriss(gleich).rundungen.seiten, {
         1: const Millimeter(600),
       });
+    });
+
+    test('derselbe Ort: bis 1 cm daneben', () {
+      final genau = FreiformGrundriss(const [
+        Punkt(0, 0),
+        Punkt(5400, 0),
+        Punkt(5400, 3600),
+        Punkt(0, 3610),
+        Punkt(-1000, 1800),
+      ], geschlossen: true);
+      expect(mitBogen.mitGrundriss(genau).rundungen.ecken, {
+        3: const Millimeter(-500),
+      });
+      final weiter = FreiformGrundriss(const [
+        Punkt(0, 0),
+        Punkt(5400, 0),
+        Punkt(5400, 3600),
+        Punkt(0, 3611),
+        Punkt(-1000, 1800),
+      ], geschlossen: true);
+      expect(mitBogen.mitGrundriss(weiter).rundungen.ecken, isEmpty);
     });
 
     test('ohne passenden Ort oder unzulässig: keine Rundungen', () {
@@ -444,6 +472,32 @@ void _buchstaben() {
       );
       final d = aussparungsecken(andere, const []);
       expect(namen(d), 'EFG');
+      // bis 6 mm neben einem benannten Punkt: derselbe Buchstabe
+      Ausschnitt bei(int x) => Ausschnitt(
+        bezeichnung: 'A4',
+        x: Millimeter(x),
+        y: const Millimeter(0),
+        laenge: const Millimeter(500),
+        breite: const Millimeter(500),
+      );
+      expect(
+        namen(
+          aussparungsecken(
+            Planungsstand(grundriss: _r540, ausschnitte: [bei(6)]),
+            const [],
+          ),
+        ),
+        'AEFG',
+      );
+      expect(
+        namen(
+          aussparungsecken(
+            Planungsstand(grundriss: _r540, ausschnitte: [bei(7)]),
+            const [],
+          ),
+        ),
+        'EFGH',
+      );
       expect([for (final p in d) p.ecke], [2, 2, 2]);
       expect(
         aussparungsecken(

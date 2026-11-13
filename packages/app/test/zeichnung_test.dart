@@ -1111,6 +1111,9 @@ void main() {
         'A', 'B', 'C', 'E', 'D', 'F', 'G', 'H', 'I', 'J', //
         '400 cm', '200 cm', '300 cm', '300 cm',
       ]);
+      // B an der Ecke: auf der Winkelhalbierenden nach außen
+      expect(texte['B']!.richtung.dx, closeTo(1 / math.sqrt2, 1e-9));
+      expect(texte['B']!.richtung.dy, closeTo(-1 / math.sqrt2, 1e-9));
       expect(texte['C']!.ort, const Offset(406, 200));
       expect(texte['C']!.richtung, const Offset(1, 0));
       expect(texte['E']!.ort, const Offset(300, 306));

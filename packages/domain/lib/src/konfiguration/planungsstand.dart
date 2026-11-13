@@ -640,7 +640,7 @@ final class Planungsstand {
     final n = seitenzahl;
     return n > 0 &&
         !anschluss.grenztAn(ecke) &&
-        !anschluss.grenztAn((ecke + n - 1) % n) &&
+        !anschluss.grenztAn((ecke - 1) % n) &&
         rundungen.rundbar(grundriss, ecke);
   }
 
@@ -912,7 +912,6 @@ final class Planungsstand {
   Rundungen _uebertragen(Grundriss neu) {
     final alt = grundriss.ecken;
     final e = neu.ecken;
-    if (rundungen.leer || e.isEmpty) return Rundungen.keine;
     bool nah(Punkt a, Punkt b) => a.abstand(b) <= _gleicherOrt;
     var r = Rundungen.keine;
     for (final MapEntry(key: i, value: radius) in rundungen.ecken.entries) {

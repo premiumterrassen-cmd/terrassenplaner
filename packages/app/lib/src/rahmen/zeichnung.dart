@@ -659,9 +659,11 @@ class ZeichnungsMaler extends CustomPainter {
   (Offset, Offset) _geradesStueck(int i) {
     final ecken = zeichnung.ecken;
     final j = _nachher(ecken, i);
-    if (zeichnung.umrisspunkte.isEmpty) return (ecken[i], ecken[j]);
+    final punkte = zeichnung.umrisspunkte.isEmpty
+        ? [(ort: ecken[i], ecke: i), (ort: ecken[j], ecke: j)]
+        : [for (final p in zeichnung.umrisspunkte) (ort: p.ort, ecke: p.ecke)];
     final auf = [
-      for (final p in zeichnung.umrisspunkte)
+      for (final p in punkte)
         if ((p.ecke == i || p.ecke == j) &&
             _abstandZurStrecke(ecken[i], ecken[j], p.ort) < 1)
           p.ort,
