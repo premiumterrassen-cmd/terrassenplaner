@@ -30,6 +30,28 @@ enum Rinnenlage {
   );
 }
 
+/// Farbe der Entwässerungsrinne RELO V (Planungsregeln Alexander,
+/// Planungskern v11, Regel 13.1.5): eloxiert (Vorgabe) oder anthrazit – die
+/// Farbe wählt die Artikel von Profil und Auflagerprofilen (`rinnensatz`).
+enum Rinnenfarbe {
+  /// Aluminium eloxiert, Auflagerprofile blank – Vorgabe.
+  eloxiert(0),
+
+  /// Anthrazit (ähnlich RAL 7016).
+  anthrazit(1);
+
+  const Rinnenfarbe(this.nummer);
+
+  /// Nummer im Transportformat.
+  final int nummer;
+
+  /// Farbe zur [nummer] aus dem Transportformat.
+  static Rinnenfarbe ausNummer(int nummer) => values.firstWhere(
+    (f) => f.nummer == nummer,
+    orElse: () => throw FormatException('unbekannte Rinnenfarbe $nummer'),
+  );
+}
+
 /// Rinne an einer Seite.
 typedef Rinne = ({int seite, Rinnenlage lage});
 
@@ -64,6 +86,7 @@ final class Anschluss {
     this.rinnen = const [],
     this.blendenhoehen = const [],
     this.blendenteile = const [],
+    this.rinnenfarbe = Rinnenfarbe.eloxiert,
   });
 
   /// Liest die Tabelle am Ort [ort] ([schreibe]).
@@ -87,6 +110,14 @@ final class Anschluss {
     blendenteile: _liesTeile(
       const fb.ListReader<int>(fb.Int32Reader())
           .vTableGet(puffer, ort, _versatz(_blendenteilePlatz), const []),
+    ),
+    rinnenfarbe: Rinnenfarbe.ausNummer(
+      const fb.Uint8Reader().vTableGet(
+        puffer,
+        ort,
+        _versatz(_rinnenfarbePlatz),
+        0,
+      ),
     ),
   );
 
@@ -129,6 +160,9 @@ final class Anschluss {
   /// eine Seite ohne Teilstücke ist ganz verblendet.
   final List<Blendenteil> blendenteile;
 
+  /// Farbe aller Rinnen der Fläche (Planungskern v11, Regel 13.1.5).
+  final Rinnenfarbe rinnenfarbe;
+
   /// Ob gar keine Seite eine Rolle hat.
   bool get leer => angrenzend.isEmpty && verblendet.isEmpty && rinnen.isEmpty;
 
@@ -166,6 +200,16 @@ final class Anschluss {
         ? verblendet
         : _mitSeite(verblendet, seite, an: false),
     rinnen: _mitRinne(seite, lage),
+  );
+
+  /// Kopie mit der Rinnenfarbe [farbe] (Planungskern v11, Regel 13.1.5).
+  Anschluss mitRinnenfarbe(Rinnenfarbe farbe) => Anschluss(
+    angrenzend: angrenzend,
+    verblendet: verblendet,
+    rinnen: rinnen,
+    blendenhoehen: blendenhoehen,
+    blendenteile: blendenteile,
+    rinnenfarbe: farbe,
   );
 
   /// Eigene Blendenhöhe der Seite [seite]; `null` = die Höhe der Fläche
@@ -231,6 +275,7 @@ final class Anschluss {
           if (verblendet.contains(t.seite)) t,
       ]..sort(_teilfolge),
     ),
+    rinnenfarbe: rinnenfarbe,
   );
 
   static int _teilfolge(Blendenteil a, Blendenteil b) {
@@ -254,8 +299,9 @@ final class Anschluss {
   /// Schreibt die Tabelle `{ 0: angrenzend ([uint16] Seiten), 1: verblendet
   /// ([uint16] Seiten, M7-02), 2: rinnen ([uint16] Seite und Lage je Rinne,
   /// M7-03), 3: blendenhoehen ([int32] Seite und Höhe in mm, Regel 9.4),
-  /// 4: blendenteile ([int32] Seite, von und bis in mm, Regel 9.4) }` und
-  /// gibt ihren Ort zurück. Neue Felder nur anhängen.
+  /// 4: blendenteile ([int32] Seite, von und bis in mm, Regel 9.4),
+  /// 5: rinnenfarbe (uint8, Planungskern v11 Regel 13.1.5) }` und gibt
+  /// ihren Ort zurück. Neue Felder nur anhängen.
   int schreibe(fb.Builder fbb) {
     final angrenzendOrt = fbb.writeListUint16(angrenzend);
     final verblendetOrt = fbb.writeListUint16(verblendet);
@@ -267,12 +313,13 @@ final class Anschluss {
         ? null
         : fbb.writeListInt32(_teilwerte);
     fbb
-      ..startTable(_blendenteilePlatz + 1)
+      ..startTable(_rinnenfarbePlatz + 1)
       ..addOffset(_angrenzendPlatz, angrenzendOrt)
       ..addOffset(_verblendetPlatz, verblendetOrt)
       ..addOffset(_rinnenPlatz, rinnenOrt)
       ..addOffset(_blendenhoehenPlatz, hoehenOrt)
-      ..addOffset(_blendenteilePlatz, teileOrt);
+      ..addOffset(_blendenteilePlatz, teileOrt)
+      ..addUint8(_rinnenfarbePlatz, rinnenfarbe.nummer);
     return fbb.endTable();
   }
 
@@ -293,6 +340,7 @@ final class Anschluss {
   static const _rinnenPlatz = 2;
   static const _blendenhoehenPlatz = 3;
   static const _blendenteilePlatz = 4;
+  static const _rinnenfarbePlatz = 5;
 
   @override
   bool operator ==(Object other) =>
@@ -301,7 +349,8 @@ final class Anschluss {
       _gleich(other.verblendet, verblendet) &&
       _gleich(other._rinnenwerte, _rinnenwerte) &&
       _gleich(other._hoehenwerte, _hoehenwerte) &&
-      _gleich(other._teilwerte, _teilwerte);
+      _gleich(other._teilwerte, _teilwerte) &&
+      other.rinnenfarbe == rinnenfarbe;
 
   @override
   int get hashCode => Object.hash(
@@ -310,6 +359,7 @@ final class Anschluss {
     Object.hashAll(_rinnenwerte),
     Object.hashAll(_hoehenwerte),
     Object.hashAll(_teilwerte),
+    rinnenfarbe,
   );
 }
 

@@ -199,6 +199,15 @@ const achsmassfarbe = 0xFF1565C0;
 /// Planungsregeln Alexander (Planungskern v8, 12.11.2026), Regel 10.3).
 const stossstaerke = 0.6;
 
+/// Grau des Rinnenbandes RELO V (R-E07) wie im Planungskern.
+const rinnenfarbe = 0xFFD5DADE;
+
+/// Rand und Schlitze des Rinnenbandes (R-E07).
+const rinnenrandfarbe = 0xFF7D8790;
+
+/// Auflagerprofile RELO VA im UK-Plan (R-E07).
+const auflagerprofilfarbe = 0xFF4F5A66;
+
 /// Farben der Auflager im UK-Plan (R-E05) je Zeile der Höhenzuordnung –
 /// dieselbe Wahl wie in den Positionen –, ab der neunten wieder von vorn.
 const auflagerfarben = [
@@ -327,6 +336,7 @@ List<Kapitel> _flaeche(
         ?_einheitlicheHoehe(t, b),
         _ukPlan(t, b, flaeche.stand),
         if (b.planbild.achsen != null) Absatz(t.achsmassHinweis),
+        if (b.planbild.rinnen.isNotEmpty) Absatz(t.rinnenUkHinweis),
         if (unterbau.auflagerpunkte.isNotEmpty) ...[
           Absatz(t.ukHoehenHinweis),
           _fusslegende(t, unterbau),
@@ -351,6 +361,7 @@ List<Kapitel> _flaeche(
       Kapitel('$titel – ${t.belagKapitel}', [
         Absatz(t.dielenHinweis),
         if (b.planbild.stoesse.isNotEmpty) Absatz(t.stossHinweis),
+        if (b.planbild.rinnen.isNotEmpty) Absatz(t.rinnenBelagHinweis),
         _belagPlan(t, b),
         Absatz(t.dielenNachNummer, fett: true),
         _sorten(t, v, f.belag!),
@@ -553,6 +564,9 @@ Plan _ukPlan(Unterlagentexte t, Berechnung b, Planungsstand stand) {
       Planlinie(b.umriss, argb: _grau, geschlossen: b.geschlossen),
       for (final teil in stufen.umrisse)
         Planlinie(teil, argb: _grau, gestrichelt: true),
+      // Rinne unter den Hölzern, die Auflagerprofile darüber (R-E07)
+      for (final r in b.planbild.rinnen)
+        Planlinie(r.ecken, argb: rinnenfarbe, gefuellt: true),
       for (final h in u.hoelzer)
         Planlinie(
           _balken(h.von, h.bis, halb),
@@ -566,6 +580,14 @@ Plan _ukPlan(Unterlagentexte t, Berechnung b, Planungsstand stand) {
           geschlossen: false,
           staerke: 1.5,
         ),
+      for (final r in b.planbild.rinnen)
+        for (final s in r.auflagerprofile)
+          Planlinie(
+            [s.von, s.bis],
+            argb: auflagerprofilfarbe,
+            geschlossen: false,
+            staerke: 1.5,
+          ),
       for (final p in u.auflagerpunkte)
         Planlinie(
           _balken(p.ort, p.ort, halb + 5),
@@ -583,9 +605,32 @@ Plan _ukPlan(Unterlagentexte t, Berechnung b, Planungsstand stand) {
       for (final p in u.auflagerpunkte)
         if (p.spalt.mm >= 0) _fusshoehe(t, p, u.hoelzer, halb + 5),
       ...stufen.texte,
+      ..._rinnenetiketten(t, b),
     ],
   );
 }
+
+/// Etikett „Rinne RELO V“ mittig auf jeder Rinne (R-E07), weiß hinterlegt
+/// über allem wie die Fußhöhen (Platzsuche des Satzes, Regel 12.1).
+List<Nebentext> _rinnenetiketten(Unterlagentexte t, Berechnung b) => [
+  for (final r in b.planbild.rinnen)
+    (ort: r.mitte, richtung: Punkt.ursprung, abstand: 0, text: t.rinneEtikett),
+];
+
+/// Rinnenbänder des Verlegeplans (R-E07): grau mit Rand und Schlitzen.
+List<Planlinie> _rinnenbaender(Berechnung b) => [
+  for (final r in b.planbild.rinnen) ...[
+    Planlinie(r.ecken, argb: rinnenfarbe, gefuellt: true),
+    Planlinie(r.ecken, argb: rinnenrandfarbe, staerke: 0.5),
+    for (final s in r.schlitze)
+      Planlinie(
+        [s.von, s.bis],
+        argb: rinnenrandfarbe,
+        geschlossen: false,
+        staerke: 0.3,
+      ),
+  ],
+];
 
 /// Absatz „Aufbauhöhe H = … cm (überall)“ über dem UK-Plan, wenn alle
 /// Ecken gleich hoch sind (Planungsregeln Alexander (Planungskern v10,
@@ -784,12 +829,14 @@ Plan _belagPlan(Unterlagentexte t, Berechnung b) => Plan(
         gestrichelt: true,
         staerke: stossstaerke,
       ),
+    ..._rinnenbaender(b),
   ],
   [
     for (final (i, d) in b.dielen.indexed)
       (ort: _mitte(d), text: '${b.nummern[i]}'),
     ...umrissbeschriftung(t, b),
   ],
+  _rinnenetiketten(t, b),
 );
 
 Punkt _mitte(List<Punkt> punkte) =>
@@ -940,6 +987,7 @@ List<String> _meldungen(
         m == Auflagermeldung.unterMindesthoehe ? u.hoeheVon! : u.hoeheBis!,
       ),
     for (final l in u.randErgaenzt) t.randUkErgaenzt(l),
+    for (final m in b.anschluss.meldungen) ?t.rinnenmeldung(m),
     for (final (i, treppe) in b.anschluss.treppen.indexed)
       for (final m in treppe.meldungen) t.treppenmeldung(i + 1, m),
   ];

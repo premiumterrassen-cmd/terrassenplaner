@@ -225,7 +225,9 @@ double _streckenabstand(Punkt a, Punkt b, Punkt p) {
 ///   dem beide Enden liegen; eine UK bis 12 cm hat eins in der Mitte – F01:
 ///   13 Linien à 309 cm mit 60 cm → je 7 (91; F28: 91 Bodenanker wie im
 ///   alten Planer).
-///   Die Rand-UK (Planungsregeln 3.3) trägt ihre Auflager genauso.
+///   Die Rand-UK (Planungsregeln 3.3) trägt ihre Auflager genauso; ein
+///   Stützholz unter der Rinne hat eins in der Mitte (Planungskern v11,
+///   Regel 13.1.4).
 /// - **Höhe:** [flaeche] am Auflager minus [aufbauhoehe] und
 ///   [gummiband] ist der Spalt zwischen UK und Boden (Ausgleichshöhe,
 ///   Planungsregeln Alexander (Planungskern v6, 11.11.2026), Regel 3a.2.1).
@@ -260,6 +262,8 @@ Auflagerbedarf auflagerbedarf(
     for (final r in verlegung.rand)
       for (final s in _stellen([(0, r.von.abstand(r.bis))], r.stoesse, a))
         (r.von + (r.bis - r.von).einheit * s).gedreht(drehung),
+    for (final s in verlegung.stuetzen)
+      ((s.von + s.bis) * 0.5).gedreht(drehung),
   ];
   if (orte.isEmpty) return Auflagerbedarf.keiner;
   final spalte = [

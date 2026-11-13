@@ -317,6 +317,28 @@ void main() {
       expect(b.punkte[1].ort.y, closeTo(20, 1e-6));
     });
 
+    test('Stützholz unter der Rinne: ein Auflager in der Mitte '
+        '(Planungskern v11, Regel 13.1.4)', () {
+      Auflagerbedarf mit(double winkel) => auflagerbedarf(
+        _f01,
+        UkVerlegung(
+          stuetzen: const [(von: Punkt(4643, 50), bis: Punkt(4800, 50))],
+          winkel: winkel,
+        ),
+        uk: ukArtikel,
+        abstand: const Millimeter(600),
+        flaeche: Hoehenflaeche(_ecken, _mm(const [86])),
+        aufbauhoehe: _aufbau,
+      );
+      final ort = mit(0).punkte.single.ort;
+      expect(ort.x, closeTo(4721.5, 1e-9));
+      expect(ort.y, closeTo(50, 1e-9));
+      // gedreht wie die Linien
+      final gedreht = mit(90).punkte.single.ort;
+      expect(gedreht.x, closeTo(-50, 1e-9));
+      expect(gedreht.y, closeTo(4721.5, 1e-9));
+    });
+
     test('Rand-UK (Planungsregeln 3.3) trägt ihre Auflager wie eine Linie: '
         'diagonal je 480 cm 9, je 309 cm 7, an Stößen eins', () {
       final s = _f01.mitVerlegerichtung(Verlegerichtung.diagonal45);

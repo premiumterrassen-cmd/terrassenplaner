@@ -299,3 +299,16 @@ Branch `feature/planungskern-v9-ukplan` auf `main` (fc1007f). Planungsregeln Ale
 
 **Verglichene Werte:** Alle F01–F43 und alle Referenzfälle rechnen **genau wie `main`** – die Vorgabe Dielenlänge ist ohne Eingabe leer, die übrigen Änderungen betreffen nur die Darstellung. In den Referenzunterlagen entfällt die Seite „Bemaßung und Höhen“, der UK-Plan trägt die Höhen.
 
+## Nachtrag Entwässerungsrinne RELO V je Kante (Planungskern v11, 12.11.2026)
+
+Branch `feature/planungskern-v11-rinne`, gerechnet nach dem Einmergen von `main` (bfe4f4a, Planungskern v7 Verlegemuster und v8/v9). Planungsregeln Alexander (Planungskern v11, 12.11.2026), Abschnitt 13; R-C19, R-D11, R-E07.
+
+**Verglichene Werte:** Nur **F38** ändert sich, alle übrigen F01–F43 und alle 26 Referenzfälle rechnen genau wie `main` (keiner hat eine Rinne):
+
+| Fall | Größe | `main` | jetzt | alter Planer | Grund |
+|---|---|---|---|---|---|
+| F38 | Fläche | 14,256 m² (480 × 297 cm, Artikelbreite 12 cm) | 14,078 m² (480 × 293,3 cm) | 14,256 m² | **Planungskern v11:** der Belag endet 15,7 cm vor der Kante (Profil 15,1 cm + 6 mm Fuge, Regel 13.1.1) |
+
+Dielen (45 × 5000 mm, Grund „Fuge“ wie bisher), Verschnitt, Volumen, UK (13 × 4000 mm – die Rinne A — B liegt längs der Dielen, die UK läuft darunter bis an die Hauswand, Frage 14/R-C08) und Clips bleiben gleich. Im Paritätstest steht für F38 neu die Abweichung „Fläche“ mit dem Grund „Planungskern v11“.
+
+**Nicht im Vergleich, aber geändert:** Profile RELO V jetzt ohne Lieferlänge als Stück (verpackt nach den Artikeldaten, F38 weiter 4), Auflagerprofile 2 × Länge / 1,88 m (F38 weiter 6) statt „Abstand_Stelzfuesse“; Stützhölzer und Eckverbundwinkel nur an Rinnen längs zur UK (in keinem Referenzfall). Offen: Fragen 80–87 in [Fachkonzept 10](../fachkonzept/10-offene-fragen.md).

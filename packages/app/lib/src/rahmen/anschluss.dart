@@ -309,6 +309,26 @@ String anschlussmeldungText(PlanerTexte t, Anschlussmeldung m) => switch (m) {
   Anschlussmeldung.ohneRinnenartikel => t.meldungOhneRinnenartikel,
   Anschlussmeldung.treppeNichtFrei => t.meldungTreppeNichtFrei,
   Anschlussmeldung.blendeFehlt => t.meldungBlendeFehlt,
+  Anschlussmeldung.rinneNichtMoeglich => t.meldungRinneNichtMoeglich,
+  Anschlussmeldung.rinnenfarbeFehlt => t.meldungRinnenfarbeFehlt,
+  Anschlussmeldung.rinnenmontage => t.meldungRinnenmontage,
+  Anschlussmeldung.eckwinkelFehlt => t.meldungEckwinkelFehlt,
+};
+
+/// Hinweise, die unter 4.3 Entwässerungsrinnen stehen; alle außer der
+/// Annahme zur Montage sind Warnungen.
+const zurRinne = [
+  Anschlussmeldung.ohneRinnenartikel,
+  Anschlussmeldung.rinneNichtMoeglich,
+  Anschlussmeldung.rinnenfarbeFehlt,
+  Anschlussmeldung.eckwinkelFehlt,
+  Anschlussmeldung.rinnenmontage,
+];
+
+/// Text einer Rinnenfarbe (Planungskern v11, Regel 13.1.5).
+String rinnenfarbeText(PlanerTexte t, Rinnenfarbe f) => switch (f) {
+  Rinnenfarbe.eloxiert => t.rinnenfarbeEloxiert,
+  Rinnenfarbe.anthrazit => t.rinnenfarbeAnthrazit,
 };
 
 /// Text einer Rinnenlage wie im alten Planer.
@@ -320,10 +340,12 @@ String rinnenlageText(PlanerTexte t, Rinnenlage l) => switch (l) {
 };
 
 /// Unterpunkt „Entwässerungsrinnen“ (Fachkonzept 4.3, M7-03): je Seite ein
-/// Schalter – nicht an verblendeten Seiten, an Bauelementen schon (F38) –,
-/// danach die Lage (Vorgabe „Gesamte Seite (innen)“). Seiten mit Rinne
-/// werden blau dargestellt. Jede Wahl ist ein Schritt für
-/// Rückgängig/Wiederherstellen.
+/// Schalter – nicht an verblendeten Seiten, an Bauelementen schon (F38),
+/// nur an geraden, waagerechten oder senkrechten Seiten ab 30 cm
+/// (Planungskern v11, Regel 13.1.1, `rinneMoeglich`) –, danach die Lage
+/// (Vorgabe „Gesamte Seite (innen)“) und mit einer Rinne die Farbe aller
+/// Rinnen (eloxiert/anthrazit, Regel 13.1.5). Seiten mit Rinne werden blau
+/// dargestellt. Jede Wahl ist ein Schritt für Rückgängig/Wiederherstellen.
 class RinnenWahl extends StatelessWidget {
   const RinnenWahl({
     required this.planung,
@@ -352,11 +374,9 @@ class RinnenWahl extends StatelessWidget {
       final t = context.texte;
       final stand = planung.aktuell;
       final anschluss = stand.anschluss;
-      final ohneArtikel =
-          berechnung?.ergebnis?.anschluss.meldungen.contains(
-            Anschlussmeldung.ohneRinnenartikel,
-          ) ??
-          false;
+      final meldungen =
+          berechnung?.ergebnis?.anschluss.meldungen ??
+          const <Anschlussmeldung>[];
       return Column(
         key: const ValueKey('rinnen'),
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -366,7 +386,11 @@ class RinnenWahl extends StatelessWidget {
             name: 'rinne',
             stand: stand,
             gewaehlt: (seite) => anschluss.rinneAn(seite) != null,
-            waehlbar: (seite) => !anschluss.verblendetAn(seite),
+            // eine gewählte Rinne bleibt abwählbar, auch wenn die Seite
+            // nicht mehr passt
+            waehlbar: (seite) =>
+                anschluss.rinneAn(seite) != null ||
+                (!anschluss.verblendetAn(seite) && rinneMoeglich(stand, seite)),
             onGewaehlt: (seite, an) =>
                 _setze(seite, an ? Rinnenlage.gesamteSeite : null),
           ),
@@ -388,13 +412,34 @@ class RinnenWahl extends StatelessWidget {
               ],
             ),
           ],
-          Hinweis(text: t.rinnenHinweis),
-          if (ohneArtikel)
-            Hinweis(
-              key: const ValueKey('anschluss-ohneRinnenartikel'),
-              text: t.meldungOhneRinnenartikel,
-              warnung: true,
+          if (anschluss.rinnen.isNotEmpty) ...[
+            const SizedBox(height: PlanerAbstand.klein),
+            Text(t.rinnenFarbe),
+            Wrap(
+              spacing: PlanerAbstand.klein,
+              children: [
+                for (final f in Rinnenfarbe.values)
+                  ChoiceChip(
+                    key: ValueKey('rinnenfarbe-${f.name}'),
+                    label: Text(rinnenfarbeText(t, f)),
+                    selected: f == anschluss.rinnenfarbe,
+                    onSelected: (an) {
+                      if (!an) return;
+                      planung.setze(planung.aktuell.mitRinnenfarbe(f));
+                      onGeaendert();
+                    },
+                  ),
+              ],
             ),
+          ],
+          Hinweis(text: t.rinnenHinweis),
+          for (final m in zurRinne)
+            if (meldungen.contains(m))
+              Hinweis(
+                key: ValueKey('anschluss-${m.name}'),
+                text: anschlussmeldungText(t, m),
+                warnung: m != Anschlussmeldung.rinnenmontage,
+              ),
         ],
       );
     },

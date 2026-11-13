@@ -1604,11 +1604,36 @@ class PlanerTexteDe extends PlanerTexte {
 
   @override
   String get rinnenHinweis =>
-      'Lage und bodentiefes Element sind im Artikel festgelegt; die Lage wählt die Rinne. Die Unterkonstruktion reicht bis an die Seite.';
+      'Rinne RELO V innen an der Seite – nur an geraden, waagerechten oder senkrechten Seiten ab 30 cm; der Belag endet 15,7 cm davor. Längs der Dielen läuft die Unterkonstruktion unter der Rinne bis an die Seite, quer dazu tragen Stützhölzer die Rinne. Lage und bodentiefes Element sind im Artikel festgelegt; die Lage wählt die Rinne.';
 
   @override
   String get meldungOhneRinnenartikel =>
       'Zu diesem Belag ist keine Entwässerungsrinne hinterlegt.';
+
+  @override
+  String get rinnenFarbe => 'Farbe der Rinnen';
+
+  @override
+  String get rinnenfarbeEloxiert => 'eloxiert';
+
+  @override
+  String get rinnenfarbeAnthrazit => 'anthrazit';
+
+  @override
+  String get meldungRinneNichtMoeglich =>
+      'Rinne nicht geplant: nur an geraden, waagerechten oder senkrechten Seiten ab 30 cm möglich.';
+
+  @override
+  String get meldungRinnenfarbeFehlt =>
+      'Die Rinne in Anthrazit ist im Planer noch nicht hinterlegt – sie wird ohne Material gerechnet. Bitte sprechen Sie uns an.';
+
+  @override
+  String get meldungRinnenmontage =>
+      'Annahme: Befestigung mit Systemschrauben UNIA 4,2 × 22 mm und 2 Endkappen RELO VB je Rinne – beides nicht in der Materialliste. Höhenausgleich mit GUMO.';
+
+  @override
+  String get meldungEckwinkelFehlt =>
+      'Eckverbundwinkel RELO E für die Stützhölzer unter der Rinne (2 je Stützholz) sind nicht in der Materialliste – bitte gesondert anfragen.';
 
   @override
   String hoehenpunktName(int nummer) {

@@ -18,6 +18,8 @@ import 'verblendung.dart';
 /// UK-Verlegung ([ukStuecke]) geschnitten (`zusaetzlicheLieferstuecke`,
 /// F37: keine weitere UK); eine erzwungene UK-Länge gilt auch hier. Ohne
 /// [ukAbstand] gibt es keine UK-Verlegung und damit keine Blendenträger.
+/// [stuetzhoelzer] ist die Zahl der Stützhölzer unter den Rinnen aus der
+/// UK-Verlegung (Planungskern v11, Regel 13.1.4) für die Eckverbundwinkel.
 Anschlussbedarf anschlussbedarf(
   Planungsstand stand, {
   required List<Millimeter> hoehen,
@@ -26,6 +28,7 @@ Anschlussbedarf anschlussbedarf(
   Artikel? uk,
   Millimeter? ukAbstand,
   List<Millimeter> ukStuecke = const [],
+  int stuetzhoelzer = 0,
 }) {
   final teile =
       verblendungsbedarf(
@@ -35,7 +38,15 @@ Anschlussbedarf anschlussbedarf(
             regelwerk: regelwerk,
             uk: ukAbstand == null ? null : uk,
           )
-          .und(rinnenbedarf(stand, belag: belag, regelwerk: regelwerk))
+          .und(
+            rinnenbedarf(
+              stand,
+              belag: belag,
+              regelwerk: regelwerk,
+              uk: uk,
+              stuetzhoelzer: stuetzhoelzer,
+            ),
+          )
           .und(
             treppenbedarf(
               stand,

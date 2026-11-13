@@ -33,7 +33,9 @@ final class Zeichnung {
     List<String> namen = const [],
     List<(Offset, Offset)> stoesse = const [],
     this.achsen,
+    List<Rinnenband> rinnen = const [],
   }) : umriss = List.unmodifiable(umriss),
+       rinnen = List.unmodifiable(rinnen),
        namen = List.unmodifiable(namen),
        stoesse = List.unmodifiable(stoesse),
        treppen = List.unmodifiable(treppen),
@@ -122,6 +124,10 @@ final class Zeichnung {
   /// Achsmaßkette der UK in mm (R-E02): Marken am Rand des Umrisses und
   /// die Richtung nach außen; `null` ohne.
   final ({List<Offset> marken, Offset normale})? achsen;
+
+  /// Entwässerungsrinnen RELO V in mm (Planungskern v11, Regel 13.1.6,
+  /// R-E07): Band innen an der Kante, Schlitze und Auflagerprofile.
+  final List<Rinnenband> rinnen;
 }
 
 /// Ein Auflager der Zeichnung (M6-11, Planungskern v8 Regel 10.1): Ort in
@@ -295,6 +301,57 @@ class ZeichnungsMaler extends CustomPainter {
       for (final t in zeichnung.treppen)
         Path()..addPolygon([for (final p in t) bildschirm(p)], true),
   ];
+
+  /// Grau des Rinnenbandes RELO V (R-E07) wie in den Unterlagen.
+  static const rinnenbandFarbe = Color(rinnenfarbe);
+
+  /// Rand und Schlitze des Rinnenbandes.
+  static const rinnenrandFarbe = Color(rinnenrandfarbe);
+
+  /// Auflagerprofile RELO VA unter der Rinne.
+  static const auflagerprofilFarbe = Color(auflagerprofilfarbe);
+
+  /// Deckkraft der Rinne, wenn nur die UK sichtbar ist (durchscheinend).
+  static const rinnenDeckkraftUk = 0.55;
+
+  /// Rinnenbänder auf dem Bildschirm (R-E07) mit Füllung: mit sichtbarem
+  /// Belag deckend, nur mit UK durchscheinend; ohne beide keine.
+  List<(Path, Color)> rinnenbaender() {
+    final belag = optionen.zeigt(Ebene.belag);
+    if (!belag && !optionen.zeigt(Ebene.unterkonstruktion)) return const [];
+    final farbe = belag
+        ? rinnenbandFarbe
+        : rinnenbandFarbe.withValues(alpha: rinnenDeckkraftUk);
+    return [
+      for (final r in zeichnung.rinnen)
+        (
+          Path()..addPolygon([
+            for (final p in r.ecken) bildschirm(Offset(p.x, p.y)),
+          ], true),
+          farbe,
+        ),
+    ];
+  }
+
+  /// Schlitze der Rinnen (R-E07), wenn der Belag sichtbar ist.
+  List<(Offset, Offset)> rinnenschlitze() => [
+    if (optionen.zeigt(Ebene.belag))
+      for (final r in zeichnung.rinnen)
+        for (final s in r.schlitze) _strecke(s),
+  ];
+
+  /// Auflagerprofile RELO VA unter den Rinnen (R-E07), wenn die UK
+  /// sichtbar ist.
+  List<(Offset, Offset)> auflagerprofillinien() => [
+    if (optionen.zeigt(Ebene.unterkonstruktion))
+      for (final r in zeichnung.rinnen)
+        for (final s in r.auflagerprofile) _strecke(s),
+  ];
+
+  (Offset, Offset) _strecke(Strecke s) => (
+    bildschirm(Offset(s.von.x, s.von.y)),
+    bildschirm(Offset(s.bis.x, s.bis.y)),
+  );
 
   /// Grau der Seiten an Bauelementen (Fachkonzept 4.1).
   static const bauelementFarbe = Color(0xFF9E9E9E);
@@ -666,8 +723,23 @@ class ZeichnungsMaler extends CustomPainter {
         ..save()
         ..translate(ort.dx, ort.dy)
         ..rotate(winkel);
-      maler.paint(canvas, textLage(Offset.zero, Offset.zero, maler.size));
+      // mittig um den gedrehten Ursprung
+      maler.paint(canvas, -maler.size.center(Offset.zero));
       canvas.restore();
+    }
+    for (final (pfad, farbe) in rinnenbaender()) {
+      canvas
+        ..drawPath(pfad, Paint()..color = farbe)
+        ..drawPath(
+          pfad,
+          Paint()
+            ..color = rinnenrandFarbe
+            ..style = PaintingStyle.stroke,
+        );
+    }
+    final schlitz = Paint()..color = rinnenrandFarbe;
+    for (final (von, bis) in rinnenschlitze()) {
+      canvas.drawLine(von, bis, schlitz);
     }
     final stoss = Paint()
       ..color = stossFarbe
@@ -683,6 +755,12 @@ class ZeichnungsMaler extends CustomPainter {
           ..color = farbe
           ..strokeWidth = breite,
       );
+    }
+    final profil = Paint()
+      ..color = auflagerprofilFarbe
+      ..strokeWidth = 2;
+    for (final (von, bis) in auflagerprofillinien()) {
+      canvas.drawLine(von, bis, profil);
     }
     for (final (ort, farbe, _) in auflagerpunkte()) {
       canvas.drawRect(

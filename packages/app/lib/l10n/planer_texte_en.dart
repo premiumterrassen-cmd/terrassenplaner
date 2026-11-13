@@ -1600,11 +1600,36 @@ class PlanerTexteEn extends PlanerTexte {
 
   @override
   String get rinnenHinweis =>
-      'Position and floor-level element are defined by the item; the position selects the channel. The substructure extends up to the side.';
+      'Channel RELO V on the inside of the side – only on straight horizontal or vertical sides of at least 30 cm; the decking ends 15.7 cm before it. Along the boards the substructure runs under the channel up to the side, across them support battens carry the channel. Position and floor-level element are defined by the item; the position selects the channel.';
 
   @override
   String get meldungOhneRinnenartikel =>
       'No drainage channel is set up for this decking.';
+
+  @override
+  String get rinnenFarbe => 'Colour of the channels';
+
+  @override
+  String get rinnenfarbeEloxiert => 'anodised';
+
+  @override
+  String get rinnenfarbeAnthrazit => 'anthracite';
+
+  @override
+  String get meldungRinneNichtMoeglich =>
+      'Channel not planned: only possible on straight horizontal or vertical sides of at least 30 cm.';
+
+  @override
+  String get meldungRinnenfarbeFehlt =>
+      'The channel in anthracite is not yet available in the planner – it is calculated without material. Please contact us.';
+
+  @override
+  String get meldungRinnenmontage =>
+      'Assumption: fixing with system screws UNIA 4.2 × 22 mm and 2 end caps RELO VB per channel – neither is in the material list. Height compensation with GUMO.';
+
+  @override
+  String get meldungEckwinkelFehlt =>
+      'Corner brackets RELO E for the support battens under the channel (2 per batten) are not in the material list – please ask separately.';
 
   @override
   String hoehenpunktName(int nummer) {

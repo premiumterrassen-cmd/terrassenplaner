@@ -169,14 +169,18 @@ class PlanungsDienst {
   /// Drehung der UK aus den Höhenpunkten (M6-02, B-034); auf Stellfüßen
   /// gilt der Wandabstand an der Hauswand (Planungskern v6, Regel 3.11,
   /// `mitStellfuessen`).
+  /// Mit Rinnen liegt die UK unter dem Belag des [belagstand]
+  /// (Planungskern v11, Regel 13.1.3/13.1.4, `ukVerlegung`).
   static UkVerlegung? _ukVerlegung(
     Planungsstand stand,
     Artikel? belag,
     Regelwerk? regelwerk,
     Artikel? uk,
     Belagverlegung? v,
-    Hoehenpunkte hoehen,
-  ) {
+    Hoehenpunkte hoehen, {
+    Planungsstand? belagstand,
+    List<Rinnenkante> rinnen = const [],
+  }) {
     final hoechste = belagFeldbreite(belag, regelwerk);
     if (v == null || uk == null || hoechste == null) return null;
     return ukVerlegung(
@@ -187,6 +191,8 @@ class PlanungsDienst {
       gedreht: hoehen.gedreht,
       stellfuesse: mitStellfuessen(stand, hoehen),
       regelwerk: regelwerk,
+      belagstand: belagstand,
+      rinnen: rinnen,
     );
   }
 
@@ -276,6 +282,7 @@ class PlanungsDienst {
     UkVerlegung? uk,
     Auflagerbedarf? auflager,
     Anschlussbedarf? anschluss,
+    List<Rinnenkante> rinnen = const [],
   ]) {
     final meldungen = belagmeldungen(stand, belag, v, regelwerk: regelwerk);
     if (v == null) {
@@ -345,6 +352,7 @@ class PlanungsDienst {
           final u? => achsmasskette(u, flaeche.umriss),
           null => null,
         },
+        rinnen: [for (final k in rinnen) Rinnenband.an(k)],
       ),
     );
   }
@@ -474,9 +482,15 @@ class PlanungsDienst {
     late Berechnung aktuell;
     for (final (i, f) in planung.flaechen.indexed) {
       final artikel = belag(f.stand.belag);
-      // Rinnen sparen den Belag an ihrer Seite aus (M7-03, R-C08)
-      final belagstand = rinnenstand(f.stand, artikel, regelwerk);
-      final verlegung = verlegeBelag(belagstand, artikel);
+      // Rinnen sparen den Belag an ihrer Kante aus (Planungskern v11,
+      // Regel 13.1.1, R-D11); die UK liegt unter dem Belag und läuft unter
+      // der Rinne durch oder bekommt Stützhölzer (R-C19)
+      final geplant = geplanteRinnen(f.stand, artikel, regelwerk);
+      final fuerBelag = belagstand(f.stand, geplant);
+      final rinnen = identical(fuerBelag, f.stand)
+          ? const <Rinnenkante>[]
+          : geplant;
+      final verlegung = verlegeBelag(fuerBelag, artikel);
       final uk = unterkonstruktion(f.stand);
       final hoehen = _hoehen(f.stand, artikel, uk);
       final ukv = _ukVerlegung(
@@ -486,6 +500,8 @@ class PlanungsDienst {
         uk,
         verlegung,
         hoehen,
+        belagstand: fuerBelag,
+        rinnen: rinnen,
       );
       final befestigung = _befestigung(
         f.stand,
@@ -528,7 +544,7 @@ class PlanungsDienst {
               ukv,
               auflager,
               anschluss,
-              belagstand,
+              fuerBelag,
             )
           : _grundflaeche(
               f.stand,
@@ -539,7 +555,7 @@ class PlanungsDienst {
               null,
               null,
               null,
-              belagstand,
+              fuerBelag,
             );
       gesamt += grund.flaeche * f.haeufigkeit;
       if (verlegung != null) {
@@ -607,6 +623,7 @@ class PlanungsDienst {
           ukv,
           auflager,
           anschluss,
+          rinnen,
         );
       }
     }
@@ -784,7 +801,8 @@ class PlanungsDienst {
   /// Terrassenanschluss der Fläche (M7): Seitenblende (M7-02, Planungskern
   /// v6, 4a) mit Trägern höchstens 40 cm auseinander aus den Resten der
   /// UK-Verlegung (ohne UK-Verlegung keine Träger), Entwässerungsrinnen
-  /// (M7-03) und Treppen (M7-05).
+  /// (M7-03, Planungskern v11: Eckverbundwinkel je Stützholz der
+  /// UK-Verlegung) und Treppen (M7-05).
   static Anschlussbedarf _anschluss(
     Planungsstand stand,
     Artikel? belag,
@@ -806,6 +824,7 @@ class PlanungsDienst {
             belagFeldbreite(belag, regelwerk)!,
           ),
     ukStuecke: [for (final s in v?.stuecke ?? const <Planstueck>[]) s.laenge],
+    stuetzhoelzer: v?.stuetzen.length ?? 0,
   );
 
   /// Geänderte Mengen der Materialliste (Mitarbeiter-Ansicht,

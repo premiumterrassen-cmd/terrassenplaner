@@ -10,6 +10,7 @@ import 'package:flat_buffers/flat_buffers.dart' as fb;
 
 import '../geometrie/punkt.dart';
 import '../konfiguration/dielenverlegung.dart';
+import '../regeln/rinnen.dart';
 import '../regeln/uk_verlegung.dart';
 
 /// Eine Strecke in Planungskoordinaten (mm).
@@ -32,10 +33,79 @@ final class Masskette {
   ];
 }
 
+/// Band einer Entwässerungsrinne RELO V im Plan (Planungsregeln Alexander,
+/// Planungskern v11, Regel 13.1.6, R-E07): die [ecken] außen an der Kante
+/// von – bis, dann innen bis – von, [rinnenprofilbreite] breit.
+final class Rinnenband {
+  Rinnenband(List<Punkt> ecken) : ecken = List.unmodifiable(ecken) {
+    if (ecken.length != 4) {
+      throw ArgumentError.value(ecken, 'ecken', 'genau vier Ecken');
+    }
+  }
+
+  /// Band innen an der Rinnenkante [k].
+  factory Rinnenband.an(Rinnenkante k) {
+    final innen = k.innen * rinnenprofilbreite.mm.toDouble();
+    return Rinnenband([k.von, k.bis, k.bis + innen, k.von + innen]);
+  }
+
+  final List<Punkt> ecken;
+
+  /// Länge der Rinne in mm.
+  double get laenge => ecken[0].abstand(ecken[1]);
+
+  /// Mitte des Bandes – dort steht das Etikett „Rinne RELO V“.
+  Punkt get mitte => (ecken[0] + ecken[2]) * 0.5;
+
+  /// Strecke längs des Bandes im Abstand [abstand] (mm) von der Kante.
+  Strecke _laengs(double abstand) {
+    final t = abstand / rinnenprofilbreite.mm;
+    return (
+      von: ecken[0] + (ecken[3] - ecken[0]) * t,
+      bis: ecken[1] + (ecken[2] - ecken[1]) * t,
+    );
+  }
+
+  /// Die beiden Auflagerprofile RELO VA unter dem Profil, je
+  /// [auflagerprofilRand] vom Rand des Bandes (UK-Plan).
+  List<Strecke> get auflagerprofile => [
+    _laengs(auflagerprofilRand),
+    _laengs(rinnenprofilbreite.mm - auflagerprofilRand),
+  ];
+
+  /// Schlitze des Profils quer zur Kante alle [schlitzabstand] mm, je
+  /// [schlitzrand] vom Rand des Bandes (Verlegeplan).
+  List<Strecke> get schlitze {
+    final (a, b) = (
+      _laengs(schlitzrand),
+      _laengs(rinnenprofilbreite.mm - schlitzrand),
+    );
+    final n = (laenge / schlitzabstand).floor();
+    return [
+      for (var i = 1; i < n; i++)
+        if (i / n case final t)
+          (von: a.von + (a.bis - a.von) * t, bis: b.von + (b.bis - b.von) * t),
+    ];
+  }
+}
+
+/// Abstand der Auflagerprofile vom Rand des Rinnenbandes in mm.
+const auflagerprofilRand = 25.0;
+
+/// Abstand der Schlitze im Rinnenband in mm.
+const schlitzabstand = 50.0;
+
+/// Abstand der Schlitze vom Rand des Rinnenbandes in mm.
+const schlitzrand = 35.0;
+
 /// Was die Pläne über Umriss, Dielen und UK hinaus zeigen.
 final class Planbild {
-  Planbild({List<Strecke> stoesse = const [], this.achsen})
-    : stoesse = List.unmodifiable(stoesse);
+  Planbild({
+    List<Strecke> stoesse = const [],
+    this.achsen,
+    List<Rinnenband> rinnen = const [],
+  }) : stoesse = List.unmodifiable(stoesse),
+       rinnen = List.unmodifiable(rinnen);
 
   /// Liest die Tabelle am Ort [ort] ([schreibe]).
   factory Planbild.lies(fb.BufferContext puffer, int ort) {
@@ -51,7 +121,12 @@ final class Planbild {
     final enden = punkte(_stoessePlatz);
     final marken = punkte(_markenPlatz);
     final normale = punkte(_normalePlatz);
+    final rinnen = punkte(_rinnenPlatz);
     return Planbild(
+      rinnen: [
+        for (var i = 0; i < rinnen.length ~/ 4; i++)
+          Rinnenband(rinnen.sublist(4 * i, 4 * i + 4)),
+      ],
       stoesse: [
         for (var i = 0; i < enden.length ~/ 2; i++)
           (von: enden[2 * i], bis: enden[2 * i + 1]),
@@ -69,9 +144,13 @@ final class Planbild {
   /// Achsmaßkette der UK; `null` ohne mindestens zwei UK-Linien.
   final Masskette? achsen;
 
+  /// Entwässerungsrinnen (R-E07) im Verlegeplan und im UK-Plan.
+  final List<Rinnenband> rinnen;
+
   /// Schreibt `{ 0: stoesse ([float64] x, y von und bis je Stoß),
   /// 1: marken ([float64] x, y je Marke der Achsmaßkette), 2: normale
-  /// ([float64] x, y; beide fehlen ohne Kette) }`.
+  /// ([float64] x, y; beide fehlen ohne Kette), 3: rinnen ([float64] x, y
+  /// der vier Ecken je Rinnenband, Planungskern v11) }`.
   int schreibe(fb.Builder fbb) {
     final stoesseOrt = fbb.writeListFloat64([
       for (final s in stoesse) ...[s.von.x, s.von.y, s.bis.x, s.bis.y],
@@ -85,17 +164,25 @@ final class Planbild {
     final normaleOrt = kette == null
         ? null
         : fbb.writeListFloat64([kette.normale.x, kette.normale.y]);
+    final rinnenOrt = rinnen.isEmpty
+        ? null
+        : fbb.writeListFloat64([
+            for (final r in rinnen)
+              for (final e in r.ecken) ...[e.x, e.y],
+          ]);
     fbb
-      ..startTable(_normalePlatz + 1)
+      ..startTable(_rinnenPlatz + 1)
       ..addOffset(_stoessePlatz, stoesseOrt)
       ..addOffset(_markenPlatz, markenOrt)
-      ..addOffset(_normalePlatz, normaleOrt);
+      ..addOffset(_normalePlatz, normaleOrt)
+      ..addOffset(_rinnenPlatz, rinnenOrt);
     return fbb.endTable();
   }
 
   static const _stoessePlatz = 0;
   static const _markenPlatz = 1;
   static const _normalePlatz = 2;
+  static const _rinnenPlatz = 3;
 }
 
 /// Ein Dielenende und der Anfang der nächsten Diele derselben Reihe liegen

@@ -6,6 +6,7 @@ import 'package:terrassenplaner_app/src/rahmen/planer_rahmen.dart';
 import 'package:terrassenplaner_app/src/rahmen/planer_schritt.dart';
 import 'package:terrassenplaner_app/src/rahmen/rahmen_zustand.dart';
 import 'package:terrassenplaner_app/src/rahmen/steuerung.dart';
+import 'package:terrassenplaner_app/src/rahmen/unterkonstruktion.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
 import 'hilfe.dart';
@@ -390,6 +391,65 @@ void main() {
       expect(planung.aktuell.anschluss.rinnen, isEmpty);
       expect(
         find.byKey(const ValueKey('anschluss-ohneRinnenartikel')),
+        findsNothing,
+      );
+    });
+
+    testWidgets('nur gerade, waagerechte oder senkrechte Seiten ab 30 cm; '
+        'Farbe eloxiert/anthrazit (Planungskern v11, Regel 13.1)', (
+      tester,
+    ) async {
+      final bogen = Planungsstand.start
+          .mitRinne(0, Rinnenlage.gesamteSeite)
+          .mitRundungen(
+            Rundungen.keine
+                .mitSeite(0, const Millimeter(100))
+                .mitSeite(2, const Millimeter(100)),
+          );
+      final planung = await zeige(tester, stand: bogen);
+      // Seite C — D am Bogen nicht wählbar, die gewählte A — B bleibt
+      // abwählbar
+      expect(find.byKey(const ValueKey('rinne-2')), findsNothing);
+      expect(find.byKey(const ValueKey('rinne-0')), findsOneWidget);
+      expect(find.byKey(const ValueKey('rinne-1')), findsOneWidget);
+      expect(find.text(de.rinnenFarbe), findsOneWidget);
+      expect(
+        tester
+            .widget<ChoiceChip>(
+              find.byKey(const ValueKey('rinnenfarbe-eloxiert')),
+            )
+            .selected,
+        isTrue,
+      );
+      await tester.tap(find.byKey(const ValueKey('rinnenfarbe-anthrazit')));
+      await tester.pump();
+      expect(planung.aktuell.anschluss.rinnenfarbe, Rinnenfarbe.anthrazit);
+      // die gewählte Farbe noch einmal: keine Änderung
+      await tester.tap(find.byKey(const ValueKey('rinnenfarbe-anthrazit')));
+      await tester.pump();
+      expect(planung.aktuell.anschluss.rinnenfarbe, Rinnenfarbe.anthrazit);
+      await tester.tap(find.byKey(const ValueKey('rinne-0')));
+      await tester.pump();
+      expect(find.text(de.rinnenFarbe), findsNothing);
+      expect(rinnenfarbeText(de, Rinnenfarbe.eloxiert), 'eloxiert');
+      expect(rinnenfarbeText(en, Rinnenfarbe.anthrazit), 'anthracite');
+    });
+
+    testWidgets('Hinweise zur Rinne: Warnungen, die Annahme zur Montage als '
+        'Hinweis', (tester) async {
+      await zeige(tester, meldungen: Anschlussmeldung.values);
+      for (final m in zurRinne) {
+        expect(find.byKey(ValueKey('anschluss-${m.name}')), findsOneWidget);
+        expect(find.text(anschlussmeldungText(de, m)), findsOneWidget);
+        expect(
+          tester
+              .widget<Hinweis>(find.byKey(ValueKey('anschluss-${m.name}')))
+              .warnung,
+          m != Anschlussmeldung.rinnenmontage,
+        );
+      }
+      expect(
+        find.byKey(const ValueKey('anschluss-unterlueftung')),
         findsNothing,
       );
     });

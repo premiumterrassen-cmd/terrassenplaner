@@ -1,11 +1,11 @@
-/// Entwässerungsrinnen (M7-03, Fachkonzept 4.3): Lage, Belagfläche und
-/// Material.
+/// Entwässerungsrinnen (M7-03, Fachkonzept 4.3) nach den Planungsregeln
+/// Alexander (Planungskern v11, 12.11.2026), Abschnitt 13: Entwässerungsrinne
+/// RELO V je Kante – Lage, Belagfläche, Stützhölzer und Material.
 library;
 
 import 'dart:math' as math;
 
 import '../artikel/artikel.dart';
-import '../artikel/dielenlaenge.dart';
 import '../artikel/einheiten.dart';
 import '../ergebnisse/materialliste.dart';
 import '../geometrie/punkt.dart';
@@ -16,6 +16,87 @@ import '../konfiguration/planungsstand.dart';
 import 'anschlussregeln.dart';
 import 'regelwerk.dart';
 import 'verblendung.dart';
+
+/// Breite des Profils RELO V (1200 × 151 × 20 mm, Regel 13.1.2).
+const rinnenprofilbreite = Millimeter(151);
+
+/// Fuge zwischen Rinne und Belag (Regel 13.1.1, wie die Dielenfuge).
+const rinnenfuge = Millimeter(6);
+
+/// Der Belag endet so weit vor der Kante mit Rinne: Profil plus Fuge
+/// (Regel 13.1.1: 15,1 cm + 6 mm = 15,7 cm).
+const rinnenabstand = Millimeter(157);
+
+/// Kürzeste Kante mit Rinne (Regel 13.1.1: ab 30 cm).
+const rinnenMindestlaenge = Millimeter(300);
+
+/// Länge eines Profils RELO V (Regel 13.1.5: Rinnenlänge / 1,20 m).
+const rinnenprofillaenge = Millimeter(1200);
+
+/// Länge eines Auflagerprofils RELO VA (Regel 13.1.5: 2 × Länge / 1,88 m).
+const auflagerprofillaenge = Millimeter(1880);
+
+/// Je Rinne liegen zwei Auflagerprofile nebeneinander (Regel 13.1.2).
+const auflagerprofileJeRinne = 2;
+
+/// Achsabstand der Stützhölzer unter einer Rinne längs zur UK höchstens
+/// (Regel 13.1.2/13.1.4: UK-Achse höchstens 42 cm).
+const stuetzholzabstand = Millimeter(420);
+
+/// Erstes und letztes Stützholz liegen so weit von den Enden der Rinne.
+const stuetzholzrand = Millimeter(50);
+
+/// Eckverbundwinkel RELO E je Stützholz (Regel 13.1.5).
+const eckwinkelJeStuetzholz = 2;
+
+/// Eine Kante gilt bis zu dieser Abweichung (mm) als waagerecht oder
+/// senkrecht (wie der Planungskern: 0,5 cm).
+const _gerade = 5.0;
+
+/// Ob an der Seite [seite] eine Rinne geplant werden kann (Regel 13.1.1):
+/// nur an geraden, waagerechten oder senkrechten Seiten ab
+/// [rinnenMindestlaenge] – nicht am Bogen (Stich der Seite); der Kreis hat
+/// keine Seiten.
+bool rinneMoeglich(Planungsstand stand, int seite) {
+  if (seite < 0 || seite >= stand.seitenzahl) return false;
+  if (stand.rundungen.seiten.containsKey(seite)) return false;
+  final (:von, :bis) = seitenstrecke(stand, seite);
+  final d = bis - von;
+  return (d.x.abs() <= _gerade || d.y.abs() <= _gerade) &&
+      d.laenge >= rinnenMindestlaenge.mm;
+}
+
+/// Eine geplante Rinne (Regel 13.1): die Seite, ihre Kante im Grundriss
+/// ([von]–[bis]) und die Richtung ins Innere der Fläche ([innen],
+/// Einheitsvektor). Die Rinne liegt innen an der Kante.
+typedef Rinnenkante = ({int seite, Punkt von, Punkt bis, Punkt innen});
+
+/// Länge der Rinne an der Kante [k] in mm.
+double rinnenlaenge(Rinnenkante k) => k.von.abstand(k.bis);
+
+/// Rinnen von [stand], die geplant werden ([rinneMoeglich]); mit [geplant]
+/// nur die Seiten, für die es einen Rinnenartikel gibt.
+List<Rinnenkante> rinnenkanten(
+  Planungsstand stand, {
+  bool Function(int seite)? geplant,
+}) => [
+  for (final (:seite, lage: _) in stand.anschluss.rinnen)
+    if (rinneMoeglich(stand, seite) && (geplant?.call(seite) ?? true))
+      _kante(stand, seite),
+];
+
+Rinnenkante _kante(Planungsstand stand, int seite) {
+  final (:von, :bis) = seitenstrecke(stand, seite);
+  final laengs = (bis - von).einheit;
+  return (
+    seite: seite,
+    von: von,
+    bis: bis,
+    innen: stand.grundriss.kontur.gegenUhrzeigersinn
+        ? laengs.links
+        : Punkt(laengs.y, -laengs.x),
+  );
+}
 
 /// Rinnenartikel für die Lage [lage] am [belag]: die Artikel aus
 /// `Beziehung.drainage` in Datenreihenfolge stehen für die Lagen in ihrer
@@ -29,24 +110,86 @@ Artikel? rinnenartikel(Regelwerk? regelwerk, Artikel belag, Rinnenlage lage) {
   return varianten[math.min(lage.index, varianten.length - 1)];
 }
 
-/// Planungsstand für den Belag: jede Seite mit Rinne um die Breite ihres
-/// Artikels nach innen versetzt (F38: 480 × 309 → 480 × 297 cm). Die UK
-/// bleibt an der Seite (R-C08), sie rechnet mit dem ganzen Grundriss. Ohne
-/// Rinnen mit Breite oder wenn der versetzte Umriss nicht gültig ist (zu
-/// kurze Seiten, gekreuzt, umgeklappt), bleibt der Stand.
-Planungsstand belagstand(
+/// Rinnen von [stand] mit Rinnenartikel zum [belag] – nur sie sparen den
+/// Belag aus und bekommen Stützhölzer; ohne Belag keine.
+List<Rinnenkante> geplanteRinnen(
   Planungsstand stand,
-  Millimeter? Function(int seite) breite,
+  Artikel? belag,
+  Regelwerk? regelwerk,
+) => belag == null
+    ? const []
+    : rinnenkanten(
+        stand,
+        geplant: (seite) =>
+            rinnenartikel(regelwerk, belag, stand.anschluss.rinneAn(seite)!) !=
+            null,
+      );
+
+/// Artikel einer Rinne (R-D11): [profil] RELO V und [auflagerprofil] RELO
+/// VA (`null`, wenn die Artikeldaten keins nennen).
+typedef Rinnensatz = ({Artikel profil, Artikel? auflagerprofil});
+
+/// Artikel der Rinne für die Lage [lage] in der Farbe [farbe] (Regel
+/// 13.1.5): eloxiert ist der Rinnenartikel der Lage (`rinnenartikel`),
+/// anthrazit seine Farbvariante – der erste Zubehör-Verweis der Art Rinne.
+/// Das Auflagerprofil ist das Pflichtzubehör oder der erste Zubehör-Verweis
+/// der Art Rinnenzubehör des Profils. `null` ohne Profil in dieser Farbe.
+Rinnensatz? rinnensatz(
+  Regelwerk? regelwerk,
+  Artikel belag,
+  Rinnenlage lage,
+  Rinnenfarbe farbe,
 ) {
+  final grund = rinnenartikel(regelwerk, belag, lage);
+  if (grund == null) return null;
+  // mit Rinnenartikel gibt es das Regelwerk
+  final daten = regelwerk!;
+  final profil = farbe == Rinnenfarbe.eloxiert
+      ? grund
+      : _zubehoer(daten, grund, Artikelart.rinne).firstOrNull;
+  if (profil == null) return null;
+  return (
+    profil: profil,
+    auflagerprofil: _zubehoer(
+      daten,
+      profil,
+      Artikelart.rinnenzubehoer,
+    ).firstOrNull,
+  );
+}
+
+/// Pflichtzubehör und Zubehör-Verweise von [artikel] der Art [art].
+Iterable<Artikel> _zubehoer(Regelwerk daten, Artikel artikel, Artikelart art) =>
+    [
+      ...daten.pflichtzubehoer(artikel.nummer).keys,
+      ...daten.moeglich(artikel.nummer, Beziehung.zubehoer),
+    ].where((a) => a.art == art);
+
+/// Eckverbundwinkel RELO E für die Stützhölzer (Regel 13.1.4): die
+/// Eckverbinder der [uk] aus den Artikeldaten, sonst die Zubehör-Verweise
+/// der Art Eckverbinder des Rinnenartikels [rinne] – alle Packungen, die
+/// Materialliste wählt die günstigste Kombination (VPE 25/50).
+List<Artikel> eckwinkel(Regelwerk? regelwerk, Artikel rinne, Artikel? uk) {
+  // mit Rinnenartikel gibt es das Regelwerk
+  final daten = regelwerk!;
+  final verbinder = uk == null || daten.datei[uk.nummer] == null
+      ? const <Artikel>[]
+      : daten.moeglich(uk.nummer, Beziehung.eckverbinder);
+  return verbinder.isNotEmpty
+      ? verbinder
+      : _zubehoer(daten, rinne, Artikelart.eckverbinder).toList();
+}
+
+/// Planungsstand für den Belag: jede Kante mit Rinne ([kanten]) um
+/// [rinnenabstand] nach innen versetzt (Regel 13.1.1: F38 480 × 309 →
+/// 480 × 293,3 cm). Ohne Rinnen oder wenn der versetzte Umriss nicht
+/// gültig ist (zu kurze Seiten, gekreuzt, umgeklappt), bleibt der Stand.
+Planungsstand belagstand(Planungsstand stand, List<Rinnenkante> kanten) {
+  if (kanten.isEmpty) return stand;
   var ecken = stand.grundriss.ecken;
-  var versetzt = false;
-  for (final (:seite, lage: _) in stand.anschluss.rinnen) {
-    final b = breite(seite);
-    if (b == null || b.mm <= 0) continue;
-    ecken = _versetzt(ecken, seite, b.mm.toDouble(), stand);
-    versetzt = true;
+  for (final k in kanten) {
+    ecken = _versetzt(ecken, k);
   }
-  if (!versetzt) return stand;
   try {
     final neu = FreiformGrundriss(ecken, geschlossen: true);
     // umgeklappt: die Rinnen sind breiter als die Fläche
@@ -60,22 +203,15 @@ Planungsstand belagstand(
   }
 }
 
-/// [ecken] mit der Seite [seite] um [abstand] nach innen versetzt: ihre
-/// beiden Ecken wandern auf den Nachbarseiten mit.
-List<Punkt> _versetzt(
-  List<Punkt> ecken,
-  int seite,
-  double abstand,
-  Planungsstand stand,
-) {
+/// [ecken] mit der Seite der Rinne [k] um [rinnenabstand] nach innen
+/// versetzt: ihre beiden Ecken wandern auf den Nachbarseiten mit.
+List<Punkt> _versetzt(List<Punkt> ecken, Rinnenkante k) {
   final n = ecken.length;
+  final seite = k.seite;
   final a = ecken[seite];
   final b = ecken[(seite + 1) % n];
-  final laengs = (b - a) * (1 / a.abstand(b));
-  final innen = stand.grundriss.kontur.gegenUhrzeigersinn
-      ? Punkt(-laengs.y, laengs.x)
-      : Punkt(laengs.y, -laengs.x);
-  final verschoben = innen * abstand;
+  final laengs = (b - a).einheit;
+  final verschoben = k.innen * rinnenabstand.mm.toDouble();
   final vorher = ecken[(seite + n - 1) % n];
   final nachher = ecken[(seite + 2) % n];
   return [
@@ -98,81 +234,96 @@ Punkt _schnitt(Punkt p, Punkt q, Punkt r, Punkt d) {
   return p + e * t;
 }
 
-/// Planungsstand für den Belag mit den Rinnenartikeln der Lagen
-/// (`rinnenartikel`, `belagstand`); ohne Belag der Stand selbst.
+/// Planungsstand für den Belag mit den Rinnen, für die es zum [belag]
+/// einen Rinnenartikel gibt (`geplanteRinnen`, `belagstand`); ohne Belag
+/// der Stand selbst.
 Planungsstand rinnenstand(
   Planungsstand stand,
   Artikel? belag,
   Regelwerk? regelwerk,
-) {
-  if (belag == null) return stand;
-  return belagstand(
-    stand,
-    (seite) => rinnenartikel(
-      regelwerk,
-      belag,
-      stand.anschluss.rinneAn(seite)!,
-    )?.abmessungen.breite,
-  );
+) => belagstand(stand, geplanteRinnen(stand, belag, regelwerk));
+
+/// Lage der Stützhölzer längs einer Rinne der Länge [laenge] (Regel
+/// 13.1.4): das erste und letzte [stuetzholzrand] von den Enden,
+/// dazwischen gleichmäßig höchstens [stuetzholzabstand] auseinander
+/// (Abstände vom Anfang der Rinne in mm).
+List<double> stuetzholzstellen(double laenge) {
+  final rand = stuetzholzrand.mm.toDouble();
+  final strecke = math.max(0.0, laenge - 2 * rand);
+  final felder = math.max(1, (strecke / stuetzholzabstand.mm - 1e-6).ceil());
+  return [for (var k = 0; k <= felder; k++) rand + strecke * k / felder];
 }
 
-/// Material der Entwässerungsrinnen (M7-03, Fachkonzept 4.3) je Seite mit
-/// Rinne, über die ganze Seite (Eckpunkt zu Eckpunkt):
+/// Material der Entwässerungsrinnen (Regel 13.1.5, R-D11) je geplanter
+/// Rinne über die ganze Kante:
 ///
-/// - **Rinne** (`rinnenartikel`): mit Lieferlängen je Seite so viele Stücke
-///   wie `lieferlaengenFuer` (F38: 480 cm aus 1200 mm → 4), ohne in lfm.
-/// - **Pflichtzubehör der Rinne** (Artikeldaten, z. B. Auflagerprofile):
-///   mit „Abstand_Stelzfuesse“ der Rinne im Abstand plus eins je Seite
-///   (F38: 480 cm, 100 cm → 6), sonst je Rinnenstück; mal der Anzahl aus
-///   den Artikeldaten.
+/// - **Profil RELO V:** Rinnenlänge / [rinnenprofillaenge] aufgerundet
+///   (F38: 480 cm → 4), verpackt wie in den Artikeldaten (VPE 10).
+/// - **Auflagerprofil RELO VA:** [auflagerprofileJeRinne] × Länge /
+///   [auflagerprofillaenge] aufgerundet (F38: 960 / 188 → 6, VPE 14).
+/// - **Eckverbundwinkel RELO E:** [eckwinkelJeStuetzholz] je Stützholz
+///   ([stuetzhoelzer] aus der UK-Verlegung, `eckwinkel`).
 ///
-/// Ohne Rinnenartikel kommt der Hinweis `ohneRinnenartikel`.
+/// Hinweise: `rinneNichtMoeglich` (Seite nicht gerade, schräg oder kürzer
+/// als 30 cm), `ohneRinnenartikel`, `rinnenfarbeFehlt` (keine
+/// Farbvariante), `eckwinkelFehlt` und – bei jeder geplanten Rinne –
+/// `rinnenmontage` (Systemschrauben UNIA 4,2 × 22 mm nicht im Shop,
+/// Endkappen RELO VB, Höhenausgleich mit GUMO).
 Anschlussbedarf rinnenbedarf(
   Planungsstand stand, {
   Artikel? belag,
   Regelwerk? regelwerk,
+  Artikel? uk,
+  int stuetzhoelzer = 0,
 }) {
+  final anschluss = stand.anschluss;
   final bedarf = <Materialbedarf>[];
-  var ohneArtikel = false;
-  for (final (:seite, :lage) in stand.anschluss.rinnen) {
-    final rinne = belag == null ? null : rinnenartikel(regelwerk, belag, lage);
-    if (rinne == null) {
-      ohneArtikel = true;
+  final meldungen = <Anschlussmeldung>{};
+  if (anschluss.rinnen.any((r) => !rinneMoeglich(stand, r.seite))) {
+    meldungen.add(Anschlussmeldung.rinneNichtMoeglich);
+  }
+  Artikel? erster;
+  for (final k in rinnenkanten(stand)) {
+    final lage = anschluss.rinneAn(k.seite)!;
+    final grund = belag == null ? null : rinnenartikel(regelwerk, belag, lage);
+    if (grund == null) {
+      meldungen.add(Anschlussmeldung.ohneRinnenartikel);
       continue;
     }
-    final (:von, :bis) = seitenstrecke(stand, seite);
-    final laenge = Millimeter(von.abstand(bis).round());
-    final laengen = rinne.abmessungen.laengen;
-    final stuecke = laengen.isEmpty
-        ? const <Millimeter>[]
-        : lieferlaengenFuer(laenge, laengen);
-    bedarf.addAll(
-      laengen.isEmpty
-          ? [
-              Materialbedarf([rinne], (laenge.mm / 1000).ceil()),
-            ]
-          : [
-              for (final l in stuecke.toSet())
-                Materialbedarf(
-                  [rinne],
-                  stuecke.where((s) => s == l).length,
-                  laenge: l,
-                ),
-            ],
+    erster ??= grund;
+    final satz = rinnensatz(regelwerk, belag!, lage, anschluss.rinnenfarbe);
+    if (satz == null) {
+      meldungen.add(Anschlussmeldung.rinnenfarbeFehlt);
+      continue;
+    }
+    final laenge = rinnenlaenge(k);
+    bedarf.add(
+      Materialbedarf([satz.profil], _stuecke(laenge, rinnenprofillaenge)),
     );
-    // regelwerk ist da, sonst gäbe es keinen Rinnenartikel
-    final daten = regelwerk!;
-    final abstand = daten.abstaende(rinne.nummer).stelzfuesse;
-    final je = abstand == null
-        ? math.max(1, stuecke.length)
-        : math.max(1, (laenge.mm / abstand.mm - 1e-6).ceil()) + 1;
-    for (final MapEntry(key: zubehoer, value: anzahl)
-        in daten.pflichtzubehoer(rinne.nummer).entries) {
-      bedarf.add(Materialbedarf([zubehoer], je * anzahl));
+    if (satz.auflagerprofil case final va?) {
+      bedarf.add(
+        Materialbedarf([
+          va,
+        ], _stuecke(auflagerprofileJeRinne * laenge, auflagerprofillaenge)),
+      );
     }
   }
-  return Anschlussbedarf(
-    bedarf: bedarf,
-    meldungen: [if (ohneArtikel) Anschlussmeldung.ohneRinnenartikel],
-  );
+  if (erster != null) {
+    meldungen.add(Anschlussmeldung.rinnenmontage);
+    if (stuetzhoelzer > 0) {
+      final winkel = eckwinkel(regelwerk, erster, uk);
+      if (winkel.isEmpty) {
+        meldungen.add(Anschlussmeldung.eckwinkelFehlt);
+      } else {
+        bedarf.add(
+          Materialbedarf(winkel, eckwinkelJeStuetzholz * stuetzhoelzer),
+        );
+      }
+    }
+  }
+  return Anschlussbedarf(bedarf: bedarf, meldungen: meldungen.toList());
 }
+
+/// Stücke der Länge [stueck] für [laenge] mm, aufgerundet.
+int _stuecke(double laenge, Millimeter stueck) =>
+    (laenge / stueck.mm - 1e-9).ceil();
