@@ -22,6 +22,16 @@ const systemdielenZuschlagRechteck = 0.05;
 /// (Regel 1a.6).
 const systemdielenZuschlagForm = 0.10;
 
+/// Zuschlag auf die Clips bei MASSIV in Prozent (Planungsregeln Alexander
+/// v14, Regel 16.1.2): Anzahl und Länge der gelieferten Stücke stehen
+/// vorab nicht fest – 25 % statt 5 % (`clipsMitZuschlag`).
+const systemdielenClipZuschlag = 25;
+
+/// Clips zu den [kreuzungen] bei MASSIV: Kreuzungen + 25 %, aufgerundet
+/// (Regel 16.1.2).
+int systemdielenClips(int kreuzungen) =>
+    (kreuzungen * (100 + systemdielenClipZuschlag) + 99) ~/ 100;
+
 /// Belegte Fläche der [verlegung] in m²: die Stücke aller Teilflächen samt
 /// ihrem Anteil an der Fuge – ohne Aussparungen und Rinnen.
 double belegteFlaeche(Belagverlegung verlegung) => [

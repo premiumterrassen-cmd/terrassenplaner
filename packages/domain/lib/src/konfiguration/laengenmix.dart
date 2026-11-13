@@ -19,6 +19,10 @@ Millimeter laengenmixRasterFuer(Millimeter? feldbreite) =>
     ? feldbreite
     : laengenmixRaster;
 
+/// Längsverbinder je Stoß der MASSIV-UK (Planungsregeln Alexander v14,
+/// Regel 16.1.1): ca. 45 cm aus dem Reststück der UK, seitlich verschraubt.
+const massivLaengsverbinder = Millimeter(450);
+
 /// Kürzestes Stück am Anfang und am Ende einer Reihe (Regel 1a.3: das
 /// letzte Stück je Reihe mindestens 30 cm).
 const laengenmixMindeststueck = Millimeter(300);
@@ -61,8 +65,13 @@ abstract interface class Stosswahl {
 /// `diele.mix`):
 ///
 /// - Jede Reihe wird vom Anfang ihres Abschnitts aus belegt. Passt der Rest
-///   in die längste Lieferlänge (samt [laengenmixToleranz]), ist er das
-///   letzte Stück.
+///   hinter einem Stoß in die längste Lieferlänge (samt
+///   [laengenmixToleranz]), ist er das letzte Stück (Reststück).
+/// - Kurze Reihen (Planungsregeln Alexander v14, Regel 16.1.3, Kern v25):
+///   Auch ein Abschnitt bis zur längsten Lieferlänge wird aus dem Mix
+///   gestoßen – nur das letzte Stück ist ein Reststück. Ein Stück bleibt er,
+///   wenn er kürzer als die kürzeste Länge plus [laengenmixMindeststueck]
+///   ist (0,8 + 0,3 = 1,1 m) oder kein Stoß die Regeln erfüllt.
 /// - Sonst endet das Stück auf der Rasterlinie ([raster] ab [anfang], dem
 ///   Rand der Fläche) bei oder vor Anfang plus einer Lieferlänge. Die Länge
 ///   wählt ein fairer Mix: die bisher am wenigsten gelegte zuerst, mit einer
@@ -81,7 +90,11 @@ final class Laengenmixwahl implements Stosswahl {
          for (final l in laengenmixFolge)
            if (laengen.contains(l)) l.mm,
        ],
-       laengste = laengen.fold(0, (m, l) => l.mm > m ? l.mm : m) {
+       laengste = laengen.fold(0, (m, l) => l.mm > m ? l.mm : m),
+       kuerzeste = laengen.fold(
+         laengen.firstOrNull?.mm ?? 0,
+         (m, l) => l.mm < m ? l.mm : m,
+       ) {
     for (final l in this.laengen) {
       _gelegt[l] = 0;
     }
@@ -92,6 +105,10 @@ final class Laengenmixwahl implements Stosswahl {
 
   /// Längste Lieferlänge (mm).
   final int laengste;
+
+  /// Kürzeste Lieferlänge (mm): Abschnitte unter ihr plus
+  /// [laengenmixMindeststueck] bleiben ein Stück (Regel 16.1.3).
+  final int kuerzeste;
 
   /// Anfang des Rasters in Verlegerichtung: der Rand der Fläche.
   final Millimeter anfang;
@@ -120,9 +137,20 @@ final class Laengenmixwahl implements Stosswahl {
 
   List<Millimeter> _abschnitt(int a, int b, Set<int> jetzt) {
     final stoesse = <Millimeter>[];
+    final passt = laengste + laengenmixToleranz.mm;
+    // kurze Reihe (Regel 16.1.3): ein Stück unter kürzeste Länge + 30 cm
+    if (b - a < kuerzeste + laengenmixMindeststueck.mm) return stoesse;
     var pos = a;
-    while (b - pos > laengste + laengenmixToleranz.mm) {
+    // hinter dem ersten Stoß ist ein passender Rest das letzte Stück
+    while (b - pos > passt || pos == a) {
       final stoss = _naechster(pos, b);
+      if (stoss == null) {
+        // die kürzeste Länge passt bei einem Raster bis 50 cm immer
+        if (b - pos > passt) {
+          throw StateError('kein Stoß im Raster ${raster.mm} mm');
+        }
+        break;
+      }
       stoesse.add(Millimeter(stoss));
       jetzt.add(stoss);
       pos = stoss;
@@ -130,8 +158,10 @@ final class Laengenmixwahl implements Stosswahl {
     return stoesse;
   }
 
-  /// Stoß hinter [pos] im Abschnitt bis [b] nach dem fairen Mix.
-  int _naechster(int pos, int b) {
+  /// Stoß hinter [pos] im Abschnitt bis [b] nach dem fairen Mix; `null`,
+  /// wenn keine Länge Stück und Rest von mindestens
+  /// [laengenmixMindeststueck] lässt.
+  int? _naechster(int pos, int b) {
     final folge = [for (final l in laengen) (l, _gelegt[l]! + _zufall() * 3)]
       ..sort((x, y) => x.$2.compareTo(y.$2));
     final mindest = laengenmixMindeststueck.mm;
@@ -145,8 +175,7 @@ final class Laengenmixwahl implements Stosswahl {
         return stoss;
       }
     }
-    // die kürzeste Länge passt bei einem Raster bis 50 cm immer
-    throw StateError('kein Stoß im Raster ${raster.mm} mm');
+    return null;
   }
 
   /// Rasterlinie bei oder vor [u].

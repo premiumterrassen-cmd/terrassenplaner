@@ -201,6 +201,14 @@ final class UkVerlegung {
 /// - **Längsverbinder:** je Stoß einer aus den Längsverbindern der UK im
 ///   [regelwerk] (Spalte „mögliche Längsverbinder“), wenn es welche gibt –
 ///   Robinien-UK haben keine.
+/// - **MASSIV** ([laengenmix], Planungsregeln Alexander v14, Regel
+///   16.1.1): Die UK kommt in 2,00 m (`ukZuBelag`), längere Linien und
+///   Rand-UK aus 2-m-Stücken (`ukStueckelung`). Je Stoß ein Längsverbinder
+///   [massivLaengsverbinder] (45 cm) aus UK-Holz, seitlich neben dem Stoß
+///   verschraubt (bei der Rand-UK auf der Belagseite) – ein eigenes Holz in
+///   [UkVerlegung.hoelzer] und [UkVerlegung.stuecke], geschnitten aus den
+///   Resten (`lieferhoelzer`); kein Längsverbinder-Artikel. Unter jedem
+///   Stoß liegt ein Auflager (`auflagerbedarf`).
 /// - [gedreht]: die UK liegt flach (M6-02, B-034) – in der Draufsicht ist
 ///   sie dann so breit wie ihre breite Seite.
 /// - **Stellfüße an der Hauswand** ([stellfuesse], Planungsregeln Alexander
@@ -304,7 +312,14 @@ UkVerlegung ukVerlegung(
   double achse(Randkante k) =>
       wand.any((h) => _aufKante(k, h)) ? _wandachse : w / 2;
   final laengen = ukLieferlaengen(uk);
-  final holz = _Holzleger(uk, laengen, stand.ukLaenge, drehung);
+  final holz = _Holzleger(
+    uk,
+    laengen,
+    stand.ukLaenge,
+    drehung,
+    verbinder: laengenmix != null,
+    breite: w,
+  );
   final linien = <UkLinie>[];
   for (final l in roh) {
     final abschnitte = _vorRandUk(
@@ -335,7 +350,7 @@ UkVerlegung ukVerlegung(
     return (
       von: von,
       bis: bis,
-      stoesse: holz.lege(von, bis),
+      stoesse: holz.lege(von, bis, seite: r.kante.innen),
       ergaenzt: r.ergaenzt,
       aufLatte: keineLatte,
     );
@@ -361,7 +376,8 @@ UkVerlegung ukVerlegung(
     holz.lege(s.von, s.bis);
   }
   final stossanzahl = _stossanzahl(linien, rand);
-  final verbinder = regelwerk?.datei[uk.nummer] == null
+  // MASSIV: Längsverbinder aus UK-Holz statt Artikel (Regel 16.1.1)
+  final verbinder = laengenmix != null || regelwerk?.datei[uk.nummer] == null
       ? const <Artikel>[]
       : regelwerk!.moeglich(uk.nummer, Beziehung.laengsverbinder);
   final zuschnitt = lieferhoelzer(
@@ -444,12 +460,13 @@ const _amBogen = 1.0;
           _aufLinie(a.ort, c.ort, latten)) {
         continue;
       }
-      final innen = (links ? d.einheit.links : d.einheit.links * -1) * (w / 2);
+      final seite = links ? d.einheit.links : d.einheit.links * -1;
+      final innen = seite * (w / 2);
       final (von, bis) = (a.ort + innen, c.ort + innen);
       rand.add((
         von: von,
         bis: bis,
-        stoesse: holz.lege(von, bis),
+        stoesse: holz.lege(von, bis, seite: seite),
         ergaenzt: false,
         aufLatte: (von: a.latte != null, bis: c.latte != null),
       ));
@@ -575,41 +592,69 @@ const _mindestAbschnitt = 10.0;
 /// Legt die Hölzer einer UK-Linie oder Rand-UK: Zuschnitte für die
 /// Stückliste und Hölzer für die Zeichnung (in Planungskoordinaten).
 final class _Holzleger {
-  _Holzleger(this.uk, this.laengen, this.fest, this.drehung);
+  _Holzleger(
+    this.uk,
+    this.laengen,
+    this.fest,
+    this.drehung, {
+    this.verbinder = false,
+    this.breite = 0,
+  });
 
   final Artikel uk;
   final List<Millimeter> laengen;
   final Millimeter? fest;
   final double drehung;
+
+  /// Ob jeder Stoß einen Längsverbinder aus UK-Holz bekommt (MASSIV,
+  /// [massivLaengsverbinder]); er liegt [breite] neben der Achse.
+  final bool verbinder;
+  final double breite;
   final stuecke = <Planstueck>[];
   final hoelzer = <UkHolz>[];
 
   /// Hölzer von [von] bis [bis] (gedrehte Fläche); liefert die Stöße als
-  /// Abstand von [von].
-  List<double> lege(Punkt von, Punkt bis) {
+  /// Abstand von [von]. Längsverbinder liegen auf der Seite [seite]
+  /// (Einheitsvektor; ohne Angabe links der Richtung).
+  List<double> lege(Punkt von, Punkt bis, {Punkt? seite}) {
     final richtung = (bis - von).einheit;
     final teile = _teile(von.abstand(bis), laengen, fest);
     final stoesse = <double>[];
     var s = 0.0;
     for (final (i, laenge) in teile.indexed) {
-      final stueck = Planstueck(
-        uk.nummer,
-        uk.titel,
-        Millimeter(laenge.round()),
-        ganzeLaenge: laengen.isEmpty
-            ? Millimeter(laenge.round())
-            : laengen.last,
-      );
-      stuecke.add(stueck);
-      hoelzer.add((
-        von: (von + richtung * s).gedreht(-drehung),
-        bis: (von + richtung * (s + laenge)).gedreht(-drehung),
-        farbe: stueck.farbe,
-      ));
+      _stueck(laenge, von + richtung * s, richtung);
       s += laenge;
       if (i < teile.length - 1) stoesse.add(s);
     }
+    if (verbinder) {
+      final daneben = (seite ?? richtung.links) * breite;
+      final halb = massivLaengsverbinder.mm / 2;
+      for (final stoss in stoesse) {
+        final mitte = von + richtung * stoss + daneben;
+        _stueck(
+          massivLaengsverbinder.mm.toDouble(),
+          mitte - richtung * halb,
+          richtung,
+        );
+      }
+    }
     return stoesse;
+  }
+
+  /// Ein Holz der Länge [laenge] ab [anfang] in [richtung].
+  void _stueck(double laenge, Punkt anfang, Punkt richtung) {
+    final stueck = Planstueck(
+      uk.nummer,
+      uk.titel,
+      Millimeter(laenge.round()),
+      ganzeLaenge: laengen.isEmpty ? Millimeter(laenge.round()) : laengen.last,
+    );
+    stuecke.add(stueck);
+    hoelzer.add((
+      von: anfang.gedreht(-drehung),
+      bis: (anfang + richtung * laenge).gedreht(-drehung),
+      farbe: stueck.farbe,
+    ));
   }
 }
 
