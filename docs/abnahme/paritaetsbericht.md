@@ -6,6 +6,8 @@
 >
 > **Nachtrag 12.11.2026 (Musterverfahren und RIBOL, Branch `feature/planungskern-ribol-muster`):** Abschnitt [Musterverfahren](#nachtrag-musterverfahren-planungskern-v6-12112026) unten.
 >
+> **Nachtrag 12.11.2026 (Verlegemuster, Branch `feature/planungskern-v7-verband`):** Abschnitt [Verlegemuster](#nachtrag-verlegemuster-planungskern-v7-12112026) unten.
+>
 > **Nachtrag 11.11.2026 (UK-Regeln und Überlänge, Branch `feature/planungskern-uk-regeln`):** Abschnitt [UK-Regeln und Überlänge](#nachtrag-uk-regeln-und-überlänge-planungskern-v6-11112026) unten, gerechnet auf dem Stand mit Fuge 6 mm. Die Tabellen darunter zeigen den Stand vom 07.11.2026.
 
 Stand 07.11.2026, Branch `feature/m10-01-paritaetsnachweis`. Alle Referenzkonfigurationen F01–F43 (M1-03, [12](../fachkonzept/12-referenzkonfigurationen.md)) und alle rechenbaren Referenzfälle aus den Planungsunterlagen (M1-02, [11](../fachkonzept/11-referenzfaelle.md)) werden im neuen Planer gerechnet und mit den Ergebnissen des alten Planers verglichen.
@@ -63,6 +65,7 @@ Stand 07.11.2026, Branch `feature/m10-01-paritaetsnachweis`. Alle Referenzkonfig
 | Rand-UK | Planungsregeln 3.3/3.4 (Fachkonzept 3.11): an jeder Kante mit Dielenenden eine UK – Rand-UK bündig an der Kante, wo keine UK-Linie höchstens 6 cm daneben liegt (schräge Ränder, Ausschnitte, Innenecken, Bögen). Stücke und Lieferlängen weichen vom alten Planer ab (neu nur 4/5/6 m, B-035); die Dielenenden auf der Rand-UK werden befestigt. |
 | Überlänge | *11.11.–12.11.2026:* Dielen kommen mit 3 cm Überlänge (R-B16) – weniger Meter; bei F04 aber 52 statt 46 Dielen und damit 2 Freidielen. Seit dem Musterverfahren ist das keine eigene Abweichung mehr (Grund „Planungskern v6“). |
 | Planungskern v6 | *Seit 12.11.2026:* Musterverfahren R-B17 (Planungskern v6 Regeln 1.3/1.4): höchstens 3 Stücke je Diele, 5 mm Sägeschnitt, Reste ab 30 cm, bei höchstens 1 % Mehrlänge die Verteilung mit den wenigsten Dielen. F04: 152 Stücke brauchen mindestens 51 Dielen, nach der Staffel 2 Freidielen. |
+| Planungskern v7 | *Seit 12.11.2026:* Verlegemuster R-B18 (Planungskern v7 Regel 9.3 mit 2.1): Verband nur über einer Dielenlänge (F06/F07 ohne Stoß und Doppel-UK), Wechselverband unregelmäßig mit Stücken ab 40 cm (F12), jede benutzte Stoßlinie mit Doppel-UK. Nachtrag unten. |
 | Frage 2–3 | offen, siehe unten |
 
 ## Referenzkonfigurationen F01–F43
@@ -274,6 +277,22 @@ Branch `feature/planungskern-v7-hoehe` auf `main` (9f2b2d1). Planungsregeln Alex
 
 **Nicht im Vergleich, aber geändert** (Unit-Tests, Planungskern v7): Höhen zwischen den Punkten bei verwundenem Untergrund und mit Abläufen (Ablauf 5 cm in der Mitte, Ecken 10 cm: auf halbem Weg 8,0 statt 7,5 cm; L- und U-Form mit unebenen Ecken je Punkt bis 4 mm anders).
 
+## Nachtrag Verlegemuster (Planungskern v7, 12.11.2026)
+
+Branch `feature/planungskern-v7-verband`. Grund: **Planungskern v7** – Planungsregeln Alexander (Planungskern v7, 11.11.2026) Regel 9.3 mit 2.1, im Planer R-B18: Verband nur, wenn die Fläche länger als eine Diele ist; Stoßlinien je Reihe um ½ / ⅓ / ¼ der Stoßweite versetzt, Wechselverband unregelmäßig (nie wie die beiden Reihen davor), Stücke 40 cm bis Lieferlänge, jede benutzte Stoßlinie mit Doppel-UK. Der Fugenschnitt (Standard) ist unverändert – alle Fälle im Fugenschnitt rechnen wie auf `main` (dbf6f95, nach dem Einmergen von Treppe und Höhe je Ecke auch wie `fc1007f`). Treppendielen gehen unverändert in den gemeinsamen Zuschnitt (Test im Planungsdienst: Halbverband mit Treppe). Vergleich mit `main`:
+
+| Fall | Größe | `main` | jetzt | alter Planer | Grund |
+|---|---|---|---|---|---|
+| F06 (480 cm, Halbverband) | UK | 14 × 4000 | 13 × 4000 | 14 × 4000 | kein Verband unter einer Dielenlänge: keine Stöße, keine Doppel-UK |
+| F06 | Clips | 700 | 650 | 700 | Folge |
+| F07 (480 cm, Drittelverband) | UK | 15 × 4000 | 13 × 4000 | 15 × 4000 | wie F06 |
+| F07 | Clips | 750 | 650 | 750 | Folge |
+| F12 (800 cm, Wechselverband) | Dielen | 62 × 6000 + 4000 (376 m) | 52 × 6000 + 13 × 5000 (377 m) | 48 × 6000 + 24 × 4000 | unregelmäßig mit vier Viertel-Versätzen |
+| F12 | UK | 23 × 4000 | 28 × 4000 | 23 × 4000 | Doppel-UK an vier Stoßlinien |
+| F12 | Clips | 1100 | 1350 | 1100 | Folge |
+
+F08 (480 cm, Wechselverband) hatte schon vorher keinen Stoß. F10 und F11 (Halb- und Drittelverband auf 800 cm) bleiben gleich. Die Referenzfälle werden im Fugenschnitt verglichen (2026-05-03-4381-v2 im Drittelverband nur in den Domain-Tests: 36 × 404 cm statt 134,7 + 269,3 cm, Frage 60). Offene Fragen 60–63 in [10](../fachkonzept/10-offene-fragen.md).
+
 ## Nachtrag UK-Plan und Vorgabe Dielenlänge (Planungskern v8/v9, 12.11.2026)
 
 Branch `feature/planungskern-v9-ukplan` auf `main` (fc1007f). Planungsregeln Alexander (Planungskern v8/v9, 12.11.2026), Abschnitte 10 und 11; R-B19, R-E06.
@@ -282,7 +301,7 @@ Branch `feature/planungskern-v9-ukplan` auf `main` (fc1007f). Planungsregeln Ale
 
 ## Nachtrag Entwässerungsrinne RELO V je Kante (Planungskern v11, 12.11.2026)
 
-Branch `feature/planungskern-v11-rinne`, gerechnet nach dem Einmergen von `main` (a9ac3b4, Planungskern v8/v9). Planungsregeln Alexander (Planungskern v11, 12.11.2026), Abschnitt 13; R-C19, R-D11, R-E07.
+Branch `feature/planungskern-v11-rinne`, gerechnet nach dem Einmergen von `main` (bfe4f4a, Planungskern v7 Verlegemuster und v8/v9). Planungsregeln Alexander (Planungskern v11, 12.11.2026), Abschnitt 13; R-C19, R-D11, R-E07.
 
 **Verglichene Werte:** Nur **F38** ändert sich, alle übrigen F01–F43 und alle 26 Referenzfälle rechnen genau wie `main` (keiner hat eine Rinne):
 
