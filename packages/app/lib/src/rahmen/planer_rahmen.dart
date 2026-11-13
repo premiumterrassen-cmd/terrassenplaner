@@ -896,6 +896,11 @@ class Bearbeitungsmenue extends StatelessWidget {
           planung: planung,
           onGeaendert: () => zustand.markiereGeaendert(schritt),
         ),
+        const SizedBox(height: PlanerAbstand.mittel),
+        StosslinieWahl(
+          planung: planung,
+          onGeaendert: () => zustand.markiereGeaendert(schritt),
+        ),
       ],
     ),
     (PlanerSchritt.terrassenbelag, 3) => VerlegerichtungWahl(

@@ -330,6 +330,7 @@ class PlanungsDienst {
       grenzeLinksRechts: v.grenzen.x,
       grenzeObenUnten: v.grenzen.y,
       kurzeZuschnitte: v.kurzeZuschnitte,
+      zusatzstoesse: v.zusatzstoesse,
       hoehenpunkte: flaeche.hoehenpunkte,
       stellfuesse: flaeche.stellfuesse,
       unterbau: flaeche.unterbau,

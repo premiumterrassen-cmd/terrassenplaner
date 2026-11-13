@@ -51,7 +51,12 @@ class BelagMeldungen extends StatelessWidget {
                   const SizedBox(width: PlanerAbstand.klein),
                   Expanded(
                     child: Text(
-                      belagmeldungText(t, m, planung.aktuell),
+                      belagmeldungText(
+                        t,
+                        m,
+                        planung.aktuell,
+                        zusatzstoesse: berechnung.ergebnis!.zusatzstoesse,
+                      ),
                       style: m.warnung
                           ? TextStyle(color: context.farben.error)
                           : null,
@@ -66,12 +71,14 @@ class BelagMeldungen extends StatelessWidget {
   );
 }
 
-/// Text einer Meldung; die Länge nennt die erzwungene Länge des [stand].
+/// Text einer Meldung; die Länge nennt die erzwungene Länge des [stand],
+/// [zusatzstoesse] die zusätzlichen Stöße des Servers (R-B20).
 String belagmeldungText(
   PlanerTexte t,
   Belagmeldung m,
-  Planungsstand stand,
-) => switch (m) {
+  Planungsstand stand, {
+  int zusatzstoesse = 0,
+}) => switch (m) {
   Belagmeldung.belagErsetzt => t.belagmeldungBelagErsetzt,
   Belagmeldung.belagOhneMasse => t.belagmeldungOhneMasse,
   Belagmeldung.systemdieleOhneVerlegung => t.belagmeldungSystemdiele,
@@ -82,6 +89,11 @@ String belagmeldungText(
     (stand.dielenlaenge?.mm ?? 0) ~/ 10,
   ),
   Belagmeldung.laengenvorgabeNichtErfuellbar => t.belagmeldungLaengenvorgabe,
+  Belagmeldung.stosslinieZusatzstoesse => t.belagmeldungStosslinieZusatz(
+    zusatzstoesse,
+  ),
+  Belagmeldung.stosslinieNichtImMuster => t.belagmeldungStosslinieMuster,
+  Belagmeldung.stosslinieOhneWirkung => t.belagmeldungStosslinieOhneWirkung,
   Belagmeldung.befestigungsartNichtMoeglich => t.belagmeldungBefestigungsart,
   Belagmeldung.befestigungOhneArtikel => t.belagmeldungOhneBefestigung,
   Belagmeldung.schraubeZuKurz => t.belagmeldungSchraubeZuKurz,

@@ -17,6 +17,7 @@ import '../konfiguration/ausschnitt.dart';
 import '../konfiguration/belagverlegung.dart';
 import '../konfiguration/dielenverlegung.dart';
 import '../konfiguration/planungsstand.dart';
+import '../konfiguration/verlegeart.dart';
 import 'befestigungsbedarf.dart';
 import 'planungsregeln.dart';
 import 'regelwerk.dart';
@@ -57,6 +58,21 @@ enum Belagmeldung {
   /// höchstens/mindestens; geplant wird mit allen Lagerlängen (Planungskern
   /// v9 Regel 11.1, R-B19).
   laengenvorgabeNichtErfuellbar(10, unterpunkt: 1, warnung: false),
+
+  /// Vorgabe „Stoßlinie durch Eckpunkt“ (Planungskern v13 Regel 15, R-B20):
+  /// Zwischen den festen Stoßlinien wären Stücke länger als die
+  /// Lieferlänge; die Planung setzt gleichmäßig verteilte zusätzliche Stöße
+  /// (Anzahl: `Berechnung.zusatzstoesse`).
+  stosslinieZusatzstoesse(11, unterpunkt: 2, warnung: false),
+
+  /// Die feste Stoßlinie gilt nicht bei MASSIV (Längenmix), im Verband
+  /// (R-B18) und bei Holzfliesen (R-B20).
+  stosslinieNichtImMuster(12, unterpunkt: 2, warnung: false),
+
+  /// Keine gewählte Ecke ergibt eine Stoßlinie: sie liegt am Anfang oder
+  /// Ende der Fläche in Verlegerichtung, an keiner gewählten Teilfläche,
+  /// oder die Fläche passt in eine Diele (R-B20).
+  stosslinieOhneWirkung(13, unterpunkt: 2, warnung: false),
 
   /// Die gewählte Verschraubung passt nicht zu genuteten Dielen; sie werden
   /// mit Clips befestigt (B-094, M5-09).
@@ -148,6 +164,16 @@ List<Belagmeldung> belagmeldungen(
           mindestens: stand.dielenlaengeMindestens,
         ))
       Belagmeldung.laengenvorgabeNichtErfuellbar,
+    if (verlegung != null && verlegung.zusatzstoesse > 0)
+      Belagmeldung.stosslinieZusatzstoesse,
+    if (stand.stossecken.isNotEmpty &&
+        (belag.art != Artikelart.diele ||
+            stand.verlegeart != Verlegeart.fugenschnitt))
+      Belagmeldung.stosslinieNichtImMuster
+    else if (stand.stossecken.isNotEmpty &&
+        verlegung != null &&
+        verlegung.festeStoesse == 0)
+      Belagmeldung.stosslinieOhneWirkung,
     if (verlegung != null && regelwerk?.datei[belag.nummer] != null)
       ...befestigungsmeldungen(regelwerk!, belag, stand.befestigungsart),
   };

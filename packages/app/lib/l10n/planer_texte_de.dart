@@ -938,6 +938,22 @@ class PlanerTexteDe extends PlanerTexte {
       'Sollen kurze Dielenstücke miteinander verbunden werden?';
 
   @override
+  String get stosslinieFrage => 'Stoßlinie durch Eckpunkt (optional):';
+
+  @override
+  String get stosslinieHinweis =>
+      'Die Stoßlinie liegt quer zu den Dielen genau durch die gewählte Ecke. Gestoßen werden nur Reihen, die länger als eine Diele sind; die UK ist an der Stoßlinie doppelt.';
+
+  @override
+  String get stosslinieGiltFuer => 'Gilt für';
+
+  @override
+  String get stosslinieAlleFlaechen => 'jede Teilfläche mit dieser Ecke';
+
+  @override
+  String get stosslinieHauptflaeche => 'Fläche ohne Ausschnitte';
+
+  @override
   String get dielenlaengeNichtWaehlbar =>
       'Für diesen Belag gibt es keine Längenauswahl.';
 
@@ -1121,6 +1137,25 @@ class PlanerTexteDe extends PlanerTexte {
   @override
   String get belagmeldungLaengenvorgabe =>
       'Keine Lieferlänge dieses Belags erfüllt die Vorgabe Dielenlänge. Geplant wird mit allen Lagerlängen.';
+
+  @override
+  String belagmeldungStosslinieZusatz(int anzahl) {
+    String _temp0 = intl.Intl.pluralLogic(
+      anzahl,
+      locale: localeName,
+      other: '$anzahl zusätzliche, gleichmäßig verteilte Stöße',
+      one: '1 zusätzlichen, gleichmäßig verteilten Stoß',
+    );
+    return 'Zwischen den festen Stoßlinien wären die Dielen länger als die Lieferlänge. Die Planung setzt $_temp0 (mit doppelter UK).';
+  }
+
+  @override
+  String get belagmeldungStosslinieMuster =>
+      'Die Stoßlinie durch einen Eckpunkt gilt nur für Dielen auf Fuge geschnitten – bei MASSIV (Längenmix), im Verband und bei Holzfliesen legt der Planer die Stöße selbst.';
+
+  @override
+  String get belagmeldungStosslinieOhneWirkung =>
+      'Durch die gewählte Ecke läuft keine Stoßlinie: Sie liegt am Anfang oder Ende der Fläche in Verlegerichtung oder an keiner gewählten Teilfläche, oder die Reihen passen in eine Diele.';
 
   @override
   String get dielenlaengeHoechstens => 'Dielen höchstens (in cm):';

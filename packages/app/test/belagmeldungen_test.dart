@@ -126,10 +126,26 @@ void main() {
             'Dielenlänge wird automatisch ermittelt.',
         'Keine Lieferlänge dieses Belags erfüllt die Vorgabe Dielenlänge. '
             'Geplant wird mit allen Lagerlängen.',
+        de.belagmeldungStosslinieZusatz(0),
+        de.belagmeldungStosslinieMuster,
+        de.belagmeldungStosslinieOhneWirkung,
         de.belagmeldungBefestigungsart,
         de.belagmeldungOhneBefestigung,
         de.belagmeldungSchraubeZuKurz,
       ],
+    );
+    expect(
+      belagmeldungText(
+        de,
+        Belagmeldung.stosslinieZusatzstoesse,
+        stand,
+        zusatzstoesse: 1,
+      ),
+      contains('1 zusätzlichen, gleichmäßig verteilten Stoß'),
+    );
+    expect(
+      en.belagmeldungStosslinieZusatz(2),
+      contains('2 evenly spaced joints'),
     );
     expect(
       de.belagmeldungFliesenSpitzeWinkel,

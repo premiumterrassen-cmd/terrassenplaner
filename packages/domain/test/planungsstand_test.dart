@@ -1083,7 +1083,7 @@ void main() {
           Verlegeart.fugenschnitt,
           Verlegerichtung.waagrecht,
           30,
-          0,
+          Object.hash(0, Object.hashAll(const []), null),
           const Millimeter(0),
           const Millimeter(0),
           Befestigungsart.clips,

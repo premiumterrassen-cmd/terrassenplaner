@@ -105,6 +105,58 @@ Millimeter _rasteranfang(Flaeche lokal, Punkt ecke) {
   return Millimeter((rand - ecke.x).round());
 }
 
+/// So weit muss eine feste Stoßlinie mindestens vom Anfang und Ende der
+/// Fläche in Verlegerichtung entfernt sein (Planungskern v13, Regel 15):
+/// 20 cm – näher am Rand entfällt sie.
+const stosslinieRandabstand = Millimeter(200);
+
+/// Feste Stoßlinien der Vorgabe „Stoßlinie durch Eckpunkt“ (Planungsregeln
+/// Alexander (Planungskern v13, 13.11.2026), Regel 15, R-B20) für die
+/// Fläche [kontur]: je Punkt der [punkte] eine Linie quer zu den Dielen
+/// (Winkel [winkel]) genau durch ihn, als Lage in Verlegerichtung ab dem
+/// [ausgangspunkt] wie in `verlegeDielen` (auf ganze mm, doppelte
+/// zusammengefasst, aufsteigend).
+///
+/// - `fest`: die Linien, die mehr als [stosslinieRandabstand] im Inneren
+///   der Fläche liegen; eine Ecke am Anfang oder Ende hat keine.
+/// - `zusatz`: Wäre ein Stück zwischen zwei festen Linien (oder Linie und
+///   Rand) länger als [hoechstlaenge] (längste zulässige Lieferlänge plus
+///   Überlänge), wird es in gleich lange Stücke geteilt – gleichmäßig
+///   verteilte zusätzliche Stöße, die die Planung nennt.
+///
+/// Passt die ganze Fläche in eine Diele, gibt es keine Linie.
+({List<Millimeter> fest, List<Millimeter> zusatz}) festeStosslinien(
+  Kontur kontur, {
+  required double winkel,
+  required Punkt ausgangspunkt,
+  required List<Punkt> punkte,
+  required Millimeter hoechstlaenge,
+}) {
+  final drehung = -winkel * math.pi / 180;
+  final huelle = _lokal(kontur, ausgangspunkt, drehung).huellrechteck;
+  final von = huelle.min.x.round();
+  final bis = huelle.max.x.round();
+  if (bis - von <= hoechstlaenge.mm) return (fest: const [], zusatz: const []);
+  final fest = {
+    for (final p in punkte)
+      if (_gerundet((p - ausgangspunkt).gedreht(drehung)).x.round() case final x
+          when x > von + stosslinieRandabstand.mm &&
+              x < bis - stosslinieRandabstand.mm)
+        x,
+  }.toList()..sort();
+  if (fest.isEmpty) return (fest: const [], zusatz: const []);
+  final zusatz = <Millimeter>[];
+  final grenzen = [von, ...fest, bis];
+  for (var i = 1; i < grenzen.length; i++) {
+    final (a, b) = (grenzen[i - 1], grenzen[i]);
+    final n = ((b - a) / hoechstlaenge.mm).ceil();
+    for (var k = 1; k < n; k++) {
+      zusatz.add(Millimeter(a + ((b - a) * k / n).round()));
+    }
+  }
+  return (fest: [for (final x in fest) Millimeter(x)], zusatz: zusatz);
+}
+
 /// [kontur] in Verlegerichtung gedreht: [ausgangspunkt] bei (0|0), Dielen
 /// längs x; gerundet, damit 90° keine Kanten knapp neben den Reihengrenzen
 /// erzeugt.
@@ -128,6 +180,14 @@ Flaeche _lokal(Kontur kontur, Punkt ausgangspunkt, double drehung) => Flaeche(
 /// Fläche (135°: keine Stoßlinie durch A wie im alten Planer, F04;
 /// Alexander 13.11.2026). Die Verschiebung des Ausgangspunkts gegenüber
 /// der Ecke (M5-07) verschiebt das Raster mit.
+///
+/// Feste [stosslinien] (Lage in Verlegerichtung ab dem [ausgangspunkt],
+/// `festeStosslinien`, Planungskern v13 Regel 15, R-B20) ersetzen Raster
+/// und Verband: Gestoßen wird nur ein Reihenabschnitt, der länger als die
+/// längste Lieferlänge samt Überlänge ist, dann an allen Linien in ihm;
+/// kürzere bleiben ganz, und kurze Stücke werden nicht über eine feste
+/// Linie hinweg verbunden.
+///
 /// Die Linien wählt Reihe für Reihe [Verbandwahl] (R-B18: im
 /// Verband Stücke ab [mindeststueck], 40 cm); [laengste], [verbinden] und
 /// [ueberlaenge] wie bei [reihenstuecke] – mit Überlänge ist ein Stoß erst
@@ -151,6 +211,7 @@ List<Dielenstueck> verlegeDielen(
   Millimeter fuge = fuge,
   Millimeter mindeststueck = verbandMindeststueck,
   Punkt? ecke,
+  List<Millimeter> stosslinien = const [],
 }) {
   final drehung = -winkel * math.pi / 180;
   final lokal = _lokal(kontur, ausgangspunkt, drehung);
@@ -208,7 +269,14 @@ List<Dielenstueck> verlegeDielen(
           Millimeter(teil.huellrechteck.max.x.round()),
         ),
     ];
-    final stoesse = verband.stoesse(reihe, abschnitte);
+    final stoesse = stosslinien.isEmpty
+        ? verband.stoesse(reihe, abschnitte)
+        : [
+            for (final (a, b) in abschnitte)
+              b - a > laengste + ueberlaenge
+                  ? stosslinien
+                  : const <Millimeter>[],
+          ];
     for (final (n, teil) in reihenteile.indexed) {
       final (anfangMm, endeMm) = abschnitte[n];
       final laengen = reihenstuecke(
@@ -216,7 +284,7 @@ List<Dielenstueck> verlegeDielen(
         endeMm,
         stoesse[n],
         laengste: laengste,
-        verbinden: verbinden,
+        verbinden: verbinden && stosslinien.isEmpty,
         ueberlaenge: ueberlaenge,
       );
       final zug = teil.kontur.vieleck();

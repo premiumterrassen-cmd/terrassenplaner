@@ -71,6 +71,17 @@ Neuer Planer (M5-04):
 - Benchmarks (12.11.2026, lokal): `domain.Verlegeart.reihenstuecke` ≈ 8,6 ms (vorher ≈ 3,4 ms – jetzt fünf Verlegearten und die Wahl je Reihe), `domain.Belagverlegung.verlegeBelag` ≈ 229 ms (vorher ≈ 238 ms), `domain.Verschnittoptimierung.verschnittvarianten` ≈ 178 ms (vorher ≈ 245 ms; die Teilflächen des Benchmarks sind kürzer als eine Diele und bekommen keinen Verband mehr – weniger Stücke), `domain.Dielenverlegung.verlegeDielen` ≈ 567 ms (gleich).
 - Der Ausgangspunkt (M5-07) verschiebt den Anfang des Rasters; Richtungen siehe 2.4 (M5-05).
 
+Neuer Planer – **Stoßlinie durch Eckpunkt** (R-B20, Planungsregeln Alexander (Planungskern v13, 13.11.2026), Regel 15):
+
+- Unter 2.3 nach „kurze Stücke verbinden“: „Stoßlinie durch Eckpunkt (optional)“ – eine oder mehrere Ecken (A, B …) als Mehrfachauswahl; gibt es Ausschnitte mit anderem Belag, dazu „Gilt für“: jede Teilfläche mit dieser Ecke (Vorgabe), die Fläche ohne Ausschnitte oder ein Ausschnitt (A1 …). Planungsstand-Felder `stossecken` (Platz 143) und `stossflaeche` (Platz 144); andere Eckenzahl → Vorgabe entfällt, andere Anzahl Ausschnitte → wieder „jede Teilfläche“. Die App zeigt nur Auswahl und Meldungen.
+- **Lage:** je Ecke eine Stoßlinie quer zu den Dielen genau durch den Punkt (`festeStosslinien`). Sie ersetzt das Raster der Stoßlinien. Eine Ecke am Anfang oder Ende der Fläche in Verlegerichtung (näher als 20 cm) ergibt keine Linie; passt die ganze Fläche in eine Diele, auch nicht.
+- **Welche Teilflächen:** ohne Auswahl die Hauptfläche (sie hat alle Ecken) und jeder Ausschnitt mit anderem Belag, an dessen Umriss die Ecke liegt (1 mm Toleranz); mit Auswahl nur diese.
+- **Nur lange Reihen:** Gestoßen wird nur ein Reihenabschnitt, der länger als die längste zulässige Lieferlänge (erzwungene Länge bzw. Vorgabe Dielenlänge R-B19) plus 3 cm Überlänge ist; kürzere Reihen bleiben ohne Stoß – anders als im Raster des Fugenschnitts ohne Vorgabe, das unverändert bleibt. Kurze Stücke werden nicht über eine feste Linie hinweg verbunden.
+- **Zusätzliche Stöße:** Wäre ein Stück zwischen zwei festen Linien (oder Linie und Rand) länger als Lieferlänge plus Überlänge, wird es in gleich lange Stücke geteilt (L-Form 16 m, Linie bei 2 m: weitere Stöße bei 6,67 und 11,33 m). Die Meldung nennt die Anzahl (`Berechnung.zusatzstoesse`, Platz 170).
+- **Doppel-UK** an jeder Stoßlinie wie immer (Regel 2.1, `ukVerlegung` aus den Dielenstößen).
+- **Gilt nicht** bei MASSIV (Längenmix), in den Verbänden (R-B18) und bei Holzfliesen – dort Hinweis; das Stoßraster am Rand (135°, `ecke`) und der Verband bleiben dann unverändert.
+- Ohne Vorgabe ändert sich nichts (Parität unverändert).
+
 ## 2.4 Verlegerichtungen
 
 | Richtung | Verschnitt | Volumen |
@@ -160,6 +171,9 @@ Neuer Planer (M5-10):
 | ⚠ Holzfliesen mit spitzen Ecken | 2.1 | Holzfliese und eine Ecke der Fläche oder einer Teilfläche mit anderem Belag unter 90° (Grenze 89,5°; Freiform, Dreieck) | „Die Fläche hat Ecken unter 90°. Holzfliesen müssen dort schräg zugeschnitten werden – für solche Formen eignen sich Dielen besser.“ |
 | ℹ Bombierung empfohlen | 2.1 | Glatte Diele ab 80 mm Breite (R-B03) | „Ab 8 cm Breite empfehlen wir bombierte (leicht gewölbte) Dielen.“ |
 | ℹ Länge nicht lieferbar | 2.2 | Erzwungene Länge, die der Belag nicht liefert (M5-02, B-035) – es gilt die Automatik | „Die gewählte Länge von 700 cm gibt es für diesen Belag nicht. Die Dielenlänge wird automatisch ermittelt.“ |
+| ℹ Zusätzliche Stöße | 2.3 | Vorgabe „Stoßlinie durch Eckpunkt“: Stücke zwischen den festen Linien länger als die Lieferlänge (R-B20, Meldung 11) | „Zwischen den festen Stoßlinien wären die Dielen länger als die Lieferlänge. Die Planung setzt 2 zusätzliche, gleichmäßig verteilte Stöße (mit doppelter UK).“ |
+| ℹ Stoßlinie nicht im Muster | 2.3 | Vorgabe bei MASSIV, im Verband oder bei Holzfliesen (R-B20, Meldung 12) | „Die Stoßlinie durch einen Eckpunkt gilt nur für Dielen auf Fuge geschnitten – bei MASSIV (Längenmix), im Verband und bei Holzfliesen legt der Planer die Stöße selbst.“ |
+| ℹ Stoßlinie ohne Wirkung | 2.3 | Keine gewählte Ecke ergibt eine Linie (am Rand, an keiner gewählten Teilfläche, Reihen passen in eine Diele; R-B20, Meldung 13) | „Durch die gewählte Ecke läuft keine Stoßlinie: …“ |
 | ℹ Befestigungsart nicht möglich | 2.6 | Verschraubung gewählt, Belag genutet: Clips (B-094). Die Vorgabe Clips bei glattkanten Dielen meldet nichts, weil sie keine bewusste Wahl ist. | „Genutete Dielen werden verdeckt mit Clips befestigt. Die gewählte Verschraubung gilt nur für glattkante Dielen.“ |
 | ⚠ Befestigung ohne Artikel | 2.6 | In den Befestigungsverweisen des Belags (B-122) fehlen passende Clips (bei PREMIUM SELECT ab 100 mm DUO-CLIP-FIXX, B-150) oder Schrauben | „Für diesen Belag sind keine passenden Clips oder Schrauben hinterlegt – die Befestigung fehlt in der Materialliste. Bitte sprechen Sie uns an.“ |
 | ⚠ Schraube zu kurz | 2.6 | Verschraubt und keine hinterlegte Schraube hat die doppelte Dielenstärke (2.6); gerechnet wird mit der längsten | „Keine hinterlegte Schraube ist mindestens doppelt so lang, wie die Diele stark ist. Gerechnet wird mit der längsten – bitte prüfen Sie die Schraubenlänge.“ |

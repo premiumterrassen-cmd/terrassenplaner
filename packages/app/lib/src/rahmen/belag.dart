@@ -646,6 +646,87 @@ class KurzeStueckeWahl extends StatelessWidget {
   );
 }
 
+/// Vorgabe „Stoßlinie durch Eckpunkt“ unter „Verlegearten“ (Planungsregeln
+/// Alexander (Planungskern v13, 13.11.2026), Regel 15, R-B20): eine oder
+/// mehrere Ecken (A, B …) und – mit Teilflächen anderen Belags – für welche
+/// Teilfläche sie gilt. Die Stoßlinien und Meldungen rechnet der Server
+/// (`festeStosslinien`, `belagmeldungen`).
+class StosslinieWahl extends StatelessWidget {
+  const StosslinieWahl({
+    required this.planung,
+    required this.onGeaendert,
+    super.key,
+  });
+
+  final PlanungsSteuerung planung;
+
+  /// Meldet eine Änderung der Vorgabe (Standardwert-Hinweis, M3-05).
+  final VoidCallback onGeaendert;
+
+  void _setze(List<int> ecken, int? flaeche) {
+    planung.setze(planung.aktuell.mitStosslinie(ecken, flaeche: flaeche));
+    onGeaendert();
+  }
+
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: planung,
+    builder: (context, _) {
+      final t = context.texte;
+      final stand = planung.aktuell;
+      final gewaehlt = stand.stossecken;
+      final teilflaechen = [
+        for (final (i, a) in stand.ausschnitte.indexed)
+          if (a.funktion == Ausschnittfunktion.andererBelag) (i + 1, a),
+      ];
+      return Column(
+        key: const ValueKey('stosslinie'),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Tooltip(message: t.stosslinieHinweis, child: Text(t.stosslinieFrage)),
+          Wrap(
+            spacing: PlanerAbstand.klein,
+            children: [
+              for (var i = 0; i < stand.ausgangsecken; i++)
+                FilterChip(
+                  key: ValueKey('stosslinie-$i'),
+                  label: Text(stand.grundriss.eckname(i)),
+                  selected: gewaehlt.contains(i),
+                  onSelected: (an) => _setze([
+                    for (final e in gewaehlt)
+                      if (e != i) e,
+                    if (an) i,
+                  ], stand.stossflaeche),
+                ),
+            ],
+          ),
+          if (gewaehlt.isNotEmpty && teilflaechen.isNotEmpty)
+            Row(
+              children: [
+                Text(t.stosslinieGiltFuer),
+                const SizedBox(width: PlanerAbstand.klein),
+                DropdownButton<int?>(
+                  key: const ValueKey('stosslinie-flaeche'),
+                  value: stand.stossflaeche,
+                  items: [
+                    DropdownMenuItem(child: Text(t.stosslinieAlleFlaechen)),
+                    DropdownMenuItem(
+                      value: 0,
+                      child: Text(t.stosslinieHauptflaeche),
+                    ),
+                    for (final (n, a) in teilflaechen)
+                      DropdownMenuItem(value: n, child: Text(a.bezeichnung)),
+                  ],
+                  onChanged: (flaeche) => _setze(gewaehlt, flaeche),
+                ),
+              ],
+            ),
+        ],
+      );
+    },
+  );
+}
+
 /// Unterpunkt „Verlegearten“ (Fachkonzept 2.3, M5-04): Fugenschnitt
 /// (Vorgabe), Halb-, Drittel-, Viertel- und Wechselverband (Planungskern
 /// v7 Regel 9.3, R-B18) mit Hinweis als Tooltip. Die Stoßlinien rechnet der
