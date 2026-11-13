@@ -94,9 +94,10 @@ Flaeche _lokal(Kontur kontur, Punkt ausgangspunkt, double drehung) => Flaeche(
 /// in einem Reihenstreifen, ist er eine Dielenreihe von seinem ersten bis zu
 /// seinem letzten Punkt in Verlegerichtung (F03: 437 + 6,5 cm bei 45°).
 /// Geschnitten wird an den Stoßlinien der [verlegeart] im Raster ab dem
-/// Ausgangspunkt; [laengste], [verbinden] und [ueberlaenge] wie bei
-/// [reihenstuecke] – mit Überlänge ist ein Stoß erst über der längsten
-/// Lieferlänge plus Überlänge nötig ([stossraster]).
+/// Ausgangspunkt, Reihe für Reihe gewählt von [Verbandwahl] (R-B18: im
+/// Verband Stücke ab [mindeststueck], 40 cm); [laengste], [verbinden] und
+/// [ueberlaenge] wie bei [reihenstuecke] – mit Überlänge ist ein Stoß erst
+/// über der längsten Lieferlänge plus Überlänge nötig ([stossraster]).
 ///
 /// [aussparungen] (leere Ausschnitte und Teilflächen mit anderem Belag,
 /// M5-08) bleiben frei; Raster und Reihen richten sich weiter nach der
@@ -114,6 +115,7 @@ List<Dielenstueck> verlegeDielen(
   Millimeter ueberlaenge = const Millimeter(0),
   List<Kontur> aussparungen = const [],
   Millimeter fuge = fuge,
+  Millimeter mindeststueck = verbandMindeststueck,
 }) {
   final drehung = -winkel * math.pi / 180;
   final lokal = _lokal(kontur, ausgangspunkt, drehung);
@@ -124,6 +126,14 @@ List<Dielenstueck> verlegeDielen(
   final von = Millimeter(huelle.min.x.round());
   final bis = Millimeter(huelle.max.x.round());
   final raster = stossraster(bis - von, laengste, ueberlaenge: ueberlaenge);
+  final verband = Verbandwahl(
+    verlegeart,
+    von: von,
+    bis: bis,
+    raster: raster,
+    hoechstlaenge: laengste + ueberlaenge,
+    mindeststueck: mindeststueck,
+  );
   final breite = (dielenbreite + fuge).mm;
   final stuecke = <Dielenstueck>[];
   for (
@@ -134,38 +144,40 @@ List<Dielenstueck> verlegeDielen(
     final y0 = (reihe * breite).toDouble();
     final y1 = ((reihe + 1) * breite).toDouble();
     final streifen = _rechteck(huelle.min.x - 1, huelle.max.x + 1, y0, y1);
-    final stoesse = verlegeart.stoesse(
-      reihe,
-      von,
-      bis,
-      raster,
-      ausgang: const Millimeter(0),
-    );
     // nur die Aussparungen, die in die Reihe reichen – meist keine
     final imStreifen = [
       for (final f in frei)
         if (f.huellrechteck.max.y > y0 && f.huellrechteck.min.y < y1) f,
     ];
     final teile = lokal.geschnitten(streifen);
-    for (final teil in [
+    final reihenteile = [
       for (final t
           in imStreifen.isEmpty
               ? teile
               : verknuepfe(teile, imStreifen, Verknuepfung.differenz))
-        ..._ohneLoecher(t, y0, y1),
-    ]) {
-      final h = teil.huellrechteck;
-      if (h.hoehe < mindestreihenbreite.mm) continue;
+        for (final teil in _ohneLoecher(t, y0, y1))
+          if (teil.huellrechteck.hoehe >= mindestreihenbreite.mm) teil,
+    ];
+    final abschnitte = [
+      for (final teil in reihenteile)
+        (
+          Millimeter(teil.huellrechteck.min.x.round()),
+          Millimeter(teil.huellrechteck.max.x.round()),
+        ),
+    ];
+    final stoesse = verband.stoesse(reihe, abschnitte);
+    for (final (n, teil) in reihenteile.indexed) {
+      final (anfangMm, endeMm) = abschnitte[n];
       final laengen = reihenstuecke(
-        Millimeter(h.min.x.round()),
-        Millimeter(h.max.x.round()),
-        stoesse,
+        anfangMm,
+        endeMm,
+        stoesse[n],
         laengste: laengste,
         verbinden: verbinden,
         ueberlaenge: ueberlaenge,
       );
       final zug = teil.kontur.vieleck();
-      var anfang = h.min.x.round();
+      var anfang = anfangMm.mm;
       for (final (i, laenge) in laengen.indexed) {
         final ende = anfang + laenge.mm;
         // erstes und letztes Stück bis zum Rand, dazwischen an den Stößen

@@ -533,10 +533,12 @@ final class Unterlagentexte {
     (Verlegeart.fugenschnitt, true) => 'Fugenschnitt',
     (Verlegeart.halbverband, true) => 'Halbverband',
     (Verlegeart.drittelverband, true) => 'Drittelverband',
+    (Verlegeart.viertelverband, true) => 'Viertelverband',
     (Verlegeart.wechselverband, true) => 'Wechselverband',
     (Verlegeart.fugenschnitt, false) => 'Aligned joints',
     (Verlegeart.halbverband, false) => 'Half bond',
     (Verlegeart.drittelverband, false) => 'Third bond',
+    (Verlegeart.viertelverband, false) => 'Quarter bond',
     (Verlegeart.wechselverband, false) => 'Alternating bond',
   };
 

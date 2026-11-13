@@ -55,6 +55,11 @@ const _gruende = {
       'Mehrlänge die Verteilung mit den wenigsten Dielen (F04: 152 Stücke '
       'brauchen mindestens 51 Dielen und damit nach der Staffel R-B09 '
       '2 Freidielen)',
+  'Planungskern v7':
+      'Planungskern v7 Regel 9.3 / R-B18 (Verlegemuster): Verband nur, wenn '
+      'die Fläche länger als eine Diele ist (F06/F07: 480 cm ohne Stoß, '
+      'also ohne Doppel-UK), Wechselverband unregelmäßig mit Stücken ab '
+      '40 cm (F12); jede benutzte Stoßlinie mit Doppel-UK',
   'Frage 2': 'offen: vorhandene UK – alt 2 × 473 cm zusätzlich',
   'Frage 3': 'offen: Alu-UK – Anzahl der Schienen',
 };
@@ -72,13 +77,25 @@ const _konfigurationen = <String, Map<String, String>>{
     'Clips': 'Befestigung',
   },
   'F05': {'Verschnitt': 'Fuge', 'Dielen': 'B-035', 'UK': 'Rand-UK'},
-  'F06': {'Dielen': 'Fuge'},
-  'F07': {'Dielen': 'Fuge'},
+  'F06': {
+    'Dielen': 'Fuge',
+    'UK': 'Planungskern v7',
+    'Clips': 'Planungskern v7',
+  },
+  'F07': {
+    'Dielen': 'Fuge',
+    'UK': 'Planungskern v7',
+    'Clips': 'Planungskern v7',
+  },
   'F08': {'Dielen': 'Fuge'},
   'F09': {'Dielen': 'Fuge'},
   'F10': {'Dielen': 'Fuge', 'UK': 'UK-Lage', 'Clips': 'Befestigung'},
   'F11': {'Dielen': 'Fuge'},
-  'F12': {'Dielen': 'Fuge'},
+  'F12': {
+    'Dielen': 'Planungskern v7',
+    'UK': 'Planungskern v7',
+    'Clips': 'Planungskern v7',
+  },
   'F13': {'Dielen': 'Fuge', 'Freidielen': 'R-B09', 'UK': 'B-035'},
   'F14': {
     'Verschnitt': 'Fehler',

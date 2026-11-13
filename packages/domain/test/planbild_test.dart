@@ -144,6 +144,35 @@ void main() {
       expect(linien[2].von, const Punkt(1005, 132));
     });
 
+    test('Verlegemuster (Planungskern v7 Regel 9.3, R-B18): Stöße je Reihe '
+        'versetzt im Plan', () {
+      final belag = Artikel(
+        nummer: const Artikelnummer('10-10-046'),
+        titel: 'Diele',
+        art: Artikelart.diele,
+        einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+        abmessungen: Abmessungen(
+          breite: const Millimeter(80),
+          staerke: const Millimeter(23),
+          laengen: const [Millimeter(6000)],
+        ),
+        holzart: robinie,
+        serie: basic,
+        profil: Profil.genutet,
+      );
+      final stand = Planungsstand.start
+          .mitGrundriss(
+            RechteckGrundriss(const Millimeter(8000), const Millimeter(1000)),
+          )
+          .mitVerlegeart(Verlegeart.halbverband);
+      final v = verlegeBelag(stand, belag)!;
+      final linien = stosslinien([for (final t in v.teile) t.stuecke], 0);
+      // 12 Reihen à 86 mm: im Wechsel bei 6 m und 3 m
+      expect([
+        for (final l in linien) l.von.x,
+      ], List.generate(12, (i) => i.isEven ? 6000 : 3000));
+    });
+
     test('Teilflächen getrennt: gleiche Reihennummer stößt nicht über die '
         'Teilfläche hinaus', () {
       final linien = stosslinien([

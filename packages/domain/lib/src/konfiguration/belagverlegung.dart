@@ -11,6 +11,7 @@ import 'ausschnitt.dart';
 import 'dielenverlegung.dart';
 import 'grundriss.dart';
 import 'planungsstand.dart';
+import 'verlegeart.dart';
 
 /// Eine Lieferdiele des Zuschnitts (M5-08): in welcher Lieferlänge sie
 /// bestellt wird und welche Stücke aus ihr geschnitten werden.
@@ -586,6 +587,8 @@ final class Belagverlegung {
 /// Reihe; Referenzfall 2026-08-17-1838: Randreihe 25,1 cm), ohne Überlänge
 /// und ohne Musterverfahren ([Musterregel.frei]); kurze Stücke
 /// werden nie verbunden, eine Fliese über eine Rasterlinie gibt es nicht.
+/// Im Verband (R-B18) ist ein Dielenstück mindestens 40 cm lang
+/// ([verbandMindeststueck]), ein Fliesenstück mindestens eine halbe Fliese.
 ///
 /// Die Hauptfläche spart alle Ausschnitte aus (leere Fläche: kein Material,
 /// Fachkonzept 1.4). Ein Ausschnitt mit anderem Terrassenbelag ist eine
@@ -660,6 +663,9 @@ Belagverlegung? verlegeBelag(
       ueberlaenge: ueberlaenge,
       aussparungen: aussparungen,
       fuge: fuge,
+      mindeststueck: belag.art == Artikelart.holzfliese
+          ? Millimeter(laengste.mm ~/ 2)
+          : verbandMindeststueck,
     ),
     lieferlaengen: lieferlaengen,
     ueberlaenge: ueberlaenge,

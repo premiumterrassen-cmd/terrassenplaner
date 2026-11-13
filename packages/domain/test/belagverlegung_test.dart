@@ -143,6 +143,36 @@ List<String> _verteileJeStueck(List<int> stuecke, List<int> laengen, int u) {
 }
 
 void main() {
+  test('Verband (R-B18): Dielenstücke ab 40 cm, Fliesenstücke ab einer '
+      'halben Fliese', () {
+    List<List<int>> reihen(Belagverlegung v) {
+      final je = <int, List<int>>{};
+      for (final st in v.teile.single.stuecke) {
+        je.putIfAbsent(st.reihe, () => []).add(st.laenge.mm);
+      }
+      return [for (final r in (je.keys.toList()..sort())) je[r]!];
+    }
+
+    // 4 Fliesen lang: die zweite Reihe um eine halbe Fliese versetzt
+    final fliesen = reihen(
+      _verlegt(
+        _rechteck(2424, 1200).mitVerlegeart(Verlegeart.halbverband),
+        _fliese,
+      ),
+    );
+    expect(fliesen.first, [606, 606, 606, 606]);
+    expect(fliesen[1], [303, 606, 606, 606, 303]);
+    // Dielen 6 m auf 6,40 m: Endstück 40 cm bleibt, mit ½ 3 + 3,4 m
+    final dielen = reihen(
+      _verlegt(
+        _rechteck(6400, 1000).mitVerlegeart(Verlegeart.halbverband),
+        _diele(60),
+      ),
+    );
+    expect(dielen.first, [6000, 400]);
+    expect(dielen[1], [3000, 3400]);
+  });
+
   group('Musterverfahren (R-B17, Planungskern v6 Regeln 1.3, 1.4)', () {
     const u = dielenUeberlaenge;
     const muster = Musterregel.dielen;
@@ -892,7 +922,7 @@ void _referenzkonfigurationen() {
   group('Referenzkonfigurationen', () {
     // gleiche Lieferlängen wie der alte Planer
     for (final id in [
-      'F01', 'F02', 'F06', 'F07', 'F08', 'F09', 'F10', 'F11', 'F12', 'F13', //
+      'F01', 'F02', 'F06', 'F07', 'F08', 'F09', 'F10', 'F11', 'F13', //
       'F20', 'F21', 'F23', 'F24', 'F25',
     ]) {
       test('$id: Dielenliste wie im alten Planer', () {
@@ -932,10 +962,25 @@ void _referenzkonfigurationen() {
       expect(_summe(alt(fall('F22'))), 237000);
     });
 
+    test('Planungskern v7 (R-B18): F06–F08 ohne Verband (480 cm passen in '
+        'eine Diele), F12 Wechselverband unregelmäßig', () {
+      for (final id in ['F06', 'F07', 'F08']) {
+        expect(_neuerPlan(verlege(fall(id))), {'500.0: 480.0': 48});
+      }
+      final f12 = verlege(fall('F12'));
+      expect(_anzahl(f12.dielenliste), {4000: 36, 5000: 23, 6000: 25});
+      expect(_anzahl(f12.dielenliste), isNot(alt(fall('F12'))));
+      for (final t in f12.teile) {
+        for (final s in t.stuecke) {
+          expect(s.laenge.mm, inInclusiveRange(400, 6030));
+        }
+      }
+    });
+
     test('M9-02: Zuschnitt Deckbelag wie im alten Planer (Anfangsdielen '
         'zusammengefasst, B-033)', () {
       for (final id in [
-        'F01', 'F02', 'F06', 'F07', 'F08', 'F09', 'F10', 'F11', 'F12', //
+        'F01', 'F02', 'F09', 'F10', 'F11', //
         'F13', 'F20', 'F21', 'F23', 'F24',
       ]) {
         final f = fall(id);
@@ -1074,8 +1119,6 @@ void _referenzfaelle() {
     for (final (id, art, lieferung) in [
       ('2026-04-28-4413-v11', Verlegeart.fugenschnitt, {5000: 44}),
       ('2026-04-28-859-v5', Verlegeart.fugenschnitt, {5000: 21}),
-      // 404 cm im Drittelverband: 134,7 + 269,3 cm
-      ('2026-05-03-4381-v2', Verlegeart.drittelverband, {6000: 27}),
       // 97 × 200 cm: alt 31 × 600 + 450 + 400 cm, neu je zwei in 4000 mm
       ('2026-05-19-3958-v4', Verlegeart.fugenschnitt, {4000: 49}),
       ('2026-06-07-4340-v4', Verlegeart.fugenschnitt, {4000: 5, 5000: 49}),
@@ -1111,7 +1154,9 @@ void _referenzfaelle() {
       const mehr = {
         '2026-04-28-4413-v11': 22000, // 44 × 440 cm: 500 statt 450 cm
         '2026-04-28-859-v5': 10500,
-        '2026-05-03-4381-v2': 9500, // 404 cm im Drittelverband
+        // 404 cm im Drittelverband – Planungskern v7 (R-B18): kein Verband,
+        // wenn die Fläche nicht länger als eine Diele ist; 36 × 404 cm
+        '2026-05-03-4381-v2': 27500,
         '2026-06-11-3389-v3': 15000, // 30 × 550 statt 600 cm
         '2026-07-07-2794-v2': 77000, // 154 × 450 statt 500 cm
         '2026-08-26-1067-v2': 1000, // 111 × 300 cm: ein Rest in 400 cm
@@ -1150,6 +1195,15 @@ void _referenzfaelle() {
         if (mehr[id] case final m?) expect(neu - alt, m, reason: id);
         // Holzfliesen haben nur 606 mm
         if (id == '2026-08-17-1838-v2') continue;
+        // Planungskern v7 (R-B18): 36 ganze Reihen à 404 cm brauchen auch
+        // mit 4,5 m mehr als 134,7 + 269,3 cm im alten Drittelverband
+        if (id == '2026-05-03-4381-v2') {
+          expect(_sorten(verlege(id, art: art)), [
+            '404.0x6.0:1',
+            '404.0x8.0:35',
+          ]);
+          continue;
+        }
         expect(
           _optimiert(
             verlege(id, richtung: richtung, art: art, laengen: zwischen),

@@ -1,8 +1,9 @@
 import 'package:benchmark_harness/benchmark_harness.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 
-/// Verlegearten (M5-04): Stoßlinien und Dielenstücke für 500 Reihen einer
-/// 30 m langen Fläche je Verlegeart, mit und ohne „kurze Stücke verbinden“.
+/// Verlegearten (M5-04, Verbandwahl R-B18): Stoßlinien und Dielenstücke für
+/// 500 Reihen einer 30 m langen Fläche je Verlegeart, mit und ohne „kurze
+/// Stücke verbinden“.
 class VerlegeartBenchmark extends BenchmarkBase {
   VerlegeartBenchmark() : super('domain.Verlegeart.reihenstuecke');
 
@@ -15,10 +16,17 @@ class VerlegeartBenchmark extends BenchmarkBase {
   @override
   void run() {
     for (final art in Verlegeart.values) {
+      final wahl = Verbandwahl(
+        art,
+        von: _von,
+        bis: _bis,
+        raster: _raster,
+        hoechstlaenge: _raster,
+      );
       for (var reihe = 0; reihe < 500; reihe++) {
-        final stoesse = art.stoesse(reihe, _von, _bis, _raster);
         // Reihen unterschiedlich lang wie bei schrägen Seiten
         final anfang = Millimeter(reihe * 7 % 3000);
+        final stoesse = wahl.stoesse(reihe, [(anfang, _bis)]).single;
         _summe += reihenstuecke(
           anfang,
           _bis,

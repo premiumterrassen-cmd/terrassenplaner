@@ -665,9 +665,26 @@ void main() {
       expect(gewaehlt(Verlegeart.fugenschnitt), isTrue);
       for (final (text, hinweis) in [
         ('Fugenschnitt', 'Auf Fuge geschnitten: alle Stöße in einer Linie'),
-        ('Halbverband', 'Jede zweite Reihe um eine halbe Diele versetzt'),
-        ('Drittelverband', 'Jede Reihe um ein Drittel der Diele versetzt'),
-        ('Wechselverband', 'Jede zweite Reihe beginnt an der Gegenseite'),
+        (
+          'Halbverband',
+          'Jede zweite Reihe um eine halbe Diele versetzt; jeder Stoß auf '
+              'doppelter UK',
+        ),
+        (
+          'Drittelverband',
+          'Jede Reihe um ein Drittel der Diele versetzt; jeder Stoß auf '
+              'doppelter UK',
+        ),
+        (
+          'Viertelverband',
+          'Jede Reihe um ein Viertel der Diele versetzt; jeder Stoß auf '
+              'doppelter UK',
+        ),
+        (
+          'Wechselverband',
+          'Stöße unregelmäßig versetzt, nie wie in den beiden Reihen davor; '
+              'jeder Stoß auf doppelter UK',
+        ),
       ]) {
         expect(find.text(text), findsOneWidget);
         expect(find.byTooltip(hinweis), findsOneWidget);
@@ -680,6 +697,7 @@ void main() {
       for (final (i, art) in [
         Verlegeart.halbverband,
         Verlegeart.drittelverband,
+        Verlegeart.viertelverband,
         Verlegeart.wechselverband,
         Verlegeart.fugenschnitt,
       ].indexed) {
@@ -696,15 +714,26 @@ void main() {
     testWidgets('Texte auf Englisch', (tester) async {
       expect(
         [for (final v in Verlegeart.values) verlegeartText(en, v)],
-        ['Aligned joints', 'Half bond', 'Third bond', 'Alternating bond'],
+        [
+          'Aligned joints',
+          'Half bond',
+          'Third bond',
+          'Quarter bond',
+          'Alternating bond',
+        ],
       );
       expect(
         [for (final v in Verlegeart.values) verlegeartHinweis(en, v)],
         [
           'Cut on the joint: all butt joints in one line',
-          'Every second row offset by half a board',
-          'Each row offset by a third of a board',
-          'Every second row starts at the opposite side',
+          'Every second row offset by half a board; each joint on a double '
+              'joist',
+          'Each row offset by a third of a board; each joint on a double '
+              'joist',
+          'Each row offset by a quarter of a board; each joint on a double '
+              'joist',
+          'Joints offset irregularly, never as in the two rows before; each '
+              'joint on a double joist',
         ],
       );
     });
