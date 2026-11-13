@@ -296,6 +296,7 @@ GitHub: https://github.com/premiumterrassen-cmd/terrassenplaner/milestone/6
   - Waagerecht (Standard), senkrecht, 45°, 135°, individueller Winkel.
   - Abnahme: Jede Richtung in Zeichnung und Mengen korrekt
   - Ergebnis: Unterpunkt 2.4 mit fünf Richtungen und Feld „Winkel in Grad“ (0–179, Vorgabe 30); Planungsstand-Felder `verlegerichtung` und `verlegewinkel`. `verlegeDielen` legt Reihen aus Dielenbreite plus Fuge ab dem Ausgangspunkt in jedem Winkel über die Fläche, schneidet sie an den Stoßlinien der Verlegeart (Raster ab dem Ausgangspunkt, bei 135° durch A) und lässt Restreihen unter 15 mm weg. Stücklängen stimmen mit F01–F13 auf 1 mm überein. Der Server verlegt mit dem gewählten Belag, die Zeichnung zeigt die Dielenstücke. Benchmark `domain.Dielenverlegung.verlegeDielen`.
+  - Nachtrag 13.11.2026 (Alexander): Stoßraster am Rand statt durch die Ausgangsecke, wenn dort keine Kante quer zur Verlegerichtung liegt (135°: F04 85 statt 152 Stücke); 15 mm Mindestbreite und Winkel-Vorgabe 30° bestätigt.
 - [ ] **M5-06 Stoßdielen im Gehrungsschnitt** ([#49](https://github.com/premiumterrassen-cmd/terrassenplaner/issues/49)) – `feature/m5-06-stossdielen-im-gehrungsschnitt`
   - Option „Möchten Sie Stoßdielen im Gehrungsschnitt verwenden?“ (im alten Planer aktiv).
   - Abnahme: Option wirkt auf Zeichnung und Zuschnitt

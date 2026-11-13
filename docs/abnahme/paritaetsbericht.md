@@ -8,6 +8,8 @@
 >
 > **Nachtrag 12.11.2026 (Verlegemuster, Branch `feature/planungskern-v7-verband`):** Abschnitt [Verlegemuster](#nachtrag-verlegemuster-planungskern-v7-12112026) unten.
 >
+> **Nachtrag 13.11.2026 (Stöße bei 135° am Rand, Branch `fix/m5-05-stoesse-am-rand`):** Abschnitt [Stöße am Rand](#nachtrag-stöße-am-rand-statt-durch-a-13112026) unten – nur F04 ändert sich.
+>
 > **Nachtrag 11.11.2026 (UK-Regeln und Überlänge, Branch `feature/planungskern-uk-regeln`):** Abschnitt [UK-Regeln und Überlänge](#nachtrag-uk-regeln-und-überlänge-planungskern-v6-11112026) unten, gerechnet auf dem Stand mit Fuge 6 mm. Die Tabellen darunter zeigen den Stand vom 07.11.2026.
 
 Stand 07.11.2026, Branch `feature/m10-01-paritaetsnachweis`. Alle Referenzkonfigurationen F01–F43 (M1-03, [12](../fachkonzept/12-referenzkonfigurationen.md)) und alle rechenbaren Referenzfälle aus den Planungsunterlagen (M1-02, [11](../fachkonzept/11-referenzfaelle.md)) werden im neuen Planer gerechnet und mit den Ergebnissen des alten Planers verglichen.
@@ -312,3 +314,19 @@ Branch `feature/planungskern-v11-rinne`, gerechnet nach dem Einmergen von `main`
 Dielen (45 × 5000 mm, Grund „Fuge“ wie bisher), Verschnitt, Volumen, UK (13 × 4000 mm – die Rinne A — B liegt längs der Dielen, die UK läuft darunter bis an die Hauswand, Frage 14/R-C08) und Clips bleiben gleich. Im Paritätstest steht für F38 neu die Abweichung „Fläche“ mit dem Grund „Planungskern v11“.
 
 **Nicht im Vergleich, aber geändert:** Profile RELO V jetzt ohne Lieferlänge als Stück (verpackt nach den Artikeldaten, F38 weiter 4), Auflagerprofile 2 × Länge / 1,88 m (F38 weiter 6) statt „Abstand_Stelzfuesse“; Stützhölzer und Eckverbundwinkel nur an Rinnen längs zur UK (in keinem Referenzfall). Offen: Fragen 80–87 in [Fachkonzept 10](../fachkonzept/10-offene-fragen.md).
+
+## Nachtrag Stöße am Rand statt durch A (13.11.2026)
+
+Branch `fix/m5-05-stoesse-am-rand` auf `main` (0acf7cb). Entscheidung Alexander 13.11.2026: Das Stoßraster beginnt am Rand der Fläche, nicht mit einer Stoßlinie durch die Ausgangsecke mitten in der Fläche. Liegt an der Ausgangsecke eine gerade Kante quer zur Verlegerichtung, bleibt das Raster an der Ecke. Das gilt für waagrecht und senkrecht im Rechteck und für die L-Form ab B (2026-06-07-4340: 475 + 190 cm wie in der Unterlage). Fachkonzept 2.4, Fehlerliste [09](../fachkonzept/09-nicht-teil-der-kopie.md).
+
+**Verglichene Werte:** Nur **F04** (diagonal 135°) ändert sich. Alle übrigen F01–F43 und alle 26 Referenzfälle haben dieselben Abweichungen und Gründe wie auf `main`. Auch 2026-05-03-4381-v2 (Drittelverband) ist geprüft: Domain-Test und Parität bleiben unverändert.
+
+| Fall | Größe | `main` | jetzt | alter Planer | Grund |
+|---|---|---|---|---|---|
+| F04 | Stücke | 152 (Stoß durch A, Reste bis 1,5 cm) | 85, jede Reihe ein Stück | 154 | Stöße am Rand (Alexander 13.11.2026) |
+| F04 | Verschnitt | 2,91 % | 1,71 % | 0,32 % | B-035 (wie bisher) |
+| F04 | Dielen | 7 × 6000 + 19 × 5000 + 25 × 4000 (237 m, 51 Dielen) | 34 × 6000 + 6 × 5000 (234 m, 40 Dielen) | 7 × 5500 + 5 × 5000 + 30 × 4500 + 9 × 4000 | B-035 (wie bisher) |
+| F04 | Freidielen | 2 | **1 (gleich)** | 1 | – (Grund „Planungskern v6“ entfällt bei F04) |
+| F04 | UK | 7 × 5000 + 8 × 4000 | 5 × 5000 + 8 × 4000 | 2 × 5500 + 3 × 5000 + 5 × 4500 + 3 × 4000 | Rand-UK (wie bisher); ohne Stoßlinie keine Doppel-UK durch A |
+| F04 | Clips | 900 | 750 | 850 | Befestigung (wie bisher); weniger Kreuzungen ohne Doppel-UK |
+
