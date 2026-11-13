@@ -2257,6 +2257,53 @@ void main() {
         stosslinien([for (final t in v.teile) t.stuecke], 0),
       );
     });
+
+    test('Achsmaßkette einer 25 × 4 m großen Fläche im PDF: Zahlen nie '
+        'übereinander, gleiche Abstände zusammengefasst (R-E02)', () {
+      final gross = Planungsstand.start.mitGrundriss(
+        RechteckGrundriss(const Millimeter(25000), const Millimeter(4000)),
+      );
+      final b = PlanungsDienst.berechne(gross, diele, regelwerk, uk);
+      final kette = b.planbild.achsen!;
+      expect(kette.marken.length, greaterThan(60));
+      final plan = Plan(
+        [Planlinie(b.umriss, argb: 0)],
+        const [],
+        const [],
+        [kette],
+      );
+      final m = Planmassstab.fuer(plan);
+      final zahlen = kettenbeschriftungen(plan, m);
+      expect(zahlen.length, lessThan(6));
+      expect(zahlen.any((z) => z.text.contains(' × ')), isTrue);
+      final felder = [for (final z in zahlen) beschriftungsfeld(z, m)];
+      for (var i = 1; i < felder.length; i++) {
+        expect(
+          felder[i].links,
+          greaterThanOrEqualTo(felder[i - 1].links + felder[i - 1].breite),
+        );
+      }
+      // dieselbe Kette bei 4,80 m: jede Zahl einzeln
+      final klein = PlanungsDienst.berechne(
+        Planungsstand.start,
+        diele,
+        regelwerk,
+        uk,
+      );
+      final p2 = Plan(
+        [Planlinie(klein.umriss, argb: 0)],
+        const [],
+        const [],
+        [klein.planbild.achsen!],
+      );
+      expect(
+        kettenbeschriftungen(
+          p2,
+          Planmassstab.fuer(p2),
+        ).any((z) => z.text.contains(' × ')),
+        isFalse,
+      );
+    });
   });
 
   group('Stelzfüße und Pads mit Höhenzuordnung (M6-11)', () {

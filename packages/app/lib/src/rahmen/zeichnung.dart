@@ -464,12 +464,15 @@ class ZeichnungsMaler extends CustomPainter {
   /// Halbe Länge der Marken der Achsmaßkette in Pixeln.
   static const achsmassMarke = 4.0;
 
-  /// Unter diesem Abstand (Pixel) zweier Marken steht keine Zahl.
-  static const achsmassTextAb = 14.0;
+  /// Abstand zweier Zahlen der Achsmaßkette in Pixeln.
+  static const achsmassLuecke = 4.0;
 
   /// Achsmaßkette auf dem Bildschirm (R-E02), wenn die Ebene UK sichtbar
   /// ist: Kettenlinie und Marken als Strecken, dazu die Abstände in cm
-  /// außen neben der Kette.
+  /// außen neben der Kette – welche, entscheidet die Domäne
+  /// (`kettenzahlen`: einzeln, wenn alle passen, sonst „12 × 40“, nie
+  /// übereinander) mit dem Platz, den eine Zahl hier braucht
+  /// ([zahlplatz]).
   ({List<(Offset, Offset)> linien, List<Zeichentext> texte}) achsmasskette() {
     final k = zeichnung.achsen;
     if (k == null || !optionen.zeigt(Ebene.unterkonstruktion)) {
@@ -478,25 +481,38 @@ class ZeichnungsMaler extends CustomPainter {
     final versatz = k.normale * achsmassAbstand;
     final quer = k.normale * achsmassMarke;
     final punkte = [for (final m in k.marken) bildschirm(m) + versatz];
+    final kette = punkte.last - punkte.first;
+    final mmJePixel =
+        (k.marken.last - k.marken.first).distance / kette.distance;
+    final richtung = kette / kette.distance;
     return (
       linien: [
         for (var i = 1; i < punkte.length; i++) (punkte[i - 1], punkte[i]),
         for (final p in punkte) (p - quer, p + quer),
       ],
       texte: [
-        for (var i = 1; i < punkte.length; i++)
-          if ((punkte[i] - punkte[i - 1]).distance >= achsmassTextAb)
-            (
-              text:
-                  '${((k.marken[i] - k.marken[i - 1]).distance / 10).round()}',
-              ort:
-                  Offset.lerp(punkte[i - 1], punkte[i], 0.5)! +
-                  k.normale * beschriftungsAbstand,
-              richtung: k.normale,
-            ),
+        for (final z in kettenzahlen([
+          for (var i = 1; i < k.marken.length; i++)
+            (k.marken[i] - k.marken[i - 1]).distance,
+        ], (text) => zahlplatz(text, richtung) * mmJePixel))
+          (
+            text: z.text,
+            ort:
+                Offset.lerp(punkte[z.von], punkte[z.bis], 0.5)! +
+                k.normale * beschriftungsAbstand,
+            richtung: k.normale,
+          ),
       ],
     );
   }
+
+  /// Platz (Pixel) einer Zahl [text] der Achsmaßkette längs der Kette in
+  /// [richtung]: waagerecht ihre Breite, senkrecht ihre Höhe (geschätzt aus
+  /// [nummerGroesse]), dazu [achsmassLuecke].
+  static double zahlplatz(String text, Offset richtung) =>
+      richtung.dx.abs() * text.length * nummerGroesse * 0.6 +
+      richtung.dy.abs() * nummerGroesse * 1.4 +
+      achsmassLuecke;
 
   /// Rand des Dielenstücks [index] in der Farbe der Stückliste (M9-04);
   /// `null` = normale Fuge.

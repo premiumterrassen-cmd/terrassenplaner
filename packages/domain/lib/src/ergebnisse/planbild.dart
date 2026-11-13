@@ -32,6 +32,83 @@ final class Masskette {
   List<double> get abstaende => [
     for (var i = 1; i < marken.length; i++) marken[i - 1].abstand(marken[i]),
   ];
+
+  /// Die Zahlen der Kette (`kettenzahlen`); [platz] ist der Platz längs der
+  /// Kette in mm, den ein Text im Maßstab der Zeichnung braucht.
+  List<Kettenzahl> zahlen(double Function(String text) platz) =>
+      kettenzahlen(abstaende, platz);
+}
+
+/// Abstände unter dieser Länge (mm) bekommen keine Zahl – etwa zwischen
+/// den Hölzern einer Doppel-UK; die Marken stehen trotzdem.
+const kleinsterAchsabstand = 100.0;
+
+/// Eine Zahl der Achsmaßkette (R-E02): sie steht mittig zwischen den Marken
+/// [von] und [bis] (Indizes der Marken) – eine Zahl je Abstand, oder bei
+/// mehreren gleichen Abständen in Folge zusammengefasst („12 × 40“).
+typedef Kettenzahl = ({int von, int bis, String text});
+
+/// Zahlen einer Maßkette mit den [abstaende]n (mm) in cm, nie übereinander
+/// (Planungsregeln Alexander (Planungskern v10, 12.11.2026), Regel 12.1
+/// „Beschriftung ohne Überlappung“; bei 25 m Kantenlänge liefen die 40er
+/// sonst ineinander). [platz] ist der Platz längs der Kette, den ein Text
+/// im Maßstab der Zeichnung braucht (mm, mit Rand) – App und PDF kennen
+/// ihren Maßstab und ihre Schrift:
+///
+/// 1. Abstände unter [kleinsterAchsabstand] bekommen keine Zahl.
+/// 2. Passt jede Zahl in ihren Abstand, steht jede einzeln (38 / 40 / 40 …).
+/// 3. Sonst werden gleiche Abstände in Folge zusammengefasst
+///    („38 · 61 × 40 · 22“).
+/// 4. Würde eine Zahl dann noch die vorige berühren, entfällt sie.
+List<Kettenzahl> kettenzahlen(
+  List<double> abstaende,
+  double Function(String text) platz,
+) {
+  final cm = [for (final d in abstaende) '${(d / 10).round()}'];
+  final einzeln = <Kettenzahl>[
+    for (var i = 0; i < abstaende.length; i++)
+      if (abstaende[i] >= kleinsterAchsabstand)
+        (von: i, bis: i + 1, text: cm[i]),
+  ];
+  final zahlen = einzeln.every((z) => platz(z.text) <= abstaende[z.von])
+      ? einzeln
+      : _zusammengefasst(einzeln);
+  final lagen = [0.0];
+  for (final d in abstaende) {
+    lagen.add(lagen.last + d);
+  }
+  final gesetzt = <Kettenzahl>[];
+  var frei = double.negativeInfinity;
+  for (final z in zahlen) {
+    final mitte = (lagen[z.von] + lagen[z.bis]) / 2;
+    final halb = platz(z.text) / 2;
+    if (mitte - halb < frei) continue;
+    gesetzt.add(z);
+    frei = mitte + halb;
+  }
+  return gesetzt;
+}
+
+/// Die Zahlen [einzeln] mit gleichen, aneinandergrenzenden Abständen
+/// zusammengefasst: „n × Abstand“ von der ersten bis zur letzten Marke.
+List<Kettenzahl> _zusammengefasst(List<Kettenzahl> einzeln) {
+  final gruppen = <List<Kettenzahl>>[];
+  for (final z in einzeln) {
+    final letzte = gruppen.lastOrNull?.last;
+    if (letzte != null && letzte.bis == z.von && letzte.text == z.text) {
+      gruppen.last.add(z);
+    } else {
+      gruppen.add([z]);
+    }
+  }
+  return [
+    for (final g in gruppen)
+      (
+        von: g.first.von,
+        bis: g.last.bis,
+        text: g.length == 1 ? g.first.text : '${g.length} × ${g.first.text}',
+      ),
+  ];
 }
 
 /// Maß eines Bogens an einer Seite (Planungsregeln Alexander (Planungskern
@@ -71,10 +148,28 @@ final class Rinnenband {
     }
   }
 
-  /// Band innen an der Rinnenkante [k].
-  factory Rinnenband.an(Rinnenkante k) {
+  /// Band innen an der Rinnenkante [k]; ohne [belag] ein Rechteck.
+  ///
+  /// [belag] sind die Ecken des Belags (`belagstand`), dort enden die
+  /// Dielen [rinnenabstand] vor der Kante. Die beiden versetzten Ecken der
+  /// Seite liegen auf den Nachbarseiten – bei einem Bogen auf seinem Kreis
+  /// (Planungskern v22/v23, Rinne neben Bogen). Das Band reicht innen bis
+  /// dorthin (anteilig: Profil ohne Fuge) und wird so zum Trapez, statt
+  /// als Rechteck vor dem Bogen zu enden.
+  factory Rinnenband.an(Rinnenkante k, [List<Punkt>? belag]) {
     final innen = k.innen * rinnenprofilbreite.mm.toDouble();
-    return Rinnenband([k.von, k.bis, k.bis + innen, k.von + innen]);
+    if (belag == null) {
+      return Rinnenband([k.von, k.bis, k.bis + innen, k.von + innen]);
+    }
+    final anteil = rinnenprofilbreite.mm / rinnenabstand.mm;
+    final von = belag[k.seite];
+    final bis = belag[(k.seite + 1) % belag.length];
+    return Rinnenband([
+      k.von,
+      k.bis,
+      k.bis + (bis - k.bis) * anteil,
+      k.von + (von - k.von) * anteil,
+    ]);
   }
 
   final List<Punkt> ecken;
@@ -115,6 +210,15 @@ final class Rinnenband {
           (von: a.von + (a.bis - a.von) * t, bis: b.von + (b.bis - b.von) * t),
     ];
   }
+}
+
+/// Rinnenbänder der [kanten] von [stand] (R-E07): innen bis an den Belag
+/// des `belagstand` – neben einem Bogen bis an die auf den Kreis
+/// gerutschte Ecke (`Rinnenband.an`).
+List<Rinnenband> rinnenbaender(Planungsstand stand, List<Rinnenkante> kanten) {
+  if (kanten.isEmpty) return const [];
+  final belag = belagstand(stand, kanten).grundriss.ecken;
+  return [for (final k in kanten) Rinnenband.an(k, belag)];
 }
 
 /// Abstand der Auflagerprofile vom Rand des Rinnenbandes in mm.
