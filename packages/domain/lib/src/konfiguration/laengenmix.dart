@@ -139,8 +139,8 @@ final class Laengenmixwahl implements Stosswahl {
       for (final (l, _) in folge) {
         final stoss = _linie(pos + l);
         if (stoss < pos + mindest || b - stoss < mindest) continue;
-        if (strenge >= 1 && _vorreihe.contains(stoss)) continue;
-        if (strenge >= 2 && _davor.contains(stoss)) continue;
+        if (_vorreihe.contains(stoss) && strenge > 0) continue;
+        if (_davor.contains(stoss) && strenge > 1) continue;
         _gelegt[l] = _gelegt[l]! + 1;
         return stoss;
       }
@@ -153,10 +153,12 @@ final class Laengenmixwahl implements Stosswahl {
   int _linie(int u) =>
       anfang.mm + ((u - anfang.mm) / raster.mm + 1e-6).floor() * raster.mm;
 
+  static const _modul = 2147483647;
+
   /// Feste Zufallsfolge (lineare Kongruenz wie im Kern, Startwert 7).
   double _zufall() {
-    _zug = (_zug * 16807) % 2147483647;
-    return _zug / 2147483647;
+    _zug = (_zug * 16807) % _modul;
+    return _zug / _modul;
   }
 }
 

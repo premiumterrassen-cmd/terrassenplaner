@@ -272,15 +272,41 @@ void main() {
       );
     });
 
-    test('strenge Wahl: lieber nicht neben den beiden Vorreihen, dann nur '
-        'nicht neben der Vorreihe, sonst beliebig', () {
-      // schmaler Abschnitt: nur wenige Rasterlinien möglich
-      final wahl = Laengenmixwahl(_mix, anfang: const Millimeter(0));
-      final ab = [(const Millimeter(0), const Millimeter(2400))];
-      final folge = [for (var r = 0; r < 6; r++) wahl.stoesse(r, ab).single];
-      for (final s in folge) {
-        expect(s, hasLength(1));
-        expect(s.single.mm, inInclusiveRange(400, 2000));
+    test('strenge Wahl: nicht neben der Vorreihe, möglichst nicht neben der '
+        'Reihe davor; Rest mindestens 30 cm; Raster ab dem Anfang', () {
+      // 2,1 m mit 0,8 / 1,2 / 2,0 m: nur 80 oder 120 cm möglich (2,0 m
+      // ließe 10 cm Rest) – die Reihen wechseln sich ab
+      final wahl = Laengenmixwahl(const [
+        Millimeter(800),
+        Millimeter(1200),
+        Millimeter(2000),
+      ], anfang: const Millimeter(0));
+      final ab = [(const Millimeter(0), const Millimeter(2100))];
+      final folge = [
+        for (var r = 0; r < 20; r++) wahl.stoesse(r, ab).single.single.mm,
+      ];
+      expect(folge.toSet(), {800, 1200});
+      for (var r = 1; r < folge.length; r++) {
+        expect(folge[r], isNot(folge[r - 1]));
+      }
+      // mit drei Möglichkeiten auch nicht neben der Reihe davor
+      final drei = Laengenmixwahl(_mix, anfang: const Millimeter(0));
+      final lang = [(const Millimeter(0), const Millimeter(2300))];
+      final stoesse = [
+        for (var r = 0; r < 20; r++) drei.stoesse(r, lang).single.single.mm,
+      ];
+      for (var r = 2; r < stoesse.length; r++) {
+        expect(stoesse[r], isNot(stoesse[r - 1]));
+        expect(stoesse[r], isNot(stoesse[r - 2]));
+      }
+      // Raster ab dem Anfang 10 cm
+      final versetzt = Laengenmixwahl(_mix, anfang: const Millimeter(100));
+      for (var r = 0; r < 10; r++) {
+        for (final s in versetzt.stoesse(r, [
+          (const Millimeter(100), const Millimeter(6100)),
+        ]).single) {
+          expect((s.mm - 100) % 400, 0);
+        }
       }
     });
   });
@@ -408,6 +434,38 @@ void main() {
         systemdielenRechteck(Planungsstand.start.mitForm(Terrassenform.kreis)),
         isFalse,
       );
+      // um 30° gedrehtes Rechteck, Dielen unter 30° oder 120° (Koordinaten
+      // auf 0,1 mm gerundet)
+      final schief = Planungsstand(
+        grundriss: FreiformGrundriss(const [
+          Punkt(0, 0),
+          Punkt(3464.1, 2000),
+          Punkt(2464.1, 3732.1),
+          Punkt(-1000, 1732.1),
+        ], geschlossen: true),
+      );
+      for (final w in [30, 120]) {
+        expect(
+          systemdielenRechteck(
+            schief.mitVerlegerichtung(Verlegerichtung.individuell, winkel: w),
+          ),
+          isTrue,
+          reason: '$w°',
+        );
+      }
+      expect(
+        systemdielenRechteck(
+          schief.mitVerlegerichtung(Verlegerichtung.individuell, winkel: 60),
+        ),
+        isFalse,
+      );
+      expect(
+        systemdielenRechteck(
+          schief.mitVerlegerichtung(Verlegerichtung.individuell, winkel: 45),
+        ),
+        isFalse,
+      );
+      expect(systemdielenRechteck(schief), isFalse);
       // Trapez: eine Kante schräg
       expect(
         systemdielenRechteck(

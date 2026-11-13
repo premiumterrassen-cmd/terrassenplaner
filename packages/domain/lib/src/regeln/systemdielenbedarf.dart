@@ -8,7 +8,7 @@ import 'dart:math' as math;
 import '../artikel/artikel.dart';
 import '../artikel/einheiten.dart';
 import '../ergebnisse/materialliste.dart';
-import '../geometrie/punkt.dart';
+import '../geometrie/kontur.dart';
 import '../konfiguration/belagverlegung.dart';
 import '../konfiguration/planungsstand.dart';
 
@@ -26,17 +26,8 @@ const systemdielenZuschlagForm = 0.10;
 /// ihrem Anteil an der Fuge – ohne Aussparungen und Rinnen.
 double belegteFlaeche(Belagverlegung verlegung) => [
   for (final t in verlegung.teile)
-    for (final s in t.stuecke) _flaeche(s.umriss),
+    for (final s in t.stuecke) Kontur(s.umriss).flaeche / 1e6,
 ].fold(0.0, (a, b) => a + b);
-
-double _flaeche(List<Punkt> p) {
-  var summe = 0.0;
-  for (var i = 0; i < p.length; i++) {
-    final (a, b) = (p[i], p[(i + 1) % p.length]);
-    summe += a.x * b.y - b.x * a.y;
-  }
-  return summe.abs() / 2 / 1e6;
-}
 
 /// Ob die Fläche [stand] für den Verschnitt als Rechteck zählt (Regel
 /// 1a.6): vier Ecken ohne Bogen, rechte Winkel, Kanten längs oder quer zu
