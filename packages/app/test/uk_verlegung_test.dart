@@ -34,6 +34,14 @@ Future<Berechnung> _server(Planung planung) async => Berechnung(
       Punkt(20, 3090),
       Punkt(4800, 3090),
     ], const Punkt(0, 1)),
+    rinnen: [
+      Rinnenband(const [
+        Punkt(0, 0),
+        Punkt(4800, 0),
+        Punkt(4800, 151),
+        Punkt(0, 151),
+      ]),
+    ],
   ),
 );
 
@@ -104,6 +112,8 @@ void main() {
       Offset(4800, 3090),
     ]);
     expect(z.achsen!.normale, const Offset(0, 1));
+    // Rinne RELO V (Planungskern v11, R-E07)
+    expect(z.rinnen.single.ecken.last, const Punkt(0, 151));
   });
 
   testWidgets('Fußhöhe ohne Holzbreite: Hölzer 40 mm breit', (tester) async {
@@ -151,6 +161,7 @@ void main() {
     expect(berechnung.zeichnung.ukBreite, 0);
     expect(berechnung.zeichnung.achsen, isNull);
     expect(berechnung.zeichnung.stoesse, isEmpty);
+    expect(berechnung.zeichnung.rinnen, isEmpty);
   });
 
   testWidgets('Kennzahlen zeigen das Volumen der Berechnung', (tester) async {

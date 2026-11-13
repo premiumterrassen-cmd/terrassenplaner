@@ -1028,6 +1028,83 @@ void main() {
       );
     });
 
+    test('Rinne RELO V im Verlegeplan und im UK-Plan, Legenden und '
+        'Hinweise (Planungskern v11, Regel 13.1.6, R-E07)', () {
+      final band = Rinnenband.an((
+        seite: 0,
+        von: Punkt.ursprung,
+        bis: const Punkt(4800, 0),
+        innen: const Punkt(0, 1),
+      ));
+      final b = Berechnung(
+        umriss: rechteck,
+        flaeche: 1,
+        unterbau: Unterbau(hoelzer: hoelzer),
+        planbild: Planbild(rinnen: [band]),
+        anschluss: Anschlussergebnis(
+          meldungen: const [
+            Anschlussmeldung.unterlueftung,
+            Anschlussmeldung.rinnenmontage,
+          ],
+        ),
+      );
+      final u = erzeuge(b);
+      final de = Unterlagentexte.deutsch;
+      final belag = u.kapitel.singleWhere(
+        (k) => k.titel.endsWith('Terrassenbelag'),
+      );
+      expect(texte(belag), contains(de.rinnenBelagHinweis));
+      final plan = baustein<Plan>(belag);
+      final bandlinien = plan.linien.where((l) => l.argb == rinnenfarbe);
+      expect(bandlinien.single.punkte, band.ecken);
+      expect(bandlinien.single.gefuellt, isTrue);
+      final rand = plan.linien.where((l) => l.argb == rinnenrandfarbe).toList();
+      expect(rand, hasLength(1 + band.schlitze.length));
+      expect(rand.first.geschlossen, isTrue);
+      expect(rand.first.staerke, 0.5);
+      expect(rand[1].punkte, [
+        band.schlitze.first.von,
+        band.schlitze.first.bis,
+      ]);
+      expect(rand[1].geschlossen, isFalse);
+      expect(rand[1].staerke, 0.3);
+      // Etikett über die Platzsuche der Nebentexte (Regel 12.1)
+      expect(plan.nebentexte, [
+        (
+          ort: band.mitte,
+          richtung: Punkt.ursprung,
+          abstand: 0.0,
+          text: 'Rinne RELO V',
+        ),
+      ]);
+      final uk = u.kapitel[2];
+      expect(texte(uk), contains(de.rinnenUkHinweis));
+      final ukPlan = baustein<Plan>(uk);
+      // Rinne unter der UK, die Auflagerprofile darüber
+      expect(ukPlan.linien[1].argb, rinnenfarbe);
+      expect(ukPlan.linien[1].gefuellt, isTrue);
+      expect(ukPlan.linien[2].argb, Stueckfarbe.blau.argb);
+      final va = ukPlan.linien.where((l) => l.argb == auflagerprofilfarbe);
+      expect(
+        [for (final l in va) l.punkte],
+        [
+          for (final s in band.auflagerprofile) [s.von, s.bis],
+        ],
+      );
+      expect(va.first.staerke, 1.5);
+      expect(va.first.geschlossen, isFalse);
+      expect(ukPlan.nebentexte.last, (
+        ort: band.mitte,
+        richtung: Punkt.ursprung,
+        abstand: 0.0,
+        text: 'Rinne RELO V',
+      ));
+      // nur Hinweise zur Rinne stehen in den Unterlagen
+      expect(texte(kapitel(u, 'Hinweise zur Planung')).skip(2), [
+        '• ${de.rinnenmeldung(Anschlussmeldung.rinnenmontage)}',
+      ]);
+    });
+
     test('Verlegeplan: Stoßlinien rot gestrichelt, Legende, Eckbuchstaben '
         'und Kantenmaße (R-E01, R-E03)', () {
       final u = erzeuge(

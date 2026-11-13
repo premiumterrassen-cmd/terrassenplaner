@@ -802,6 +802,60 @@ final class Unterlagentexte {
       'Stairs $nummer: extends beyond the end of the side.',
   };
 
+  /// Etikett der Entwässerungsrinne im Plan (Planungskern v11, Regel
+  /// 13.1.6, R-E07).
+  String get rinneEtikett => 'Rinne RELO V';
+
+  /// Legende der Rinne im Verlegeplan (R-E07).
+  String get rinnenBelagHinweis => _de
+      ? 'Grau: Entwässerungsrinne RELO V innen an der Kante – der Belag endet '
+            '15,7 cm vor der Kante (Profil 15,1 cm und 6 mm Fuge).'
+      : 'Grey: drainage channel RELO V on the inside of the edge – the '
+            'decking ends 15.7 cm before the edge (profile 15.1 cm and 6 mm '
+            'joint).';
+
+  /// Legende der Rinne im UK-Plan (R-E07).
+  String get rinnenUkHinweis => _de
+      ? 'Rinne RELO V: 2 Auflagerprofile RELO VA quer über die UK; quer '
+            'unter der Rinne Stützhölzer, mit Eckverbundwinkeln RELO E an der '
+            'letzten UK befestigt.'
+      : 'Channel RELO V: 2 support profiles RELO VA across the joists; '
+            'support battens across underneath the channel, fixed to the last '
+            'joist with corner brackets RELO E.';
+
+  /// Hinweis zur Entwässerungsrinne (Planungskern v11, Regel 13.1); andere
+  /// Hinweise zum Anschluss stehen nicht in den Unterlagen (`null`).
+  String? rinnenmeldung(Anschlussmeldung m) => switch ((m, _de)) {
+    (Anschlussmeldung.rinneNichtMoeglich, true) =>
+      'Rinne nicht geplant: nur an geraden, waagerechten oder senkrechten '
+          'Kanten ab 30 cm möglich.',
+    (Anschlussmeldung.rinneNichtMoeglich, false) =>
+      'Channel not planned: only possible on straight horizontal or vertical '
+          'edges of at least 30 cm.',
+    (Anschlussmeldung.rinnenfarbeFehlt, true) =>
+      'Rinne in Anthrazit: bitte sprechen Sie uns an – sie ist ohne Material '
+          'gerechnet.',
+    (Anschlussmeldung.rinnenfarbeFehlt, false) =>
+      'Channel in anthracite: please contact us – it is calculated without '
+          'material.',
+    (Anschlussmeldung.rinnenmontage, true) =>
+      'Annahme Rinne RELO V: Befestigung mit Systemschrauben UNIA 4,2 × 22 '
+          'mm und 2 Endkappen RELO VB je Rinne – beides nicht in der '
+          'Materialliste, bitte gesondert anfragen. Höhenausgleich mit GUMO.',
+    (Anschlussmeldung.rinnenmontage, false) =>
+      'Assumption channel RELO V: fixing with system screws UNIA 4.2 × 22 mm '
+          'and 2 end caps RELO VB per channel – neither is in the material '
+          'list, please ask separately. Height compensation with GUMO.',
+    (Anschlussmeldung.eckwinkelFehlt, true) =>
+      'Eckverbundwinkel RELO E für die Stützhölzer unter der Rinne (2 je '
+          'Stützholz) sind nicht in der Materialliste – bitte gesondert '
+          'anfragen.',
+    (Anschlussmeldung.eckwinkelFehlt, false) =>
+      'Corner brackets RELO E for the support battens under the channel (2 '
+          'per batten) are not in the material list – please ask separately.',
+    _ => null,
+  };
+
   /// Name einer Position, die nicht im Angebot ist (Planungskern v7 Regel
   /// 9.7).
   String nichtImAngebot(String titel) =>

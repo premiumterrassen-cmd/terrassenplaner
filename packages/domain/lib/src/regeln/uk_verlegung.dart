@@ -22,6 +22,7 @@ import '../konfiguration/planungsstand.dart';
 import 'planungsregeln.dart';
 import 'rand_uk.dart';
 import 'regelwerk.dart';
+import 'rinnen.dart';
 import 'uk_zusatz.dart';
 
 /// Ein UK-Holz in der Zeichnung: Achse von [von] bis [bis] in mm und seine
@@ -56,11 +57,17 @@ typedef UkRand = ({
 /// Kein Ende einer Rand-UK liegt auf einer Latte.
 const keineLatte = (von: false, bis: false);
 
+/// Ein Stützholz unter einer Rinne quer zur Kante (Planungsregeln
+/// Alexander, Planungskern v11, Regel 13.1.4) in der gedrehten Fläche: von
+/// der Belagkante (an der letzten UK) bis zur Kante der Fläche.
+typedef UkStuetze = ({Punkt von, Punkt bis});
+
 /// UK-Verlegung einer Fläche (M6-10).
 final class UkVerlegung {
   UkVerlegung({
     List<UkLinie> linien = const [],
     List<UkRand> rand = const [],
+    List<UkStuetze> stuetzen = const [],
     List<Planstueck> stuecke = const [],
     List<Materialbedarf> bedarf = const [],
     List<UkHolz> hoelzer = const [],
@@ -71,6 +78,7 @@ final class UkVerlegung {
   }) : linien = List.unmodifiable(linien),
        rand = List.unmodifiable(rand),
        riegel = List.unmodifiable(riegel),
+       stuetzen = List.unmodifiable(stuetzen),
        zuschnitt = List.unmodifiable(zuschnitt),
        stuecke = List.unmodifiable(stuecke),
        bedarf = List.unmodifiable(bedarf),
@@ -90,6 +98,10 @@ final class UkVerlegung {
   /// der kürzeren Latte zur Nachbarlatte – ohne eigene Auflager; ihre
   /// Hölzer stehen auch in [hoelzer] und [stuecke].
   final List<Strecke> riegel;
+
+  /// Stützhölzer unter den Rinnen längs zur UK (Regel 13.1.4), je eins mit
+  /// einem Auflager in der Mitte und zwei Eckverbundwinkeln.
+  final List<UkStuetze> stuetzen;
 
   /// Zuschnitte der UK-Hölzer für die Stückliste: rot in ganzer
   /// Lieferlänge, sonst blau.
@@ -117,9 +129,14 @@ final class UkVerlegung {
   List<double> get lagen => [for (final l in linien) l.x];
 
   /// Länge aller UK-Hölzer in mm – die Abschnitte der Linien, so wie die UK
-  /// unter dem Belag liegt, die Rand-UK und die Riegel (Gummiband, M8-02).
+  /// unter dem Belag liegt, die Rand-UK, die Riegel und die Stützhölzer
+  /// (Gummiband, M8-02).
   double get laenge =>
-      [for (final r in rand) (von: r.von, bis: r.bis), ...riegel].fold(
+      [
+        for (final r in rand) (von: r.von, bis: r.bis),
+        ...riegel,
+        ...stuetzen,
+      ].fold(
         linien.fold(
           0.0,
           (summe, l) => l.abschnitte.fold(summe, (s, a) => s + a.$2 - a.$1),
@@ -188,6 +205,15 @@ final class UkVerlegung {
 ///   [wandachseBeiStellfuessen] (6 cm) von ihr, Linien enden dann vor ihr;
 ///   eine Rand-UK, die an die Wand stößt, endet ebenfalls 1 cm davor. Freie
 ///   Kanten bleiben bündig.
+/// - **Entwässerungsrinnen** ([rinnen], Planungsregeln Alexander,
+///   Planungskern v11, Regel 13.1.3/13.1.4, R-C19): die UK liegt unter dem
+///   Belag des [belagstand] (Kanten mit Rinne 15,7 cm nach innen versetzt).
+///   An einer Rinne längs der Dielen (quer zur UK) laufen die Linien unter
+///   der Rinne bis an die Kante der Fläche durch (Frage 14: UK bis zur
+///   Hauswand); an jeder anderen Rinne liegen Stützhölzer quer unter der
+///   Rinne von der letzten UK bis zur Kante, das erste und letzte 5 cm von
+///   den Enden, dazwischen höchstens 42 cm auseinander
+///   (`stuetzholzstellen`).
 UkVerlegung ukVerlegung(
   Planungsstand stand,
   Artikel uk, {
@@ -196,6 +222,8 @@ UkVerlegung ukVerlegung(
   bool gedreht = false,
   bool stellfuesse = false,
   Regelwerk? regelwerk,
+  Planungsstand? belagstand,
+  List<Rinnenkante> rinnen = const [],
 }) {
   final (a, b) = (uk.abmessungen.breite, uk.abmessungen.staerke);
   if (a == null || b == null) return UkVerlegung.keine;
@@ -207,7 +235,20 @@ UkVerlegung ukVerlegung(
   List<Punkt> gedrehte(Kontur k) => [
     for (final p in k.vieleck()) p.gedreht(drehung),
   ];
-  final flaeche = gedrehte(stand.kontur);
+  final belag = belagstand ?? stand;
+  final flaeche = gedrehte(belag.kontur);
+  final gedrehteRinnen = [
+    for (final r in rinnen)
+      (
+        von: r.von.gedreht(drehung),
+        bis: r.bis.gedreht(drehung),
+        innen: r.innen.gedreht(drehung),
+      ),
+  ];
+  final laengs = [
+    for (final r in gedrehteRinnen)
+      if ((r.von.y - r.bis.y).abs() <= _amRand) r,
+  ];
   final aussparungen = [for (final s in _leere(stand)) gedrehte(s)];
   final huelle = Huellrechteck.um(flaeche);
   final w = breite.mm.toDouble();
@@ -228,19 +269,23 @@ UkVerlegung ukVerlegung(
     for (final x in lagen)
       (
         x: x,
-        abschnitte: _ohne(_schnitte(flaeche, x), [
-          for (final s in aussparungen) ..._schnitte(s, x),
-        ]),
+        abschnitte: _bisZurKante(
+          x,
+          _ohne(_schnitte(flaeche, x), [
+            for (final s in aussparungen) ..._schnitte(s, x),
+          ]),
+          laengs,
+        ),
         stoesse: const [],
       ),
   ];
   final boegen = [
-    for (final k in stand.kontur.kanten)
+    for (final k in belag.kontur.kanten)
       if (k.istBogen)
         Kante(k.start.gedreht(drehung), k.ende.gedreht(drehung), k.woelbung),
   ];
   final belegung = randbelegung([
-    for (final k in _randkanten(stand, drehung, w))
+    for (final k in _randkanten(belag, drehung, w))
       if (!boegen.any((b) => _aufBogen(k, b))) k,
   ], roh);
   final randkanten = [for (final r in belegung) r.kante];
@@ -291,9 +336,19 @@ UkVerlegung ukVerlegung(
     holz,
     w: w,
     abstand: abstand.mm.toDouble(),
-    links: stand.kontur.gegenUhrzeigersinn,
+    links: belag.kontur.gegenUhrzeigersinn,
   );
   final rand = [for (final r in belegung) randholz(r), ...bogenUk.rand];
+  final stuetzen = <UkStuetze>[
+    for (final r in gedrehteRinnen)
+      if (!laengs.contains(r))
+        for (final s in stuetzholzstellen(r.von.abstand(r.bis)))
+          if (r.von + (r.bis - r.von).einheit * s case final p)
+            (von: p + r.innen * rinnenabstand.mm.toDouble(), bis: p),
+  ];
+  for (final s in stuetzen) {
+    holz.lege(s.von, s.bis);
+  }
   final stossanzahl = _stossanzahl(linien, rand);
   final verbinder = regelwerk?.datei[uk.nummer] == null
       ? const <Artikel>[]
@@ -306,6 +361,7 @@ UkVerlegung ukVerlegung(
   return UkVerlegung(
     linien: linien,
     rand: rand,
+    stuetzen: stuetzen,
     stuecke: holz.stuecke,
     zuschnitt: zuschnitt,
     bedarf: [
@@ -710,6 +766,29 @@ List<(double, double)> _vorRandUk(
           when b - a >= _mindestAbschnitt)
         (a, b),
   ];
+}
+
+/// [abschnitte] der Linie bei [x], die an der Belagkante einer Rinne
+/// längs der Dielen ([laengs], gedrehte Fläche) enden, laufen unter der
+/// Rinne bis an ihre Kante (Regel 13.1.3).
+List<(double, double)> _bisZurKante(
+  double x,
+  List<(double, double)> abschnitte,
+  List<({Punkt von, Punkt bis, Punkt innen})> laengs,
+) {
+  double kante(double y) {
+    for (final r in laengs) {
+      final belagkante = r.von.y + r.innen.y * rinnenabstand.mm;
+      if (x >= math.min(r.von.x, r.bis.x) - _amRand &&
+          x <= math.max(r.von.x, r.bis.x) + _amRand &&
+          (y - belagkante).abs() <= _amRand) {
+        return r.von.y;
+      }
+    }
+    return y;
+  }
+
+  return [for (final (von, bis) in abschnitte) (kante(von), kante(bis))];
 }
 
 /// Abschnitte (von, bis) in y, in denen die senkrechte Linie bei [x] im

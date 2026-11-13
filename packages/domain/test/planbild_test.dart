@@ -266,6 +266,66 @@ void main() {
     });
   });
 
+  group('Rinnenband (Planungskern v11, Regel 13.1.6, R-E07)', () {
+    const kante = (
+      seite: 0,
+      von: Punkt.ursprung,
+      bis: Punkt(4800, 0),
+      innen: Punkt(0, 1),
+    );
+
+    test('Band 15,1 cm innen an der Kante, Mitte für das Etikett', () {
+      final r = Rinnenband.an(kante);
+      expect(r.ecken, const [
+        Punkt.ursprung,
+        Punkt(4800, 0),
+        Punkt(4800, 151),
+        Punkt(0, 151),
+      ]);
+      expect(r.laenge, 4800);
+      expect(r.mitte, const Punkt(2400, 75.5));
+      expect(r.ecken.clear, throwsUnsupportedError);
+      expect(
+        () => Rinnenband(const [Punkt.ursprung]),
+        throwsA(isA<ArgumentError>().having((e) => e.name, 'name', 'ecken')),
+      );
+      // nicht im Ursprung: Auflagerprofile parallel zur Kante
+      final versetzt = Rinnenband.an((
+        seite: 0,
+        von: const Punkt(100, 200),
+        bis: const Punkt(1100, 200),
+        innen: const Punkt(0, 1),
+      ));
+      expect(versetzt.auflagerprofile.first.von.x, closeTo(100, 1e-9));
+      expect(versetzt.auflagerprofile.first.von.y, closeTo(225, 1e-9));
+    });
+
+    test('zwei Auflagerprofile 2,5 cm vom Rand, Schlitze alle 5 cm', () {
+      final r = Rinnenband.an(kante);
+      final va = r.auflagerprofile;
+      expect(va, hasLength(2));
+      expect(va.first.von.x, 0);
+      expect(va.first.von.y, closeTo(25, 1e-9));
+      expect(va.first.bis.x, 4800);
+      expect(va.first.bis.y, closeTo(25, 1e-9));
+      expect(va.last.von.y, closeTo(126, 1e-9));
+      final schlitze = r.schlitze;
+      expect(schlitze, hasLength(95));
+      expect(schlitze.first.von.x, closeTo(50, 1e-9));
+      expect(schlitze.first.von.y, closeTo(35, 1e-9));
+      expect(schlitze.first.bis.y, closeTo(116, 1e-9));
+      expect(schlitze.last.bis.x, closeTo(4750, 1e-9));
+      Rinnenband kurz(double l) => Rinnenband.an((
+        seite: 0,
+        von: Punkt.ursprung,
+        bis: Punkt(l, 0),
+        innen: const Punkt(0, 1),
+      ));
+      expect(kurz(100).schlitze, hasLength(1));
+      expect(kurz(99).schlitze, isEmpty);
+    });
+  });
+
   group('Transport', () {
     test('Stöße und Kette hin und zurück, auch über mitPlanung', () {
       final bild = Planbild(
@@ -285,6 +345,24 @@ void main() {
       expect(zurueck.stoesse, bild.stoesse);
       expect(zurueck.achsen!.marken, bild.achsen!.marken);
       expect(zurueck.achsen!.normale, const Punkt(0, 1));
+      expect(zurueck.rinnen, isEmpty);
+    });
+
+    test('Rinnen hin und zurück', () {
+      final band = Rinnenband(const [
+        Punkt(1, 2),
+        Punkt(3, 4),
+        Punkt(5, 6),
+        Punkt(7, 8),
+      ]);
+      final b = Berechnung(
+        umriss: rechteck,
+        flaeche: 1,
+        planbild: Planbild(rinnen: [band, band]),
+      );
+      final zurueck = Berechnung.ausBytes(b.zuBytes()).planbild.rinnen;
+      expect([for (final r in zurueck) r.ecken], [band.ecken, band.ecken]);
+      expect(Planbild(rinnen: [band]).rinnen.clear, throwsUnsupportedError);
     });
 
     test('ohne: leer; alte Puffer ohne das Feld', () {

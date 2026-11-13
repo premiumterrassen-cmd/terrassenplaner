@@ -53,6 +53,24 @@ enum Anschlussmeldung {
   /// Verblendungsartikel).
   blendeFehlt(7),
 
+  /// Eine Rinne liegt an einer Seite, die nicht gerade, waagerecht oder
+  /// senkrecht ist oder kürzer als 30 cm (Planungsregeln Alexander,
+  /// Planungskern v11, Regel 13.1.1) – dort keine Rinne.
+  rinneNichtMoeglich(8),
+
+  /// Die gewählte Rinnenfarbe gibt es in den Artikeldaten nicht (Regel
+  /// 13.1.5) – Rinne ohne Material, Rückfrage.
+  rinnenfarbeFehlt(9),
+
+  /// Annahme zur Rinne (Regel 13.1.2): Systemschrauben UNIA 4,2 × 22 mm
+  /// und Endkappen RELO VB stehen nicht in der Materialliste, Höhenausgleich
+  /// mit GUMO.
+  rinnenmontage(10),
+
+  /// Für die Stützhölzer unter der Rinne nennen die Artikeldaten keine
+  /// Eckverbundwinkel RELO E (Regel 13.1.4) – ohne Material, Rückfrage.
+  eckwinkelFehlt(11),
+
   /// Blende am Bogen aus senkrechten Stücken (Planungsregeln Alexander
   /// (Planungskern v12, 12.11.2026), Regel 14.3.5): unten ca. 1 cm Luft,
   /// Hirnholz oben und unten mit Stirnkantenschutz streichen, je Stück

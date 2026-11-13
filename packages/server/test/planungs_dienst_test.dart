@@ -2687,8 +2687,10 @@ void main() {
       expect(anzahl(zwei, blende.nummer, 4000), 4);
     });
 
-    test('Rinne (M7-03): F38 – Fläche 14,256 m², Belag ausgespart, UK bis '
-        'an die Seite, Rinnen und Zubehör in der Materialliste', () {
+    test('Rinne (M7-03, Planungskern v11 Regel 13.1): F38 – Fläche '
+        '14,078 m², Belag 15,7 cm ausgespart, UK bis an die Seite, Profile '
+        'und Auflagerprofile in der Materialliste; quer zu den Dielen '
+        'Stützhölzer mit Eckverbundwinkeln', () {
       final rinne = Artikel(
         nummer: const Artikelnummer('50-30-002'),
         titel: 'Ventilationsprofil',
@@ -2703,6 +2705,12 @@ void main() {
         nummer: const Artikelnummer('50-30-004'),
         titel: 'Auflagerprofil',
         art: Artikelart.rinnenzubehoer,
+        einheit: Verkaufseinheit(Mengeneinheit.stueck),
+      );
+      final winkel = Artikel(
+        nummer: const Artikelnummer('50-20-006'),
+        titel: 'Eckverbundwinkel',
+        art: Artikelart.eckverbinder,
         einheit: Verkaufseinheit(Mengeneinheit.stueck),
       );
       final uk = Artikel(
@@ -2731,9 +2739,12 @@ void main() {
             Artikeleintrag(
               artikel: rinne,
               benoetigt: {auflage.nummer: 1},
-              angaben: const {'Abstand_Stelzfuesse': 1000},
+              verweise: {
+                Beziehung.zubehoer.spalte: [winkel.nummer],
+              },
             ),
             Artikeleintrag(artikel: auflage),
+            Artikeleintrag(artikel: winkel),
             Artikeleintrag(artikel: uk),
           ],
         ),
@@ -2758,18 +2769,40 @@ void main() {
           .mitRinne(0, Rinnenlage.gesamteSeite);
       final b = mit(Planung.start.mitStand(f38));
       final f01 = mit(Planung.start);
-      expect(b.flaecheQuadratmeter, closeTo(14.256, 1e-9));
+      expect(b.flaecheQuadratmeter, closeTo(14.0784, 1e-9));
       expect(anzahl(f01, diele.nummer, 5000), 47);
       expect(anzahl(b, diele.nummer, 5000), 45);
       expect(anzahl(b, uk.nummer, 4000), 13);
-      expect(anzahl(b, rinne.nummer, 1200), 4);
+      expect(anzahl(b, rinne.nummer), 4);
       expect(anzahl(b, auflage.nummer), 6);
+      expect(anzahl(b, winkel.nummer), isNull);
       expect(b.anschluss.seiten.last.rolle, Seitenrolle.rinne);
+      expect(b.anschluss.meldungen, [Anschlussmeldung.rinnenmontage]);
+      expect(b.planbild.rinnen.single.ecken.take(2), const [
+        Punkt.ursprung,
+        Punkt(4800, 0),
+      ]);
+      // quer zu den Dielen: 9 Stützhölzer à 15,7 cm, je 2 Eckverbundwinkel
+      final quer = mit(
+        Planung.start.mitStand(
+          Planungsstand.start.mitRinne(1, Rinnenlage.gesamteSeite),
+        ),
+      );
+      expect(anzahl(quer, winkel.nummer), 18);
+      expect(anzahl(quer, rinne.nummer), 3);
+      expect(
+        quer.stueckliste.zeilen
+            .where((z) => z.laenge == const Millimeter(157))
+            .single
+            .stueck,
+        9,
+      );
+      expect(quer.unterbau.hoelzer.where((h) => h.von.x > 4640), hasLength(9));
       // zweite Fläche zählt mit ihrer verkleinerten Fläche
       final zwei = mit(
         Planung.start.mitStand(f38).mitNeuerFlaeche().mitStand(f38),
       );
-      expect(zwei.gesamtflaecheQuadratmeter, closeTo(2 * 14.256, 1e-9));
+      expect(zwei.gesamtflaecheQuadratmeter, closeTo(2 * 14.0784, 1e-9));
       // ohne Artikel: Hinweis, ganze Fläche
       final ohne = rechne(f38, belag: diele);
       expect(ohne.anschluss.meldungen, [Anschlussmeldung.ohneRinnenartikel]);

@@ -121,6 +121,7 @@ class BerechnungsSteuerung extends ChangeNotifier {
         for (final r in b.planbild.riegel)
           (Offset(r.von.x, r.von.y), Offset(r.bis.x, r.bis.y)),
       ],
+      rinnen: b.planbild.rinnen,
     ),
     null => Zeichnung.leer,
   };
