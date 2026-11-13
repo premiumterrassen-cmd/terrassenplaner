@@ -324,6 +324,8 @@ List<Kapitel> _flaeche(
   // Grundriss
   final ohnePlan = v == null && unterbau.hoelzer.isEmpty;
   final hoehen = b.hoehenpunkte.hoehen.isNotEmpty;
+  // MASSIV im Längenmix: eigene Legenden (Planungskern Regel 1a.5)
+  final laengenmix = v?.laengenmix != null;
   return [
     Kapitel(titel, [
       _eckdaten(t, f, flaeche),
@@ -336,6 +338,7 @@ List<Kapitel> _flaeche(
         ?_einheitlicheHoehe(t, b),
         _ukPlan(t, b, flaeche.stand),
         if (b.planbild.achsen != null) Absatz(t.achsmassHinweis),
+        if (laengenmix) Absatz(t.ukRasterLaengenmix),
         if (b.planbild.riegel.isNotEmpty) Absatz(t.riegelHinweis),
         if (b.planbild.rinnen.isNotEmpty) Absatz(t.rinnenUkHinweis),
         if (unterbau.auflagerpunkte.isNotEmpty) ...[
@@ -361,7 +364,8 @@ List<Kapitel> _flaeche(
     if (v != null) ...[
       Kapitel('$titel – ${t.belagKapitel}', [
         Absatz(t.dielenHinweis),
-        if (b.planbild.stoesse.isNotEmpty) Absatz(t.stossHinweis),
+        if (b.planbild.stoesse.isNotEmpty)
+          Absatz(laengenmix ? t.stossHinweisLaengenmix : t.stossHinweis),
         if (b.planbild.rinnen.isNotEmpty) Absatz(t.rinnenBelagHinweis),
         _belagPlan(t, b),
         Absatz(t.dielenNachNummer, fett: true),
