@@ -220,6 +220,16 @@ void main() {
       );
     });
 
+    test('Feld genau ein Vielfaches des Abstands: keine Linie zu viel', () {
+      // 404 cm: Achsen 2 … 402 cm, 400 cm ÷ 40 cm = genau 10 Felder
+      final v = ukVerlegung(
+        _rechteck(4040, 1000),
+        _uk(40, 60),
+        abstand: const Millimeter(400),
+      );
+      expect(v.lagen, [for (var x = 20; x <= 4020; x += 400) x.toDouble()]);
+    });
+
     test('Reststück mindestens 50 cm (Planungsregeln Alexander '
         '(Planungskern v6, 11.11.2026), Regel 3.5): 610 cm → 560 + 50 cm', () {
       final v = _verlege(_rechteck(1000, 6100));
@@ -1215,6 +1225,13 @@ void main() {
       final abstand = v.lagen[1] - v.lagen[0];
       expect(v.riegel, hasLength(16));
       for (final r in v.riegel) {
+        // das Holz im Plan läuft wie der Riegel von der Latte zur Nachbarin
+        expect(
+          v.hoelzer.any(
+            (h) => h.von.abstand(r.von) < 1e-6 && h.bis.abstand(r.bis) < 1e-6,
+          ),
+          isTrue,
+        );
         expect(r.von.y, r.bis.y);
         expect(r.von.abstand(r.bis), closeTo(abstand - 40, 1e-6));
         // beginnt am Lattenende neben der Latte, endet an der Nachbarlatte

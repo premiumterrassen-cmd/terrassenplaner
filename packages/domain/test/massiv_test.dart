@@ -345,6 +345,18 @@ void main() {
       ];
       expect(reihen.map((s) => s.length).toSet(), {1});
       expect(reihen.map((s) => s.single.mm).toSet(), {800, 2000});
+      // Rasterlinie ab dem Anfang 10 cm, gemessen vom Anfang (nicht addiert)
+      final ab100 = Laengenmixwahl(const [
+        Millimeter(800),
+        Millimeter(2000),
+      ], anfang: const Millimeter(100));
+      for (var r = 0; r < 4; r++) {
+        final s = ab100.stoesse(r, [
+          (const Millimeter(400), const Millimeter(2700)),
+        ]).single;
+        expect(s, hasLength(1));
+        expect({900, 2100}, contains(s.single.mm));
+      }
       // kein Stoß nach den Regeln möglich: die kurze Reihe bleibt ein Stück
       final weit = Laengenmixwahl(
         const [Millimeter(800), Millimeter(2000)],
@@ -784,6 +796,89 @@ void main() {
       expect(b.bedarf.single.einheiten, [clip]);
       expect(b.bedarf.single.stueck, systemdielenClips(b.punkte));
       expect(b.bedarf.single.stueck, greaterThan(clipsMitZuschlag(b.punkte)));
+    });
+  });
+
+  group('Texte MASSIV (Unterlagen und Hinweise, exakt)', () {
+    test('Legenden und Meldungen deutsch und englisch', () {
+      const de = Unterlagentexte.deutsch;
+      const en = Unterlagentexte.englisch;
+      expect(
+        en.stossHinweisLaengenmix,
+        'MASSIV in mixed lengths 0.8 / 1.2 / 1.6 / 2.0 m · joints staggered '
+        'row by row (red) · every joint centred on one joist.',
+      );
+      expect(
+        en.ukRasterLaengenmix,
+        'Joints centred on the joist (grid 38/40 cm). Joists in 2 m '
+        'pieces; at every joist joint a longitudinal connector of approx. '
+        '45 cm from the offcut, screwed on the side, joint above a support.',
+      );
+      expect(
+        de.belagmeldung(Belagmeldung.systemdieleLaengenmix, null),
+        'MASSIV-Systemdielen liegen im Längenmix 0,8 / 1,2 / 1,6 / 2,0 m mit '
+        'je Reihe versetzten Stößen; jeder Stoß liegt mittig auf einer UK '
+        '(Raster 38 / 40 cm). Verlegemuster und Dielenlänge gelten dafür '
+        'nicht.',
+      );
+      expect(
+        en.belagmeldung(Belagmeldung.systemdieleLaengenmix, null),
+        'MASSIV system boards are laid in mixed lengths of 0.8 / 1.2 / 1.6 / '
+        '2.0 m with joints staggered row by row; every joint sits centred '
+        'on one joist (grid 38 / 40 cm). Laying patterns and board length '
+        'do not apply.',
+      );
+      expect(
+        en.belagmeldung(
+          Belagmeldung.stosslinieZusatzstoesse,
+          null,
+          zusatzstoesse: 1,
+        ),
+        'Between the fixed joint lines the boards would be longer than the '
+        'delivery length. The plan adds 1 evenly spaced joint (with double '
+        'substructure).',
+      );
+      expect(
+        en.belagmeldung(
+          Belagmeldung.stosslinieZusatzstoesse,
+          null,
+          zusatzstoesse: 2,
+        ),
+        contains('adds 2 evenly spaced joints (with'),
+      );
+      expect(
+        de.anschlusshinweis(Anschlussmeldung.bogenblende),
+        'Blende am Bogen aus senkrechten Stücken: je Stück 2 Schrauben in die '
+        'Rand-UK, vorbohren; unten ca. 1 cm Luft lassen, Hirnholz oben und '
+        'unten mit Stirnkantenschutz streichen.',
+      );
+      expect(
+        en.anschlusshinweis(Anschlussmeldung.bogenblende),
+        'Cladding along the arc made of vertical pieces: 2 screws per piece '
+        'into the edge substructure, pre-drill; leave about 1 cm clearance '
+        'at the bottom, seal the end grain at top and bottom.',
+      );
+      expect(
+        de.rinnenBelagHinweis,
+        'Grau: Entwässerungsrinne RELO V innen an der Kante – der Belag endet '
+        '15,7 cm vor der Kante (Profil 15,1 cm und 6 mm Fuge).',
+      );
+      expect(
+        en.rinnenBelagHinweis,
+        'Grey: drainage channel RELO V on the inside of the edge – the '
+        'decking ends 15.7 cm before the edge (profile 15.1 cm and 6 mm '
+        'joint).',
+      );
+      expect(
+        de.rinnenmeldung(Anschlussmeldung.rinneNichtMoeglich),
+        'Rinne nicht geplant: nur an geraden, waagerechten oder senkrechten '
+        'Kanten ab 30 cm möglich.',
+      );
+      expect(
+        en.rinnenmeldung(Anschlussmeldung.rinneNichtMoeglich),
+        'Channel not planned: only possible on straight horizontal or vertical '
+        'edges of at least 30 cm.',
+      );
     });
   });
 
