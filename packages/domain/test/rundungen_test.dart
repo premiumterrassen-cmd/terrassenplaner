@@ -154,6 +154,157 @@ void main() {
     );
   });
 
+  group('Bogen mit Radius je Seite (Planungskern v12, Regel 14.1)', () {
+    test('Radius → Bogen mit diesem Radius, nach außen oder innen', () {
+      final r = Rundungen.keine.mitRadius(0, const Millimeter(3750));
+      final bogen = r.seitenboegen(_r540)[0]!;
+      expect(bogen.radius, closeTo(3750, 1e-6));
+      expect(bogen.start.gleich(Punkt.ursprung), isTrue);
+      expect(bogen.ende.gleich(const Punkt(5400, 0)), isTrue);
+      // Stich r − √(r² − (c/2)²)
+      const h = 3750 - 2602.4026;
+      final abschnitt = bogen.segmentflaeche.abs();
+      expect(r.kontur(_r540).flaeche, closeTo(19440000 + abschnitt, 1e-3));
+      expect(
+        Rundungen.keine
+            .mitRadius(0, const Millimeter(3750), innen: true)
+            .kontur(_r540)
+            .flaeche,
+        closeTo(19440000 - abschnitt, 1e-3),
+      );
+      // gleich wie der Stich
+      expect(
+        abschnitt,
+        closeTo(
+          Rundungen.keine
+              .mitSeite(0, const Millimeter(1148))
+              .seitenboegen(_r540)[0]!
+              .segmentflaeche
+              .abs(),
+          abschnitt * 0.001,
+        ),
+      );
+      // _r540 läuft gegen den Uhrzeigersinn: außen ist positiv
+      expect(bogen.woelbung, closeTo(2 * h / 5400, 1e-6));
+      // Richtung aus dem Umlaufsinn: umgekehrt bleibt der Bogen außen
+      final umgekehrt = FreiformGrundriss(
+        _r540.ecken.reversed.toList(),
+        geschlossen: true,
+      );
+      expect(
+        Rundungen.keine
+            .mitRadius(2, const Millimeter(3750))
+            .kontur(umgekehrt)
+            .flaeche,
+        closeTo(19440000 + abschnitt, 1e-3),
+      );
+      expect(r.zuKleineRadien(_r540), isEmpty);
+    });
+
+    test('Halbkreis erlaubt; Radius unter der halben Sehne als Halbkreis '
+        'mit Hinweis', () {
+      final genau = Rundungen.keine.mitRadius(1, const Millimeter(1800));
+      expect(genau.seitenboegen(_r540)[1]!.woelbung.abs(), closeTo(1, 1e-12));
+      expect(
+        genau.kontur(_r540).flaeche,
+        closeTo(19440000 + math.pi * 1800 * 1800 / 2, 1e-3),
+      );
+      expect(genau.zuKleineRadien(_r540), isEmpty);
+      final klein = Rundungen.keine.mitRadius(1, const Millimeter(1799));
+      expect(klein.kontur(_r540).flaeche, genau.kontur(_r540).flaeche);
+      expect(klein.zuKleineRadien(_r540), [1]);
+      expect(
+        Rundungen.keine
+            .mitRadius(1, const Millimeter(1000), innen: true)
+            .zuKleineRadien(_r540),
+        [1],
+      );
+      // ohne Radien oder ohne Ecken nichts
+      expect(
+        Rundungen.keine.mitSeite(1, const Millimeter(5)).zuKleineRadien(_r540),
+        isEmpty,
+      );
+      expect(klein.zuKleineRadien(KreisGrundriss.vorgabe), isEmpty);
+    });
+
+    test('Radius und Stich ersetzen sich; nur Bögen der Seiten, zwischen den '
+        'Rundungen der Ecken', () {
+      final r = Rundungen.keine
+          .mitSeite(0, const Millimeter(300))
+          .mitRadius(0, const Millimeter(4000));
+      expect(r.seiten, isEmpty);
+      expect(r.radien, {0: const Millimeter(4000)});
+      expect(r.mitSeite(0, const Millimeter(300)).radien, isEmpty);
+      expect(r.mitRadius(0, const Millimeter(0)).leer, isTrue);
+      expect(
+        r.mitRadius(0, const Millimeter(-4000)).radien[0],
+        const Millimeter(4000),
+      );
+      final mitEcke = r.mitEcke(1, const Millimeter(1000));
+      final boegen = mitEcke.seitenboegen(_r540);
+      expect(boegen.keys, [0]);
+      expect(boegen[0]!.ende.gleich(const Punkt(4400, 0)), isTrue);
+      expect(Rundungen.keine.seitenboegen(_r540), isEmpty);
+      expect(r.seitenboegen(KreisGrundriss.vorgabe), isEmpty);
+      expect(
+        Rundungen.keine.mitEcke(1, const Millimeter(500)).seitenboegen(_r540),
+        isEmpty,
+      );
+    });
+
+    test('Stich je Seite für den Griff: eingegeben oder aus dem Radius', () {
+      final r = Rundungen.keine
+          .mitSeite(0, const Millimeter(-300))
+          .mitRadius(1, const Millimeter(1800))
+          .mitRadius(3, const Millimeter(2000), innen: true);
+      expect(r.stichAn(_r540, 0), const Millimeter(-300));
+      expect(r.stichAn(_r540, 1), const Millimeter(1800));
+      expect(r.stichAn(_r540, 2), const Millimeter(0));
+      final h = (2000 - math.sqrt(2000 * 2000 - 1800 * 1800)).round();
+      expect(r.stichAn(_r540, 3), Millimeter(-h));
+      // umgekehrter Umlauf: gleiche Bedeutung
+      final umgekehrt = FreiformGrundriss(
+        _r540.ecken.reversed.toList(),
+        geschlossen: true,
+      );
+      final vorwaerts = Rundungen.keine
+          .mitRadius(0, const Millimeter(3000))
+          .stichAn(_r540, 0);
+      expect(vorwaerts.mm, (3000 - math.sqrt(9e6 - 2700 * 2700)).round());
+      expect(
+        Rundungen.keine
+            .mitRadius(2, const Millimeter(3000))
+            .stichAn(umgekehrt, 2),
+        vorwaerts,
+      );
+    });
+
+    test('Transport (Art 2), Gleichheit, unbekannte Art', () {
+      final r = Rundungen.keine
+          .mitEcke(0, const Millimeter(1000))
+          .mitRadius(2, const Millimeter(2500), innen: true);
+      expect(r.masse, [0, 0, 1000, 2, 2, -2500]);
+      expect(Rundungen.aus(r.masse), r);
+      expect(r == r.mitRadius(2, const Millimeter(2500)), isFalse);
+      expect(r.leer, isFalse);
+      expect(Rundungen.keine.mitRadius(1, const Millimeter(1)).leer, isFalse);
+      for (final art in [3, -1]) {
+        expect(
+          () => Rundungen.aus([art, 0, 5]),
+          throwsA(
+            isA<FormatException>().having(
+              (e) => e.message,
+              'message',
+              'unbekannte Rundungsart $art',
+            ),
+          ),
+        );
+      }
+      final stand = Planungsstand(grundriss: _r540, rundungen: r);
+      expect(Planungsstand.ausBytes(stand.zuBytes()).rundungen, r);
+    });
+  });
+
   test('ohne Rundungen oder ohne Ecken: die Kontur des Grundrisses', () {
     expect(Rundungen.keine.kontur(_r540).punkte, _r540.kontur.punkte);
     final kreis = Rundungen.keine

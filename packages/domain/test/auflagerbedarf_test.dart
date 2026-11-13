@@ -399,6 +399,52 @@ void main() {
       expect(auflagerEinzelnBis, const Millimeter(120));
     });
 
+    test('Rand-UK am Bogen (Planungskern v12, Regel 14.2.2): am Ende auf '
+        'einer Latte kein eigenes Auflager, solange das Stück mehr als eins '
+        'hat; Riegel ohne Auflager', () {
+      List<double> stellen(
+        double laenge, {
+        bool von = false,
+        bool bis = false,
+        List<Strecke> riegel = const [],
+      }) => [
+        for (final p in auflagerbedarf(
+          _f01,
+          UkVerlegung(
+            rand: [
+              (
+                von: const Punkt(0, 100),
+                bis: Punkt(0, 100 + laenge),
+                stoesse: const [],
+                ergaenzt: false,
+                aufLatte: (von: von, bis: bis),
+              ),
+            ],
+            riegel: riegel,
+          ),
+          uk: ukArtikel,
+          abstand: const Millimeter(600),
+          flaeche: Hoehenflaeche(_f01.grundriss.ecken, _mm(const [86])),
+          aufbauhoehe: _aufbau,
+        ).punkte)
+          p.ort.y,
+      ];
+      expect(stellen(700), [150, 450, 750]);
+      expect(stellen(700, von: true), [450, 750]);
+      expect(stellen(700, bis: true), [150, 450]);
+      expect(stellen(700, von: true, bis: true), [450]);
+      expect(stellen(300, von: true, bis: true), isEmpty);
+      // ein einzelnes Auflager bleibt
+      expect(stellen(100, von: true, bis: true), [150]);
+      expect(
+        stellen(
+          700,
+          riegel: [(von: const Punkt(0, 0), bis: const Punkt(500, 0))],
+        ),
+        [150, 450, 750],
+      );
+    });
+
     test('ohne Pads (nur Stelzfüße): zu niedrig ohne Auflager, Zeile null; '
         'ohne Bereiche keine Zeilen', () {
       final b = _bedarf(_f01.mitAuflagen(Auflagen.stelzfuesse));

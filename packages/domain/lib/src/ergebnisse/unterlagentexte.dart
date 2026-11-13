@@ -732,6 +732,39 @@ final class Unterlagentexte {
       : 'Edge substructure of ${cm(laenge)} cm added: boards ended at an edge '
             'without substructure underneath.';
 
+  /// Maß eines Bogens an seinem Scheitel statt der Sehne (Planungskern v12,
+  /// Regel 14.1.3): Bogenlänge und Radius in m.
+  String bogen(double laenge, double radius) =>
+      '${_de ? 'Bogen' : 'Arc'} ${zahl(laenge / 1000, 2)} m · '
+      'R ${zahl(radius / 1000, 2)} m';
+
+  /// Unter dem UK-Plan mit Riegeln am Bogen (Planungskern v12, 14.2).
+  String get riegelHinweis => _de
+      ? 'Rand-UK am Bogen von Latte zu Latte, am Knick ohne eigenes Auflager; '
+            'Riegel grün umrandet.'
+      : 'Edge substructure along the arc from joist to joist, no own support '
+            'at the bends; noggins outlined in green.';
+
+  /// Hinweis zur Blende am Bogen (Planungskern v12, Regel 14.3.5); andere
+  /// Meldungen zum Anschluss stehen nicht in den Unterlagen.
+  String? anschlusshinweis(Anschlussmeldung m) => switch ((m, _de)) {
+    (Anschlussmeldung.bogenblende, true) =>
+      'Blende am Bogen aus senkrechten Stücken: je Stück 2 Schrauben in die '
+          'Rand-UK, vorbohren; unten ca. 1 cm Luft lassen, Hirnholz oben und '
+          'unten mit Stirnkantenschutz streichen.',
+    (Anschlussmeldung.bogenblende, false) =>
+      'Cladding along the arc made of vertical pieces: 2 screws per piece '
+          'into the edge substructure, pre-drill; leave about 1 cm clearance '
+          'at the bottom, seal the end grain at top and bottom.',
+    (Anschlussmeldung.bogenblendeRiegel, true) =>
+      'Blende am Bogen höher als 30 cm: die Stücke unten zusätzlich an einem '
+          'Riegel befestigen (nicht in der Stückliste).',
+    (Anschlussmeldung.bogenblendeRiegel, false) =>
+      'Cladding along the arc higher than 30 cm: also fix the pieces to a '
+          'noggin at the bottom (not in the cutting list).',
+    _ => null,
+  };
+
   /// Warnung zu einer Kante (Planungskern v7 Regel 9.6).
   String kantenwarnung(Kantenwarnung k) => switch ((k.art, _de)) {
     (Kantenmeldung.zuKurz, true) =>

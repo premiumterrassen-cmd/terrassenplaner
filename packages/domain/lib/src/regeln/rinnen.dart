@@ -8,6 +8,7 @@ import 'dart:math' as math;
 import '../artikel/artikel.dart';
 import '../artikel/einheiten.dart';
 import '../ergebnisse/materialliste.dart';
+import '../geometrie/kontur.dart';
 import '../geometrie/punkt.dart';
 import '../konfiguration/anschluss.dart';
 import '../konfiguration/anschlussergebnis.dart';
@@ -59,7 +60,10 @@ const _gerade = 5.0;
 /// keine Seiten.
 bool rinneMoeglich(Planungsstand stand, int seite) {
   if (seite < 0 || seite >= stand.seitenzahl) return false;
-  if (stand.rundungen.seiten.containsKey(seite)) return false;
+  if (stand.rundungen.seiten.containsKey(seite) ||
+      stand.rundungen.radien.containsKey(seite)) {
+    return false;
+  }
   final (:von, :bis) = seitenstrecke(stand, seite);
   final d = bis - von;
   return (d.x.abs() <= _gerade || d.y.abs() <= _gerade) &&
@@ -184,11 +188,29 @@ List<Artikel> eckwinkel(Regelwerk? regelwerk, Artikel rinne, Artikel? uk) {
 /// [rinnenabstand] nach innen versetzt (Regel 13.1.1: F38 480 × 309 →
 /// 480 × 293,3 cm). Ohne Rinnen oder wenn der versetzte Umriss nicht
 /// gültig ist (zu kurze Seiten, gekreuzt, umgeklappt), bleibt der Stand.
+///
+/// Ist eine Nachbarseite ein Bogen (Stich oder Radius, Planungskern v12),
+/// rutscht die Ecke auf seinem Kreis, und der Bogen bekommt dessen Radius
+/// – er bleibt auf demselben Kreis (Kern v23, kein „zweiter Kreis“).
 Planungsstand belagstand(Planungsstand stand, List<Rinnenkante> kanten) {
   if (kanten.isEmpty) return stand;
+  final boegen = stand.rundungen.seitenboegen(stand.grundriss);
   var ecken = stand.grundriss.ecken;
   for (final k in kanten) {
-    ecken = _versetzt(ecken, k);
+    ecken = _versetzt(ecken, k, boegen);
+  }
+  final n = ecken.length;
+  var rundungen = stand.rundungen;
+  for (final k in kanten) {
+    for (final j in [(k.seite + n - 1) % n, (k.seite + 1) % n]) {
+      if (boegen[j] case final b?) {
+        rundungen = rundungen.mitRadius(
+          j,
+          Millimeter(b.radius.round()),
+          innen: rundungen.stichAn(stand.grundriss, j).mm < 0,
+        );
+      }
+    }
   }
   try {
     final neu = FreiformGrundriss(ecken, geschlossen: true);
@@ -197,35 +219,61 @@ Planungsstand belagstand(Planungsstand stand, List<Rinnenkante> kanten) {
         stand.grundriss.kontur.gegenUhrzeigersinn) {
       return stand;
     }
-    return stand.mitGrundriss(neu);
+    final belag = stand.mitGrundriss(neu).mitRundungen(rundungen);
+    belag.kontur;
+    return belag;
   } on ArgumentError {
     return stand;
   }
 }
 
 /// [ecken] mit der Seite der Rinne [k] um [rinnenabstand] nach innen
-/// versetzt: ihre beiden Ecken wandern auf den Nachbarseiten mit.
-List<Punkt> _versetzt(List<Punkt> ecken, Rinnenkante k) {
+/// versetzt: ihre beiden Ecken wandern auf den Nachbarseiten mit – auf dem
+/// Kreis, wenn die Nachbarseite ein Bogen aus [boegen] ist.
+List<Punkt> _versetzt(
+  List<Punkt> ecken,
+  Rinnenkante k,
+  Map<int, Kante> boegen,
+) {
   final n = ecken.length;
   final seite = k.seite;
   final a = ecken[seite];
   final b = ecken[(seite + 1) % n];
   final laengs = (b - a).einheit;
   final verschoben = k.innen * rinnenabstand.mm.toDouble();
-  final vorher = ecken[(seite + n - 1) % n];
-  final nachher = ecken[(seite + 2) % n];
+  Punkt ecke(Punkt nachbar, Punkt alt, int nachbarseite) {
+    final gerade = _schnitt(nachbar, alt, alt + verschoben, laengs);
+    return switch (boegen[nachbarseite]) {
+      final bogen? => _aufKreis(bogen, alt + verschoben, laengs, gerade),
+      null => gerade,
+    };
+  }
+
   return [
     for (var i = 0; i < n; i++)
       i == seite
-          ? _schnitt(vorher, a, a + verschoben, laengs)
+          ? ecke(ecken[(seite + n - 1) % n], a, (seite + n - 1) % n)
           : i == (seite + 1) % n
-          ? _schnitt(nachher, b, b + verschoben, laengs)
+          ? ecke(ecken[(seite + 2) % n], b, (seite + 1) % n)
           : ecken[i],
   ];
 }
 
-/// Schnitt der Geraden durch [p] und [q] mit der Geraden durch [r] in
-/// Richtung [d]; parallel: [r].
+/// Schnitt der Geraden durch [p] in Richtung [d] (Einheitsvektor) mit dem
+/// Kreis des Bogens [bogen] – der Schnittpunkt nächst [naehe]; ohne
+/// Schnitt [naehe].
+Punkt _aufKreis(Kante bogen, Punkt p, Punkt d, Punkt naehe) {
+  final m = bogen.mittelpunkt;
+  final r = bogen.radius;
+  final v = p - m;
+  final halb = d.punktprodukt(v);
+  final diskriminante = halb * halb - (v.punktprodukt(v) - r * r);
+  if (diskriminante < 0) return naehe;
+  final w = math.sqrt(diskriminante);
+  final (s1, s2) = (p + d * (-halb + w), p + d * (-halb - w));
+  return s1.abstand(naehe) <= s2.abstand(naehe) ? s1 : s2;
+}
+
 Punkt _schnitt(Punkt p, Punkt q, Punkt r, Punkt d) {
   final e = q - p;
   final nenner = e.x * d.y - e.y * d.x;

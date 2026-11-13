@@ -205,11 +205,21 @@ final class Planmassstab {
       for (final t in plan.nebentexte) t.ort,
     ];
     if (punkte.isEmpty) return Planmassstab._(Punkt.ursprung, 0, 0, 0, 0);
-    final huelle = Huellrechteck.um(punkte);
-    final faktor = math.min(
-      (satzbreite - 2 * planrand) / math.max(huelle.breite, 1),
-      planhoehe / math.max(huelle.hoehe, 1),
+    double massstab(Huellrechteck h) => math.min(
+      (satzbreite - 2 * planrand) / math.max(h.breite, 1),
+      planhoehe / math.max(h.hoehe, 1),
     );
+    // Nebentexte, die weiter als der Rand hinausragen (etwa „Bogen … · R …“
+    // am Scheitel, Planungskern v12), ganz auf die Seite
+    final vorlaeufig = massstab(Huellrechteck.um(punkte));
+    final huelle = Huellrechteck.um([
+      ...punkte,
+      for (final n in plan.nebentexte)
+        if ((nebentextReichweite(n) - planrand) / vorlaeufig case final ueber
+            when ueber > 0)
+          n.ort + n.richtung * (n.abstand + ueber),
+    ]);
+    final faktor = massstab(huelle);
     return Planmassstab._(
       huelle.min,
       faktor,
@@ -295,6 +305,13 @@ Feld nebentextLage(Nebentext n, Planmassstab m, [Punkt? richtung]) {
     hoehe: hoehe,
   );
 }
+
+/// Wie weit (Punkt) das Feld des Nebentexts [n] in seiner Richtung über
+/// seinen Anker (Ort + Abstand) hinausreicht (`nebentextLage`).
+double nebentextReichweite(Nebentext n) =>
+    nebentextAbstand +
+    n.richtung.x.abs() * (n.text.length * nebentextGroesse * 0.55 + 1) +
+    n.richtung.y.abs() * (nebentextGroesse + 2);
 
 /// Feld einer Beschriftung [t] (7 pt, mittig um ihren Ort).
 Feld beschriftungsfeld(Planbeschriftung t, Planmassstab m) {

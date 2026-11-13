@@ -11,6 +11,7 @@ import '../artikel/dielenlaenge.dart';
 import '../artikel/einheiten.dart';
 import '../artikel/ukauswahl.dart';
 import '../ergebnisse/materialliste.dart';
+import '../ergebnisse/planbild.dart' show Strecke;
 import '../ergebnisse/stueckliste.dart';
 import '../geometrie/kontur.dart';
 import '../geometrie/punkt.dart';
@@ -41,8 +42,20 @@ typedef UkLinie = ({
 /// Regel 3.3/3.4) in der gedrehten Fläche: Achse von [von] bis [bis] – eine
 /// halbe UK-Breite innen, also bündig an der Kante –, die Stöße ihrer
 /// Hölzer ([stoesse], Abstand von [von]) und ob die Selbstkontrolle sie
-/// [ergaenzt] hat.
-typedef UkRand = ({Punkt von, Punkt bis, List<double> stoesse, bool ergaenzt});
+/// [ergaenzt] hat. Am Bogen (Planungsregeln Alexander (Planungskern v12,
+/// 12.11.2026), Regel 14.2.2) liegt ein Stück mit einem Ende auf einem
+/// Lattenende ([aufLatte] am Anfang bzw. Ende) – dort ohne eigenes
+/// Auflager.
+typedef UkRand = ({
+  Punkt von,
+  Punkt bis,
+  List<double> stoesse,
+  bool ergaenzt,
+  ({bool von, bool bis}) aufLatte,
+});
+
+/// Kein Ende einer Rand-UK liegt auf einer Latte.
+const keineLatte = (von: false, bis: false);
 
 /// Ein Stützholz unter einer Rinne quer zur Kante (Planungsregeln
 /// Alexander, Planungskern v11, Regel 13.1.4) in der gedrehten Fläche: von
@@ -59,10 +72,12 @@ final class UkVerlegung {
     List<Materialbedarf> bedarf = const [],
     List<UkHolz> hoelzer = const [],
     List<Lieferdiele> zuschnitt = const [],
+    List<Strecke> riegel = const [],
     this.breite = const Millimeter(0),
     this.winkel = 0,
   }) : linien = List.unmodifiable(linien),
        rand = List.unmodifiable(rand),
+       riegel = List.unmodifiable(riegel),
        stuetzen = List.unmodifiable(stuetzen),
        zuschnitt = List.unmodifiable(zuschnitt),
        stuecke = List.unmodifiable(stuecke),
@@ -78,6 +93,11 @@ final class UkVerlegung {
   /// Rand-UK an den Kanten mit Dielenenden (Regel 3.3), danach die von der
   /// Selbstkontrolle ergänzten (Regel 3.4).
   final List<UkRand> rand;
+
+  /// Riegel am Bogen (Regel 14.2.3) in Planungskoordinaten, je vom Ende
+  /// der kürzeren Latte zur Nachbarlatte – ohne eigene Auflager; ihre
+  /// Hölzer stehen auch in [hoelzer] und [stuecke].
+  final List<Strecke> riegel;
 
   /// Stützhölzer unter den Rinnen längs zur UK (Regel 13.1.4), je eins mit
   /// einem Auflager in der Mitte und zwei Eckverbundwinkeln.
@@ -109,10 +129,14 @@ final class UkVerlegung {
   List<double> get lagen => [for (final l in linien) l.x];
 
   /// Länge aller UK-Hölzer in mm – die Abschnitte der Linien, so wie die UK
-  /// unter dem Belag liegt, die Rand-UK und die Stützhölzer (Gummiband,
-  /// M8-02).
+  /// unter dem Belag liegt, die Rand-UK, die Riegel und die Stützhölzer
+  /// (Gummiband, M8-02).
   double get laenge =>
-      [for (final r in rand) (von: r.von, bis: r.bis), ...stuetzen].fold(
+      [
+        for (final r in rand) (von: r.von, bis: r.bis),
+        ...riegel,
+        ...stuetzen,
+      ].fold(
         linien.fold(
           0.0,
           (summe, l) => l.abschnitte.fold(summe, (s, a) => s + a.$2 - a.$1),
@@ -150,8 +174,17 @@ final class UkVerlegung {
 ///   Regel 3.3/3.4, `randbelegung`): an jeder Kante, an der Dielen enden und
 ///   keine Linie liegt – schräge Ränder, Kanten leerer Ausschnitte (auf der
 ///   Terrassenseite), Innenecken, Bogenstücke, Kanten bei diagonaler
-///   Verlegung – ein Holz bündig entlang der Kante; Bögen in Sehnen, die
-///   höchstens [randBogenToleranz] vom Bogen abweichen, je Sehne eine.
+///   Verlegung – ein Holz bündig entlang der Kante; Bögen leerer
+///   Ausschnitte in Sehnen, die höchstens [randBogenToleranz] vom Bogen
+///   abweichen, je Sehne eine.
+/// - **UK am Bogen des Umrisses** (Planungsregeln Alexander (Planungskern
+///   v12, 12.11.2026), Regel 14.2, `_bogenUk`): die Linien laufen bis an
+///   den Bogen; die Rand-UK ist ein Polygonzug mit den Knicken an den
+///   Lattenenden (jedes Stück von Latte zu Latte, dort ohne eigenes
+///   Auflager) und weiteren Knicken, bis er höchstens [bogenKnickToleranz]
+///   vom Bogen abweicht; Stücke parallel zu den Dielen oder auf einer
+///   Linie entfallen. Je Knick an einem Lattenende ein Riegel zur
+///   Nachbarlatte, die über den Knick hinausreicht ([UkVerlegung.riegel]).
 /// - **Stöße der UK und Lieferlängen:** ein Abschnitt über der längsten
 ///   Lieferlänge wird gestückelt (`ukStueckelung`, 1000 cm → 600 + 400 cm
 ///   wie 2026-07-07), das Reststück ist mindestens 50 cm (Planungsregeln
@@ -246,7 +279,15 @@ UkVerlegung ukVerlegung(
         stoesse: const [],
       ),
   ];
-  final belegung = randbelegung(_randkanten(belag, drehung, w), roh);
+  final boegen = [
+    for (final k in belag.kontur.kanten)
+      if (k.istBogen)
+        Kante(k.start.gedreht(drehung), k.ende.gedreht(drehung), k.woelbung),
+  ];
+  final belegung = randbelegung([
+    for (final k in _randkanten(belag, drehung, w))
+      if (!boegen.any((b) => _aufBogen(k, b))) k,
+  ], roh);
   final randkanten = [for (final r in belegung) r.kante];
   // Achse einer Rand-UK von ihrer Kante: an der Wand 6 cm, sonst bündig
   double achse(Randkante k) =>
@@ -285,10 +326,19 @@ UkVerlegung ukVerlegung(
       bis: bis,
       stoesse: holz.lege(von, bis),
       ergaenzt: r.ergaenzt,
+      aufLatte: keineLatte,
     );
   }
 
-  final rand = [for (final r in belegung) randholz(r)];
+  final bogenUk = _bogenUk(
+    boegen,
+    linien,
+    holz,
+    w: w,
+    abstand: abstand.mm.toDouble(),
+    links: belag.kontur.gegenUhrzeigersinn,
+  );
+  final rand = [for (final r in belegung) randholz(r), ...bogenUk.rand];
   final stuetzen = <UkStuetze>[
     for (final r in gedrehteRinnen)
       if (!laengs.contains(r))
@@ -320,10 +370,179 @@ UkVerlegung ukVerlegung(
         Materialbedarf(verbinder, stossanzahl),
     ],
     hoelzer: holz.hoelzer,
+    riegel: [
+      for (final r in bogenUk.riegel)
+        (von: r.von.gedreht(-drehung), bis: r.bis.gedreht(-drehung)),
+    ],
     breite: breite,
     winkel: winkel,
   );
 }
+
+/// Größte Abweichung (mm) des Polygonzugs der Rand-UK vom Bogen (Regel
+/// 14.2.4: höchstens ca. 1,2 cm).
+const bogenKnickToleranz = 12.0;
+
+/// Ein Rand-UK-Stück am Bogen unter dieser Länge (mm) entfällt, ebenso
+/// eines, das quer zu den Dielen weniger als [_bogenQuerMin] reicht – dort
+/// enden keine Dielen.
+const _bogenStueckMin = 50.0;
+const _bogenQuerMin = 10.0;
+
+/// Ein Riegel ist mindestens so lang (mm); die Nachbarlatte reicht um
+/// [_riegelUeberstand] über den Knick hinaus und liegt höchstens den
+/// Achsabstand plus [_riegelSpiel] entfernt.
+const _riegelMin = 50.0;
+const _riegelUeberstand = 30.0;
+const _riegelSpiel = 50.0;
+
+/// Ein Lattenende liegt höchstens so weit (mm) vom Bogen, dann ist dort
+/// ein Knick.
+const _amBogen = 1.0;
+
+/// Rand-UK und Riegel an den [boegen] des Umrisses (gedrehte Fläche,
+/// Regel 14.2): Knicke an den Enden der [linien] auf dem Bogen, dazu
+/// weitere, bis jedes Stück höchstens [bogenKnickToleranz] vom Bogen
+/// abweicht; je Stück eine Rand-UK eine halbe Breite [w] innen (die Fläche
+/// liegt [links] der Umlaufrichtung oder rechts), außer es läuft parallel
+/// zu den Dielen oder liegt schon auf einer Linie. Riegel je Knick an
+/// einem Lattenende zur nächsten Nachbarlatte, die über den Knick
+/// hinausreicht, höchstens [abstand] + 5 cm entfernt.
+({List<UkRand> rand, List<Strecke> riegel}) _bogenUk(
+  List<Kante> boegen,
+  List<UkLinie> linien,
+  _Holzleger holz, {
+  required double w,
+  required double abstand,
+  required bool links,
+}) {
+  final latten = [
+    for (final l in linien)
+      if (l.abschnitte.isNotEmpty) l,
+  ];
+  final rand = <UkRand>[];
+  final riegel = <Strecke>[];
+  for (final b in boegen) {
+    final punkte = _knicke(b, latten);
+    for (var i = 1; i < punkte.length; i++) {
+      final (a, c) = (punkte[i - 1], punkte[i]);
+      final d = c.ort - a.ort;
+      if (d.laenge < _bogenStueckMin ||
+          d.y.abs() < _bogenQuerMin ||
+          _aufLinie(a.ort, c.ort, latten)) {
+        continue;
+      }
+      final innen = (links ? d.einheit.links : d.einheit.links * -1) * (w / 2);
+      final (von, bis) = (a.ort + innen, c.ort + innen);
+      rand.add((
+        von: von,
+        bis: bis,
+        stoesse: holz.lege(von, bis),
+        ergaenzt: false,
+        aufLatte: (von: a.latte != null, bis: c.latte != null),
+      ));
+    }
+    for (final (:ort, :latte) in punkte) {
+      if (latte == null) continue;
+      if (_riegel(ort, latten, latte, w, abstand) case (final von, final bis)) {
+        holz.lege(von, bis);
+        riegel.add((von: von, bis: bis));
+      }
+    }
+  }
+  return (rand: rand, riegel: riegel);
+}
+
+/// Knicke des Polygonzugs auf dem Bogen [b]: Anfang, die Enden der
+/// [latten] auf dem Bogen ([latte] = Nummer der Latte), Ende; dazwischen
+/// weitere, bis jedes Stück höchstens [bogenKnickToleranz] vom Bogen
+/// abweicht.
+List<({Punkt ort, int? latte})> _knicke(Kante b, List<UkLinie> latten) {
+  final mitte = b.mittelpunkt;
+  final r = b.radius;
+  final w = b.winkel;
+  double anteil(Punkt p) {
+    final ab = (p - mitte).richtung - (b.start - mitte).richtung;
+    return ((w > 0 ? ab : -ab) % (2 * math.pi)) / w.abs();
+  }
+
+  final enden = <(double, int, Punkt)>[
+    for (final (k, l) in latten.indexed)
+      for (final (von, bis) in l.abschnitte)
+        for (final p in [Punkt(l.x, von), Punkt(l.x, bis)])
+          if (b.abstand(p) <= _amBogen)
+            if (anteil(p) case final t when t > 0 && t < 1) (t, k, p),
+  ]..sort((a, b) => a.$1.compareTo(b.$1));
+  final knicke = [(0.0, null, b.start), ...enden, (1.0, null, b.ende)];
+  final schritt = 2 * math.acos(math.max(-1, 1 - bogenKnickToleranz / r));
+  final punkte = <({Punkt ort, int? latte})>[(ort: b.start, latte: null)];
+  for (var i = 1; i < knicke.length; i++) {
+    final ((t0, _, _), (t1, latte, ort)) = (knicke[i - 1], knicke[i]);
+    final n = (w.abs() * (t1 - t0) / schritt).ceil();
+    for (var j = 1; j < n; j++) {
+      punkte.add((
+        ort: b.start.gedreht(w * (t0 + (t1 - t0) * j / n), mitte),
+        latte: null,
+      ));
+    }
+    punkte.add((ort: ort, latte: latte));
+  }
+  return punkte;
+}
+
+/// Liegt das Stück [a]–[c] schon auf einer Linie (alle Prüfpunkte im
+/// Abstand [pruefAbstand] höchstens [pruefToleranz] von einer)?
+bool _aufLinie(Punkt a, Punkt c, List<UkLinie> latten) {
+  final laenge = a.abstand(c);
+  final n = math.max(1, (laenge / pruefAbstand).ceil());
+  for (var k = 0; k <= n; k++) {
+    final q = a + (c - a) * (k / n);
+    final gedeckt = latten.any(
+      (l) =>
+          (l.x - q.x).abs() <= pruefToleranz &&
+          l.abschnitte.any(
+            (s) => q.y >= s.$1 - pruefToleranz && q.y <= s.$2 + pruefToleranz,
+          ),
+    );
+    if (!gedeckt) return false;
+  }
+  return true;
+}
+
+/// Riegel am Knick [q] (Ende der Latte [k] der [latten]): von der Latte
+/// zur nächsten Nachbarlatte, die über den Knick hinausreicht, quer zu den
+/// Latten zwischen ihnen (mindestens [_riegelMin] lang); `null` ohne
+/// solche Nachbarlatte im Achsabstand [abstand] plus [_riegelSpiel].
+(Punkt, Punkt)? _riegel(
+  Punkt q,
+  List<UkLinie> latten,
+  int k,
+  double w,
+  double abstand,
+) {
+  bool deckt(UkLinie l) => l.abschnitte.any(
+    (s) => q.y > s.$1 + _riegelUeberstand && q.y < s.$2 - _riegelUeberstand,
+  );
+  final nachbarn =
+      [
+          if (k > 0) latten[k - 1],
+          if (k < latten.length - 1) latten[k + 1],
+        ].where(deckt).toList()
+        ..sort((a, b) => (a.x - q.x).abs().compareTo((b.x - q.x).abs()));
+  final nb = nachbarn.firstOrNull;
+  if (nb == null || (nb.x - q.x).abs() > abstand + _riegelSpiel) return null;
+  final richtung = (nb.x - q.x).sign;
+  final laenge = math.max(_riegelMin, (nb.x - q.x).abs() - w);
+  final von = Punkt(q.x + richtung * w / 2, q.y);
+  return (von, von + Punkt(richtung * laenge, 0));
+}
+
+/// Liegt die Randkante [k] auf dem Bogen [b] (Anfang, Mitte und Ende
+/// höchstens [_amRand] davon)?
+bool _aufBogen(Randkante k, Kante b) =>
+    b.abstand(k.von) <= _amRand &&
+    b.abstand(k.bis) <= _amRand &&
+    b.abstand((k.von + k.bis) * 0.5) <= _amRand;
 
 /// Höchstens so viele Felder zwischen zwei Grenzen (Rand oder Stoß):
 /// 100 m bei 10 cm Feldbreite.

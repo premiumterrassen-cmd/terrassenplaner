@@ -338,6 +338,18 @@ class PlanerTexteEn extends PlanerTexte {
   String get rundungUnzulaessig => 'This rounding is not possible.';
 
   @override
+  String get rundungInnen => 'inwards';
+
+  @override
+  String get rundungHalbkreis =>
+      'The radius is smaller than half the side – the side is planned as a semicircle.';
+
+  @override
+  String bogenMass(String laenge, String radius) {
+    return 'Arc $laenge · R $radius';
+  }
+
+  @override
   String get rundungVerlassenTitel => 'Apply roundings?';
 
   @override
@@ -1573,6 +1585,14 @@ class PlanerTexteEn extends PlanerTexte {
   @override
   String get meldungBlendeFehlt =>
       'The series has no suitable smooth-edged cladding board for the height at a clad side – no cladding is planned there. Please contact us.';
+
+  @override
+  String get meldungBogenblende =>
+      'Cladding along the arc made of vertical pieces of the smooth-edged board (100 mm): 2 screws per piece into the edge substructure, pre-drill; leave about 1 cm clearance at the bottom, seal the end grain at top and bottom.';
+
+  @override
+  String get meldungBogenblendeRiegel =>
+      'Cladding along the arc higher than 30 cm: also fix the pieces to a noggin at the bottom (not in the cutting list).';
 
   @override
   String get materialVerblendung => 'Cladding';

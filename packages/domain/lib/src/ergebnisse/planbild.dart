@@ -10,6 +10,7 @@ import 'package:flat_buffers/flat_buffers.dart' as fb;
 
 import '../geometrie/punkt.dart';
 import '../konfiguration/dielenverlegung.dart';
+import '../konfiguration/planungsstand.dart';
 import '../regeln/rinnen.dart';
 import '../regeln/uk_verlegung.dart';
 
@@ -32,6 +33,33 @@ final class Masskette {
     for (var i = 1; i < marken.length; i++) marken[i - 1].abstand(marken[i]),
   ];
 }
+
+/// Maß eines Bogens an einer Seite (Planungsregeln Alexander (Planungskern
+/// v12, 12.11.2026), Regel 14.1.3): Nummer der [seite], Bogenlänge und
+/// Radius in mm, der [scheitel] (Mitte des Bogens) und die Richtung
+/// [aussen] aus der Fläche – dort steht „Bogen … · R …“ statt der Sehne.
+typedef Bogenmass = ({
+  int seite,
+  double laenge,
+  double radius,
+  Punkt scheitel,
+  Punkt aussen,
+});
+
+/// Bogenmaße der gewölbten Seiten von [stand] (`Rundungen.seitenboegen`).
+List<Bogenmass> bogenmasse(Planungsstand stand) => [
+  for (final MapEntry(key: seite, value: b)
+      in stand.rundungen.seitenboegen(stand.grundriss).entries)
+    if (b.start.gedreht(b.winkel / 2, b.mittelpunkt) case final scheitel)
+      if ((scheitel - b.mittelpunkt).einheit case final d)
+        (
+          seite: seite,
+          laenge: b.laenge,
+          radius: b.radius,
+          scheitel: scheitel,
+          aussen: stand.kontur.enthaelt(scheitel + d * 10) ? d * -1 : d,
+        ),
+];
 
 /// Band einer Entwässerungsrinne RELO V im Plan (Planungsregeln Alexander,
 /// Planungskern v11, Regel 13.1.6, R-E07): die [ecken] außen an der Kante
@@ -103,8 +131,12 @@ final class Planbild {
   Planbild({
     List<Strecke> stoesse = const [],
     this.achsen,
+    List<Bogenmass> boegen = const [],
+    List<Strecke> riegel = const [],
     List<Rinnenband> rinnen = const [],
   }) : stoesse = List.unmodifiable(stoesse),
+       boegen = List.unmodifiable(boegen),
+       riegel = List.unmodifiable(riegel),
        rinnen = List.unmodifiable(rinnen);
 
   /// Liest die Tabelle am Ort [ort] ([schreibe]).
@@ -118,20 +150,37 @@ final class Planbild {
       ];
     }
 
-    final enden = punkte(_stoessePlatz);
+    List<Strecke> strecken(int platz) {
+      final enden = punkte(platz);
+      return [
+        for (var i = 0; i < enden.length ~/ 2; i++)
+          (von: enden[2 * i], bis: enden[2 * i + 1]),
+      ];
+    }
+
     final marken = punkte(_markenPlatz);
     final normale = punkte(_normalePlatz);
     final rinnen = punkte(_rinnenPlatz);
+    final boegen = const fb.ListReader<double>(fb.Float64Reader())
+        .vTableGet(puffer, ort, 4 + 2 * _boegenPlatz, const []);
     return Planbild(
       rinnen: [
         for (var i = 0; i < rinnen.length ~/ 4; i++)
           Rinnenband(rinnen.sublist(4 * i, 4 * i + 4)),
       ],
-      stoesse: [
-        for (var i = 0; i < enden.length ~/ 2; i++)
-          (von: enden[2 * i], bis: enden[2 * i + 1]),
-      ],
+      stoesse: strecken(_stoessePlatz),
       achsen: marken.isEmpty ? null : Masskette(marken, normale.single),
+      boegen: [
+        for (var i = 0; i < boegen.length ~/ 7; i++)
+          (
+            seite: boegen[7 * i].round(),
+            laenge: boegen[7 * i + 1],
+            radius: boegen[7 * i + 2],
+            scheitel: Punkt(boegen[7 * i + 3], boegen[7 * i + 4]),
+            aussen: Punkt(boegen[7 * i + 5], boegen[7 * i + 6]),
+          ),
+      ],
+      riegel: strecken(_riegelPlatz),
     );
   }
 
@@ -144,17 +193,39 @@ final class Planbild {
   /// Achsmaßkette der UK; `null` ohne mindestens zwei UK-Linien.
   final Masskette? achsen;
 
+  /// Maße der Bögen an den Seiten (Regel 14.1.3).
+  final List<Bogenmass> boegen;
+
+  /// Riegel am Bogen (Regel 14.2.3, `UkVerlegung.riegel`) – im UK-Plan
+  /// grün umrandet.
+  final List<Strecke> riegel;
+
   /// Entwässerungsrinnen (R-E07) im Verlegeplan und im UK-Plan.
   final List<Rinnenband> rinnen;
 
   /// Schreibt `{ 0: stoesse ([float64] x, y von und bis je Stoß),
   /// 1: marken ([float64] x, y je Marke der Achsmaßkette), 2: normale
   /// ([float64] x, y; beide fehlen ohne Kette), 3: rinnen ([float64] x, y
-  /// der vier Ecken je Rinnenband, Planungskern v11) }`.
+  /// der vier Ecken je Rinnenband, Planungskern v11), 10: boegen
+  /// ([float64] Seite, Länge, Radius, Scheitel x, y, außen x, y je Bogen,
+  /// Planungskern v12), 11: riegel ([float64] x, y von und bis je Riegel) }`.
   int schreibe(fb.Builder fbb) {
-    final stoesseOrt = fbb.writeListFloat64([
-      for (final s in stoesse) ...[s.von.x, s.von.y, s.bis.x, s.bis.y],
+    List<double> zahlen(List<Strecke> strecken) => [
+      for (final s in strecken) ...[s.von.x, s.von.y, s.bis.x, s.bis.y],
+    ];
+    final stoesseOrt = fbb.writeListFloat64(zahlen(stoesse));
+    final boegenOrt = fbb.writeListFloat64([
+      for (final b in boegen) ...[
+        b.seite.toDouble(),
+        b.laenge,
+        b.radius,
+        b.scheitel.x,
+        b.scheitel.y,
+        b.aussen.x,
+        b.aussen.y,
+      ],
     ]);
+    final riegelOrt = fbb.writeListFloat64(zahlen(riegel));
     final kette = achsen;
     final markenOrt = kette == null
         ? null
@@ -171,11 +242,13 @@ final class Planbild {
               for (final e in r.ecken) ...[e.x, e.y],
           ]);
     fbb
-      ..startTable(_rinnenPlatz + 1)
+      ..startTable(_riegelPlatz + 1)
       ..addOffset(_stoessePlatz, stoesseOrt)
       ..addOffset(_markenPlatz, markenOrt)
       ..addOffset(_normalePlatz, normaleOrt)
-      ..addOffset(_rinnenPlatz, rinnenOrt);
+      ..addOffset(_rinnenPlatz, rinnenOrt)
+      ..addOffset(_boegenPlatz, boegenOrt)
+      ..addOffset(_riegelPlatz, riegelOrt);
     return fbb.endTable();
   }
 
@@ -183,6 +256,10 @@ final class Planbild {
   static const _markenPlatz = 1;
   static const _normalePlatz = 2;
   static const _rinnenPlatz = 3;
+
+  /// Plätze mit Abstand, damit andere Branches 4 … 9 nutzen können.
+  static const _boegenPlatz = 10;
+  static const _riegelPlatz = 11;
 }
 
 /// Ein Dielenende und der Anfang der nächsten Diele derselben Reihe liegen

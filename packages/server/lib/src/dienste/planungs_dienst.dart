@@ -353,6 +353,9 @@ class PlanungsDienst {
           null => null,
         },
         rinnen: [for (final k in rinnen) Rinnenband.an(k)],
+        // Planungskern v12: „Bogen … · R …“ und Riegel am Bogen
+        boegen: bogenmasse(stand),
+        riegel: uk?.riegel ?? const [],
       ),
     );
   }

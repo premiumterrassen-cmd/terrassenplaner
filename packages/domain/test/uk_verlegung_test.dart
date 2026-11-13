@@ -32,6 +32,19 @@ Artikel _uk(int a, int b) => Artikel(
 );
 
 final _d60 = _diele(60, 21);
+
+/// F01 480 × 309 cm mit einem runden leeren Ausschnitt Ø 120 cm.
+final _rundesLoch = Planungsstand.start.mitNeuemAusschnitt().mitAusschnitt(
+  0,
+  Ausschnitt(
+    bezeichnung: 'A1',
+    form: Ausschnittform.kreis,
+    x: const Millimeter(1000),
+    y: const Millimeter(800),
+    laenge: const Millimeter(1200),
+    breite: const Millimeter(1200),
+  ),
+);
 final _uk4060 = _uk(40, 60);
 const _abstand = Millimeter(400);
 
@@ -522,36 +535,14 @@ void main() {
         kurz.linien[1].abschnitte.single.$2,
         closeTo(1.5 * 416 - 40, 1e-6),
       );
-      // Kreis: die Enden liegen auf dem Bogen, die Rand-UK auf Sehnen bis
-      // 5 mm daneben – auch dort endet die Linie vor der Rand-UK
+      // Kreis: am Bogen laufen die Linien bis an den Rand (Planungskern
+      // v12, Regel 14.2.1)
       final kreis = Planungsstand.start.mitGrundriss(KreisGrundriss.vorgabe);
-      final h = kreis.kontur.huellrechteck;
-      final (mx, my, r) = (
-        (h.min.x + h.max.x) / 2,
-        (h.min.y + h.max.y) / 2,
-        (h.max.x - h.min.x) / 2,
-      );
-      // flache Sehnen oben und unten haben keine Rand-UK (die Linien liegen
-      // dort schon), dort bleibt das Ende am Rand
-      final enden = <String>[];
       for (final l in _verlege(kreis).linien) {
-        final halb = math.sqrt(r * r - (l.x - mx) * (l.x - mx));
-        final (von, bis) = l.abschnitte.single;
-        for (final (ende, rand, richtung) in [
-          (von, my - halb, 1),
-          (bis, my + halb, -1),
-        ]) {
-          final kuerzer = (ende - rand) * richtung;
-          expect(
-            (kuerzer - 40).abs() < 1 || kuerzer.abs() < 1,
-            isTrue,
-            reason: 'x = ${l.x}: $kuerzer',
-          );
-          enden.add(kuerzer.abs() < 1 ? 'Rand' : 'vor Rand-UK');
-        }
+        final halb = math.sqrt(1800 * 1800 - (l.x - 1800) * (l.x - 1800));
+        expect(l.abschnitte.single.$1, closeTo(1800 - halb, 1));
+        expect(l.abschnitte.single.$2, closeTo(1800 + halb, 1));
       }
-      expect(enden.where((e) => e == 'vor Rand-UK'), hasLength(18));
-      expect(enden.where((e) => e == 'Rand'), hasLength(2));
     });
 
     test('lange Rand-UK gestückelt wie eine Linie (R-B10); ihre Stöße '
@@ -598,22 +589,22 @@ void main() {
       );
     });
 
-    test('Kreis: je Sehne eine Rand-UK (höchstens 5 mm vom Bogen); die '
-        'Selbstkontrolle ergänzt die flachen und meldet sie', () {
-      final v = _verlege(
-        Planungsstand.start.mitGrundriss(KreisGrundriss.vorgabe),
-      );
+    test('runder leerer Ausschnitt: je Sehne eine Rand-UK (höchstens 5 mm '
+        'vom Bogen); die Selbstkontrolle ergänzt die flachen und meldet '
+        'sie', () {
+      final v = _verlege(_rundesLoch);
       expect(randBogenToleranz, 5);
       final laengen = randlaengen(v);
-      expect(laengen.every((l) => l > 250 && l < 260), isTrue);
-      expect(v.rand.where((r) => !r.ergaenzt), hasLength(32));
+      expect(laengen.every((l) => l > 140 && l < 150), isTrue);
+      expect(v.rand.where((r) => !r.ergaenzt), hasLength(14));
       expect(v.ergaenzt, [
         for (final r in v.rand)
           if (r.ergaenzt) Millimeter(r.von.abstand(r.bis).round()),
       ]);
-      expect(v.ergaenzt, hasLength(6));
+      expect(v.ergaenzt, hasLength(4));
       // die ergänzten stehen nach denen der Regel
-      expect(v.rand.skip(32).every((r) => r.ergaenzt), isTrue);
+      expect(v.rand.skip(14).every((r) => r.ergaenzt), isTrue);
+      expect(v.riegel, isEmpty);
     });
   });
 
@@ -786,8 +777,13 @@ void main() {
         [Punkt.ursprung, Punkt(bis, 0), Punkt(bis, 60), const Punkt(0, 60)],
         breite: 65,
       );
-      UkRand rand(Punkt von, Punkt bis) =>
-          (von: von, bis: bis, stoesse: const [], ergaenzt: false);
+      UkRand rand(Punkt von, Punkt bis) => (
+        von: von,
+        bis: bis,
+        stoesse: const [],
+        ergaenzt: false,
+        aufLatte: keineLatte,
+      );
       UkLinie linie(double x) =>
           (x: x, abschnitte: const [(0.0, 3000.0)], stoesse: const []);
       int punkte(List<UkLinie> linien, List<UkRand> r, [double bis = 1000]) =>
@@ -999,7 +995,7 @@ void main() {
 
     test('ergänzte Rand-UK (Planungsregeln 3.4) für die Hinweise, Transport '
         'hin und zurück', () {
-      final kreis = Planungsstand.start.mitGrundriss(KreisGrundriss.vorgabe);
+      final kreis = _rundesLoch;
       final v = _verlege(kreis);
       final u = unterbauFuer(
         kreis,
@@ -1008,7 +1004,7 @@ void main() {
         verlegung: v,
       );
       expect(u.randErgaenzt, v.ergaenzt);
-      expect(u.randErgaenzt, hasLength(6));
+      expect(u.randErgaenzt, hasLength(4));
       expect(u.randErgaenzt.clear, throwsUnsupportedError);
       final z = Berechnung.ausBytes(
         Berechnung(umriss: const [], flaeche: 0, unterbau: u).zuBytes(),
@@ -1126,5 +1122,153 @@ void main() {
     // F20 (360 × 400 cm): 10 × 400 cm wie alt; die zwei Stücke à 353 cm
     // des alten Planers gehören zu keinem UK-Holz der Verlegung
     expect(_zuschnitt(_verlege(_rechteck(3600, 4000))), ['10 × 400.0: 400.0']);
+  });
+
+  group('UK am Bogen (Planungsregeln Alexander, Planungskern v12, Regel '
+      '14.2)', () {
+    final kreis = Planungsstand.start.mitGrundriss(KreisGrundriss.vorgabe);
+    const mitte = Punkt(1800, 1800);
+
+    /// Knick eines Rand-UK-Stücks: die Achse liegt eine halbe UK-Breite
+    /// (2 cm) innen, zur Mitte des Kreises hin.
+    (Punkt, Punkt) knicke(UkRand r, [Punkt m = mitte]) {
+      var n = (r.bis - r.von).einheit.links;
+      if ((m - (r.von + r.bis) * 0.5).punktprodukt(n) < 0) n = n * -1;
+      return (r.von - n * 20, r.bis - n * 20);
+    }
+
+    bool lattenende(UkVerlegung v, Punkt p) => v.linien.any(
+      (l) =>
+          (l.x - p.x).abs() < 1e-6 &&
+          l.abschnitte.any(
+            (a) => (a.$1 - p.y).abs() < 1 || (a.$2 - p.y).abs() < 1,
+          ),
+    );
+
+    test('Kreis R 1,80 m: Polygonzug mit Knicken an den Lattenenden, '
+        'höchstens 1,2 cm vom Bogen, ohne Stücke parallel zu den Dielen', () {
+      final v = _verlege(kreis);
+      expect(bogenKnickToleranz, 12);
+      expect(v.rand, hasLength(32));
+      expect(v.ergaenzt, isEmpty);
+      var aufLatte = 0;
+      for (final r in v.rand) {
+        final (a, c) = knicke(r);
+        expect(a.abstand(mitte), closeTo(1800, 0.2));
+        expect(c.abstand(mitte), closeTo(1800, 0.2));
+        // Stich des Stücks höchstens 1,2 cm
+        expect(((a + c) * 0.5).abstand(mitte), greaterThan(1800 - 12));
+        expect(a.abstand(c), greaterThanOrEqualTo(50));
+        expect((c.y - a.y).abs(), greaterThanOrEqualTo(10));
+        expect(lattenende(v, a), r.aufLatte.von, reason: '$a');
+        expect(lattenende(v, c), r.aufLatte.bis, reason: '$c');
+        if (r.aufLatte.von) aufLatte++;
+        if (r.aufLatte.bis) aufLatte++;
+        expect(r.stoesse, isEmpty);
+      }
+      // 20 Lattenenden mit je zwei Stücken – außer oben und unten an den
+      // beiden mittleren Latten (gleich hoch, das flache Stück dazwischen
+      // entfällt) und an den äußersten (das Stück zur Spitze liegt auf
+      // der Latte): 12 × 2 + 8 × 1
+      expect(aufLatte, 32);
+      // je ein Zwischenknick zwischen äußerster und zweiter Latte
+      expect(
+        v.rand.where((r) => !r.aufLatte.von && !r.aufLatte.bis),
+        hasLength(4),
+      );
+    });
+
+    test('Zwischenknicke bei großem Achsabstand zum Bogen; kleiner '
+        'Eckradius ohne Zwischenknick', () {
+      final seite = Planungsstand.start.mitRundungen(
+        Rundungen.keine.mitRadius(1, const Millimeter(2000)),
+      );
+      final v = _verlege(seite);
+      final bogen = seite.kontur.kanten.firstWhere((k) => k.istBogen);
+      final m = bogen.mittelpunkt;
+      expect(v.rand, hasLength(10));
+      expect(
+        v.rand.where((r) => !r.aufLatte.von && !r.aufLatte.bis),
+        hasLength(4),
+      );
+      for (final r in v.rand) {
+        final (a, c) = knicke(r, m);
+        expect(a.abstand(m), closeTo(2000, 0.2));
+        expect(((a + c) * 0.5).abstand(m), greaterThan(2000 - 12));
+        // ohne Zwischenknicke wären die Stücke an den Enden 45 cm lang
+        expect(a.abstand(c), lessThan(345));
+      }
+      // Ecke mit 5 mm Radius: ein Stück ohne Zwischenknick, zu kurz für
+      // eine Rand-UK
+      final ecke = _verlege(
+        Planungsstand.start.mitRundungen(
+          Rundungen.keine.mitEcke(1, const Millimeter(5)),
+        ),
+      );
+      expect(ecke.rand, isEmpty);
+      expect(ecke.riegel, isEmpty);
+    });
+
+    test('Riegel am Knick vom Ende der kürzeren Latte zur Nachbarlatte, '
+        'zwischen den Latten, mindestens 5 cm', () {
+      final v = _verlege(kreis);
+      final abstand = v.lagen[1] - v.lagen[0];
+      expect(v.riegel, hasLength(16));
+      for (final r in v.riegel) {
+        expect(r.von.y, r.bis.y);
+        expect(r.von.abstand(r.bis), closeTo(abstand - 40, 1e-6));
+        // beginnt am Lattenende neben der Latte, endet an der Nachbarlatte
+        final latte = v.linien.firstWhere((l) => (l.x - r.von.x).abs() == 20);
+        expect(lattenende(v, Punkt(latte.x, r.von.y)), isTrue);
+        final nachbar = v.linien.firstWhere(
+          (l) => (l.x - r.bis.x).abs() == 20 && l != latte,
+        );
+        expect((nachbar.x - latte.x).abs(), closeTo(abstand, 1e-6));
+        final (von, bis) = nachbar.abschnitte.single;
+        expect(r.von.y, inExclusiveRange(von + 30, bis - 30));
+      }
+      // Länge (Gummiband), Stückliste und Hölzer zählen die Riegel
+      double summe(Iterable<double> l) => l.fold(0.0, (a, b) => a + b);
+      expect(
+        v.laenge,
+        closeTo(
+          summe([
+            for (final l in v.linien)
+              for (final (a, b) in l.abschnitte) b - a,
+            for (final r in v.rand) r.von.abstand(r.bis),
+            for (final r in v.riegel) r.von.abstand(r.bis),
+          ]),
+          1e-6,
+        ),
+      );
+      expect(_liste(v), contains('16x356 blau'));
+      expect(v.hoelzer, hasLength(v.stuecke.length));
+      expect(v.riegel.clear, throwsUnsupportedError);
+      expect(UkVerlegung.keine.riegel, isEmpty);
+      // R 3,50 m mit Doppel-UK am Stoß: der Riegel zur nahen Latte ist 5 cm
+      final gross = _verlege(
+        Planungsstand.start.mitGrundriss(
+          KreisGrundriss(const Millimeter(3500)),
+        ),
+      );
+      final kurz = [
+        for (final r in gross.riegel)
+          if (r.von.abstand(r.bis) < 100) r.von.abstand(r.bis),
+      ];
+      expect(kurz, [50, 50]);
+    });
+
+    test('gedreht verlegt: Riegel und Rand-UK in Planungskoordinaten', () {
+      final quer = _verlege(
+        kreis.mitVerlegerichtung(Verlegerichtung.senkrecht),
+      );
+      expect(quer.riegel, hasLength(16));
+      for (final r in quer.riegel) {
+        expect(r.von.x, closeTo(r.bis.x, 1e-6));
+      }
+      for (final h in quer.hoelzer) {
+        expect(h.von.abstand(mitte), lessThanOrEqualTo(1800 + 1e-6));
+      }
+    });
   });
 }

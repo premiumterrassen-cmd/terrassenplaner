@@ -33,8 +33,12 @@ final class Zeichnung {
     List<String> namen = const [],
     List<(Offset, Offset)> stoesse = const [],
     this.achsen,
+    List<Bogenangabe> boegen = const [],
+    List<(Offset, Offset)> riegel = const [],
     List<Rinnenband> rinnen = const [],
   }) : umriss = List.unmodifiable(umriss),
+       boegen = List.unmodifiable(boegen),
+       riegel = List.unmodifiable(riegel),
        rinnen = List.unmodifiable(rinnen),
        namen = List.unmodifiable(namen),
        stoesse = List.unmodifiable(stoesse),
@@ -125,10 +129,27 @@ final class Zeichnung {
   /// die Richtung nach außen; `null` ohne.
   final ({List<Offset> marken, Offset normale})? achsen;
 
+  /// Bögen an Seiten (Planungskern v12, Regel 14.1.3): statt der Sehne
+  /// „Bogen … · R …“ außen am Scheitel.
+  final List<Bogenangabe> boegen;
+
+  /// Riegel am Bogen in mm (Regel 14.2.3), grün umrandet.
+  final List<(Offset, Offset)> riegel;
+
   /// Entwässerungsrinnen RELO V in mm (Planungskern v11, Regel 13.1.6,
   /// R-E07): Band innen an der Kante, Schlitze und Auflagerprofile.
   final List<Rinnenband> rinnen;
 }
+
+/// Bogen einer Seite in mm: Nummer der Seite, Bogenlänge, Radius, Scheitel
+/// und die Richtung aus der Fläche.
+typedef Bogenangabe = ({
+  int seite,
+  double laenge,
+  double radius,
+  Offset scheitel,
+  Offset aussen,
+});
 
 /// Ein Auflager der Zeichnung (M6-11, Planungskern v8 Regel 10.1): Ort in
 /// mm, Spalt unter der UK, Zeile der Höhenzuordnung (`null`: kein
@@ -226,6 +247,21 @@ class ZeichnungsMaler extends CustomPainter {
           farbe.withValues(alpha: holzDeckkraft),
           math.max(1, zeichnung.ukBreite * pixelJeMm * ansicht.zoom),
         ),
+  ];
+
+  /// Riegel am Bogen auf dem Bildschirm (Planungskern v12, Regel 14.2.3),
+  /// wenn die Ebene UK sichtbar ist: Rechteck in UK-Breite, grün umrandet.
+  List<Path> riegelpfade() => [
+    if (optionen.zeigt(Ebene.unterkonstruktion))
+      for (final (von, bis) in zeichnung.riegel)
+        if ((bis - von) / (bis - von).distance case final r)
+          if (Offset(-r.dy, r.dx) * (zeichnung.ukBreite / 2) case final q)
+            Path()..addPolygon([
+              bildschirm(von - q),
+              bildschirm(bis - q),
+              bildschirm(bis + q),
+              bildschirm(von + q),
+            ], true),
   ];
 
   /// Auflager auf dem Bildschirm (M6-11), wenn die Ebene UK sichtbar ist:
@@ -364,6 +400,9 @@ class ZeichnungsMaler extends CustomPainter {
   /// Strichbreite einer Seite nach ihrer Rolle.
   static double seitenstrich(Seitenrolle rolle) =>
       rolle == Seitenrolle.verblendung ? blendenBreite : seitenBreite;
+
+  /// Rand der Riegel am Bogen (Planungskern v12: „im Plan grün umrandet“).
+  static const riegelFarbe = Color(0xFF4CAF50);
 
   /// Farbe der Auflager ohne passendes Auflager: rot wie ganze Stücke.
   static final ohneFarbe = Color(Stueckfarbe.rot.argb);
@@ -508,12 +547,14 @@ class ZeichnungsMaler extends CustomPainter {
   }
 
   /// Alle Texte der eingeschalteten Beschriftungen und Maße: Seitenlängen
-  /// außen neben der Kante, Winkel innen in der Ecke, Punktnamen außen.
+  /// außen neben der Kante (am Bogen „Bogen … · R …“ am Scheitel), Winkel
+  /// innen in der Ecke (nicht an sehr kurzen Kanten), Punktnamen außen.
   List<Zeichentext> texte() {
     if (!zeichnung.geschlossen) return _offeneTexte();
     final punkte = zeichnung.ecken;
     final n = punkte.length;
     final schirm = [for (final p in punkte) bildschirm(p)];
+    final boegen = {for (final b in zeichnung.boegen) b.seite: b};
     return [
       if (optionen.beschriftet(Beschriftung.punkte))
         for (var i = 0; i < n; i++)
@@ -524,22 +565,34 @@ class ZeichnungsMaler extends CustomPainter {
           ),
       if (optionen.beschriftet(Beschriftung.seitenlaengen))
         for (var i = 0; i < n; i++)
-          (
-            text: zentimeter(
-              (punkte[_nachher(punkte, i)] - punkte[i]).distance,
+          if (boegen[i] case final b?)
+            (
+              text: sprache.bogenMass(meter(b.laenge), meter(b.radius)),
+              ort: bildschirm(b.scheitel) + b.aussen * beschriftungsAbstand,
+              richtung: b.aussen,
+            )
+          else
+            (
+              text: zentimeter(
+                (punkte[_nachher(punkte, i)] - punkte[i]).distance,
+              ),
+              ort:
+                  Offset.lerp(schirm[i], schirm[_nachher(punkte, i)], 0.5)! +
+                  aussen(punkte, i) * beschriftungsAbstand,
+              richtung: aussen(punkte, i),
             ),
-            ort:
-                Offset.lerp(schirm[i], schirm[_nachher(punkte, i)], 0.5)! +
-                aussen(punkte, i) * beschriftungsAbstand,
-            richtung: aussen(punkte, i),
-          ),
+      // keine Winkel an sehr kurzen Kanten (Planungskern v10, Regel 12.3)
       if (optionen.beschriftet(Beschriftung.winkel))
         for (var i = 0; i < n; i++)
-          (
-            text: '${innenwinkel(punkte, i).round()}°',
-            ort: schirm[i] + innen(punkte, i) * beschriftungsAbstand,
-            richtung: innen(punkte, i),
-          ),
+          if ((schirm[i] - schirm[_vorher(punkte, i)]).distance >=
+                  winkelAbKante &&
+              (schirm[_nachher(punkte, i)] - schirm[i]).distance >=
+                  winkelAbKante)
+            (
+              text: '${innenwinkel(punkte, i).round()}°',
+              ort: schirm[i] + innen(punkte, i) * beschriftungsAbstand,
+              richtung: innen(punkte, i),
+            ),
       if (optionen.beschriftet(Beschriftung.ablaeufe))
         for (final a in zeichnung.ablaeufe)
           (
@@ -632,6 +685,13 @@ class ZeichnungsMaler extends CustomPainter {
     punkte.map((p) => p.dx).reduce(math.max),
     punkte.map((p) => p.dy).reduce(math.max),
   );
+
+  /// Kanten unter so vielen Pixeln bekommen an ihren Ecken keinen Winkel
+  /// (Planungskern v10, Regel 12.3: Nischen, Laibungen).
+  static const winkelAbKante = 45.0;
+
+  /// Länge in mm als Meter mit zwei Stellen („3,53 m“).
+  String meter(double mm) => '${zahlText(sprache, mm / 1000, '0.00')} m';
 
   /// Länge in mm als Zentimeter, auf den Millimeter gerundet
   /// („480 cm“, „12,5 cm“ – auf Englisch „12.5 cm“).
@@ -755,6 +815,13 @@ class ZeichnungsMaler extends CustomPainter {
           ..color = farbe
           ..strokeWidth = breite,
       );
+    }
+    final riegel = Paint()
+      ..color = riegelFarbe
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+    for (final pfad in riegelpfade()) {
+      canvas.drawPath(pfad, riegel);
     }
     final profil = Paint()
       ..color = auflagerprofilFarbe

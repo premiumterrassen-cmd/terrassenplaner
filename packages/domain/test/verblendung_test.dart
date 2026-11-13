@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import 'package:test/test.dart';
@@ -106,6 +108,7 @@ int _anzahl(Anschlussbedarf b, Artikel a, int laenge) => b.bedarf
 
 void main() {
   _seitenblendeJeKante();
+  _blendeAmBogen();
   group('Verblendete Seiten im Planungsstand (M7-02)', () {
     const f01 = Planungsstand.start;
 
@@ -194,7 +197,7 @@ void main() {
       }
       expect(
         [for (final m in Anschlussmeldung.values) m.nummer],
-        [1, 2, 5, 6, 7, 8, 9, 10, 11],
+        [1, 2, 5, 6, 7, 8, 9, 10, 11, 20, 21],
       );
       expect(() => Anschlussmeldung.ausNummer(0), throwsFormatException);
       final fbb = fb.Builder()..startTable(1);
@@ -417,8 +420,8 @@ void main() {
       expect(b.bedarf, hasLength(1), reason: 'ohne Träger keine Schrauben');
     });
 
-    test('Kreis: Umfang ohne Gehrung, Träger ohne Endstück, kleinste '
-        'Höhe', () {
+    test('Kreis (Planungskern v12, Regel 14.3): ganz Bogen – senkrechte '
+        'Stücke, keine Träger, kleinste Höhe', () {
       final kreis = Planungsstand.start
           .mitForm(Terrassenform.kreis)
           .mitVerblendet(0, an: true);
@@ -429,12 +432,24 @@ void main() {
         regelwerk: _serie,
         uk: _uk,
       );
-      // Umfang 2π · 180 cm = 1131 cm → 6000 + 6000 mm (lange Reihe)
-      expect(_anzahl(b, _b80, 6000), 2);
-      expect(b.stuecke, hasLength(29));
-      expect(b.meldungen, [Anschlussmeldung.unterlueftung]);
+      // Umfang 2π · 180 cm = 1131 cm → 114 Stücke à 8,6 cm; je 4 m 44,
+      // je 6 m 65 Stücke: 3 × 4000 oder 2 × 6000 mm – gleich viel Holz,
+      // die kürzere Länge
+      expect(_anzahl(b, _b100, 4000), 3);
+      expect(_anzahl(b, _b100, 6000), 0);
+      expect(b.stuecke, isEmpty);
+      expect(b.blenden, hasLength(114));
+      expect(b.meldungen, [
+        Anschlussmeldung.unterlueftung,
+        Anschlussmeldung.bogenblende,
+      ]);
       expect(blendenstrecken(kreis, const [Millimeter(200), Millimeter(86)]), [
-        (laenge: kreis.kontur.umfang, hoehe: const Millimeter(86), ecke: false),
+        (
+          laenge: kreis.kontur.umfang,
+          hoehe: const Millimeter(86),
+          ecke: false,
+          bogen: true,
+        ),
       ]);
       expect(
         blendenstrecken(kreis.mitVerblendet(0, an: false), const [
@@ -818,6 +833,199 @@ void _seitenblendeJeKante() {
         regelwerk: _serie,
       );
       expect(flach.meldungen, [Anschlussmeldung.keinHoehenunterschied]);
+    });
+  });
+}
+
+void _blendeAmBogen() {
+  group('Blende am Bogen (Planungsregeln Alexander, Planungskern v12, '
+      'Regel 14.3)', () {
+    // F01 mit Bogen R 2,00 m an B — C: Sehne 309 cm, Bogen 353 cm
+    final bogen = Planungsstand.start
+        .mitRundungen(Rundungen.keine.mitRadius(1, const Millimeter(2000)))
+        .mitVerblendet(1, an: true);
+    final laenge = 2000 * 2 * math.asin(1545 / 2000);
+
+    int schrauben(Anschlussbedarf b) => b.bedarf
+        .where((m) => m.einheiten.first.art == Artikelart.schraube)
+        .fold(0, (s, m) => s + m.stueck);
+
+    test('Stücke = Bogenlänge ÷ 100 mm, Länge = Blendenhöhe, aus einer '
+        'Lieferlänge, 2 Schrauben je Stück, keine Träger', () {
+      expect(bogenblendeBreite, const Millimeter(100));
+      final strecke = blendenstrecken(bogen, _vier).single;
+      expect(strecke.laenge, closeTo(laenge, 1e-6));
+      expect(strecke.bogen, isTrue);
+      expect(strecke.ecke, isFalse);
+      expect(strecke.hoehe, const Millimeter(86));
+      final b = verblendungsbedarf(
+        bogen,
+        hoehen: _vier,
+        belag: _belag,
+        regelwerk: _serie,
+        uk: _uk,
+      );
+      // 353 cm → 36 Stücke à 8,6 cm; 44 passen in 4 m
+      expect(b.blenden, [
+        for (var i = 0; i < 36; i++) (_b100, const Millimeter(86)),
+      ]);
+      expect(_anzahl(b, _b100, 4000), 1);
+      expect(
+        b.bedarf.where((m) => m.einheiten.first == _b100).single.zusatz,
+        Materialzusatz.verblendung,
+      );
+      expect(b.stuecke, isEmpty);
+      expect(schrauben(b), 72);
+      expect(bogenblendeSchrauben, 2);
+      expect(b.meldungen, [Anschlussmeldung.bogenblende]);
+      // ohne Regelwerk keine Schrauben
+      expect(
+        schrauben(
+          verblendungsbedarf(
+            bogen,
+            hoehen: _vier,
+            belag: _belag,
+            regelwerk: Regelwerk(
+              Artikeldatei(
+                quelle: 'test',
+                version: '1',
+                eintraege: [
+                  Artikeleintrag(artikel: _belag),
+                  Artikeleintrag(artikel: _b100),
+                ],
+              ),
+            ),
+          ),
+        ),
+        0,
+      );
+    });
+
+    test('Zuschnitt mit 5 mm Sägeschnitt: die Lieferlänge mit dem '
+        'wenigsten Holz; über 30 cm Hinweis Riegel', () {
+      expect(bogenblendeSaegeschnitt, const Millimeter(5));
+      expect(bogenblendeRiegelUeber, const Millimeter(300));
+      Anschlussbedarf hoch(int mm) => verblendungsbedarf(
+        bogen.mitBlendenhoehe(1, Millimeter(mm)),
+        hoehen: _vier,
+        belag: _belag,
+        regelwerk: _serie,
+      );
+      // 40 cm: je 4 m 9 Stücke (4 Bretter = 16 m), je 5 m 12 (3 = 15 m),
+      // je 6 m 14 (3 = 18 m)
+      final b = hoch(400);
+      expect(_anzahl(b, _b100, 4000), 0);
+      expect(_anzahl(b, _b100, 5000), 3);
+      expect(_anzahl(b, _b100, 6000), 0);
+      expect(b.meldungen, [
+        Anschlussmeldung.bogenblende,
+        Anschlussmeldung.bogenblendeRiegel,
+      ]);
+      // 30 cm genau: kein Riegel; 4000 + 5 = 13 × 305 + 40 → 13 je 4 m
+      final grenze = hoch(300);
+      expect(grenze.meldungen, [Anschlussmeldung.bogenblende]);
+      expect(_anzahl(grenze, _b100, 4000), 3);
+      // 4000 + 5 = 9 × 445: genau 9 Stücke je 4 m (4 Bretter = 16 m); ein
+      // mm mehr nur 8 (20 m), dann 3 × 6000 mm (13 je Brett)
+      expect(_anzahl(hoch(440), _b100, 4000), 4);
+      expect(_anzahl(hoch(441), _b100, 4000), 0);
+      expect(_anzahl(hoch(441), _b100, 6000), 3);
+      // Vorgabe Dielenlänge höchstens 5 m (R-B19): 6 m entfällt, 4 m
+      // (5 × 8 Stücke) und 5 m (4 × 11) gleich viel Holz – die kürzere
+      final kurz = verblendungsbedarf(
+        bogen
+            .mitBlendenhoehe(1, const Millimeter(441))
+            .mitDielenlaengeHoechstens(const Millimeter(5000)),
+        hoehen: _vier,
+        belag: _belag,
+        regelwerk: _serie,
+      );
+      expect(_anzahl(kurz, _b100, 6000), 0);
+      expect(_anzahl(kurz, _b100, 4000), 5);
+    });
+
+    test('kein Brett in 100 mm: Rückfrage', () {
+      final ohne = verblendungsbedarf(
+        bogen,
+        hoehen: _vier,
+        belag: _belag,
+        regelwerk: _regelwerk(_belag, [_b80, _b60], _schrauben),
+        uk: _uk,
+      );
+      expect(ohne.meldungen, [Anschlussmeldung.blendeFehlt]);
+      expect(ohne.bedarf, isEmpty);
+      expect(bogenbrett([_b80, _b60]), isNull);
+      expect(bogenbrett([_b80, _b100]), _b100);
+    });
+
+    test('Teilverblendung längs des Bogens; gerade Seiten wie bisher', () {
+      final teil = bogen.mitVerblendet(2, an: true).mitBlendenteilen(1, const [
+        (von: Millimeter(0), bis: Millimeter(1000)),
+        (von: Millimeter(3000), bis: Millimeter(5000)),
+        (von: Millimeter(4000), bis: Millimeter(5000)),
+        (von: Millimeter(2000), bis: Millimeter(2001)),
+      ]);
+      final strecken = blendenstrecken(teil, _vier);
+      expect([for (final s in strecken) s.bogen], [true, true, true, false]);
+      // nach dem Anfang sortiert; 1 mm bleibt (ein Stück), leere Teile
+      // fallen weg
+      expect(strecken[0].laenge, 1000);
+      expect(strecken[1].laenge, 1);
+      expect(strecken[2].laenge, closeTo(laenge - 3000, 1e-6));
+      expect(strecken[3].laenge, 4800);
+      final b = verblendungsbedarf(
+        teil,
+        hoehen: _vier,
+        belag: _belag,
+        regelwerk: _serie,
+        uk: _uk,
+      );
+      // 10 + 6 + 1 Stücke am Bogen, C — D gerade mit Trägern
+      expect(b.blenden.where((x) => x.$1 == _b100), hasLength(17));
+      expect(b.stuecke, hasLength(13));
+      expect(schrauben(b), 2 * 17 + 2 * 13);
+      // gelb: der Bogen als Sehnenzug je Teil, die gerade Seite einmal
+      final e = anschlussergebnis(teil);
+      final amBogen = [
+        for (final s in e.seiten)
+          if (s.seite == 1) s,
+      ];
+      final b0 = bogen.rundungen.seitenboegen(bogen.grundriss)[1]!;
+      final m = b0.mittelpunkt;
+      for (final s in amBogen) {
+        expect(s.von.abstand(m), closeTo(2000, 1e-6));
+        expect(s.bis.abstand(m), closeTo(2000, 1e-6));
+        expect(s.von.abstand(s.bis), lessThan(50));
+      }
+      expect(amBogen.first.von.gleich(const Punkt(4800, 0)), isTrue);
+      final laengen = amBogen.fold(0.0, (a, s) => a + s.von.abstand(s.bis));
+      expect(laengen, closeTo(1000 + laenge - 3000 + 1, 0.5));
+      expect(e.seiten.where((s) => s.seite == 2), hasLength(1));
+      expect(
+        bogenzug(b0, 0, laenge).last.gleich(const Punkt(4800, 3090)),
+        isTrue,
+      );
+    });
+
+    test('Höhe ohne Angabe: die niedrigste Stelle auf dem Bogen', () {
+      // A = D = 20, B = C = 10 cm: der Bogen rechts liegt tiefer als B/C
+      final strecke = blendenstrecken(bogen, const [
+        Millimeter(200),
+        Millimeter(100),
+        Millimeter(100),
+        Millimeter(200),
+      ]).single;
+      expect(strecke.hoehe.mm, lessThan(100));
+      expect(
+        punktAufBogen(
+          bogen.rundungen.seitenboegen(bogen.grundriss)[1]!,
+          laenge / 2,
+        ).gleich(
+          Punkt(4800 + 2000 - math.sqrt(2000 * 2000 - 1545 * 1545), 1545),
+          1e-6,
+        ),
+        isTrue,
+      );
     });
   });
 }

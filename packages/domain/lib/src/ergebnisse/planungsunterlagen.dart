@@ -336,6 +336,7 @@ List<Kapitel> _flaeche(
         ?_einheitlicheHoehe(t, b),
         _ukPlan(t, b, flaeche.stand),
         if (b.planbild.achsen != null) Absatz(t.achsmassHinweis),
+        if (b.planbild.riegel.isNotEmpty) Absatz(t.riegelHinweis),
         if (b.planbild.rinnen.isNotEmpty) Absatz(t.rinnenUkHinweis),
         if (unterbau.auflagerpunkte.isNotEmpty) ...[
           Absatz(t.ukHoehenHinweis),
@@ -426,10 +427,14 @@ String _eckname(Berechnung b, int i) {
 }
 
 /// Grundriss nur für eine Fläche ohne Verlegeplan und UK-Plan (R-E04).
-Plan _grundriss(Unterlagentexte t, Berechnung b) => Plan([
-  Planlinie(b.umriss, argb: _schwarz, geschlossen: b.geschlossen, staerke: 1),
-  for (final a in b.ausschnitte) Planlinie(a, argb: _grau),
-], umrissbeschriftung(t, b));
+Plan _grundriss(Unterlagentexte t, Berechnung b) => Plan(
+  [
+    Planlinie(b.umriss, argb: _schwarz, geschlossen: b.geschlossen, staerke: 1),
+    for (final a in b.ausschnitte) Planlinie(a, argb: _grau),
+  ],
+  umrissbeschriftung(t, b),
+  bogenbeschriftungen(t, b),
+);
 
 /// Abstand der Beschriftungen außen vom Umriss als Anteil der größten
 /// Ausdehnung, damit er in jedem Maßstab gleich aussieht.
@@ -437,7 +442,8 @@ const beschriftungsanteil = 0.04;
 
 /// Eckbuchstaben und Kantenmaße außen am Umriss (Planungskern Regel 6.2,
 /// R-E03): Buchstaben auf der Winkelhalbierenden vor der Ecke, Kantenmaße
-/// in m vor der Mitte jeder Kante.
+/// in m vor der Mitte jeder Kante – an einer Seite mit Bogen keines, dort
+/// steht `bogenbeschriftungen` (Planungskern v12, Regel 14.1.3).
 List<Planbeschriftung> umrissbeschriftung(Unterlagentexte t, Berechnung b) {
   final ecken = b.ecken;
   if (ecken.length < 2) return const [];
@@ -445,16 +451,33 @@ List<Planbeschriftung> umrissbeschriftung(Unterlagentexte t, Berechnung b) {
   final n = ecken.length;
   final normalen = _kantennormalen(b);
   final richtungen = _eckrichtungen(b, normalen);
+  final boegen = {for (final g in b.planbild.boegen) g.seite};
   return [
     for (var i = 0; i < n; i++)
       (ort: ecken[i] + richtungen[i] * a, text: _eckname(b, i)),
     for (var i = 0; i < normalen.length; i++)
-      (
-        ort: (ecken[i] + ecken[(i + 1) % n]) * 0.5 + normalen[i] * a,
-        text: '${t.zahl(ecken[i].abstand(ecken[(i + 1) % n]) / 1000, 2)} m',
-      ),
+      if (!boegen.contains(i))
+        (
+          ort: (ecken[i] + ecken[(i + 1) % n]) * 0.5 + normalen[i] * a,
+          text: '${t.zahl(ecken[i].abstand(ecken[(i + 1) % n]) / 1000, 2)} m',
+        ),
   ];
 }
+
+/// „Bogen ‹Länge› m · R ‹Radius› m“ je Bogen von [b] außen am Scheitel
+/// statt der Sehne (Planungskern v12, Regel 14.1.3): als Nebentext mit der
+/// Platzsuche der Pläne (Regel 12.1) – das Feld liegt ganz außerhalb, einen
+/// halben Beschriftungsabstand vom Scheitel. Steht in jedem Plan vor den
+/// übrigen Nebentexten, damit es seinen Platz zuerst bekommt.
+List<Nebentext> bogenbeschriftungen(Unterlagentexte t, Berechnung b) => [
+  for (final g in b.planbild.boegen)
+    (
+      ort: g.scheitel,
+      richtung: g.aussen,
+      abstand: _beschriftungsabstand(b.umriss) / 2,
+      text: t.bogen(g.laenge, g.radius),
+    ),
+];
 
 /// Normale je Kante der Ecken von [b] (ein offener Linienzug hat eine
 /// Kante weniger als Ecken).
@@ -580,6 +603,9 @@ Plan _ukPlan(Unterlagentexte t, Berechnung b, Planungsstand stand) {
           geschlossen: false,
           staerke: 1.5,
         ),
+      // Riegel am Bogen grün umrandet (Planungskern v12, Regel 14.2.3)
+      for (final r in b.planbild.riegel)
+        Planlinie(_balken(r.von, r.bis, halb), argb: Stueckfarbe.gruen.argb),
       for (final r in b.planbild.rinnen)
         for (final s in r.auflagerprofile)
           Planlinie(
@@ -602,6 +628,7 @@ Plan _ukPlan(Unterlagentexte t, Berechnung b, Planungsstand stand) {
       ...?kette?.texte,
     ],
     [
+      ...bogenbeschriftungen(t, b),
       for (final p in u.auflagerpunkte)
         if (p.spalt.mm >= 0) _fusshoehe(t, p, u.hoelzer, halb + 5),
       ...stufen.texte,
@@ -836,7 +863,7 @@ Plan _belagPlan(Unterlagentexte t, Berechnung b) => Plan(
       (ort: _mitte(d), text: '${b.nummern[i]}'),
     ...umrissbeschriftung(t, b),
   ],
-  _rinnenetiketten(t, b),
+  [...bogenbeschriftungen(t, b), ..._rinnenetiketten(t, b)],
 );
 
 Punkt _mitte(List<Punkt> punkte) =>
@@ -988,6 +1015,7 @@ List<String> _meldungen(
       ),
     for (final l in u.randErgaenzt) t.randUkErgaenzt(l),
     for (final m in b.anschluss.meldungen) ?t.rinnenmeldung(m),
+    for (final m in b.anschluss.meldungen) ?t.anschlusshinweis(m),
     for (final (i, treppe) in b.anschluss.treppen.indexed)
       for (final m in treppe.meldungen) t.treppenmeldung(i + 1, m),
   ];

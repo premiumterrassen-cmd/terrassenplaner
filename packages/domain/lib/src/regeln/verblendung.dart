@@ -44,6 +44,21 @@ const blendentraegerBodenabstand = Millimeter(20);
 /// Schrauben je Träger (4a.6).
 const blendentraegerSchrauben = 2;
 
+/// Breite des Bretts für die Blende am Bogen (Planungsregeln Alexander
+/// (Planungskern v12, 12.11.2026), Regel 14.3.2).
+const bogenblendeBreite = Millimeter(100);
+
+/// Sägeschnitt zwischen zwei Stücken der Blende am Bogen (14.3.3).
+const bogenblendeSaegeschnitt = Millimeter(5);
+
+/// Schrauben je Stück der Blende am Bogen (14.3.4: 2 × ELITA2 in die
+/// Rand-UK).
+const bogenblendeSchrauben = 2;
+
+/// Über dieser Höhe wird ein Stück der Blende am Bogen unten zusätzlich an
+/// einem Riegel befestigt (14.3.5, nicht in der Stückliste).
+const bogenblendeRiegelUeber = Millimeter(300);
+
 /// Mögliche Blenden zum [belag] aus [artikel] (4a.1): Dielen derselben
 /// Holzart und Serie, glattkant, in der Stärke des Belags, mit Breite.
 List<Artikel> blendenZumBelag(Artikel belag, Iterable<Artikel> artikel) => [
@@ -116,9 +131,15 @@ final class Anschlussbedarf {
   );
 }
 
-/// Eine verblendete Strecke: Länge in mm, die Höhe der Blende dort und ob
-/// sie an einer Ecke der Seite beginnt oder endet (dort Gehrung, 4a.5).
-typedef Blendenstrecke = ({double laenge, Millimeter hoehe, bool ecke});
+/// Eine verblendete Strecke: Länge in mm, die Höhe der Blende dort, ob
+/// sie an einer Ecke der Seite beginnt oder endet (dort Gehrung, 4a.5) und
+/// ob sie auf einem Bogen liegt (dann senkrechte Stücke, Regel 14.3).
+typedef Blendenstrecke = ({
+  double laenge,
+  Millimeter hoehe,
+  bool ecke,
+  bool bogen,
+});
 
 /// Verblendete Strecken der Fläche (Planungsregeln Alexander
 /// (Planungskern v7, 12.11.2026), Regel 9.4, R-D30): je verblendeter Seite
@@ -129,6 +150,11 @@ typedef Blendenstrecke = ({double laenge, Millimeter hoehe, bool ecke});
 /// wirksamen Höhenreferenzpunkte) – dort darf die Blende nicht auf dem
 /// Boden aufstehen (4a.2), an höheren Stellen bleibt unten Luft. Beim Kreis
 /// („Fläche verblenden“) der Umfang und die kleinste Höhe.
+///
+/// Am Bogen einer Seite (Planungskern v12, Regel 14.3,
+/// `Rundungen.seitenboegen`) zählt die Bogenlänge – Teilstücke längs des
+/// Bogens ab seinem Anfang –, die Höhe ist die niedrigste Stelle auf dem
+/// Bogen; der Kreis ist ganz Bogen.
 List<Blendenstrecke> blendenstrecken(
   Planungsstand stand,
   List<Millimeter> hoehen,
@@ -141,6 +167,7 @@ List<Blendenstrecke> blendenstrecken(
           laenge: stand.kontur.umfang,
           hoehe: anschluss.blendenhoeheAn(0) ?? hoehen.reduce(_niedriger),
           ecke: false,
+          bogen: true,
         ),
     ];
   }
@@ -149,27 +176,48 @@ List<Blendenstrecke> blendenstrecken(
     if (hoehen.length > ecken.length)
       for (final p in stand.wirksameHoehenpunkte) stand.ortVon(p),
   ]);
+  final boegen = stand.rundungen.seitenboegen(stand.grundriss);
   return [
     for (final seite in anschluss.verblendet)
-      for (final (:von, :bis, :ecke) in blendenstuecke(stand, seite))
-        (
-          laenge: von.abstand(bis),
-          hoehe: anschluss.blendenhoeheAn(seite) ?? _tiefste(flaeche, von, bis),
-          ecke: ecke,
-        ),
+      if (boegen[seite] case final bogen?)
+        for (final (von, bis) in bogenteile(stand, seite, bogen.laenge))
+          (
+            laenge: bis - von,
+            hoehe:
+                anschluss.blendenhoeheAn(seite) ??
+                _tiefste(flaeche, [
+                  for (final t in _abtastung(bis - von))
+                    punktAufBogen(bogen, von + (bis - von) * t),
+                ]),
+            ecke: false,
+            bogen: true,
+          )
+      else
+        for (final (:von, :bis, :ecke) in blendenstuecke(stand, seite))
+          (
+            laenge: von.abstand(bis),
+            hoehe:
+                anschluss.blendenhoeheAn(seite) ??
+                _tiefste(flaeche, [
+                  for (final t in _abtastung(von.abstand(bis)))
+                    von + (bis - von) * t,
+                ]),
+            ecke: ecke,
+            bogen: false,
+          ),
   ];
 }
 
-/// Niedrigste Höhe der [flaeche] auf der Strecke [von]–[bis], abgetastet
-/// alle [blendeAbtastung].
-Millimeter _tiefste(Hoehenflaeche flaeche, Punkt von, Punkt bis) {
-  final n = math.max(1, (von.abstand(bis) / blendeAbtastung.mm).ceil());
-  var tiefste = flaeche.bei(von);
-  for (var k = 1; k <= n; k++) {
-    tiefste = _niedriger(tiefste, flaeche.bei(von + (bis - von) * (k / n)));
-  }
-  return tiefste;
+/// Anteile 0 … 1 einer Strecke der Länge [laenge], abgetastet alle
+/// [blendeAbtastung].
+List<double> _abtastung(double laenge) {
+  final n = math.max(1, (laenge / blendeAbtastung.mm).ceil());
+  return [for (var k = 0; k <= n; k++) k / n];
 }
+
+/// Niedrigste Höhe der [flaeche] an den [punkte]n.
+Millimeter _tiefste(Hoehenflaeche flaeche, List<Punkt> punkte) =>
+    punkte.map(flaeche.bei).reduce(_niedriger);
 
 /// Abstand, in dem die Höhe längs einer Blende abgetastet wird.
 const blendeAbtastung = Millimeter(100);
@@ -212,9 +260,19 @@ bool ohneUnterlueftung(Planungsstand stand) {
 /// - **Schrauben** (4a.6): 2 je Träger, aus dem Befestigungsverweis der
 ///   ersten Blende (glattkant: Terrassenschrauben).
 ///
+/// - **Blende am Bogen** (Planungsregeln Alexander (Planungskern v12,
+///   12.11.2026), Regel 14.3): kurze senkrechte Stücke aus dem
+///   glattkanten Brett der Serie in 100 mm (`bogenbrett`), Anzahl =
+///   Bogenlänge ÷ Brettbreite aufgerundet, Länge = Blendenhöhe; Zuschnitt
+///   je Lieferlänge mit 5 mm Sägeschnitt, die Lieferlänge mit dem wenigsten
+///   Holz (`_bogenblende`); je Stück 2 Schrauben aus dem
+///   Befestigungsverweis des Bretts in die Rand-UK, keine Träger.
+///
 /// Meldungen: Unterlüftung (alle freien Seiten verblendet), kein
-/// Höhenunterschied (Höhe ≤ Dielenstärke) und Rückfrage, wenn die Serie
-/// die nötige Blende nicht hat (4a.4) – an dieser Seite dann kein Material.
+/// Höhenunterschied (Höhe ≤ Dielenstärke), Rückfrage, wenn die Serie
+/// die nötige Blende nicht hat (4a.4) – an dieser Seite dann kein Material
+/// –, und am Bogen die Hinweise 14.3.5 (Luft unten, Hirnholz; über 30 cm
+/// unten an einem Riegel befestigen).
 Anschlussbedarf verblendungsbedarf(
   Planungsstand stand, {
   required List<Millimeter> hoehen,
@@ -243,8 +301,23 @@ Anschlussbedarf verblendungsbedarf(
   );
   final reihen = <Artikel, List<Millimeter>>{};
   final traeger = <Planstueck>[];
+  final stuecke = <(Artikel, Millimeter), int>{};
   var fehlt = false;
   for (final s in strecken) {
+    if (s.bogen) {
+      final brett = bogenbrett(blenden);
+      if (brett == null) {
+        fehlt = true;
+        continue;
+      }
+      final anzahl = (s.laenge / brett.abmessungen.breite!.mm - 1e-9).ceil();
+      stuecke.update(
+        (brett, s.hoehe),
+        (n) => n + anzahl,
+        ifAbsent: () => anzahl,
+      );
+      continue;
+    }
     final auswahl = blendenreihen(s.hoehe, blenden);
     if (auswahl == null) {
       fehlt = true;
@@ -259,19 +332,80 @@ Anschlussbedarf verblendungsbedarf(
     if (uk != null) traeger.addAll(_traeger(stand, s, uk, staerke));
   }
   if (fehlt) meldungen.add(Anschlussmeldung.blendeFehlt);
+  if (stuecke.isNotEmpty) meldungen.add(Anschlussmeldung.bogenblende);
+  if (stuecke.keys.any((k) => k.$2 > bogenblendeRiegelUeber)) {
+    meldungen.add(Anschlussmeldung.bogenblendeRiegel);
+  }
+  final anBogen = stuecke.values.fold(0, (a, n) => a + n);
   return Anschlussbedarf(
     stuecke: traeger,
     bedarf: [
       for (final MapEntry(key: blende, value: stuecke) in reihen.entries)
         ..._blenden(stand, blende, stuecke),
+      for (final MapEntry(key: (brett, hoehe), value: anzahl)
+          in stuecke.entries)
+        ?_bogenblende(stand, brett, hoehe, anzahl),
       if (regelwerk != null && traeger.isNotEmpty)
-        ..._schrauben(regelwerk, reihen.keys.first, traeger.length),
+        ..._schrauben(
+          regelwerk,
+          reihen.keys.first,
+          traeger.length * blendentraegerSchrauben,
+        ),
+      if (regelwerk != null && anBogen > 0)
+        ..._schrauben(
+          regelwerk,
+          stuecke.keys.first.$1,
+          anBogen * bogenblendeSchrauben,
+        ),
     ],
     meldungen: meldungen,
     blenden: [
       for (final MapEntry(key: blende, value: stuecke) in reihen.entries)
         for (final laenge in stuecke) (blende, laenge),
+      for (final MapEntry(key: (brett, hoehe), value: anzahl)
+          in stuecke.entries)
+        for (var i = 0; i < anzahl; i++) (brett, hoehe),
     ],
+  );
+}
+
+/// Brett für die Blende am Bogen aus den [blenden] (Regel 14.3.2):
+/// glattkant der Serie in [bogenblendeBreite]; `null`, wenn die Serie es
+/// nicht hat (Rückfrage wie 4a.4).
+Artikel? bogenbrett(List<Artikel> blenden) =>
+    blenden.where((b) => b.abmessungen.breite == bogenblendeBreite).firstOrNull;
+
+/// Zuschnitt der [anzahl] Stücke à [hoehe] der Blende am Bogen aus dem
+/// [brett] (Regel 14.3.3): je Lieferlänge so viele Stücke, wie mit
+/// [bogenblendeSaegeschnitt] dazwischen hineinpassen (nur Lieferlängen der
+/// Vorgabe Dielenlänge, R-B19, wie die gerade Blende); genommen wird die
+/// Lieferlänge mit dem wenigsten Holz (bei gleich viel die kürzere).
+/// `null`, wenn kein Stück in eine Lieferlänge passt (Holzartikel haben
+/// immer die UK-Längen ihrer Serie, die Blendenhöhe ist höchstens 3 m).
+Materialbedarf? _bogenblende(
+  Planungsstand stand,
+  Artikel brett,
+  Millimeter hoehe,
+  int anzahl,
+) {
+  ({Millimeter laenge, int bretter})? beste;
+  for (final laenge in stand.vorgabelaengen(brett, ukLieferlaengen(brett))) {
+    final jeBrett =
+        (laenge.mm + bogenblendeSaegeschnitt.mm) ~/
+        (hoehe.mm + bogenblendeSaegeschnitt.mm);
+    if (jeBrett == 0) continue;
+    final bretter = (anzahl / jeBrett).ceil();
+    if (beste == null ||
+        bretter * laenge.mm < beste.bretter * beste.laenge.mm) {
+      beste = (laenge: laenge, bretter: bretter);
+    }
+  }
+  if (beste == null) return null;
+  return Materialbedarf(
+    [brett],
+    beste.bretter,
+    laenge: beste.laenge,
+    zusatz: Materialzusatz.verblendung,
   );
 }
 
@@ -321,14 +455,14 @@ List<Planstueck> _traeger(
   ];
 }
 
-/// Schrauben für [traeger] Träger (4a.6: 2 je Träger) aus dem
-/// Befestigungsverweis der [blende]: die erste Schraube in
+/// [anzahl] Schrauben (4a.6: 2 je Träger; 14.3.4: 2 je Stück am Bogen)
+/// aus dem Befestigungsverweis der [blende]: die erste Schraube in
 /// Datenreihenfolge mit allen Verpackungseinheiten ihrer Länge; ohne
 /// Schraube kein Bedarf.
 List<Materialbedarf> _schrauben(
   Regelwerk regelwerk,
   Artikel blende,
-  int traeger,
+  int anzahl,
 ) {
   final schrauben = [
     for (final a in regelwerk.moeglich(blende.nummer, Beziehung.befestigung))
@@ -340,6 +474,6 @@ List<Materialbedarf> _schrauben(
     Materialbedarf([
       for (final s in schrauben)
         if (s.abmessungen.laengste == laenge) s,
-    ], traeger * blendentraegerSchrauben),
+    ], anzahl),
   ];
 }

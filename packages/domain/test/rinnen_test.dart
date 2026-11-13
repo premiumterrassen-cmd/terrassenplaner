@@ -241,6 +241,12 @@ void main() {
       );
       expect(rinneMoeglich(bogen, 0), isFalse);
       expect(rinneMoeglich(bogen, 1), isTrue);
+      // Bogen mit Radius (Planungskern v12) ebenso nicht
+      final radius = s.mitRundungen(
+        Rundungen.keine.mitRadius(0, const Millimeter(5000)),
+      );
+      expect(rinneMoeglich(radius, 0), isFalse);
+      expect(rinneMoeglich(radius, 1), isTrue);
       expect(rinneMoeglich(s.mitGrundriss(KreisGrundriss.vorgabe), 0), isFalse);
     });
 
@@ -307,6 +313,37 @@ void main() {
         Rundungen.keine.mitSeite(0, const Millimeter(100)),
       );
       expect(rinnenstand(bogen, _belag, _regelwerk([_v])), same(bogen));
+    });
+
+    test('Rinne neben einem Bogen (Planungskern v12, Kern v23): die Ecke '
+        'rutscht auf demselben Kreis, der Bogen bleibt auf ihm', () {
+      for (final (rundungen, innen) in [
+        (Rundungen.keine.mitRadius(1, const Millimeter(2000)), false),
+        (
+          Rundungen.keine.mitRadius(1, const Millimeter(2000), innen: true),
+          true,
+        ),
+        // Stich des alten Planers: wird zum Radius desselben Kreises
+        (Rundungen.keine.mitSeite(1, const Millimeter(730)), false),
+      ]) {
+        final stand = _f38.mitRundungen(rundungen);
+        final alt = stand.rundungen.seitenboegen(stand.grundriss)[1]!;
+        final belag = belagstand(stand, rinnenkanten(stand));
+        final b = belag.grundriss.ecken[1];
+        expect(b.y, closeTo(157, 1e-6));
+        expect(b.abstand(alt.mittelpunkt), closeTo(alt.radius, 1e-6));
+        // auf der Seite des Bogens, nicht gegenüber
+        expect(b.abstand(const Punkt(4800, 0)), lessThan(500));
+        final neu = belag.rundungen.seitenboegen(belag.grundriss)[1]!;
+        expect(neu.mittelpunkt.abstand(alt.mittelpunkt), lessThan(1));
+        expect(neu.radius, closeTo(alt.radius, 0.5));
+        expect(belag.rundungen.radien[1]!.mm < 0, innen);
+        // die andere Ecke der Rinne bleibt gerade versetzt
+        expect(belag.grundriss.ecken[0], const Punkt(0, 157));
+      }
+      // ohne Bogen an der Nachbarseite: gerade versetzt wie bisher
+      final gerade = belagstand(_f38, rinnenkanten(_f38));
+      expect(gerade.grundriss.ecken[1], const Punkt(4800, 157));
     });
 
     test('zwei Rinnen an einer Ecke, im Uhrzeigersinn, gestreckte Ecke', () {

@@ -260,7 +260,7 @@ Auflagerbedarf auflagerbedarf(
       for (final y in _stellen(l.abschnitte, l.stoesse, a))
         Punkt(l.x, y).gedreht(drehung),
     for (final r in verlegung.rand)
-      for (final s in _stellen([(0, r.von.abstand(r.bis))], r.stoesse, a))
+      for (final s in _randstellen(r, a))
         (r.von + (r.bis - r.von).einheit * s).gedreht(drehung),
     for (final s in verlegung.stuetzen)
       ((s.von + s.bis) * 0.5).gedreht(drehung),
@@ -295,6 +295,22 @@ Auflagerbedarf auflagerbedarf(
       ],
     ),
   };
+}
+
+/// Stellen der Auflager auf der Rand-UK [r] (`_stellen`); am Bogen liegt
+/// ein Ende auf einem Lattenende (`UkRand.aufLatte`) und hat dort kein
+/// eigenes Auflager, solange das Stück mehr als eins hat (Planungsregeln
+/// Alexander (Planungskern v12, 12.11.2026), Regel 14.2.2). Die Riegel
+/// (14.2.3) haben keine.
+List<double> _randstellen(UkRand r, double abstand) {
+  final stellen = _stellen([(0, r.von.abstand(r.bis))], r.stoesse, abstand);
+  final letzte = stellen.length - 1;
+  return [
+    for (final (i, s) in stellen.indexed)
+      if (letzte == 0 ||
+          !(i == 0 && r.aufLatte.von || i == letzte && r.aufLatte.bis))
+        s,
+  ];
 }
 
 /// Stellen der Auflager auf den [abschnitte]n einer Linie oder Rand-UK

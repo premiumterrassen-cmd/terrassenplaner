@@ -315,6 +315,22 @@ Dielen (45 × 5000 mm, Grund „Fuge“ wie bisher), Verschnitt, Volumen, UK (13
 
 **Nicht im Vergleich, aber geändert:** Profile RELO V jetzt ohne Lieferlänge als Stück (verpackt nach den Artikeldaten, F38 weiter 4), Auflagerprofile 2 × Länge / 1,88 m (F38 weiter 6) statt „Abstand_Stelzfuesse“; Stützhölzer und Eckverbundwinkel nur an Rinnen längs zur UK (in keinem Referenzfall). Offen: Fragen 80–87 in [Fachkonzept 10](../fachkonzept/10-offene-fragen.md).
 
+## Nachtrag Rundungen, UK und Blende am Bogen (Planungskern v12, 12.11.2026)
+
+Branch `feature/planungskern-v12-bogen`, zuletzt mit `main` (066ebee, mit Planungskern v11 Rinne und Stößen am Rand) zusammengeführt; die Werte sind danach unverändert. Planungsregeln Alexander (Planungskern v12, 12.11.2026), Abschnitt 14; R-C40, R-D40, R-E40.
+
+**Geänderter Vergleichswert:** nur **F19 (Kreis Ø 360 cm), UK**, Grund im Test jetzt **„Planungskern v12“** (vorher „Rand-UK“). Regel 14.2 plant die UK am Bogen wie der GS-Terrassenplaner: die 10 Latten laufen bis an den Bogen (vorher 2 cm vor einer Rand-UK je Sehne gekürzt), die Rand-UK ist ein Polygonzug von Lattenende zu Lattenende (32 Stücke, 22–41 cm, höchstens 1,2 cm vom Bogen) statt 38 Sehnen à 25,7 cm (davon 6 von der Selbstkontrolle ergänzt), dazu 16 Riegel à 35,6 cm.
+
+| Fall | Größe | alt | `main` | neu |
+|---|---|---|---|---|
+| F19 | UK | 2 × 5500 + 5 × 5000 + 4500 + 3000 (43,5 m) | 9 × 4000 (36 m) | 6000 + 5000 + 8 × 4000 (43 m) |
+
+Fläche, Verschnitt, Dielen, Freidielen und Clips von F19 bleiben wie in `main` (Clips 500, die Rand-UK-Stücke tragen weiter Dielenenden). Alle anderen F01–F43 und die 26 Referenzfälle rechnen genau wie `main` – keiner hat Rundungen (Referenzfälle mit Rundungen sind nicht rechenbar, siehe oben), und Bögen leerer Ausschnitte behalten die Rand-UK je Sehne. Die Blende am Bogen (R-D40) ändert keinen verglichenen Wert (F19 ist nicht verblendet; keine Referenzkonfiguration verblendet einen Kreis).
+
+**Frage 19** (UK an Bogenkanten) bleibt beantwortet (11.11.2026, Regel 3.3/3.4); Planungskern v12 präzisiert sie für Bögen des Umrisses (Regel 14.2 statt „je Sehne eine Rand-UK“).
+
+**Offen:** Fragen 90–97 in [Fachkonzept 10](../fachkonzept/10-offene-fragen.md).
+
 ## Nachtrag Stöße am Rand statt durch A (13.11.2026)
 
 Branch `fix/m5-05-stoesse-am-rand` auf `main` (0acf7cb). Entscheidung Alexander 13.11.2026: Das Stoßraster beginnt am Rand der Fläche, nicht mit einer Stoßlinie durch die Ausgangsecke mitten in der Fläche. Liegt an der Ausgangsecke eine gerade Kante quer zur Verlegerichtung, bleibt das Raster an der Ecke. Das gilt für waagrecht und senkrecht im Rechteck und für die L-Form ab B (2026-06-07-4340: 475 + 190 cm wie in der Unterlage). Fachkonzept 2.4, Fehlerliste [09](../fachkonzept/09-nicht-teil-der-kopie.md).
