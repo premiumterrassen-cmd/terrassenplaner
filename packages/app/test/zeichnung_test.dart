@@ -783,6 +783,28 @@ void main() {
       expect(m.auflagerpunkte(), isEmpty);
     });
 
+    test('Umriss mit sichtbarer UK dünn, damit die Rand-UK zu sehen ist '
+        '(Planungskern v14 Regel 16.5, R-E70)', () {
+      final o = AnsichtsOptionen();
+      final m = _maler(_rechteck(), o);
+      expect(m.umrissstrich(), ZeichnungsMaler.umrissBreiteUk);
+      expect(ZeichnungsMaler.umrissBreiteUk, lessThan(1));
+      o.setzeEbenen({Ebene.belag});
+      expect(m.umrissstrich(), ZeichnungsMaler.umrissBreite);
+      expect(ZeichnungsMaler.umrissBreite, 2);
+      o.setzeEbenen({Ebene.unterkonstruktion});
+      final aufnahme = PictureRecorder();
+      final leinwand = _ZaehlendeLeinwand(Canvas(aufnahme));
+      m.paint(leinwand, const Size(800, 600));
+      aufnahme.endRecording();
+      final umriss = leinwand.pfadStifte.where(
+        (p) => p.strokeWidth == ZeichnungsMaler.umrissBreiteUk,
+      );
+      expect(umriss, hasLength(1));
+      expect(umriss.single.style, PaintingStyle.stroke);
+      expect(umriss.single.color.toARGB32(), m.strich.toARGB32());
+    });
+
     test('Seiten mit Rolle (M7): dick in ihrer Farbe, unabhängig von den '
         'Ebenen', () {
       final z = Zeichnung(

@@ -404,6 +404,7 @@ class PlanungsDienst {
             ),
             feldbreite: stand.feldbreite,
             uk: uk,
+            lieferland: standardLieferland,
           );
     final verwendet = <Artikelnummer, int>{
       if ((belag, v) case (final b?, final verlegung?))
@@ -832,6 +833,12 @@ class PlanungsDienst {
               auflagen: stand.auflagen,
             ),
       regelwerk: daten,
+      // Planungskern v14 Regel 16.2: KOPPLEX-3 statt GUMO L 2/5 mm, solange
+      // die Planung kein Lieferland kennt für den Shop Deutschland
+      unterlegband: switch (daten) {
+        final d? => unterlegband(d, standardLieferland),
+        null => null,
+      },
     );
   }
 

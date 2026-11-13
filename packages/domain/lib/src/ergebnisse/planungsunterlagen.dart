@@ -204,6 +204,11 @@ const achsmassfarbe = 0xFF1565C0;
 /// Planungsregeln Alexander (Planungskern v8, 12.11.2026), Regel 10.3).
 const stossstaerke = 0.6;
 
+/// Strichstärke des Umrisses im UK-Plan in Punkt: dünn, damit die Rand-UK
+/// darunter sichtbar bleibt (Planungsregeln Alexander (Planungskern v14,
+/// 13.11.2026), Regel 16.5, R-E70).
+const ukUmrissstaerke = 0.25;
+
 /// Grau des Rinnenbandes RELO V (R-E07) wie im Planungskern.
 const rinnenfarbe = 0xFFD5DADE;
 
@@ -593,7 +598,12 @@ Plan _ukPlan(Unterlagentexte t, Berechnung b, Planungsstand stand) {
   final stufen = _stufen(t, b, stand);
   return Plan(
     [
-      Planlinie(b.umriss, argb: _grau, geschlossen: b.geschlossen),
+      Planlinie(
+        b.umriss,
+        argb: _grau,
+        geschlossen: b.geschlossen,
+        staerke: ukUmrissstaerke,
+      ),
       for (final teil in stufen.umrisse)
         Planlinie(teil, argb: _grau, gestrichelt: true),
       // Rinne unter den Hölzern, die Auflagerprofile darüber (R-E07)

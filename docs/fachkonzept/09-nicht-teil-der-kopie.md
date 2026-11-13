@@ -46,7 +46,7 @@ Geklärt und **kein** Fehler: gewerbliche Nutzung nur mit mehr Gummiband (F35), 
 Artikel und Zubehör des Online-Planers sind veraltet (Alexander, 19.10.2026). Er dient nur als Basis für Abläufe und Rechenlogik; die Artikel kommen aus der Master-Artikelliste (B-122, B-156). Beispiele aus den Exporten, die so **nicht** übernommen werden:
 
 - einseitig genutete Anfangsdielen – werden nicht mehr verkauft, Anfangs-/Enddiele = normale Diele (B-033);
-- KOPPLEX-Gummiband – wird abverkauft und durch GUMO ersetzt (B-039);
+- KOPPLEX-Gummiband – wird abverkauft und durch GUMO ersetzt (B-039); seit Planungskern v14 (Regel 16.2) außer in die Schweiz wieder KOPPLEX-1/-3, vorbereitet (R-C70/R-C71);
 - Stärke „22 mm“ – gibt es nicht, richtig 21 mm (B-032);
 - Zwischenlängen 3,0/4,5/5,5 m – gibt es nicht mehr, nur 4/5/6 m (ECO SELECT auch 7 m) (B-035, Alexander 19.10.2026);
 - Freidielen: abweichende Anzahl bei Grenzfällen und großen Mengen – es gilt die Staffel aus R-B09 ([14](14-planungsregeln.md));

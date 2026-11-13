@@ -14,6 +14,7 @@ import 'befestigungsbedarf.dart';
 import 'feldbreite.dart';
 import 'planungsregeln.dart';
 import 'regelwerk.dart';
+import 'schutzband.dart';
 import 'uk_verlegung.dart';
 import 'uk_zusatz.dart';
 import 'verblendung.dart';
@@ -67,14 +68,17 @@ final class Zubehoerposition {
 /// - **Clips und Schrauben** samt Montagehilfe aus der [befestigung]
 ///   (M5-09, B-094, B-090) – unverändert übernommen.
 /// - **Bits** ([bits], Planungsregeln Alexander (Planungskern v6,
-///   11.11.2026) Regeln 4.2 und 4.3): TX20 zu den Clips, TX25 zu den
-///   Schrauben – nur, wenn keine Packung mit Bit dabei ist.
+///   11.11.2026) Regeln 4.2 und 4.3, Planungskern v14 Regel 16.7): TX20 zu
+///   den Clips, TX25 zu den Schrauben (je angefangene 300) – nur, was keine
+///   Packung mit Bit abdeckt.
 /// - **Gummiband** (Pads & EPDM-Bänder, R-C04, B-039): das erste Band aus
 ///   dem Zubehör des Belags für die ganze Länge der Unterkonstruktion: die
 ///   Hölzer der UK-Verlegung [uk] (M6-10, `UkVerlegung.laenge`), ohne sie
 ///   die Übergangs-UK ([ukLaenge]) im Abstand der wirksamen [feldbreite]
 ///   (M6-09); die Rollen eines Kartons stehen im Titel („10 Rollen à
-///   10 m“).
+///   10 m“). Außer in die Schweiz ([lieferland]) KOPPLEX-1 statt GUMO K,
+///   wenn die Artikeldaten es haben (Planungskern v14, Regel 16.2, R-C70,
+///   `schutzbandKopplex`).
 /// - **Terrassenöl** (RIBOL): die erste Sorte aus dem Zubehör des Belags,
 ///   [oelJeQuadratmeter] (44 ml) je m² der [oelflaeche] (R-D10,
 ///   `oelflaeche`), in der günstigsten Kombination ihrer Gebinde
@@ -91,35 +95,33 @@ Map<Artikelnummer, int> berechnetesZubehoer(
   required double oelflaeche,
   Millimeter? feldbreite,
   UkVerlegung? uk,
+  Lieferland lieferland = standardLieferland,
 }) {
   final zubehoer = regelwerk.moeglich(belag.nummer, Beziehung.zubehoer);
   final band = [
     for (final a in zubehoer)
       if (a.art == Artikelart.gummiband)
-        if (_bandlaenge(a) case final je?) (a, je),
+        if (bandlaenge(a) case final je?) (a, je),
   ].firstOrNull;
+  final kopplex = schutzbandKopplex(regelwerk, lieferland);
   final holzart = belag.holzart;
+  // Holzfliesen liegen ohne Unterkonstruktion
+  final laenge = holzart == null || stuecke.isEmpty
+      ? null
+      : uk?.laenge ??
+            ukLaenge(
+              stuecke,
+              winkel: winkel,
+              ukAbstand: wirksameFeldbreite(
+                feldbreite,
+                ukAbstandFuer(holzart, regelwerk.abstaende(belag.nummer).uk),
+              ),
+            );
   return {
     for (final m in befestigung.mittel) m.nummer: m.anzahl,
-    for (final bit in bits(regelwerk, befestigung)) bit.nummer: 1,
-    // Holzfliesen liegen ohne Unterkonstruktion
-    if ((band, holzart) case ((final a, final je)?, final h?)
-        when stuecke.isNotEmpty)
-      a.nummer:
-          ((uk?.laenge ??
-                      ukLaenge(
-                        stuecke,
-                        winkel: winkel,
-                        ukAbstand: wirksameFeldbreite(
-                          feldbreite,
-                          ukAbstandFuer(
-                            h,
-                            regelwerk.abstaende(belag.nummer).uk,
-                          ),
-                        ),
-                      )) /
-                  je)
-              .ceil(),
+    for (final (bit, n) in bits(regelwerk, befestigung)) bit.nummer: n,
+    if (laenge != null)
+      for (final (a, n) in _schutzband(laenge, band, kopplex)) a.nummer: n,
     for (final (a, anzahl) in _oel(zubehoer, oelflaeche)) a.nummer: anzahl,
   };
 }
@@ -252,13 +254,22 @@ Oelteile oelteile({
   );
 }
 
-/// Bandlänge je Verkaufseinheit in mm: Rollenlänge ([Abmessungen.laengste])
-/// mal Rollen im Karton laut Titel; ohne Rollenlänge `null`.
-int? _bandlaenge(Artikel band) {
-  final rolle = band.abmessungen.laengste;
-  if (rolle == null) return null;
-  final rollen = RegExp(r'(\d+)\s*Rollen').firstMatch(band.titel);
-  return rolle.mm * (rollen == null ? 1 : int.parse(rollen.group(1)!));
+/// Schutzband für [laenge] mm UK (R-C04, R-C70): KOPPLEX-1 ([kopplex],
+/// Rollen 20 und 10 m) so wenig Überhang wie möglich (`verpackt`, in cm),
+/// sonst das [band] des Belags in ganzen Verkaufseinheiten.
+List<(Artikel, int)> _schutzband(
+  double laenge,
+  (Artikel, int)? band,
+  List<Artikel> kopplex,
+) {
+  if (kopplex.isNotEmpty) {
+    return verpackt(
+      (laenge / 10).ceil(),
+      kopplex,
+      inhalt: (a) => bandlaenge(a)! ~/ 10,
+    );
+  }
+  return [if (band case (final a, final je)?) (a, (laenge / je).ceil())];
 }
 
 /// Inhalt eines Ölgebindes laut Titel („2,5 Liter“) in ml und die Sorte
@@ -344,32 +355,43 @@ List<(Artikel, int)> oelgebinde(int milliliter, List<Artikel> gebinde) {
   ];
 }
 
-/// Bits zur [befestigung] (Planungsregeln Alexander (Planungskern v6,
-/// 11.11.2026) Regeln 4.2 und 4.3), je eines:
+/// Bits zur [befestigung] mit Anzahl (Planungsregeln Alexander
+/// (Planungskern v6, 11.11.2026) Regeln 4.2 und 4.3, Planungskern v14
+/// Regel 16.7, R-D70):
 ///
-/// - **TX20** zu Clips, wenn keine Clip-Packung mit Bit dabei ist –
+/// - **TX20** zu Clips, eines, wenn keine Clip-Packung mit Bit dabei ist –
 ///   CLIP-FIXX ab VPE [clipBitAbVpe], DUO-CLIP-FIXX ab [duoClipBitAbVpe];
-/// - **TX25** zu Schrauben (Verschraubung von oben, Anfangs- und Enddiele),
-///   wenn kein Schraubenset ab [schraubenBitAbVpe] Stück (mit Bit) dabei ist.
+/// - **TX25** zu Schrauben (Verschraubung von oben, Anfangs- und Enddiele):
+///   eines je angefangene [schraubenJeBit] Schrauben, die nicht in einem
+///   Schraubenset ab [schraubenBitAbVpe] Stück liegen – das Set hat sein
+///   Bit dabei, dafür kommt keins dazu.
 ///
 /// Ob eine Packung ein Bit enthält, führen die Artikeldaten nicht; es folgt
 /// aus der Packungsgröße. Gezählt wird je Fläche, das Werkzeug geht einmal
-/// je Planung in die Materialliste. Die Bits sind die ersten
-/// Werkzeug-Artikel mit „Bit TX20“ bzw. „Bit TX25“ im Titel – die
-/// Upload-Datei kennt keine Beziehung Befestigung → Bit.
-List<Artikel> bits(Regelwerk regelwerk, Befestigungsbedarf befestigung) {
-  final packungen = [
-    for (final b in befestigung.bedarf)
-      for (final (a, _) in verpackt(b.stueck, b.einheiten)) a,
-  ];
-  final clips = packungen.where((a) => a.art == Artikelart.clip);
-  final schrauben = packungen.where((a) => a.art == Artikelart.schraube);
+/// je Planung (die größte Anzahl einer Fläche) in die Materialliste. Die
+/// Bits sind die ersten Werkzeug-Artikel mit „Bit TX20“ bzw. „Bit TX25“ im
+/// Titel – die Upload-Datei kennt keine Beziehung Befestigung → Bit.
+List<(Artikel, int)> bits(Regelwerk regelwerk, Befestigungsbedarf befestigung) {
+  final clips = <Artikel>[];
+  var schrauben = 0;
+  var imSet = 0;
+  for (final b in befestigung.bedarf) {
+    if (b.einheiten.first.art == Artikelart.schraube) schrauben += b.stueck;
+    for (final (a, n) in verpackt(b.stueck, b.einheiten)) {
+      if (a.art == Artikelart.clip) clips.add(a);
+      if (a.art == Artikelart.schraube &&
+          a.einheit.inhalt >= schraubenBitAbVpe) {
+        imSet += n * a.einheit.inhalt.ceil();
+      }
+    }
+  }
+  final ohneSet = schrauben - imSet;
   return [
     if (clips.isNotEmpty && !clips.any(_clipMitBit))
-      ?_werkzeug(regelwerk, 'Bit TX20'),
-    if (schrauben.isNotEmpty &&
-        !schrauben.any((a) => a.einheit.inhalt >= schraubenBitAbVpe))
-      ?_werkzeug(regelwerk, 'Bit TX25'),
+      if (_werkzeug(regelwerk, 'Bit TX20') case final bit?) (bit, 1),
+    if (ohneSet > 0)
+      if (_werkzeug(regelwerk, 'Bit TX25') case final bit?)
+        (bit, (ohneSet + schraubenJeBit - 1) ~/ schraubenJeBit),
   ];
 }
 

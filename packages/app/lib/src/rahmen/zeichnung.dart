@@ -397,6 +397,15 @@ class ZeichnungsMaler extends CustomPainter {
   static const seitenBreite = 8.0;
   static const blendenBreite = 2.0;
 
+  /// Strichbreite des Umrisses in Pixeln; mit sichtbarer UK dünn, damit die
+  /// Rand-UK darunter zu sehen ist (Planungskern v14 Regel 16.5, R-E70).
+  static const umrissBreite = 2.0;
+  static const umrissBreiteUk = 0.75;
+
+  /// Strichbreite des Umrisses in der aktuellen Ansicht.
+  double umrissstrich() =>
+      optionen.zeigt(Ebene.unterkonstruktion) ? umrissBreiteUk : umrissBreite;
+
   /// Strichbreite einer Seite nach ihrer Rolle.
   static double seitenstrich(Seitenrolle rolle) =>
       rolle == Seitenrolle.verblendung ? blendenBreite : seitenBreite;
@@ -916,7 +925,13 @@ class ZeichnungsMaler extends CustomPainter {
     }
     final umriss = [for (final p in zeichnung.umriss) bildschirm(p)];
     if (umriss.isNotEmpty) {
-      canvas.drawPath(Path()..addPolygon(umriss, zeichnung.geschlossen), linie);
+      canvas.drawPath(
+        Path()..addPolygon(umriss, zeichnung.geschlossen),
+        Paint()
+          ..color = strich
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = umrissstrich(),
+      );
     }
     if (!zeichnung.geschlossen) {
       for (final p in umriss) {

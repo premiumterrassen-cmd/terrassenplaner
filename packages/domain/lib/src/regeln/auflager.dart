@@ -125,9 +125,14 @@ final class Auflagerwahl {
 
   /// Titel für die Höhenzuordnung: „Unterleger 8 mm + Unterleger 5 mm“,
   /// zwei gleiche als „2 × Unterleger 5 mm“.
-  String get titel => teile.length > 1 && teile.first == teile.last
-      ? '${teile.length} × ${teile.first.titel}'
-      : teile.map((t) => t.titel).join(' + ');
+  String get titel => titelMit((t) => t.titel);
+
+  /// [titel] mit dem Namen je Bereich aus [name] (KOPPLEX-3 statt dünner
+  /// Pads, Planungskern v14 Regel 16.2).
+  String titelMit(String Function(Auflagerbereich) name) =>
+      teile.length > 1 && teile.first == teile.last
+      ? '${teile.length} × ${name(teile.first)}'
+      : teile.map(name).join(' + ');
 
   /// Ob es Pads sind (sonst ein Stelzfuß).
   final bool _pad;
