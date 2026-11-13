@@ -937,6 +937,22 @@ class PlanerTexteEn extends PlanerTexte {
       'Should short board pieces be joined together?';
 
   @override
+  String get stosslinieFrage => 'Joint line through corner (optional):';
+
+  @override
+  String get stosslinieHinweis =>
+      'The joint line runs across the boards exactly through the selected corner. Only rows longer than one board are joined; the substructure is doubled at the joint line.';
+
+  @override
+  String get stosslinieGiltFuer => 'Applies to';
+
+  @override
+  String get stosslinieAlleFlaechen => 'every partial area with this corner';
+
+  @override
+  String get stosslinieHauptflaeche => 'Area without cut-outs';
+
+  @override
   String get dielenlaengeNichtWaehlbar =>
       'This decking has no choice of lengths.';
 
@@ -1120,6 +1136,25 @@ class PlanerTexteEn extends PlanerTexte {
   @override
   String get belagmeldungLaengenvorgabe =>
       'No delivery length of this decking meets the board length requirement. All stock lengths are used.';
+
+  @override
+  String belagmeldungStosslinieZusatz(int anzahl) {
+    String _temp0 = intl.Intl.pluralLogic(
+      anzahl,
+      locale: localeName,
+      other: '$anzahl evenly spaced joints',
+      one: '1 evenly spaced joint',
+    );
+    return 'Between the fixed joint lines the boards would be longer than the delivery length. The plan adds $_temp0 (with double substructure).';
+  }
+
+  @override
+  String get belagmeldungStosslinieMuster =>
+      'The joint line through a corner only applies to boards with aligned joints – with MASSIV (mixed lengths), staggered patterns and wooden tiles the planner places the joints itself.';
+
+  @override
+  String get belagmeldungStosslinieOhneWirkung =>
+      'No joint line runs through the selected corner: it lies at the start or end of the area in laying direction or on no selected partial area, or the rows fit into one board.';
 
   @override
   String get dielenlaengeHoechstens => 'Boards at most (in cm):';

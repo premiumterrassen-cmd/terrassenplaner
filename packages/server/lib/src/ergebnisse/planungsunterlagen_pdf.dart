@@ -203,6 +203,7 @@ final class Planmassstab {
       for (final l in plan.linien) ...l.punkte,
       for (final t in plan.texte) t.ort,
       for (final t in plan.nebentexte) t.ort,
+      for (final k in plan.ketten) ...k.marken,
     ];
     if (punkte.isEmpty) return Planmassstab._(Punkt.ursprung, 0, 0, 0, 0);
     double massstab(Huellrechteck h) => math.min(
@@ -256,7 +257,7 @@ pw.Widget _plan(Plan plan) {
               painter: (leinwand, _) => zeichne(leinwand, plan, m),
             ),
           ),
-          for (final t in plan.texte)
+          for (final t in [...plan.texte, ...kettenbeschriftungen(plan, m)])
             pw.Positioned(
               left: m.abbild(t.ort).x + planrand - 20,
               bottom: m.abbild(t.ort).y + planrand - 4,
@@ -313,6 +314,24 @@ double nebentextReichweite(Nebentext n) =>
     n.richtung.x.abs() * (n.text.length * nebentextGroesse * 0.55 + 1) +
     n.richtung.y.abs() * (nebentextGroesse + 2);
 
+/// Die Zahlen der Maßketten von [plan] im Maßstab [m] (R-E02,
+/// `Masskette.zahlen`): ein Text braucht längs der Kette sein Feld
+/// (`beschriftungsfeld`, quer liegende Ketten seine Höhe) und
+/// [kettenluecke] Abstand zum nächsten – nie übereinander.
+List<Planbeschriftung> kettenbeschriftungen(Plan plan, Planmassstab m) => [
+  for (final k in plan.ketten)
+    if ((k.marken.last - k.marken.first).einheit case final r)
+      for (final z in k.zahlen((text) {
+        final f = beschriftungsfeld((ort: Punkt.ursprung, text: text), m);
+        return (r.x.abs() * f.breite + r.y.abs() * f.hoehe + kettenluecke) /
+            m.faktor;
+      }))
+        (ort: (k.marken[z.von] + k.marken[z.bis]) * 0.5, text: z.text),
+];
+
+/// Abstand zweier Zahlen einer Maßkette in Punkt.
+const kettenluecke = 3.0;
+
 /// Feld einer Beschriftung [t] (7 pt, mittig um ihren Ort).
 Feld beschriftungsfeld(Planbeschriftung t, Planmassstab m) {
   final p = m.abbild(t.ort);
@@ -330,7 +349,10 @@ List<(Nebentext, Feld)> nebentextFelder(Plan plan, Planmassstab m) {
     for (final l in plan.linien)
       if (l.gefuellt) [for (final p in l.punkte) m.abbild(p)],
   ];
-  final belegt = [for (final t in plan.texte) beschriftungsfeld(t, m)];
+  final belegt = [
+    for (final t in [...plan.texte, ...kettenbeschriftungen(plan, m)])
+      beschriftungsfeld(t, m),
+  ];
   final gesetzt = <(Nebentext, Feld)>[];
   for (final n in plan.nebentexte) {
     for (final r in [n.richtung, n.richtung * -1]) {

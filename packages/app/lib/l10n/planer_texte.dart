@@ -1750,6 +1750,36 @@ abstract class PlanerTexte {
   /// **'Sollen kurze Dielenstücke miteinander verbunden werden?'**
   String get kurzeStueckeVerbinden;
 
+  /// No description provided for @stosslinieFrage.
+  ///
+  /// In de, this message translates to:
+  /// **'Stoßlinie durch Eckpunkt (optional):'**
+  String get stosslinieFrage;
+
+  /// No description provided for @stosslinieHinweis.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Stoßlinie liegt quer zu den Dielen genau durch die gewählte Ecke. Gestoßen werden nur Reihen, die länger als eine Diele sind; die UK ist an der Stoßlinie doppelt.'**
+  String get stosslinieHinweis;
+
+  /// No description provided for @stosslinieGiltFuer.
+  ///
+  /// In de, this message translates to:
+  /// **'Gilt für'**
+  String get stosslinieGiltFuer;
+
+  /// No description provided for @stosslinieAlleFlaechen.
+  ///
+  /// In de, this message translates to:
+  /// **'jede Teilfläche mit dieser Ecke'**
+  String get stosslinieAlleFlaechen;
+
+  /// No description provided for @stosslinieHauptflaeche.
+  ///
+  /// In de, this message translates to:
+  /// **'Fläche ohne Ausschnitte'**
+  String get stosslinieHauptflaeche;
+
   /// No description provided for @dielenlaengeNichtWaehlbar.
   ///
   /// In de, this message translates to:
@@ -2043,6 +2073,24 @@ abstract class PlanerTexte {
   /// In de, this message translates to:
   /// **'Keine Lieferlänge dieses Belags erfüllt die Vorgabe Dielenlänge. Geplant wird mit allen Lagerlängen.'**
   String get belagmeldungLaengenvorgabe;
+
+  /// No description provided for @belagmeldungStosslinieZusatz.
+  ///
+  /// In de, this message translates to:
+  /// **'Zwischen den festen Stoßlinien wären die Dielen länger als die Lieferlänge. Die Planung setzt {anzahl, plural, =1{1 zusätzlichen, gleichmäßig verteilten Stoß} other{{anzahl} zusätzliche, gleichmäßig verteilte Stöße}} (mit doppelter UK).'**
+  String belagmeldungStosslinieZusatz(int anzahl);
+
+  /// No description provided for @belagmeldungStosslinieMuster.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Stoßlinie durch einen Eckpunkt gilt nur für Dielen auf Fuge geschnitten – bei MASSIV (Längenmix), im Verband und bei Holzfliesen legt der Planer die Stöße selbst.'**
+  String get belagmeldungStosslinieMuster;
+
+  /// No description provided for @belagmeldungStosslinieOhneWirkung.
+  ///
+  /// In de, this message translates to:
+  /// **'Durch die gewählte Ecke läuft keine Stoßlinie: Sie liegt am Anfang oder Ende der Fläche in Verlegerichtung oder an keiner gewählten Teilfläche, oder die Reihen passen in eine Diele.'**
+  String get belagmeldungStosslinieOhneWirkung;
 
   /// No description provided for @dielenlaengeHoechstens.
   ///

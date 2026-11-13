@@ -392,8 +392,8 @@ void main() {
       expect(_maler(z, o).stossstriche(), isEmpty);
     });
 
-    test('Achsmaßkette (R-E02): blau außen auf der Ebene UK, Zahlen in cm '
-        'ab 14 px Abstand', () {
+    test('Achsmaßkette (R-E02): blau außen auf der Ebene UK, Zahlen in cm, '
+        'nie übereinander', () {
       final z = Zeichnung(
         achsen: (
           marken: const [
@@ -421,14 +421,30 @@ void main() {
       expect(kette.texte.first.ort, const Offset(22, y + 6));
       expect(kette.texte.first.richtung, const Offset(0, 1));
       expect(ZeichnungsMaler.achsmassFarbe, const Color(0xFF1565C0));
-      // 14 px genau reicht
-      final knapp = Zeichnung(
-        achsen: (
-          marken: const [Offset(0, 0), Offset(140, 0)],
-          normale: const Offset(0, 1),
-        ),
+      // Platz einer Zahl: waagerecht 2 × 6 + 4 = 16 px, senkrecht
+      // 14 + 4 = 18 px; reicht er nicht, „n × …“ (kettenzahlen, Domäne)
+      List<String> zahlen(double schritt, Offset richtung, Offset normale) => [
+        for (final t in _maler(
+          Zeichnung(
+            achsen: (
+              marken: [for (var i = 0; i < 3; i++) richtung * (schritt * i)],
+              normale: normale,
+            ),
+          ),
+          o,
+        ).achsmasskette().texte)
+          t.text,
+      ];
+      const waagerecht = Offset(1, 0);
+      const senkrecht = Offset(0, 1);
+      expect(zahlen(160, waagerecht, senkrecht), ['16', '16']);
+      expect(zahlen(150, waagerecht, senkrecht), ['2 × 15']);
+      expect(zahlen(180, senkrecht, waagerecht), ['18', '18']);
+      expect(zahlen(170, senkrecht, waagerecht), ['2 × 17']);
+      expect(
+        ZeichnungsMaler.zahlplatz('40', const Offset(0.6, 0.8)),
+        closeTo(0.6 * 12 + 0.8 * 14 + 4, 1e-9),
       );
-      expect(_maler(knapp, o).achsmasskette().texte, hasLength(1));
       o.setzeEbenen({Ebene.belag, Ebene.masse});
       final aus = _maler(z, o).achsmasskette();
       expect(aus.linien, isEmpty);

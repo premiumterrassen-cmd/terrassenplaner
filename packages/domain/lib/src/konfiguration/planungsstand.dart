@@ -57,6 +57,8 @@ final class Planungsstand {
     this.verlegerichtung = Verlegerichtung.waagrecht,
     this.verlegewinkel = Verlegerichtung.vorgabeWinkel,
     this.ausgangsecke = 0,
+    this.stossecken = const [],
+    this.stossflaeche,
     this.verschiebungX = const Millimeter(0),
     this.verschiebungY = const Millimeter(0),
     this.befestigungsart = Befestigungsart.clips,
@@ -156,6 +158,20 @@ final class Planungsstand {
         Verlegerichtung.vorgabeWinkel,
       ),
       ausgangsecke: ecke,
+      stossecken: List.unmodifiable([
+        for (final i in const fb.ListReader<int>(
+          fb.Uint16Reader(),
+        ).vTableGet(puffer, wurzel, _versatz(_stosseckenPlatz), const []))
+          if (i < _eckenzahl(grundriss))
+            i
+          else
+            throw FormatException('unbekannte Ecke der Stoßlinie $i'),
+      ]),
+      stossflaeche: const fb.Uint16Reader().vTableGetNullable(
+        puffer,
+        wurzel,
+        _versatz(_stossflaechePlatz),
+      ),
       verschiebungX: _mm(puffer, wurzel, _verschiebungXPlatz),
       verschiebungY: _mm(puffer, wurzel, _verschiebungYPlatz),
       befestigungsart: Befestigungsart.ausNummer(
@@ -371,6 +387,22 @@ final class Planungsstand {
   /// wird wie in der Beschriftung der Zeichnung (`Grundriss.ecken`); der
   /// Kreis hat nur A, den Anfang seiner Kontur.
   final int ausgangsecke;
+
+  /// Vorgabe „Stoßlinie durch Eckpunkt“ (Planungsregeln Alexander
+  /// (Planungskern v13, 13.11.2026), Regel 15, R-B20): Nummern der Ecken
+  /// wie [ausgangsecke], durch die je eine Stoßlinie quer zu den Dielen
+  /// läuft (aufsteigend, ohne doppelte); leer = keine Vorgabe, die
+  /// Stoßlinien legt das Raster (`verlegeDielen`).
+  final List<int> stossecken;
+
+  /// Teilfläche, für die die Stoßlinien gelten (R-B20): 0 = die Fläche
+  /// ohne Ausschnitte, `i` = der Ausschnitt `i` (ab 1, wie A1 …) mit
+  /// anderem Terrassenbelag; `null` = jede Teilfläche, an deren Umriss die
+  /// Ecke liegt.
+  final int? stossflaeche;
+
+  /// Punkte der [stossecken] in mm (wie [ausgangspunkt]).
+  List<Punkt> get stosspunkte => [for (final i in stossecken) _eckpunkt(i)];
 
   /// Verschiebung der ersten ganzen Diele nach rechts (negativ: links) in
   /// Bildschirmkoordinaten (M5-07); die Grenze rechnet der Server
@@ -678,9 +710,11 @@ final class Planungsstand {
   /// Gewählte Ecke in mm, ohne Verschiebung: beim Kreis (ohne benannte
   /// Ecken) der Anfang der Kontur, sonst die Ecke des Grundrisses – bei
   /// einer gerundeten Ecke der Schnittpunkt ihrer Kanten.
-  Punkt get ausgangspunkt => switch (grundriss.ecken) {
+  Punkt get ausgangspunkt => _eckpunkt(ausgangsecke);
+
+  Punkt _eckpunkt(int i) => switch (grundriss.ecken) {
     [] => kontur.punkte.first,
-    final ecken => ecken[ausgangsecke],
+    final ecken => ecken[i],
   };
 
   /// Winkel der Dielen in Grad (`verlegeDielen`).
@@ -705,6 +739,8 @@ final class Planungsstand {
     Verlegerichtung? verlegerichtung,
     int? verlegewinkel,
     int? ausgangsecke,
+    List<int>? stossecken,
+    ({int? wert})? stossflaeche,
     Millimeter? verschiebungX,
     Millimeter? verschiebungY,
     Befestigungsart? befestigungsart,
@@ -750,6 +786,17 @@ final class Planungsstand {
       verlegewinkel: verlegewinkel ?? this.verlegewinkel,
       // weniger Ecken nach einem Formwechsel: zurück auf A
       ausgangsecke: ecke < _eckenzahl(neu) ? ecke : 0,
+      // andere Ecken: die Stoßlinien beginnen neu
+      stossecken: _eckenzahl(neu) == ausgangsecken
+          ? stossecken ?? this.stossecken
+          : const [],
+      // andere Ausschnitte: wieder alle Teilflächen
+      stossflaeche:
+          (ausschnitte ?? this.ausschnitte).length == this.ausschnitte.length
+          ? stossflaeche == null
+                ? this.stossflaeche
+                : stossflaeche.wert
+          : null,
       verschiebungX: verschiebungX ?? this.verschiebungX,
       verschiebungY: verschiebungY ?? this.verschiebungY,
       befestigungsart: befestigungsart ?? this.befestigungsart,
@@ -902,6 +949,24 @@ final class Planungsstand {
     return _mit(ausgangsecke: ecke, verschiebungX: x, verschiebungY: y);
   }
 
+  /// Kopie mit der Vorgabe „Stoßlinie durch Eckpunkt“ (R-B20): [ecken] wie
+  /// [stossecken] (je 0 bis [ausgangsecken] − 1; leer = keine Vorgabe),
+  /// [flaeche] wie [stossflaeche] (0 bis Anzahl der Ausschnitte).
+  Planungsstand mitStosslinie(List<int> ecken, {int? flaeche}) {
+    for (final e in ecken) {
+      if (e < 0 || e >= ausgangsecken) {
+        throw RangeError.range(e, 0, ausgangsecken - 1, 'ecken');
+      }
+    }
+    if (flaeche != null && (flaeche < 0 || flaeche > ausschnitte.length)) {
+      throw RangeError.range(flaeche, 0, ausschnitte.length, 'flaeche');
+    }
+    return _mit(
+      stossecken: List.unmodifiable({...ecken}.toList()..sort()),
+      stossflaeche: (wert: flaeche),
+    );
+  }
+
   /// Kopie mit anderer Befestigungsart (M5-09).
   Planungsstand mitBefestigungsart(Befestigungsart art) =>
       _mit(befestigungsart: art);
@@ -1040,7 +1105,9 @@ final class Planungsstand {
   /// 101: feldbreite (int32 mm; fehlt = automatisch) (M6-09), 140: anschluss
   /// (Tabelle, `Anschluss.schreibe`; fehlt ohne Rollen) (M7), 141:
   /// hoehenpunkte ([int32] x, y, Höhe in mm je Punkt, M7-04), 142: treppen
-  /// ([Tabelle], `Treppe.schreibe`, M7-05) }`. Plätze
+  /// ([Tabelle], `Treppe.schreibe`, M7-05), 143: stossecken ([uint16];
+  /// fehlt = keine Vorgabe), 144: stossflaeche (uint16; fehlt = alle
+  /// Teilflächen) (Planungskern v13 Regel 15, R-B20) }`. Plätze
   /// 14–19 gehören der Dielenverlegung (M5-08), 40–49 dem Zubehör (M8),
   /// 80–89 der Unterkonstruktion ab M6-04, 100–109 Auflagen, Feldbreite und
   /// UK-Verlegung (M6-08 bis M6-11), 140–149 dem Anschluss, den
@@ -1080,8 +1147,11 @@ final class Planungsstand {
     final hoehenpunkteOrt = fbb.writeListInt32([
       for (final p in hoehenpunkte) ...[p.x.mm, p.y.mm, p.hoehe.mm],
     ]);
+    final stosseckenOrt = stossecken.isEmpty
+        ? null
+        : fbb.writeListUint16(stossecken);
     fbb
-      ..startTable(_treppenPlatz + 1)
+      ..startTable(_stossflaechePlatz + 1)
       ..addUint16(_schemaPlatz, schema)
       ..addOffset(_grundrissPlatz, grundrissOrt)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
@@ -1115,7 +1185,9 @@ final class Planungsstand {
       ..addOffset(_zubehoerPlatz, zubehoerOrt)
       ..addOffset(_anschlussPlatz, anschlussOrt)
       ..addOffset(_hoehenpunktePlatz, hoehenpunkteOrt)
-      ..addOffset(_treppenPlatz, treppenOrt);
+      ..addOffset(_treppenPlatz, treppenOrt)
+      ..addOffset(_stosseckenPlatz, stosseckenOrt)
+      ..addUint16(_stossflaechePlatz, stossflaeche);
     fbb.finish(fbb.endTable());
     return fbb.buffer;
   }
@@ -1179,6 +1251,8 @@ final class Planungsstand {
   static const _anschlussPlatz = 140;
   static const _hoehenpunktePlatz = 141;
   static const _treppenPlatz = 142;
+  static const _stosseckenPlatz = 143;
+  static const _stossflaechePlatz = 144;
 
   @override
   bool operator ==(Object other) {
@@ -1194,6 +1268,8 @@ final class Planungsstand {
         other.verlegerichtung != verlegerichtung ||
         other.verlegewinkel != verlegewinkel ||
         other.ausgangsecke != ausgangsecke ||
+        other.stossflaeche != stossflaeche ||
+        other.stossecken.length != stossecken.length ||
         other.verschiebungX != verschiebungX ||
         other.verschiebungY != verschiebungY ||
         other.befestigungsart != befestigungsart ||
@@ -1233,6 +1309,9 @@ final class Planungsstand {
     for (var i = 0; i < treppen.length; i++) {
       if (other.treppen[i] != treppen[i]) return false;
     }
+    for (var i = 0; i < stossecken.length; i++) {
+      if (other.stossecken[i] != stossecken[i]) return false;
+    }
     return true;
   }
 
@@ -1247,7 +1326,7 @@ final class Planungsstand {
     verlegeart,
     verlegerichtung,
     verlegewinkel,
-    ausgangsecke,
+    Object.hash(ausgangsecke, Object.hashAll(stossecken), stossflaeche),
     verschiebungX,
     verschiebungY,
     befestigungsart,

@@ -630,7 +630,13 @@ final class Unterlagentexte {
           'dimensions.',
   };
 
-  String belagmeldung(Belagmeldung m, Millimeter? laenge) => switch ((m, _de)) {
+  /// Text der Belagmeldung [m]; [laenge] ist die erzwungene Länge,
+  /// [zusatzstoesse] die Anzahl zusätzlicher Stöße (R-B20).
+  String belagmeldung(
+    Belagmeldung m,
+    Millimeter? laenge, {
+    int zusatzstoesse = 0,
+  }) => switch ((m, _de)) {
     (Belagmeldung.belagErsetzt, true) =>
       'Der gewählte Belag ist nicht mehr im Sortiment. Geplant wird mit '
           'dem Vorgabebelag.',
@@ -657,6 +663,19 @@ final class Unterlagentexte {
     (Belagmeldung.laengenvorgabeNichtErfuellbar, true) =>
       'Keine Lieferlänge dieses Belags erfüllt die Vorgabe Dielenlänge. '
           'Geplant wird mit allen Lagerlängen.',
+    (Belagmeldung.stosslinieZusatzstoesse, true) =>
+      'Zwischen den festen Stoßlinien wären die Dielen länger als die '
+          'Lieferlänge. Die Planung setzt $zusatzstoesse zusätzliche, '
+          'gleichmäßig verteilte ${zusatzstoesse == 1 ? 'Stoß' : 'Stöße'} '
+          '(mit doppelter UK).',
+    (Belagmeldung.stosslinieNichtImMuster, true) =>
+      'Die Stoßlinie durch einen Eckpunkt gilt nur für Dielen auf Fuge '
+          'geschnitten – bei MASSIV (Längenmix), im Verband und bei '
+          'Holzfliesen legt der Planer die Stöße selbst.',
+    (Belagmeldung.stosslinieOhneWirkung, true) =>
+      'Durch die gewählte Ecke läuft keine Stoßlinie: Sie liegt am Anfang '
+          'oder Ende der Fläche in Verlegerichtung oder an keiner gewählten '
+          'Teilfläche, oder die Reihen passen in eine Diele.',
     (Belagmeldung.befestigungsartNichtMoeglich, true) =>
       'Genutete Dielen werden verdeckt mit Clips befestigt. Die gewählte '
           'Verschraubung gilt nur für glattkante Dielen.',
@@ -692,6 +711,19 @@ final class Unterlagentexte {
     (Belagmeldung.laengenvorgabeNichtErfuellbar, false) =>
       'No delivery length of this decking meets the board length '
           'requirement. All stock lengths are used.',
+    (Belagmeldung.stosslinieZusatzstoesse, false) =>
+      'Between the fixed joint lines the boards would be longer than the '
+          'delivery length. The plan adds $zusatzstoesse evenly spaced '
+          '${zusatzstoesse == 1 ? 'joint' : 'joints'} (with double '
+          'substructure).',
+    (Belagmeldung.stosslinieNichtImMuster, false) =>
+      'The joint line through a corner only applies to boards with '
+          'aligned joints – with MASSIV (mixed lengths), staggered patterns '
+          'and wooden tiles the planner places the joints itself.',
+    (Belagmeldung.stosslinieOhneWirkung, false) =>
+      'No joint line runs through the selected corner: it lies at the '
+          'start or end of the area in laying direction or on no selected '
+          'partial area, or the rows fit into one board.',
     (Belagmeldung.befestigungsartNichtMoeglich, false) =>
       'Grooved boards are fixed invisibly with clips. The selected screw '
           'fixing only applies to smooth-edged boards.',

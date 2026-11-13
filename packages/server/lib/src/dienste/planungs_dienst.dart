@@ -331,6 +331,7 @@ class PlanungsDienst {
       grenzeLinksRechts: v.grenzen.x,
       grenzeObenUnten: v.grenzen.y,
       kurzeZuschnitte: v.kurzeZuschnitte,
+      zusatzstoesse: v.zusatzstoesse,
       hoehenpunkte: flaeche.hoehenpunkte,
       stellfuesse: flaeche.stellfuesse,
       unterbau: flaeche.unterbau,
@@ -353,7 +354,8 @@ class PlanungsDienst {
           final u? => achsmasskette(u, flaeche.umriss),
           null => null,
         },
-        rinnen: [for (final k in rinnen) Rinnenband.an(k)],
+        // Kern v23: neben einem Bogen bis an die gerutschte Ecke
+        rinnen: rinnenbaender(stand, rinnen),
         // Planungskern v12: „Bogen … · R …“ und Riegel am Bogen
         boegen: bogenmasse(stand),
         riegel: uk?.riegel ?? const [],

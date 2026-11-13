@@ -346,6 +346,31 @@ void main() {
       expect(gerade.grundriss.ecken[1], const Punkt(4800, 157));
     });
 
+    test('Rinnenband neben einem Bogen bis an die gerutschte Ecke (Kern '
+        'v23, R-E07)', () {
+      final stand = _f38.mitRundungen(
+        Rundungen.keine.mitRadius(1, const Millimeter(2000)),
+      );
+      final kanten = rinnenkanten(stand);
+      final belag = belagstand(stand, kanten).grundriss.ecken;
+      final band = rinnenbaender(stand, kanten).single;
+      expect(band.ecken.take(2), const [Punkt.ursprung, Punkt(4800, 0)]);
+      expect(band.ecken[3].x, closeTo(0, 1e-9));
+      expect(band.ecken[3].y, closeTo(151, 1e-9));
+      // innen 15,1 cm auf dem Weg zur Ecke auf dem Kreis, kein Rechteck
+      expect(band.ecken[2].y, closeTo(151, 1e-9));
+      expect(
+        band.ecken[2].x,
+        closeTo(4800 + (belag[1].x - 4800) * 151 / 157, 1e-9),
+      );
+      expect((band.ecken[2].x - 4800).abs(), greaterThan(100));
+      // gerade Nachbarseiten: Rechteck wie bisher; ohne Rinne keins
+      final gerade = rinnenbaender(_f38, rinnenkanten(_f38)).single.ecken;
+      expect(gerade[2].x, closeTo(4800, 1e-9));
+      expect(gerade[2].y, closeTo(151, 1e-9));
+      expect(rinnenbaender(_f38, const []), isEmpty);
+    });
+
     test('zwei Rinnen an einer Ecke, im Uhrzeigersinn, gestreckte Ecke', () {
       final stand = Planungsstand.start
           .mitRinne(1, Rinnenlage.gesamteSeite)

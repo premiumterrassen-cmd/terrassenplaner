@@ -419,6 +419,8 @@ final class Teilverlegung {
     Musterregel muster = Musterregel.frei,
     String? bezeichnung,
     Millimeter fuge = fuge,
+    int festeStoesse = 0,
+    int zusatzstoesse = 0,
   }) {
     final index = <(int, int), int>{};
     final anzahl = <int>[];
@@ -448,6 +450,8 @@ final class Teilverlegung {
         ueberlaenge: ueberlaenge,
         muster: muster,
       ),
+      festeStoesse,
+      zusatzstoesse,
     );
   }
 
@@ -457,6 +461,8 @@ final class Teilverlegung {
     List<int> nummern,
     List<Dielensorte> sorten,
     List<Lieferdiele> zuschnitt,
+    this.festeStoesse,
+    this.zusatzstoesse,
   ) : stuecke = List.unmodifiable(stuecke),
       nummern = List.unmodifiable(nummern),
       sorten = List.unmodifiable(sorten),
@@ -472,6 +478,12 @@ final class Teilverlegung {
   /// „Dielen nach Nummer“.
   final List<Dielensorte> sorten;
   final List<Lieferdiele> zuschnitt;
+
+  /// Wirksame feste Stoßlinien der Vorgabe „Stoßlinie durch Eckpunkt“ und
+  /// zusätzliche, gleichmäßig verteilte Stöße zwischen ihnen
+  /// (`festeStosslinien`, Planungskern v13 Regel 15, R-B20).
+  final int festeStoesse;
+  final int zusatzstoesse;
 }
 
 /// Dielenliste (M5-08): wie viele Dielen je Lieferlänge geliefert werden,
@@ -599,6 +611,10 @@ final class Belagverlegung {
     (summe, t) => summe + Dielenliste.aus(t.zuschnitt),
   );
 
+  /// Feste Stoßlinien und zusätzliche Stöße aller Teilflächen (R-B20).
+  int get festeStoesse => teile.fold(0, (n, t) => n + t.festeStoesse);
+  int get zusatzstoesse => teile.fold(0, (n, t) => n + t.zusatzstoesse);
+
   /// Ob ein Stück kürzer oder eine Randreihe schmaler als 5 cm ist (M5-07).
   bool get kurzeZuschnitte =>
       teile.any((t) => t.stuecke.any((s) => s.kurzerZuschnitt));
@@ -631,6 +647,13 @@ final class Belagverlegung {
 /// werden nie verbunden, eine Fliese über eine Rasterlinie gibt es nicht.
 /// Im Verband (R-B18) ist ein Dielenstück mindestens 40 cm lang
 /// ([verbandMindeststueck]), ein Fliesenstück mindestens eine halbe Fliese.
+///
+/// Vorgabe „Stoßlinie durch Eckpunkt“ (Planungsregeln Alexander
+/// (Planungskern v13, 13.11.2026), Regel 15, R-B20): nur bei Dielen im
+/// Fugenschnitt – im Verband (R-B18) und bei Holzfliesen gilt sie nicht
+/// (Belagmeldung). Ohne [Planungsstand.stossflaeche] gilt sie für jede
+/// Teilfläche, an deren Umriss die Ecke liegt (die Hauptfläche hat alle
+/// Ecken), sonst nur für die gewählte (`festeStosslinien`).
 ///
 /// Die Hauptfläche spart alle Ausschnitte aus (leere Fläche: kein Material,
 /// Fachkonzept 1.4). Ein Ausschnitt mit anderem Terrassenbelag ist eine
@@ -703,36 +726,59 @@ Belagverlegung? verlegeBelag(
         _begrenzt(stand.verschiebungX, grenzen.x),
         _begrenzt(stand.verschiebungY, grenzen.y),
       );
+  final mitStosslinie =
+      belag.art == Artikelart.diele &&
+      stand.verlegeart == Verlegeart.fugenschnitt;
   Teilverlegung teil(
+    int nummer,
     Kontur flaeche,
     Punkt ab, {
     List<Kontur> aussparungen = const [],
     String? bezeichnung,
     Punkt? ecke,
-  }) => Teilverlegung(
-    verlegeDielen(
+  }) {
+    final linien = festeStosslinien(
       flaeche,
       winkel: winkel,
       ausgangspunkt: ab,
-      ecke: ecke,
-      laengenmix: laengenmix,
-      dielenbreite: breite,
-      verlegeart: stand.verlegeart,
-      laengste: laengste,
-      verbinden: verbinden,
+      punkte: [
+        if (mitStosslinie && (stand.stossflaeche ?? nummer) == nummer)
+          for (final p in stand.stosspunkte)
+            // Hauptfläche: ihre Ecken; Teilfläche: Ecke an ihrem Umriss
+            if (nummer == 0 || flaeche.abstandZumRand(p) <= 1) p,
+      ],
+      hoechstlaenge: laengste + ueberlaenge,
+    );
+    return Teilverlegung(
+      verlegeDielen(
+        flaeche,
+        winkel: winkel,
+        ausgangspunkt: ab,
+        ecke: ecke,
+        laengenmix: laengenmix,
+        stosslinien: [...linien.fest, ...linien.zusatz]
+          ..sort((a, b) => a.mm.compareTo(b.mm)),
+        dielenbreite: breite,
+        verlegeart: stand.verlegeart,
+        laengste: laengste,
+        verbinden: verbinden,
+        ueberlaenge: ueberlaenge,
+        aussparungen: aussparungen,
+        fuge: fuge,
+        mindeststueck: belag.art == Artikelart.holzfliese
+            ? Millimeter(laengste.mm ~/ 2)
+            : verbandMindeststueck,
+      ),
+      lieferlaengen: lieferlaengen,
       ueberlaenge: ueberlaenge,
-      aussparungen: aussparungen,
+      muster: muster,
+      bezeichnung: bezeichnung,
       fuge: fuge,
-      mindeststueck: belag.art == Artikelart.holzfliese
-          ? Millimeter(laengste.mm ~/ 2)
-          : verbandMindeststueck,
-    ),
-    lieferlaengen: lieferlaengen,
-    ueberlaenge: ueberlaenge,
-    muster: muster,
-    bezeichnung: bezeichnung,
-    fuge: fuge,
-  );
+      festeStoesse: linien.fest.length,
+      zusatzstoesse: linien.zusatz.length,
+    );
+  }
+
   return Belagverlegung._(
     ausgangspunkt,
     grenzen,
@@ -741,14 +787,16 @@ Belagverlegung? verlegeBelag(
     muster,
     [
       teil(
+        0,
         kontur,
         ausgangspunkt,
         aussparungen: [for (final a in stand.ausschnitte) a.kontur],
         ecke: stand.ausgangspunkt,
       ),
-      for (final a in stand.ausschnitte)
+      for (final (i, a) in stand.ausschnitte.indexed)
         if (a.funktion == Ausschnittfunktion.andererBelag)
           teil(
+            i + 1,
             a.kontur,
             Punkt(a.x.mm.toDouble(), a.y.mm.toDouble()),
             bezeichnung: a.bezeichnung,

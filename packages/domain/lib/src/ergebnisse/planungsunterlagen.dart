@@ -98,18 +98,23 @@ typedef Nebentext = ({Punkt ort, Punkt richtung, double abstand, String text});
 
 /// Eine Zeichnung (Grundriss, UK-Plan, Verlegeplan) – maßstäblich auf die
 /// Seitenbreite gesetzt; [nebentexte] stehen weiß hinterlegt über allem.
+/// Die Zahlen der [ketten] setzt der Satz erst, wenn er den Maßstab kennt
+/// (`Masskette.zahlen`, R-E02): mittig zwischen den Marken der Kette.
 final class Plan extends Baustein {
   Plan(
     List<Planlinie> linien, [
     List<Planbeschriftung> texte = const [],
     List<Nebentext> nebentexte = const [],
+    List<Masskette> ketten = const [],
   ]) : linien = List.unmodifiable(linien),
        texte = List.unmodifiable(texte),
-       nebentexte = List.unmodifiable(nebentexte);
+       nebentexte = List.unmodifiable(nebentexte),
+       ketten = List.unmodifiable(ketten);
 
   final List<Planlinie> linien;
   final List<Planbeschriftung> texte;
   final List<Nebentext> nebentexte;
+  final List<Masskette> ketten;
 }
 
 /// Ein Kapitel; [neueSeite] beginnt es oben auf einer neuen Seite.
@@ -629,7 +634,6 @@ Plan _ukPlan(Unterlagentexte t, Berechnung b, Planungsstand stand) {
     [
       ...umrissbeschriftung(t, b),
       if (_einheitlicheHoehe(t, b) == null) ..._eckhoehen(t, b, a),
-      ...?kette?.texte,
     ],
     [
       ...bogenbeschriftungen(t, b),
@@ -638,6 +642,7 @@ Plan _ukPlan(Unterlagentexte t, Berechnung b, Planungsstand stand) {
       ...stufen.texte,
       ..._rinnenetiketten(t, b),
     ],
+    [?kette?.zahlen],
   );
 }
 
@@ -796,21 +801,17 @@ Tabelle _fusslegende(Unterlagentexte t, Unterbau u) {
 /// außerhalb der Kantenmaße.
 const achsmassabstand = 2.5;
 
-/// Abstände unter dieser Länge (mm) bekommen keine Zahl – etwa zwischen
-/// den Hölzern einer Doppel-UK; die Marken stehen trotzdem.
-const kleinsterAchsabstand = 100.0;
-
 /// Linien und Zahlen der Achsmaßkette [k] (R-E02) im
-/// Beschriftungsabstand [a]: Kettenlinie, Marke je Achse und Rand,
-/// Abstand in cm neben der Mitte.
-({List<Planlinie> linien, List<Planbeschriftung> texte}) _achsmasskette(
+/// Beschriftungsabstand [a]: Kettenlinie, Marke je Achse und Rand; die
+/// Zahlen (in cm) stehen auf der Kette [zahlen] neben der Mitte – welche,
+/// entscheidet der Satz im Maßstab (`Masskette.zahlen`, nie übereinander).
+({List<Planlinie> linien, Masskette zahlen}) _achsmasskette(
   Masskette k,
   double a,
 ) {
   final versatz = k.normale * (a * achsmassabstand);
   final marke = k.normale * (a * 0.3);
   final punkte = [for (final m in k.marken) m + versatz];
-  final abstaende = k.abstaende;
   return (
     linien: [
       Planlinie(punkte, argb: achsmassfarbe, geschlossen: false),
@@ -821,14 +822,9 @@ const kleinsterAchsabstand = 100.0;
           geschlossen: false,
         ),
     ],
-    texte: [
-      for (var i = 0; i < abstaende.length; i++)
-        if (abstaende[i] >= kleinsterAchsabstand)
-          (
-            ort: (punkte[i] + punkte[i + 1]) * 0.5 + k.normale * (a * 0.7),
-            text: '${(abstaende[i] / 10).round()}',
-          ),
-    ],
+    zahlen: Masskette([
+      for (final p in punkte) p + k.normale * (a * 0.7),
+    ], k.normale),
   );
 }
 
@@ -1008,7 +1004,8 @@ List<String> _meldungen(
   return [
     if (b.flaechenmeldung case final m?) t.flaechenmeldung(m),
     for (final k in b.kantenwarnungen) t.kantenwarnung(k),
-    for (final m in b.belagmeldungen) t.belagmeldung(m, stand.dielenlaenge),
+    for (final m in b.belagmeldungen)
+      t.belagmeldung(m, stand.dielenlaenge, zusatzstoesse: b.zusatzstoesse),
     if (h.gedreht) t.ukGedreht,
     if (h.korrigiert) t.hoeheKorrigiert(h.mindesthoehe!),
     if (h.ungueltig) t.hoeheUngueltig(h.hoechsthoehe!, h.vorschlag),

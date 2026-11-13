@@ -122,18 +122,18 @@ void main() {
     test('Nummern, Unterpunkte und Art im Transportformat', () {
       expect(
         [for (final m in Belagmeldung.values) m.nummer],
-        [for (var i = 0; i < 7; i++) i, 10, 7, 8, 9],
+        [for (var i = 0; i < 7; i++) i, 10, 11, 12, 13, 7, 8, 9],
       );
       for (final m in Belagmeldung.values) {
         expect(Belagmeldung.ausNummer(m.nummer), m);
       }
       expect(
-        () => Belagmeldung.ausNummer(11),
+        () => Belagmeldung.ausNummer(14),
         throwsA(
           isA<FormatException>().having(
             (e) => e.message,
             'message',
-            'unbekannte Belagmeldung 11',
+            'unbekannte Belagmeldung 14',
           ),
         ),
       );
@@ -148,6 +148,9 @@ void main() {
           Belagmeldung.bombierungEmpfohlen: 0,
           Belagmeldung.laengeNichtLieferbar: 1,
           Belagmeldung.laengenvorgabeNichtErfuellbar: 1,
+          Belagmeldung.stosslinieZusatzstoesse: 2,
+          Belagmeldung.stosslinieNichtImMuster: 2,
+          Belagmeldung.stosslinieOhneWirkung: 2,
           Belagmeldung.befestigungsartNichtMoeglich: 5,
           Belagmeldung.befestigungOhneArtikel: 5,
           Belagmeldung.schraubeZuKurz: 5,

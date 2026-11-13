@@ -142,6 +142,37 @@ void main() {
       expect(_reihen(anders).laengen, _reihen(basis).laengen);
     });
 
+    test('feste Stoßlinie (Planungskern Regel 15.4) gilt nicht: Längenmix '
+        'unverändert, Hinweis statt Wirkung', () {
+      final basis = _rechteck(5000, 1000);
+      // Ecke B (5000|0) und C liegen am Rand; mit Ausschnitt-freier Fläche
+      // wäre bei Dielen eine Linie durch eine innere Ecke nötig – hier
+      // zählt nur, dass der Längenmix keine feste Linie übernimmt
+      final mitLinie = basis.mitStosslinie([1, 2]);
+      final ohne = verlegeBelag(basis, _massiv())!;
+      final mit = verlegeBelag(mitLinie, _massiv())!;
+      expect(_reihen(mit).laengen, _reihen(ohne).laengen);
+      expect(mit.festeStoesse, 0);
+      expect(mit.zusatzstoesse, 0);
+      expect(belagmeldungen(mitLinie, _massiv(), mit), [
+        Belagmeldung.systemdieleLaengenmix,
+        Belagmeldung.stosslinieNichtImMuster,
+      ]);
+      // L-Form mit innerer Ecke: auch dort bleibt der Mix
+      final l = Planungsstand.start.mitForm(Terrassenform.lForm);
+      for (var e = 0; e < l.ausgangsecken; e++) {
+        final v = verlegeBelag(l.mitStosslinie([e]), _massiv())!;
+        expect(v.festeStoesse, 0);
+        expect(
+          [for (final s in v.teile.first.stuecke) s.laenge],
+          [
+            for (final s in verlegeBelag(l, _massiv())!.teile.first.stuecke)
+              s.laenge,
+          ],
+        );
+      }
+    });
+
     test('senkrecht: Grenze in y ist 0; kurze Reihe ohne Stoß', () {
       final v = verlegeBelag(
         _rechteck(1000, 2003).mitVerlegerichtung(Verlegerichtung.senkrecht),

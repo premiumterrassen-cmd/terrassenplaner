@@ -169,6 +169,22 @@ void main() {
       expect(m.faktor, planhoehe / 1000);
     });
 
+    test('Maßketten zählen mit', () {
+      final m = Planmassstab.fuer(
+        Plan(
+          [
+            Planlinie(const [Punkt(0, 0), Punkt(1000, 0)], argb: 0),
+          ],
+          const [],
+          const [],
+          [
+            Masskette(const [Punkt(0, 0), Punkt(0, 2000)], const Punkt(-1, 0)),
+          ],
+        ),
+      );
+      expect(m.faktor, planhoehe / 2000);
+    });
+
     test('ein Punkt: Ausdehnung mindestens 1 mm; ohne Punkte leer', () {
       final punkt = Planmassstab.fuer(
         Plan([
@@ -371,6 +387,68 @@ void main() {
         closeTo(x(1000) - 1, 1e-9),
       );
       expect(felder[3].$2.links, closeTo(x(1280) + 1, 1e-9));
+    });
+
+    test('Zahlen der Maßketten im Maßstab (R-E02): längs Breite, quer '
+        'Höhe, nie übereinander; Nebentexte weichen ihnen aus', () {
+      // 0,042 pt/mm: „28“ braucht waagerecht 10,7 pt (254,8 mm), senkrecht
+      // 12 pt (285,7 mm) – 28 cm reichen nur waagerecht
+      Masskette kette(Punkt start, Punkt schritt, Punkt normale) => Masskette([
+        for (var i = 0; i < 4; i++) start + schritt * i.toDouble(),
+      ], normale);
+      final plan = Plan(
+        [
+          Planlinie(const [Punkt(0, 0), Punkt(0, 10000)], argb: 0),
+        ],
+        const [],
+        [
+          (
+            ort: const Punkt(140, 5000),
+            richtung: Punkt.ursprung,
+            abstand: 0,
+            text: '1',
+          ),
+        ],
+        [
+          kette(const Punkt(0, 5000), const Punkt(280, 0), const Punkt(0, 1)),
+          kette(Punkt.ursprung, const Punkt(0, 280), const Punkt(-1, 0)),
+        ],
+      );
+      final m = Planmassstab.fuer(plan);
+      expect(m.faktor, closeTo(0.042, 1e-12));
+      expect(kettenbeschriftungen(plan, m), const [
+        (ort: Punkt(140, 5000), text: '28'),
+        (ort: Punkt(420, 5000), text: '28'),
+        (ort: Punkt(700, 5000), text: '28'),
+        (ort: Punkt(0, 420), text: '3 × 28'),
+      ]);
+      // der Nebentext auf der ersten Zahl entfällt
+      expect(nebentextFelder(plan, m), isEmpty);
+    });
+
+    test('Zahlen der Maßketten im PDF', () async {
+      final pdf = await roh(
+        Planungsunterlagen(
+          texte: Unterlagentexte.deutsch,
+          kopfzeile: '',
+          kapitel: [
+            Kapitel('Plan', [
+              Plan(
+                [Planlinie(rechteck, argb: 0xFF000000)],
+                const [],
+                const [],
+                [
+                  Masskette(const [
+                    Punkt(0, 2000),
+                    Punkt(1000, 2000),
+                  ], const Punkt(0, 1)),
+                ],
+              ),
+            ]),
+          ],
+        ),
+      );
+      expect(pdf, contains('(100)'));
     });
 
     test('im PDF weiß hinterlegt in 5,5 pt', () async {
