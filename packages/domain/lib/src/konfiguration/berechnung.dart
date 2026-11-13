@@ -47,6 +47,7 @@ final class Berechnung {
     this.grenzeLinksRechts = const Millimeter(0),
     this.grenzeObenUnten = const Millimeter(0),
     this.kurzeZuschnitte = false,
+    this.zusatzstoesse = 0,
     List<int> nummern = const [],
     this.verschnitt,
     List<Lieferposition> dielenliste = const [],
@@ -138,6 +139,12 @@ final class Berechnung {
         wurzel,
         _versatz(_kurzeZuschnittePlatz),
         false,
+      ),
+      zusatzstoesse: const fb.Uint16Reader().vTableGet(
+        puffer,
+        wurzel,
+        _versatz(_zusatzstoessePlatz),
+        0,
       ),
       nummern: const fb.ListReader<int>(fb.Int32Reader())
           .vTableGet(puffer, wurzel, _versatz(_nummernPlatz), const []),
@@ -473,6 +480,11 @@ final class Berechnung {
   /// (`Dielenstueck.kurzerZuschnitt`, M5-07).
   final bool kurzeZuschnitte;
 
+  /// Zusätzliche, gleichmäßig verteilte Stöße zwischen den festen
+  /// Stoßlinien der Vorgabe „Stoßlinie durch Eckpunkt“ (Planungskern v13
+  /// Regel 15, R-B20) – die Meldung nennt die Anzahl; 0 ohne.
+  final int zusatzstoesse;
+
   /// Befestigung des Belags (M5-09): wählbare und wirksame Art,
   /// Befestigungspunkte und Artikel mit Anzahl; ohne Dielen keine.
   final Befestigungsbedarf befestigung;
@@ -583,6 +595,7 @@ final class Berechnung {
     grenzeLinksRechts: grenzeLinksRechts,
     grenzeObenUnten: grenzeObenUnten,
     kurzeZuschnitte: kurzeZuschnitte,
+    zusatzstoesse: zusatzstoesse,
     befestigung: befestigung,
     hoehenpunkte: hoehenpunkte,
     nummern: nummern,
@@ -642,7 +655,8 @@ final class Berechnung {
   /// verschnittvariante (uint8; fehlt = nicht optimiert) (M9-01),
   /// 167: zuschnittBelag, 168: zuschnittUk (Tabellen,
   /// `Zuschnittplan.schreibe`, M9-02), 63: planbild (Tabelle,
-  /// `Planbild.schreibe`, R-E01/R-E02) }`. Die Plätze 18–34 sind für die
+  /// `Planbild.schreibe`, R-E01/R-E02), 170: zusatzstoesse (uint16; fehlt
+  /// = 0, Planungskern v13 Regel 15, R-B20) }`. Die Plätze 18–34 sind für die
   /// Unterkonstruktion (M6) frei gehalten, 50–59 für das Zubehör (M8),
   /// 60–69 für die Ergebnisse (M9), 110–119 für die UK ab M6-08, 150–159
   /// für den Anschluss, die Höhenreferenzpunkte und die Treppen (M7),
@@ -705,7 +719,7 @@ final class Berechnung {
     final ukOrt = zuschnittUk.schreibe(fbb);
     final planbildOrt = planbild.schreibe(fbb);
     fbb
-      ..startTable(_zuschnittUkPlatz + 1)
+      ..startTable(_zusatzstoessePlatz + 1)
       ..addOffset(_umrissPlatz, umrissOrt)
       ..addFloat64(_flaechePlatz, flaeche)
       ..addOffset(_ausschnittePlatz, ausschnitteOrt)
@@ -746,6 +760,10 @@ final class Berechnung {
       ..addUint8(_verschnittvariantePlatz, verschnittvariante)
       ..addOffset(_zuschnittBelagPlatz, belagOrt)
       ..addOffset(_zuschnittUkPlatz, ukOrt)
+      ..addUint16(
+        _zusatzstoessePlatz,
+        zusatzstoesse == 0 ? null : zusatzstoesse,
+      )
       ..addOffset(_planbildPlatz, planbildOrt);
     if (verschnitt case final v?) fbb.addFloat64(_verschnittPlatz, v);
     if (volumen case final v?) fbb.addFloat64(_volumenPlatz, v);
@@ -893,6 +911,7 @@ final class Berechnung {
   static const _verschnittvariantePlatz = 166;
   static const _zuschnittBelagPlatz = 167;
   static const _zuschnittUkPlatz = 168;
+  static const _zusatzstoessePlatz = 170;
 
   static int _versatz(int platz) => 4 + 2 * platz;
 }

@@ -1000,7 +1000,8 @@ List<String> _meldungen(
   return [
     if (b.flaechenmeldung case final m?) t.flaechenmeldung(m),
     for (final k in b.kantenwarnungen) t.kantenwarnung(k),
-    for (final m in b.belagmeldungen) t.belagmeldung(m, stand.dielenlaenge),
+    for (final m in b.belagmeldungen)
+      t.belagmeldung(m, stand.dielenlaenge, zusatzstoesse: b.zusatzstoesse),
     if (h.gedreht) t.ukGedreht,
     if (h.korrigiert) t.hoeheKorrigiert(h.mindesthoehe!),
     if (h.ungueltig) t.hoeheUngueltig(h.hoechsthoehe!, h.vorschlag),

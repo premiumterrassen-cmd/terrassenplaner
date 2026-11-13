@@ -590,6 +590,61 @@ void main() {
     });
   });
 
+  group('Stoßlinie durch Eckpunkt (R-B20)', () {
+    testWidgets('Ecken wählen und abwählen, Teilfläche wählen', (tester) async {
+      final mitTeil = Planungsstand.start.mitNeuemAusschnitt();
+      final planung = PlanungsSteuerung(
+        mitTeil.mitAusschnitt(
+          0,
+          mitTeil.ausschnitte.first.mitFunktion(
+            Ausschnittfunktion.andererBelag,
+          ),
+        ),
+      );
+      addTearDown(planung.dispose);
+      var aenderungen = 0;
+      await tester.pumpWidget(
+        testApp(
+          home: Scaffold(
+            body: StosslinieWahl(
+              planung: planung,
+              onGeaendert: () => aenderungen++,
+            ),
+          ),
+        ),
+      );
+      bool gewaehlt(int i) => tester
+          .widget<FilterChip>(find.byKey(ValueKey('stosslinie-$i')))
+          .selected;
+      expect(find.text('Stoßlinie durch Eckpunkt (optional):'), findsOneWidget);
+      expect(find.text('C'), findsOneWidget);
+      expect(gewaehlt(2), isFalse);
+      expect(find.byKey(const ValueKey('stosslinie-flaeche')), findsNothing);
+
+      await tester.tap(find.byKey(const ValueKey('stosslinie-2')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('stosslinie-1')));
+      await tester.pumpAndSettle();
+      expect(planung.aktuell.stossecken, [1, 2]);
+      expect(gewaehlt(2), isTrue);
+      expect(aenderungen, 2);
+
+      await tester.tap(find.byKey(const ValueKey('stosslinie-flaeche')));
+      await tester.pumpAndSettle();
+      expect(find.text('jede Teilfläche mit dieser Ecke'), findsWidgets);
+      expect(find.text('Fläche ohne Ausschnitte'), findsOneWidget);
+      await tester.tap(find.text('A1').last);
+      await tester.pumpAndSettle();
+      expect(planung.aktuell.stossflaeche, 1);
+      expect(aenderungen, 3);
+
+      await tester.tap(find.byKey(const ValueKey('stosslinie-1')));
+      await tester.pumpAndSettle();
+      expect(planung.aktuell.stossecken, [2]);
+      expect(planung.aktuell.stossflaeche, 1);
+    });
+  });
+
   group('kurze Stücke verbinden', () {
     testWidgets('Vorgabe Nein, Ja und zurück', (tester) async {
       final planung = PlanungsSteuerung();
@@ -902,6 +957,13 @@ void main() {
           .selected,
       isTrue,
     );
+    // Stoßlinie durch Eckpunkt (R-B20)
+    final ecke = find.byKey(const ValueKey('stosslinie-2'));
+    await tester.ensureVisible(ecke);
+    await tester.pumpAndSettle();
+    await tester.tap(ecke);
+    await tester.pumpAndSettle();
+    expect(tester.widget<FilterChip>(ecke).selected, isTrue);
     // 2.4 Verlegerichtungen (M5-05)
     final senkrecht = find.byKey(const ValueKey('verlegerichtung-senkrecht'));
     await tester.ensureVisible(senkrecht);
