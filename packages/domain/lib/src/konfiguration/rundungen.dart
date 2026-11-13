@@ -11,6 +11,17 @@ import 'grundriss.dart';
 /// 14.1.2) – positiv nach außen, negativ nach innen gewölbt. Ecken und
 /// Seiten zählen wie [Grundriss.ecken] (Seite `i` von Ecke `i` zur
 /// nächsten).
+///
+/// „Ecke abrunden“ (Planungsregeln Alexander (Planungskern v15,
+/// 13.11.2026), Regel 17.1): die beiden Nachbarkanten werden um
+/// t = r / tan(θ/2) gekürzt (θ = Winkel zwischen den Kanten, bei 90° genau
+/// um r), dazwischen ein Kreisbogen tangential an beide Kanten – an einer
+/// konvexen Ecke wird die Fläche kleiner, an einer einspringenden größer.
+/// Ein negativer Radius ist die Hohlkehle „innen“ (17.1.4): ein Bogen um
+/// die alte Ecke als Mittelpunkt, die Kanten je um r gekürzt. Nur an Ecken
+/// mit zwei geraden Nachbarkanten (17.1.6); reicht eine Kante genau bis zum
+/// Bogen (t = Kantenlänge), wird ihr anderer Endpunkt Bogenanfang bzw.
+/// -ende (17.1.5, zwei Ecken einer 4-m-Kante mit R 2 m = Halbkreis).
 final class Rundungen {
   const Rundungen({
     this.ecken = const {},
@@ -42,7 +53,9 @@ final class Rundungen {
 
   static const keine = Rundungen();
 
-  /// Radius je Ecke.
+  /// Radius je Ecke, negativ = Hohlkehle „innen“ (Regel 17.1.4). Die
+  /// Reihenfolge ist die der Eingabe – nach ihr bekommen die Bogenenden
+  /// ihre Buchstaben (Regel 17.2, `umrisspunkte`).
   final Map<int, Millimeter> ecken;
 
   /// Stich je Seite.
@@ -61,12 +74,63 @@ final class Rundungen {
     for (final MapEntry(:key, :value) in radien.entries) ...[2, key, value.mm],
   ];
 
-  /// Mit Radius [radius] an Ecke [ecke]; 0 entfernt die Rundung.
-  Rundungen mitEcke(int ecke, Millimeter radius) => Rundungen(
-    ecken: _gesetzt(ecken, ecke, radius),
+  /// Mit Radius [radius] an Ecke [ecke], [innen] als Hohlkehle (Regel
+  /// 17.1.4); 0 entfernt die Rundung.
+  Rundungen mitEcke(int ecke, Millimeter radius, {bool innen = false}) =>
+      Rundungen(
+        ecken: _gesetzt(
+          ecken,
+          ecke,
+          Millimeter(innen ? -radius.mm.abs() : radius.mm.abs()),
+        ),
+        seiten: seiten,
+        radien: radien,
+      );
+
+  /// Ohne die Rundungen der Ecken [ohne] (Ecken an der Hauswand, Regel
+  /// 17.4).
+  Rundungen ohneEcken(Iterable<int> ohne) => Rundungen(
+    ecken: {...ecken}..removeWhere((i, _) => ohne.contains(i)),
     seiten: seiten,
     radien: radien,
   );
+
+  /// Ob die Ecke [ecke] des [grundriss] abgerundet werden kann (Regel
+  /// 17.1.6): beide Nachbarkanten gerade, die Ecke kein gestreckter Punkt.
+  bool rundbar(Grundriss grundriss, int ecke) {
+    final n = grundriss.ecken.length;
+    final vor = (ecke + n - 1) % n;
+    return !_gewoelbt(vor) &&
+        !_gewoelbt(ecke) &&
+        _drehung(grundriss.ecken, ecke).abs() > _gestreckt;
+  }
+
+  bool _gewoelbt(int seite) =>
+      seiten.containsKey(seite) || radien.containsKey(seite);
+
+  /// Größter Radius der Ecke [ecke] des [grundriss] in ganzen cm (Regel
+  /// 17.1.5) – so, dass t höchstens so lang ist wie jede Nachbarkante,
+  /// abzüglich der Kürzung durch eine Rundung an ihrem anderen Ende; mit
+  /// [innen] für die Hohlkehle (t = r). 0, wenn die Ecke nicht [rundbar]
+  /// ist.
+  Millimeter groessterRadius(
+    Grundriss grundriss,
+    int ecke, {
+    bool innen = false,
+  }) {
+    if (!rundbar(grundriss, ecke)) return const Millimeter(0);
+    final e = grundriss.ecken;
+    final n = e.length;
+    final vor = (ecke + n - 1) % n;
+    final nach = (ecke + 1) % n;
+    final frei = math.min(
+      e[ecke].abstand(e[vor]) - _tangente(e, vor),
+      e[ecke].abstand(e[nach]) - _tangente(e, nach),
+    );
+    final drehung = _drehung(e, ecke).abs();
+    final r = innen ? frei : frei / math.tan(drehung / 2);
+    return Millimeter(math.max(0, r ~/ 10) * 10);
+  }
 
   /// Mit Stich [stich] an Seite [seite] (ersetzt einen Radius dort); 0
   /// entfernt die Rundung.
@@ -107,6 +171,7 @@ final class Rundungen {
         punkte.add(ecke.start);
         woelbungen.add(ecke.woelbung);
       }
+      if (s.leer) continue;
       punkte.add(s.kante.start);
       woelbungen.add(s.kante.woelbung);
     }
@@ -119,6 +184,13 @@ final class Rundungen {
       );
     }
     return kontur;
+  }
+
+  /// Der Bogen je abgerundeter Ecke des [grundriss] (Regel 17.1) – vom
+  /// Bogenanfang auf der Seite davor zum Bogenende auf der Seite danach.
+  Map<int, Kante> eckboegen(Grundriss grundriss) {
+    if (ecken.isEmpty || grundriss.ecken.isEmpty) return const {};
+    return {for (final (i, s) in _seiten(grundriss).indexed) i: ?s.ecke};
   }
 
   /// Der Bogen je gewölbter Seite des [grundriss] – so, wie er in der
@@ -155,46 +227,74 @@ final class Rundungen {
   }
 
   /// Je Seite die Rundung der Ecke davor (falls) und die Kante zwischen
-  /// den Rundungen, gerade oder als Bogen.
-  List<({Kante? ecke, Kante kante})> _seiten(Grundriss grundriss) {
+  /// den Rundungen, gerade oder als Bogen; [leer], wenn von der Kante
+  /// nichts bleibt (t = Kantenlänge, Regel 17.1.5).
+  List<({Kante? ecke, Kante kante, bool leer})> _seiten(Grundriss grundriss) {
     final e = grundriss.ecken;
     final n = e.length;
-    final tangente = List<double>.filled(n, 0);
-    final drehung = List<double>.filled(n, 0);
-    int vorher(int i) => i == 0 ? n - 1 : i - 1;
     for (final MapEntry(key: i, value: r) in ecken.entries) {
-      final a = (e[i] - e[vorher(i)]).einheit;
-      final b = (e[(i + 1) % n] - e[i]).einheit;
-      drehung[i] = math.atan2(a.kreuz(b), a.punktprodukt(b));
-      tangente[i] = r.mm * math.tan(drehung[i].abs() / 2);
+      if (_gewoelbt((i + n - 1) % n) || _gewoelbt(i)) {
+        throw ArgumentError.value(
+          r.mm,
+          'ecke',
+          'an der Ecke ${_name(i)} liegt schon ein Bogen',
+        );
+      }
     }
     final aussen = Kontur(e).gegenUhrzeigersinn;
     return [
       for (var i = 0; i < n; i++)
         if ((i + 1) % n case final j)
           if (e[j] - e[i] case final seite)
-            if (seite.laenge - tangente[i] - tangente[j] case final rest)
-              (
-                ecke: tangente[i] > 0
-                    ? Kante(
-                        e[i] - (e[i] - e[vorher(i)]).einheit * tangente[i],
-                        e[i] + seite.einheit * tangente[i],
-                        math.tan(drehung[i] / 4),
-                      )
-                    : null,
-                kante: Kante(
-                  e[i] + seite.einheit * tangente[i],
-                  e[j] - seite.einheit * tangente[j],
-                  _woelbung(i, _pruefeRest(rest, i, j), aussen),
+            if ((_tangente(e, i), _tangente(e, j)) case (final ti, final tj))
+              if (_pruefeRest(seite.laenge - ti - tj, i, j) case final rest)
+                (
+                  ecke: ti > 0
+                      ? Kante(
+                          e[i] - (e[i] - e[(i + n - 1) % n]).einheit * ti,
+                          e[i] + seite.einheit * ti,
+                          _eckwoelbung(e, i),
+                        )
+                      : null,
+                  kante: Kante(
+                    e[i] + seite.einheit * ti,
+                    e[j] - seite.einheit * tj,
+                    rest < 1 ? 0 : _woelbung(i, rest, aussen),
+                  ),
+                  leer: rest < 1,
                 ),
-              ),
     ];
   }
 
-  /// Wirft, wenn zwischen den Rundungen der Ecken [i] und [j] nichts von
-  /// der Kante bleibt; sonst [rest].
+  /// Drehung des Umrisses an der Ecke [i] der [e] (Bogenmaß, links positiv).
+  static double _drehung(List<Punkt> e, int i) {
+    final n = e.length;
+    final a = (e[i] - e[(i + n - 1) % n]).einheit;
+    final b = (e[(i + 1) % n] - e[i]).einheit;
+    return math.atan2(a.kreuz(b), a.punktprodukt(b));
+  }
+
+  /// Kürzung t der Nachbarkanten an der Ecke [i] (Regel 17.1.1):
+  /// r / tan(θ/2) = r · tan(Drehung/2), bei der Hohlkehle r; ohne Rundung 0.
+  double _tangente(List<Punkt> e, int i) {
+    final r = ecken[i]?.mm ?? 0;
+    return r < 0 ? -r.toDouble() : r * math.tan(_drehung(e, i).abs() / 2);
+  }
+
+  /// Wölbung des Bogens an der Ecke [i]: tangential tan(Drehung/4); die
+  /// Hohlkehle läuft um die Ecke herum, also mit dem Winkel zwischen den
+  /// Kanten (π − |Drehung|) zur anderen Seite.
+  double _eckwoelbung(List<Punkt> e, int i) {
+    final d = _drehung(e, i);
+    return ecken[i]!.mm < 0
+        ? -d.sign * math.tan((math.pi - d.abs()) / 4)
+        : math.tan(d / 4);
+  }
+
+  /// Wirft, wenn die Rundungen der Ecken [i] und [j] zusammen um mehr als
+  /// [eckToleranz] länger sind als die Kante; sonst [rest].
   double _pruefeRest(double rest, int i, int j) {
-    if (rest < 1) {
+    if (rest < -eckToleranz) {
       throw ArgumentError.value(
         ecken[i]?.mm ?? ecken[j]!.mm,
         'ecke',
@@ -234,6 +334,15 @@ final class Rundungen {
   }
 
   static String _name(int i) => String.fromCharCode(65 + i);
+
+  /// Toleranz (mm), um die die Rundungen einer Kante zusammen länger sein
+  /// dürfen als die Kante – dann treffen sich die Bögen (Regel 17.1.5, im
+  /// Planungskern 0,5 cm).
+  static const eckToleranz = 5.0;
+
+  /// Drehung (Bogenmaß), unter der eine Ecke als gestreckt gilt und nicht
+  /// abgerundet werden kann (im Planungskern 0,05).
+  static const _gestreckt = 0.05;
 
   @override
   bool operator ==(Object other) =>

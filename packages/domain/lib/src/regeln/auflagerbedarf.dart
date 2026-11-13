@@ -225,9 +225,14 @@ double _streckenabstand(Punkt a, Punkt b, Punkt p) {
 ///   dem beide Enden liegen; eine UK bis 12 cm hat eins in der Mitte – F01:
 ///   13 Linien à 309 cm mit 60 cm → je 7 (91; F28: 91 Bodenanker wie im
 ///   alten Planer).
-///   Die Rand-UK (Planungsregeln 3.3) trägt ihre Auflager genauso; ein
-///   Stützholz unter der Rinne hat eins in der Mitte (Planungskern v11,
-///   Regel 13.1.4).
+///   Die Rand-UK (Planungsregeln 3.3) trägt ihre Auflager genauso – aber
+///   nur in einem Raster (Planungsregeln Alexander (Planungskern v14,
+///   13.11.2026), Regel 16.4): liegt im Umkreis von [auflagerRaster]
+///   (25 cm) schon ein Auflager (einer Linie oder einer früheren Rand-UK),
+///   bekommt sie dort keinen weiteren Fuß bzw. Unterleger; jedes Auflager
+///   ist ein Punkt im Plan. An der Doppel-UK eines Stoßes behält jede
+///   Linie ihr Auflager (offene Frage 131). Ein Stützholz unter der Rinne
+///   hat eins in der Mitte (Planungskern v11, Regel 13.1.4).
 /// - **Höhe:** [flaeche] am Auflager minus [aufbauhoehe] und
 ///   [gummiband] ist der Spalt zwischen UK und Boden (Ausgleichshöhe,
 ///   Planungsregeln Alexander (Planungskern v6, 11.11.2026), Regel 3a.2.1).
@@ -259,12 +264,17 @@ Auflagerbedarf auflagerbedarf(
     for (final l in verlegung.linien)
       for (final y in _stellen(l.abschnitte, l.stoesse, a))
         Punkt(l.x, y).gedreht(drehung),
-    for (final r in verlegung.rand)
-      for (final s in _randstellen(r, a))
-        (r.von + (r.bis - r.von).einheit * s).gedreht(drehung),
+  ];
+  for (final r in verlegung.rand) {
+    for (final s in _randstellen(r, a)) {
+      final ort = (r.von + (r.bis - r.von).einheit * s).gedreht(drehung);
+      if (!orte.any((o) => o.abstand(ort) < auflagerRaster.mm)) orte.add(ort);
+    }
+  }
+  orte.addAll([
     for (final s in verlegung.stuetzen)
       ((s.von + s.bis) * 0.5).gedreht(drehung),
-  ];
+  ]);
   if (orte.isEmpty) return Auflagerbedarf.keiner;
   final spalte = [
     for (final o in orte) flaeche.bei(o) - aufbauhoehe - gummiband,
@@ -296,6 +306,11 @@ Auflagerbedarf auflagerbedarf(
     ),
   };
 }
+
+/// Liegt näher als dies schon ein Auflager, bekommt eine Rand-UK dort
+/// keines (Planungsregeln Alexander (Planungskern v14, 13.11.2026), Regel
+/// 16.4: Stellfüße nur in einem Raster).
+const auflagerRaster = Millimeter(250);
 
 /// Stellen der Auflager auf der Rand-UK [r] (`_stellen`); am Bogen liegt
 /// ein Ende auf einem Lattenende (`UkRand.aufLatte`) und hat dort kein

@@ -8,7 +8,9 @@ import 'dart:math' as math;
 
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 
+import '../geometrie/eckbuchstaben.dart';
 import '../geometrie/punkt.dart';
+import '../konfiguration/ausschnitt.dart';
 import '../konfiguration/dielenverlegung.dart';
 import '../konfiguration/planungsstand.dart';
 import '../regeln/rinnen.dart';
@@ -115,6 +117,8 @@ List<Kettenzahl> _zusammengefasst(List<Kettenzahl> einzeln) {
 /// v12, 12.11.2026), Regel 14.1.3): Nummer der [seite], Bogenlänge und
 /// Radius in mm, der [scheitel] (Mitte des Bogens) und die Richtung
 /// [aussen] aus der Fläche – dort steht „Bogen … · R …“ statt der Sehne.
+/// Der Bogen einer abgerundeten Ecke `i` (Planungskern v15, Regel 17) hat
+/// die Seite `-1 - i` ([eckbogenSeite]).
 typedef Bogenmass = ({
   int seite,
   double laenge,
@@ -123,10 +127,18 @@ typedef Bogenmass = ({
   Punkt aussen,
 });
 
-/// Bogenmaße der gewölbten Seiten von [stand] (`Rundungen.seitenboegen`).
+/// Seite im [Bogenmass] für den Bogen der abgerundeten Ecke [ecke].
+int eckbogenSeite(int ecke) => -1 - ecke;
+
+/// Bogenmaße der gewölbten Seiten von [stand] (`Rundungen.seitenboegen`)
+/// und der abgerundeten Ecken (`Rundungen.eckboegen`, [eckbogenSeite]).
 List<Bogenmass> bogenmasse(Planungsstand stand) => [
-  for (final MapEntry(key: seite, value: b)
-      in stand.rundungen.seitenboegen(stand.grundriss).entries)
+  for (final MapEntry(key: seite, value: b) in {
+    ...stand.rundungen.seitenboegen(stand.grundriss),
+    for (final MapEntry(:key, :value)
+        in stand.rundungen.eckboegen(stand.grundriss).entries)
+      eckbogenSeite(key): value,
+  }.entries)
     if (b.start.gedreht(b.winkel / 2, b.mittelpunkt) case final scheitel)
       if ((scheitel - b.mittelpunkt).einheit case final d)
         (
@@ -137,6 +149,100 @@ List<Bogenmass> bogenmasse(Planungsstand stand) => [
           aussen: stand.kontur.enthaelt(scheitel + d * 10) ? d * -1 : d,
         ),
 ];
+
+/// Ein benannter Punkt im Plan (Planungsregeln Alexander (Planungskern
+/// v15, 13.11.2026), Regel 17.2 und Planungskern v14, Regel 16.6): [ort] in
+/// mm, [ecke] die Ecke des Grundrisses bzw. die Nummer des Ausschnitts und
+/// die Nummer des [buchstabe]ns (`eckbuchstabe`, A = 0).
+typedef Planpunkt = ({Punkt ort, int ecke, int buchstabe});
+
+/// Punkte höchstens so weit auseinander (mm) tragen denselben Buchstaben.
+const _gleicherPunkt = 6.0;
+
+/// Benannte Punkte des Umrisses von [stand] in der Reihenfolge des Umrisses,
+/// wenn eine Ecke abgerundet ist (Regel 17.2), sonst leer – dann stehen die
+/// Buchstaben an den Ecken:
+///
+/// - Jede Ecke behält ihren Buchstaben (A oben links, im Uhrzeigersinn).
+/// - An einer abgerundeten Ecke steht er am Bogenanfang (der Punkt zur
+///   Ecke mit dem vorigen Buchstaben hin), das Bogenende bekommt den
+///   nächsten freien Buchstaben – in der Reihenfolge, in der die Ecken
+///   abgerundet wurden.
+/// - Fällt ein Bogenpunkt auf einen schon benannten Punkt (t =
+///   Kantenlänge, Regel 17.1.5), bekommt er keinen eigenen; war es der
+///   Bogenanfang, wandert der Buchstabe der Ecke an das Bogenende.
+List<Planpunkt> umrisspunkte(Planungsstand stand) {
+  final g = stand.grundriss;
+  final boegen = stand.rundungen.eckboegen(g);
+  if (boegen.isEmpty) return const [];
+  final e = g.ecken;
+  final n = e.length;
+  final nummern = eckennummern(e);
+  final vorwaerts = nummern[1] == (nummern[0] + 1) % n;
+  final je = <int, List<Planpunkt>>{
+    for (var i = 0; i < n; i++)
+      if (!boegen.containsKey(i))
+        i: [(ort: e[i], ecke: i, buchstabe: nummern[i])],
+  };
+  bool belegt(Punkt p) =>
+      je.values.any((l) => l.any((q) => q.ort.abstand(p) <= _gleicherPunkt));
+  var frei = n;
+  for (final i in stand.rundungen.ecken.keys) {
+    final b = boegen[i]!;
+    final (halten, neu) = vorwaerts ? (b.start, b.ende) : (b.ende, b.start);
+    final punkte = <Punkt, int>{};
+    if (!belegt(halten)) punkte[halten] = nummern[i];
+    if (!belegt(neu)) punkte[neu] = punkte.isEmpty ? nummern[i] : frei++;
+    je[i] = [
+      for (final p in [b.start, b.ende])
+        if (punkte[p] case final nummer?) (ort: p, ecke: i, buchstabe: nummer),
+    ];
+  }
+  return [for (var i = 0; i < n; i++) ...je[i]!];
+}
+
+/// Benannte Ecken der Aussparungen von [stand] (Planungsregeln Alexander
+/// (Planungskern v14, 13.11.2026), Regel 16.6): leere Ausschnitte mit Ecken
+/// (Rechteck, Dreieck, Sechseck; der Kreis hat keine) bekommen Buchstaben
+/// fortlaufend nach denen des Umrisses ([umriss] bzw. der Ecken);
+/// eine Ecke, die auf einem benannten Punkt liegt, trägt dessen Buchstaben.
+/// [Planpunkt.ecke] ist die Nummer des Ausschnitts.
+List<Planpunkt> aussparungsecken(Planungsstand stand, List<Planpunkt> umriss) {
+  final benannt = umriss.isNotEmpty
+      ? umriss
+      : [
+          for (final (i, nummer) in eckennummern(stand.grundriss.ecken).indexed)
+            (ort: stand.grundriss.ecken[i], ecke: i, buchstabe: nummer),
+        ];
+  var frei = benannt.fold(-1, (m, p) => math.max(m, p.buchstabe)) + 1;
+  final punkte = <Planpunkt>[];
+  for (final (k, a) in stand.ausschnitte.indexed) {
+    if (a.funktion != Ausschnittfunktion.leer ||
+        a.form == Ausschnittform.kreis) {
+      continue;
+    }
+    for (final p in a.kontur.punkte) {
+      final gleich = [
+        ...benannt,
+        ...punkte,
+      ].where((q) => q.ort.abstand(p) <= _gleicherPunkt).firstOrNull;
+      punkte.add((ort: p, ecke: k, buchstabe: gleich?.buchstabe ?? frei++));
+    }
+  }
+  return punkte;
+}
+
+/// Name einer Aussparungskante [kante] des Ausschnitts [ausschnitt] aus den
+/// [ecken] (`aussparungsecken`): „H–I“; `null`, wenn es sie nicht gibt.
+String? aussparungskante(List<Planpunkt> ecken, int ausschnitt, int kante) {
+  final eigene = [
+    for (final p in ecken)
+      if (p.ecke == ausschnitt) p,
+  ];
+  if (kante < 0 || kante >= eigene.length) return null;
+  return '${eckbuchstabe(eigene[kante].buchstabe)}–'
+      '${eckbuchstabe(eigene[(kante + 1) % eigene.length].buchstabe)}';
+}
 
 /// Band einer Entwässerungsrinne RELO V im Plan (Planungsregeln Alexander,
 /// Planungskern v11, Regel 13.1.6, R-E07): die [ecken] außen an der Kante
@@ -238,10 +344,14 @@ final class Planbild {
     List<Bogenmass> boegen = const [],
     List<Strecke> riegel = const [],
     List<Rinnenband> rinnen = const [],
+    List<Planpunkt> umrisspunkte = const [],
+    List<Planpunkt> aussparungsecken = const [],
   }) : stoesse = List.unmodifiable(stoesse),
        boegen = List.unmodifiable(boegen),
        riegel = List.unmodifiable(riegel),
-       rinnen = List.unmodifiable(rinnen);
+       rinnen = List.unmodifiable(rinnen),
+       umrisspunkte = List.unmodifiable(umrisspunkte),
+       aussparungsecken = List.unmodifiable(aussparungsecken);
 
   /// Liest die Tabelle am Ort [ort] ([schreibe]).
   factory Planbild.lies(fb.BufferContext puffer, int ort) {
@@ -267,6 +377,19 @@ final class Planbild {
     final rinnen = punkte(_rinnenPlatz);
     final boegen = const fb.ListReader<double>(fb.Float64Reader())
         .vTableGet(puffer, ort, 4 + 2 * _boegenPlatz, const []);
+    List<Planpunkt> planpunkte(int platz) {
+      final k = const fb.ListReader<double>(fb.Float64Reader())
+          .vTableGet(puffer, ort, 4 + 2 * platz, const []);
+      return [
+        for (var i = 0; i < k.length ~/ 4; i++)
+          (
+            ort: Punkt(k[4 * i], k[4 * i + 1]),
+            ecke: k[4 * i + 2].round(),
+            buchstabe: k[4 * i + 3].round(),
+          ),
+      ];
+    }
+
     return Planbild(
       rinnen: [
         for (var i = 0; i < rinnen.length ~/ 4; i++)
@@ -285,6 +408,8 @@ final class Planbild {
           ),
       ],
       riegel: strecken(_riegelPlatz),
+      umrisspunkte: planpunkte(_umrisspunktePlatz),
+      aussparungsecken: planpunkte(_aussparungseckenPlatz),
     );
   }
 
@@ -307,12 +432,22 @@ final class Planbild {
   /// Entwässerungsrinnen (R-E07) im Verlegeplan und im UK-Plan.
   final List<Rinnenband> rinnen;
 
+  /// Benannte Punkte des Umrisses mit abgerundeten Ecken (Planungskern
+  /// v15, Regel 17.2, `umrisspunkte`); leer: Buchstaben an den Ecken.
+  final List<Planpunkt> umrisspunkte;
+
+  /// Benannte Ecken der Aussparungen (Planungskern v14, Regel 16.6,
+  /// `aussparungsecken`).
+  final List<Planpunkt> aussparungsecken;
+
   /// Schreibt `{ 0: stoesse ([float64] x, y von und bis je Stoß),
   /// 1: marken ([float64] x, y je Marke der Achsmaßkette), 2: normale
   /// ([float64] x, y; beide fehlen ohne Kette), 3: rinnen ([float64] x, y
   /// der vier Ecken je Rinnenband, Planungskern v11), 10: boegen
   /// ([float64] Seite, Länge, Radius, Scheitel x, y, außen x, y je Bogen,
-  /// Planungskern v12), 11: riegel ([float64] x, y von und bis je Riegel) }`.
+  /// Planungskern v12), 11: riegel ([float64] x, y von und bis je Riegel),
+  /// 20: umrisspunkte, 21: aussparungsecken ([float64] x, y, Ecke,
+  /// Buchstabe je Punkt, Planungskern v14/v15) }`.
   int schreibe(fb.Builder fbb) {
     List<double> zahlen(List<Strecke> strecken) => [
       for (final s in strecken) ...[s.von.x, s.von.y, s.bis.x, s.bis.y],
@@ -330,6 +465,18 @@ final class Planbild {
       ],
     ]);
     final riegelOrt = fbb.writeListFloat64(zahlen(riegel));
+    int? punkteOrt(List<Planpunkt> punkte) => punkte.isEmpty
+        ? null
+        : fbb.writeListFloat64([
+            for (final p in punkte) ...[
+              p.ort.x,
+              p.ort.y,
+              p.ecke.toDouble(),
+              p.buchstabe.toDouble(),
+            ],
+          ]);
+    final umrissOrt = punkteOrt(umrisspunkte);
+    final aussparungOrt = punkteOrt(aussparungsecken);
     final kette = achsen;
     final markenOrt = kette == null
         ? null
@@ -346,13 +493,15 @@ final class Planbild {
               for (final e in r.ecken) ...[e.x, e.y],
           ]);
     fbb
-      ..startTable(_riegelPlatz + 1)
+      ..startTable(_aussparungseckenPlatz + 1)
       ..addOffset(_stoessePlatz, stoesseOrt)
       ..addOffset(_markenPlatz, markenOrt)
       ..addOffset(_normalePlatz, normaleOrt)
       ..addOffset(_rinnenPlatz, rinnenOrt)
       ..addOffset(_boegenPlatz, boegenOrt)
-      ..addOffset(_riegelPlatz, riegelOrt);
+      ..addOffset(_riegelPlatz, riegelOrt)
+      ..addOffset(_umrisspunktePlatz, umrissOrt)
+      ..addOffset(_aussparungseckenPlatz, aussparungOrt);
     return fbb.endTable();
   }
 
@@ -364,6 +513,11 @@ final class Planbild {
   /// Plätze mit Abstand, damit andere Branches 4 … 9 nutzen können.
   static const _boegenPlatz = 10;
   static const _riegelPlatz = 11;
+
+  /// Planungskern v14/v15 – mit Abstand, damit andere Branches 12 … 19
+  /// nutzen können.
+  static const _umrisspunktePlatz = 20;
+  static const _aussparungseckenPlatz = 21;
 }
 
 /// Ein Dielenende und der Anfang der nächsten Diele derselben Reihe liegen

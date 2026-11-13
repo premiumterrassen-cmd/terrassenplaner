@@ -586,9 +586,62 @@ final class Planungsstand {
 
   /// Kopie, in der die Seite [seite] an ein Bauelement grenzt ([an]) oder
   /// nicht (M7-01, Fachkonzept 4.1).
+  ///
+  /// An der Hauswand wird keine Ecke abgerundet (Planungsregeln Alexander
+  /// (Planungskern v15, 13.11.2026), Regel 17.4): die Rundungen der beiden
+  /// Ecken der Seite entfallen.
   Planungsstand mitAngrenzend(int seite, {required bool an}) {
     _pruefeSeite(seite);
-    return _mit(anschluss: anschluss.mitAngrenzend(seite, an: an));
+    return _mit(
+      anschluss: anschluss.mitAngrenzend(seite, an: an),
+      rundungen: an
+          ? rundungen.ohneEcken([seite, (seite + 1) % seitenzahl])
+          : rundungen,
+    );
+  }
+
+  /// Kopie mit ([an]) oder ohne Blende am Bogen der abgerundeten Ecke
+  /// [ecke] (Planungsregeln Alexander (Planungskern v15, 13.11.2026), Regel
+  /// 17.3: Blende nur, wenn ausgewählt).
+  Planungsstand mitEckblende(int ecke, {required bool an}) {
+    if (!rundungen.ecken.containsKey(ecke)) {
+      throw ArgumentError.value(ecke, 'ecke', 'ist nicht abgerundet');
+    }
+    return _mit(anschluss: anschluss.mitEckblende(ecke, an: an));
+  }
+
+  /// Kopie mit ([an]) oder ohne Blende an der Kante [kante] einer leeren
+  /// Aussparung mit Ecken (Planungsregeln Alexander (Planungskern v14,
+  /// 13.11.2026), Regel 16.6: nur, wenn ausdrücklich gewählt).
+  Planungsstand mitAussparungsblende(
+    Aussparungskante kante, {
+    required bool an,
+  }) {
+    final a = ausschnitte.elementAtOrNull(kante.ausschnitt);
+    if (a == null ||
+        a.funktion != Ausschnittfunktion.leer ||
+        a.form == Ausschnittform.kreis ||
+        kante.kante < 0 ||
+        kante.kante >= a.kontur.punkte.length) {
+      throw ArgumentError.value(
+        '${kante.ausschnitt}/${kante.kante}',
+        'kante',
+        'keine Kante einer Aussparung',
+      );
+    }
+    return _mit(anschluss: anschluss.mitAussparungsblende(kante, an: an));
+  }
+
+  /// Ob die Ecke [ecke] abgerundet werden kann (Planungsregeln Alexander
+  /// (Planungskern v15, 13.11.2026), Regel 17.1.6 und 17.4): eine Ecke des
+  /// geschlossenen Umrisses mit zwei geraden Nachbarkanten, keine an der
+  /// Hauswand (angrenzende Seite, M7-01).
+  bool eckeRundbar(int ecke) {
+    final n = seitenzahl;
+    return n > 0 &&
+        !anschluss.grenztAn(ecke) &&
+        !anschluss.grenztAn((ecke + n - 1) % n) &&
+        rundungen.rundbar(grundriss, ecke);
   }
 
   /// Kopie, in der die Seite [seite] verblendet ist ([an]) oder nicht
@@ -817,10 +870,13 @@ final class Planungsstand {
       auflagen: auflagen ?? this.auflagen,
       feldbreite: feldbreite == null ? this.feldbreite : feldbreite.wert,
       zubehoer: zubehoer ?? this.zubehoer,
-      // andere Seiten: der Anschluss beginnt neu
-      anschluss: _seitenzahl(neu) == seitenzahl
+      // andere Seiten: der Anschluss beginnt neu; andere Aussparungen: ohne
+      // ihre Blenden
+      anschluss: _seitenzahl(neu) != seitenzahl
+          ? Anschluss.keiner
+          : _gleicheAussparungen(ausschnitte ?? this.ausschnitte)
           ? anschluss ?? this.anschluss
-          : Anschluss.keiner,
+          : (anschluss ?? this.anschluss).ohneAussparungsblenden(),
       hoehenpunkte: hoehenpunkte ?? this.hoehenpunkte,
       treppen: _seitenzahl(neu) == seitenzahl
           ? treppen ?? this.treppen
@@ -828,12 +884,67 @@ final class Planungsstand {
     );
   }
 
+  /// Ob [neu] dieselben Aussparungen hat (Anzahl, Form, Funktion) – sonst
+  /// gelten die Blenden an ihren Kanten nicht mehr (Regel 16.6).
+  bool _gleicheAussparungen(List<Ausschnitt> neu) =>
+      neu.length == ausschnitte.length &&
+      [
+        for (final (i, a) in neu.indexed)
+          a.form == ausschnitte[i].form &&
+              a.funktion == ausschnitte[i].funktion,
+      ].every((gleich) => gleich);
+
   /// Kopie mit geändertem Grundriss; die Rundungen bleiben, solange es
-  /// gleich viele Ecken sind und sie weiter passen.
+  /// gleich viele Ecken sind und sie weiter passen – sonst die, deren Ort
+  /// die neue Form noch hat (`_uebertragen`, Regel 17.6).
   Planungsstand mitGrundriss(Grundriss grundriss) => _mit(
     grundriss: grundriss,
-    rundungen: _passend(grundriss) ? rundungen : Rundungen.keine,
+    rundungen: _passend(grundriss) ? rundungen : _uebertragen(grundriss),
   );
+
+  /// Rundungen nach einer Formänderung (Planungsregeln Alexander
+  /// (Planungskern v15, 13.11.2026), Regel 17.6 „Formänderung behält
+  /// Bögen“): eine Seite der neuen Form, deren beide Endpunkte auf einem
+  /// Bogen der bisherigen liegen, behält ihn – mit dem Stich, wenn es
+  /// dieselbe Seite ist, sonst mit seinem Radius; eine abgerundete Ecke
+  /// bleibt, wenn die neue Form an derselben Stelle eine Ecke hat. Passen
+  /// sie zusammen nicht mehr, entfallen alle.
+  Rundungen _uebertragen(Grundriss neu) {
+    final alt = grundriss.ecken;
+    final e = neu.ecken;
+    if (rundungen.leer || e.isEmpty) return Rundungen.keine;
+    bool nah(Punkt a, Punkt b) => a.abstand(b) <= _gleicherOrt;
+    var r = Rundungen.keine;
+    for (final MapEntry(key: i, value: radius) in rundungen.ecken.entries) {
+      final j = e.indexWhere((p) => nah(p, alt[i]));
+      if (j >= 0) r = r.mitEcke(j, radius, innen: radius.mm < 0);
+    }
+    final boegen = rundungen.seitenboegen(grundriss);
+    for (var j = 0; j < e.length; j++) {
+      final (a, b) = (e[j], e[(j + 1) % e.length]);
+      for (final MapEntry(key: i, value: bogen) in boegen.entries) {
+        if (bogen.abstand(a) > _gleicherOrt ||
+            bogen.abstand(b) > _gleicherOrt) {
+          continue;
+        }
+        final stich = rundungen.seiten[i];
+        final innen = rundungen.stichAn(grundriss, i).mm < 0;
+        r = stich != null && nah(a, bogen.start) && nah(b, bogen.ende)
+            ? r.mitSeite(j, stich)
+            : r.mitRadius(j, Millimeter(bogen.radius.round()), innen: innen);
+      }
+    }
+    try {
+      r.kontur(neu);
+      return r;
+    } on ArgumentError {
+      return Rundungen.keine;
+    }
+  }
+
+  /// Punkte höchstens so weit auseinander (mm) gelten nach einer
+  /// Formänderung als derselbe Ort (Regel 17.6).
+  static const _gleicherOrt = 10.0;
 
   bool _passend(Grundriss neu) {
     if (rundungen.leer) return true;
