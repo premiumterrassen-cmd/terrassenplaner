@@ -651,11 +651,13 @@ Belagverlegung? verlegeBelag(
     Punkt ab, {
     List<Kontur> aussparungen = const [],
     String? bezeichnung,
+    Punkt? ecke,
   }) => Teilverlegung(
     verlegeDielen(
       flaeche,
       winkel: winkel,
       ausgangspunkt: ab,
+      ecke: ecke,
       dielenbreite: breite,
       verlegeart: stand.verlegeart,
       laengste: laengste,
@@ -684,6 +686,7 @@ Belagverlegung? verlegeBelag(
         kontur,
         ausgangspunkt,
         aussparungen: [for (final a in stand.ausschnitte) a.kontur],
+        ecke: stand.ausgangspunkt,
       ),
       for (final a in stand.ausschnitte)
         if (a.funktion == Ausschnittfunktion.andererBelag)

@@ -35,6 +35,7 @@ In den Testdaten als `fehlerverdacht` markiert – dort sind die alten Ergebniss
 |---|---|---|
 | F40 | Treppe „Fundament“ ergibt dieselbe Material- und Zuschnittliste wie „Konstruktion“, obwohl eine vorhandene Betontreppe nur belegt wird | **Fehler** (Antwort Frage 11) |
 | F25 | Holzfliese je lfm statt je Stück | **Fehler** (s. o.) |
+| F04 | Stoßlinie bei 135° durch Punkt A mitten in der Fläche, dadurch Stücke bis 1,5 cm | **nicht übernommen**: Raster ab dem näheren Rand (Alexander 13.11.2026, Fachkonzept 2.4) |
 | F14 | automatische Dielenlänge 7000 mm für einen Artikel mit 4/5/6 m, UK 6500 mm | **Fehler** (B-035, Frage 15) |
 | – | Querstreben lassen sich im Bearbeitungsmodus nicht setzen | Bedienfehler; Regel: 75-cm-Raster, versetzt (R-C03, Planungskern v6, 11.11.2026; bis dahin 60 cm, Frage 17) |
 

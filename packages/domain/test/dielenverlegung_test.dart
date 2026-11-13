@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import 'package:test/test.dart';
@@ -21,6 +22,7 @@ List<Dielenstueck> _verlege(
   Verlegeart verlegeart = Verlegeart.fugenschnitt,
   Millimeter laengste = _m6,
   bool verbinden = false,
+  Punkt? ecke,
 }) => verlegeDielen(
   kontur,
   winkel: winkel,
@@ -30,6 +32,7 @@ List<Dielenstueck> _verlege(
   laengste: laengste,
   verbinden: verbinden,
   fuge: altplanerFuge,
+  ecke: ecke,
 );
 
 List<int> _laengen(List<Dielenstueck> stuecke) => [
@@ -42,7 +45,8 @@ double _flaeche(List<Dielenstueck> stuecke) =>
 
 void main() {
   test('Abgleich mit den Zuschnittlisten des alten Planers (F01–F13; '
-      'F06–F08 und F12 nach dem Planungskern v7, R-B18)', () {
+      'F06–F08 und F12 nach dem Planungskern v7, R-B18; F04 ohne Stoß '
+      'durch A)', () {
     const richtungen = {
       'Waagrecht': Verlegerichtung.waagrecht,
       'Senkrecht': Verlegerichtung.senkrecht,
@@ -79,6 +83,7 @@ void main() {
           winkel: stand.dielenwinkel.toDouble(),
           verlegeart: arten[e['verlegeart']]!,
           laengste: fest ?? _m6,
+          ecke: Punkt.ursprung,
         ),
       )..sort();
       final alt = [
@@ -91,6 +96,17 @@ void main() {
       // nicht länger als eine Diele ist; Wechselverband unregelmäßig
       if (const {'F06', 'F07', 'F08'}.contains(id)) {
         expect(neu.toSet(), {4800}, reason: id);
+        continue;
+      }
+      // Alexander 13.11.2026: Stöße am Rand statt durch A – bei 480 × 309
+      // cm reicht dann jede Reihe in eine Diele, wie bei 45° (F03)
+      if (id == 'F04') {
+        expect(neu, hasLength(86), reason: id);
+        expect(
+          neu.reduce((a, b) => a + b),
+          closeTo(alt.reduce((a, b) => a + b), 154),
+          reason: id,
+        );
         continue;
       }
       if (id == 'F12') {
@@ -158,6 +174,59 @@ void main() {
     final [links, rechts] = _verlege(stufe);
     expect(Kontur(links.umriss).flaeche, closeTo(6000 * 65, 1e-3));
     expect(Kontur(rechts.umriss).flaeche, closeTo(2000 * 30, 1e-3));
+  });
+
+  test('Stoßraster ab der Ecke, ohne Kante quer dazu ab dem Rand', () {
+    final rechteck = Kontur.rechteck(9000, 3090);
+    // 135°: A liegt mitten in der Ausdehnung (−6364 bis 2185 mm); ohne
+    // Ecke läuft ein Stoß durch A, mit Ecke beginnt das Raster am näheren
+    // Rand (Alexander 13.11.2026)
+    // alle Stoßlinien als Abstand von A in Verlegerichtung
+    Set<int> stoesse(Punkt? ecke, {Punkt ab = Punkt.ursprung}) {
+      final stuecke = _verlege(
+        rechteck,
+        winkel: 135,
+        ausgangspunkt: ab,
+        ecke: ecke,
+      );
+      return {
+        for (final (i, s) in stuecke.indexed)
+          if (i > 0 && stuecke[i - 1].reihe == s.reihe)
+            s.umriss
+                .map((p) => (p.y - p.x) / math.sqrt2)
+                .reduce(math.min)
+                .round(),
+      };
+    }
+
+    expect(stoesse(null), {0, -6000});
+    expect(stoesse(Punkt.ursprung), {-3815});
+    // Ausgangspunkt 100 mm verschoben: das Raster wandert mit
+    expect(
+      stoesse(
+        Punkt.ursprung,
+        ab: const Punkt(-100 / math.sqrt2, 100 / math.sqrt2),
+      ),
+      {-3715},
+    );
+    // waagrecht und senkrecht liegt an A eine Kante quer: Raster ab A
+    for (final winkel in [0.0, 90.0]) {
+      expect(
+        _laengen(_verlege(rechteck, winkel: winkel, ecke: Punkt.ursprung)),
+        _laengen(_verlege(rechteck, winkel: winkel)),
+      );
+    }
+    // Ecke ohne gerade Kanten (Kreis): ab dem näheren Rand
+    final kreis = Kontur.kreis(const Punkt(5000, 0), 5000);
+    final rund = _verlege(
+      kreis,
+      ausgangspunkt: const Punkt(5000, 0),
+      ecke: const Punkt(5000, 0),
+    );
+    expect(rund.where((s) => s.reihe == 0).map((s) => s.laenge.mm), [
+      6000,
+      4000,
+    ]);
   });
 
   test('Restreihen unter 15 mm Breite entfallen', () {
