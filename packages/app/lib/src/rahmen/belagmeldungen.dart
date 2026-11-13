@@ -67,19 +67,22 @@ class BelagMeldungen extends StatelessWidget {
 }
 
 /// Text einer Meldung; die Länge nennt die erzwungene Länge des [stand].
-String belagmeldungText(PlanerTexte t, Belagmeldung m, Planungsstand stand) =>
-    switch (m) {
-      Belagmeldung.belagErsetzt => t.belagmeldungBelagErsetzt,
-      Belagmeldung.belagOhneMasse => t.belagmeldungOhneMasse,
-      Belagmeldung.systemdieleOhneVerlegung => t.belagmeldungSystemdiele,
-      Belagmeldung.flaecheKleinerAlsBelag => t.belagmeldungFlaecheKleiner,
-      Belagmeldung.fliesenSpitzeWinkel => t.belagmeldungFliesenSpitzeWinkel,
-      Belagmeldung.bombierungEmpfohlen => t.belagmeldungBombierung,
-      Belagmeldung.laengeNichtLieferbar => t.belagmeldungLaengeNichtLieferbar(
-        (stand.dielenlaenge?.mm ?? 0) ~/ 10,
-      ),
-      Belagmeldung.befestigungsartNichtMoeglich =>
-        t.belagmeldungBefestigungsart,
-      Belagmeldung.befestigungOhneArtikel => t.belagmeldungOhneBefestigung,
-      Belagmeldung.schraubeZuKurz => t.belagmeldungSchraubeZuKurz,
-    };
+String belagmeldungText(
+  PlanerTexte t,
+  Belagmeldung m,
+  Planungsstand stand,
+) => switch (m) {
+  Belagmeldung.belagErsetzt => t.belagmeldungBelagErsetzt,
+  Belagmeldung.belagOhneMasse => t.belagmeldungOhneMasse,
+  Belagmeldung.systemdieleOhneVerlegung => t.belagmeldungSystemdiele,
+  Belagmeldung.flaecheKleinerAlsBelag => t.belagmeldungFlaecheKleiner,
+  Belagmeldung.fliesenSpitzeWinkel => t.belagmeldungFliesenSpitzeWinkel,
+  Belagmeldung.bombierungEmpfohlen => t.belagmeldungBombierung,
+  Belagmeldung.laengeNichtLieferbar => t.belagmeldungLaengeNichtLieferbar(
+    (stand.dielenlaenge?.mm ?? 0) ~/ 10,
+  ),
+  Belagmeldung.laengenvorgabeNichtErfuellbar => t.belagmeldungLaengenvorgabe,
+  Belagmeldung.befestigungsartNichtMoeglich => t.belagmeldungBefestigungsart,
+  Belagmeldung.befestigungOhneArtikel => t.belagmeldungOhneBefestigung,
+  Belagmeldung.schraubeZuKurz => t.belagmeldungSchraubeZuKurz,
+};

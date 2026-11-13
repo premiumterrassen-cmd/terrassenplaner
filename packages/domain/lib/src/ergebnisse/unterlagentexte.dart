@@ -85,8 +85,8 @@ final class Unterlagentexte {
     required this.dielenHinweis,
     required this.stossHinweis,
     required this.achsmassHinweis,
-    required this.massKapitel,
-    required this.massHinweis,
+    required this.ukHoehenHinweis,
+    required this.fusshoehe,
     required this.ohneAuflager,
     required this.dielenNachNummer,
     required this.nr,
@@ -174,11 +174,11 @@ final class Unterlagentexte {
         'Rot gestrichelt: Stoß – jedes Dielenende liegt auf einer eigenen '
         'UK (Doppel-UK).',
     achsmassHinweis: 'Blau: Achsmaße der UK in cm.',
-    massKapitel: 'Bemaßung und Höhen',
-    massHinweis:
-        'H = Höhe Oberkante Diele über Boden je Ecke in cm. An jedem '
-        'Auflager die Höhe des Stellfußes bzw. der Unterleger in cm, die '
-        'Farbe nach der Legende.',
+    ukHoehenHinweis:
+        'H = Höhe Oberkante Diele über Boden in cm. Neben jedem Auflager '
+        'die Höhe des Stellfußes bzw. der Unterleger in cm, die Farbe nach '
+        'der Legende.',
+    fusshoehe: 'Fußhöhe',
     ohneAuflager: 'Kein passendes Auflager',
     dielenNachNummer: 'Dielen/Platten nach Nummer',
     nr: 'Nr.',
@@ -289,11 +289,11 @@ final class Unterlagentexte {
         'Red dashed: butt joint – each board end rests on its own joist '
         '(double joist).',
     achsmassHinweis: 'Blue: joist centre distances in cm.',
-    massKapitel: 'Dimensions and heights',
-    massHinweis:
-        'H = height of the top of the boards above ground per corner in cm. '
-        'At every support the height of the adjustable foot or pads in cm, '
+    ukHoehenHinweis:
+        'H = height of the top of the boards above ground in cm. Next to '
+        'every support the height of the adjustable foot or pads in cm, '
         'coloured as in the legend.',
+    fusshoehe: 'Support height',
     ohneAuflager: 'No matching support',
     dielenNachNummer: 'Boards/tiles by number',
     nr: 'No.',
@@ -411,14 +411,30 @@ final class Unterlagentexte {
   /// Legende der Achsmaßkette im UK-Plan (R-E02).
   final String achsmassHinweis;
 
-  /// Seite „Bemaßung und Höhen“ (Planungskern v7, Regel 9.2, R-E05):
-  /// Titel, Legende und Zeile für Auflager ohne passenden Artikel.
-  final String massKapitel;
-  final String massHinweis;
+  /// Höhen im UK-Plan (R-E05, Planungskern v8/v9 Regeln 10.1 und 11.2):
+  /// Legende, Spalte der Fußhöhe und Zeile für Auflager ohne passenden
+  /// Artikel.
+  final String ukHoehenHinweis;
+  final String fusshoehe;
   final String ohneAuflager;
 
-  /// „H = 8,6 cm“: Höhe einer Ecke im Bemaßungsplan.
+  /// „H = 8,6 cm“: Höhe einer Ecke im UK-Plan.
   String eckhoehe(Millimeter hoehe) => 'H = ${cm(hoehe)} cm';
+
+  /// Gleiche Höhe an allen Ecken (Planungskern v10 Regel 12.2): einmal
+  /// über dem UK-Plan statt an jeder Ecke.
+  String aufbauhoeheUeberall(Millimeter hoehe) => _de
+      ? 'Aufbauhöhe H = ${cm(hoehe)} cm (überall)'
+      : 'Build-up height H = ${cm(hoehe)} cm (everywhere)';
+
+  /// Höhe der Oberkante eines Treppenteils im UK-Plan (Planungskern v8
+  /// Regel 10.1.1): Stufe [nummer] von oben, 0 = Podest.
+  String stufenhoehe(int nummer, Millimeter hoehe) => switch ((nummer, _de)) {
+    (0, true) => 'Podest · H ${cm(hoehe)} cm',
+    (0, false) => 'Landing · H ${cm(hoehe)} cm',
+    (_, true) => 'Stufe $nummer · H ${cm(hoehe)} cm',
+    (_, false) => 'Step $nummer · H ${cm(hoehe)} cm',
+  };
   final String dielenNachNummer;
   final String nr;
   final String masse;
@@ -617,6 +633,9 @@ final class Unterlagentexte {
     (Belagmeldung.laengeNichtLieferbar, true) =>
       'Die gewählte Länge von ${cm(laenge!)} cm gibt es für diesen Belag '
           'nicht. Die Dielenlänge wird automatisch ermittelt.',
+    (Belagmeldung.laengenvorgabeNichtErfuellbar, true) =>
+      'Keine Lieferlänge dieses Belags erfüllt die Vorgabe Dielenlänge. '
+          'Geplant wird mit allen Lagerlängen.',
     (Belagmeldung.befestigungsartNichtMoeglich, true) =>
       'Genutete Dielen werden verdeckt mit Clips befestigt. Die gewählte '
           'Verschraubung gilt nur für glattkante Dielen.',
@@ -647,6 +666,9 @@ final class Unterlagentexte {
     (Belagmeldung.laengeNichtLieferbar, false) =>
       'The selected length of ${cm(laenge!)} cm is not available for this '
           'decking. The board length is determined automatically.',
+    (Belagmeldung.laengenvorgabeNichtErfuellbar, false) =>
+      'No delivery length of this decking meets the board length '
+          'requirement. All stock lengths are used.',
     (Belagmeldung.befestigungsartNichtMoeglich, false) =>
       'Grooved boards are fixed invisibly with clips. The selected screw '
           'fixing only applies to smooth-edged boards.',

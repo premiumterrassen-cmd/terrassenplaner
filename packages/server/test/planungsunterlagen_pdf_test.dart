@@ -149,6 +149,26 @@ void main() {
       expect(m.abbild(const Punkt(-100, 20000)).y, 0);
     });
 
+    test('Nebentexte zählen mit', () {
+      final m = Planmassstab.fuer(
+        Plan(
+          [
+            Planlinie(const [Punkt(0, 0), Punkt(1000, 0)], argb: 0),
+          ],
+          const [],
+          [
+            (
+              ort: const Punkt(0, 1000),
+              richtung: Punkt.ursprung,
+              abstand: 0,
+              text: '1',
+            ),
+          ],
+        ),
+      );
+      expect(m.faktor, planhoehe / 1000);
+    });
+
     test('ein Punkt: Ausdehnung mindestens 1 mm; ohne Punkte leer', () {
       final punkt = Planmassstab.fuer(
         Plan([
@@ -159,6 +179,226 @@ void main() {
       expect(punkt.breite, 0);
       final leer = Planmassstab.fuer(Plan(const []));
       expect([leer.faktor, leer.breite, leer.hoehe], [0, 0, 0]);
+    });
+  });
+
+  group('Nebentexte weiß hinterlegt neben dem Bauteil (Planungskern v8 '
+      'Regel 10.1.3, v10 Regel 12.1)', () {
+    final m = Planmassstab.fuer(Plan([Planlinie(rechteck, argb: 0)]));
+    final p = m.abbild(const Punkt(1000, 500));
+    Nebentext neben(Punkt richtung, String text, {double abstand = 0}) => (
+      ort: const Punkt(1000, 500),
+      richtung: richtung,
+      abstand: abstand,
+      text: text,
+    );
+    test('rechts neben dem Punkt: linke Kante 1 pt daneben, mittig in y', () {
+      final lage = nebentextLage(neben(const Punkt(1, 0), '4,5'), m);
+      expect(lage.breite, closeTo(3 * 5.5 * 0.55 + 1, 1e-9));
+      expect(lage.hoehe, 7.5);
+      expect(lage.links, closeTo(p.x + 1, 1e-9));
+      expect(lage.unten, closeTo(p.y - 3.75, 1e-9));
+    });
+    test('Abstand vom Bauteil in mm, im Maßstab', () {
+      final lage = nebentextLage(
+        neben(const Punkt(1, 0), '4,5', abstand: 100),
+        m,
+      );
+      expect(lage.links, closeTo(p.x + 100 * m.faktor + 1, 1e-9));
+      final gegen = nebentextLage(
+        neben(const Punkt(1, 0), '4,5', abstand: 100),
+        m,
+        const Punkt(-1, 0),
+      );
+      expect(
+        gegen.links + gegen.breite,
+        closeTo(p.x - 100 * m.faktor - 1, 1e-9),
+      );
+    });
+    test('über dem Punkt (y nach unten in mm, nach oben im PDF)', () {
+      final lage = nebentextLage(neben(const Punkt(0, -1), '12'), m);
+      expect(lage.unten, closeTo(p.y + 1, 1e-9));
+      expect(lage.links, closeTo(p.x - lage.breite / 2, 1e-9));
+    });
+    test('links und unter dem Punkt', () {
+      final links = nebentextLage(neben(const Punkt(-1, 0), '1'), m);
+      expect(links.links + links.breite, closeTo(p.x - 1, 1e-9));
+      final unten = nebentextLage(neben(const Punkt(0, 1), '1'), m);
+      expect(unten.unten + unten.hoehe, closeTo(p.y - 1, 1e-9));
+    });
+    test('ohne Richtung mittig', () {
+      final lage = nebentextLage(neben(Punkt.ursprung, 'Stufe 1'), m);
+      expect(lage.links + lage.breite / 2, closeTo(p.x, 1e-9));
+      expect(lage.unten + lage.hoehe / 2, closeTo(p.y, 1e-9));
+    });
+
+    test('Feld berührt Vieleck: Trennachse des Felds und der Kanten', () {
+      const f = (links: 0.0, unten: 0.0, breite: 10.0, hoehe: 10.0);
+      List<PdfPoint> quadrat(double x, double y, double a) => [
+        PdfPoint(x, y),
+        PdfPoint(x + a, y),
+        PdfPoint(x + a, y + a),
+        PdfPoint(x, y + a),
+      ];
+      expect(feldBeruehrt(f, quadrat(5, 5, 10)), isTrue);
+      expect(feldBeruehrt(f, quadrat(2, 2, 2)), isTrue);
+      // nur berühren an der Kante zählt nicht
+      expect(feldBeruehrt(f, quadrat(10, 0, 5)), isFalse);
+      expect(feldBeruehrt(f, quadrat(-5, 0, 5)), isFalse);
+      expect(feldBeruehrt(f, quadrat(0, 10, 5)), isFalse);
+      expect(feldBeruehrt(f, quadrat(0, -5, 5)), isFalse);
+      // schräges Holz: Hüllrechtecke überlappen, die Kante trennt
+      const raute = [
+        PdfPoint(14, 7),
+        PdfPoint(21, 14),
+        PdfPoint(14, 21),
+        PdfPoint(7, 14),
+      ];
+      expect(feldBeruehrt(f, raute), isFalse);
+      expect(
+        feldBeruehrt(f, const [
+          PdfPoint(9, 5),
+          PdfPoint(16, 12),
+          PdfPoint(9, 19),
+          PdfPoint(2, 12),
+        ]),
+        isTrue,
+      );
+    });
+
+    test('Feld berührt Vieleck: Projektion auf schräge Kantennormale', () {
+      const f = (links: 0.0, unten: 0.0, breite: 10.0, hoehe: 10.0);
+      // Hypotenuse x + y = 21 knapp hinter der Ecke (10, 10); nur ihre
+      // Normale (1, 1) trennt, die gespiegelte (1, -1) nicht.
+      expect(
+        feldBeruehrt(f, const [
+          PdfPoint(6, 15),
+          PdfPoint(15, 6),
+          PdfPoint(15, 15),
+        ]),
+        isFalse,
+      );
+    });
+
+    test('Feld berührt Vieleck: nur die Achse des Felds trennt, auf beiden '
+        'Seiten, mit Abstand und bündig', () {
+      const f = (links: 0.0, unten: 0.0, breite: 10.0, hoehe: 10.0);
+      // Dreiecke ohne senkrechte Kante: keine Kantennormale trennt
+      List<PdfPoint> dreieck(double dx, {bool gespiegelt = false}) => [
+        for (final (x, y) in [(10.0, 5.0), (20.0, -5.0), (25.0, 15.0)])
+          PdfPoint(gespiegelt ? 10 - x - dx : x + dx, y),
+      ];
+      expect(feldBeruehrt(f, dreieck(1)), isFalse);
+      expect(feldBeruehrt(f, dreieck(0)), isFalse);
+      expect(feldBeruehrt(f, dreieck(1, gespiegelt: true)), isFalse);
+      expect(feldBeruehrt(f, dreieck(0, gespiegelt: true)), isFalse);
+      // ein Stück hineingeschoben berührt es
+      expect(feldBeruehrt(f, dreieck(-1)), isTrue);
+      expect(feldBeruehrt(f, dreieck(-1, gespiegelt: true)), isTrue);
+    });
+
+    test('Feld einer Beschriftung: 7 pt, mittig um ihren Ort', () {
+      final b = beschriftungsfeld((
+        ort: const Punkt(1000, 500),
+        text: 'Stufe',
+      ), m);
+      expect(b.breite, closeTo(5 * 7 * 0.55, 1e-9));
+      expect(b.hoehe, 9);
+      expect(b.links, closeTo(p.x - 5 * 7 * 0.55 / 2, 1e-9));
+      expect(b.unten, closeTo(p.y - 4.5, 1e-9));
+    });
+
+    test('Nebentext auf dem Papier um den Planrand verschoben', () {
+      const lage = (links: 12.0, unten: 34.0, breite: 8.0, hoehe: 7.5);
+      final w = nebentextWidget(neben(const Punkt(1, 0), '1'), lage);
+      expect(w.left, 12 + planrand);
+      expect(w.bottom, 34 + planrand);
+    });
+
+    test('Platz: eigene Richtung, sonst Gegenrichtung, sonst entfällt; nie '
+        'über Holz, Beschriftung oder einem anderen Nebentext', () {
+      // Hölzer senkrecht bei x = 1000 und 1240 (40 mm breit)
+      List<Punkt> holz(double x) => [
+        Punkt(x, 0),
+        Punkt(x + 40, 0),
+        Punkt(x + 40, 2000),
+        Punkt(x, 2000),
+      ];
+      Nebentext an(double x, double y, {Punkt richtung = const Punkt(1, 0)}) =>
+          (ort: Punkt(x, y), richtung: richtung, abstand: 20, text: '12,5');
+      final plan = Plan(
+        [
+          Planlinie(rechteck, argb: 0),
+          Planlinie(holz(1000), argb: 0, gefuellt: true),
+          Planlinie(holz(1240), argb: 0, gefuellt: true),
+          // nicht gefüllt: kein Hindernis
+          Planlinie(holz(860), argb: 0),
+        ],
+        [(ort: const Punkt(1100, 1500), text: 'B')],
+        [
+          an(1020, 500),
+          // derselbe Platz ist belegt: links
+          an(1020, 500),
+          // dritter am selben Ort: kein Platz mehr
+          an(1020, 500),
+          // Beschriftung „B“ rechts im Weg: links
+          an(1020, 1500),
+          // links vom zweiten Holz liegt schon der erste: rechts
+          an(1260, 500, richtung: const Punkt(-1, 0)),
+          // ohne Richtung auf dem Holz: entfällt
+          an(1020, 1000, richtung: Punkt.ursprung),
+        ],
+      );
+      final m = Planmassstab.fuer(plan);
+      final felder = nebentextFelder(plan, m);
+      expect(
+        [for (final (n, _) in felder) n.ort],
+        const [
+          Punkt(1020, 500),
+          Punkt(1020, 500),
+          Punkt(1020, 1500),
+          Punkt(1260, 500),
+        ],
+      );
+      double x(double mm) => m.abbild(Punkt(mm, 0)).x;
+      expect(felder[0].$2.links, closeTo(x(1040) + 1, 1e-9));
+      expect(
+        felder[1].$2.links + felder[1].$2.breite,
+        closeTo(x(1000) - 1, 1e-9),
+      );
+      expect(
+        felder[2].$2.links + felder[2].$2.breite,
+        closeTo(x(1000) - 1, 1e-9),
+      );
+      expect(felder[3].$2.links, closeTo(x(1280) + 1, 1e-9));
+    });
+
+    test('im PDF weiß hinterlegt in 5,5 pt', () async {
+      final pdf = await roh(
+        Planungsunterlagen(
+          texte: Unterlagentexte.deutsch,
+          kopfzeile: '',
+          kapitel: [
+            Kapitel('Plan', [
+              Plan(
+                [Planlinie(rechteck, argb: 0xFF000000)],
+                const [],
+                [
+                  (
+                    ort: const Punkt(100, 100),
+                    richtung: const Punkt(1, 0),
+                    abstand: 0,
+                    text: '8,6',
+                  ),
+                ],
+              ),
+            ]),
+          ],
+        ),
+      );
+      expect(pdf, contains('(8,6)'));
+      expect(pdf, contains('1 1 1 rg'));
+      expect(pdf, contains(RegExp(r'/F\d+ 5.5 Tf')));
     });
   });
 

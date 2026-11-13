@@ -263,7 +263,7 @@ Anschlussbedarf verblendungsbedarf(
     stuecke: traeger,
     bedarf: [
       for (final MapEntry(key: blende, value: stuecke) in reihen.entries)
-        ..._blenden(blende, stuecke),
+        ..._blenden(stand, blende, stuecke),
       if (regelwerk != null && traeger.isNotEmpty)
         ..._schrauben(regelwerk, reihen.keys.first, traeger.length),
     ],
@@ -276,11 +276,16 @@ Anschlussbedarf verblendungsbedarf(
 }
 
 /// Blenden [artikel] für die Reihen [stuecke] in den Lieferlängen der
-/// Serie wie bei der UK (lange Reihen eigene Bretter, kurze zusammen).
-List<Materialbedarf> _blenden(Artikel artikel, List<Millimeter> stuecke) => [
+/// Serie wie bei der UK (lange Reihen eigene Bretter, kurze zusammen),
+/// begrenzt durch die Vorgabe Dielenlänge des [stand]s (R-B19).
+List<Materialbedarf> _blenden(
+  Planungsstand stand,
+  Artikel artikel,
+  List<Millimeter> stuecke,
+) => [
   for (final MapEntry(key: laenge, value: anzahl) in lieferstuecke(
     stuecke,
-    ukLieferlaengen(artikel),
+    stand.vorgabelaengen(artikel, ukLieferlaengen(artikel)),
   ).entries)
     Materialbedarf(
       [artikel],

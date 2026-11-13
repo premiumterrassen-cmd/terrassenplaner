@@ -10,6 +10,60 @@ import 'einheiten.dart';
 bool dielenlaengeWaehlbar(Artikel belag) =>
     belag.art == Artikelart.diele && belag.abmessungen.laengen.length > 1;
 
+/// Ob die Vorgabe Dielenlänge für [artikel] gilt (Planungsregeln Alexander
+/// (Planungskern v9, 12.11.2026), Regel 11.1, R-B19): für Dielen (auch
+/// Treppe und Setzstufen) und Blenden – nicht für die UK, nicht für
+/// MASSIV (Längenmix) und nicht für Holzfliesen.
+bool laengenvorgabeGilt(Artikel artikel) =>
+    artikel.art == Artikelart.diele || artikel.art == Artikelart.verblendung;
+
+/// Die Lieferlängen aus [laengen], die die Vorgabe Dielenlänge
+/// [hoechstens] / [mindestens] erfüllen (R-B19); ohne Vorgabe alle.
+List<Millimeter> laengenInVorgabe(
+  List<Millimeter> laengen, {
+  Millimeter? hoechstens,
+  Millimeter? mindestens,
+}) => [
+  for (final l in laengen)
+    if ((hoechstens == null || l <= hoechstens) &&
+        (mindestens == null || l >= mindestens))
+      l,
+];
+
+/// Lieferlängen des [artikel] nach der Vorgabe Dielenlänge (R-B19): gilt
+/// sie für ihn, die passenden aus [laengen]; passt keine, alle (die
+/// Annahmen nennen das, `laengenvorgabeNichtErfuellbar`).
+List<Millimeter> lieferlaengenNachVorgabe(
+  Artikel artikel,
+  List<Millimeter> laengen, {
+  Millimeter? hoechstens,
+  Millimeter? mindestens,
+}) {
+  if (!laengenvorgabeGilt(artikel)) return laengen;
+  final passend = laengenInVorgabe(
+    laengen,
+    hoechstens: hoechstens,
+    mindestens: mindestens,
+  );
+  return passend.isEmpty ? laengen : passend;
+}
+
+/// Ob die Vorgabe Dielenlänge für den [artikel] mit den Lieferlängen
+/// [laengen] gilt, aber keine Länge sie erfüllt (R-B19).
+bool laengenvorgabeNichtErfuellbar(
+  Artikel artikel,
+  List<Millimeter> laengen, {
+  Millimeter? hoechstens,
+  Millimeter? mindestens,
+}) =>
+    laengenvorgabeGilt(artikel) &&
+    laengen.isNotEmpty &&
+    laengenInVorgabe(
+      laengen,
+      hoechstens: hoechstens,
+      mindestens: mindestens,
+    ).isEmpty;
+
 /// Lieferlängen für eine Dielenreihe der Länge [reihe] aus den [laengen]
 /// des Belags, aufsteigend sortiert (M5-02, R-B10).
 ///
