@@ -15,6 +15,7 @@ import 'package:flat_buffers/flat_buffers.dart' as fb;
 import '../artikel/artikel.dart';
 import '../artikel/einheiten.dart';
 import '../regeln/befestigungsbedarf.dart';
+import '../regeln/systemdielenbedarf.dart';
 
 /// Mehrwertsteuersatz in Prozent, der in den Bruttopreisen enthalten ist
 /// („enthaltene 19% MwSt.“ wie im alten Planer, Shop Deutschland).
@@ -67,11 +68,12 @@ final class Materialbedarf {
     this.laenge,
     this.zusatz,
     this.jePlanung = false,
+    this.inEinheiten = false,
   }) : einheiten = List.unmodifiable(einheiten) {
     if (einheiten.isEmpty) {
       throw ArgumentError.value(einheiten, 'einheiten', 'mindestens eine');
     }
-    if (laenge != null && einheiten.length > 1) {
+    if ((laenge != null || inEinheiten) && einheiten.length > 1) {
       throw ArgumentError.value(
         einheiten,
         'einheiten',
@@ -97,6 +99,10 @@ final class Materialbedarf {
   /// wiederverwendbare Montagehilfe, Fachkonzept 2.6).
   final bool jePlanung;
 
+  /// [stueck] zählt schon Verkaufseinheiten des einen Artikels und wird
+  /// nicht mehr verpackt (MASSIV-Systemdielen in Paketen, Regel 1a.6).
+  final bool inEinheiten;
+
   /// Bedarf einer Fläche, die [haeufigkeit]-mal gebaut wird (M4-14); ein
   /// Bedarf [jePlanung] bleibt gleich.
   Materialbedarf operator *(int haeufigkeit) => jePlanung
@@ -106,6 +112,7 @@ final class Materialbedarf {
           stueck * haeufigkeit,
           laenge: laenge,
           zusatz: zusatz,
+          inEinheiten: inEinheiten,
         );
 
   /// Gleiche Bedarfe werden zusammengefasst: gleiche Einheiten, Länge und
@@ -115,6 +122,7 @@ final class Materialbedarf {
     '${laenge?.mm}',
     '${zusatz?.nummer}',
     '$jePlanung',
+    '$inEinheiten',
   ].join('|');
 
   @override
@@ -124,12 +132,24 @@ final class Materialbedarf {
 /// Holzvolumen der [bedarfe] in m³ (M6-10, Kennzahl „Volumen“ wie im alten
 /// Planer): je Bedarf mit Lieferlänge Stück × Länge × Breite × Stärke des
 /// Artikels – Dielen und UK so, wie sie geliefert werden (F28: 112 m UK
-/// 40 × 60 = 0,269 m³). Bedarfe ohne Länge oder Querschnitt zählen nicht;
-/// `null`, wenn keiner zählt.
+/// 40 × 60 = 0,269 m³), MASSIV-Systemdielen in Verkaufseinheiten mit ihrer
+/// Fläche × Stärke. Andere Bedarfe ohne Länge oder Querschnitt zählen
+/// nicht; `null`, wenn keiner zählt.
 double? holzvolumen(Iterable<Materialbedarf> bedarfe) {
   double? summe;
   for (final b in bedarfe) {
-    final masse = b.einheiten.first.abmessungen;
+    final artikel = b.einheiten.first;
+    final masse = artikel.abmessungen;
+    if ((b.inEinheiten, artikel.art, masse.staerke) case (
+      true,
+      Artikelart.systemdiele,
+      final staerke?,
+    )) {
+      summe =
+          (summe ?? 0) +
+          b.stueck * systemdielenQmJeEinheit(artikel) * staerke.m;
+      continue;
+    }
     final (laenge, breite, staerke) = (b.laenge, masse.breite, masse.staerke);
     if (laenge == null || breite == null || staerke == null) continue;
     summe = (summe ?? 0) + b.stueck * laenge.m * breite.m * staerke.m;
@@ -290,13 +310,14 @@ final class Materialliste {
           laenge: v.laenge,
           zusatz: v.zusatz,
           jePlanung: v.jePlanung,
+          inEinheiten: v.inEinheiten,
         ),
         ifAbsent: () => b,
       );
     }
     final anzahl = <Positionsschluessel, (Artikel, int)>{};
     for (final b in gruppen.values) {
-      final teile = b.laenge == null
+      final teile = b.laenge == null && !b.inEinheiten
           ? verpackt(b.stueck, b.einheiten)
           : [if (b.stueck > 0) (b.einheiten.single, b.stueck)];
       for (final (artikel, n) in teile) {

@@ -620,9 +620,11 @@ final class Unterlagentexte {
     (Belagmeldung.belagOhneMasse, true) =>
       'Für diesen Belag fehlen Breite oder Lieferlängen, er kann nicht '
           'verlegt werden.',
-    (Belagmeldung.systemdieleOhneVerlegung, true) =>
-      'Systemdielen werden im Längenmix endlos verlegt – das zeichnet '
-          'der Planer noch nicht.',
+    (Belagmeldung.systemdieleLaengenmix, true) =>
+      'MASSIV-Systemdielen liegen im Längenmix 0,8 / 1,2 / 1,6 / 2,0 m mit '
+          'je Reihe versetzten Stößen; jeder Stoß liegt mittig auf einer UK '
+          '(Raster 38 / 40 cm). Verlegemuster und Dielenlänge gelten dafür '
+          'nicht.',
     (Belagmeldung.flaecheKleinerAlsBelag, true) =>
       'Die Fläche oder eine Teilfläche ist kleiner als eine Diele bzw. '
           'Fliese: Es passt keine ganze Belagbreite hinein, nur ein '
@@ -654,9 +656,11 @@ final class Unterlagentexte {
     (Belagmeldung.belagOhneMasse, false) =>
       'Width or delivery lengths are missing for this decking, so it '
           'cannot be laid.',
-    (Belagmeldung.systemdieleOhneVerlegung, false) =>
-      'System boards are laid endlessly in mixed lengths – the planner '
-          'does not draw this yet.',
+    (Belagmeldung.systemdieleLaengenmix, false) =>
+      'MASSIV system boards are laid in mixed lengths of 0.8 / 1.2 / 1.6 / '
+          '2.0 m with joints staggered row by row; every joint sits centred '
+          'on one joist (grid 38 / 40 cm). Laying patterns and board length '
+          'do not apply.',
     (Belagmeldung.flaecheKleinerAlsBelag, false) =>
       'The area or a partial area is smaller than one board or tile: no '
           'full decking width fits, only a cut piece.',

@@ -420,6 +420,61 @@ void main() {
       expect(b.bedarf, hasLength(1), reason: 'ohne Träger keine Schrauben');
     });
 
+    test('MASSIV (Planungskern Regel 1a.7): Blende aus MASSIV glattkant je '
+        'm² in Paketen +5 %, gerade und am Bogen', () {
+      Artikel systemdiele(String nummer, int breite, Profil profil) => Artikel(
+        nummer: Artikelnummer(nummer),
+        titel: 'Systemdiele $nummer',
+        art: Artikelart.systemdiele,
+        einheit: Verkaufseinheit(
+          Mengeneinheit.verpackungseinheit,
+          inhalt: 1.5,
+          inhaltEinheit: Mengeneinheit.quadratmeter,
+        ),
+        abmessungen: Abmessungen(
+          breite: Millimeter(breite),
+          staerke: const Millimeter(25),
+        ),
+        holzart: robinie,
+        serie: massiv,
+        profil: profil,
+      );
+      final belag = systemdiele('10-15-004', 80, Profil.genutet);
+      final b80 = systemdiele('10-15-014', 80, Profil.glattkant);
+      final b100 = systemdiele('10-15-006', 100, Profil.glattkant);
+      final regelwerk = _regelwerk(belag, [b80, b100, _b80], _schrauben);
+      expect(blendenZumBelag(belag, regelwerk.imBereich(Bereich.belag)), [
+        b80,
+        b100,
+      ]);
+      final b = verblendungsbedarf(
+        _f37,
+        hoehen: _vier,
+        belag: belag,
+        regelwerk: regelwerk,
+        uk: _uk,
+      );
+      // 314 + 485 + 314 cm × 8 cm = 0,8904 m² × 1,05 → 1 Paket
+      final blende = b.bedarf.firstWhere((m) => m.einheiten.single == b80);
+      expect(blende.stueck, 1);
+      expect(blende.inEinheiten, isTrue);
+      expect(blende.laenge, isNull);
+      expect(blende.zusatz, Materialzusatz.verblendung);
+      final kreis = verblendungsbedarf(
+        Planungsstand.start
+            .mitForm(Terrassenform.kreis)
+            .mitVerblendet(0, an: true),
+        hoehen: const [Millimeter(86)],
+        belag: belag,
+        regelwerk: regelwerk,
+        uk: _uk,
+      );
+      // 114 Stücke à 8,6 cm × 10 cm = 0,98 m² × 1,05 → 1 Paket
+      final bogen = kreis.bedarf.firstWhere((m) => m.einheiten.single == b100);
+      expect(bogen.stueck, 1);
+      expect(bogen.inEinheiten, isTrue);
+    });
+
     test('Kreis (Planungskern v12, Regel 14.3): ganz Bogen – senkrechte '
         'Stücke, keine Träger, kleinste Höhe', () {
       final kreis = Planungsstand.start

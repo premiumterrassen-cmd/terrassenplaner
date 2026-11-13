@@ -19,6 +19,7 @@ import '../konfiguration/planungsstand.dart';
 import 'anschlussregeln.dart';
 import 'auflagerbedarf.dart';
 import 'regelwerk.dart';
+import 'systemdielenbedarf.dart';
 import 'uk_zusatz.dart';
 
 /// Breiteste Blende in einer Reihe (Planungskern v6, 4a.2: bei 12,5 cm
@@ -60,10 +61,14 @@ const bogenblendeSchrauben = 2;
 const bogenblendeRiegelUeber = Millimeter(300);
 
 /// Mögliche Blenden zum [belag] aus [artikel] (4a.1): Dielen derselben
-/// Holzart und Serie, glattkant, in der Stärke des Belags, mit Breite.
+/// Holzart und Serie, glattkant, in der Stärke des Belags, mit Breite –
+/// zu MASSIV-Systemdielen MASSIV glattkant (Planungskern Regel 1a.7).
 List<Artikel> blendenZumBelag(Artikel belag, Iterable<Artikel> artikel) => [
   for (final a in artikel)
-    if (a.art == Artikelart.diele &&
+    if (a.art ==
+            (belag.art == Artikelart.systemdiele
+                ? Artikelart.systemdiele
+                : Artikelart.diele) &&
         a.profil == Profil.glattkant &&
         a.holzart?.id == belag.holzart?.id &&
         a.serie == belag.serie &&
@@ -376,7 +381,7 @@ Artikel? bogenbrett(List<Artikel> blenden) =>
     blenden.where((b) => b.abmessungen.breite == bogenblendeBreite).firstOrNull;
 
 /// Zuschnitt der [anzahl] Stücke à [hoehe] der Blende am Bogen aus dem
-/// [brett] (Regel 14.3.3): je Lieferlänge so viele Stücke, wie mit
+/// [brett] (Regel 14.3.3; MASSIV je m² in Paketen, `systemdielenBlende`): je Lieferlänge so viele Stücke, wie mit
 /// [bogenblendeSaegeschnitt] dazwischen hineinpassen (nur Lieferlängen der
 /// Vorgabe Dielenlänge, R-B19, wie die gerade Blende); genommen wird die
 /// Lieferlänge mit dem wenigsten Holz (bei gleich viel die kürzere).
@@ -388,6 +393,12 @@ Materialbedarf? _bogenblende(
   Millimeter hoehe,
   int anzahl,
 ) {
+  if (brett.art == Artikelart.systemdiele) {
+    return systemdielenBlende(
+      brett,
+      anzahl * hoehe.m * brett.abmessungen.breite!.m,
+    );
+  }
   ({Millimeter laenge, int bretter})? beste;
   for (final laenge in stand.vorgabelaengen(brett, ukLieferlaengen(brett))) {
     final jeBrett =
@@ -411,22 +422,29 @@ Materialbedarf? _bogenblende(
 
 /// Blenden [artikel] für die Reihen [stuecke] in den Lieferlängen der
 /// Serie wie bei der UK (lange Reihen eigene Bretter, kurze zusammen),
-/// begrenzt durch die Vorgabe Dielenlänge des [stand]s (R-B19).
+/// begrenzt durch die Vorgabe Dielenlänge des [stand]s (R-B19); MASSIV je
+/// m² in Paketen (`systemdielenBlende`).
 List<Materialbedarf> _blenden(
   Planungsstand stand,
   Artikel artikel,
   List<Millimeter> stuecke,
 ) => [
-  for (final MapEntry(key: laenge, value: anzahl) in lieferstuecke(
-    stuecke,
-    stand.vorgabelaengen(artikel, ukLieferlaengen(artikel)),
-  ).entries)
-    Materialbedarf(
-      [artikel],
-      anzahl,
-      laenge: laenge,
-      zusatz: Materialzusatz.verblendung,
-    ),
+  if (artikel.art == Artikelart.systemdiele)
+    systemdielenBlende(
+      artikel,
+      stuecke.fold(0.0, (a, l) => a + l.m) * artikel.abmessungen.breite!.m,
+    )
+  else
+    for (final MapEntry(key: laenge, value: anzahl) in lieferstuecke(
+      stuecke,
+      stand.vorgabelaengen(artikel, ukLieferlaengen(artikel)),
+    ).entries)
+      Materialbedarf(
+        [artikel],
+        anzahl,
+        laenge: laenge,
+        zusatz: Materialzusatz.verblendung,
+      ),
 ];
 
 /// Träger der Strecke [s] aus der [uk] (4a.6): höchstens 40 cm

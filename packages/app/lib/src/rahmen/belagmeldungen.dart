@@ -74,7 +74,7 @@ String belagmeldungText(
 ) => switch (m) {
   Belagmeldung.belagErsetzt => t.belagmeldungBelagErsetzt,
   Belagmeldung.belagOhneMasse => t.belagmeldungOhneMasse,
-  Belagmeldung.systemdieleOhneVerlegung => t.belagmeldungSystemdiele,
+  Belagmeldung.systemdieleLaengenmix => t.belagmeldungSystemdiele,
   Belagmeldung.flaecheKleinerAlsBelag => t.belagmeldungFlaecheKleiner,
   Belagmeldung.fliesenSpitzeWinkel => t.belagmeldungFliesenSpitzeWinkel,
   Belagmeldung.bombierungEmpfohlen => t.belagmeldungBombierung,

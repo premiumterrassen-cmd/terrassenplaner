@@ -368,7 +368,7 @@
   "@hoeheVorschlag": { "placeholders": { "cm": { "type": "String" } } },
   "belagmeldungBelagErsetzt": "Der gewählte Belag ist nicht mehr im Sortiment. Geplant wird mit dem Vorgabebelag – wählen Sie bei Bedarf über „Produktauswahl“ einen anderen.",
   "belagmeldungOhneMasse": "Für diesen Belag fehlen Breite oder Lieferlängen, er kann nicht verlegt werden. Bitte wählen Sie einen anderen Belag.",
-  "belagmeldungSystemdiele": "Systemdielen werden im Längenmix endlos verlegt – das zeichnet der Planer noch nicht.",
+  "belagmeldungSystemdiele": "MASSIV-Systemdielen liegen im Längenmix 0,8 / 1,2 / 1,6 / 2,0 m mit je Reihe versetzten Stößen; jeder Stoß liegt mittig auf einer UK (Raster 38 / 40 cm). Verlegemuster und Dielenlänge gelten dafür nicht.",
   "belagmeldungFlaecheKleiner": "Die Fläche oder eine Teilfläche ist kleiner als eine Diele bzw. Fliese: Es passt keine ganze Belagbreite hinein, nur ein Zuschnitt.",
   "belagmeldungFliesenSpitzeWinkel": "Die Fläche hat Ecken unter 90°. Holzfliesen müssen dort schräg zugeschnitten werden – für solche Formen eignen sich Dielen besser.",
   "flaechenmeldungMasseFalsch": "Maße fehlen oder sind falsch: Die Fläche ist höchstens 0,05 m² groß. Bitte prüfen Sie die Maße.",

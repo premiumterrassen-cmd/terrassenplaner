@@ -46,6 +46,10 @@ final class Belagangebot {
     final jeLfm = switch (a.einheit.einheit) {
       Mengeneinheit.laufmeter => einzeln,
       Mengeneinheit.quadratmeter => einzeln * deckbreite,
+      // Paket mit Inhalt in m² (MASSIV, B-036: Preis je m² = Paketpreis ÷
+      // 1,5)
+      _ when a.einheit.inhaltEinheit == Mengeneinheit.quadratmeter =>
+        einzeln * deckbreite,
       _ when laengen.length == 1 => einzeln / laengen.single.m,
       _ => null,
     };

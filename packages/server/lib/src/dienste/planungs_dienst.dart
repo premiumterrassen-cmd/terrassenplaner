@@ -188,6 +188,7 @@ class PlanungsDienst {
       uk,
       abstand: wirksameFeldbreite(stand.feldbreite, hoechste),
       dielen: [for (final t in v.teile) ...t.stuecke],
+      laengenmix: v.laengenmix,
       gedreht: hoehen.gedreht,
       stellfuesse: mitStellfuessen(stand, hoehen),
       regelwerk: regelwerk,
@@ -482,6 +483,9 @@ class PlanungsDienst {
     final gruppen = <(Artikelnummer, String), Belagstuecke>{};
     final zuschnittBelag = <Lieferzuschnitt>[];
     final zuschnittUk = <Lieferzuschnitt>[];
+    // MASSIV je Artikel: belegte Fläche (m²) und ob jede Fläche ein
+    // Rechteck ist (Regel 1a.6)
+    final systemdielen = <Artikelnummer, ({double flaeche, bool rechteck})>{};
     late Berechnung aktuell;
     for (final (i, f) in planung.flaechen.indexed) {
       final artikel = belag(f.stand.belag);
@@ -565,7 +569,20 @@ class PlanungsDienst {
         // verlegt wird nur mit Belag
         final nummer = artikel!.nummer;
         belaege[nummer] = artikel;
-        if (optimieren) {
+        if (verlegung.laengenmix != null) {
+          final bisher = systemdielen[nummer];
+          systemdielen[nummer] = (
+            flaeche:
+                (bisher?.flaeche ?? 0) +
+                belegteFlaeche(verlegung) * f.haeufigkeit,
+            rechteck:
+                bisher == null &&
+                f.haeufigkeit == 1 &&
+                systemdielenRechteck(fuerBelag),
+          );
+        }
+        // im Längenmix je Fläche: jedes Stück aus einer eigenen Lieferlänge
+        if (optimieren && verlegung.laengenmix == null) {
           final gruppe = gruppen.putIfAbsent(
             (nummer, verlegung.lieferlaengen.join(',')),
             () => (
@@ -645,10 +662,25 @@ class PlanungsDienst {
       ]);
     }
     for (final MapEntry(key: nummer, value: liste) in listen.entries) {
+      // MASSIV wird je m² in Paketen verkauft, nicht je Lieferlänge
+      if (systemdielen.containsKey(nummer)) continue;
       bedarfe.addAll([
         for (final MapEntry(key: laenge, value: anzahl) in liste.anzahl.entries)
           Materialbedarf([belaege[nummer]!], anzahl, laenge: laenge),
       ]);
+    }
+    // MASSIV (Regel 1a.6, B-232): Fläche + 5 % (Rechteck) bzw. 10 %
+    // (Schrägen, Bögen, Aussparungen, mehrere Flächen) in ganzen Paketen
+    for (final MapEntry(key: nummer, value: (:flaeche, :rechteck))
+        in systemdielen.entries) {
+      final artikel = belaege[nummer]!;
+      bedarfe.add(
+        Materialbedarf(
+          [artikel],
+          systemdielenEinheiten(artikel, flaeche, rechteck: rechteck),
+          inEinheiten: true,
+        ),
+      );
     }
     final summe = listen.values.fold(Dielenliste.leer, (a, b) => a + b);
     final dielenliste = _positionen(listen);

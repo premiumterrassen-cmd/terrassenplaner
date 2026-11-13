@@ -1065,7 +1065,7 @@ class PlanerTexteDe extends PlanerTexte {
 
   @override
   String get belagmeldungSystemdiele =>
-      'Systemdielen werden im Längenmix endlos verlegt – das zeichnet der Planer noch nicht.';
+      'MASSIV-Systemdielen liegen im Längenmix 0,8 / 1,2 / 1,6 / 2,0 m mit je Reihe versetzten Stößen; jeder Stoß liegt mittig auf einer UK (Raster 38 / 40 cm). Verlegemuster und Dielenlänge gelten dafür nicht.';
 
   @override
   String get belagmeldungFlaecheKleiner =>

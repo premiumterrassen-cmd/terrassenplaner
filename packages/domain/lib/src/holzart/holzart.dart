@@ -63,6 +63,7 @@ final class Serienregeln {
     required Iterable<(Set<Millimeter>, Set<Millimeter>)> ukSeiten,
     Iterable<UkMasse> ukUngetrocknet = const [],
     this.duoClipAb,
+    this.ukSerie,
   }) : dielen = Map.unmodifiable(dielen),
        lieferlaengen = _aufsteigend(lieferlaengen),
        ukLieferlaengen = _aufsteigend(ukLieferlaengen ?? lieferlaengen),
@@ -88,6 +89,11 @@ final class Serienregeln {
 
   /// Ab dieser Breite genutet mit DUO-CLIP-FIXX; `null` = nie (R-B01, B-094).
   final Millimeter? duoClipAb;
+
+  /// Serie, aus der die UK zu diesem Belag kommt; `null` = dieselbe Serie.
+  /// MASSIV-Systemdielen liegen auf UK aus ECO SELECT (Planungsregeln
+  /// Alexander, Planungskern Regel 1a.7/1a.8, B-232).
+  final Serie? ukSerie;
 
   /// Ob Breite × Stärke mit diesem Profil existiert (R-A03).
   bool dielenformatGueltig(
@@ -211,6 +217,7 @@ Serienregeln _serieAusJson(Map<String, Object?> json) {
   final dielen = json['dielen']! as Map<String, Object?>;
   final duo = json['duo_clip_ab_mm'] as int?;
   final ukLaengen = json['uk_lieferlaengen_mm'];
+  final ukSerie = json['uk_serie'] as String?;
   return Serienregeln(
     serie: Serie(json['name']! as String),
     dielen: {
@@ -227,6 +234,7 @@ Serienregeln _serieAusJson(Map<String, Object?> json) {
         _ukMasse(paar),
     ],
     duoClipAb: duo == null ? null : Millimeter(duo),
+    ukSerie: ukSerie == null ? null : Serie(ukSerie),
   );
 }
 

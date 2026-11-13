@@ -455,6 +455,8 @@ void main() {
           titel: 'Systemdiele Robinie MASSIV 80 x 25 mm',
           obergruppe: 'Sichtbar befestigt',
           befestigung: 'D',
+          vpe: 'Paket',
+          inhalt: '1,5',
           breite: 80,
           staerke: 25,
           laenge: 2000,
@@ -503,6 +505,16 @@ void main() {
         [e('B').artikel.art, e('B').artikel.profil, e('B').artikel.oberseite],
         [Artikelart.systemdiele, Profil.glattkant, Oberseite.glatt],
       );
+      // MASSIV im Paket zu 1,5 m² (B-036)
+      expect(
+        e('B').artikel.einheit,
+        Verkaufseinheit(
+          Mengeneinheit.verpackungseinheit,
+          inhalt: 1.5,
+          inhaltEinheit: Mengeneinheit.quadratmeter,
+        ),
+      );
+      expect(e('A').artikel.einheit.inhaltEinheit, isNull);
       expect(
         [
           e('C').artikel.art,

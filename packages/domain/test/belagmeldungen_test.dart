@@ -142,7 +142,7 @@ void main() {
         {
           Belagmeldung.belagErsetzt: 0,
           Belagmeldung.belagOhneMasse: 0,
-          Belagmeldung.systemdieleOhneVerlegung: 0,
+          Belagmeldung.systemdieleLaengenmix: 0,
           Belagmeldung.flaecheKleinerAlsBelag: 0,
           Belagmeldung.fliesenSpitzeWinkel: 0,
           Belagmeldung.bombierungEmpfohlen: 0,
@@ -221,9 +221,7 @@ void main() {
         _diele(art: Artikelart.systemdiele, serie: massiv, staerke: 25),
         _diele(art: Artikelart.systemdiele, breite: null, laengen: const []),
       ]) {
-        expect(_meldungen(systemdiele), [
-          Belagmeldung.systemdieleOhneVerlegung,
-        ]);
+        expect(_meldungen(systemdiele), [Belagmeldung.systemdieleLaengenmix]);
       }
     });
 
@@ -365,7 +363,7 @@ void main() {
         _meldungen(
           _diele(art: Artikelart.systemdiele, breite: 100, serie: massiv),
         ),
-        [Belagmeldung.systemdieleOhneVerlegung],
+        [Belagmeldung.systemdieleLaengenmix],
       );
     });
   });

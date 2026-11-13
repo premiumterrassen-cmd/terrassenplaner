@@ -34,9 +34,10 @@ enum Belagmeldung {
   /// Dem Belag fehlen Breite oder Lieferlängen – er wird nicht verlegt.
   belagOhneMasse(1, unterpunkt: 0, warnung: true),
 
-  /// Systemdielen (Längenmix, Endlosverlegung, B-036) verlegt der Planer
-  /// noch nicht (Fachkonzept 2.7).
-  systemdieleOhneVerlegung(2, unterpunkt: 0, warnung: false),
+  /// MASSIV-Systemdielen liegen im Längenmix (B-036, B-232, Planungskern
+  /// Regel 1a.3/1a.4): Stöße versetzt mittig auf einer UK; Verlegemuster und
+  /// Dielenlänge gelten nicht (R-B18, R-B19).
+  systemdieleLaengenmix(2, unterpunkt: 0, warnung: false),
 
   /// Eine Teilfläche ist kleiner als eine Diele oder Fliese: schmaler als
   /// eine Dielenreihe bzw. ohne eine ganze Fliese.
@@ -122,8 +123,7 @@ List<Belagmeldung> belagmeldungen(
     if ((belag.art == Artikelart.diele || fliese) &&
         (breite == null || masse.laengen.isEmpty))
       Belagmeldung.belagOhneMasse,
-    if (belag.art == Artikelart.systemdiele)
-      Belagmeldung.systemdieleOhneVerlegung,
+    if (belag.art == Artikelart.systemdiele) Belagmeldung.systemdieleLaengenmix,
     if (verlegung != null &&
         verlegung.teile.any(
           (t) => !t.stuecke.any((s) => _ganz(s, belag, fliese: fliese)),

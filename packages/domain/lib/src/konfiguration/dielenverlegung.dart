@@ -7,6 +7,7 @@ import '../geometrie/kontur.dart';
 import '../geometrie/mengen.dart';
 import '../geometrie/punkt.dart';
 import '../regeln/planungsregeln.dart';
+import 'laengenmix.dart';
 import 'verlegeart.dart';
 
 /// Schmalere Restreihen am Rand werden nicht verlegt: Der alte Planer lässt
@@ -138,6 +139,11 @@ Flaeche _lokal(Kontur kontur, Punkt ausgangspunkt, double drehung) => Flaeche(
 /// ganzen [kontur]. Ragt eine Aussparung nur in einen Teil einer Reihe,
 /// wird die Diele ausgeklinkt und bleibt ein Stück; liegt sie ganz in einer
 /// Reihe, endet die Diele an ihr.
+///
+/// Mit [laengenmix] (MASSIV-Systemdielen, Regel 1a.3, B-232) wählt
+/// [Laengenmixwahl] die Stöße statt der [verlegeart]: Raster ab
+/// [Laengenmix.anfang] (in der um den Ursprung gedrehten Planung, Vorgabe
+/// der Rand der [kontur]), unabhängig von Ausgangspunkt und Verschiebung.
 List<Dielenstueck> verlegeDielen(
   Kontur kontur, {
   required double winkel,
@@ -151,6 +157,7 @@ List<Dielenstueck> verlegeDielen(
   Millimeter fuge = fuge,
   Millimeter mindeststueck = verbandMindeststueck,
   Punkt? ecke,
+  Laengenmix? laengenmix,
 }) {
   final drehung = -winkel * math.pi / 180;
   final lokal = _lokal(kontur, ausgangspunkt, drehung);
@@ -168,15 +175,24 @@ List<Dielenstueck> verlegeDielen(
   final von = Millimeter(huelle.min.x.round());
   final bis = Millimeter(huelle.max.x.round());
   final raster = stossraster(bis - von, laengste, ueberlaenge: ueberlaenge);
-  final verband = Verbandwahl(
-    verlegeart,
-    von: von,
-    bis: bis,
-    raster: raster,
-    hoechstlaenge: laengste + ueberlaenge,
-    mindeststueck: mindeststueck,
-    ausgang: ausgang,
-  );
+  final Stosswahl verband = switch (laengenmix) {
+    (:final laengen, :final raster, :final anfang) => Laengenmixwahl(
+      laengen,
+      anfang: anfang == null
+          ? von
+          : Millimeter((anfang - ausgangspunkt.gedreht(drehung).x).round()),
+      raster: raster,
+    ),
+    null => Verbandwahl(
+      verlegeart,
+      von: von,
+      bis: bis,
+      raster: raster,
+      hoechstlaenge: laengste + ueberlaenge,
+      mindeststueck: mindeststueck,
+      ausgang: ausgang,
+    ),
+  };
   final breite = (dielenbreite + fuge).mm;
   final stuecke = <Dielenstueck>[];
   for (
