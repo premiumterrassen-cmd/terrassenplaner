@@ -133,6 +133,45 @@ class DielenlaengeWahl extends StatelessWidget {
     onGeaendert();
   }
 
+  /// Auswahl einer Grenze der Vorgabe Dielenlänge: „beliebig“ oder eine
+  /// der Lieferlängen; [mit] setzt sie im Planungsstand.
+  Widget _grenze(
+    PlanerTexte t,
+    String name,
+    List<Millimeter> laengen,
+    Millimeter? wert,
+    Planungsstand Function(Millimeter?) mit,
+  ) {
+    void setze(Millimeter? l) {
+      planung.setze(mit(l));
+      onGeaendert();
+    }
+
+    return Wrap(
+      key: ValueKey('dielenlaenge-$name'),
+      spacing: PlanerAbstand.klein,
+      children: [
+        ChoiceChip(
+          key: ValueKey('dielenlaenge-$name-beliebig'),
+          label: Text(t.dielenlaengeBeliebig),
+          selected: wert == null,
+          onSelected: (an) {
+            if (an) setze(null);
+          },
+        ),
+        for (final l in laengen)
+          ChoiceChip(
+            key: ValueKey('dielenlaenge-$name-${l.mm}'),
+            label: Text(t.dielenlaengeCm(l.mm ~/ 10)),
+            selected: l == wert,
+            onSelected: (an) {
+              if (an) setze(l);
+            },
+          ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: Listenable.merge([quelle, planung]),
@@ -172,6 +211,27 @@ class DielenlaengeWahl extends StatelessWidget {
               ),
             ],
           ),
+          // Vorgabe Dielenlänge höchstens/mindestens für die Automatik
+          // (Planungskern v9 Regel 11.1, R-B19)
+          if (fest == null) ...[
+            const SizedBox(height: PlanerAbstand.klein),
+            Text(t.dielenlaengeHoechstens),
+            _grenze(
+              t,
+              'hoechstens',
+              laengen,
+              stand.dielenlaengeHoechstens,
+              (l) => planung.aktuell.mitDielenlaengeHoechstens(l),
+            ),
+            Text(t.dielenlaengeMindestens),
+            _grenze(
+              t,
+              'mindestens',
+              laengen,
+              stand.dielenlaengeMindestens,
+              (l) => planung.aktuell.mitDielenlaengeMindestens(l),
+            ),
+          ],
           if (fest != null) ...[
             const SizedBox(height: PlanerAbstand.klein),
             Text(t.dielenlaengeOriginal),

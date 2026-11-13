@@ -2020,6 +2020,30 @@ abstract class PlanerTexte {
   /// **'Keine hinterlegte Schraube ist mindestens doppelt so lang, wie die Diele stark ist. Gerechnet wird mit der längsten – bitte prüfen Sie die Schraubenlänge.'**
   String get belagmeldungSchraubeZuKurz;
 
+  /// No description provided for @belagmeldungLaengenvorgabe.
+  ///
+  /// In de, this message translates to:
+  /// **'Keine Lieferlänge dieses Belags erfüllt die Vorgabe Dielenlänge. Geplant wird mit allen Lagerlängen.'**
+  String get belagmeldungLaengenvorgabe;
+
+  /// No description provided for @dielenlaengeHoechstens.
+  ///
+  /// In de, this message translates to:
+  /// **'Dielen höchstens (in cm):'**
+  String get dielenlaengeHoechstens;
+
+  /// No description provided for @dielenlaengeMindestens.
+  ///
+  /// In de, this message translates to:
+  /// **'Dielen mindestens (in cm):'**
+  String get dielenlaengeMindestens;
+
+  /// No description provided for @dielenlaengeBeliebig.
+  ///
+  /// In de, this message translates to:
+  /// **'beliebig'**
+  String get dielenlaengeBeliebig;
+
   /// No description provided for @zubehoerLaedt.
   ///
   /// In de, this message translates to:

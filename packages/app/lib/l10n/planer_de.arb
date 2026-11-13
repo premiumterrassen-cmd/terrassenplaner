@@ -380,6 +380,10 @@
   "belagmeldungBefestigungsart": "Genutete Dielen werden verdeckt mit Clips befestigt. Die gewählte Verschraubung gilt nur für glattkante Dielen.",
   "belagmeldungOhneBefestigung": "Für diesen Belag sind keine passenden Clips oder Schrauben hinterlegt – die Befestigung fehlt in der Materialliste. Bitte sprechen Sie uns an.",
   "belagmeldungSchraubeZuKurz": "Keine hinterlegte Schraube ist mindestens doppelt so lang, wie die Diele stark ist. Gerechnet wird mit der längsten – bitte prüfen Sie die Schraubenlänge.",
+  "belagmeldungLaengenvorgabe": "Keine Lieferlänge dieses Belags erfüllt die Vorgabe Dielenlänge. Geplant wird mit allen Lagerlängen.",
+  "dielenlaengeHoechstens": "Dielen höchstens (in cm):",
+  "dielenlaengeMindestens": "Dielen mindestens (in cm):",
+  "dielenlaengeBeliebig": "beliebig",
 
   "zubehoerLaedt": "Zubehör wird geladen …",
   "zubehoerFehler": "Das Zubehör konnte nicht geladen werden.",

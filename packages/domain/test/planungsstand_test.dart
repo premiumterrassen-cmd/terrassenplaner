@@ -1078,7 +1078,7 @@ void main() {
           Object.hashAll(const []),
           Rundungen.keine,
           null,
-          null,
+          Object.hash(null, null, null),
           false,
           Verlegeart.fugenschnitt,
           Verlegerichtung.waagrecht,

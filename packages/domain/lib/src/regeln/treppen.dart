@@ -375,7 +375,8 @@ Anschlussbedarf treppenbedarf(
             for (final s in stuecke)
               if (s.nummer == artikel.nummer) s.laenge,
           ],
-          artikel.abmessungen.laengen,
+          // Vorgabe Dielenlänge auch für Treppe und Setzstufen (R-B19)
+          stand.vorgabelaengen(artikel, artikel.abmessungen.laengen),
           fest: stand.dielenlaenge,
         ).entries)
           Materialbedarf([artikel], anzahl, laenge: laenge),

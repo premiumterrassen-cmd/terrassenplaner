@@ -11,6 +11,7 @@
 library;
 
 import '../artikel/artikel.dart';
+import '../artikel/dielenlaenge.dart';
 import '../artikel/einheiten.dart';
 import '../konfiguration/ausschnitt.dart';
 import '../konfiguration/belagverlegung.dart';
@@ -51,6 +52,11 @@ enum Belagmeldung {
   /// Die erzwungene Dielenlänge liefert der Belag nicht; die Länge wird
   /// automatisch ermittelt (M5-02, B-035).
   laengeNichtLieferbar(6, unterpunkt: 1, warnung: false),
+
+  /// Keine Lieferlänge des Belags erfüllt die Vorgabe Dielenlänge
+  /// höchstens/mindestens; geplant wird mit allen Lagerlängen (Planungskern
+  /// v9 Regel 11.1, R-B19).
+  laengenvorgabeNichtErfuellbar(10, unterpunkt: 1, warnung: false),
 
   /// Die gewählte Verschraubung passt nicht zu genuteten Dielen; sie werden
   /// mit Clips befestigt (B-094, M5-09).
@@ -134,6 +140,14 @@ List<Belagmeldung> belagmeldungen(
         masse.laengen.isNotEmpty &&
         !masse.laengen.contains(fest))
       Belagmeldung.laengeNichtLieferbar,
+    if (!masse.laengen.contains(fest) &&
+        laengenvorgabeNichtErfuellbar(
+          belag,
+          masse.laengen,
+          hoechstens: stand.dielenlaengeHoechstens,
+          mindestens: stand.dielenlaengeMindestens,
+        ))
+      Belagmeldung.laengenvorgabeNichtErfuellbar,
     if (verlegung != null && regelwerk?.datei[belag.nummer] != null)
       ...befestigungsmeldungen(regelwerk!, belag, stand.befestigungsart),
   };

@@ -292,3 +292,10 @@ Branch `feature/planungskern-v7-verband`. Grund: **Planungskern v7** – Planung
 | F12 | Clips | 1100 | 1350 | 1100 | Folge |
 
 F08 (480 cm, Wechselverband) hatte schon vorher keinen Stoß. F10 und F11 (Halb- und Drittelverband auf 800 cm) bleiben gleich. Die Referenzfälle werden im Fugenschnitt verglichen (2026-05-03-4381-v2 im Drittelverband nur in den Domain-Tests: 36 × 404 cm statt 134,7 + 269,3 cm, Frage 60). Offene Fragen 60–63 in [10](../fachkonzept/10-offene-fragen.md).
+
+## Nachtrag UK-Plan und Vorgabe Dielenlänge (Planungskern v8/v9, 12.11.2026)
+
+Branch `feature/planungskern-v9-ukplan` auf `main` (fc1007f). Planungsregeln Alexander (Planungskern v8/v9, 12.11.2026), Abschnitte 10 und 11; R-B19, R-E06.
+
+**Verglichene Werte:** Alle F01–F43 und alle Referenzfälle rechnen **genau wie `main`** – die Vorgabe Dielenlänge ist ohne Eingabe leer, die übrigen Änderungen betreffen nur die Darstellung. In den Referenzunterlagen entfällt die Seite „Bemaßung und Höhen“, der UK-Plan trägt die Höhen.
+

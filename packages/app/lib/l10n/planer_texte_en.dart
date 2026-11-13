@@ -1106,6 +1106,19 @@ class PlanerTexteEn extends PlanerTexte {
       'No stored screw is at least twice as long as the board is thick. The longest one is used – please check the screw length.';
 
   @override
+  String get belagmeldungLaengenvorgabe =>
+      'No delivery length of this decking meets the board length requirement. All stock lengths are used.';
+
+  @override
+  String get dielenlaengeHoechstens => 'Boards at most (in cm):';
+
+  @override
+  String get dielenlaengeMindestens => 'Boards at least (in cm):';
+
+  @override
+  String get dielenlaengeBeliebig => 'any';
+
+  @override
   String get zubehoerLaedt => 'Loading accessories …';
 
   @override

@@ -73,6 +73,15 @@ Aus dem Planungskern v7 (Verlegemuster R-B18, 12.11.2026; Nummern ab 60):
 62. **Stoßweite:** Umgesetzt ist die Stoßweite = längste (bzw. erzwungene) Lieferlänge, der Versatz ½ = 3 m bei 6-m-Dielen; der Planungskern rechnet intern mit Lieferlänge − 4 cm. Mit 3 cm Überlänge und 5 mm Sägeschnitt passt ein Zwischenstück genau in die Diele. Bestätigen?
 63. **Ausweichen am Rand:** Passt der bevorzugte Versatz nicht (Stück unter 40 cm), nimmt der Planer einen anderen Versatz oder spiegelt das Raster von der Gegenseite; die Stöße sollen mindestens 30 cm bzw. den halben Versatz neben denen der Vorreihe liegen. Reicht das als Regel, oder soll die Reihe lieber ein kürzeres Endstück behalten?
 
+Aus dem Abgleich mit dem Planungskern v8/v9 (UK-Plan, Vorgabe Dielenlänge, `feature/planungskern-v9-ukplan`, 12.11.2026; Nummern ab 70, weil parallele Branches 60–63 belegen):
+
+70. **Fußhöhe „an jedem Auflagepunkt“ vs. „nie übereinander“:** Regel 11.2 will die Fußhöhe an jedem Punkt, Regel 12.1 (v10) lässt Zahlen ohne freien Platz entfallen. Umgesetzt (5,5 pt, weiß hinterlegt): bis etwa 12 m Breite passt jede Zahl zwischen zwei UK-Achsen; bei 25 m (Referenzfall 2026-06-30-2295) stehen nur noch die äußeren Latten beschriftet. Reicht das, oder soll der UK-Plan großer Flächen auf mehrere Seiten (Ausschnitte) verteilt werden, oder genügt bei gleicher Höhe eine Zahl je UK-Linie (vgl. Frage 44)?
+71. **Vorgabe „UK liegt direkt auf“ (Regel 10.2):** Der Planer hat keine solche Vorgabe; „Auflagen“ kennt nur „mit Stelzfüßen“ und „mit Stelzfüßen und Pads“, und ab 18 mm Ausgleich plant er immer Stellfüße (R-C15). Der Hinweis „Vorgabe passt nicht zur Aufbauhöhe …“ entfällt damit. Soll es die Wahl „UK liegt direkt auf (nur Unterleger)“ geben – dann mit dem Hinweis aus Regel 10.2?
+72. **Vorgabe Dielenlänge – Eingabe:** Umgesetzt als Auswahl aus den Lieferlängen des Belags („beliebig“ oder z. B. 400 cm) und nur bei „Dielenlänge automatisch = Ja“. Soll man auch freie Werte eingeben können (z. B. „höchstens 5,5 m“), und soll die Vorgabe auch bei einer erzwungenen Länge gelten?
+73. **Vorgabe Dielenlänge bei Blenden:** Wird sie für die Blenden nicht erfüllt, nehmen sie still alle Längen; der Hinweis steht nur für den Belag. Eigener Hinweis für Blenden gewünscht?
+74. **Fußhöhe negativ:** Liegt die UK nach der Höhenkorrektur tiefer als der Standardaufbau (Spalt unter 0, z. B. Referenzfall 2026-05-19-3958, Ecken 5 cm → 6,2 cm), steht wie im Planungskern keine Zahl am Punkt; die Legende beginnt bei 0. Richtig so?
+75. **Regel 11.3 (Anweisung an die KI mit Unterlagen)** betrifft nur den Planungskern/die KI-Planung, nicht den Planer (keine KI-Anweisung im Planer) – nicht umgesetzt. Bestätigen?
+
 ## Beantwortet
 
 - **Kurze UK-Stücke 8,6 / 8,7 / 11 cm im UK-Zuschnitt** (aus M1-02): im 90°-Winkel an den Sichtseiten angesetzte UK-Stücke, an denen die Blenden befestigt werden (Alexander, 19.10.2026).

@@ -615,7 +615,10 @@ Belagverlegung? verlegeBelag(
   switch (belag!.art) {
     case Artikelart.diele:
       art = (
-        masse.laengen.contains(fest) ? [fest!] : masse.laengen,
+        // erzwungene Lieferlänge vor der Vorgabe Dielenlänge (R-B19)
+        masse.laengen.contains(fest)
+            ? [fest!]
+            : stand.vorgabelaengen(belag, masse.laengen),
         stand.kurzeStueckeVerbinden,
         dielenUeberlaenge,
         dielenmuster,
