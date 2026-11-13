@@ -115,6 +115,14 @@ Aus dem Abgleich mit dem Planungskern v13 (MASSIV-Systemdiele, Abschnitt 1a, B-2
 104. **Rasterlinie dicht am Rand:** Liegt eine 40-cm-Linie näher als eine UK-Breite an der Rand-UK (z. B. 4,03 m: Linie bei 4,00 m, Rand-UK bei 4,01 m), lässt der Planer sie weg – das letzte Feld wird dann bis 40 cm + UK-Breite lang (hier 41 cm). Der Kern plant sie noch bis 3 cm vor der Rand-UK (Hölzer überlappen). Dort endet nie ein Dielenstoß (Reststück ≥ 30 cm). So lassen?
 105. **MASSIV ohne UK-Artikel:** Ohne passende UK (z. B. ohne ECO-UK in den Artikeldaten) zählt die Befestigung wie bisher auf gleichmäßig verteilten Linien (je Stückende ein Punkt, am Stoß also zwei). Reicht das als Notlösung, oder soll dann eine Rückfrage kommen?
 
+130. **Auflager im Raster an jeder Rand-UK (Regel 16.4, R-C61):** Der Kern prüft den Umkreis von 25 cm an jeder Rand-UK, nicht nur am Bogen. Umgesetzt wie im Kern: auch an schrägen Kanten und Ausschnittkanten entfällt ein Rand-UK-Auflager neben dem Auflager eines Lattenendes (bei diagonaler Verlegung bleiben z. B. an A–B von 9 Stellen 4). Richtig, oder nur am Bogen?
+131. **Doppel-UK am Stoß (Regel 16.4, offen im Kern):** Je Latte ein Fuß – die beiden Hölzer einer Doppel-UK behalten beide ihre Auflager, das Raster gilt nur für Rand-UK. So lassen, oder ein gemeinsamer Fuß?
+132. **Buchstaben nach einer Formänderung (Regel 17.2/17.6):** Der Planer schreibt Buchstaben nicht am Punkt fest; er benennt die Ecken immer neu (A oben links, im Uhrzeigersinn) – beim Abrunden ändert sich dadurch nichts (Bogenenden bekommen die nächsten freien in der Reihenfolge der Abrundung). Nach einer Formänderung mit neuen Ecken können die Buchstaben dagegen wandern. Reicht das, oder sollen Buchstaben auch über Formänderungen an Punkten mit gleichen Koordinaten bleiben?
+133. **Eckrundung neben gewölbter Seite (Regel 17.1.6):** Der alte Planer (M4-11) erlaubte eine Eckrundung neben einer Seite mit Stich; jetzt wird das abgewiesen (die Rundung wäre nicht tangential). Richtig?
+134. **Buchstaben an Teilflächen mit anderem Belag (Regel 16.6):** Buchstaben bekommen nur leere Aussparungen mit Ecken; Ausschnitte mit anderem Belag (Teilflächen) und Kreise nicht. Passt das?
+135. **Blende am Bogen einer abgerundeten Ecke (Regel 17.3):** Wählbar als eigene Kante „Bogen C–E“, nicht automatisch mit den verblendeten Nachbarseiten. Soll sie mitkommen, wenn beide Nachbarseiten verblendet sind?
+136. **Formänderung mit gleicher Eckenzahl (Regel 17.6):** Ändert sich nur ein Maß (gleiche Eckenzahl), bleiben die Rundungen je Ecke/Seite wie bisher (M4-11); nur bei anderer Eckenzahl gilt der Ort. Richtig?
+
 ## Beantwortet
 
 - **Kurze UK-Stücke 8,6 / 8,7 / 11 cm im UK-Zuschnitt** (aus M1-02): im 90°-Winkel an den Sichtseiten angesetzte UK-Stücke, an denen die Blenden befestigt werden (Alexander, 19.10.2026).

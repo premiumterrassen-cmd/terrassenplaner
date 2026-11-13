@@ -345,6 +345,32 @@ class PlanerTexteEn extends PlanerTexte {
       'The radius is smaller than half the side – the side is planned as a semicircle.';
 
   @override
+  String get rundungEckeInnen => 'inwards (cove around the corner)';
+
+  @override
+  String rundungZuGross(int cm) {
+    return 'Radius too large – at most $cm cm at this corner.';
+  }
+
+  @override
+  String get rundungAnleitung =>
+      'Round a corner: select the corner and enter a radius – the plan shortens both edges and adds the arc, no extra point is needed. Whole side curved: select the side and enter a radius. Semicircle: side with radius = half the side length, or round both corners of the side with half the side length. Inwards: tick “inwards”. Corners at the house wall are not rounded.';
+
+  @override
+  String verblendungBogen(String name) {
+    return 'Arc $name';
+  }
+
+  @override
+  String verblendungAussparung(String flaeche, String kante) {
+    return '$flaeche: $kante';
+  }
+
+  @override
+  String get verblendungZusatzFrage =>
+      'Arcs of rounded corners and edges of cut-outs (only if selected):';
+
+  @override
   String bogenMass(String laenge, String radius) {
     return 'Arc $laenge · R $radius';
   }

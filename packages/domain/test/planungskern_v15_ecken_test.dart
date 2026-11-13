@@ -185,6 +185,7 @@ void main() {
 
   _formaenderung();
   _buchstaben();
+  _plaene();
 }
 
 void _formaenderung() {
@@ -446,7 +447,8 @@ void _buchstaben() {
       expect([for (final p in d) p.ecke], [2, 2, 2]);
       expect(
         aussparungsecken(
-          Planungsstand(grundriss: KreisGrundriss.vorgabe).mitNeuemAusschnitt(),
+          const Planungsstand(grundriss: KreisGrundriss.vorgabe)
+              .mitNeuemAusschnitt(),
           const [],
         ).first.buchstabe,
         0,
@@ -522,6 +524,118 @@ void _buchstaben() {
     expect(a.aussparungsblenden.clear, throwsUnsupportedError);
     expect(eckennummern(_r540.ecken), [0, 1, 2, 3]);
     expect(eckennummern(_r540.ecken, geschlossen: false), [0, 1, 2, 3]);
+  });
+}
+
+/// Beschriftung der Pläne (Unterlagen): Buchstaben an Bogenanfang und
+/// -ende, Kantenmaße der geraden Stücke, Buchstaben der Aussparungen.
+void _plaene() {
+  const de = Unterlagentexte.deutsch;
+  Berechnung berechnung(Planungsstand stand) {
+    final umriss = umrisspunkte(stand);
+    return Berechnung(
+      umriss: stand.kontur.vieleck(),
+      ecken: stand.grundriss.ecken,
+      flaeche: stand.kontur.flaeche,
+      planbild: Planbild(
+        boegen: bogenmasse(stand),
+        umrisspunkte: umriss,
+        aussparungsecken: aussparungsecken(stand, umriss),
+      ),
+    );
+  }
+
+  test('Unterlagen: Buchstaben am Bogen, Maße der geraden Stücke, '
+      'Aussparungen (Regel 17.2, 16.6)', () {
+    final stand = Planungsstand(
+      grundriss: _r540,
+      rundungen: Rundungen.keine.mitEcke(2, const Millimeter(1200)),
+    ).mitNeuemAusschnitt();
+    final b = berechnung(stand);
+    final texte = umrissbeschriftung(de, b);
+    expect(
+      [for (final t in texte) t.text],
+      [
+        'A',
+        'B',
+        'C',
+        'E',
+        'D',
+        '5,40 m',
+        '2,40 m',
+        '4,20 m',
+        '3,60 m',
+        'F',
+        'G',
+        'H',
+        'I',
+      ],
+    );
+    final a = 5400 * beschriftungsanteil;
+    // C vor der Kante B–C, E unter der Kante C–D
+    expect(texte[2].ort, _nahe(5400 + a, 2400));
+    expect(texte[3].ort, _nahe(4200, 3600 + a));
+    // A an der Ecke auf der Winkelhalbierenden
+    expect(texte[0].ort, _nahe(-a / math.sqrt2, -a / math.sqrt2));
+    // Maß der geraden Stücke in ihrer Mitte
+    expect(texte[6].ort, _nahe(5400 + a, 1200));
+    expect(texte[7].ort, _nahe(2100, 3600 + a));
+    // Aussparung: in sie hinein
+    final loch = stand.ausschnitte[0].kontur.punkte;
+    final mitte = (loch[0] + loch[2]) * 0.5;
+    expect(
+      texte[9].ort,
+      _nahe(
+        loch[0].x + (mitte - loch[0]).einheit.x * a,
+        loch[0].y + (mitte - loch[0]).einheit.y * a,
+      ),
+    );
+    // ohne abgerundete Ecke: Buchstaben an den Ecken, Aussparung danach
+    final eckig = berechnung(
+      Planungsstand(grundriss: _r540).mitNeuemAusschnitt(),
+    );
+    expect(
+      [for (final t in umrissbeschriftung(de, eckig)) t.text],
+      [
+        'A',
+        'B',
+        'C',
+        'D',
+        '5,40 m',
+        '3,60 m',
+        '5,40 m',
+        '3,60 m',
+        'E',
+        'F',
+        'G',
+        'H',
+      ],
+    );
+    // gemeinsame Ecke mit dem Umriss nur einmal; Bogen bis zur Nachbarecke
+    // ohne Maß
+    final g = RechteckGrundriss(const Millimeter(4000), const Millimeter(3000));
+    final bisC = berechnung(
+      Planungsstand(
+        grundriss: g,
+        rundungen: Rundungen.keine.mitEcke(1, const Millimeter(3000)),
+        ausschnitte: [
+          Ausschnitt(
+            bezeichnung: 'A1',
+            x: const Millimeter(0),
+            y: const Millimeter(0),
+            laenge: const Millimeter(500),
+            breite: const Millimeter(500),
+          ),
+        ],
+      ),
+    );
+    final t2 = umrissbeschriftung(de, bisC);
+    expect(
+      [for (final t in t2) t.text],
+      ['A', 'B', 'C', 'D', '1,00 m', '4,00 m', '3,00 m', 'E', 'F', 'G'],
+    );
+    // B vor der Kante A–B
+    expect(t2[1].ort, _nahe(1000, -4000 * beschriftungsanteil));
   });
 }
 

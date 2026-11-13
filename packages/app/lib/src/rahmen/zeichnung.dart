@@ -36,7 +36,11 @@ final class Zeichnung {
     List<Bogenangabe> boegen = const [],
     List<(Offset, Offset)> riegel = const [],
     List<Rinnenband> rinnen = const [],
+    List<Planname> umrisspunkte = const [],
+    List<Planname> aussparungsecken = const [],
   }) : umriss = List.unmodifiable(umriss),
+       umrisspunkte = List.unmodifiable(umrisspunkte),
+       aussparungsecken = List.unmodifiable(aussparungsecken),
        boegen = List.unmodifiable(boegen),
        riegel = List.unmodifiable(riegel),
        rinnen = List.unmodifiable(rinnen),
@@ -139,7 +143,19 @@ final class Zeichnung {
   /// Entwässerungsrinnen RELO V in mm (Planungskern v11, Regel 13.1.6,
   /// R-E07): Band innen an der Kante, Schlitze und Auflagerprofile.
   final List<Rinnenband> rinnen;
+
+  /// Benannte Punkte des Umrisses mit abgerundeten Ecken vom Server
+  /// (Planungskern v15, Regel 17.2); leer: Namen an den [ecken].
+  final List<Planname> umrisspunkte;
+
+  /// Benannte Ecken der Aussparungen vom Server (Planungskern v14, Regel
+  /// 16.6); [Planname.ecke] ist die Nummer des Ausschnitts.
+  final List<Planname> aussparungsecken;
 }
+
+/// Ein benannter Punkt in mm (`Planpunkt` des Servers): Ort, Ecke bzw.
+/// Ausschnitt und Name.
+typedef Planname = ({Offset ort, int ecke, String name});
 
 /// Bogen einer Seite in mm: Nummer der Seite, Bogenlänge, Radius, Scheitel
 /// und die Richtung aus der Fläche.
@@ -572,31 +588,41 @@ class ZeichnungsMaler extends CustomPainter {
     final schirm = [for (final p in punkte) bildschirm(p)];
     final boegen = {for (final b in zeichnung.boegen) b.seite: b};
     return [
-      if (optionen.beschriftet(Beschriftung.punkte))
-        for (var i = 0; i < n; i++)
-          (
-            text: zeichnung.name(i),
-            ort: schirm[i] - innen(punkte, i) * beschriftungsAbstand,
-            richtung: -innen(punkte, i),
-          ),
-      if (optionen.beschriftet(Beschriftung.seitenlaengen))
+      if (optionen.beschriftet(Beschriftung.punkte)) ...[
+        if (zeichnung.umrisspunkte.isEmpty)
+          for (var i = 0; i < n; i++)
+            (
+              text: zeichnung.name(i),
+              ort: schirm[i] - innen(punkte, i) * beschriftungsAbstand,
+              richtung: -innen(punkte, i),
+            )
+        else
+          for (final p in zeichnung.umrisspunkte)
+            if (_punktrichtung(p) case final richtung)
+              (
+                text: p.name,
+                ort: bildschirm(p.ort) + richtung * beschriftungsAbstand,
+                richtung: richtung,
+              ),
+        ..._aussparungsnamen(),
+      ],
+      if (optionen.beschriftet(Beschriftung.seitenlaengen)) ...[
         for (var i = 0; i < n; i++)
           if (boegen[i] case final b?)
+            _bogentext(b)
+          else if (_geradesStueck(i) case (final von, final bis)
+              when (bis - von).distance >= 1)
             (
-              text: sprache.bogenMass(meter(b.laenge), meter(b.radius)),
-              ort: bildschirm(b.scheitel) + b.aussen * beschriftungsAbstand,
-              richtung: b.aussen,
-            )
-          else
-            (
-              text: zentimeter(
-                (punkte[_nachher(punkte, i)] - punkte[i]).distance,
-              ),
+              text: zentimeter((bis - von).distance),
               ort:
-                  Offset.lerp(schirm[i], schirm[_nachher(punkte, i)], 0.5)! +
+                  Offset.lerp(bildschirm(von), bildschirm(bis), 0.5)! +
                   aussen(punkte, i) * beschriftungsAbstand,
               richtung: aussen(punkte, i),
             ),
+        // Planungskern v15: Bögen abgerundeter Ecken (negative Seite)
+        for (final b in zeichnung.boegen)
+          if (b.seite < 0) _bogentext(b),
+      ],
       // keine Winkel an sehr kurzen Kanten (Planungskern v10, Regel 12.3)
       if (optionen.beschriftet(Beschriftung.winkel))
         for (var i = 0; i < n; i++)
@@ -619,6 +645,74 @@ class ZeichnungsMaler extends CustomPainter {
       if (optionen.zeigt(Ebene.masse) && zeichnung.umriss.isNotEmpty)
         ..._masse([for (final p in zeichnung.umriss) bildschirm(p)]),
     ];
+  }
+
+  Zeichentext _bogentext(Bogenangabe b) => (
+    text: sprache.bogenMass(meter(b.laenge), meter(b.radius)),
+    ort: bildschirm(b.scheitel) + b.aussen * beschriftungsAbstand,
+    richtung: b.aussen,
+  );
+
+  /// Gerades Stück der Seite [i] in mm: zwischen den benannten Punkten auf
+  /// ihr (Planungskern v15, Regel 17.2), ohne abgerundete Ecken von Ecke
+  /// zu Ecke; bleibt nichts, ein leeres Stück.
+  (Offset, Offset) _geradesStueck(int i) {
+    final ecken = zeichnung.ecken;
+    final j = _nachher(ecken, i);
+    if (zeichnung.umrisspunkte.isEmpty) return (ecken[i], ecken[j]);
+    final auf = [
+      for (final p in zeichnung.umrisspunkte)
+        if ((p.ecke == i || p.ecke == j) &&
+            _abstandZurStrecke(ecken[i], ecken[j], p.ort) < 1)
+          p.ort,
+    ];
+    return auf.length == 2 ? (auf[0], auf[1]) : (ecken[i], ecken[i]);
+  }
+
+  /// Richtung des Namens am benannten Punkt [p]: an der Ecke selbst nach
+  /// außen auf der Winkelhalbierenden, an Bogenanfang oder -ende vor seiner
+  /// Kante.
+  Offset _punktrichtung(Planname p) {
+    final ecken = zeichnung.ecken;
+    final i = p.ecke;
+    if ((p.ort - ecken[i]).distance < 1) return -innen(ecken, i);
+    final vor = _vorher(ecken, i);
+    return _abstandZurStrecke(ecken[vor], ecken[i], p.ort) < 1
+        ? aussen(ecken, vor)
+        : aussen(ecken, i);
+  }
+
+  /// Namen der Aussparungsecken in die Aussparung hinein (Planungskern v14,
+  /// Regel 16.6); am Umriss schon genannte und doppelte entfallen.
+  List<Zeichentext> _aussparungsnamen() {
+    final gezeigt = {
+      for (final p in zeichnung.umrisspunkte) p.name,
+      if (zeichnung.umrisspunkte.isEmpty)
+        for (var i = 0; i < zeichnung.ecken.length; i++) zeichnung.name(i),
+    };
+    final ecken = zeichnung.aussparungsecken;
+    return [
+      for (final p in ecken)
+        if (gezeigt.add(p.name))
+          if (mitte([
+                    for (final q in ecken)
+                      if (q.ecke == p.ecke) q.ort,
+                  ]) -
+                  p.ort
+              case final d)
+            (
+              text: p.name,
+              ort: bildschirm(p.ort) + d / d.distance * beschriftungsAbstand,
+              richtung: d / d.distance,
+            ),
+    ];
+  }
+
+  static double _abstandZurStrecke(Offset a, Offset c, Offset p) {
+    final d = c - a;
+    final t = (((p - a).dx * d.dx + (p - a).dy * d.dy) / d.distanceSquared)
+        .clamp(0.0, 1.0);
+    return (a + d * t - p).distance;
   }
 
   /// Radius der Punktmarken beim Zeichnen einer Freiform in Pixeln.

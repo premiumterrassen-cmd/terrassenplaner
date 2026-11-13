@@ -109,6 +109,96 @@ void main() {
     });
   });
 
+  group('Blende am Bogen einer Ecke und an Aussparungen (Planungskern '
+      'v14/v15)', () {
+    Future<PlanungsSteuerung> zeige(
+      WidgetTester tester,
+      Planungsstand stand, {
+      bool mitPlanbild = true,
+    }) async {
+      final planung = PlanungsSteuerung()..setze(stand);
+      final umriss = umrisspunkte(stand);
+      final berechnung = BerechnungsSteuerung(
+        planung: planung,
+        berechne: (_) async => Berechnung(
+          umriss: const [],
+          flaeche: 0,
+          planbild: mitPlanbild
+              ? Planbild(
+                  umrisspunkte: umriss,
+                  aussparungsecken: aussparungsecken(stand, umriss),
+                )
+              : null,
+        ),
+      );
+      addTearDown(() {
+        berechnung.dispose();
+        planung.dispose();
+      });
+      await tester.pumpWidget(
+        testApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: VerblendungWahl(
+                planung: planung,
+                berechnung: berechnung,
+                onGeaendert: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return planung;
+    }
+
+    final stand = Planungsstand(
+      grundriss: RechteckGrundriss(
+        const Millimeter(5400),
+        const Millimeter(3600),
+      ),
+      rundungen: Rundungen.keine.mitEcke(2, const Millimeter(1000)),
+    ).mitNeuemAusschnitt();
+
+    testWidgets('nur, wenn gewählt; Namen vom Server', (tester) async {
+      final planung = await zeige(tester, stand);
+      expect(find.text(de.verblendungZusatzFrage), findsOneWidget);
+      expect(find.text('Bogen C–E'), findsOneWidget);
+      expect(find.text('A1: F–G'), findsOneWidget);
+      expect(find.text('A1: I–F'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('eckblende-2')));
+      await tester.pump();
+      expect(planung.aktuell.anschluss.eckblenden, [2]);
+      await tester.tap(find.byKey(const ValueKey('aussparungsblende-0-1')));
+      await tester.pump();
+      expect(planung.aktuell.anschluss.aussparungsblenden, [
+        (ausschnitt: 0, kante: 1),
+      ]);
+      await tester.tap(find.byKey(const ValueKey('aussparungsblende-0-1')));
+      await tester.pump();
+      expect(planung.aktuell.anschluss.aussparungsblenden, isEmpty);
+    });
+
+    testWidgets('ohne Berechnung: Ecke und Nummer der Kante; ohne Bogen und '
+        'Aussparung nichts', (tester) async {
+      await zeige(tester, stand, mitPlanbild: false);
+      expect(find.text('Bogen C'), findsOneWidget);
+      expect(find.text('A1: 2'), findsOneWidget);
+      await zeige(tester, Planungsstand.start);
+      expect(find.byKey(const ValueKey('zusatzblenden')), findsNothing);
+      await zeige(
+        tester,
+        Planungsstand.start.mitNeuemAusschnitt().mitAusschnitt(
+          0,
+          Planungsstand.start.mitNeuemAusschnitt().ausschnitte[0].mitForm(
+            Ausschnittform.kreis,
+          ),
+        ),
+      );
+      expect(find.byKey(const ValueKey('zusatzblenden')), findsNothing);
+    });
+  });
+
   group('Verblendung (M7-02)', () {
     Future<({PlanungsSteuerung planung, List<int> aenderungen})> zeige(
       WidgetTester tester, {

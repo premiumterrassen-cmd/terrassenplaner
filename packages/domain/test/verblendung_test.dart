@@ -1140,7 +1140,7 @@ void _eckenUndAussparungen() {
     });
 
     test('Kante einer Aussparung mit Gehrung, nur wenn gewählt', () {
-      final loch = Planungsstand(grundriss: _r480).mitNeuemAusschnitt();
+      final loch = const Planungsstand(grundriss: _r480).mitNeuemAusschnitt();
       expect(
         verblendungsbedarf(loch, hoehen: _vier, belag: _belag).bedarf,
         isEmpty,
@@ -1192,11 +1192,9 @@ void _eckenUndAussparungen() {
       );
       expect(verschoben.anschluss.aussparungsblenden, [kante]);
       // eine veraltete Kante wirkt nicht
-      final alt = Planungsstand(
+      final alt = const Planungsstand(
         grundriss: _r480,
-        anschluss: const Anschluss(
-          aussparungsblenden: [(ausschnitt: 0, kante: 0)],
-        ),
+        anschluss: Anschluss(aussparungsblenden: [(ausschnitt: 0, kante: 0)]),
       );
       expect(aussparungsblendenStrecken(alt), isEmpty);
       for (final falsch in [

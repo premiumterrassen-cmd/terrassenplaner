@@ -688,6 +688,42 @@ abstract class PlanerTexte {
   /// **'Der Radius ist kleiner als die halbe Seite – die Seite wird als Halbkreis gerechnet.'**
   String get rundungHalbkreis;
 
+  /// No description provided for @rundungEckeInnen.
+  ///
+  /// In de, this message translates to:
+  /// **'innen (Hohlkehle um die Ecke)'**
+  String get rundungEckeInnen;
+
+  /// No description provided for @rundungZuGross.
+  ///
+  /// In de, this message translates to:
+  /// **'Radius zu groß – an dieser Ecke höchstens {cm} cm.'**
+  String rundungZuGross(int cm);
+
+  /// No description provided for @rundungAnleitung.
+  ///
+  /// In de, this message translates to:
+  /// **'Ecke abrunden: Ecke wählen und Radius eingeben – die Planung kürzt beide Kanten und setzt den Bogen, ein Zusatzpunkt ist nicht nötig. Ganze Seite rund: Seite wählen und Radius eingeben. Halbkreis: Seite mit Radius = halbe Seitenlänge oder beide Ecken der Seite mit der halben Seitenlänge abrunden. Nach innen: Haken „innen“. Ecken an der Hauswand werden nicht abgerundet.'**
+  String get rundungAnleitung;
+
+  /// No description provided for @verblendungBogen.
+  ///
+  /// In de, this message translates to:
+  /// **'Bogen {name}'**
+  String verblendungBogen(String name);
+
+  /// No description provided for @verblendungAussparung.
+  ///
+  /// In de, this message translates to:
+  /// **'{flaeche}: {kante}'**
+  String verblendungAussparung(String flaeche, String kante);
+
+  /// No description provided for @verblendungZusatzFrage.
+  ///
+  /// In de, this message translates to:
+  /// **'Bögen abgerundeter Ecken und Kanten von Aussparungen (nur, wenn gewählt):'**
+  String get verblendungZusatzFrage;
+
   /// No description provided for @bogenMass.
   ///
   /// In de, this message translates to:
