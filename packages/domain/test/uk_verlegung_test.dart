@@ -1262,7 +1262,7 @@ void main() {
       final quer = _verlege(
         kreis.mitVerlegerichtung(Verlegerichtung.senkrecht),
       );
-      expect(quer.riegel, hasLength(20));
+      expect(quer.riegel, hasLength(16));
       for (final r in quer.riegel) {
         expect(r.von.x, closeTo(r.bis.x, 1e-6));
       }

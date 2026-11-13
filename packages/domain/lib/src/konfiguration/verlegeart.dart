@@ -45,7 +45,8 @@ enum Verlegeart {
   /// [von] bis [bis] in Verlegerichtung, aufsteigend und nur im Inneren.
   ///
   /// Das Raster beginnt am [ausgang] (Vorgabe: [von]); liegt er mitten in
-  /// der Fläche, läuft eine Linie ohne Versatz durch ihn (135°, F04, M5-05).
+  /// der Fläche, läuft eine Linie ohne Versatz durch ihn (M5-05;
+  /// `verlegeDielen` legt ihn an den Rand der Fläche).
   List<Millimeter> linien(
     int versatz,
     Millimeter von,

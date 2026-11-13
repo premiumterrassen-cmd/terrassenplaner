@@ -76,6 +76,35 @@ final class Dielenstueck {
       : (x: breite, y: laenge);
 }
 
+/// Anfang des Stoßrasters in lokalen Koordinaten (Ausgangspunkt bei
+/// (0|0)) für die Ausgangsecke [ecke] (lokal) der Fläche [lokal]: an der
+/// Ecke, wenn dort eine gerade Kante quer zur Verlegerichtung liegt – der
+/// Stoß folgt ihr (L-Form ab B, Referenzfall 2026-06-07-4340) –, sonst am
+/// näheren Rand der Fläche (135° im Rechteck, Alexander 13.11.2026). Wie
+/// weit der Ausgangspunkt gegenüber der Ecke verschoben ist (M5-07), so
+/// weit wandert das Raster mit.
+Millimeter _rasteranfang(Flaeche lokal, Punkt ecke) {
+  final kontur = lokal.kontur;
+  final n = kontur.punkte.length;
+  var quer = false;
+  for (var i = 0; i < n; i++) {
+    if (!kontur.punkte[i].gleich(ecke, 1)) continue;
+    for (final (nachbar, woelbung) in [
+      (kontur.punkte[(i + 1) % n], kontur.woelbungen[i]),
+      (kontur.punkte[(i + n - 1) % n], kontur.woelbungen[(i + n - 1) % n]),
+    ]) {
+      quer = quer || (woelbung == 0 && (nachbar.x - ecke.x).abs() < 1);
+    }
+  }
+  final huelle = lokal.huellrechteck;
+  final rand = quer
+      ? ecke.x
+      : ecke.x - huelle.min.x <= huelle.max.x - ecke.x
+      ? huelle.min.x
+      : huelle.max.x;
+  return Millimeter((rand - ecke.x).round());
+}
+
 /// [kontur] in Verlegerichtung gedreht: [ausgangspunkt] bei (0|0), Dielen
 /// längs x; gerundet, damit 90° keine Kanten knapp neben den Reihengrenzen
 /// erzeugt.
@@ -94,7 +123,12 @@ Flaeche _lokal(Kontur kontur, Punkt ausgangspunkt, double drehung) => Flaeche(
 /// in einem Reihenstreifen, ist er eine Dielenreihe von seinem ersten bis zu
 /// seinem letzten Punkt in Verlegerichtung (F03: 437 + 6,5 cm bei 45°).
 /// Geschnitten wird an den Stoßlinien der [verlegeart] im Raster ab dem
-/// Ausgangspunkt, Reihe für Reihe gewählt von [Verbandwahl] (R-B18: im
+/// [ausgangspunkt]; mit der Ausgangsecke [ecke] ab der Ecke, wenn dort eine
+/// Kante quer zur Verlegerichtung liegt, sonst ab dem näheren Rand der
+/// Fläche (135°: keine Stoßlinie durch A wie im alten Planer, F04;
+/// Alexander 13.11.2026). Die Verschiebung des Ausgangspunkts gegenüber
+/// der Ecke (M5-07) verschiebt das Raster mit.
+/// Die Linien wählt Reihe für Reihe [Verbandwahl] (R-B18: im
 /// Verband Stücke ab [mindeststueck], 40 cm); [laengste], [verbinden] und
 /// [ueberlaenge] wie bei [reihenstuecke] – mit Überlänge ist ein Stoß erst
 /// über der längsten Lieferlänge plus Überlänge nötig ([stossraster]).
@@ -116,10 +150,18 @@ List<Dielenstueck> verlegeDielen(
   List<Kontur> aussparungen = const [],
   Millimeter fuge = fuge,
   Millimeter mindeststueck = verbandMindeststueck,
+  Punkt? ecke,
 }) {
   final drehung = -winkel * math.pi / 180;
   final lokal = _lokal(kontur, ausgangspunkt, drehung);
   final huelle = lokal.huellrechteck;
+  final ausgang = switch (ecke) {
+    null => const Millimeter(0),
+    final e => _rasteranfang(
+      lokal,
+      _gerundet((e - ausgangspunkt).gedreht(drehung)),
+    ),
+  };
   final frei = [
     for (final a in aussparungen) _lokal(a, ausgangspunkt, drehung),
   ];
@@ -133,6 +175,7 @@ List<Dielenstueck> verlegeDielen(
     raster: raster,
     hoechstlaenge: laengste + ueberlaenge,
     mindeststueck: mindeststueck,
+    ausgang: ausgang,
   );
   final breite = (dielenbreite + fuge).mm;
   final stuecke = <Dielenstueck>[];

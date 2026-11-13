@@ -247,7 +247,9 @@ void main() {
         Planungsstand.start.mitVerlegerichtung(Verlegerichtung.diagonal135),
         diele,
       );
-      expect(f04.dielen, hasLength(152));
+      // Stöße am Rand statt durch A (Alexander 13.11.2026): jede Reihe
+      // in einem Stück
+      expect(f04.dielen, hasLength(85));
       final f05 = PlanungsDienst.berechne(
         Planungsstand.start.mitVerlegerichtung(Verlegerichtung.individuell),
         diele,

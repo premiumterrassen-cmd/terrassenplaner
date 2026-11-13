@@ -52,9 +52,9 @@ const _gruende = {
   'Planungskern v6':
       'Planungskern v6 / Musterverfahren R-B17: höchstens 3 Stücke je '
       'Diele, 5 mm Sägeschnitt, Reste ab 30 cm, bei höchstens 1 % '
-      'Mehrlänge die Verteilung mit den wenigsten Dielen (F04: 152 Stücke '
-      'brauchen mindestens 51 Dielen und damit nach der Staffel R-B09 '
-      '2 Freidielen)',
+      'Mehrlänge die Verteilung mit den wenigsten Dielen (z. B. 152 Stücke '
+      'mit Stoß durch A bei 135° brauchen mindestens 51 Dielen und damit '
+      'nach der Staffel R-B09 2 Freidielen)',
   'Planungskern v12':
       'Planungskern v12, Regel 14.2 (UK am Bogen wie im GS-Planer): Latten '
       'bis an den Bogen, Rand-UK als Polygonzug von Lattenende zu '
@@ -79,10 +79,11 @@ const _konfigurationen = <String, Map<String, String>>{
   'F01': {'Dielen': 'Fuge'},
   'F02': {'Dielen': 'Fuge'},
   'F03': {'Verschnitt': 'B-035', 'Dielen': 'B-035', 'UK': 'Rand-UK'},
+  // Stöße bei 135° am Rand statt durch A (Alexander 13.11.2026): 85 statt
+  // 152 Stücke, damit wieder 1 Freidiele wie im alten Planer
   'F04': {
     'Verschnitt': 'B-035',
     'Dielen': 'B-035',
-    'Freidielen': 'Planungskern v6',
     'UK': 'Rand-UK',
     'Clips': 'Befestigung',
   },
