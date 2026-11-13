@@ -102,6 +102,10 @@ void main() {
     });
 
     test('Fläche passt in eine Diele: keine Linie', () {
+      expect(
+        linien(Kontur.rechteck(3000, 1000), const [Punkt(1500, 0)]).fest,
+        isEmpty,
+      );
       final k = Kontur.rechteck(6030, 1000);
       expect(linien(k, const [Punkt(3000, 0)]).fest, isEmpty);
       expect(
@@ -234,6 +238,16 @@ void main() {
       }
     });
 
+    test('Grenze mit Überlänge: Stücke bis 6,03 m ohne Zusatz', () {
+      final v = verlegeBelag(
+        _l(12050, 6030).mitStosslinie(const [_d]),
+        _diele,
+      )!;
+      expect(v.festeStoesse, 1);
+      expect(v.zusatzstoesse, 0);
+      expect(_reihen(v.teile.single)[0], [6030, 6020]);
+    });
+
     test('Ecke am Rand: ohne Wirkung mit Meldung', () {
       final stand = _l(9000, 4000).mitStosslinie(const [1]);
       final v = verlegeBelag(stand, _diele)!;
@@ -325,6 +339,28 @@ void main() {
       // Ecke nicht am Umriss von A1: dort keine Linie
       final ohneA1 = verlegeBelag(grund.mitStosslinie(const [4]), _diele)!;
       expect([for (final t in ohneA1.teile) t.festeStoesse], [1, 0]);
+      // Ecke 1 mm neben dem Umriss von A1 zählt noch als „an ihm“
+      final knapp = grund.mitAusschnitt(
+        1,
+        Ausschnitt(
+          bezeichnung: 'A1',
+          x: const Millimeter(1000),
+          y: const Millimeter(0),
+          laenge: const Millimeter(8000),
+          breite: const Millimeter(999),
+          funktion: Ausschnittfunktion.andererBelag,
+        ),
+      );
+      expect(
+        [
+          for (final t in verlegeBelag(
+            knapp.mitStosslinie(const [_d]),
+            _diele,
+          )!.teile)
+            t.festeStoesse,
+        ],
+        [1, 1],
+      );
       final teil = verlegeBelag(
         grund.mitStosslinie(const [_d], flaeche: 2),
         _diele,
