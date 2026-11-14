@@ -1145,61 +1145,52 @@ void main() {
           ),
     );
 
-    test('Kreis R 1,80 m: Polygonzug mit Knicken an den Lattenenden, '
-        'höchstens 1,2 cm vom Bogen, ohne Stücke parallel zu den Dielen', () {
+    test('Kreis R 1,80 m: Polygonzug gerade von Lattenende zu Lattenende '
+        '(Regel 16.3), ohne Stücke parallel zu den Dielen', () {
       final v = _verlege(kreis);
-      expect(bogenKnickToleranz, 12);
-      expect(v.rand, hasLength(32));
+      // 20 Lattenenden: 2 × 9 Stücke zwischen benachbarten Latten, ohne
+      // das flache Stück oben und unten zwischen den beiden mittleren
+      expect(v.rand, hasLength(16));
       expect(v.ergaenzt, isEmpty);
-      var aufLatte = 0;
       for (final r in v.rand) {
         final (a, c) = knicke(r);
         expect(a.abstand(mitte), closeTo(1800, 0.2));
         expect(c.abstand(mitte), closeTo(1800, 0.2));
-        // Stich des Stücks höchstens 1,2 cm
-        expect(((a + c) * 0.5).abstand(mitte), greaterThan(1800 - 12));
-        expect(a.abstand(c), greaterThanOrEqualTo(50));
         expect((c.y - a.y).abs(), greaterThanOrEqualTo(10));
-        expect(lattenende(v, a), r.aufLatte.von, reason: '$a');
-        expect(lattenende(v, c), r.aufLatte.bis, reason: '$c');
-        if (r.aufLatte.von) aufLatte++;
-        if (r.aufLatte.bis) aufLatte++;
+        // beide Enden auf einem Lattenende, keine Zwischenknicke
+        expect(r.aufLatte, (von: true, bis: true));
+        expect(lattenende(v, a), isTrue, reason: '$a');
+        expect(lattenende(v, c), isTrue, reason: '$c');
+        // von Latte zur Nachbarlatte (Achsabstand 39,5 cm)
+        expect((c.x - a.x).abs(), closeTo(v.lagen[1] - v.lagen[0], 1e-6));
         expect(r.stoesse, isEmpty);
       }
-      // 20 Lattenenden mit je zwei Stücken – außer oben und unten an den
-      // beiden mittleren Latten (gleich hoch, das flache Stück dazwischen
-      // entfällt) und an den äußersten (das Stück zur Spitze liegt auf
-      // der Latte): 12 × 2 + 8 × 1
-      expect(aufLatte, 32);
-      // je ein Zwischenknick zwischen äußerster und zweiter Latte
-      expect(
-        v.rand.where((r) => !r.aufLatte.von && !r.aufLatte.bis),
-        hasLength(4),
-      );
     });
 
-    test('Zwischenknicke bei großem Achsabstand zum Bogen; kleiner '
-        'Eckradius ohne Zwischenknick', () {
+    test('kein Zwischenknick bei großem Achsabstand zum Bogen (Regel 16.3); '
+        'kleiner Eckradius zu kurz für eine Rand-UK', () {
       final seite = Planungsstand.start.mitRundungen(
         Rundungen.keine.mitRadius(1, const Millimeter(2000)),
       );
       final v = _verlege(seite);
       final bogen = seite.kontur.kanten.firstWhere((k) => k.istBogen);
       final m = bogen.mittelpunkt;
-      expect(v.rand, hasLength(10));
-      expect(
-        v.rand.where((r) => !r.aufLatte.von && !r.aufLatte.bis),
-        hasLength(4),
-      );
+      expect(v.rand, hasLength(4));
       for (final r in v.rand) {
         final (a, c) = knicke(r, m);
         expect(a.abstand(m), closeTo(2000, 0.2));
-        expect(((a + c) * 0.5).abstand(m), greaterThan(2000 - 12));
-        // ohne Zwischenknicke wären die Stücke an den Enden 45 cm lang
-        expect(a.abstand(c), lessThan(345));
+        expect(c.abstand(m), closeTo(2000, 0.2));
       }
-      // Ecke mit 5 mm Radius: ein Stück ohne Zwischenknick, zu kurz für
-      // eine Rand-UK
+      // die Stücke an den Enden reichen von der äußersten Latte bis an den
+      // Anfang bzw. das Ende des Bogens
+      expect(
+        v.rand.where((r) => !r.aufLatte.von || !r.aufLatte.bis),
+        hasLength(2),
+      );
+      expect(
+        v.rand.map((r) => r.von.abstand(r.bis)).reduce(math.max),
+        greaterThan(345),
+      );
       final ecke = _verlege(
         Planungsstand.start.mitRundungen(
           Rundungen.keine.mitEcke(1, const Millimeter(5)),

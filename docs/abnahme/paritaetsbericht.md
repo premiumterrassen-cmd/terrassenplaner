@@ -1,5 +1,7 @@
 # Paritätsbericht (M10-01)
 
+> **Nachtrag 13.11.2026 (Rundungen und Ecken, Planungskern v14/v15, Branch `feature/planungskern-v15-ecken-rundung`):** Abschnitt [Rundungen und Ecken](#nachtrag-rundungen-und-ecken-planungskern-v14v15-13112026) unten – verglichene Werte unverändert.
+>
 > **Nachtrag 11.11.2026 (Planungskern v6, Branch `feature/planungskern-belag-befestigung`):** Fuge 6 statt 5 mm und neue Befestigung (Anfangs- und Enddiele verschraubt, Clips + 5 %) – Abschnitt [Planungskern v6](#nachtrag-planungskern-v6-11112026) unten.
 >
 > **Nachtrag 12.11.2026 (Auflager aus der Höhe und Stellfüße an der Hauswand, Branch `feature/planungskern-auflager-hoehe`):** keine Änderung der verglichenen Werte – Abschnitt [Auflager aus der Höhe](#nachtrag-auflager-aus-der-höhe-planungskern-v6-12112026) unten.
@@ -345,4 +347,15 @@ Branch `fix/m5-05-stoesse-am-rand` auf `main` (0acf7cb). Entscheidung Alexander 
 | F04 | Freidielen | 2 | **1 (gleich)** | 1 | – (Grund „Planungskern v6“ entfällt bei F04) |
 | F04 | UK | 7 × 5000 + 8 × 4000 | 5 × 5000 + 8 × 4000 | 2 × 5500 + 3 × 5000 + 5 × 4500 + 3 × 4000 | Rand-UK (wie bisher); ohne Stoßlinie keine Doppel-UK durch A |
 | F04 | Clips | 900 | 750 | 850 | Befestigung (wie bisher); weniger Kreuzungen ohne Doppel-UK |
+
+## Nachtrag Rundungen und Ecken (Planungskern v14/v15, 13.11.2026)
+
+Branch `feature/planungskern-v15-ecken-rundung` (M10-01q). `paritaet_test.dart` läuft unverändert grün: keine der verglichenen Größen ändert sich.
+
+Ohne die neuen Vorgaben (Ecke „innen“, Blende an Eckbogen/Aussparung) ändern sich bestehende Planungen nur dort, wo die Regeln es verlangen:
+
+- **Regel 16.3 (R-C60):** An Bögen des Umrisses hat die Rand-UK keine Zwischenknicke mehr – weniger, längere Rand-UK-Stücke (Kreis Ø 3,60 m: 16 statt 32 Stücke, alle von Lattenende zu Lattenende). Die UK-Mengen dieser Fälle ändern sich; F19 weicht in der UK schon seit Planungskern v12 begründet ab (Grund „Planungskern v12“, Text ergänzt: 16 statt 32 Rand-UK-Stücke).
+- **Regel 16.4 (R-C61):** Rand-UK-Auflager im Umkreis von 25 cm um ein vorhandenes Auflager entfallen – betrifft jede Planung mit Rand-UK (schräge Kanten, Ausschnitte, diagonale Verlegung, Bögen): weniger Stellfüße/Pads/Unterleger. Auflager werden im Paritätstest nicht verglichen (siehe Verfahren).
+- **Regel 16.6 (R-E61):** Ecken leerer Aussparungen tragen in Plan und App Buchstaben (nur Darstellung).
+- **Regel 17.1.6:** Eine Eckrundung neben einer gewölbten Seite (bisher erlaubt, M4-11) wird abgewiesen (Frage 133); kein Referenzfall nutzt sie.
 
