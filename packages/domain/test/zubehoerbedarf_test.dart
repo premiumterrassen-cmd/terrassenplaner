@@ -483,8 +483,11 @@ void main() {
         winkel: 0,
         oelflaeche: 0,
       );
-      // das Band ohne Rollenlänge zählt nicht, das nächste schon: 40,17 m
-      expect(_mengen(m), {'50-50-102': 4, '50-80-003': 1, '50-60-001': 5});
+      // das Band ohne Rollenlänge zählt nicht, das nächste schon: 40,17 m;
+      // Planungskern v14: je angefangene 300 Schrauben ein TX25-Bit
+      final schrauben = befestigung.bedarf.single.stueck;
+      expect(schrauben, inInclusiveRange(601, 800));
+      expect(_mengen(m), {'50-50-102': 4, '50-80-003': 3, '50-60-001': 5});
     });
 
     test('ohne Zubehör-Verweise und ohne Dielen: nur die Befestigung', () {
@@ -564,23 +567,63 @@ void main() {
     final set200 = packung('Schrauben 200', Artikelart.schraube, 200);
     final set600 = packung('Schrauben 600', Artikelart.schraube, 600);
     List<String> namen(List<(Artikel, int)> bedarf) => [
-      for (final b in bits(_regelwerk, mit(bedarf))) b.nummer.wert,
+      for (final (b, n) in bits(_regelwerk, mit(bedarf))) '${b.nummer.wert}×$n',
     ];
 
     test('TX20 nur ohne Clip-Packung mit Bit: CLIP-FIXX ab VPE 100, DUO ab '
         '250', () {
-      expect(namen([(clip50, 50)]), ['50-80-002']);
+      expect(namen([(clip50, 50)]), ['50-80-002×1']);
+      expect(namen([(clip50, 500)]), ['50-80-002×1']);
       expect(namen([(clip100, 100)]), isEmpty);
-      expect(namen([(duo100, 100)]), ['50-80-002']);
+      expect(namen([(duo100, 100)]), ['50-80-002×1']);
       expect(namen([(duo250, 250)]), isEmpty);
       expect(namen(const []), isEmpty);
     });
 
-    test('TX25 nur ohne 600er-Schraubenset', () {
-      expect(namen([(set200, 26)]), ['50-80-003']);
+    test('TX25 je angefangene 300 Schrauben ohne 600er-Set (Planungskern '
+        'v14 Regel 16.7, R-D70)', () {
+      expect(namen([(set200, 26)]), ['50-80-003×1']);
+      expect(namen([(set200, 300)]), ['50-80-003×1']);
+      expect(namen([(set200, 301)]), ['50-80-003×2']);
+      expect(namen([(set200, 600)]), ['50-80-003×2']);
+      expect(namen([(set200, 601)]), ['50-80-003×3']);
+      // das 600er-Set hat sein Bit dabei: keins dazu
       expect(namen([(set600, 600)]), isEmpty);
+      expect(namen([(set600, 1200)]), isEmpty);
+      expect(namen([(set600, 1)]), isEmpty);
+      // größeres Set: ebenfalls mit Bit
+      final set1000 = packung('Schrauben 1000', Artikelart.schraube, 1000);
+      expect(namen([(set1000, 1000)]), isEmpty);
+      // Schrauben über verschiedene Bedarfe zusammen
+      expect(namen([(set200, 200), (set200, 200)]), ['50-80-003×2']);
       // Clips ohne Bit und Schrauben: beide Bits
-      expect(namen([(clip50, 40), (set200, 26)]), ['50-80-002', '50-80-003']);
+      expect(namen([(clip50, 40), (set200, 26)]), [
+        '50-80-002×1',
+        '50-80-003×1',
+      ]);
+    });
+
+    test('TX25: was das Set nicht abdeckt, je angefangene 300', () {
+      final beide = Befestigungsbedarf(
+        bedarf: [
+          Materialbedarf([set600, set200], 900),
+        ],
+      );
+      // 900 → 600er-Set + 200 + 200 (wenig Überhang): 300 ohne Set → 1
+      expect(
+        [for (final (b, n) in bits(_regelwerk, beide)) '${b.nummer.wert}×$n'],
+        ['50-80-003×1'],
+      );
+      final mehr = Befestigungsbedarf(
+        bedarf: [
+          Materialbedarf([set600, set200], 1000),
+        ],
+      );
+      // 1000 → 600 + 2 × 200: 400 ohne Set → 2
+      expect(
+        [for (final (b, n) in bits(_regelwerk, mehr)) '${b.nummer.wert}×$n'],
+        ['50-80-003×2'],
+      );
     });
 
     test('kein Bit in den Artikeldaten: keins', () {

@@ -414,6 +414,9 @@ void main() {
       final plan = baustein<Plan>(k);
       expect(plan.linien, hasLength(4));
       expect(plan.linien.first.argb, 0xFF9E9E9E);
+      // Planungskern v14 Regel 16.5 (R-E70): Umriss dünn über der Rand-UK
+      expect(plan.linien.first.staerke, ukUmrissstaerke);
+      expect(ukUmrissstaerke, inExclusiveRange(0, 0.5));
       final holz = plan.linien[1];
       expect(holz.gefuellt, isTrue);
       expect(holz.argb, Stueckfarbe.blau.argb);

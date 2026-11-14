@@ -17,6 +17,7 @@ import '../konfiguration/terrassenart.dart';
 import 'auflager.dart';
 import 'planungsregeln.dart';
 import 'regelwerk.dart';
+import 'schutzband.dart';
 import 'uk_verlegung.dart';
 import 'uk_zusatz.dart';
 
@@ -250,6 +251,12 @@ double _streckenabstand(Punkt a, Punkt b, Punkt p) {
 ///
 /// Bodenanker: der erste Artikel der Art Bodenanker im [regelwerk] – die
 /// Upload-Datei verweist von der UK nicht auf sie.
+///
+/// Mit [unterlegband] (KOPPLEX-3, `unterlegband`, Planungsregeln Alexander
+/// (Planungskern v14, 13.11.2026), Regel 16.2, R-C71) liegt statt jedes
+/// Pads unter [unterlegbandStattPadsUnter] (GUMO L 2 und 5 mm) ein Stück
+/// Band von [unterlegbandJeAuflager] – in Höhenzuordnung und
+/// Materialliste; die Höhenzuordnung selbst bleibt.
 Auflagerbedarf auflagerbedarf(
   Planungsstand stand,
   UkVerlegung verlegung, {
@@ -259,6 +266,7 @@ Auflagerbedarf auflagerbedarf(
   required Millimeter aufbauhoehe,
   List<Auflagerbereich> bereiche = const [],
   Regelwerk? regelwerk,
+  Artikel? unterlegband,
 }) {
   final drehung = verlegung.winkel * math.pi / 180;
   final a = abstand.mm.toDouble();
@@ -290,7 +298,7 @@ Auflagerbedarf auflagerbedarf(
       .where((a) => a.art == Artikelart.bodenanker)
       .firstOrNull;
   return switch (stand.terrassenart) {
-    Terrassenart.normal => _stelzfuesse(orte, spalte, bereiche),
+    Terrassenart.normal => _stelzfuesse(orte, spalte, bereiche, unterlegband),
     Terrassenart.hochterrasse => _stuetzen(stand, orte, spalte, uk, anker),
     Terrassenart.vorhandeneUk => Auflagerbedarf(
       punkte: [
@@ -381,7 +389,10 @@ Auflagerbedarf _stelzfuesse(
   List<Punkt> orte,
   List<Millimeter> spalte,
   List<Auflagerbereich> bereiche,
+  Artikel? band,
 ) {
+  bool ersetzt(Auflagerbereich b) =>
+      band != null && b.pad && b.bis < unterlegbandStattPadsUnter;
   final wahlen = auflagerwahlen(bereiche);
   final wahl = [for (final s in spalte) auflagerFuer(s, wahlen)];
   // Spalte je Lage, in der Reihenfolge der Punkte
@@ -408,11 +419,27 @@ Auflagerbedarf _stelzfuesse(
     zeilen: [
       for (final w in zeilen)
         if (spalteJe[w]! case final s)
-          (titel: w.titel, anzahl: s.length, von: _min(s), bis: _max(s)),
+          (
+            titel: w.titelMit((t) => ersetzt(t) ? band!.titel : t.titel),
+            anzahl: s.length,
+            von: _min(s),
+            bis: _max(s),
+          ),
     ],
     bedarf: [
       for (final b in bereiche)
-        if (stueck[b] case final n?) Materialbedarf(b.einheiten, n),
+        if (stueck[b] case final n? when !ersetzt(b))
+          Materialbedarf(b.einheiten, n),
+      if ([
+            for (final b in bereiche)
+              if (ersetzt(b)) ?stueck[b],
+          ].fold(0, (a, n) => a + n)
+          case final n when n > 0)
+        Materialbedarf(
+          [band!],
+          unterlegbandEinheiten(n, band),
+          inEinheiten: true,
+        ),
     ],
   );
 }

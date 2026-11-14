@@ -132,6 +132,13 @@ Aus dem Abgleich mit den Planungsregeln v14/v15 (Kern v25–v27, Abschnitte 16.1
 135. **Blende am Bogen einer abgerundeten Ecke (Regel 17.3):** Wählbar als eigene Kante „Bogen C–E“, nicht automatisch mit den verblendeten Nachbarseiten. Soll sie mitkommen, wenn beide Nachbarseiten verblendet sind?
 136. **Formänderung mit gleicher Eckenzahl (Regel 17.6):** Ändert sich nur ein Maß (gleiche Eckenzahl), bleiben die Rundungen je Ecke/Seite wie bisher (M4-11); nur bei anderer Eckenzahl gilt der Ort. Richtig?
 
+Aus dem Abgleich mit dem Planungskern v14 (Schutzband, Unterleger, Blende, Bits, Regel 16.2/16.5/16.7, `feature/planungskern-v14-unterleger-blende`, 13.11.2026):
+
+140. **Artikeldaten KOPPLEX und B-039:** KOPPLEX-1 (10-m- und 20-m-Rolle) und KOPPLEX-3 (10-m-Rolle) stehen in der Master-Artikelliste mit „im Planer = nein“ und nicht im Shop; im Blatt „Import Terrassenplaner“ fehlen sie. Der Planer rechnet sie, sobald sie dort stehen (Titel mit „KOPPLEX-1“/„KOPPLEX-3“, Rollenlänge, Artikeltyp EPDM-Band bzw. Unterlegpads, Preis). Welcher Preis gilt im Planer, wenn sie nicht im Shop sind (B-152)? Und: B-039 („KOPPLEX wird durch GUMO ersetzt“) gilt noch – durch Regel 16.2 für Deutschland/Österreich aufgehoben?
+141. **Lieferland:** Der Planer kennt kein Lieferland (Shop Deutschland, 19 % MwSt.); bis zur Antwort rechnet er mit Deutschland. Woher soll es kommen – Auswahl in der Planung, Adresse/Land im Angebot, Shop (DE/AT/CH)? Dann bekommt der Planungsstand ein Feld (hinten angehängt).
+142. **KOPPLEX-3 ist 3 mm, GUMO L 2/5 mm:** Umgesetzt: die Höhenzuordnung rechnet weiter mit den Pads 2/5/8 mm, nur das Material wird getauscht (je dünnes Pad 8 cm Band; 2 + 2 → zwei Stücke, 8 + 5 → GUMO L 8 + ein Stück). Soll die Höhe stattdessen mit 3 mm gerechnet werden (z. B. 3, 3 + 3, 8, 8 + 3 mm)?
+143. **TX25-Bits über mehrere Flächen und gemischte Packungen:** Umgesetzt: je Fläche je angefangene 300 Schrauben außerhalb eines 600er-Sets; die Materialliste nimmt die größte Zahl einer Fläche (Werkzeug je Planung). Bei 900 Schrauben (600er-Set + 2 × 200) kommt für die 300 außerhalb des Sets ein Bit dazu. Richtig, oder über die ganze Planung summieren?
+
 ## Beantwortet
 
 - **Kurze UK-Stücke 8,6 / 8,7 / 11 cm im UK-Zuschnitt** (aus M1-02): im 90°-Winkel an den Sichtseiten angesetzte UK-Stücke, an denen die Blenden befestigt werden (Alexander, 19.10.2026).

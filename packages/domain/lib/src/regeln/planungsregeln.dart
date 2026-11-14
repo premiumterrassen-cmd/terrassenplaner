@@ -117,6 +117,10 @@ const duoClipBitAbVpe = 250;
 /// Planungskern v6 Regel 4.3).
 const schraubenBitAbVpe = 600;
 
+/// Ein TX25-Bit je angefangene so viele Schrauben ohne Set (Planungsregeln
+/// Alexander (Planungskern v14, 13.11.2026), Regel 16.7, R-D70).
+const schraubenJeBit = 300;
+
 /// Terrassenöl in Litern je m² Ölfläche (R-D10, Planungsregeln Alexander
 /// (Planungskern v6, 11.11.2026) Regel 5.2.2; Merkblatt RIBOL: 44 ml/m²) –
 /// automatische Menge im Zubehör (M8-02, `oelflaeche`).

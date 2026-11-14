@@ -909,6 +909,73 @@ void _blendeAmBogen() {
         .where((m) => m.einheiten.first.art == Artikelart.schraube)
         .fold(0, (s, m) => s + m.stueck);
 
+    test('Blende nur, wenn ausgewählt – auch an Rundungen (Planungskern '
+        'v14, Regel 16.5, R-D71)', () {
+      final rund = Planungsstand.start.mitRundungen(
+        Rundungen.keine
+            .mitRadius(1, const Millimeter(2000))
+            .mitEcke(3, const Millimeter(500)),
+      );
+      expect(blendenstrecken(rund, _vier), isEmpty);
+      final ohne = verblendungsbedarf(
+        rund,
+        hoehen: _vier,
+        belag: _belag,
+        regelwerk: _serie,
+        uk: _uk,
+      );
+      expect(ohne.blenden, isEmpty);
+      expect(ohne.bedarf, isEmpty);
+      expect(ohne.stuecke, isEmpty);
+      expect(
+        anschlussergebnis(rund).seiten
+            .where((s) => s.rolle == Seitenrolle.verblendung),
+        isEmpty,
+      );
+      // nur die gerade Seite A–B gewählt: kein Stück am Bogen B–C
+      final gerade = rund.mitVerblendet(0, an: true);
+      expect([
+        for (final s in blendenstrecken(gerade, _vier)) s.bogen,
+      ], everyElement(isFalse));
+      expect(
+        {
+          for (final s in anschlussergebnis(gerade).seiten)
+            if (s.rolle == Seitenrolle.verblendung) s.seite,
+        },
+        {0},
+      );
+      expect(
+        verblendungsbedarf(
+          gerade,
+          hoehen: _vier,
+          belag: _belag,
+          regelwerk: _serie,
+          uk: _uk,
+        ).meldungen,
+        isNot(contains(Anschlussmeldung.bogenblende)),
+      );
+      // alle geraden Seiten gewählt, dazu eine Aussparung: weder der Bogen
+      // der abgerundeten Ecke noch die Aussparungskanten ohne eigene Wahl
+      final alle = rund
+          .mitNeuemAusschnitt()
+          .mitVerblendet(0, an: true)
+          .mitVerblendet(2, an: true)
+          .mitVerblendet(3, an: true);
+      expect(alle.anschluss.eckblenden, isEmpty);
+      expect(alle.anschluss.aussparungsblenden, isEmpty);
+      expect(aussparungsblendenStrecken(alle), isEmpty);
+      expect([
+        for (final s in blendenstrecken(alle, _vier)) s.bogen,
+      ], everyElement(isFalse));
+      expect(
+        {
+          for (final s in anschlussergebnis(alle).seiten)
+            if (s.rolle == Seitenrolle.verblendung) s.seite,
+        },
+        {0, 2, 3},
+      );
+    });
+
     test('Stücke = Bogenlänge ÷ 100 mm, Länge = Blendenhöhe, aus einer '
         'Lieferlänge, 2 Schrauben je Stück, keine Träger', () {
       expect(bogenblendeBreite, const Millimeter(100));

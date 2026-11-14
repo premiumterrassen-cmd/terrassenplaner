@@ -77,6 +77,7 @@ export 'src/regeln/planungsregeln.dart';
 export 'src/regeln/rand_uk.dart';
 export 'src/regeln/regelwerk.dart';
 export 'src/regeln/rinnen.dart';
+export 'src/regeln/schutzband.dart';
 export 'src/regeln/systemdielenbedarf.dart';
 export 'src/regeln/treppen.dart';
 export 'src/regeln/uk_verlegung.dart';
