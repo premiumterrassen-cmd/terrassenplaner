@@ -121,8 +121,13 @@ enum Treppenmeldung {
 }
 
 /// Eine Seite mit Rolle für die Zeichnung: Nummer der Seite, Rolle und die
-/// Strecke von Ecke zu Ecke in mm.
+/// Strecke von Ecke zu Ecke in mm. Die Blende am Bogen einer abgerundeten
+/// Ecke `i` hat die Seite `-1 - i`, die an einer Aussparung
+/// [aussparungsseite] (Planungskern v14/v15).
 typedef Seitenlinie = ({int seite, Seitenrolle rolle, Punkt von, Punkt bis});
+
+/// Seite einer [Seitenlinie] an einer Aussparung (Regel 16.6).
+const aussparungsseite = -1000;
 
 /// Weiterer Höhenreferenzpunkt für die Zeichnung (M7-04): Ort in
 /// Planungskoordinaten und geprüfte Höhe.

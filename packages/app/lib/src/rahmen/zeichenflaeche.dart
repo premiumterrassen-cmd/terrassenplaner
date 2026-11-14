@@ -215,7 +215,11 @@ class Zeichenflaeche extends StatelessWidget {
   }
 
   /// Griffe im Rundungsmodus (M4-11): innen an jeder Ecke (Zugweg nach
-  /// innen = Radius) und auf jeder Seite (Zugweg nach außen = Stich).
+  /// innen = Radius) und auf jeder Seite (Zugweg nach außen = Stich). Nur
+  /// Ecken, die abgerundet werden können (Planungskern v15, Regel 17.1.6
+  /// und 17.4: zwei gerade Nachbarkanten, nicht an der Hauswand); an einer
+  /// abgerundeten Ecke keine Griffe der Nachbarseiten – ihr Bogen ist keine
+  /// eigene Seite.
   List<Widget> _rundungsGriffe(RundungsBedienung r) {
     final ecken = zeichnung.ecken;
     if (ecken.length < 3) return const [];
@@ -227,28 +231,32 @@ class Zeichenflaeche extends StatelessWidget {
             final massstab = pixelJeMm * ansicht.zoom;
             Offset schirm(Offset mm) => ansicht.verschiebung + mm * massstab;
             final n = ecken.length;
-            final rundungen = planung.aktuell.rundungen;
-            final grundriss = planung.aktuell.grundriss;
+            final stand = planung.aktuell;
+            final rundungen = stand.rundungen;
+            final grundriss = stand.grundriss;
             return Stack(
               children: [
                 for (var i = 0; i < n; i++) ...[
-                  _rundungsGriff(
-                    r,
-                    (ecke: true, nummer: i),
-                    schirm(ecken[i]) +
-                        ZeichnungsMaler.innen(ecken, i) * Griff.groesse,
-                    ZeichnungsMaler.innen(ecken, i),
-                  ),
-                  _rundungsGriff(
-                    r,
-                    (ecke: false, nummer: i),
-                    schirm(
-                      Offset.lerp(ecken[i], ecken[(i + 1) % n], 0.5)! +
-                          ZeichnungsMaler.aussen(ecken, i) *
-                              rundungen.stichAn(grundriss, i).mm.toDouble(),
+                  if (stand.eckeRundbar(i))
+                    _rundungsGriff(
+                      r,
+                      (ecke: true, nummer: i),
+                      schirm(ecken[i]) +
+                          ZeichnungsMaler.innen(ecken, i) * Griff.groesse,
+                      ZeichnungsMaler.innen(ecken, i),
                     ),
-                    ZeichnungsMaler.aussen(ecken, i),
-                  ),
+                  if (!rundungen.ecken.containsKey(i) &&
+                      !rundungen.ecken.containsKey((i + 1) % n))
+                    _rundungsGriff(
+                      r,
+                      (ecke: false, nummer: i),
+                      schirm(
+                        Offset.lerp(ecken[i], ecken[(i + 1) % n], 0.5)! +
+                            ZeichnungsMaler.aussen(ecken, i) *
+                                rundungen.stichAn(grundriss, i).mm.toDouble(),
+                      ),
+                      ZeichnungsMaler.aussen(ecken, i),
+                    ),
                 ],
               ],
             );

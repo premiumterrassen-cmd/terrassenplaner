@@ -25,6 +25,48 @@ bool ukPasstZuBelag(Artikel uk, Artikel belag) {
       holzart.serie(serie!).ukFormat(breite, staerke) != UkFormat.ungueltig;
 }
 
+/// Die UK [uk] so, wie sie zum [belag] geliefert wird: Bestimmt die
+/// Belagserie eine andere UK-Serie ([Serienregeln.ukSerie]) und einen
+/// eigenen Titel ([Serienregeln.ukTitel]), gehört die UK im Planer zur
+/// Belagserie – mit deren UK-Lieferlängen und dem Titel. MASSIV
+/// (Planungsregeln Alexander v14/v15, Regeln 16.1.1 und 18): die ECO-UK
+/// (z. B. 10-10-031-S) in 2,00 m als „Unterkonstruktion Robinie ECO MASSIV
+/// 60 x 40 mm, ohne Keilzinkung“ – in Auswahl, Planung, Plänen,
+/// Planungsunterlagen und Export. Artikelnummer und Preis bleiben. Sonst
+/// unverändert.
+Artikel ukZuBelag(Artikel uk, Artikel belag) {
+  final (holzart, serie) = (belag.holzart, belag.serie);
+  if (holzart == null || serie == null) return uk;
+  final regeln = holzart.serie(serie);
+  final titel = regeln.ukTitel;
+  if (regeln.ukSerie == null || titel == null) return uk;
+  final format =
+      _format.firstMatch(uk.titel)?.group(0) ??
+      '${uk.abmessungen.breite?.mm} x ${uk.abmessungen.staerke?.mm} mm';
+  return Artikel(
+    nummer: uk.nummer,
+    titel: titel.replaceAll('{format}', format),
+    art: uk.art,
+    einheit: uk.einheit,
+    abmessungen: Abmessungen(
+      breite: uk.abmessungen.breite,
+      staerke: uk.abmessungen.staerke,
+      laengen: regeln.ukLieferlaengen,
+    ),
+    preisBrutto: uk.preisBrutto,
+    gewicht: uk.gewicht,
+    holzart: holzart,
+    serie: serie,
+    profil: uk.profil,
+    oberseite: uk.oberseite,
+    zubehoergruppe: uk.zubehoergruppe,
+    bilder: uk.bilder,
+  );
+}
+
+/// Format im Titel einer UK, z. B. „60 x 40 mm“.
+final _format = RegExp(r'\d+ x \d+ mm');
+
 /// UK-Serie zur Belagserie [serie] der [holzart].
 Serie? _ukSerie(Holzart holzart, Serie? serie) =>
     serie == null ? null : holzart.serie(serie).ukSerie ?? serie;
@@ -44,7 +86,8 @@ List<Millimeter> ukLieferlaengen(Artikel uk) {
 }
 
 /// Unterkonstruktionen zum Belag für den Dialog „Unterkonstruktion
-/// auswählen“ (M6-03) in Datenreihenfolge; die erste ist die Vorgabe. Die
+/// auswählen“ (M6-03) in Datenreihenfolge, so wie sie zum Belag geliefert
+/// werden (`ukZuBelag`); die erste ist die Vorgabe. Die
 /// Preise je lfm rechnet der Server; sie sind nur Anzeige (B-055).
 final class Ukauswahl {
   Ukauswahl(this.version, Iterable<Belagangebot> angebote)
@@ -58,7 +101,7 @@ final class Ukauswahl {
   ) => Ukauswahl(version, [
     if (belag != null)
       for (final a in artikel)
-        if (ukPasstZuBelag(a, belag)) Belagangebot.jeLfm(a),
+        if (ukPasstZuBelag(a, belag)) Belagangebot.jeLfm(ukZuBelag(a, belag)),
   ]);
 
   factory Ukauswahl.ausJson(

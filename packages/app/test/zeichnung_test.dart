@@ -1080,6 +1080,122 @@ void main() {
     });
   });
 
+  group('Planungskern v14/v15: Buchstaben an Bogen und Aussparung', () {
+    Zeichnung zeichnung() => Zeichnung(
+      umriss: const [
+        Offset(0, 0),
+        Offset(4000, 0),
+        Offset(4000, 2000),
+        Offset(3000, 3000),
+        Offset(0, 3000),
+      ],
+      ecken: const [
+        Offset(0, 0),
+        Offset(4000, 0),
+        Offset(4000, 3000),
+        Offset(0, 3000),
+      ],
+      umrisspunkte: const [
+        (ort: Offset(0, 0), ecke: 0, name: 'A'),
+        (ort: Offset(4000, 0), ecke: 1, name: 'B'),
+        (ort: Offset(4000, 2000), ecke: 2, name: 'C'),
+        (ort: Offset(3000, 3000), ecke: 2, name: 'E'),
+        (ort: Offset(0, 3000), ecke: 3, name: 'D'),
+      ],
+      aussparungsecken: const [
+        (ort: Offset(1000, 1000), ecke: 0, name: 'F'),
+        (ort: Offset(2000, 1000), ecke: 0, name: 'G'),
+        (ort: Offset(2000, 2000), ecke: 0, name: 'H'),
+        (ort: Offset(1000, 2000), ecke: 0, name: 'I'),
+        (ort: Offset(0, 0), ecke: 1, name: 'A'),
+        (ort: Offset(1000, 0), ecke: 1, name: 'J'),
+        (ort: Offset(1000, 1000), ecke: 1, name: 'F'),
+      ],
+      boegen: const [
+        (
+          seite: -3,
+          laenge: 1570.8,
+          radius: 1000,
+          scheitel: Offset(3707, 2707),
+          aussen: Offset(0.7071, 0.7071),
+        ),
+      ],
+    );
+
+    test('Namen an Bogenanfang und -ende, Maße der geraden Stücke, Bogen der '
+        'Ecke, Aussparungen in sie hinein', () {
+      final z = zeichnung();
+      expect(z.umrisspunkte.clear, throwsUnsupportedError);
+      expect(z.aussparungsecken.clear, throwsUnsupportedError);
+      final o = AnsichtsOptionen()..setzeEbenen({});
+      final texte = {for (final t in _maler(z, o).texte()) t.text: t};
+      expect([for (final t in _maler(z, o).texte()) t.text].take(14), [
+        'A', 'B', 'C', 'E', 'D', 'F', 'G', 'H', 'I', 'J', //
+        '400 cm', '200 cm', '300 cm', '300 cm',
+      ]);
+      // B an der Ecke: auf der Winkelhalbierenden nach außen
+      expect(texte['B']!.richtung.dx, closeTo(1 / math.sqrt2, 1e-9));
+      expect(texte['B']!.richtung.dy, closeTo(-1 / math.sqrt2, 1e-9));
+      expect(texte['C']!.ort, const Offset(406, 200));
+      expect(texte['C']!.richtung, const Offset(1, 0));
+      expect(texte['E']!.ort, const Offset(300, 306));
+      expect(texte['A']!.ort.dx, closeTo(-6 / math.sqrt2, 1e-9));
+      expect(texte['200 cm']!.ort, const Offset(406, 100));
+      expect(texte['F']!.ort.dx, closeTo(100 + 6 / math.sqrt2, 1e-9));
+      expect(texte['F']!.ort.dy, closeTo(100 + 6 / math.sqrt2, 1e-9));
+      expect(texte['J']!.ort.dx, closeTo(100 - 6 / math.sqrt2, 1e-9));
+      expect(texte['Bogen 1,57 m · R 1,00 m']!.ort.dx, closeTo(374.95, 0.01));
+      // ohne Punkte im Umriss: Namen an den Ecken, Aussparung ohne Doppel
+      final ohne = Zeichnung(
+        umriss: z.ecken,
+        aussparungsecken: [
+          (ort: const Offset(0, 0), ecke: 0, name: 'A'),
+          (ort: const Offset(1000, 0), ecke: 0, name: 'E'),
+          (ort: const Offset(1000, 1000), ecke: 0, name: 'F'),
+        ],
+      );
+      expect([for (final t in _maler(ohne, o).texte()) t.text].take(10), [
+        'A',
+        'B',
+        'C',
+        'D',
+        'E',
+        'F',
+        '400 cm',
+        '300 cm',
+        '400 cm',
+        '300 cm',
+      ]);
+    });
+
+    test('Bogen bis an die Nachbarecke: kein Maß für die leere Kante', () {
+      final z = Zeichnung(
+        umriss: const [Offset(0, 0), Offset(1000, 0), Offset(4000, 3000)],
+        ecken: const [
+          Offset(0, 0),
+          Offset(4000, 0),
+          Offset(4000, 3000),
+          Offset(0, 3000),
+        ],
+        umrisspunkte: const [
+          (ort: Offset(0, 0), ecke: 0, name: 'A'),
+          (ort: Offset(1000, 0), ecke: 1, name: 'B'),
+          (ort: Offset(4000, 3000), ecke: 2, name: 'C'),
+          (ort: Offset(0, 3000), ecke: 3, name: 'D'),
+        ],
+      );
+      final o = AnsichtsOptionen()..setzeEbenen({});
+      final m = _maler(z, o);
+      expect(_texte(m).where((t) => t.endsWith('cm')), [
+        '100 cm',
+        '400 cm',
+        '300 cm',
+      ]);
+      // B steht vor der Kante A–B
+      expect(m.texte()[1].richtung, const Offset(0, -1));
+    });
+  });
+
   group('Planungskern v12 / v10', () {
     test('am Bogen „Bogen … · R …“ außen am Scheitel statt der Sehne '
         '(Regel 14.1.3)', () {

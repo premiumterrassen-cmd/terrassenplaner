@@ -179,7 +179,10 @@ final class Unterlagentexte {
     stossHinweisLaengenmix:
         'MASSIV im Längenmix 0,8 / 1,2 / 1,6 / 2,0 m · Stoß je Reihe '
         'versetzt (rot) · jeder Stoß mittig auf einer UK.',
-    ukRasterLaengenmix: 'Stöße mittig auf UK (Raster 38/40 cm).',
+    ukRasterLaengenmix:
+        'Stöße mittig auf UK (Raster 38/40 cm). UK aus 2-m-Stücken; je '
+        'UK-Stoß ein Längsverbinder ca. 45 cm aus dem Reststück, seitlich '
+        'verschraubt, Stoß über einem Auflager.',
     ukHoehenHinweis:
         'H = Höhe Oberkante Diele über Boden in cm. Neben jedem Auflager '
         'die Höhe des Stellfußes bzw. der Unterleger in cm, die Farbe nach '
@@ -298,7 +301,10 @@ final class Unterlagentexte {
     stossHinweisLaengenmix:
         'MASSIV in mixed lengths 0.8 / 1.2 / 1.6 / 2.0 m · joints staggered '
         'row by row (red) · every joint centred on one joist.',
-    ukRasterLaengenmix: 'Joints centred on the joist (grid 38/40 cm).',
+    ukRasterLaengenmix:
+        'Joints centred on the joist (grid 38/40 cm). Joists in 2 m '
+        'pieces; at every joist joint a longitudinal connector of approx. '
+        '45 cm from the offcut, screwed on the side, joint above a support.',
     ukHoehenHinweis:
         'H = height of the top of the boards above ground in cm. Next to '
         'every support the height of the adjustable foot or pads in cm, '
@@ -425,7 +431,8 @@ final class Unterlagentexte {
   /// 1a.5, R-B50) statt [stossHinweis].
   final String stossHinweisLaengenmix;
 
-  /// Zusatz im UK-Plan bei MASSIV im Längenmix (Regel 1a.5, R-C50).
+  /// Zusatz im UK-Plan bei MASSIV im Längenmix (Regel 1a.5, R-C50; UK in
+  /// 2 m mit Längsverbindern, Regel 16.1.1, R-C52).
   final String ukRasterLaengenmix;
 
   /// Höhen im UK-Plan (R-E05, Planungskern v8/v9 Regeln 10.1 und 11.2):

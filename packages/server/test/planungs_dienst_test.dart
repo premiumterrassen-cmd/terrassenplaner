@@ -2395,6 +2395,42 @@ void main() {
       expect(b.volumen, greaterThan(11 * 1.5 * 0.025));
     });
 
+    test('UK „ECO MASSIV“ in 2,00 m mit Längsverbindern, Clips + 25 % '
+        '(Planungsregeln v14/v15, Regeln 16.1.1, 16.1.2, 18)', () {
+      final uk = ukZuBelag(ecoUk, massivDiele);
+      final b = Berechnung.ausBytes(
+        PlanungsDienst.berechnePlanung(
+          Planung.start.mitStand(rechteck(5000, 3000)),
+          (_) => massivDiele,
+          regelwerk,
+          false,
+          (_) => uk,
+        ).zuBytes(),
+      );
+      const titel =
+          'Unterkonstruktion Robinie ECO MASSIV 40 x 60 mm, ohne Keilzinkung';
+      final ukZeilen = [
+        for (final p in b.materialliste.positionen)
+          if (p.nummer == ecoUk.nummer) p,
+      ];
+      // 14 Linien à 3 m: je 2 m + 1 m, die Verbinder aus den Resten
+      expect(ukZeilen.single.titel, titel);
+      expect(ukZeilen.single.laenge, const Millimeter(2000));
+      expect(ukZeilen.single.anzahl, 28);
+      final verbinder = b.stueckliste.zeilen.singleWhere(
+        (z) => z.laenge == const Millimeter(450),
+      );
+      expect(verbinder.stueck, 14);
+      expect(verbinder.titel, titel);
+      // 35 Reihen × 14 Linien + 25 %, verpackt zu 250
+      final clips = b.materialliste.positionen.singleWhere(
+        (p) => p.nummer == clip.nummer,
+      );
+      expect(b.befestigung.punkte, 490);
+      expect(clips.anzahl, (systemdielenClips(490) / 250).ceil());
+      expect(clips.anzahl, 3);
+    });
+
     test('zwei Flächen: 10 %, gemeinsam aufgerundet; auch mit '
         'Verschnittvariante', () {
       final planung = Planung([

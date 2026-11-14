@@ -224,6 +224,9 @@ class PlanungsDienst {
       // eine Rinne verkleinert die Fläche (F38, M7-03)
       flaeche: (belagstand ?? stand).kontur.flaeche,
       ausschnitte: [for (final a in stand.ausschnitte) a.kontur.punkte],
+      // Planungskern v14/v15: Bögen, Buchstaben an abgerundeten Ecken und
+      // an den Aussparungen – auch ohne Belag
+      planbild: _grundplanbild(stand),
       hoehenpunkte: hoehen,
       stellfuesse: _stellfuesse(stand, regelwerk, unterkonstruktion),
       unterbau: unterbauFuer(
@@ -240,6 +243,18 @@ class PlanungsDienst {
         meldungen: anschluss?.meldungen ?? const [],
         hoehen: hoehen.hoehen,
       ),
+    );
+  }
+
+  /// Was die Pläne von [stand] ohne Verlegung zeigen (Planungskern v12
+  /// Regel 14.1.3, v14 Regel 16.6, v15 Regel 17.2), weitere Teile ergänzt
+  /// [_mitVerlegung].
+  static Planbild _grundplanbild(Planungsstand stand) {
+    final umriss = umrisspunkte(stand);
+    return Planbild(
+      boegen: bogenmasse(stand),
+      umrisspunkte: umriss,
+      aussparungsecken: aussparungsecken(stand, umriss),
     );
   }
 
@@ -299,6 +314,7 @@ class PlanungsDienst {
         unterbau: flaeche.unterbau,
         anschluss: flaeche.anschluss,
         zubehoer: zubehoer,
+        planbild: flaeche.planbild,
       );
     }
     final stuecke = [for (final t in v.teile) ...t.stuecke];
@@ -357,8 +373,10 @@ class PlanungsDienst {
         // Kern v23: neben einem Bogen bis an die gerutschte Ecke
         rinnen: rinnenbaender(stand, rinnen),
         // Planungskern v12: „Bogen … · R …“ und Riegel am Bogen
-        boegen: bogenmasse(stand),
+        boegen: flaeche.planbild.boegen,
         riegel: uk?.riegel ?? const [],
+        umrisspunkte: flaeche.planbild.umrisspunkte,
+        aussparungsecken: flaeche.planbild.aussparungsecken,
       ),
     );
   }

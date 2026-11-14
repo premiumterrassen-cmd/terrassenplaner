@@ -173,19 +173,41 @@ void main() {
       }
     });
 
-    test('senkrecht: Grenze in y ist 0; kurze Reihe ohne Stoß', () {
+    test('senkrecht: Grenze in y ist 0; kurze Reihen bis zur längsten '
+        'Diele aus dem Mix (Regel 16.1.3, Kern v25)', () {
       final v = verlegeBelag(
         _rechteck(1000, 2003).mitVerlegerichtung(Verlegerichtung.senkrecht),
         _massiv(),
       )!;
       expect(v.grenzen.y, const Millimeter(0));
       expect(v.grenzen.x, isNot(const Millimeter(0)));
-      for (final t in v.teile) {
-        for (final s in t.stuecke) {
-          expect(s.laenge, const Millimeter(2003));
-        }
+      final reihen = <int, List<int>>{};
+      for (final s in v.teile.single.stuecke) {
+        reihen.putIfAbsent(s.reihe, () => []).add(s.laenge.mm);
       }
-      expect(v.dielenliste.anzahl.keys, [const Millimeter(2000)]);
+      for (final l in reihen.values) {
+        // gestoßen: ein Stück aus dem Mix, das letzte ist das Reststück
+        expect(l, hasLength(2));
+        expect(l.first % 400, 0);
+        expect(l.fold(0, (a, b) => a + b), 2003);
+        expect(l.last, greaterThanOrEqualTo(300));
+      }
+      expect(v.dielenliste.anzahl.keys, isNot([const Millimeter(2000)]));
+    });
+
+    test('kurze Reihe: ein Stück unter kürzeste Länge + 30 cm, ab 1,10 m '
+        'gestoßen (Regel 16.1.3)', () {
+      List<int> reihe(int laenge) => [
+        for (final s in verlegeBelag(
+          _rechteck(laenge, 500),
+          _massiv(),
+        )!.teile.single.stuecke)
+          if (s.reihe == 0) s.laenge.mm,
+      ];
+      expect(reihe(1099), [1099]);
+      expect(reihe(1100), [800, 300]);
+      // 1,50 m Steg: Stoß aus dem Mix, Reststück am Ende
+      expect(reihe(1500), [800, 700]);
     });
 
     test('Feldbreite 35 cm: Stöße im 35-cm-Raster', () {
@@ -280,10 +302,71 @@ void main() {
       for (final s in c.single) {
         expect(b.single, isNot(contains(s)));
       }
-      // ohne Stoß, wenn der Abschnitt in die längste Länge passt
-      expect(wahl.stoesse(3, [(const Millimeter(0), const Millimeter(2005))]), [
+      // kurze Abschnitte (Regel 16.1.3): bis zur längsten Länge ein Stoß
+      // aus dem Mix, unter kürzeste Länge + 30 cm keiner
+      expect(
+        wahl.stoesse(3, [(const Millimeter(0), const Millimeter(2005))]).single,
+        hasLength(1),
+      );
+      expect(wahl.kuerzeste, 800);
+      expect(wahl.stoesse(4, [(const Millimeter(0), const Millimeter(1099))]), [
         <Millimeter>[],
       ]);
+      expect(wahl.stoesse(5, [(const Millimeter(0), const Millimeter(1100))]), [
+        [const Millimeter(800)],
+      ]);
+      // die Grenze gilt für die Länge des Abschnitts, nicht seine Lage
+      expect(
+        Laengenmixwahl(
+          _mix,
+          anfang: const Millimeter(0),
+        ).stoesse(0, [(const Millimeter(1000), const Millimeter(2099))]),
+        [<Millimeter>[]],
+      );
+      // unter 1,10 m kein Stoß, auch wenn eine Rasterlinie passen würde
+      expect(
+        Laengenmixwahl(
+          _mix,
+          anfang: const Millimeter(100),
+        ).stoesse(0, [(const Millimeter(0), const Millimeter(1000))]),
+        [<Millimeter>[]],
+      );
+      // passt der Rest hinter dem Stoß samt Toleranz in 2 m (2,003 m),
+      // ist er das letzte Stück – in jeder Reihe genau ein Stoß
+      final zwei = Laengenmixwahl(const [
+        Millimeter(800),
+        Millimeter(2000),
+      ], anfang: const Millimeter(0));
+      final reihen = [
+        for (var r = 0; r < 6; r++)
+          zwei.stoesse(r, [
+            (const Millimeter(0), const Millimeter(2803)),
+          ]).single,
+      ];
+      expect(reihen.map((s) => s.length).toSet(), {1});
+      expect(reihen.map((s) => s.single.mm).toSet(), {800, 2000});
+      // Rasterlinie ab dem Anfang 10 cm, gemessen vom Anfang (nicht addiert)
+      final ab100 = Laengenmixwahl(const [
+        Millimeter(800),
+        Millimeter(2000),
+      ], anfang: const Millimeter(100));
+      for (var r = 0; r < 4; r++) {
+        final s = ab100.stoesse(r, [
+          (const Millimeter(400), const Millimeter(2700)),
+        ]).single;
+        expect(s, hasLength(1));
+        expect({900, 2100}, contains(s.single.mm));
+      }
+      // kein Stoß nach den Regeln möglich: die kurze Reihe bleibt ein Stück
+      final weit = Laengenmixwahl(
+        const [Millimeter(800), Millimeter(2000)],
+        anfang: const Millimeter(0),
+        raster: const Millimeter(600),
+      );
+      expect(
+        weit.stoesse(0, [(const Millimeter(999), const Millimeter(2099))]),
+        [<Millimeter>[]],
+      );
       expect(
         Laengenmixwahl(const [
           Millimeter(800),
@@ -423,16 +506,424 @@ void main() {
       expect(doppelt.punkte, greaterThan(p.punkte));
     });
 
-    test('UK aus ECO SELECT, nicht MASSIV (Regel 1a.7, Frage 100)', () {
+    test('UK aus ECO SELECT, nicht MASSIV (Regel 1a.7, Frage 100), in '
+        '2,00 m (Regel 16.1.1)', () {
       expect(ukPasstZuBelag(_uk(ecoSelect), _massiv()), isTrue);
       expect(ukPasstZuBelag(_uk(massiv), _massiv()), isFalse);
       expect(robinie.serie(massiv).ukSerie, ecoSelect);
       expect(robinie.serie(ecoSelect).ukSerie, isNull);
-      expect(robinie.serie(massiv).ukLieferlaengen, const [
+      expect(robinie.serie(massiv).ukLieferlaengen, const [Millimeter(2000)]);
+      expect(
+        robinie.serie(massiv).ukTitel,
+        'Unterkonstruktion Robinie ECO MASSIV {format}, ohne Keilzinkung',
+      );
+      expect(robinie.serie(ecoSelect).ukTitel, isNull);
+    });
+  });
+
+  group('UK zur MASSIV-Systemdiele (Regeln 16.1.1, 16.1.2, 18)', () {
+    Artikel ecoUk({
+      String titel =
+          'Unterkonstruktion Robinie ECO SELECT '
+          '60 x 40 mm, keilgezinkt',
+    }) => Artikel(
+      nummer: const Artikelnummer('10-10-031-S'),
+      titel: titel,
+      art: Artikelart.unterkonstruktion,
+      einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+      abmessungen: Abmessungen(
+        breite: const Millimeter(40),
+        staerke: const Millimeter(60),
+        laengen: const [Millimeter(6000)],
+      ),
+      preisBrutto: const Cent(1234),
+      gewicht: const Gramm(1800),
+      holzart: robinie,
+      serie: ecoSelect,
+      bilder: const ['uk.webp'],
+    );
+
+    test('Name „ECO MASSIV …, ohne Keilzinkung“, 2,00 m, Nummer und Preis '
+        'bleiben (Regel 18)', () {
+      final uk = ukZuBelag(ecoUk(), _massiv());
+      expect(
+        uk.titel,
+        'Unterkonstruktion Robinie ECO MASSIV 60 x 40 mm, ohne Keilzinkung',
+      );
+      expect(uk.nummer, const Artikelnummer('10-10-031-S'));
+      expect(uk.art, Artikelart.unterkonstruktion);
+      expect(uk.einheit.einheit, Mengeneinheit.laufmeter);
+      expect(uk.preisBrutto, const Cent(1234));
+      expect(uk.gewicht, const Gramm(1800));
+      expect(uk.bilder, ['uk.webp']);
+      expect(uk.holzart, robinie);
+      expect(uk.serie, massiv);
+      expect(uk.abmessungen.breite, const Millimeter(40));
+      expect(uk.abmessungen.staerke, const Millimeter(60));
+      expect(uk.abmessungen.laengen, const [Millimeter(2000)]);
+      expect(ukLieferlaengen(uk), const [Millimeter(2000)]);
+      // ohne Format im Titel: aus den Maßen
+      expect(
+        ukZuBelag(ecoUk(titel: 'UK'), _massiv()).titel,
+        'Unterkonstruktion Robinie ECO MASSIV 40 x 60 mm, ohne Keilzinkung',
+      );
+      // zu keilgezinkten Dielen bleibt die ECO-SELECT-UK, wie sie ist
+      final eco = Artikel(
+        nummer: const Artikelnummer('10-10-046-S'),
+        titel: 'Diele',
+        art: Artikelart.diele,
+        einheit: Verkaufseinheit(Mengeneinheit.laufmeter),
+        abmessungen: Abmessungen(
+          breite: const Millimeter(80),
+          staerke: const Millimeter(23),
+        ),
+        holzart: robinie,
+        serie: ecoSelect,
+        profil: Profil.genutet,
+      );
+      expect(identical(ukZuBelag(ecoUk(), eco), ecoUk()), isFalse);
+      expect(ukZuBelag(ecoUk(), eco).titel, ecoUk().titel);
+      expect(ukLieferlaengen(ukZuBelag(ecoUk(), eco)), const [
         Millimeter(4000),
         Millimeter(5000),
         Millimeter(6000),
       ]);
+      // Belag ohne Holzart (Holzfliese, Alu): unverändert
+      final fliese = Artikel(
+        nummer: const Artikelnummer('F-1'),
+        titel: 'Fliese',
+        art: Artikelart.holzfliese,
+        einheit: Verkaufseinheit(Mengeneinheit.stueck),
+      );
+      expect(ukZuBelag(ecoUk(), fliese).titel, ecoUk().titel);
+    });
+
+    test('Auswahl: ECO MASSIV zur MASSIV-Diele, auch nach JSON', () {
+      final auswahl = Ukauswahl.fuer('1', _massiv(), [ecoUk()]);
+      final uk = auswahl.vorgabe!.artikel;
+      expect(uk.titel, contains('ECO MASSIV'));
+      expect(auswahl.vorgabe!.preisJeLfm, const Cent(1234));
+      final zurueck = Ukauswahl.ausJson(auswahl.alsJson(), {
+        robinie.id: robinie,
+      });
+      expect(zurueck.vorgabe!.artikel.titel, uk.titel);
+      expect(ukLieferlaengen(zurueck.vorgabe!.artikel), const [
+        Millimeter(2000),
+      ]);
+    });
+
+    test('lange UK-Linien aus 2-m-Stücken, je Stoß ein Längsverbinder '
+        '45 cm daneben, aus dem Reststück (Regel 16.1.1)', () {
+      expect(massivLaengsverbinder, const Millimeter(450));
+      final stand = _rechteck(2000, 5000);
+      final v = verlegeBelag(stand, _massiv())!;
+      final uk = ukVerlegung(
+        stand,
+        ukZuBelag(ecoUk(), _massiv()),
+        abstand: const Millimeter(400),
+        dielen: [for (final t in v.teile) ...t.stuecke],
+        laengenmix: v.laengenmix,
+      );
+      final linien = uk.linien.length;
+      expect(linien, 6);
+      for (final l in uk.linien) {
+        expect(l.abschnitte, [(0.0, 5000.0)]);
+        expect(l.stoesse, [2000.0, 4000.0]);
+      }
+      final laengen = [for (final s in uk.stuecke) s.laenge.mm];
+      expect(laengen.where((l) => l == 2000), hasLength(2 * linien));
+      expect(laengen.where((l) => l == 1000), hasLength(linien));
+      expect(laengen.where((l) => l == 450), hasLength(2 * linien));
+      expect(uk.stuecke, hasLength(5 * linien));
+      expect(
+        uk.stuecke.where((s) => s.laenge.mm == 450).map((s) => s.farbe).toSet(),
+        {Stueckfarbe.blau},
+      );
+      expect(uk.stuecke.first.titel, contains('ECO MASSIV'));
+      // Verbinder neben der ersten Linie (x = 20): links der Richtung, eine
+      // UK-Breite daneben, mittig über dem Stoß
+      final erste = uk.linien.first.x;
+      expect(
+        uk.hoelzer,
+        contains((
+          von: Punkt(erste - 40, 1775),
+          bis: Punkt(erste - 40, 2225),
+          farbe: Stueckfarbe.blau,
+        )),
+      );
+      expect(
+        uk.hoelzer,
+        contains((
+          von: Punkt(erste - 40, 3775),
+          bis: Punkt(erste - 40, 4225),
+          farbe: Stueckfarbe.blau,
+        )),
+      );
+      // nur 2-m-Hölzer; die Verbinder kommen aus den Resten der 1-m-Stücke
+      expect(uk.zuschnitt.every((d) => d.laenge.mm == 2000), isTrue);
+      // 2 × 2 m + 1 m je Linie, die Verbinder aus den Resten der 1-m-Stücke
+      expect(uk.bedarf.single.stueck, 3 * linien);
+      // kein Längsverbinder-Artikel, auch wenn die UK einen hätte
+      final verbinder = Artikel(
+        nummer: const Artikelnummer('50-20-001'),
+        titel: 'Längsverbinder',
+        art: Artikelart.laengsverbinder,
+        einheit: Verkaufseinheit(Mengeneinheit.stueck),
+      );
+      final regelwerk = Regelwerk(
+        Artikeldatei(
+          quelle: 't',
+          version: '1',
+          eintraege: [
+            Artikeleintrag(
+              artikel: ecoUk(),
+              verweise: {
+                Beziehung.laengsverbinder.spalte: [verbinder.nummer],
+              },
+            ),
+            Artikeleintrag(artikel: verbinder),
+          ],
+        ),
+      );
+      final mit = ukVerlegung(
+        stand,
+        ukZuBelag(ecoUk(), _massiv()),
+        abstand: const Millimeter(400),
+        laengenmix: v.laengenmix,
+        regelwerk: regelwerk,
+      );
+      expect(mit.bedarf.expand((b) => b.einheiten), isNot(contains(verbinder)));
+      // ohne Längenmix: Verbinder-Artikel, keine Holzverbinder
+      final ohne = ukVerlegung(
+        stand,
+        ukZuBelag(ecoUk(), _massiv()),
+        abstand: const Millimeter(400),
+        regelwerk: regelwerk,
+      );
+      expect(ohne.bedarf.last.einheiten, [verbinder]);
+      expect(ohne.stuecke.where((s) => s.laenge.mm == 450), isEmpty);
+    });
+
+    test('Rand-UK: Verbinder auf der Belagseite; jeder Stoß über einem '
+        'Auflager', () {
+      // Dreieck: die schräge Kante bekommt eine Rand-UK über 2 m
+      final stand = Planungsstand.start.mitGrundriss(
+        FreiformGrundriss([
+          const Punkt(0, 0),
+          const Punkt(3000, 0),
+          const Punkt(0, 3000),
+        ], geschlossen: true),
+      );
+      final v = verlegeBelag(stand, _massiv())!;
+      final uk = ukVerlegung(
+        stand,
+        ukZuBelag(ecoUk(), _massiv()),
+        abstand: const Millimeter(400),
+        dielen: [for (final t in v.teile) ...t.stuecke],
+        laengenmix: v.laengenmix,
+      );
+      final schraeg = uk.rand.singleWhere((r) => r.stoesse.isNotEmpty);
+      final richtung = (schraeg.bis - schraeg.von).einheit;
+      // 4,24 m: 2,00 + 1,74 + 0,50 m (Reststück mindestens 50 cm)
+      expect(schraeg.stoesse, hasLength(2));
+      final stoss = schraeg.von + richtung * schraeg.stoesse.first;
+      final verbinder = uk.hoelzer.singleWhere(
+        (h) =>
+            (h.von.abstand(h.bis) - 450).abs() < 1e-6 &&
+            ((h.von + h.bis) * 0.5).abstand(stoss) < 41,
+      );
+      // auf der Belagseite: näher am Schwerpunkt als der Stoß
+      const innen = Punkt(1000, 1000);
+      expect(
+        ((verbinder.von + verbinder.bis) * 0.5).abstand(innen),
+        lessThan(stoss.abstand(innen)),
+      );
+      final auflager = auflagerbedarf(
+        stand,
+        uk,
+        uk: ukZuBelag(ecoUk(), _massiv()),
+        abstand: const Millimeter(600),
+        flaeche: Hoehenflaeche(const [Punkt.ursprung], const [Millimeter(100)]),
+        aufbauhoehe: const Millimeter(90),
+      );
+      expect(auflager.punkte.any((p) => p.ort.abstand(stoss) < 1e-6), isTrue);
+    });
+
+    test('Kreis: Rand-UK am Bogen gerade (Regel 16.3), Linien aus '
+        '2-m-Stücken mit Verbindern; jeder Stoß behält trotz Raster '
+        '(Regel 16.4) sein Auflager', () {
+      final stand = Planungsstand.start.mitGrundriss(
+        KreisGrundriss(const Millimeter(4000)),
+      );
+      final uk = ukZuBelag(ecoUk(), _massiv());
+      final v = verlegeBelag(stand, _massiv())!;
+      final verlegung = ukVerlegung(
+        stand,
+        uk,
+        abstand: const Millimeter(400),
+        dielen: [for (final t in v.teile) ...t.stuecke],
+        laengenmix: v.laengenmix,
+      );
+      final stoesse = [
+        for (final l in verlegung.linien)
+          for (final y in l.stoesse) Punkt(l.x, y),
+        for (final r in verlegung.rand)
+          for (final t in r.stoesse) r.von + (r.bis - r.von).einheit * t,
+      ];
+      expect(stoesse, isNotEmpty);
+      // je Stoß ein Verbinder, kein Holz über 2 m
+      expect(
+        verlegung.stuecke.where((s) => s.laenge.mm == 450),
+        hasLength(stoesse.length),
+      );
+      expect(verlegung.stuecke.every((s) => s.laenge.mm <= 2000), isTrue);
+      final auflager = auflagerbedarf(
+        stand,
+        verlegung,
+        uk: uk,
+        abstand: const Millimeter(600),
+        flaeche: Hoehenflaeche(const [Punkt.ursprung], const [Millimeter(100)]),
+        aufbauhoehe: const Millimeter(90),
+      );
+      for (final s in stoesse) {
+        expect(
+          auflager.punkte.any((p) => p.ort.abstand(s) < 1e-6),
+          isTrue,
+          reason: 'Auflager unter dem Stoß $s',
+        );
+      }
+    });
+
+    test('Clips + 25 % statt + 5 % (Regel 16.1.2)', () {
+      expect(systemdielenClipZuschlag, 25);
+      expect(systemdielenClips(100), 125);
+      expect(systemdielenClips(101), 127);
+      expect(systemdielenClips(0), 0);
+      final clip = Artikel(
+        nummer: const Artikelnummer('80-10-001-50'),
+        titel: 'CLIP-FIXX VPE 50',
+        art: Artikelart.clip,
+        einheit: Verkaufseinheit(Mengeneinheit.stueck, inhalt: 50),
+      );
+      final regelwerk = Regelwerk(
+        Artikeldatei(
+          quelle: 't',
+          version: '1',
+          eintraege: [
+            Artikeleintrag(
+              artikel: _massiv(),
+              verweise: {
+                Beziehung.befestigung.spalte: [clip.nummer],
+              },
+            ),
+            Artikeleintrag(artikel: clip),
+          ],
+        ),
+      );
+      final stand = _rechteck(5000, 1000);
+      final v = verlegeBelag(stand, _massiv())!;
+      final stuecke = [for (final t in v.teile) ...t.stuecke];
+      final uk = ukVerlegung(
+        stand,
+        ukZuBelag(ecoUk(), _massiv()),
+        abstand: const Millimeter(400),
+        laengenmix: v.laengenmix,
+      );
+      final b = befestigungsbedarf(
+        regelwerk,
+        _massiv(),
+        Befestigungsart.clips,
+        stuecke,
+        winkel: 0,
+        uk: uk,
+      );
+      // ohne Gegenstück: alle Kreuzungen mit Clips
+      expect(b.bedarf.single.einheiten, [clip]);
+      expect(b.bedarf.single.stueck, systemdielenClips(b.punkte));
+      expect(b.bedarf.single.stueck, greaterThan(clipsMitZuschlag(b.punkte)));
+    });
+  });
+
+  group('Texte MASSIV (Unterlagen und Hinweise, exakt)', () {
+    test('Legenden und Meldungen deutsch und englisch', () {
+      const de = Unterlagentexte.deutsch;
+      const en = Unterlagentexte.englisch;
+      expect(
+        en.stossHinweisLaengenmix,
+        'MASSIV in mixed lengths 0.8 / 1.2 / 1.6 / 2.0 m · joints staggered '
+        'row by row (red) · every joint centred on one joist.',
+      );
+      expect(
+        en.ukRasterLaengenmix,
+        'Joints centred on the joist (grid 38/40 cm). Joists in 2 m '
+        'pieces; at every joist joint a longitudinal connector of approx. '
+        '45 cm from the offcut, screwed on the side, joint above a support.',
+      );
+      expect(
+        de.belagmeldung(Belagmeldung.systemdieleLaengenmix, null),
+        'MASSIV-Systemdielen liegen im Längenmix 0,8 / 1,2 / 1,6 / 2,0 m mit '
+        'je Reihe versetzten Stößen; jeder Stoß liegt mittig auf einer UK '
+        '(Raster 38 / 40 cm). Verlegemuster und Dielenlänge gelten dafür '
+        'nicht.',
+      );
+      expect(
+        en.belagmeldung(Belagmeldung.systemdieleLaengenmix, null),
+        'MASSIV system boards are laid in mixed lengths of 0.8 / 1.2 / 1.6 / '
+        '2.0 m with joints staggered row by row; every joint sits centred '
+        'on one joist (grid 38 / 40 cm). Laying patterns and board length '
+        'do not apply.',
+      );
+      expect(
+        en.belagmeldung(
+          Belagmeldung.stosslinieZusatzstoesse,
+          null,
+          zusatzstoesse: 1,
+        ),
+        'Between the fixed joint lines the boards would be longer than the '
+        'delivery length. The plan adds 1 evenly spaced joint (with double '
+        'substructure).',
+      );
+      expect(
+        en.belagmeldung(
+          Belagmeldung.stosslinieZusatzstoesse,
+          null,
+          zusatzstoesse: 2,
+        ),
+        contains('adds 2 evenly spaced joints (with'),
+      );
+      expect(
+        de.anschlusshinweis(Anschlussmeldung.bogenblende),
+        'Blende am Bogen aus senkrechten Stücken: je Stück 2 Schrauben in die '
+        'Rand-UK, vorbohren; unten ca. 1 cm Luft lassen, Hirnholz oben und '
+        'unten mit Stirnkantenschutz streichen.',
+      );
+      expect(
+        en.anschlusshinweis(Anschlussmeldung.bogenblende),
+        'Cladding along the arc made of vertical pieces: 2 screws per piece '
+        'into the edge substructure, pre-drill; leave about 1 cm clearance '
+        'at the bottom, seal the end grain at top and bottom.',
+      );
+      expect(
+        de.rinnenBelagHinweis,
+        'Grau: Entwässerungsrinne RELO V innen an der Kante – der Belag endet '
+        '15,7 cm vor der Kante (Profil 15,1 cm und 6 mm Fuge).',
+      );
+      expect(
+        en.rinnenBelagHinweis,
+        'Grey: drainage channel RELO V on the inside of the edge – the '
+        'decking ends 15.7 cm before the edge (profile 15.1 cm and 6 mm '
+        'joint).',
+      );
+      expect(
+        de.rinnenmeldung(Anschlussmeldung.rinneNichtMoeglich),
+        'Rinne nicht geplant: nur an geraden, waagerechten oder senkrechten '
+        'Kanten ab 30 cm möglich.',
+      );
+      expect(
+        en.rinnenmeldung(Anschlussmeldung.rinneNichtMoeglich),
+        'Channel not planned: only possible on straight horizontal or vertical '
+        'edges of at least 30 cm.',
+      );
     });
   });
 

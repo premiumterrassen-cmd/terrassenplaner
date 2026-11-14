@@ -1194,7 +1194,9 @@ void main() {
       );
       expect(
         Unterlagentexte.deutsch.ukRasterLaengenmix,
-        'Stöße mittig auf UK (Raster 38/40 cm).',
+        'Stöße mittig auf UK (Raster 38/40 cm). UK aus 2-m-Stücken; je '
+        'UK-Stoß ein Längsverbinder ca. 45 cm aus dem Reststück, seitlich '
+        'verschraubt, Stoß über einem Auflager.',
       );
       // Dielen: kein Zusatz im UK-Plan
       final dielen = erzeuge(b);

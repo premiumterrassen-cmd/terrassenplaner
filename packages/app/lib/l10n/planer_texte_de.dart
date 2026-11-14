@@ -346,6 +346,32 @@ class PlanerTexteDe extends PlanerTexte {
       'Der Radius ist kleiner als die halbe Seite – die Seite wird als Halbkreis gerechnet.';
 
   @override
+  String get rundungEckeInnen => 'innen (Hohlkehle um die Ecke)';
+
+  @override
+  String rundungZuGross(int cm) {
+    return 'Radius zu groß – an dieser Ecke höchstens $cm cm.';
+  }
+
+  @override
+  String get rundungAnleitung =>
+      'Ecke abrunden: Ecke wählen und Radius eingeben – die Planung kürzt beide Kanten und setzt den Bogen, ein Zusatzpunkt ist nicht nötig. Ganze Seite rund: Seite wählen und Radius eingeben. Halbkreis: Seite mit Radius = halbe Seitenlänge oder beide Ecken der Seite mit der halben Seitenlänge abrunden. Nach innen: Haken „innen“. Ecken an der Hauswand werden nicht abgerundet.';
+
+  @override
+  String verblendungBogen(String name) {
+    return 'Bogen $name';
+  }
+
+  @override
+  String verblendungAussparung(String flaeche, String kante) {
+    return '$flaeche: $kante';
+  }
+
+  @override
+  String get verblendungZusatzFrage =>
+      'Bögen abgerundeter Ecken und Kanten von Aussparungen (nur, wenn gewählt):';
+
+  @override
   String bogenMass(String laenge, String radius) {
     return 'Bogen $laenge · R $radius';
   }

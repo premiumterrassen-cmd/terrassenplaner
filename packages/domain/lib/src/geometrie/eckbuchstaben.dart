@@ -21,10 +21,16 @@ const _a = 0x41;
 ///
 /// Ein offener Linienzug ([geschlossen] = false) oder weniger als drei
 /// Ecken haben keinen Umlauf: Namen in der Reihenfolge der Punkte.
-List<String> eckenBenennen(List<Punkt> ecken, {bool geschlossen = true}) {
+List<String> eckenBenennen(List<Punkt> ecken, {bool geschlossen = true}) => [
+  for (final i in eckennummern(ecken, geschlossen: geschlossen))
+    eckbuchstabe(i),
+];
+
+/// Nummer des Buchstabens je Eckpunkt der [ecken] (`eckenBenennen`, A = 0).
+List<int> eckennummern(List<Punkt> ecken, {bool geschlossen = true}) {
   final n = ecken.length;
   if (!geschlossen || n < 3) {
-    return [for (var i = 0; i < n; i++) eckbuchstabe(i)];
+    return [for (var i = 0; i < n; i++) i];
   }
   var start = 0;
   var flaeche = 0.0;
@@ -37,7 +43,6 @@ List<String> eckenBenennen(List<Punkt> ecken, {bool geschlossen = true}) {
   // y nach unten: positive Fläche = im Uhrzeigersinn der Zeichnung
   final vorwaerts = flaeche > 0;
   return [
-    for (var i = 0; i < n; i++)
-      eckbuchstabe(vorwaerts ? (i - start) % n : (start - i) % n),
+    for (var i = 0; i < n; i++) vorwaerts ? (i - start) % n : (start - i) % n,
   ];
 }

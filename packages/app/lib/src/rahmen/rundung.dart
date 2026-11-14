@@ -27,8 +27,14 @@ class RundungsBedienung extends ChangeNotifier {
   var _innen = false;
 
   /// Haken „innen“ für den Radius einer Seite (Planungskern v12, Regel
-  /// 14.1.2); folgt der gewählten Seite.
+  /// 14.1.2) bzw. die Hohlkehle an einer Ecke (Planungskern v15, Regel
+  /// 17.1.4); folgt der Auswahl.
   bool get innen => _innen;
+
+  /// Größter Radius der gewählten Ecke mit dem Haken [innen] (Planungskern
+  /// v15, Regel 17.1.5) – vom Server-Modell gerechnet, hier nur angezeigt.
+  Millimeter groessterRadius(int ecke) => planung.aktuell.rundungen
+      .groessterRadius(planung.aktuell.grundriss, ecke, innen: _innen);
 
   /// Ist die gewählte Seite ein Halbkreis, weil ihr Radius kleiner ist als
   /// die halbe Seite (Regel 14.1.1)?
@@ -71,11 +77,10 @@ class RundungsBedienung extends ChangeNotifier {
 
   void waehle(RundungsAuswahl auswahl) {
     _auswahl = auswahl;
-    _innen =
-        planung.aktuell.rundungen
-            .stichAn(planung.aktuell.grundriss, auswahl.nummer)
-            .mm <
-        0;
+    final rundungen = planung.aktuell.rundungen;
+    _innen = auswahl.ecke
+        ? (rundungen.ecken[auswahl.nummer]?.mm ?? 0) < 0
+        : rundungen.stichAn(planung.aktuell.grundriss, auswahl.nummer).mm < 0;
     notifyListeners();
   }
 
@@ -89,14 +94,26 @@ class RundungsBedienung extends ChangeNotifier {
     return true;
   }
 
-  /// Haken „innen“: ein Radius oder Stich der Seite [seite] wölbt sich
-  /// sofort zur anderen Seite, sofern das zulässig ist.
-  void setzeInnen(int seite, {required bool innen}) {
+  /// Haken „innen“: ein Radius oder Stich der Seite bzw. die Rundung der
+  /// Ecke der Auswahl [ziel] wölbt sich sofort zur anderen Seite, sofern
+  /// das zulässig ist.
+  void setzeInnen(RundungsAuswahl ziel, {required bool innen}) {
     _innen = innen;
     final alt = planung.aktuell.rundungen;
-    final r = switch ((alt.radien[seite], alt.seiten[seite])) {
-      (final radius?, _) => alt.mitRadius(seite, radius, innen: innen),
-      (_, final stich?) => alt.mitSeite(
+    final seite = ziel.nummer;
+    final r = switch ((
+      alt.radien[seite],
+      alt.seiten[seite],
+      alt.ecken[seite],
+    )) {
+      (_, _, final radius?) when ziel.ecke => alt.mitEcke(
+        seite,
+        radius,
+        innen: innen,
+      ),
+      _ when ziel.ecke => alt,
+      (final radius?, _, _) => alt.mitRadius(seite, radius, innen: innen),
+      (_, final stich?, _) => alt.mitSeite(
         seite,
         Millimeter(innen ? -stich.mm.abs() : stich.mm.abs()),
       ),
@@ -133,7 +150,7 @@ class RundungsBedienung extends ChangeNotifier {
       _auswahl = ziel;
     }
     final alt = ziel.ecke
-        ? _vorZiehen!.ecken[ziel.nummer]?.mm ?? 0
+        ? (_vorZiehen!.ecken[ziel.nummer]?.mm ?? 0).abs()
         : _vorZiehen!.stichAn(planung.aktuell.grundriss, ziel.nummer).mm;
     var neu = alt + versatz.punktprodukt(richtung).round();
     // ein Radius ist nie negativ
@@ -149,8 +166,10 @@ class RundungsBedienung extends ChangeNotifier {
     }
   }
 
-  static Rundungen _mit(Rundungen r, RundungsAuswahl ziel, Millimeter wert) =>
-      ziel.ecke ? r.mitEcke(ziel.nummer, wert) : r.mitSeite(ziel.nummer, wert);
+  Rundungen _mit(Rundungen r, RundungsAuswahl ziel, Millimeter wert) =>
+      ziel.ecke
+      ? r.mitEcke(ziel.nummer, wert, innen: _innen)
+      : r.mitSeite(ziel.nummer, wert);
 
   bool _zulaessig(Rundungen r) {
     try {
@@ -188,7 +207,13 @@ class RundungsEingabe extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(t.rundungHinweis, key: const ValueKey('rundung-hinweis')),
+            Tooltip(
+              message: t.rundungAnleitung,
+              child: Text(
+                t.rundungHinweis,
+                key: const ValueKey('rundung-hinweis'),
+              ),
+            ),
             if (auswahl != null) ...[
               const SizedBox(height: PlanerAbstand.klein),
               Text(
@@ -214,20 +239,27 @@ class RundungsEingabe extends StatelessWidget {
                   final ok = index == 1
                       ? bedienung.setzeRadius(auswahl.nummer, wert)
                       : bedienung.setze(auswahl, wert);
-                  if (!ok) throw ArgumentError(t.rundungUnzulaessig);
+                  if (ok) return;
+                  // Regel 17.1.5: Meldung mit dem größten möglichen Radius
+                  final groesster = bedienung.groessterRadius(auswahl.nummer);
+                  throw ArgumentError(
+                    auswahl.ecke && wert > groesster
+                        ? t.rundungZuGross(groesster.mm ~/ 10)
+                        : t.rundungUnzulaessig,
+                  );
                 },
               ),
+              CheckboxListTile(
+                key: const ValueKey('rundung-innen'),
+                contentPadding: EdgeInsets.zero,
+                dense: true,
+                controlAffinity: ListTileControlAffinity.leading,
+                title: Text(auswahl.ecke ? t.rundungEckeInnen : t.rundungInnen),
+                value: bedienung.innen,
+                onChanged: (wert) =>
+                    bedienung.setzeInnen(auswahl, innen: wert!),
+              ),
               if (!auswahl.ecke) ...[
-                CheckboxListTile(
-                  key: const ValueKey('rundung-innen'),
-                  contentPadding: EdgeInsets.zero,
-                  dense: true,
-                  controlAffinity: ListTileControlAffinity.leading,
-                  title: Text(t.rundungInnen),
-                  value: bedienung.innen,
-                  onChanged: (wert) =>
-                      bedienung.setzeInnen(auswahl.nummer, innen: wert!),
-                ),
                 if (bedienung.halbkreis)
                   Text(
                     t.rundungHalbkreis,

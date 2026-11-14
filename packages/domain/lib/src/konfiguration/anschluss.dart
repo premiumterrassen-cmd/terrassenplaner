@@ -55,6 +55,11 @@ enum Rinnenfarbe {
 /// Rinne an einer Seite.
 typedef Rinne = ({int seite, Rinnenlage lage});
 
+/// Kante [kante] (von Ecke `kante` zur nächsten) des Ausschnitts
+/// [ausschnitt] – Blende an einer Aussparung (Planungskern v14, Regel
+/// 16.6).
+typedef Aussparungskante = ({int ausschnitt, int kante});
+
 /// Blendenhöhe einer verblendeten Seite (Planungskern v7, Regel 9.4).
 typedef Blendenhoehe = ({int seite, Millimeter hoehe});
 
@@ -87,6 +92,8 @@ final class Anschluss {
     this.blendenhoehen = const [],
     this.blendenteile = const [],
     this.rinnenfarbe = Rinnenfarbe.eloxiert,
+    this.eckblenden = const [],
+    this.aussparungsblenden = const [],
   });
 
   /// Liest die Tabelle am Ort [ort] ([schreibe]).
@@ -119,7 +126,21 @@ final class Anschluss {
         0,
       ),
     ),
+    eckblenden: List.unmodifiable(
+      const fb.ListReader<int>(fb.Uint16Reader())
+          .vTableGet(puffer, ort, _versatz(_eckblendenPlatz), const []),
+    ),
+    aussparungsblenden: _liesKanten(
+      const fb.ListReader<int>(fb.Uint16Reader())
+          .vTableGet(puffer, ort, _versatz(_aussparungsblendenPlatz), const []),
+    ),
   );
+
+  static List<Aussparungskante> _liesKanten(List<int> werte) =>
+      List.unmodifiable([
+        for (var i = 0; i < werte.length ~/ 2; i++)
+          (ausschnitt: werte[2 * i], kante: werte[2 * i + 1]),
+      ]);
 
   static List<Blendenhoehe> _liesHoehen(List<int> werte) => List.unmodifiable([
     for (var i = 0; i < werte.length ~/ 2; i++)
@@ -163,8 +184,64 @@ final class Anschluss {
   /// Farbe aller Rinnen der Fläche (Planungskern v11, Regel 13.1.5).
   final Rinnenfarbe rinnenfarbe;
 
+  /// Abgerundete Ecken mit Blende am Bogen – aufsteigend (Planungskern v15,
+  /// Regel 17.3: Blende nur, wenn ausgewählt).
+  final List<int> eckblenden;
+
+  /// Verblendete Kanten der Aussparungen – nach Ausschnitt und Kante
+  /// (Planungskern v14, Regel 16.6: nur, wenn ausdrücklich gewählt).
+  final List<Aussparungskante> aussparungsblenden;
+
+  /// Ob der Bogen der Ecke [ecke] verblendet ist.
+  bool eckblendeAn(int ecke) => eckblenden.contains(ecke);
+
+  /// Kopie mit ([an]) oder ohne Blende am Bogen der Ecke [ecke].
+  Anschluss mitEckblende(int ecke, {required bool an}) =>
+      _kopie(eckblenden: _mitSeite(eckblenden, ecke, an: an));
+
+  /// Ob die Aussparungskante [kante] verblendet ist.
+  bool aussparungsblendeAn(Aussparungskante kante) =>
+      aussparungsblenden.contains(kante);
+
+  /// Kopie mit ([an]) oder ohne Blende an der Aussparungskante [kante].
+  Anschluss mitAussparungsblende(Aussparungskante kante, {required bool an}) =>
+      _kopie(
+        aussparungsblenden: List.unmodifiable(
+          {
+            ...aussparungsblenden.where((k) => k != kante),
+            if (an) kante,
+          }.toList()..sort(
+            (a, b) => a.ausschnitt != b.ausschnitt
+                ? a.ausschnitt.compareTo(b.ausschnitt)
+                : a.kante.compareTo(b.kante),
+          ),
+        ),
+      );
+
+  /// Kopie ohne Blenden an Aussparungen (andere Ausschnitte).
+  Anschluss ohneAussparungsblenden() => _kopie(aussparungsblenden: const []);
+
+  Anschluss _kopie({
+    List<int>? eckblenden,
+    List<Aussparungskante>? aussparungsblenden,
+  }) => Anschluss(
+    angrenzend: angrenzend,
+    verblendet: verblendet,
+    rinnen: rinnen,
+    blendenhoehen: blendenhoehen,
+    blendenteile: blendenteile,
+    rinnenfarbe: rinnenfarbe,
+    eckblenden: eckblenden ?? this.eckblenden,
+    aussparungsblenden: aussparungsblenden ?? this.aussparungsblenden,
+  );
+
   /// Ob gar keine Seite eine Rolle hat.
-  bool get leer => angrenzend.isEmpty && verblendet.isEmpty && rinnen.isEmpty;
+  bool get leer =>
+      angrenzend.isEmpty &&
+      verblendet.isEmpty &&
+      rinnen.isEmpty &&
+      eckblenden.isEmpty &&
+      aussparungsblenden.isEmpty;
 
   /// Ob die Seite [seite] an ein Bauelement grenzt.
   bool grenztAn(int seite) => angrenzend.contains(seite);
@@ -210,6 +287,8 @@ final class Anschluss {
     blendenhoehen: blendenhoehen,
     blendenteile: blendenteile,
     rinnenfarbe: farbe,
+    eckblenden: eckblenden,
+    aussparungsblenden: aussparungsblenden,
   );
 
   /// Eigene Blendenhöhe der Seite [seite]; `null` = die Höhe der Fläche
@@ -276,6 +355,8 @@ final class Anschluss {
       ]..sort(_teilfolge),
     ),
     rinnenfarbe: rinnenfarbe,
+    eckblenden: eckblenden,
+    aussparungsblenden: aussparungsblenden,
   );
 
   static int _teilfolge(Blendenteil a, Blendenteil b) {
@@ -300,8 +381,10 @@ final class Anschluss {
   /// ([uint16] Seiten, M7-02), 2: rinnen ([uint16] Seite und Lage je Rinne,
   /// M7-03), 3: blendenhoehen ([int32] Seite und Höhe in mm, Regel 9.4),
   /// 4: blendenteile ([int32] Seite, von und bis in mm, Regel 9.4),
-  /// 5: rinnenfarbe (uint8, Planungskern v11 Regel 13.1.5) }` und gibt
-  /// ihren Ort zurück. Neue Felder nur anhängen.
+  /// 5: rinnenfarbe (uint8, Planungskern v11 Regel 13.1.5), 10: eckblenden
+  /// ([uint16] Ecken, Planungskern v15 Regel 17.3), 11: aussparungsblenden
+  /// ([uint16] Ausschnitt und Kante, Planungskern v14 Regel 16.6) }` und
+  /// gibt ihren Ort zurück. Neue Felder nur anhängen.
   int schreibe(fb.Builder fbb) {
     final angrenzendOrt = fbb.writeListUint16(angrenzend);
     final verblendetOrt = fbb.writeListUint16(verblendet);
@@ -312,16 +395,28 @@ final class Anschluss {
     final teileOrt = blendenteile.isEmpty
         ? null
         : fbb.writeListInt32(_teilwerte);
+    final eckenOrt = eckblenden.isEmpty
+        ? null
+        : fbb.writeListUint16(eckblenden);
+    final kantenOrt = aussparungsblenden.isEmpty
+        ? null
+        : fbb.writeListUint16(_kantenwerte);
     fbb
-      ..startTable(_rinnenfarbePlatz + 1)
+      ..startTable(_aussparungsblendenPlatz + 1)
       ..addOffset(_angrenzendPlatz, angrenzendOrt)
       ..addOffset(_verblendetPlatz, verblendetOrt)
       ..addOffset(_rinnenPlatz, rinnenOrt)
       ..addOffset(_blendenhoehenPlatz, hoehenOrt)
       ..addOffset(_blendenteilePlatz, teileOrt)
-      ..addUint8(_rinnenfarbePlatz, rinnenfarbe.nummer);
+      ..addUint8(_rinnenfarbePlatz, rinnenfarbe.nummer)
+      ..addOffset(_eckblendenPlatz, eckenOrt)
+      ..addOffset(_aussparungsblendenPlatz, kantenOrt);
     return fbb.endTable();
   }
+
+  List<int> get _kantenwerte => [
+    for (final k in aussparungsblenden) ...[k.ausschnitt, k.kante],
+  ];
 
   List<int> get _rinnenwerte => [
     for (final r in rinnen) ...[r.seite, r.lage.nummer],
@@ -342,6 +437,11 @@ final class Anschluss {
   static const _blendenteilePlatz = 4;
   static const _rinnenfarbePlatz = 5;
 
+  /// Planungskern v14/v15 – mit Abstand, damit andere Branches 6 … 9
+  /// nutzen können.
+  static const _eckblendenPlatz = 10;
+  static const _aussparungsblendenPlatz = 11;
+
   @override
   bool operator ==(Object other) =>
       other is Anschluss &&
@@ -350,7 +450,9 @@ final class Anschluss {
       _gleich(other._rinnenwerte, _rinnenwerte) &&
       _gleich(other._hoehenwerte, _hoehenwerte) &&
       _gleich(other._teilwerte, _teilwerte) &&
-      other.rinnenfarbe == rinnenfarbe;
+      other.rinnenfarbe == rinnenfarbe &&
+      _gleich(other.eckblenden, eckblenden) &&
+      _gleich(other._kantenwerte, _kantenwerte);
 
   @override
   int get hashCode => Object.hash(
@@ -360,6 +462,8 @@ final class Anschluss {
     Object.hashAll(_hoehenwerte),
     Object.hashAll(_teilwerte),
     rinnenfarbe,
+    Object.hashAll(eckblenden),
+    Object.hashAll(_kantenwerte),
   );
 }
 

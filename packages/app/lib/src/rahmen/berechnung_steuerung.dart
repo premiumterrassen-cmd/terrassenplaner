@@ -122,6 +122,10 @@ class BerechnungsSteuerung extends ChangeNotifier {
           (Offset(r.von.x, r.von.y), Offset(r.bis.x, r.bis.y)),
       ],
       rinnen: b.planbild.rinnen,
+      // Planungskern v14/v15: Buchstaben an abgerundeten Ecken und an den
+      // Aussparungen
+      umrisspunkte: _namen(b.planbild.umrisspunkte),
+      aussparungsecken: _namen(b.planbild.aussparungsecken),
     ),
     null => Zeichnung.leer,
   };
@@ -136,6 +140,15 @@ class BerechnungsSteuerung extends ChangeNotifier {
     (_, Ausschnittinhalt.rasen) => const Color(0xFF8DC26F),
     (_, Ausschnittinhalt.erde) => const Color(0xFF8B6A4E),
   };
+
+  static List<Planname> _namen(List<Planpunkt> punkte) => [
+    for (final p in punkte)
+      (
+        ort: Offset(p.ort.x, p.ort.y),
+        ecke: p.ecke,
+        name: eckbuchstabe(p.buchstabe),
+      ),
+  ];
 
   static List<Offset> _offsets(List<Punkt> punkte) => [
     for (final p in punkte) _offset(p),

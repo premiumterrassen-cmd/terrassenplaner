@@ -352,25 +352,85 @@ void main() {
         aufbauhoehe: _aufbau,
       );
       final b = _bedarf(s);
-      expect(b.punkte, hasLength(ohneRand.punkte.length + 2 * 9 + 2 * 7));
-      // die erste Rand-UK (Kante A–B, 2 cm innen) von x = 0 bis 4800
-      final rand = b.punkte.skip(ohneRand.punkte.length).take(9).toList();
-      for (final (i, p) in rand.indexed) {
-        expect(p.ort.x, closeTo(50 + 4700 * i / 8, 1e-6));
-        expect(p.ort.y, closeTo(20, 1e-6));
+      // Regel 16.4: nur in einem Raster – von den 2 × 9 + 2 × 7 Stellen
+      // der Rand-UK bleiben nur die ohne Auflager im Umkreis von 25 cm
+      final rand = b.punkte.skip(ohneRand.punkte.length).toList();
+      expect(
+        [for (final p in rand) p.ort],
+        [
+          _nahe(50, 20),
+          _nahe(3575, 20),
+          _nahe(4162.5, 20),
+          _nahe(4750, 20),
+          _nahe(4780, 3040),
+          _nahe(1225, 3070),
+          _nahe(637.5, 3070),
+          _nahe(50, 3070),
+        ],
+      );
+      for (final (i, p) in b.punkte.indexed) {
+        if (i < ohneRand.punkte.length) continue;
+        for (final q in b.punkte.take(i)) {
+          expect(p.ort.abstand(q.ort), greaterThanOrEqualTo(250));
+        }
       }
-      // 800 × 309 cm diagonal: die lange Rand-UK mit Stoß bei 600 cm
+      // ohne Linien trägt die Rand-UK alle ihre Stellen: 800 × 309 cm, die
+      // lange Rand-UK mit Stoß bei 600 cm
       final lang = _rechteck8000().mitVerlegerichtung(
         Verlegerichtung.diagonal45,
       );
+      final nurRand = _verlegung(lang);
       final orte = [
-        for (final p in _bedarf(lang).punkte)
+        for (final p in auflagerbedarf(
+          lang,
+          UkVerlegung(rand: nurRand.rand, winkel: nurRand.winkel),
+          uk: ukArtikel,
+          abstand: const Millimeter(600),
+          flaeche: Hoehenflaeche(lang.grundriss.ecken, _mm(const [86])),
+          aufbauhoehe: _aufbau,
+        ).punkte)
           if ((p.ort.y - 20).abs() < 1e-6) p.ort.x,
       ];
       expect(orte, [
         for (var i = 0; i <= 10; i++) closeTo(50 + 5950 * i / 10, 1e-6),
         for (var k = 1; k <= 4; k++) closeTo(6000 + 1950 * k / 4, 1e-6),
       ]);
+      // mit den Linien: nur, wo keine Linie in 25 cm ein Auflager hat –
+      // der Stoß der Rand-UK bei 600 cm behält seins (Regel 3.5, Frage 125)
+      expect([
+        for (final p in _bedarf(lang).punkte)
+          if ((p.ort.y - 20).abs() < 1e-6) p.ort.x,
+      ], [50, 2430, 3025, 6000, 7950].map((x) => closeTo(x, 1e-6)));
+    });
+
+    test('Rand-UK im Raster (Regel 16.4): ein Auflager 24,9 cm neben einem '
+        'vorhandenen entfällt, eines 25 cm daneben bleibt', () {
+      List<Punkt> orte(double abstand) => [
+        for (final p in auflagerbedarf(
+          _f01,
+          UkVerlegung(
+            linien: const [
+              (x: 0, abschnitte: [(0, 100)], stoesse: []),
+            ],
+            rand: [
+              (
+                von: Punkt(abstand, 0),
+                bis: Punkt(abstand, 100),
+                stoesse: const [],
+                ergaenzt: false,
+                aufLatte: keineLatte,
+              ),
+            ],
+          ),
+          uk: ukArtikel,
+          abstand: const Millimeter(600),
+          flaeche: Hoehenflaeche(_f01.grundriss.ecken, _mm(const [86])),
+          aufbauhoehe: _aufbau,
+        ).punkte)
+          p.ort,
+      ];
+      expect(orte(249.9), [const Punkt(0, 50)]);
+      expect(orte(250), [const Punkt(0, 50), const Punkt(250, 50)]);
     });
 
     test('kurze UK (Planungsregeln Alexander (Planungskern v6, 11.11.2026), '
@@ -570,3 +630,9 @@ void main() {
     });
   });
 }
+
+/// Punkt höchstens 1 µm neben ([x]|[y]).
+Matcher _nahe(double x, double y) => predicate<Punkt>(
+  (p) => (p.x - x).abs() < 1e-6 && (p.y - y).abs() < 1e-6,
+  '($x|$y)',
+);
