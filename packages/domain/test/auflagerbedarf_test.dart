@@ -395,11 +395,12 @@ void main() {
         for (var i = 0; i <= 10; i++) closeTo(50 + 5950 * i / 10, 1e-6),
         for (var k = 1; k <= 4; k++) closeTo(6000 + 1950 * k / 4, 1e-6),
       ]);
-      // mit den Linien: nur, wo keine Linie in 25 cm ein Auflager hat
+      // mit den Linien: nur, wo keine Linie in 25 cm ein Auflager hat –
+      // der Stoß der Rand-UK bei 600 cm behält seins (Regel 3.5, Frage 125)
       expect([
         for (final p in _bedarf(lang).punkte)
           if ((p.ort.y - 20).abs() < 1e-6) p.ort.x,
-      ], [50, 2430, 3025, 7950].map((x) => closeTo(x, 1e-6)));
+      ], [50, 2430, 3025, 6000, 7950].map((x) => closeTo(x, 1e-6)));
     });
 
     test('Rand-UK im Raster (Regel 16.4): ein Auflager 24,9 cm neben einem '

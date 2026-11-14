@@ -18,6 +18,7 @@ import 'gegenstueck.dart';
 import 'planungsregeln.dart';
 import 'rand_uk.dart';
 import 'regelwerk.dart';
+import 'systemdielenbedarf.dart';
 import 'uk_verlegung.dart';
 import 'uk_zusatz.dart';
 
@@ -354,6 +355,7 @@ Befestigungsbedarf befestigungsbedarf(
         staerke: belag.abmessungen.staerke,
         punkte: punkte,
         randpunkte: randpunkte,
+        massiv: belag.art == Artikelart.systemdiele,
         schraubenJePunkt: holzart.schraubenJePunkt(
           serie,
           Profil.glattkant,
@@ -397,8 +399,10 @@ Befestigungsbedarf befestigungsbedarf(
 /// verschraubt, Schraube und Anzahl je Kreuzung wie bei der Verschraubung
 /// von oben ([schraubenJePunkt] des glattkanten Profils, Schrauben aus den
 /// Befestigungsverweisen des [gegenstueck]s). Die [clips]
-/// decken die übrigen Kreuzungen + 5 % ([clipsMitZuschlag]). Ohne
-/// Gegenstück oder ohne dessen Schrauben bekommen auch die Randreihen Clips.
+/// decken die übrigen Kreuzungen + 5 % ([clipsMitZuschlag]), bei [massiv]
+/// + 25 % ([systemdielenClips], Planungsregeln Alexander v14, Regel
+/// 16.1.2). Ohne Gegenstück oder ohne dessen Schrauben bekommen auch die
+/// Randreihen Clips.
 List<(List<Artikel>, int, bool)> _sichtverdeckt(
   Regelwerk regelwerk,
   Artikel? gegenstueck,
@@ -407,6 +411,7 @@ List<(List<Artikel>, int, bool)> _sichtverdeckt(
   required int punkte,
   required int randpunkte,
   required int schraubenJePunkt,
+  required bool massiv,
 }) {
   final schrauben = switch (gegenstueck) {
     final g? => _schrauben(
@@ -417,7 +422,11 @@ List<(List<Artikel>, int, bool)> _sichtverdeckt(
   };
   final verschraubt = schrauben.isEmpty ? 0 : randpunkte;
   return [
-    (clips, clipsMitZuschlag(punkte - verschraubt), false),
+    (
+      clips,
+      (massiv ? systemdielenClips : clipsMitZuschlag)(punkte - verschraubt),
+      false,
+    ),
     (schrauben, verschraubt * schraubenJePunkt, false),
   ];
 }

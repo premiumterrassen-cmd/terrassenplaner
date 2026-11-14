@@ -785,6 +785,15 @@ void main() {
       expect(erste.bis.x, closeTo(4800, 1e-9));
       expect(erste.von.y, closeTo(50, 1e-9));
       expect(v.stuetzen.last.bis.y, closeTo(3040, 1e-9));
+      // das Holz im Plan läuft von der Belagkante zur Kante der Fläche
+      for (final s in v.stuetzen) {
+        expect(
+          v.hoelzer.any(
+            (h) => h.von.abstand(s.von) < 1e-6 && h.bis.abstand(s.bis) < 1e-6,
+          ),
+          isTrue,
+        );
+      }
       expect(
         v.stuecke.where((s) => s.laenge == const Millimeter(157)),
         hasLength(9),

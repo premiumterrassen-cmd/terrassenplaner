@@ -12,6 +12,8 @@
 >
 > **Nachtrag 13.11.2026 (Stöße bei 135° am Rand, Branch `fix/m5-05-stoesse-am-rand`):** Abschnitt [Stöße am Rand](#nachtrag-stöße-am-rand-statt-durch-a-13112026) unten – nur F04 ändert sich.
 >
+> **Nachtrag 13.11.2026 (MASSIV: UK „ECO MASSIV“ in 2 m, Clips + 25 %, Längenmix in kurzen Reihen – Planungsregeln v14/v15, Branch `feature/planungskern-v15-massiv-uk`):** Abschnitt [MASSIV-UK](#nachtrag-massiv-uk-eco-massiv-planungsregeln-v14v15-13112026) unten – keine Änderung der verglichenen Werte.
+>
 > **Nachtrag 11.11.2026 (UK-Regeln und Überlänge, Branch `feature/planungskern-uk-regeln`):** Abschnitt [UK-Regeln und Überlänge](#nachtrag-uk-regeln-und-überlänge-planungskern-v6-11112026) unten, gerechnet auf dem Stand mit Fuge 6 mm. Die Tabellen darunter zeigen den Stand vom 07.11.2026.
 
 Stand 07.11.2026, Branch `feature/m10-01-paritaetsnachweis`. Alle Referenzkonfigurationen F01–F43 (M1-03, [12](../fachkonzept/12-referenzkonfigurationen.md)) und alle rechenbaren Referenzfälle aus den Planungsunterlagen (M1-02, [11](../fachkonzept/11-referenzfaelle.md)) werden im neuen Planer gerechnet und mit den Ergebnissen des alten Planers verglichen.
@@ -359,3 +361,9 @@ Ohne die neuen Vorgaben (Ecke „innen“, Blende an Eckbogen/Aussparung) änder
 - **Regel 16.6 (R-E61):** Ecken leerer Aussparungen tragen in Plan und App Buchstaben (nur Darstellung).
 - **Regel 17.1.6:** Eine Eckrundung neben einer gewölbten Seite (bisher erlaubt, M4-11) wird abgewiesen (Frage 133); kein Referenzfall nutzt sie.
 
+## Nachtrag MASSIV-UK „ECO MASSIV“ (Planungsregeln v14/v15, 13.11.2026)
+
+Branch `feature/planungskern-v15-massiv-uk` auf `main` (dcc0110, danach mit `main` ee80a9d – Rundungen und Ecken – zusammengeführt). Planungsregeln Alexander v14/v15, Regeln 16.1.1–16.1.3 und 18 (R-B53, R-B54, R-C52, R-C53, R-E51): UK zu MASSIV in 2,00 m als „Unterkonstruktion Robinie ECO MASSIV …, ohne Keilzinkung“ mit Längsverbindern 45 cm je Stoß, Clips + 25 %, Längenmix auch in Reihen bis 2,0 m.
+
+- **Vergleich:** Kein Referenzfall und keine Referenzkonfiguration nutzt MASSIV-Systemdielen – alle F01–F43 und alle 26 Referenzfälle rechnen unverändert wie auf `main`. Die Änderungen wirken nur bei Belägen der Serie MASSIV (Unit-Tests `massiv_test.dart`, Planungsdienst-Test „UK ECO MASSIV“).
+- **Fragen 100 und 105** (MASSIV-UK, MASSIV ohne UK-Artikel) sind damit teilweise beantwortet: Die UK zu MASSIV bleibt die ECO-UK, jetzt in 2,00 m mit eigenem Namen; offen bleiben ein eigener Artikel (Frage 120), die Schrauben der Längsverbinder (121), die Lage der Stöße zum Auflagerraster (122), der Angebotstext (Regel 16.1.4, 123) und der Clip-Zuschlag ohne UK (124) in [10](../fachkonzept/10-offene-fragen.md).
