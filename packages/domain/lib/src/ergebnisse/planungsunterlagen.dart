@@ -453,6 +453,12 @@ const beschriftungsanteil = 0.04;
 /// R-E03): Buchstaben auf der Winkelhalbierenden vor der Ecke, Kantenmaße
 /// in m vor der Mitte jeder Kante – an einer Seite mit Bogen keines, dort
 /// steht `bogenbeschriftungen` (Planungskern v12, Regel 14.1.3).
+///
+/// Mit abgerundeten Ecken (Planungskern v15, Regel 17.2,
+/// `Planbild.umrisspunkte`) stehen die Buchstaben an Bogenanfang und
+/// -ende vor ihrer Kante, die Kantenmaße gelten für das gerade Stück. Die
+/// Ecken der Aussparungen tragen ihre Buchstaben in die Aussparung hinein
+/// (Planungskern v14, Regel 16.6), jeden Buchstaben nur einmal.
 List<Planbeschriftung> umrissbeschriftung(Unterlagentexte t, Berechnung b) {
   final ecken = b.ecken;
   if (ecken.length < 2) return const [];
@@ -461,16 +467,94 @@ List<Planbeschriftung> umrissbeschriftung(Unterlagentexte t, Berechnung b) {
   final normalen = _kantennormalen(b);
   final richtungen = _eckrichtungen(b, normalen);
   final boegen = {for (final g in b.planbild.boegen) g.seite};
-  return [
-    for (var i = 0; i < n; i++)
-      (ort: ecken[i] + richtungen[i] * a, text: _eckname(b, i)),
+  final punkte = b.planbild.umrisspunkte;
+  final kanten = [
     for (var i = 0; i < normalen.length; i++)
-      if (!boegen.contains(i))
-        (
-          ort: (ecken[i] + ecken[(i + 1) % n]) * 0.5 + normalen[i] * a,
-          text: '${t.zahl(ecken[i].abstand(ecken[(i + 1) % n]) / 1000, 2)} m',
-        ),
+      if (!boegen.contains(i)) (i, _geradesStueck(b, i)),
   ];
+  return [
+    if (punkte.isEmpty)
+      for (var i = 0; i < n; i++)
+        (ort: ecken[i] + richtungen[i] * a, text: _eckname(b, i))
+    else
+      for (final p in punkte)
+        (
+          ort: p.ort + _punktrichtung(b, p, normalen, richtungen) * a,
+          text: eckbuchstabe(p.buchstabe),
+        ),
+    for (final (i, (von, bis)) in kanten)
+      if (von.abstand(bis) >= 1)
+        (
+          ort: (von + bis) * 0.5 + normalen[i] * a,
+          text: '${t.zahl(von.abstand(bis) / 1000, 2)} m',
+        ),
+    ..._aussparungsbuchstaben(b, a),
+  ];
+}
+
+/// Gerades Stück der Seite [i] von [b]: zwischen den benannten Punkten auf
+/// ihr (`Planbild.umrisspunkte`), ohne abgerundete Ecken von Ecke zu Ecke.
+(Punkt, Punkt) _geradesStueck(Berechnung b, int i) {
+  final ecken = b.ecken;
+  final j = (i + 1) % ecken.length;
+  final punkte = b.planbild.umrisspunkte.isEmpty
+      ? [(ort: ecken[i], ecke: i), (ort: ecken[j], ecke: j)]
+      : [for (final p in b.planbild.umrisspunkte) (ort: p.ort, ecke: p.ecke)];
+  final auf = [
+    for (final p in punkte)
+      if ((p.ecke == i || p.ecke == j) &&
+          _streckenabstand(ecken[i], ecken[j], p.ort) < 1)
+        p.ort,
+  ];
+  return auf.length == 2 ? (auf[0], auf[1]) : (ecken[i], ecken[i]);
+}
+
+/// Richtung des Buchstabens am benannten Punkt [p]: an der Ecke selbst wie
+/// bisher, an Bogenanfang oder -ende senkrecht vor seiner Kante.
+Punkt _punktrichtung(
+  Berechnung b,
+  Planpunkt p,
+  List<Punkt> normalen,
+  List<Punkt> richtungen,
+) {
+  final ecken = b.ecken;
+  final i = p.ecke;
+  if (p.ort.abstand(ecken[i]) < 1) return richtungen[i];
+  final vor = (i - 1) % ecken.length;
+  return _streckenabstand(ecken[vor], ecken[i], p.ort) < 1
+      ? normalen[vor]
+      : normalen[i];
+}
+
+/// Buchstaben der Aussparungsecken von [b] im Abstand [a] in die
+/// Aussparung hinein; schon am Umriss benannte und doppelte entfallen.
+List<Planbeschriftung> _aussparungsbuchstaben(Berechnung b, double a) {
+  final gezeigt = {
+    for (final p in b.planbild.umrisspunkte) p.buchstabe,
+    if (b.planbild.umrisspunkte.isEmpty)
+      for (var i = 0; i < b.ecken.length; i++) i,
+  };
+  final ecken = b.planbild.aussparungsecken;
+  return [
+    for (final p in ecken)
+      if (gezeigt.add(p.buchstabe))
+        if (_mitte([
+              for (final q in ecken)
+                if (q.ecke == p.ecke) q.ort,
+            ])
+            case final m)
+          (
+            ort: p.ort + (m - p.ort).einheit * a,
+            text: eckbuchstabe(p.buchstabe),
+          ),
+  ];
+}
+
+/// Abstand des Punkts [p] von der Strecke [a]–[c].
+double _streckenabstand(Punkt a, Punkt c, Punkt p) {
+  final d = c - a;
+  final t = ((p - a).punktprodukt(d) / d.punktprodukt(d)).clamp(0.0, 1.0);
+  return (a + d * t).abstand(p);
 }
 
 /// „Bogen ‹Länge› m · R ‹Radius› m“ je Bogen von [b] außen am Scheitel

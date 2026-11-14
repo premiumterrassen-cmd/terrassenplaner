@@ -58,8 +58,9 @@ const _gruende = {
   'Planungskern v12':
       'Planungskern v12, Regel 14.2 (UK am Bogen wie im GS-Planer): Latten '
       'bis an den Bogen, Rand-UK als Polygonzug von Lattenende zu '
-      'Lattenende (höchstens 1,2 cm vom Bogen), Riegel am Knick – F19: '
-      '32 Rand-UK-Stücke und 16 Riegel statt 38 Sehnen à 25,7 cm',
+      'Lattenende (seit Planungskern v14, Regel 16.3, gerade ohne '
+      'Zwischenknicke), Riegel am Knick – F19: 16 Rand-UK-Stücke und 16 '
+      'Riegel statt 38 Sehnen à 25,7 cm',
   'Planungskern v7':
       'Planungskern v7 Regel 9.3 / R-B18 (Verlegemuster): Verband nur, wenn '
       'die Fläche länger als eine Diele ist (F06/F07: 480 cm ohne Stoß, '

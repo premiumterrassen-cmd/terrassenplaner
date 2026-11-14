@@ -160,56 +160,80 @@ typedef Blendenstrecke = ({
 /// `Rundungen.seitenboegen`) zählt die Bogenlänge – Teilstücke längs des
 /// Bogens ab seinem Anfang –, die Höhe ist die niedrigste Stelle auf dem
 /// Bogen; der Kreis ist ganz Bogen.
+///
+/// Dazu, nur wenn ausgewählt, der Bogen einer abgerundeten Ecke
+/// (Planungskern v15, Regel 17.3, `Anschluss.eckblenden`; Länge = Bogenlänge)
+/// und die Kanten der Aussparungen (Planungskern v14, Regel 16.6,
+/// `Anschluss.aussparungsblenden`; mit Gehrung an beiden Ecken), je mit der
+/// niedrigsten Stelle als Höhe.
 List<Blendenstrecke> blendenstrecken(
   Planungsstand stand,
   List<Millimeter> hoehen,
 ) {
   final anschluss = stand.anschluss;
-  if (stand.grundriss is KreisGrundriss) {
-    return [
-      if (anschluss.verblendet.isNotEmpty)
-        (
-          laenge: stand.kontur.umfang,
-          hoehe: anschluss.blendenhoeheAn(0) ?? hoehen.reduce(_niedriger),
-          ecke: false,
-          bogen: true,
-        ),
-    ];
-  }
   final ecken = stand.grundriss.ecken;
   final flaeche = Hoehenflaeche(ecken, hoehen, [
     if (hoehen.length > ecken.length)
       for (final p in stand.wirksameHoehenpunkte) stand.ortVon(p),
   ]);
   final boegen = stand.rundungen.seitenboegen(stand.grundriss);
+  final eckboegen = stand.rundungen.eckboegen(stand.grundriss);
   return [
-    for (final seite in anschluss.verblendet)
-      if (boegen[seite] case final bogen?)
-        for (final (von, bis) in bogenteile(stand, seite, bogen.laenge))
-          (
-            laenge: bis - von,
-            hoehe:
-                anschluss.blendenhoeheAn(seite) ??
-                _tiefste(flaeche, [
-                  for (final t in _abtastung(bis - von))
-                    punktAufBogen(bogen, von + (bis - von) * t),
-                ]),
-            ecke: false,
-            bogen: true,
-          )
-      else
-        for (final (:von, :bis, :ecke) in blendenstuecke(stand, seite))
-          (
-            laenge: von.abstand(bis),
-            hoehe:
-                anschluss.blendenhoeheAn(seite) ??
-                _tiefste(flaeche, [
-                  for (final t in _abtastung(von.abstand(bis)))
-                    von + (bis - von) * t,
-                ]),
-            ecke: ecke,
-            bogen: false,
-          ),
+    if (stand.grundriss is KreisGrundriss && anschluss.verblendet.isNotEmpty)
+      (
+        laenge: stand.kontur.umfang,
+        hoehe: anschluss.blendenhoeheAn(0) ?? hoehen.reduce(_niedriger),
+        ecke: false,
+        bogen: true,
+      ),
+    for (final ecke in anschluss.eckblenden)
+      if (eckboegen[ecke] case final bogen?)
+        (
+          laenge: bogen.laenge,
+          hoehe: _tiefste(flaeche, [
+            for (final t in _abtastung(bogen.laenge))
+              punktAufBogen(bogen, bogen.laenge * t),
+          ]),
+          ecke: false,
+          bogen: true,
+        ),
+    for (final (:von, :bis) in aussparungsblendenStrecken(stand))
+      (
+        laenge: von.abstand(bis),
+        hoehe: _tiefste(flaeche, [
+          for (final t in _abtastung(von.abstand(bis))) von + (bis - von) * t,
+        ]),
+        ecke: true,
+        bogen: false,
+      ),
+    if (stand.grundriss is! KreisGrundriss)
+      for (final seite in anschluss.verblendet)
+        if (boegen[seite] case final bogen?)
+          for (final (von, bis) in bogenteile(stand, seite, bogen.laenge))
+            (
+              laenge: bis - von,
+              hoehe:
+                  anschluss.blendenhoeheAn(seite) ??
+                  _tiefste(flaeche, [
+                    for (final t in _abtastung(bis - von))
+                      punktAufBogen(bogen, von + (bis - von) * t),
+                  ]),
+              ecke: false,
+              bogen: true,
+            )
+        else
+          for (final (:von, :bis, :ecke) in blendenstuecke(stand, seite))
+            (
+              laenge: von.abstand(bis),
+              hoehe:
+                  anschluss.blendenhoeheAn(seite) ??
+                  _tiefste(flaeche, [
+                    for (final t in _abtastung(von.abstand(bis)))
+                      von + (bis - von) * t,
+                  ]),
+              ecke: ecke,
+              bogen: false,
+            ),
   ];
 }
 
@@ -288,7 +312,11 @@ Anschlussbedarf verblendungsbedarf(
   final meldungen = [
     if (ohneUnterlueftung(stand)) Anschlussmeldung.unterlueftung,
   ];
-  if (stand.anschluss.verblendet.isEmpty || belag == null) {
+  final anschluss = stand.anschluss;
+  if (anschluss.verblendet.isEmpty &&
+          anschluss.eckblenden.isEmpty &&
+          anschluss.aussparungsblenden.isEmpty ||
+      belag == null) {
     return Anschlussbedarf(meldungen: meldungen);
   }
   final staerke = belag.abmessungen.staerke ?? const Millimeter(0);

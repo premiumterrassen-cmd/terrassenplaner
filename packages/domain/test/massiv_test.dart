@@ -749,6 +749,51 @@ void main() {
       expect(auflager.punkte.any((p) => p.ort.abstand(stoss) < 1e-6), isTrue);
     });
 
+    test('Kreis: Rand-UK am Bogen gerade (Regel 16.3), Linien aus '
+        '2-m-Stücken mit Verbindern; jeder Stoß behält trotz Raster '
+        '(Regel 16.4) sein Auflager', () {
+      final stand = Planungsstand.start.mitGrundriss(
+        KreisGrundriss(const Millimeter(4000)),
+      );
+      final uk = ukZuBelag(ecoUk(), _massiv());
+      final v = verlegeBelag(stand, _massiv())!;
+      final verlegung = ukVerlegung(
+        stand,
+        uk,
+        abstand: const Millimeter(400),
+        dielen: [for (final t in v.teile) ...t.stuecke],
+        laengenmix: v.laengenmix,
+      );
+      final stoesse = [
+        for (final l in verlegung.linien)
+          for (final y in l.stoesse) Punkt(l.x, y),
+        for (final r in verlegung.rand)
+          for (final t in r.stoesse) r.von + (r.bis - r.von).einheit * t,
+      ];
+      expect(stoesse, isNotEmpty);
+      // je Stoß ein Verbinder, kein Holz über 2 m
+      expect(
+        verlegung.stuecke.where((s) => s.laenge.mm == 450),
+        hasLength(stoesse.length),
+      );
+      expect(verlegung.stuecke.every((s) => s.laenge.mm <= 2000), isTrue);
+      final auflager = auflagerbedarf(
+        stand,
+        verlegung,
+        uk: uk,
+        abstand: const Millimeter(600),
+        flaeche: Hoehenflaeche(const [Punkt.ursprung], const [Millimeter(100)]),
+        aufbauhoehe: const Millimeter(90),
+      );
+      for (final s in stoesse) {
+        expect(
+          auflager.punkte.any((p) => p.ort.abstand(s) < 1e-6),
+          isTrue,
+          reason: 'Auflager unter dem Stoß $s',
+        );
+      }
+    });
+
     test('Clips + 25 % statt + 5 % (Regel 16.1.2)', () {
       expect(systemdielenClipZuschlag, 25);
       expect(systemdielenClips(100), 125);

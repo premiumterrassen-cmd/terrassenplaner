@@ -5,9 +5,11 @@ library;
 import 'dart:math' as math;
 
 import '../artikel/einheiten.dart';
+import '../ergebnisse/planbild.dart';
 import '../geometrie/kontur.dart';
 import '../geometrie/punkt.dart';
 import '../konfiguration/anschlussergebnis.dart';
+import '../konfiguration/ausschnitt.dart';
 import '../konfiguration/grundriss.dart';
 import '../konfiguration/planungsstand.dart';
 import 'treppen.dart';
@@ -19,15 +21,28 @@ import 'treppen.dart';
   return (von: ecken[seite], bis: ecken[(seite + 1) % ecken.length]);
 }
 
+/// Gerades Stück der Seite [seite] zwischen den Bögen abgerundeter Ecken
+/// (Planungsregeln Alexander (Planungskern v15, 13.11.2026), Regel 17.1:
+/// die Nachbarkanten sind um t gekürzt); ohne Rundung [seitenstrecke].
+({Punkt von, Punkt bis}) geradeStrecke(Planungsstand stand, int seite) {
+  final (:von, :bis) = seitenstrecke(stand, seite);
+  final boegen = stand.rundungen.eckboegen(stand.grundriss);
+  return (
+    von: boegen[seite]?.ende ?? von,
+    bis: boegen[(seite + 1) % stand.seitenzahl]?.start ?? bis,
+  );
+}
+
 /// Verblendete Stücke der Seite [seite]: ohne Teilstücke die ganze Seite,
 /// sonst jedes Teilstück auf die Seite gekürzt (leere fallen weg;
-/// Planungskern v7, Regel 9.4). [ecke]: das Stück beginnt oder endet an
-/// einer Ecke der Seite.
+/// Planungskern v7, Regel 9.4) – an abgerundeten Ecken nur das gerade
+/// Stück ([geradeStrecke]). [ecke]: das Stück beginnt oder endet an einer
+/// Ecke der Seite.
 List<({Punkt von, Punkt bis, bool ecke})> blendenstuecke(
   Planungsstand stand,
   int seite,
 ) {
-  final (:von, :bis) = seitenstrecke(stand, seite);
+  final (:von, :bis) = geradeStrecke(stand, seite);
   final teile = stand.anschluss.teileAn(seite);
   if (teile.isEmpty) return [(von: von, bis: bis, ecke: true)];
   final laenge = von.abstand(bis);
@@ -85,6 +100,36 @@ List<Punkt> bogenzug(Kante b, double von, double bis) {
   return [...teil.zwischenpunkte(bogenToleranz), teil.ende];
 }
 
+/// Verblendete Kanten der Aussparungen von [stand] (Planungsregeln
+/// Alexander (Planungskern v14, 13.11.2026), Regel 16.6) als Strecken –
+/// nur gewählte Kanten leerer Ausschnitte mit Ecken.
+List<({Punkt von, Punkt bis})> aussparungsblendenStrecken(
+  Planungsstand stand,
+) => [
+  for (final k in stand.anschluss.aussparungsblenden)
+    if (stand.ausschnitte.elementAtOrNull(k.ausschnitt) case final a?
+        when a.funktion == Ausschnittfunktion.leer &&
+            a.form != Ausschnittform.kreis &&
+            k.kante < a.kontur.punkte.length)
+      (
+        von: a.kontur.punkte[k.kante],
+        bis: a.kontur.punkte[(k.kante + 1) % a.kontur.punkte.length],
+      ),
+];
+
+/// Die Strecken des Sehnenzugs [zug] als verblendete [Seitenlinie]n der
+/// Seite [seite].
+Iterable<Seitenlinie> _zuglinien(List<Punkt> zug, int seite) sync* {
+  for (var i = 1; i < zug.length; i++) {
+    yield (
+      seite: seite,
+      rolle: Seitenrolle.verblendung,
+      von: zug[i - 1],
+      bis: zug[i],
+    );
+  }
+}
+
 /// Verblendete Teile der Seite [seite] am Bogen [b] als Sehnenzug.
 Iterable<Seitenlinie> _bogenlinien(
   Planungsstand stand,
@@ -92,15 +137,7 @@ Iterable<Seitenlinie> _bogenlinien(
   Kante b,
 ) sync* {
   for (final (von, bis) in bogenteile(stand, seite, b.laenge)) {
-    final zug = bogenzug(b, von, bis);
-    for (var i = 1; i < zug.length; i++) {
-      yield (
-        seite: seite,
-        rolle: Seitenrolle.verblendung,
-        von: zug[i - 1],
-        bis: zug[i],
-      );
-    }
+    yield* _zuglinien(bogenzug(b, von, bis), seite);
   }
 }
 
@@ -147,6 +184,18 @@ Anschlussergebnis anschlussergebnis(
             von: umriss[i],
             bis: umriss[(i + 1) % umriss.length],
           ),
+      // Planungskern v15 Regel 17.3 / v14 Regel 16.6: nur gewählte
+      for (final MapEntry(key: ecke, value: b)
+          in stand.rundungen.eckboegen(stand.grundriss).entries)
+        if (stand.anschluss.eckblendeAn(ecke))
+          ..._zuglinien(bogenzug(b, 0, b.laenge), eckbogenSeite(ecke)),
+      for (final (:von, :bis) in aussparungsblendenStrecken(stand))
+        (
+          seite: aussparungsseite,
+          rolle: Seitenrolle.verblendung,
+          von: von,
+          bis: bis,
+        ),
       ...linien([
         for (final r in stand.anschluss.rinnen) r.seite,
       ], Seitenrolle.rinne),

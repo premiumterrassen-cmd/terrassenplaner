@@ -106,8 +106,12 @@ int _anzahl(Anschlussbedarf b, Artikel a, int laenge) => b.bedarf
     .where((m) => m.einheiten.first == a && m.laenge?.mm == laenge)
     .fold(0, (s, m) => s + m.stueck);
 
+/// F01: 480 × 309 cm.
+const _r480 = RechteckGrundriss.start;
+
 void main() {
   _seitenblendeJeKante();
+  _eckenUndAussparungen();
   _blendeAmBogen();
   group('Verblendete Seiten im Planungsstand (M7-02)', () {
     const f01 = Planungsstand.start;
@@ -1081,6 +1085,208 @@ void _blendeAmBogen() {
         ),
         isTrue,
       );
+    });
+  });
+}
+
+/// Planungsregeln Alexander (Planungskern v15, 13.11.2026), Regel 17.3, und
+/// Planungskern v14, Regel 16.6: Blende am Bogen einer abgerundeten Ecke und
+/// an Aussparungskanten – nur, wenn ausgewählt.
+void _eckenUndAussparungen() {
+  group('Blende an abgerundeten Ecken und Aussparungen (Planungskern '
+      'v14/v15)', () {
+    final rund = Planungsstand(
+      grundriss: _r480,
+      rundungen: Rundungen.keine.mitEcke(2, const Millimeter(1000)),
+    ).mitVerblendet(1, an: true).mitVerblendet(2, an: true);
+
+    test('gerade Seiten nur bis zum Bogen; der Bogen nur, wenn gewählt', () {
+      expect(
+        [for (final s in blendenstrecken(rund, _vier)) s.laenge.round()],
+        [2090, 3800],
+      );
+      final mitBogen = rund.mitEckblende(2, an: true);
+      final strecken = blendenstrecken(mitBogen, _vier);
+      expect(strecken.first.laenge, closeTo(math.pi / 2 * 1000, 1e-6));
+      expect(strecken.first.bogen, isTrue);
+      expect(strecken.first.ecke, isFalse);
+      expect(strecken.first.hoehe, const Millimeter(86));
+      expect(strecken, hasLength(3));
+      // ein Bogen allein: 16 Stücke à 100 mm, keine Träger
+      final nurBogen = Planungsstand(
+        grundriss: _r480,
+        rundungen: mitBogen.rundungen,
+      ).mitEckblende(2, an: true);
+      final b = verblendungsbedarf(
+        nurBogen,
+        hoehen: _vier,
+        belag: _belag,
+        regelwerk: _serie,
+        uk: _uk,
+      );
+      expect(b.blenden, hasLength(16));
+      expect(b.stuecke, isEmpty);
+      expect(b.meldungen, [Anschlussmeldung.bogenblende]);
+      // Blende einer Ecke ohne Rundung wirkt nicht
+      expect(
+        blendenstrecken(nurBogen.mitRundungen(Rundungen.keine), _vier),
+        isEmpty,
+      );
+      expect(
+        () => rund.mitEckblende(1, an: true),
+        throwsA(
+          isA<ArgumentError>()
+              .having((e) => e.name, 'name', 'ecke')
+              .having((e) => e.message, 'message', 'ist nicht abgerundet'),
+        ),
+      );
+      expect(mitBogen.mitEckblende(2, an: false).anschluss, rund.anschluss);
+    });
+
+    test('Kante einer Aussparung mit Gehrung, nur wenn gewählt', () {
+      final loch = const Planungsstand(grundriss: _r480).mitNeuemAusschnitt();
+      expect(
+        verblendungsbedarf(loch, hoehen: _vier, belag: _belag).bedarf,
+        isEmpty,
+      );
+      final kante = (ausschnitt: 0, kante: 1);
+      final mit = loch.mitAussparungsblende(kante, an: true);
+      expect(mit.anschluss.aussparungsblendeAn(kante), isTrue);
+      final s = blendenstrecken(mit, _vier).single;
+      expect(s.laenge, 1200);
+      expect(s.ecke, isTrue);
+      expect(s.bogen, isFalse);
+      final b = verblendungsbedarf(
+        mit,
+        hoehen: _vier,
+        belag: _belag,
+        regelwerk: _serie,
+        uk: _uk,
+      );
+      // 1200 mm + Gehrungszugabe, 4 Träger
+      expect(b.blenden, [(_b80, const Millimeter(1250))]);
+      expect(b.stuecke, hasLength(4));
+      // Linie für die Zeichnung
+      final linien = anschlussergebnis(mit).seiten;
+      expect(linien.single.seite, aussparungsseite);
+      expect(linien.single.rolle, Seitenrolle.verblendung);
+      expect(linien.single.von.abstand(linien.single.bis), 1200);
+      // andere Ausschnitte: ohne Blenden an Aussparungen
+      expect(mit.mitNeuemAusschnitt().anschluss.aussparungsblenden, isEmpty);
+      expect(
+        mit
+            .mitAusschnitt(0, mit.ausschnitte[0].mitForm(Ausschnittform.kreis))
+            .anschluss
+            .aussparungsblenden,
+        isEmpty,
+      );
+      expect(
+        mit
+            .mitAusschnitt(
+              0,
+              mit.ausschnitte[0].mitFunktion(Ausschnittfunktion.andererBelag),
+            )
+            .anschluss
+            .aussparungsblenden,
+        isEmpty,
+      );
+      final verschoben = mit.mitAusschnitt(
+        0,
+        mit.ausschnitte[0].mitMass(0, const Millimeter(500)),
+      );
+      expect(verschoben.anschluss.aussparungsblenden, [kante]);
+      // eine veraltete Kante wirkt nicht
+      final alt = const Planungsstand(
+        grundriss: _r480,
+        anschluss: Anschluss(aussparungsblenden: [(ausschnitt: 0, kante: 0)]),
+      );
+      expect(aussparungsblendenStrecken(alt), isEmpty);
+      for (final falsch in [
+        (ausschnitt: 1, kante: 0),
+        (ausschnitt: 0, kante: 4),
+        (ausschnitt: 0, kante: 5),
+        (ausschnitt: 0, kante: -1),
+      ]) {
+        expect(
+          () => loch.mitAussparungsblende(falsch, an: true),
+          throwsA(
+            isA<ArgumentError>()
+                .having((e) => e.name, 'name', 'kante')
+                .having(
+                  (e) => e.invalidValue,
+                  'invalidValue',
+                  '${falsch.ausschnitt}/${falsch.kante}',
+                )
+                .having(
+                  (e) => e.message,
+                  'message',
+                  'keine Kante einer Aussparung',
+                ),
+          ),
+        );
+      }
+      for (final anders in [
+        loch.mitAusschnitt(
+          0,
+          loch.ausschnitte[0].mitForm(Ausschnittform.kreis),
+        ),
+        loch.mitAusschnitt(
+          0,
+          loch.ausschnitte[0].mitFunktion(Ausschnittfunktion.andererBelag),
+        ),
+      ]) {
+        expect(
+          () => anders.mitAussparungsblende(kante, an: true),
+          throwsA(isA<ArgumentError>()),
+        );
+        expect(
+          aussparungsblendenStrecken(
+            Planungsstand(
+              grundriss: _r480,
+              ausschnitte: anders.ausschnitte,
+              anschluss: const Anschluss(
+                aussparungsblenden: [(ausschnitt: 0, kante: 1)],
+              ),
+            ),
+          ),
+          isEmpty,
+        );
+      }
+    });
+
+    test('Kreis: Umfang und Aussparung', () {
+      final kreis = Planungsstand.start
+          .mitGrundriss(KreisGrundriss.vorgabe)
+          .mitNeuemAusschnitt()
+          .mitAussparungsblende((ausschnitt: 0, kante: 0), an: true);
+      expect(
+        [
+          for (final s in blendenstrecken(kreis, _vier.take(1).toList()))
+            s.laenge,
+        ],
+        [1800],
+      );
+      final beides = kreis.mitVerblendet(0, an: true);
+      expect(blendenstrecken(beides, _vier.take(1).toList()), hasLength(2));
+    });
+
+    test('Bogen der Ecke in der Zeichnung als Sehnenzug', () {
+      final linien = anschlussergebnis(rund.mitEckblende(2, an: true)).seiten;
+      final bogen = [
+        for (final l in linien)
+          if (l.seite == eckbogenSeite(2)) l,
+      ];
+      expect(bogen.length, greaterThan(1));
+      expect(bogen.first.von, rund.rundungen.eckboegen(_r480)[2]!.start);
+      expect(
+        bogen.last.bis.abstand(rund.rundungen.eckboegen(_r480)[2]!.ende),
+        lessThan(1e-6),
+      );
+      expect(
+        geradeStrecke(rund, 1).bis,
+        rund.rundungen.eckboegen(_r480)[2]!.start,
+      );
+      expect(geradeStrecke(rund, 0), seitenstrecke(rund, 0));
     });
   });
 }

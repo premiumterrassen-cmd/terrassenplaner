@@ -186,11 +186,12 @@ final class UkVerlegung {
 ///   abweichen, je Sehne eine.
 /// - **UK am Bogen des Umrisses** (Planungsregeln Alexander (Planungskern
 ///   v12, 12.11.2026), Regel 14.2, `_bogenUk`): die Linien laufen bis an
-///   den Bogen; die Rand-UK ist ein Polygonzug mit den Knicken an den
-///   Lattenenden (jedes Stück von Latte zu Latte, dort ohne eigenes
-///   Auflager) und weiteren Knicken, bis er höchstens [bogenKnickToleranz]
-///   vom Bogen abweicht; Stücke parallel zu den Dielen oder auf einer
-///   Linie entfallen. Je Knick an einem Lattenende ein Riegel zur
+///   den Bogen; die Rand-UK ist ein Polygonzug mit den Knicken nur an den
+///   Lattenenden – gerade von Lattenende zu Lattenende, dort ohne eigenes
+///   Auflager (Planungsregeln Alexander (Planungskern v14, 13.11.2026),
+///   Regel 16.3, ersetzt die Zwischenknicke bis 1,2 cm aus 14.2.4: die
+///   Rundung wird am Ende oben über die Dielen gesägt); Stücke parallel zu
+///   den Dielen oder auf einer Linie entfallen. Je Knick an einem Lattenende ein Riegel zur
 ///   Nachbarlatte, die über den Knick hinausreicht ([UkVerlegung.riegel]).
 /// - **Stöße der UK und Lieferlängen:** ein Abschnitt über der längsten
 ///   Lieferlänge wird gestückelt (`ukStueckelung`, 1000 cm → 600 + 400 cm
@@ -407,10 +408,6 @@ UkVerlegung ukVerlegung(
   );
 }
 
-/// Größte Abweichung (mm) des Polygonzugs der Rand-UK vom Bogen (Regel
-/// 14.2.4: höchstens ca. 1,2 cm).
-const bogenKnickToleranz = 12.0;
-
 /// Ein Rand-UK-Stück am Bogen unter dieser Länge (mm) entfällt, ebenso
 /// eines, das quer zu den Dielen weniger als [_bogenQuerMin] reicht – dort
 /// enden keine Dielen.
@@ -429,9 +426,8 @@ const _riegelSpiel = 50.0;
 const _amBogen = 1.0;
 
 /// Rand-UK und Riegel an den [boegen] des Umrisses (gedrehte Fläche,
-/// Regel 14.2): Knicke an den Enden der [linien] auf dem Bogen, dazu
-/// weitere, bis jedes Stück höchstens [bogenKnickToleranz] vom Bogen
-/// abweicht; je Stück eine Rand-UK eine halbe Breite [w] innen (die Fläche
+/// Regel 14.2, 16.3): Knicke nur an den Enden der [linien] auf dem Bogen;
+/// je Stück eine Rand-UK eine halbe Breite [w] innen (die Fläche
 /// liegt [links] der Umlaufrichtung oder rechts), außer es läuft parallel
 /// zu den Dielen oder liegt schon auf einer Linie. Riegel je Knick an
 /// einem Lattenende zur nächsten Nachbarlatte, die über den Knick
@@ -483,12 +479,10 @@ const _amBogen = 1.0;
 }
 
 /// Knicke des Polygonzugs auf dem Bogen [b]: Anfang, die Enden der
-/// [latten] auf dem Bogen ([latte] = Nummer der Latte), Ende; dazwischen
-/// weitere, bis jedes Stück höchstens [bogenKnickToleranz] vom Bogen
-/// abweicht.
+/// [latten] auf dem Bogen ([latte] = Nummer der Latte), Ende – keine
+/// weiteren (Regel 16.3: gerade von Lattenende zu Lattenende).
 List<({Punkt ort, int? latte})> _knicke(Kante b, List<UkLinie> latten) {
   final mitte = b.mittelpunkt;
-  final r = b.radius;
   final w = b.winkel;
   double anteil(Punkt p) {
     final ab = (p - mitte).richtung - (b.start - mitte).richtung;
@@ -502,21 +496,11 @@ List<({Punkt ort, int? latte})> _knicke(Kante b, List<UkLinie> latten) {
           if (b.abstand(p) <= _amBogen)
             if (anteil(p) case final t when t > 0 && t < 1) (t, k, p),
   ]..sort((a, b) => a.$1.compareTo(b.$1));
-  final knicke = [(0.0, null, b.start), ...enden, (1.0, null, b.ende)];
-  final schritt = 2 * math.acos(math.max(-1, 1 - bogenKnickToleranz / r));
-  final punkte = <({Punkt ort, int? latte})>[(ort: b.start, latte: null)];
-  for (var i = 1; i < knicke.length; i++) {
-    final ((t0, _, _), (t1, latte, ort)) = (knicke[i - 1], knicke[i]);
-    final n = (w.abs() * (t1 - t0) / schritt).ceil();
-    for (var j = 1; j < n; j++) {
-      punkte.add((
-        ort: b.start.gedreht(w * (t0 + (t1 - t0) * j / n), mitte),
-        latte: null,
-      ));
-    }
-    punkte.add((ort: ort, latte: latte));
-  }
-  return punkte;
+  return [
+    (ort: b.start, latte: null),
+    for (final (_, latte, ort) in enden) (ort: ort, latte: latte),
+    (ort: b.ende, latte: null),
+  ];
 }
 
 /// Liegt das Stück [a]–[c] schon auf einer Linie (alle Prüfpunkte im

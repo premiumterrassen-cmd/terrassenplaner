@@ -156,6 +156,7 @@ class VerblendungWahl extends StatelessWidget {
               waehlbar: (seite) => !anschluss.grenztAn(seite),
               onGewaehlt: _setze,
             ),
+          _zusatzblenden(context, stand),
           for (final seite in anschluss.verblendet)
             BlendeJeSeite(
               key: ValueKey('blende-$seite'),
@@ -177,6 +178,79 @@ class VerblendungWahl extends StatelessWidget {
       );
     },
   );
+}
+
+/// Blende am Bogen abgerundeter Ecken (Planungskern v15, Regel 17.3) und an
+/// Kanten leerer Aussparungen (Planungskern v14, Regel 16.6) – nur, wenn
+/// hier gewählt. Die Namen (Buchstaben) kommen vom Server.
+extension on VerblendungWahl {
+  Widget _zusatzblenden(BuildContext context, Planungsstand stand) {
+    final t = context.texte;
+    final planbild = berechnung?.ergebnis?.planbild ?? Planbild.leer;
+    final ecken = [
+      for (final ecke in stand.rundungen.ecken.keys.toList()..sort())
+        if (stand.eckeRundbar(ecke)) ecke,
+    ];
+    String bogenname(int ecke) {
+      final namen = [
+        for (final p in planbild.umrisspunkte)
+          if (p.ecke == ecke) eckbuchstabe(p.buchstabe),
+      ];
+      return namen.isEmpty ? stand.grundriss.eckname(ecke) : namen.join('–');
+    }
+
+    final kanten = [
+      for (final (k, a) in stand.ausschnitte.indexed)
+        if (a.funktion == Ausschnittfunktion.leer &&
+            a.form != Ausschnittform.kreis)
+          for (var kante = 0; kante < a.kontur.punkte.length; kante++)
+            (
+              kante: (ausschnitt: k, kante: kante),
+              name: t.verblendungAussparung(
+                a.bezeichnung,
+                aussparungskante(planbild.aussparungsecken, k, kante) ??
+                    '${kante + 1}',
+              ),
+            ),
+    ];
+    if (ecken.isEmpty && kanten.isEmpty) return const SizedBox.shrink();
+    final anschluss = stand.anschluss;
+    void setze(Planungsstand neu) {
+      planung.setze(neu);
+      onGeaendert();
+    }
+
+    return Column(
+      key: const ValueKey('zusatzblenden'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(t.verblendungZusatzFrage),
+        Wrap(
+          spacing: PlanerAbstand.klein,
+          children: [
+            for (final ecke in ecken)
+              FilterChip(
+                key: ValueKey('eckblende-$ecke'),
+                label: Text(t.verblendungBogen(bogenname(ecke))),
+                selected: anschluss.eckblendeAn(ecke),
+                onSelected: (an) =>
+                    setze(planung.aktuell.mitEckblende(ecke, an: an)),
+              ),
+            for (final (:kante, :name) in kanten)
+              FilterChip(
+                key: ValueKey(
+                  'aussparungsblende-${kante.ausschnitt}-${kante.kante}',
+                ),
+                label: Text(name),
+                selected: anschluss.aussparungsblendeAn(kante),
+                onSelected: (an) =>
+                    setze(planung.aktuell.mitAussparungsblende(kante, an: an)),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
 }
 
 /// Seitenblende je Seite (Planungskern v7, Regel 9.4): eigene Blendenhöhe

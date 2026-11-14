@@ -159,6 +159,46 @@ void main() {
     });
   });
 
+  group('Ecke abrunden (Planungskern v15, Regel 17)', () {
+    test('Hohlkehle „innen“ je Ecke, Ziehen behält sie, größter Radius', () {
+      final s = _bedienung();
+      s.b
+        ..oeffne()
+        ..waehle((ecke: true, nummer: 2));
+      expect(s.b.innen, isFalse);
+      // ohne Rundung kehrt der Haken nichts um
+      s.b.setzeInnen((ecke: true, nummer: 2), innen: true);
+      expect(s.planung.aktuell.rundungen.leer, isTrue);
+      expect(s.geaendert, isEmpty);
+      expect(s.b.groessterRadius(2), const Millimeter(3600));
+      expect(s.b.setze((ecke: true, nummer: 2), const Millimeter(500)), isTrue);
+      expect(s.planung.aktuell.rundungen.ecken[2], const Millimeter(-500));
+      s.b.setzeInnen((ecke: true, nummer: 2), innen: false);
+      expect(s.planung.aktuell.rundungen.ecken[2], const Millimeter(500));
+      s.b.setzeInnen((ecke: true, nummer: 2), innen: true);
+      s.b.waehle((ecke: false, nummer: 0));
+      expect(s.b.innen, isFalse);
+      s.b.waehle((ecke: true, nummer: 2));
+      expect(s.b.innen, isTrue);
+      // Ziehen: der Betrag wächst, innen bleibt
+      s.b
+        ..ziehe(
+          (ecke: true, nummer: 2),
+          Punkt.ursprung,
+          const Punkt(1, 0),
+          beginn: true,
+        )
+        ..ziehe(
+          (ecke: true, nummer: 2),
+          const Punkt(100, 0),
+          const Punkt(1, 0),
+          beginn: false,
+        );
+      expect(s.planung.aktuell.rundungen.ecken[2], const Millimeter(-600));
+      expect(s.b.groessterRadius(1), const Millimeter(3000));
+    });
+  });
+
   group('Radius je Seite (Planungskern v12, Regel 14.1.2)', () {
     test('Radius mit Haken innen, Halbkreis, unzulässig', () {
       final s = _bedienung();
@@ -173,16 +213,16 @@ void main() {
       // kleiner als die halbe Seite (180 cm): Halbkreis
       expect(s.b.setzeRadius(1, const Millimeter(1500)), isTrue);
       expect(s.b.halbkreis, isTrue);
-      s.b.setzeInnen(1, innen: true);
+      s.b.setzeInnen((ecke: false, nummer: 1), innen: true);
       expect(s.b.innen, isTrue);
       expect(s.planung.aktuell.rundungen.radien[1], const Millimeter(-1500));
       expect(s.geaendert, [0, 1, 2]);
-      s.b.setzeInnen(1, innen: false);
+      s.b.setzeInnen((ecke: false, nummer: 1), innen: false);
       expect(s.planung.aktuell.rundungen.radien[1], const Millimeter(1500));
       // beide langen Seiten als Halbkreis nach innen: überschneiden sich
       s.b.waehle((ecke: false, nummer: 0));
       expect(s.b.innen, isFalse);
-      s.b.setzeInnen(0, innen: true);
+      s.b.setzeInnen((ecke: false, nummer: 0), innen: true);
       expect(s.b.innen, isTrue);
       expect(s.geaendert, hasLength(4), reason: 'ohne Rundung kein Schritt');
       expect(s.b.setzeRadius(0, const Millimeter(100)), isTrue);
@@ -207,16 +247,16 @@ void main() {
         ..oeffne()
         ..waehle((ecke: false, nummer: 3));
       expect(s.b.innen, isFalse);
-      s.b.setzeInnen(3, innen: true);
+      s.b.setzeInnen((ecke: false, nummer: 3), innen: true);
       expect(s.planung.aktuell.rundungen.seiten[3], const Millimeter(-300));
-      s.b.setzeInnen(3, innen: false);
+      s.b.setzeInnen((ecke: false, nummer: 3), innen: false);
       expect(s.planung.aktuell.rundungen.seiten[3], const Millimeter(300));
       // C — D 185 cm nach innen, A — B ebenso: überschneiden sich
       s.b
         ..waehle((ecke: false, nummer: 2))
         ..setze((ecke: false, nummer: 0), const Millimeter(1850));
       expect(s.b.innen, isTrue);
-      s.b.setzeInnen(0, innen: true);
+      s.b.setzeInnen((ecke: false, nummer: 0), innen: true);
       expect(s.planung.aktuell.rundungen.seiten[0], const Millimeter(1850));
     });
 
@@ -285,8 +325,18 @@ void main() {
       expect(find.text('Radius: cm'), findsOneWidget);
       await gib(tester, '100');
       expect(s.planung.aktuell.rundungen.ecken[1], const Millimeter(1000));
+      // Planungskern v15, Regel 17.1.5: Meldung mit dem größten Radius
       await gib(tester, '500');
-      expect(find.text('Diese Rundung ist nicht möglich.'), findsOneWidget);
+      expect(
+        find.text('Radius zu groß – an dieser Ecke höchstens 360 cm.'),
+        findsOneWidget,
+      );
+      // Hohlkehle „innen“ (Regel 17.1.4)
+      expect(find.text('innen (Hohlkehle um die Ecke)'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('rundung-innen')));
+      await tester.pump();
+      expect(s.planung.aktuell.rundungen.ecken[1], const Millimeter(-1000));
+      expect(s.b.innen, isTrue);
       await tester.tap(find.byKey(const ValueKey('rundung-entfernen')));
       await tester.pump();
       expect(s.planung.aktuell.rundungen.leer, isTrue);
@@ -398,19 +448,26 @@ void main() {
       final r = s.planung.aktuell.rundungen.ecken[0]!.mm;
       expect(r, closeTo(707, 1));
       expect(find.text('Ecke A'), findsOneWidget);
+      // Planungskern v15, Regel 17.1.6: neben der abgerundeten Ecke keine
+      // Seitengriffe
+      expect(find.byKey(const ValueKey('rundung-seite-0')), findsNothing);
+      expect(find.byKey(const ValueKey('rundung-seite-3')), findsNothing);
       // Seitengriff sitzt auf dem Bogen: nach Ziehen weiter greifbar
       await tester.drag(
-        find.byKey(const ValueKey('rundung-seite-0')),
-        const Offset(0, -30),
+        find.byKey(const ValueKey('rundung-seite-1')),
+        const Offset(30, 0),
       );
       await tester.pumpAndSettle();
-      expect(s.planung.aktuell.rundungen.seiten[0], const Millimeter(300));
-      await tester.tap(find.byKey(const ValueKey('rundung-seite-0')));
+      expect(s.planung.aktuell.rundungen.seiten[1], const Millimeter(300));
+      await tester.tap(find.byKey(const ValueKey('rundung-seite-1')));
       await tester.pumpAndSettle();
-      expect(find.text('Seite ab A'), findsOneWidget);
-      await tester.tap(find.byKey(const ValueKey('rundung-ecke-1')));
+      expect(find.text('Seite ab B'), findsOneWidget);
+      // an der gewölbten Seite keine Eckgriffe mehr
+      expect(find.byKey(const ValueKey('rundung-ecke-1')), findsNothing);
+      expect(find.byKey(const ValueKey('rundung-ecke-2')), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('rundung-ecke-3')));
       await tester.pumpAndSettle();
-      expect(find.text('Ecke B'), findsOneWidget);
+      expect(find.text('Ecke D'), findsOneWidget);
     });
 
     testWidgets('Griffe folgen dem Zoom', (tester) async {

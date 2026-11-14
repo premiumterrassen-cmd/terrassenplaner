@@ -1,5 +1,7 @@
 # Paritätsbericht (M10-01)
 
+> **Nachtrag 13.11.2026 (Rundungen und Ecken, Planungskern v14/v15, Branch `feature/planungskern-v15-ecken-rundung`):** Abschnitt [Rundungen und Ecken](#nachtrag-rundungen-und-ecken-planungskern-v14v15-13112026) unten – verglichene Werte unverändert.
+>
 > **Nachtrag 11.11.2026 (Planungskern v6, Branch `feature/planungskern-belag-befestigung`):** Fuge 6 statt 5 mm und neue Befestigung (Anfangs- und Enddiele verschraubt, Clips + 5 %) – Abschnitt [Planungskern v6](#nachtrag-planungskern-v6-11112026) unten.
 >
 > **Nachtrag 12.11.2026 (Auflager aus der Höhe und Stellfüße an der Hauswand, Branch `feature/planungskern-auflager-hoehe`):** keine Änderung der verglichenen Werte – Abschnitt [Auflager aus der Höhe](#nachtrag-auflager-aus-der-höhe-planungskern-v6-12112026) unten.
@@ -348,9 +350,20 @@ Branch `fix/m5-05-stoesse-am-rand` auf `main` (0acf7cb). Entscheidung Alexander 
 | F04 | UK | 7 × 5000 + 8 × 4000 | 5 × 5000 + 8 × 4000 | 2 × 5500 + 3 × 5000 + 5 × 4500 + 3 × 4000 | Rand-UK (wie bisher); ohne Stoßlinie keine Doppel-UK durch A |
 | F04 | Clips | 900 | 750 | 850 | Befestigung (wie bisher); weniger Kreuzungen ohne Doppel-UK |
 
+## Nachtrag Rundungen und Ecken (Planungskern v14/v15, 13.11.2026)
+
+Branch `feature/planungskern-v15-ecken-rundung` (M10-01q). `paritaet_test.dart` läuft unverändert grün: keine der verglichenen Größen ändert sich.
+
+Ohne die neuen Vorgaben (Ecke „innen“, Blende an Eckbogen/Aussparung) ändern sich bestehende Planungen nur dort, wo die Regeln es verlangen:
+
+- **Regel 16.3 (R-C60):** An Bögen des Umrisses hat die Rand-UK keine Zwischenknicke mehr – weniger, längere Rand-UK-Stücke (Kreis Ø 3,60 m: 16 statt 32 Stücke, alle von Lattenende zu Lattenende). Die UK-Mengen dieser Fälle ändern sich; F19 weicht in der UK schon seit Planungskern v12 begründet ab (Grund „Planungskern v12“, Text ergänzt: 16 statt 32 Rand-UK-Stücke).
+- **Regel 16.4 (R-C61):** Rand-UK-Auflager im Umkreis von 25 cm um ein vorhandenes Auflager entfallen – betrifft jede Planung mit Rand-UK (schräge Kanten, Ausschnitte, diagonale Verlegung, Bögen): weniger Stellfüße/Pads/Unterleger. Auflager werden im Paritätstest nicht verglichen (siehe Verfahren).
+- **Regel 16.6 (R-E61):** Ecken leerer Aussparungen tragen in Plan und App Buchstaben (nur Darstellung).
+- **Regel 17.1.6:** Eine Eckrundung neben einer gewölbten Seite (bisher erlaubt, M4-11) wird abgewiesen (Frage 133); kein Referenzfall nutzt sie.
+
 ## Nachtrag MASSIV-UK „ECO MASSIV“ (Planungsregeln v14/v15, 13.11.2026)
 
-Branch `feature/planungskern-v15-massiv-uk` auf `main` (dcc0110). Planungsregeln Alexander v14/v15, Regeln 16.1.1–16.1.3 und 18 (R-B53, R-B54, R-C52, R-C53, R-E51): UK zu MASSIV in 2,00 m als „Unterkonstruktion Robinie ECO MASSIV …, ohne Keilzinkung“ mit Längsverbindern 45 cm je Stoß, Clips + 25 %, Längenmix auch in Reihen bis 2,0 m.
+Branch `feature/planungskern-v15-massiv-uk` auf `main` (dcc0110, danach mit `main` ee80a9d – Rundungen und Ecken – zusammengeführt). Planungsregeln Alexander v14/v15, Regeln 16.1.1–16.1.3 und 18 (R-B53, R-B54, R-C52, R-C53, R-E51): UK zu MASSIV in 2,00 m als „Unterkonstruktion Robinie ECO MASSIV …, ohne Keilzinkung“ mit Längsverbindern 45 cm je Stoß, Clips + 25 %, Längenmix auch in Reihen bis 2,0 m.
 
 - **Vergleich:** Kein Referenzfall und keine Referenzkonfiguration nutzt MASSIV-Systemdielen – alle F01–F43 und alle 26 Referenzfälle rechnen unverändert wie auf `main`. Die Änderungen wirken nur bei Belägen der Serie MASSIV (Unit-Tests `massiv_test.dart`, Planungsdienst-Test „UK ECO MASSIV“).
 - **Fragen 100 und 105** (MASSIV-UK, MASSIV ohne UK-Artikel) sind damit teilweise beantwortet: Die UK zu MASSIV bleibt die ECO-UK, jetzt in 2,00 m mit eigenem Namen; offen bleiben ein eigener Artikel (Frage 120), die Schrauben der Längsverbinder (121), die Lage der Stöße zum Auflagerraster (122), der Angebotstext (Regel 16.1.4, 123) und der Clip-Zuschlag ohne UK (124) in [10](../fachkonzept/10-offene-fragen.md).

@@ -74,13 +74,49 @@ void main() {
     expect(l.flaeche, closeTo(14580000 + 300 * 300 * (1 - math.pi / 4), 1e-3));
   });
 
-  test('Ecke und angrenzende Seite zugleich', () {
-    final k = Rundungen.keine
-        .mitEcke(1, const Millimeter(1000))
-        .mitSeite(0, const Millimeter(200))
-        .kontur(_r540);
-    expect(k.punkte, hasLength(5));
-    expect(k.flaeche, greaterThan(19440000 - 1000 * 1000 * (1 - math.pi / 4)));
+  test('Ecke nur mit zwei geraden Nachbarkanten (Planungskern v15, Regel '
+      '17.1.6)', () {
+    for (final seite in [0, 1]) {
+      final mitBogen = Rundungen.keine
+          .mitEcke(1, const Millimeter(1000))
+          .mitSeite(seite, const Millimeter(200));
+      expect(
+        () => mitBogen.kontur(_r540),
+        wirftArgumentFehler(
+          'ecke',
+          1000,
+          'an der Ecke B liegt schon ein Bogen',
+        ),
+      );
+      expect(mitBogen.rundbar(_r540, 1), isFalse);
+      expect(mitBogen.rundbar(_r540, 3), isTrue);
+      final mitRadius = Rundungen.keine
+          .mitRadius(seite, const Millimeter(9000))
+          .mitEcke(1, const Millimeter(1000), innen: true);
+      expect(
+        () => mitRadius.kontur(_r540),
+        wirftArgumentFehler(
+          'ecke',
+          -1000,
+          'an der Ecke B liegt schon ein Bogen',
+        ),
+      );
+      expect(mitRadius.rundbar(_r540, 1), isFalse);
+    }
+    // an der Ecke davor bzw. danach zählt die Seite nicht
+    final r = Rundungen.keine.mitSeite(2, const Millimeter(200));
+    expect(r.rundbar(_r540, 1), isTrue);
+    expect(r.rundbar(_r540, 2), isFalse);
+    expect(r.rundbar(_r540, 3), isFalse);
+    // ein gestreckter Punkt ist keine Ecke
+    final gestreckt = FreiformGrundriss(const [
+      Punkt(0, 0),
+      Punkt(2000, 0),
+      Punkt(4000, 0),
+      Punkt(4000, 3000),
+    ], geschlossen: true);
+    expect(Rundungen.keine.rundbar(gestreckt, 1), isFalse);
+    expect(Rundungen.keine.rundbar(gestreckt, 2), isTrue);
   });
 
   test('unzulässige Rundungen werden abgewiesen (Abnahme M4-11)', () {
@@ -91,9 +127,15 @@ void main() {
           .kontur(_r540),
       wirftArgumentFehler('ecke', 3000, 'Rundung zu groß für die Kante A—B'),
     );
+    // t = Kantenlänge ist erlaubt (Regel 17.1.5), 5 mm mehr auch, darüber
+    // nicht
     expect(
-      () => Rundungen.keine.mitEcke(1, const Millimeter(3600)).kontur(_r540),
-      wirftArgumentFehler('ecke', 3600, 'Rundung zu groß für die Kante B—C'),
+      () => Rundungen.keine.mitEcke(1, const Millimeter(3606)).kontur(_r540),
+      wirftArgumentFehler('ecke', 3606, 'Rundung zu groß für die Kante B—C'),
+    );
+    expect(
+      Rundungen.keine.mitEcke(1, const Millimeter(3605)).kontur(_r540).punkte,
+      hasLength(4),
     );
     expect(
       () => Rundungen.keine.mitSeite(1, const Millimeter(-2000)).kontur(_r540),
@@ -240,10 +282,11 @@ void main() {
         r.mitRadius(0, const Millimeter(-4000)).radien[0],
         const Millimeter(4000),
       );
-      final mitEcke = r.mitEcke(1, const Millimeter(1000));
+      final mitEcke = r.mitEcke(2, const Millimeter(1000));
       final boegen = mitEcke.seitenboegen(_r540);
       expect(boegen.keys, [0]);
-      expect(boegen[0]!.ende.gleich(const Punkt(4400, 0)), isTrue);
+      expect(boegen[0]!.ende.gleich(const Punkt(5400, 0)), isTrue);
+      expect(mitEcke.eckboegen(_r540).keys, [2]);
       expect(Rundungen.keine.seitenboegen(_r540), isEmpty);
       expect(r.seitenboegen(KreisGrundriss.vorgabe), isEmpty);
       expect(
@@ -333,8 +376,9 @@ void main() {
         _r540.mitMass(1, const Millimeter(900)),
       );
       expect(zuKlein.rundungen, Rundungen.keine);
+      // andere Form: die Ecke A liegt noch am selben Ort (Regel 17.6)
       final andereEcken = stand.mitGrundriss(LGrundriss.vorgabe);
-      expect(andereEcken.rundungen, Rundungen.keine);
+      expect(andereEcken.rundungen, rund);
       expect(stand.mitForm(Terrassenform.lForm).rundungen, Rundungen.keine);
       expect(stand.gedreht(90).rundungen, Rundungen.keine);
       // ohne Rundungen bleibt auch eine offene Freiform unberührt
