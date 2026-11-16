@@ -16,18 +16,17 @@ import 'package:terrassenplaner_app/src/verbindung/planer_verbindung.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import 'package:terrassenplaner_server/terrassenplaner_server.dart';
 
+import 'freie_adresse.dart';
+
 /// Ende-zu-Ende gegen einen echten Router mit Hallo-Dienst (M0-12).
 void main() {
   test('hallo() liefert die Begrüßung des Servers', () async {
-    final health = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
-    final healthPort = health.port;
-    await health.close();
     final router = PlanerRouter.starte(
       RouterEinstellungen(
         authToken: 't',
         dienstTicket: 'k',
         port: 0,
-        healthListen: '127.0.0.1:$healthPort',
+        healthListen: await freieAdresse(),
       ),
     );
     addTearDown(router.stoppe);
@@ -129,15 +128,12 @@ void main() {
   test(
     'Speichern, Laden und Entwurf über den Konfigurationsdienst (M9-05)',
     () async {
-      final health = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
-      final healthPort = health.port;
-      await health.close();
       final router = PlanerRouter.starte(
         RouterEinstellungen(
           authToken: 't',
           dienstTicket: 'k',
           port: 0,
-          healthListen: '127.0.0.1:$healthPort',
+          healthListen: await freieAdresse(),
         ),
       );
       addTearDown(router.stoppe);
@@ -255,7 +251,7 @@ void main() {
           authToken: _token,
           dienstTicket: _ticket,
           port: 0,
-          healthListen: await _freieAdresse(),
+          healthListen: await freieAdresse(),
           authAdresse: auth.adresse,
         ),
       );
@@ -350,15 +346,12 @@ void main() {
   test(
     'zu aufwendige Planung: eigener Fehler, andere Fehler bleiben (M10-02)',
     () async {
-      final health = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
-      final healthPort = health.port;
-      await health.close();
       final router = PlanerRouter.starte(
         RouterEinstellungen(
           authToken: 't',
           dienstTicket: 'k',
           port: 0,
-          healthListen: '127.0.0.1:$healthPort',
+          healthListen: await freieAdresse(),
         ),
       );
       addTearDown(router.stoppe);
@@ -445,18 +438,11 @@ const _ticket = 'test-dienst-ticket';
 const _email = 'anna@example.test';
 const _passwort = 'richtig-langes-passwort';
 
-Future<String> _freieAdresse() async {
-  final socket = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
-  final port = socket.port;
-  await socket.close();
-  return '127.0.0.1:$port';
-}
-
 /// Auth-Server als eigener Prozess aus dem Server-Paket (Delegation im
 /// selben Prozess geht nicht, docs/erkenntnisse/authentifizierung.md) mit
 /// einem Testkonto – Konten nur im Arbeitsspeicher.
 Future<({Process prozess, String adresse})> _starteAuthServer() async {
-  final adresse = await _freieAdresse();
+  final adresse = await freieAdresse();
   final prozess = await Process.start(
     'dart',
     ['run', 'bin/auth_server.dart'],
@@ -465,7 +451,7 @@ Future<({Process prozess, String adresse})> _starteAuthServer() async {
       'PLANER_AUTH_TOKEN': _token,
       'PLANER_AUTH_DIENST_TICKET': _ticket,
       'PLANER_AUTH_LISTEN': adresse,
-      'PLANER_AUTH_HEALTH_LISTEN': await _freieAdresse(),
+      'PLANER_AUTH_HEALTH_LISTEN': await freieAdresse(),
     },
   );
   final bereit = Completer<void>();

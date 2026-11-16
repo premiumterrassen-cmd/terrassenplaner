@@ -1,13 +1,13 @@
 @Timeout(Duration(minutes: 2))
 library;
 
-import 'dart:io';
-
 import 'package:connectanum_client/connectanum.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:terrassenplaner_app/src/artikel/artikel_quelle.dart';
 import 'package:terrassenplaner_domain/terrassenplaner_domain.dart';
 import 'package:terrassenplaner_server/terrassenplaner_server.dart';
+
+import 'freie_adresse.dart';
 
 Artikeleintrag _diele(String nummer) => Artikeleintrag(
   artikel: Artikel(
@@ -44,15 +44,12 @@ void main() {
   late ArtikelQuelle quelle;
 
   setUp(() async {
-    final health = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
-    final healthPort = health.port;
-    await health.close();
     router = PlanerRouter.starte(
       RouterEinstellungen(
         authToken: 't',
         dienstTicket: 'k',
         port: 0,
-        healthListen: '127.0.0.1:$healthPort',
+        healthListen: await freieAdresse(),
       ),
     );
     dienst = await ArtikelDienst.starte(
