@@ -112,3 +112,9 @@ Die Frist allein reichte nicht: Der nächste Lauf brach wieder in `dielenverlegu
 **Lösung:** `frist.sh` startet den Befehl mit `set -m` in einer eigenen Prozessgruppe und beendet bei Ablauf, bei SIGTERM von `mutation_test` und nach dem Ende des Befehls die ganze Gruppe. Geprüft in `tool/mutation_auswahl_test.sh`.
 
 
+
+## Feste Testports unterhalb der flüchtigen Ports (16.11.2026, #139)
+
+Im Vollauf vom 15.11.2026 brach ein app-Teil schon beim Lauf mit unverändertem Code ab: Der Router konnte seinen Health-Listener nicht binden (`NativeTransportException … Failed to create router listener`). Die Tests ermittelten den Port mit `ServerSocket.bind(…, 0)`, schlossen ihn und banden ihn danach erneut. Solche Ports stammen aus dem Bereich der flüchtigen Ports, den das System auch für ausgehende Verbindungen paralleler Tests vergibt. In der Lücke zwischen Prüfen und Binden konnte also ein anderer Test den Port belegen. Die nächste Nacht war auf demselben Commit grün.
+
+`freieAdresse()` (`packages/server/test/hilfen.dart`, `packages/app/test/freie_adresse.dart`) würfelt deshalb einen Port zwischen 20000 und 32000 und prüft ihn. Das liegt unter dem Beginn der flüchtigen Ports unter Linux (32768) und unter macOS (49152). Die App-Datei ist eine eigene Datei, weil `test/hilfe.dart` auch im Browser-Smoke läuft und dort kein `dart:io` verfügbar ist.
