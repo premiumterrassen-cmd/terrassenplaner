@@ -1,7 +1,6 @@
 @Timeout(Duration(minutes: 2))
 library;
 
-
 import 'package:connectanum_client/connectanum.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:terrassenplaner_app/src/artikel/artikel_quelle.dart';
